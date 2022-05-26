@@ -1965,12 +1965,12 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: { 
-        width: "90%", 
-        position: "absolute",  
-        justifyContent: "space-between", 
-        alignItems: "center", 
-        flexDirection: "row"
+    attachmentModalArrowsContainer: {
+        width: '90%',
+        position: 'absolute',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexDirection: 'row',
     },
 
     attachmentModalArrowsIcon: {
@@ -1978,8 +1978,8 @@ const styles = {
         paddingRight: 5,
         paddingBottom: 5,
         paddingLeft: 7,
-        backgroundColor: "lightgrey",
-        borderRadius: "100%"
+        backgroundColor: 'lightgrey',
+        borderRadius: '100%',
     },
 
     detailsPageSectionVersion: {

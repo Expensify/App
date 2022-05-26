@@ -658,7 +658,7 @@ const CONST = {
         NON_NUMERIC: /\D/g,
 
         // extract attachment's source from the data's html string
-        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,        
+        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
     },
 
     PRONOUNS: {

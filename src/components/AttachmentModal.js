@@ -7,7 +7,6 @@ import _ from 'lodash';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import Modal from './Modal';
-import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import AttachmentView from './AttachmentView';
 import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
@@ -22,7 +21,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
 import HeaderGap from './HeaderGap';
-
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -54,11 +52,6 @@ const propTypes = {
     /** Title shown in the header of the modal */
     headerTitle: PropTypes.string,
 
-    /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    reportId: PropTypes.string,
-
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -67,29 +60,28 @@ const propTypes = {
 const defaultProps = {
     sourceURL: null,
     onConfirm: null,
-    originalFileName: "",
+    originalFileName: '',
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
-    reportActions: {},
-    reportId: null,
     onModalHide: () => {},
 };
 
 class AttachmentModal extends PureComponent {
     constructor(props) {
         super(props);
-            
+
         this.state = {
             page: -1,
             attachments: [],
             isModalOpen: false,
             isConfirmModalOpen: false,
-            file: {name: lodashGet(props, "originalFileName", "")},
+            reportId: null,
+            file: {name: lodashGet(props, 'originalFileName', '')},
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
         };
-        
+
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
@@ -98,42 +90,29 @@ class AttachmentModal extends PureComponent {
 
     // this prevents a bug in iOS that would show the last image before closing then opening on a new image
     static getDerivedStateFromProps(props, state) {
-        if(state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
-            console.log(props.originalFileName);
+        if (state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
             return {
                 prevIsModalOpen: true,
-                file: {name: lodashGet(props, "originalFileName", "")},
-                sourceURL: lodashGet(props, "sourceURL", "")
-            }
-        } else if(!state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
-            return {
-                prevIsModalOpen: false
-            }
+                file: {name: lodashGet(props, 'originalFileName', '')},
+                sourceURL: lodashGet(props, 'sourceURL', ''),
+            };
         }
 
-        return null
+        if (!state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
+            return {prevIsModalOpen: false};
+        }
+
+        return null;
     }
 
     /**
      * callback in used in AttachmentCarousel to delegate when a user presses an arrow
      * @param {Object} attachmentItem
      */
-    onArrowPress(attachmentItem){
-        const sourceURL = lodashGet(attachmentItem, "sourceURL", "")
-        const file = lodashGet(attachmentItem, "file", {name: ""})
-        this.setState({sourceURL, file})
-    }
-
-    /**
-     * Returns the filename split into fileName and fileExtension
-     * @returns {Object}
-     */
-    splitExtensionFromFileName() {
-        const fullFileName = lodashGet(this.state, 'file.name', '').trim();
-        const splittedFileName = fullFileName.split('.');
-        const fileExtension = splittedFileName.pop();
-        const fileName = splittedFileName.join('.');
-        return {fileName, fileExtension};
+    onArrowPress(attachmentItem) {
+        const sourceURL = lodashGet(attachmentItem, 'sourceURL', '');
+        const file = lodashGet(attachmentItem, 'file', {name: ''});
+        this.setState({sourceURL, file});
     }
 
     /**
@@ -148,6 +127,18 @@ class AttachmentModal extends PureComponent {
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
         return modalType;
+    }
+
+    /**
+     * Returns the filename split into fileName and fileExtension
+     * @returns {Object}
+     */
+    splitExtensionFromFileName() {
+        const fullFileName = lodashGet(this.state, 'file.name', '').trim();
+        const splittedFileName = fullFileName.split('.');
+        const fileExtension = splittedFileName.pop();
+        const fileName = splittedFileName.join('.');
+        return {fileName, fileExtension};
     }
 
     /**
@@ -183,7 +174,6 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-
         const sourceURL = this.props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
@@ -222,11 +212,11 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={attachmentViewStyles}>
-                        <>                        
-                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />                                                                     
-                            {this.state.reportId && ( 
-                                <AttachmentCarousel 
-                                    reportId={this.state.reportId}                                    
+                        <>
+                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
+                            {this.state.reportId && (
+                                <AttachmentCarousel
+                                    reportId={this.state.reportId}
                                     onArrowPress={this.onArrowPress}
                                     sourceURL={this.state.sourceURL}
                                 />
@@ -275,11 +265,12 @@ class AttachmentModal extends PureComponent {
                         }
                     },
                     show: () => {
-                        const showState = {isModalOpen: true}
-                        const route = Navigation.getActiveRoute()
-                        if(route.includes("/r/"))
-                            showState.reportId = route.replace('/r/', "")
-                        this.setState(showState)
+                        const showState = {isModalOpen: true};
+                        const route = Navigation.getActiveRoute();
+                        if (route.includes('/r/')) {
+                            showState.reportId = route.replace('/r/', '');
+                        }
+                        this.setState(showState);
                     },
                 })}
             </>
