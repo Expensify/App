@@ -13,7 +13,7 @@ const propTypes = {
 };
 
 const InlineSystemMessage = (props) => {
-    if (props.message.length() === 0) {
+    if (props.message.length === 0) {
         return;
     }
     return (
@@ -25,5 +25,5 @@ const InlineSystemMessage = (props) => {
 };
 
 InlineSystemMessage.propTypes = propTypes;
-InlineSystemMessage.displayName = 'InlineErrorText';
+InlineSystemMessage.displayName = 'InlineSystemMessage';
 export default InlineSystemMessage;
