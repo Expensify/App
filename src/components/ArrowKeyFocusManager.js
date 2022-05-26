@@ -17,11 +17,7 @@ const propTypes = {
     maxIndex: PropTypes.number.isRequired,
 
     /** A callback executed when the focused input changes. */
-    onFocusedIndexChanged: PropTypes.func,
-};
-
-const defaultProps = {
-    onFocusedIndexChanged: () => {},
+    onFocusedIndexChanged: PropTypes.func.isRequired,
 };
 
 class ArrowKeyFocusManager extends Component {
@@ -76,6 +72,5 @@ class ArrowKeyFocusManager extends Component {
 }
 
 ArrowKeyFocusManager.propTypes = propTypes;
-ArrowKeyFocusManager.defaultProps = defaultProps;
 
 export default ArrowKeyFocusManager;
