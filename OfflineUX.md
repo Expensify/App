@@ -56,7 +56,7 @@ Used when…
  - there is no error handling in the server and
  - the user does not need to know when the change is done on the server in the background
 
-How to implement: Use API.queue() to implement this pattern. 
+How to implement: Use API.write() to implement this pattern. 
 
 # B - Optimistic WITH Feedback Pattern
 This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet.
@@ -65,7 +65,7 @@ Used when…
  - the user needs feedback that data is being synced to the server
 This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
-How to implement: Use API.queue() to implement this pattern. 
+How to implement: Use API.write() to implement this pattern. 
 
 # C - Blocking Form UI Pattern
 This pattern blocks the user from interacting with an entire page.
