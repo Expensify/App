@@ -95,7 +95,25 @@ class AttachmentModal extends PureComponent {
         this.isValidSize = this.isValidSize.bind(this);
         this.onArrowPress = this.onArrowPress.bind(this);
     }
-    
+
+    // this prevents a bug in iOS that would show the last image before closing then opening on a new image
+    static getDerivedStateFromProps(props, state) {
+        if(state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
+            console.log(props.originalFileName);
+            return {
+                prevIsModalOpen: true,
+                file: {name: lodashGet(props, "originalFileName", "")},
+                sourceURL: lodashGet(props, "sourceURL", "")
+            }
+        } else if(!state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
+            return {
+                prevIsModalOpen: false
+            }
+        }
+
+        return null
+    }
+
     /**
      * callback in used in AttachmentCarousel to delegate when a user presses an arrow
      * @param {Object} attachmentItem
