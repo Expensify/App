@@ -176,11 +176,11 @@ class OptionsSelector extends Component {
                     return;
                 }
 
+                this.selectRow(focusedOption);
+
                 if (!this.props.canSelectMultipleOptions) {
                     return;
                 }
-
-                this.selectRow(focusedOption);
 
                 // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
                 this.scrollToIndex(0);
@@ -325,7 +325,8 @@ class OptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent) && !_.isEmpty(this.props.selectedOptions);
+        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent)
+            && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
             ? this.props.translate('common.confirm')
             : this.props.confirmButtonText;
