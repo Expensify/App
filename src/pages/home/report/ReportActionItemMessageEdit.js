@@ -72,6 +72,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.saveButtonID = 'saveButton';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -212,7 +213,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         onBlur={(event) => {
                             // Return to prevent re-render when save button is pressed which cancels the onPress event by re-rendering
-                            if (lodashGet(event, 'nativeEvent.relatedTarget.id') === 'saveButton') {
+                            if (lodashGet(event, 'nativeEvent.relatedTarget.id') === this.saveButtonID) {
                                 return;
                             }
 
@@ -240,11 +241,10 @@ class ReportActionItemMessageEdit extends React.Component {
                     <Button
                         small
                         success
-                        nativeID="saveButton"
+                        nativeID={this.saveButtonID}
                         style={[styles.mr2]}
                         onPress={() => {
                             this.publishDraft();
-                            toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         text={this.props.translate('common.saveChanges')}
                     />
