@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import {Image, View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
