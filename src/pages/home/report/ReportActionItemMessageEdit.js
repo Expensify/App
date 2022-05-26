@@ -214,8 +214,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         onBlur={(event) => {
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            const nativeID = lodashGet(event, 'nativeEvent.relatedTarget.id');
-                            if (_.contains([this.saveButtonID, this.cancelButtonID], nativeID)) {
+                            if (_.contains([this.saveButtonID, this.cancelButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
                                 return;
                             }
 
@@ -246,9 +245,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         success
                         nativeID={this.saveButtonID}
                         style={[styles.mr2]}
-                        onPress={() => {
-                            this.publishDraft();
-                        }}
+                        onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
                 </View>
