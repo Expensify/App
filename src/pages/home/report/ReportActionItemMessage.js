@@ -9,7 +9,6 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import networkPropTypes from '../../../components/networkPropTypes';
-import InlineSystemMessage from "../../../components/InlineSystemMessage";
 
 const propTypes = {
     /** The report action */
@@ -28,7 +27,6 @@ const ReportActionItemMessage = (props) => {
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
             {_.map(_.compact(props.action.message), (fragment, index) => (
-                <>
                 <ReportActionItemFragment
                     key={`actionFragment-${props.action.sequenceNumber}-${index}`}
                     fragment={fragment}
@@ -36,10 +34,6 @@ const ReportActionItemMessage = (props) => {
                     attachmentInfo={props.action.attachmentInfo}
                     loading={props.action.loading}
                 />
-                <InlineSystemMessage
-                    message={'This is the error message, yeah'}
-                />
-                </>
             ))}
         </View>
     );
