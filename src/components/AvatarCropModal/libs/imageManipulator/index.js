@@ -28,7 +28,7 @@ function sizeFromAngle(width, height, angle) {
  * @param {Number} degrees
  * @returns {Object}
 */
-function rotate(canvas, degrees) {
+function rotateCanvas(canvas, degrees) {
     const {width, height} = sizeFromAngle(canvas.width, canvas.height, degrees);
 
     const result = document.createElement('canvas');
@@ -53,7 +53,7 @@ function rotate(canvas, degrees) {
  * @param {Object} options
  * @returns {Object}
 */
-function crop(canvas, options) {
+function cropCanvas(canvas, options) {
     let {
         originX = 0, originY = 0, width = 0, height = 0,
     } = options;
@@ -129,9 +129,9 @@ function imageManipulator(uri, actions, options) {
         loadImageAsync(uri).then((originalCanvas) => {
             const resultCanvas = _.reduce(actions, (canvas, action) => {
                 if ('crop' in action) {
-                    return crop(canvas, action.crop);
+                    return cropCanvas(canvas, action.crop);
                 } if ('rotate' in action) {
-                    return rotate(canvas, action.rotate);
+                    return rotateCanvas(canvas, action.rotate);
                 }
                 return canvas;
             }, originalCanvas);
