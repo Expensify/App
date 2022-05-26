@@ -108,7 +108,7 @@ The numbers in this section correlate to the numbers in each decision box above 
 
 1. Does the feature interact with the server?
 
-If you’re changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES.
+If you’re changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES. Note: sometimes you may see reqeusts that happen to fire at the same time as the feature you're working on, so be sure to double check. 
 If you’re making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored to, or retrieved from the server, then the answer is YES.
 
 2. What type of request is being made?
