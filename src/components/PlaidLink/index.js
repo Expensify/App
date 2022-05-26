@@ -8,21 +8,36 @@ const PlaidLink = (props) => {
         props.onSuccess({publicToken, metadata});
     }, []);
 
-    const {open, ready, error} = usePlaidLink({
-        token: props.token,
-        onSuccess,
-        onExit: (exitError, metadata) => {
-            Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
-            props.onExit();
-        },
-        onEvent: (event, metadata) => {
-            Log.info('[PlaidLink] Event: ', false, {event, metadata});
-        },
+    const {
+        open,
+        ready,
+        error,
+    } = usePlaidLink(
+        {
+            token: props.token,
+            onSuccess,
+            onExit: (exitError, metadata) => {
+                Log.info('[PlaidLink] Exit: ', false, {
+                    exitError,
+                    metadata,
+                });
+                props.onExit();
+            },
+            onEvent: (event, metadata) => {
+                Log.info('[PlaidLink] Event: ', false, {
+                    event,
+                    metadata,
+                });
+            },
 
-        // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
-        // user to their respective bank platform
-        receivedRedirectUri: props.receivedRedirectURI,
-    });
+            // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
+            // user to their respective bank platform
+            receivedRedirectUri: props.receivedRedirectURI,
+        },
+        {
+            forceMobile: true,
+        },
+    );
 
     useEffect(() => {
         if (error) {
