@@ -255,7 +255,7 @@ class AvatarWithImagePicker extends React.Component {
                     shouldShowCancelButton={false}
                 />
                 <AvatarCropModal
-                    onClose={() => this.setState({isAvatarCropModalOpen: false, image: null})}
+                    onClose={() => this.setState({isAvatarCropModalOpen: false})}
                     isVisible={this.state.isAvatarCropModalOpen}
                     onSave={image => this.updateAvatarImage(image)}
                     imageUri={lodashGet(this.state.image, 'uri')}
