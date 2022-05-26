@@ -73,14 +73,6 @@ const HeaderView = (props) => {
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    // let title;
-    // if (isChatRoom) {
-    //     title = props.report.reportName;
-    // } else if (isPolicyExpenseChat) {
-    //     title = Report.getPolicyExpenseChatTitle(props.report);
-    // } else {
-    //     title = _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
-    // }
     const title = ReportUtils.getReportName(props.report, participantPersonalDetails, props.policies);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
