@@ -346,9 +346,9 @@ class IOUConfirmationList extends Component {
     render() {
         const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
-        const selectedParticipants = this.getSelectedParticipants();
+        //const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
+        const shouldDisableButton = this.props.network.isOffline;
         const isLoading = this.props.iou.loading && !this.props.network.isOffline;
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
