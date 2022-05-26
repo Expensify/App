@@ -35,48 +35,7 @@ The example we just looked at is nice and simple, but some actions should use th
 
 2. In other cases, we may be able to guess what a successful request would look like, but we don't want to misguide the user into believing their action was completed. For example, we don't want the user to believe that a financial transaction has been made when it actually hasn't. 
 
-To handle these problems (and some problems we haven't mentioned yet) we have developed handy offline patterns and provided guidance on when to use them. These are called the Offline UX Patterns, which are explained below.
-
-### UX Pattern Flow Chart
-
-The following flowchart can be used to determine which UX pattern should be used. This diagram is a useful reference, but may not make sense if you aren't already familiar with the patterns. If this is your first time reading, we recommend you head straight for the [Descriptions of the UX Patterns](#descriptions-of-the-ux-patterns) section.
-
-![New Expensify Data Flow Chart](/web/OfflineUX_Patterns_Flowchart.png)
-
-### Answering Questions on the Flow Chart
-
-The numbers in this section correlate to the numbers in each decision box above (the diamond shapes).
-
-1. Does the feature interact with the server?
-
-If you’re changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES.
-If you’re making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored to, or retrieved from the server, then the answer is YES.
-
-2. What type of request is being made?
-
-This question can be answered by thinking about what’s happening in the server. If there’s new data being saved on the server, you’re making a WRITE request. If you’re retrieving existing data from the server, you’re making a READ request. 
-
-3. Is it OK for the user to see stale data?
-
-Example: the payment method list. We don't want the user to see a payment method that we no longer support, not even while the payment methods are being loaded from the server (or while the user is offline). Therefore, we answer NO, which leads us to the blocking UI. This way the user won't see stale data while we load the payment methods.
-
-4. Is the UI a form?
-
-Any easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out form inputs, answer YES to this question.
-
-5. Can the server response be anticipated?
-
-Assuming that the request succeeds when it’s sent to the server, do you know what would the request return? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing (example: a list of bank accounts from Plaid, input validation that the client isn't able to perform like re-using an existing password when resetting a password). Answer YES if you can anticipate what the response from the server would be. 
-
-6. Is there validation done on the server?
-
-If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to the previous question (5) is YES (we could imagine that the server returns a 200 and we would know what the next page would look like). However, our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
-
-This question can be tricky, so if you’re unsure, please ask a question in #expensify-open-source and tag the contributor management engineer team.
-
-7. Does the user need to know if the action was successful?
-
-Think back to the pinning example from above: the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
+To handle problems like this, we have developed offline patterns and guidance on when to use them. These are called the Offline UX Patterns, which are explained below.
 
 ### Descriptions of the UX Patterns
 
@@ -136,3 +95,44 @@ Note: This pattern will only be used in the following flows, and since it is use
 2. Adding a bank account (eg. https://new.expensify.com/workspace/4EA57948DC3347F9/bank-account)
 
 What: This pattern blocks the user from interacting with an entire page.
+
+### UX Pattern Flow Chart
+
+The following flowchart can be used to determine which UX pattern should be used. This diagram is a useful reference, but may not make sense if you aren't already familiar with the patterns. If this is your first time reading, we recommend you head straight for the [Descriptions of the UX Patterns](#descriptions-of-the-ux-patterns) section.
+
+![New Expensify Data Flow Chart](/web/OfflineUX_Patterns_Flowchart.png)
+
+### Answering Questions on the Flow Chart
+
+The numbers in this section correlate to the numbers in each decision box above (the diamond shapes).
+
+1. Does the feature interact with the server?
+
+If you’re changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES.
+If you’re making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored to, or retrieved from the server, then the answer is YES.
+
+2. What type of request is being made?
+
+This question can be answered by thinking about what’s happening in the server. If there’s new data being saved on the server, you’re making a WRITE request. If you’re retrieving existing data from the server, you’re making a READ request. 
+
+3. Is it OK for the user to see stale data?
+
+Example: the payment method list. We don't want the user to see a payment method that we no longer support, not even while the payment methods are being loaded from the server (or while the user is offline). Therefore, we answer NO, which leads us to the blocking UI. This way the user won't see stale data while we load the payment methods.
+
+4. Is the UI a form?
+
+Any easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out form inputs, answer YES to this question.
+
+5. Can the server response be anticipated?
+
+Assuming that the request succeeds when it’s sent to the server, do you know what would the request return? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing (example: a list of bank accounts from Plaid, input validation that the client isn't able to perform like re-using an existing password when resetting a password). Answer YES if you can anticipate what the response from the server would be. 
+
+6. Is there validation done on the server?
+
+If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to the previous question (5) is YES (we could imagine that the server returns a 200 and we would know what the next page would look like). However, our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
+
+This question can be tricky, so if you’re unsure, please ask a question in #expensify-open-source and tag the contributor management engineer team.
+
+7. Does the user need to know if the action was successful?
+
+Think back to the pinning example from above: the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider the case of sending a comment. In this example, the user needs to know if their comment was actually sent, because they may need to know if the person they sent it to can read it. In this case our answer is YES.
