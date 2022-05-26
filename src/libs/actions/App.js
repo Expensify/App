@@ -2,7 +2,7 @@ import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
@@ -49,13 +49,13 @@ function setCurrentURL(url) {
 */
 function setLocale(locale) {
     if (currentUserAccountID) {
-        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+        DeprecatedAPI.PreferredLocale_Update({name: 'preferredLocale', value: locale});
     }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
 function getLocale() {
-    API.Get({
+    DeprecatedAPI.Get({
         returnValueList: 'nameValuePairs',
         nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
     }).then((response) => {
@@ -91,9 +91,10 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  *
  * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
+ * @param {Boolean} shouldSyncVBA Set to false if we are calling on reconnect.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true) {
+function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
     getLocale();
@@ -102,8 +103,11 @@ function getAppData(shouldSyncPolicyList = true) {
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
     GeoLocation.fetchCountryCodeByRequestIP();
-    BankAccounts.fetchFreePlanVerifiedBankAccount();
     BankAccounts.fetchUserWallet();
+
+    if (shouldSyncVBA) {
+        BankAccounts.fetchFreePlanVerifiedBankAccount();
+    }
 
     if (shouldSyncPolicyList) {
         Policy.getPolicyList();
@@ -116,8 +120,23 @@ function getAppData(shouldSyncPolicyList = true) {
     ]);
 }
 
+/**
+ * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
+ * because some migrations might create new chat reports or their change data.
+ */
+function fixAccountAndReloadData() {
+    DeprecatedAPI.User_FixAccount()
+        .then((response) => {
+            if (!response.changed) {
+                return;
+            }
+            Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
+            getAppData(false);
+        });
+}
+
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(getAppData);
+NetworkConnection.onReconnect(() => getAppData(true, false));
 
 export {
     setCurrentURL,
@@ -125,4 +144,5 @@ export {
     setSidebarLoaded,
     getLocale,
     getAppData,
+    fixAccountAndReloadData,
 };

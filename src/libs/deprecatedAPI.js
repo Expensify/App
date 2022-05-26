@@ -23,6 +23,9 @@ Request.use(Middleware.Reauthentication);
 // Retry - Handles retrying any failed requests.
 Request.use(Middleware.Retry);
 
+// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
+Request.use(Middleware.SaveResponseInOnyx);
+
 /**
  * @param {Object} parameters
  * @returns {Promise}
@@ -516,6 +519,16 @@ function User_UploadAvatar(parameters) {
 }
 
 /**
+ * Runs command that will fix malformed data in a users account and also run migrations.
+ *
+ * @returns {Promise}
+ */
+function User_FixAccount() {
+    const commandName = 'User_FixAccount';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {Number} parameters.accountID
  * @param {String} parameters.validateCode
@@ -969,6 +982,7 @@ export {
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
+    User_FixAccount,
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,

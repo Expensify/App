@@ -19,9 +19,6 @@ const propTypes = {
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    /** Can the set of participants be adjusted? */
-    canModifyParticipants: PropTypes.bool.isRequired,
-
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
@@ -44,6 +41,9 @@ const propTypes = {
 
     /** IOU type */
     iouType: PropTypes.string,
+
+    /** Is this IOU associated with existing report */
+    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -62,7 +62,7 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
-        canModifyParticipants={props.canModifyParticipants}
+        isIOUAttachedToExistingChatReport={props.isIOUAttachedToExistingChatReport}
     />
 );
 

@@ -59,6 +59,9 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
+    /** Is this IOU associated with existing report */
+    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -197,6 +200,7 @@ class IOUConfirmationList extends Component {
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
+                isDisabled: true,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedParticipants,
@@ -338,6 +342,7 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = this.state.selectedParticipants.length === 0 || this.props.network.isOffline;
         const recipient = this.state.participants[0];
+        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
         return (
             <OptionsSelector
                 sections={this.state.sections}
@@ -349,14 +354,14 @@ class IOUConfirmationList extends Component {
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                disableArrowKeysActions={!this.props.canModifyParticipants}
+                disableArrowKeysActions={!canModifyParticipants}
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions
                 shouldShowOfflineMessage
-                optionHoveredStyle={this.props.canModifyParticipants ? styles.hoveredComponentBG : {}}
+                optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={shouldShowSettlementButton
                     ? (
                         <SettlementButton

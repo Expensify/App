@@ -26,6 +26,8 @@ import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ROUTES from '../../ROUTES';
+import networkPropTypes from '../../components/networkPropTypes';
+import {withNetwork} from '../../components/OnyxProvider';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -49,6 +51,9 @@ const propTypes = {
         // Local Currency Code of the current user
         localCurrencyCode: PropTypes.string,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
@@ -138,11 +143,15 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        PersonalDetails.fetchLocalCurrency();
+        this.fetchData();
         IOU.setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.fetchData();
+        }
+
         // Successfully close the modal if transaction creation has ended and there is no error
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
             Navigation.dismissModal();
@@ -213,6 +222,10 @@ class IOUModal extends Component {
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
+    }
+
+    fetchData() {
+        PersonalDetails.fetchLocalCurrency();
     }
 
     /**
@@ -434,11 +447,7 @@ class IOUModal extends Component {
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-
-                                                // Note: We do not allow participants to be adjusted if this was opened from the global create menu,
-                                                // because if a user reaches the confirm step from that flow, they've already hand-picked the participants.
-                                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                                canModifyParticipants={this.steps.length === 2}
+                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}
@@ -457,6 +466,7 @@ IOUModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
