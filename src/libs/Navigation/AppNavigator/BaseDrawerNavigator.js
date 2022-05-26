@@ -53,7 +53,7 @@ class BaseDrawerNavigator extends Component {
         const content = (
             <Drawer.Navigator
                 backBehavior="none"
-                key={`BaseDrawerNavigator${this.props.isSmallScreenWidth}`}
+                key="BaseDrawerNavigator"
                 defaultStatus={this.state.defaultStatus}
                 sceneContainerStyle={styles.navigationSceneContainer}
                 drawerContent={this.props.drawerContent}
