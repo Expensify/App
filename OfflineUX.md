@@ -24,12 +24,12 @@ When a user clicks the pin button <img style="height: 10px; width: 10px; filter:
 
 1. **API Request:** We send a request to the API to ensure the change is saved in the database. 
 
-2. **UI Changes:** The chat should go to the top of the list with the other pinned chats, and the pin button should look darker than it did before. This is the user’s visual feedback that clicking the pin button worked.
+2. **UI Changes:** The chat should go to the top of the list with the other pinned chats, and the pin button should look darker than it did before. This is visual feedback that clicking the pin button worked.
 
 If the user is offline, we don't need to wait for the API request to finish before doing all that visual stuff because this particular API request has almost no way of failing and we know what the server will return in advance. That means we can safely assume that when we send the command, it will succeed and that's why we let the user continue using the app as if the action succeeded.
 </div>
 
-The example we just looked at is nice and simple, but what about something more complicated, like requesting money from another user? What about paying another user? Or even worse, removing a user from a workspace? For these types of actions, we can’t simply proceed as if the request already finished. Here are some reasons why:
+The example we just looked at is nice and simple, but some actions should use this apporach (example: requesting money from another user). For these types of actions, we can’t simply proceed as if the request already finished. Here are some reasons why:
 
 1. In some instances, we simply wouldn't know _how_ to proceed because of a lack of information (often the server returns data that we wouldn't be able to guess the content of). 
 
