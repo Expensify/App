@@ -25,11 +25,12 @@ const WorkspaceInvoicesPage = props => (
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
     >
-        {(hasVBA, policyID) => (
+        {(isLoadingVBA, hasVBA, policyID) => (
             <>
-                {!hasVBA ? (
+                {!isLoadingVBA && !hasVBA && (
                     <WorkspaceInvoicesNoVBAView policyID={policyID} />
-                ) : (
+                )}
+                {!isLoadingVBA && hasVBA && (
                     <WorkspaceInvoicesVBAView policyID={policyID} />
                 )}
             </>
