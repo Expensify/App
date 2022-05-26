@@ -63,7 +63,10 @@ const AvatarCropModal = (props) => {
     const [sliderLineWidth, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
 
     // An onLayout callback, that initializes the image container, for proper render of an image
-    const initializeImageContainer = useCallback(event => setImageContainerSize(event.nativeEvent.layout.width), []);
+    const initializeImageContainer = useCallback((event) => {
+        const {height, width} = event.nativeEvent.layout;
+        setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
+    }, []);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
     const initializeSliderContainer = useCallback(event => setSliderContainerSize(event.nativeEvent.layout.width), []);
@@ -174,8 +177,8 @@ const AvatarCropModal = (props) => {
         onActive: (event, context) => {
             const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderLineWidth]);
             const newScale = ((newSliderValue / sliderLineWidth)
-            * (CONST.AVATAR_CROP_MODAL.MAX_SCALE - CONST.AVATAR_CROP_MODAL.MIN_SCALE))
-            + CONST.AVATAR_CROP_MODAL.MIN_SCALE;
+                * (CONST.AVATAR_CROP_MODAL.MAX_SCALE - CONST.AVATAR_CROP_MODAL.MIN_SCALE))
+                + CONST.AVATAR_CROP_MODAL.MIN_SCALE;
 
             const differential = newScale / scale.value;
 

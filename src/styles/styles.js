@@ -2514,6 +2514,7 @@ const styles = {
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
+        alignSelf: 'center',
     },
 
     sliderKnob: {
