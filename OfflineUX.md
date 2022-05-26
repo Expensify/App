@@ -77,7 +77,7 @@ Used when…
  - If the request is moving money 
  - If the request is related to security
 
-What: This pattern greys out the submit button on a form and does not allow the form to be submitted. Importantly, we do let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
+What: This pattern greys out the submit button on a form and does not allow the form to be submitted. We also show a "You appear offline" message near the bottom of the screen. Importantly, we do let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
 
 When: This should be used when we cannot allow the user to submit the form while offline.
 
@@ -89,10 +89,6 @@ Used when…
  - the app is offline and the data cannot be fetched
  - an error occurs when fetching the data and the user needs instructions on what to do next
 This should only be used in the most extreme cases when all other options have been completely and utterly exhausted
-
-Note: This pattern will only be used in the following flows, and since it is used very minimally, a very simple solution will be used which does not provide any method of enforcing the pattern.
-1. Listing payment methods (eg. https://new.expensify.com/settings/payments)
-2. Adding a bank account (eg. https://new.expensify.com/workspace/4EA57948DC3347F9/bank-account)
 
 What: This pattern blocks the user from interacting with an entire page.
 
