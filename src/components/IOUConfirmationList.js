@@ -33,9 +33,6 @@ const propTypes = {
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    /** Can the set of participants be adjusted? */
-    canModifyParticipants: PropTypes.bool,
-
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
@@ -105,7 +102,6 @@ const defaultProps = {
     comment: '',
     myPersonalDetails: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    canModifyParticipants: true,
 };
 
 class IOUConfirmationList extends Component {
@@ -343,14 +339,15 @@ class IOUConfirmationList extends Component {
             <OptionsSelector
                 sections={this.state.sections}
                 value={this.props.comment}
-                onSelectRow={this.props.canModifyParticipants ? this.toggleOption : undefined}
+                onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
                 textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                disableArrowKeysActions={!this.props.canModifyParticipants}
+                disableArrowKeysActions={!canModifyParticipants}
+                isDisabled={!canModifyParticipants}
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
                 autoFocus

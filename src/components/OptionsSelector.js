@@ -70,6 +70,9 @@ const propTypes = {
     /** Whether to allow arrow key actions on the list */
     disableArrowKeysActions: PropTypes.bool,
 
+    /** Whether to disable interactivity of option rows */
+    isDisabled: PropTypes.bool,
+
     /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
@@ -136,6 +139,7 @@ const defaultProps = {
     optionHoveredStyle: styles.hoveredComponentBG,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
+    isDisabled: false,
 };
 
 class OptionsSelector extends Component {
@@ -348,6 +352,7 @@ class OptionsSelector extends Component {
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
+                isDisabled={this.props.isDisabled}
             />
         ) : <FullScreenLoadingIndicator />;
         return (
