@@ -45,7 +45,7 @@ To handle problems like this, we have developed offline patterns and guidance on
 
 Used when…
  - there is no interaction with the server in any way
- - or data is READ from the server and does not need to show up- to- date data. The user will see stale data until the new data is put into Onyx and then the view updates to show the new data. 
+ - or data is READ from the server and does not need to show up-to-date data. The user will see stale data until the new data is put into Onyx and then the view updates to show the new data. 
 
 # A - Optimistic Without Feedback Pattern
 
@@ -113,11 +113,11 @@ If you’re making a new feature, think about whether any data would need to be 
 
 2. What type of request is being made?
 
-This question can be answered by thinking about what’s happening in the server. If there’s new data being saved on the server, you’re making a WRITE request. If you’re retrieving existing data from the server, you’re making a READ request. 
+If there’s new data being saved on the server, you’re making a WRITE request. If you’re retrieving existing data from the server, you’re making a READ request. 
 
 3. Is it OK for the user to see stale data?
 
-Example: the payment method list. We don't want the user to see a payment method that we no longer support, not even while the payment methods are being loaded from the server (or while the user is offline). Therefore, we answer NO, which leads us to the blocking UI. This way the user won't see stale data while we load the payment methods.
+Example: The payment method list. We don't want the user to see a payment method that we no longer support, not even while the payment methods are being loaded from the server (or while the user is offline). Therefore, we answer NO, which leads us to the blocking UI. This way the user won't see stale data while we load the payment methods.
 
 4. Is the UI a form?
 
@@ -125,7 +125,7 @@ Any easy way to tell if something is a form is to try and find a submit button. 
 
 5. Can the server response be anticipated?
 
-Assuming that the request succeeds when it’s sent to the server, do you know what would the request return? For example, we would answer NO if there is some new data coming back from the server that we have no way of guessing (example: a list of bank accounts from Plaid, input validation that the client isn't able to perform like re-using an existing password when resetting a password). Answer YES if you can anticipate what the response from the server would be. 
+Answer NO if there is data coming back from the server that we can't know (example: a list of bank accounts from Plaid, input validation that the server must perform). Answer YES if we can know what the response from the server would be.
 
 6. Is there validation done on the server?
 
