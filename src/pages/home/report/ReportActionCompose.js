@@ -42,8 +42,8 @@ import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
-import OfflineIndicator from '../../../components/OfflineIndicator';
-import ExceededCommentLength from '../../../components/ExceededCommentLength';
+import networkPropTypes from '../../../components/networkPropTypes';
+import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 
 const propTypes = {
     /** Beta features list */
@@ -155,6 +155,11 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
+        if (sidebarOpened) {
+            toggleReportActionComposeView(true, true);
+        }
+
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
