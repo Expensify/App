@@ -44,6 +44,9 @@ const propTypes = {
     isLoading: PropTypes.bool,
 
     ...withLocalizePropTypes,
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
