@@ -18,6 +18,7 @@ import visibility from './utilities/visibility';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import overflowXHidden from './overflowXHidden';
+import CONST from '../CONST';
 
 const picker = {
     backgroundColor: 'transparent',
@@ -1422,12 +1423,14 @@ const styles = {
         fontSize: variables.emojiSize,
         ...spacing.pv0,
         ...spacing.ph0,
+        lineHeight: variables.emojiLineHeight,
     },
 
     emojiItem: {
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
     },
 
     emojiItemHighlighted: {
