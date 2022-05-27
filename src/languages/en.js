@@ -106,7 +106,7 @@ export default {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
-
+        thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',

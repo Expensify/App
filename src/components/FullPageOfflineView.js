@@ -37,6 +37,7 @@ const FullPageOfflineView = (props) => {
                     height={50}
                 />
                 <Text style={[styles.h1]}>{props.translate('common.youAppearToBeOffline')}</Text>
+                <Text>{props.translate('common.thisFeatureRequiresInternet')}</Text>
             </View>
         );
     }
