@@ -759,7 +759,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
         Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel)
         .catch(onSubscriptionFailed);
 }
 
