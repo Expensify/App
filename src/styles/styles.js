@@ -1350,7 +1350,7 @@ const styles = {
     chatItemFullComposeBox: {
         ...flex.flex1,
         ...spacing.mt4,
-        height: '100%',
+        ...sizing.h100,
     },
 
     chatFooter: {
