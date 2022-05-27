@@ -16,9 +16,8 @@ const propTypes = {
     /** Child elements */
     children: PropTypes.node.isRequired,
 
+    /** Used to show the full page loading spinner */
     isLoading: PropTypes.bool.isRequired,
-
-    error: PropTypes.string,
 
     /** Props to fetch translation features */
     ...withLocalizePropTypes,
