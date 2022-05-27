@@ -132,7 +132,7 @@ describe('ReportUtils', () => {
             const baseAdminsRoom = {
                 ...REPORT_TYPE_CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                reportName: 'admins',
+                reportName: '#admins',
             };
 
             test('Active', () => {
@@ -157,7 +157,7 @@ describe('ReportUtils', () => {
             const baseUserCreatedRoom = {
                 ...REPORT_TYPE_CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                reportName: 'VikingsChat',
+                reportName: '#VikingsChat',
             };
 
             test('Active', () => {
