@@ -1395,7 +1395,6 @@ const styles = {
         flex: 1,
         maxHeight: '100%',
         marginVertical: 0,
-        overflow: 'scroll',
         paddingVertical: 5,
     },
 
