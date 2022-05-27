@@ -36,7 +36,7 @@ const FullPageOfflineView = (props) => {
                     width={50}
                     height={50}
                 />
-                <Text style={[styles.h1]}>{props.translate('reportActionCompose.youAppearToBeOffline')}</Text>
+                <Text style={[styles.h1]}>{props.translate('common.youAppearToBeOffline')}</Text>
             </View>
         );
     }

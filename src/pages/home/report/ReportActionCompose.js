@@ -603,7 +603,7 @@ class ReportActionCompose extends React.Component {
                                     height={variables.iconSizeExtraSmall}
                                 />
                                 <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                    {this.props.translate('reportActionCompose.youAppearToBeOffline')}
+                                    {this.props.translate('common.youAppearToBeOffline')}
                                 </Text>
                             </View>
                         ) : <ReportTypingIndicator reportID={this.props.reportID} />}
