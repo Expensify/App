@@ -27,9 +27,6 @@ const propTypes = {
     /** The policy ID currently being configured */
     policyID: PropTypes.string.isRequired,
 
-    /** Whether VBA data is loading */
-    isLoadingVBA: PropTypes.bool.isRequired,
-
     /** Does the user have a VBA in their account? */
     hasVBA: PropTypes.bool.isRequired,
 
@@ -194,7 +191,7 @@ class WorkspaceReimburseView extends React.Component {
                     </View>
                 </Section>
 
-                {!this.props.isLoadingVBA && !this.props.hasVBA && (
+                {!this.props.hasVBA && (
                     <Section
                         title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                         icon={Illustrations.JewelBoxGreen}
@@ -214,7 +211,7 @@ class WorkspaceReimburseView extends React.Component {
                         />
                     </Section>
                 )}
-                {!this.props.isLoadingVBA && this.props.hasVBA && (
+                {this.props.hasVBA && (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                         icon={Illustrations.BankUserGreen}

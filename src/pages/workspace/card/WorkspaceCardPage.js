@@ -26,17 +26,17 @@ const WorkspaceCardPage = props => (
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
     >
-        {(isLoadingVBA, hasVBA, policyID, isUsingECard) => (
+        {(hasVBA, policyID, isUsingECard) => (
             <>
-                {!isLoadingVBA && !hasVBA && (
+                {!hasVBA && (
                     <WorkspaceCardNoVBAView policyID={policyID} />
                 )}
 
-                {!isLoadingVBA && hasVBA && !isUsingECard && (
+                {hasVBA && !isUsingECard && (
                     <WorkspaceCardVBANoECardView />
                 )}
 
-                {!isLoadingVBA && hasVBA && isUsingECard && (
+                {hasVBA && isUsingECard && (
                     <WorkspaceCardVBAWithECardView />
                 )}
             </>
