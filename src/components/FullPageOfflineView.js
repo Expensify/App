@@ -31,10 +31,10 @@ const FullPageOfflineView = (props) => {
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <Icon
-                    src={Expensicons.Offline}
+                    src={Expensicons.OfflineCloud}
                     fill={themeColors.offline}
-                    width={30}
-                    height={30}
+                    width={50}
+                    height={50}
                 />
                 <Text style={[styles.h1]}>{props.translate('reportActionCompose.youAppearToBeOffline')}</Text>
             </View>
