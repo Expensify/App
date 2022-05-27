@@ -1,6 +1,7 @@
 import React, {PureComponent} from 'react';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -8,12 +9,20 @@ import Text from '../../../components/Text';
 import Timers from '../../../libs/Timers';
 import CONST from '../../../CONST';
 import DateUtils from '../../../libs/DateUtils';
+import stylePropTypes from '../../../styles/stylePropTypes';
 
 const propTypes = {
     /** Personal details of the participant */
     participant: participantPropTypes.isRequired,
 
+    /** Additional style props */
+    style: stylePropTypes,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    style: [],
 };
 
 class ParticipantLocalTime extends PureComponent {
@@ -51,6 +60,7 @@ class ParticipantLocalTime extends PureComponent {
     }
 
     render() {
+        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
         const reportRecipientDisplayName = this.props.participant.firstName
             || (Str.isSMSLogin(this.props.participant.login)
                 ? this.props.toLocalPhone(this.props.participant.displayName)
@@ -58,7 +68,7 @@ class ParticipantLocalTime extends PureComponent {
 
         return (
             <Text
-                style={[styles.chatItemComposeSecondaryRowSubText]}
+                style={[styles.chatItemComposeSecondaryRowSubText, ...additionalStyles]}
                 numberOfLines={1}
             >
                 {this.props.translate(
@@ -74,5 +84,5 @@ class ParticipantLocalTime extends PureComponent {
 }
 
 ParticipantLocalTime.propTypes = propTypes;
-
+ParticipantLocalTime.defaultProps = defaultProps;
 export default withLocalize(ParticipantLocalTime);
