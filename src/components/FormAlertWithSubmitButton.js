@@ -13,6 +13,7 @@ import TextLink from './TextLink';
 import Text from './Text';
 import RenderHTML from './RenderHTML';
 import OfflineIndicator from './OfflineIndicator';
+import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
