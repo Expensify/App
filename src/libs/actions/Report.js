@@ -15,7 +15,6 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import NetworkConnection from '../NetworkConnection';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import CONFIG from '../../CONFIG';

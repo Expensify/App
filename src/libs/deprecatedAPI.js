@@ -2,6 +2,7 @@ import _ from 'underscore';
 import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
+import * as Pusher from './Pusher/pusher';
 import * as Request from './Request';
 import * as Network from './Network';
 import * as Middleware from './Middleware';
@@ -26,7 +27,7 @@ Request.use(Middleware.Retry);
 // SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
 Request.use(Middleware.SaveResponseInOnyx);
 
-subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, pushJSON => {
+Pusher.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, pushJSON => {
     SequentialQueue.getCurrentRequest().then(() => {
         Onyx.update(pushJSON.onyxData);
     });
