@@ -120,7 +120,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
             return;
         }
-        if (!isChunked) {
+        if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
             eventCallback(data);
             return;
         }
