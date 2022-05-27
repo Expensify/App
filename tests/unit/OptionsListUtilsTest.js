@@ -707,7 +707,7 @@ describe('OptionsListUtils', () => {
         const reportsWithEmptyChatRooms = {
             // This report is a policyExpenseChat without any messages in it (i.e. no lastMessageTimestamp)
             10: {
-                chatType: 'policyExpenseChat',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 hasOutstandingIOU: false,
                 isOwnPolicyExpenseChat: true,
                 isPinned: false,
@@ -723,7 +723,7 @@ describe('OptionsListUtils', () => {
 
             // This is an archived version of the above policyExpenseChat
             11: {
-                chatType: 'policyExpenseChat',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 hasOutstandingIOU: false,
                 isOwnPolicyExpenseChat: true,
                 isPinned: false,
