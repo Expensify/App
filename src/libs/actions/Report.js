@@ -704,16 +704,6 @@ function updateReportWithNewAction(
 }
 
 /**
- * Updates a report in Onyx with a new pinned state.
- *
- * @param {Number} reportID
- * @param {Boolean} isPinned
- */
-function updateReportPinnedState(reportID, isPinned) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -1296,11 +1286,20 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    updateReportPinnedState(report.reportID, pinnedValue);
-    DeprecatedAPI.Report_TogglePinned({
+
+    // Optimistically pin/unpin the report before we send out the command
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: pinnedValue,
+        },
+    ];
+ 
+    API.write('TogglePinnedChat', {
         reportID: report.reportID,
         pinnedValue,
-    });
+    }, {optimisticData});
 }
 
 /**
