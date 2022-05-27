@@ -19,32 +19,46 @@ const propTypes = {
     /** Form values */
     values: PropTypes.shape({
         /** Address street field */
-        street: PropTypes.string,
+        addressStreet: PropTypes.string,
 
         /** Address city field */
-        city: PropTypes.string,
+        addressCity: PropTypes.string,
 
         /** Address state field */
-        state: PropTypes.string,
+        addressState: PropTypes.string,
 
         /** Address zip code field */
-        zipCode: PropTypes.string,
+        addressZipCode: PropTypes.string,
     }),
 
     /** Any errors that can arise from form validation */
     errors: PropTypes.objectOf(PropTypes.bool),
+
+    /** Map of renamed input keys */
+    renamedInputKeys: PropTypes.shape({
+        addressStreet: PropTypes.string,
+        addressCity: PropTypes.string,
+        addressState: PropTypes.string,
+        addressZipCode: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     values: {
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
+        addressStreet: '',
+        addressCity: '',
+        addressState: '',
+        addressZipCode: '',
     },
     errors: {},
+    renamedInputKeys: {
+        addressStreet: 'addressStreet',
+        addressCity: 'addressCity',
+        addressState: 'addressState',
+        addressZipCode: 'addressZipCode',
+    },
 };
 
 const AddressForm = props => (
@@ -52,25 +66,26 @@ const AddressForm = props => (
         <AddressSearch
             label={props.translate(props.streetTranslationKey)}
             containerStyles={[styles.mt4]}
-            value={props.values.street}
+            value={props.values.addressStreet}
             onInputChange={props.onFieldChange}
-            errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
+            errorText={props.errors.addressStreet ? props.translate('bankAccount.error.addressStreet') : ''}
             hint={props.translate('common.noPO')}
+            renamedInputKey={props.renamedInputKeys.addressStreet}
         />
         <View style={[styles.flexRow, styles.mt4]}>
             <View style={[styles.flex2, styles.mr2]}>
                 <TextInput
                     label={props.translate('common.city')}
-                    value={props.values.city}
-                    onChangeText={value => props.onFieldChange({city: value})}
+                    value={props.values.addressCity}
+                    onChangeText={value => props.onFieldChange({[props.renamedInputKeys.addressCity]: value})}
                     errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                 />
             </View>
             <View style={[styles.flex1]}>
                 <StatePicker
-                    value={props.values.state}
-                    onInputChange={value => props.onFieldChange({state: value})}
-                    errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
+                    value={props.values.addressState}
+                    onInputChange={value => props.onFieldChange({[props.renamedInputKeys.addressState]: value})}
+                    errorText={props.errors.addressState ? props.translate('bankAccount.error.addressState') : ''}
                 />
             </View>
         </View>
@@ -78,9 +93,9 @@ const AddressForm = props => (
             label={props.translate('common.zip')}
             containerStyles={[styles.mt4]}
             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-            value={props.values.zipCode}
-            onChangeText={value => props.onFieldChange({zipCode: value})}
-            errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
+            value={props.values.addressZipCode}
+            onChangeText={value => props.onFieldChange({[props.renamedInputKeys.addressZipCode]: value})}
+            errorText={props.errors.addressZipCode ? props.translate('bankAccount.error.zipCode') : ''}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
         />
     </>
