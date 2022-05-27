@@ -31,7 +31,6 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
-import FullPageOfflineBlockingView from '../../components/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Bank account currently in setup */
