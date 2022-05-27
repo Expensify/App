@@ -139,7 +139,7 @@ class ReportActionCompose extends React.Component {
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
-            isFullComposerAvailable: this.props.isComposerFullSize,
+            isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -147,6 +147,7 @@ class ReportActionCompose extends React.Component {
                 start: props.comment.length,
                 end: props.comment.length,
             },
+            maxLines: props.isSmallScreenWidth ? 6 : 16,
         };
     }
 
@@ -158,6 +159,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+        this.setMaxLines();
         this.updateComment(this.comment);
     }
 
@@ -173,6 +175,10 @@ class ReportActionCompose extends React.Component {
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
+        }
+
+        if (this.props.isComposerFullSize !== prevProps.isComposerFullSize) {
+            this.setMaxLines();
         }
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
@@ -291,15 +297,14 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Return the maximum number of lines for the composer
-     *
-     * @returns {Number} maxLines
+     * Set the maximum number of lines for the composer
      */
-    getMaxLines() {
-        if (this.props.setIsComposerFullSize) {
-            return -1;
+    setMaxLines() {
+        let maxLines = this.props.isSmallScreenWidth ? 6 : 16; // This is the same that slack has
+        if (this.props.isComposerFullSize) {
+            maxLines = -1;
         }
-        return this.props.isSmallScreenWidth ? 6 : 16; // This is the same that slack has
+        this.setState({maxLines});
     }
 
     /**
@@ -612,7 +617,7 @@ class ReportActionCompose extends React.Component {
                                     }}
                                     style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                     defaultValue={this.props.comment}
-                                    maxLines={this.getMaxLines()}
+                                    maxLines={this.state.maxLines}
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
                                     onPasteFile={file => displayFileInModal({file})}
