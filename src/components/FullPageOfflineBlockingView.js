@@ -24,7 +24,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const FullPageOfflineView = (props) => {
+const FullPageOfflineBlockingView = (props) => {
     if (ONYXKEYS.NETWORK.isOffline) {
         return (
             <View
@@ -49,7 +49,7 @@ const FullPageOfflineView = (props) => {
     return props.children;
 };
 
-FullPageOfflineView.propTypes = propTypes;
+FullPageOfflineBlockingView.propTypes = propTypes;
 
 export default compose(
     withLocalize,
@@ -58,4 +58,4 @@ export default compose(
             key: ONYXKEYS.NETWORK,
         },
     }),
-)(FullPageOfflineView);
+)(FullPageOfflineBlockingView);
