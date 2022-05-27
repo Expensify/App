@@ -2,6 +2,8 @@ import _ from 'underscore';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
+import CONFIG from "../../CONFIG";
+import NetworkConnection from "../NetworkConnection";
 
 let socket;
 const socketEventCallbacks = [];
@@ -356,6 +358,47 @@ function reconnect() {
     Log.info('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();
+}
+
+/**
+ * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
+ *
+ * @param {String} eventName
+ * @param {String} accountID
+ * @param {Function} onEvent
+ * @param {Boolean} isChunked
+ */
+function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent, isChunked = false) {
+    const pusherChannelName = `private-encrypted-user-accountID-${accountID}${CONFIG.PUSHER.SUFFIX}`;
+
+    /**
+     * @param {Object} pushJSON
+     */
+    function logPusherEvent(pushJSON) {
+        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
+    }
+
+    function onPusherResubscribeToPrivateUserChannel() {
+        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
+    }
+
+    /**
+     * @param {*} pushJSON
+     */
+    function onEventPush(pushJSON) {
+        logPusherEvent(pushJSON);
+        onEvent(pushJSON);
+    }
+
+    /**
+     * @param {*} error
+     */
+    function onSubscriptionFailed(error) {
+        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+    }
+
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+        .catch(onSubscriptionFailed);
 }
 
 if (window) {

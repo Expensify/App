@@ -26,6 +26,12 @@ Request.use(Middleware.Retry);
 // SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
 Request.use(Middleware.SaveResponseInOnyx);
 
+subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, pushJSON => {
+    SequentialQueue.getCurrentRequest().then(() => {
+        Onyx.update(pushJSON.onyxData);
+    });
+}, true);
+
 /**
  * @param {Object} parameters
  * @returns {Promise}
