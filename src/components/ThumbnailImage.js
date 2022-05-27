@@ -19,8 +19,10 @@ const propTypes = {
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 
-    /** Image size */
+    /** Width of the thumbnail image */
     imageWidth: PropTypes.number,
+
+    /** Height of the thumbnail image */
     imageHeight: PropTypes.number,
 
     ...windowDimensionsPropTypes,
@@ -37,10 +39,10 @@ class ThumbnailImage extends PureComponent {
         super(props);
 
         this.updateImageSize = this.updateImageSize.bind(this);
-        const {width, height} = this.calculateThumbnailImageSize(props.imageWidth, props.imageHeight);
+        const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(props.imageWidth, props.imageHeight);
         this.state = {
-            thumbnailWidth: width,
-            thumbnailHeight: height,
+            thumbnailWidth,
+            thumbnailHeight,
         };
     }
 
@@ -70,12 +72,12 @@ class ThumbnailImage extends PureComponent {
         } else {
             thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
         }
-        return {width: thumbnailScreenWidth, height: thumbnailScreenHeight};
+        return {thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
     }
 
     updateImageSize({width, height}) {
-        const {width: thumbnailWidth, height: thumbnailScreenHeight} = this.calculateThumbnailImageSize(width, height);
-        this.setState({thumbnailWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)});
+        const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(width, height);
+        this.setState({thumbnailWidth, thumbnailHeight});
     }
 
     render() {
