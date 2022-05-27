@@ -1392,12 +1392,10 @@ const styles = {
 
     textInputFullCompose: {
         alignSelf: 'flex-end',
-
-        // textAlignVertical: 'flex-end',
         flex: 1,
         maxHeight: '100%',
         marginVertical: 0,
-        overflow: 'hidden',
+        overflow: 'scroll',
         paddingVertical: 5,
     },
 
