@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import Icon from './Icon';
 import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
@@ -10,7 +9,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import compose from '../libs/compose';
 
