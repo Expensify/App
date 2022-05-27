@@ -426,7 +426,6 @@ class ReportActionsView extends React.Component {
                             onLayout={this.recordTimeToMeasureItemLayout}
                             sortedReportActions={this.sortedReportActions}
                             mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                            isComposerFullSize={this.props.isComposerFullSize}
                             isLoadingReportActions={this.props.isLoadingReportActions}
                             loadMoreChats={this.loadMoreChats}
                         />
