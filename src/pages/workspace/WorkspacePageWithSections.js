@@ -89,7 +89,6 @@ class WorkspacePageWithSections extends React.Component {
 
     render() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const isLoadingVBA = this.props.reimbursementAccount.loading;
         const hasVBA = achState === BankAccount.STATE.OPEN;
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
@@ -107,7 +106,7 @@ class WorkspacePageWithSections extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
-                    {isLoadingVBA ? (
+                    {this.props.reimbursementAccount.loading ? (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
@@ -117,7 +116,7 @@ class WorkspacePageWithSections extends React.Component {
                         >
                             <View style={[styles.w100, styles.flex1]}>
 
-                                {this.props.children(isLoadingVBA, hasVBA, policyID, isUsingECard)}
+                                {this.props.children(hasVBA, policyID, isUsingECard)}
 
                             </View>
                         </ScrollView>
