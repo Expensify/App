@@ -506,7 +506,7 @@ class ReportActionCompose extends React.Component {
                                             ]}
                                             >
                                                 {this.props.isComposerFullSize && (
-                                                    <Tooltip text={this.props.translate('reportActionCompose.collapseComposer')}>
+                                                    <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
@@ -522,7 +522,7 @@ class ReportActionCompose extends React.Component {
 
                                                 )}
                                                 {(!this.props.isComposerFullSize && this.state.isFullComposerAvailable) && (
-                                                    <Tooltip text={this.props.translate('reportActionCompose.expandComposer')}>
+                                                    <Tooltip text={this.props.translate('reportActionCompose.expand')}>
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
