@@ -305,7 +305,7 @@ function subscribeToUserEvents() {
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -320,7 +320,7 @@ function subscribeToUserEvents() {
     // Subscribe to screen share requests sent by GuidesPlus agents
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
         Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -351,7 +351,7 @@ function subscribeToExpensifyCardUpdates() {
         } else {
             Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
         }
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
