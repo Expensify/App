@@ -252,7 +252,6 @@ function createOption(logins, personalDetails, report, {
     let text;
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
-        // text = isPolicyExpenseChat ? Report.getPolicyExpenseChatTitle(report, policies) : lodashGet(report, ['reportName'], '');
         text = lodashGet(report, 'reportName')
             || lodashGet(report, 'oldPolicyName', '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
