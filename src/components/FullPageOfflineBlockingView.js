@@ -10,7 +10,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import compose from '../libs/compose';
