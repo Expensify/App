@@ -44,6 +44,7 @@ const FullPageOfflineBlockingView = (props) => {
 };
 
 FullPageOfflineBlockingView.propTypes = propTypes;
+FormAlertWithSubmitButton.displayName = 'FullPageOfflineBlockingView';
 
 export default compose(
     withLocalize,
