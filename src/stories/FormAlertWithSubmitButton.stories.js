@@ -7,7 +7,7 @@ import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/Button/FormAlertWithSubmitButton',
+    title: 'Components/FormAlertWithSubmitButton',
     component: FormAlertWithSubmitButton,
 };
 
