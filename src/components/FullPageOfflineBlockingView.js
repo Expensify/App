@@ -3,7 +3,10 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Icon from './Icon';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
@@ -22,10 +25,13 @@ const propTypes = {
 
     /** Props to fetch translation features */
     ...withLocalizePropTypes,
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 };
 
 const FullPageOfflineBlockingView = (props) => {
-    if (ONYXKEYS.NETWORK.isOffline) {
+    if (network.isOffline) {
         return (
             <View
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}
