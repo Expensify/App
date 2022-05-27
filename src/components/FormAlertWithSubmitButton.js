@@ -6,6 +6,7 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
+import compose from '../libs/compose';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextLink from './TextLink';
@@ -108,7 +109,7 @@ const FormAlertWithSubmitButton = (props) => {
                 <OfflineIndicator />
             </View>
         );
-     }
+    }
 
     return (
         <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
