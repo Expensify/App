@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import theme from '../styles/themes/default';
 import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
 import Icon from './Icon';
 
 const propTypes = {
@@ -18,7 +18,7 @@ const InlineSystemMessage = (props) => {
     }
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Icon src={Expensicons.Exclamation} fill={colors.red} />
+            <Icon src={Expensicons.Exclamation} fill={theme.badgeDangerBG} />
             <Text style={[styles.inlineSystemMessage]}>{props.message}</Text>
         </View>
     );
