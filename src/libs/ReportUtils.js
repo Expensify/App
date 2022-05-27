@@ -519,7 +519,7 @@ function getArchivedText(report, reportActions, personalDetails, policies) {
 
     const reportClosedAction = lodashFindLast(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
     if (!reportClosedAction) {
-        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);;
+        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);
     }
 
     const archiveReason = lodashGet(reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
