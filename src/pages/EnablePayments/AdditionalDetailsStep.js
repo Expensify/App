@@ -81,7 +81,7 @@ const defaultProps = {
         addressStreet: '',
         addressCity: '',
         addressState: '',
-        addressZip: '',
+        addressZipCode: '',
         phoneNumber: '',
         dob: '',
         ssn: '',
@@ -100,7 +100,7 @@ class AdditionalDetailsStep extends React.Component {
             'addressStreet',
             'addressCity',
             'addressState',
-            'addressZip',
+            'addressZipCode',
             'phoneNumber',
             'dob',
             'ssn',
@@ -112,7 +112,7 @@ class AdditionalDetailsStep extends React.Component {
             addressStreet: 'common.personalAddress',
             addressCity: 'common.city',
             addressState: 'common.state',
-            addressZip: 'common.zip',
+            addressZipCode: 'common.zip',
             phoneNumber: 'common.phoneNumber',
             dob: 'common.dob',
             ssn: 'common.ssnLast4',
@@ -273,18 +273,7 @@ class AdditionalDetailsStep extends React.Component {
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
                                         containerStyles={[styles.mt4]}
-                                        onInputChange={(values) => {
-                                            const renamedFields = {
-                                                street: 'addressStreet',
-                                                state: 'addressState',
-                                                zipCode: 'addressZip',
-                                                city: 'addressCity',
-                                            };
-                                            _.each(values, (value, inputKey) => {
-                                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                                this.clearErrorAndSetValue(renamedInputKey, value);
-                                            });
-                                        }}
+                                        onInputChange={values => _.each(values, (value, inputKey) => this.clearErrorAndSetValue(inputKey, value))}
                                         errorText={this.getErrorText('addressStreet')}
                                         hint={this.props.translate('common.noPO')}
                                     />
@@ -308,10 +297,10 @@ class AdditionalDetailsStep extends React.Component {
                                             />
                                             <TextInput
                                                 containerStyles={[styles.mt4]}
-                                                label={this.props.translate(this.fieldNameTranslationKeys.addressZip)}
-                                                onChangeText={val => this.clearErrorAndSetValue('addressZip', val)}
-                                                value={this.props.walletAdditionalDetailsDraft.addressZip || ''}
-                                                errorText={this.getErrorText('addressZip')}
+                                                label={this.props.translate(this.fieldNameTranslationKeys.addressZipCode)}
+                                                onChangeText={val => this.clearErrorAndSetValue('addressZipCode', val)}
+                                                value={this.props.walletAdditionalDetailsDraft.addressZipCode || ''}
+                                                errorText={this.getErrorText('addressZipCode')}
                                             />
                                         </>
                                     ) : null}

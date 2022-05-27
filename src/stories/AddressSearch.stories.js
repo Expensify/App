@@ -20,7 +20,7 @@ const Template = (args) => {
     return (
         <AddressSearch
             value={value}
-            onInputChange={value => setValue(value)}
+            onInputChange={text => setValue(text)}
             omitFields={['addressZipCode', 'addressCity', 'addressState']}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}

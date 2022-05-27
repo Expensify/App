@@ -49,8 +49,8 @@ const propTypes = {
     /** The fields that shouldn't be set by the address lookup */
     omitFields: PropTypes.arrayOf(PropTypes.string),
 
-    //** Key to use for street input */
-    streetInputKey: PropTypes.string,
+    /** Key to use for street input */
+    renamedInputKey: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
@@ -65,7 +65,7 @@ const defaultProps = {
     defaultValue: undefined,
     containerStyles: [],
     omitFields: [],
-    streetInputKey: 'addressStreet',
+    renamedInputKey: 'addressStreet',
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -115,7 +115,11 @@ const AddressSearch = (props) => {
             return;
         }
 
-        props.onInputChange(_.omit(values, props.omitFields));
+        if (props.inputID) {
+            _.each(_.omit(values, props.omitFields), (value, key) => props.onInputChange(value, key));
+        } else {
+            props.onInputChange(values);
+        }
     };
 
     return (
@@ -150,10 +154,7 @@ const AddressSearch = (props) => {
                     }}
                     requestUrl={{
                         useOnPlatform: 'web',
-                        // url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
-
-                        // TODO: Adding this to avoid CORS errors in Storybook. Remove once PR is done and uncomment comment above
-                        url: `https://expensify-cmartins.ngrok.io/api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
                     }}
                     textInputProps={{
                         InputComp: TextInput,
@@ -184,7 +185,7 @@ const AddressSearch = (props) => {
                             if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
-                                props.onInputChange({[props.streetInputKey]: text});
+                                props.onInputChange({[props.renamedInputKey]: text});
                             }
 
                             // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
