@@ -89,9 +89,17 @@ function clear() {
     HttpUtils.cancelPendingRequests();
 }
 
+/**
+ * @returns {Array}
+ */
+function getAll() {
+    return networkRequestQueue;
+}
+
 export {
     clear,
     replay,
     push,
     process,
+    getAll,
 };

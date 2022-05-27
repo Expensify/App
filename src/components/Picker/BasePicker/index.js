@@ -17,6 +17,12 @@ class BasePicker extends React.Component {
         this.setNativeProps = this.setNativeProps.bind(this);
     }
 
+    /**
+     * This method mimicks RN's setNativeProps method. It's exposed to Picker's ref and can be used by other components
+     * to directly manipulate Picker's value when Picker is used as an uncontrolled input.
+     *
+     * @param {*} value
+     */
     setNativeProps({value}) {
         this.pickerValue = value;
     }
@@ -47,20 +53,19 @@ class BasePicker extends React.Component {
                 fixAndroidTouchableBug
                 onOpen={this.props.onOpen}
                 onClose={this.props.onClose}
-                ref={(node) => {
-                    if (!node) {
-                        return;
-                    }
-                    if (_.isFunction(this.props.innerRef)) {
-                        this.props.innerRef(node);
-
-                        // eslint-disable-next-line no-param-reassign
-                        node.setNativeProps = this.setNativeProps;
-                    }
-                }}
                 pickerProps={{
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,
+                }}
+                ref={(node) => {
+                    if (!node || !_.isFunction(this.props.innerRef)) {
+                        return;
+                    }
+
+                    this.props.innerRef(node);
+
+                    // eslint-disable-next-line no-param-reassign
+                    node.setNativeProps = this.setNativeProps;
                 }}
             />
         );

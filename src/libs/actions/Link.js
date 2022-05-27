@@ -4,7 +4,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import CONST from '../../CONST';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONFIG from '../../CONFIG';
 import asyncOpenURL from '../asyncOpenURL';
 
@@ -42,7 +42,7 @@ function openOldDotLink(url) {
         return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
     }
 
-    asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
+    asyncOpenURL(DeprecatedAPI.GetShortLivedAuthToken(), buildOldDotURL);
 }
 
 /**

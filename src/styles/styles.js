@@ -2190,6 +2190,11 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    noSelect: {
+        boxShadow: 'none',
+        outline: 'none',
+    },
+
     cursorPointer: {
         cursor: 'pointer',
     },
@@ -2519,6 +2524,13 @@ const styles = {
         justifyContent: 'center',
         marginBottom: 40,
         padding: 16,
+    },
+
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 4,
     },
 };
 
