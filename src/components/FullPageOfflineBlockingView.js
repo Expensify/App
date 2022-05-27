@@ -27,7 +27,7 @@ const propTypes = {
 };
 
 const FullPageOfflineBlockingView = (props) => {
-    if (network.isOffline) {
+    if (props.network.isOffline) {
         return (
             <View
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}
