@@ -202,7 +202,7 @@ class BankAccountStep extends React.Component {
                 />
                 <FullPageOfflineView
                     isLoading={false}
-                    error=''
+                    error=""
                 >
                     {!subStep && (
                         <ScrollView style={[styles.flex1]}>
