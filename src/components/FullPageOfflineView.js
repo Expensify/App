@@ -1,11 +1,16 @@
 import React from 'react';
+import Text from './Text';
+import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 import PropTypes from 'prop-types';
+import styles from '../styles/styles';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import compose from '../libs/compose';
+import Icon from './Icon';
 
 const propTypes = {
     /** Child elements */
