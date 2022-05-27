@@ -210,4 +210,4 @@ Form.js will automatically provide the following props to any input with the inp
 - defaultValue: The input default value.
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
-- onChange: An onChange handler that saves draft values and calls validate.
+- onInputChange: An onChange handler that saves draft values and calls validate.
