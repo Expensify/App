@@ -24,16 +24,16 @@ const propTypes = {
         lastName: PropTypes.string,
 
         /** Address street field */
-        street: PropTypes.string,
+        addressStreet: PropTypes.string,
 
         /** Address city field */
-        city: PropTypes.string,
+        addressCity: PropTypes.string,
 
         /** Address state field */
-        state: PropTypes.string,
+        addressState: PropTypes.string,
 
         /** Address zip code field */
-        zipCode: PropTypes.string,
+        addressZipCode: PropTypes.string,
 
         /** Date of birth field */
         dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
@@ -45,6 +45,8 @@ const propTypes = {
     /** Any errors that can arise from form validation */
     errors: PropTypes.objectOf(PropTypes.bool),
 
+    renamedInputKeys: PropTypes.objectOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -53,14 +55,15 @@ const defaultProps = {
     values: {
         firstName: '',
         lastName: '',
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
+        addressStreet: '',
+        addressCity: '',
+        addressState: '',
+        addressZipCode: '',
         dob: '',
         ssnLast4: '',
     },
     errors: {},
+    renamedInputKeys: undefined,
 };
 
 const IdentityForm = (props) => {
@@ -111,6 +114,7 @@ const IdentityForm = (props) => {
                 values={props.values}
                 errors={props.errors}
                 onFieldChange={props.onFieldChange}
+                renamedInputKeys={props.renamedInputKeys}
             />
         </View>
     );

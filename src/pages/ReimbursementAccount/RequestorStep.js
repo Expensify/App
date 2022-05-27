@@ -76,10 +76,10 @@ class RequestorStep extends React.Component {
      */
     clearErrorsAndSetValues(values) {
         const renamedFields = {
-            street: 'requestorAddressStreet',
-            city: 'requestorAddressCity',
-            state: 'requestorAddressState',
-            zipCode: 'requestorAddressZipCode',
+            addressStreet: 'requestorAddressStreet',
+            addressCity: 'requestorAddressCity',
+            addressState: 'requestorAddressState',
+            addressZipCode: 'requestorAddressZipCode',
         };
         const newState = {};
         _.each(values, (value, inputKey) => {
@@ -210,7 +210,7 @@ class RequestorStep extends React.Component {
                                 ssnLast4: this.state.ssnLast4,
                             }}
                             errors={this.props.reimbursementAccount.errors}
-                            inputKeys={{
+                            renamedInputKeys={{
                                 addressStreet: 'requestorAddressStreet',
                                 addressState: 'requestorAddressState',
                                 addressCity: 'requestorAddressCity',

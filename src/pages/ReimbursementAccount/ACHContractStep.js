@@ -229,10 +229,10 @@ class ACHContractStep extends React.Component {
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',
-                                            street: owner.street || '',
-                                            city: owner.city || '',
-                                            state: owner.state || '',
-                                            zipCode: owner.zipCode || '',
+                                            addressStreet: owner.addressStreet || '',
+                                            addressCity: owner.addressCity || '',
+                                            addressState: owner.addressState || '',
+                                            addressZipCode: owner.addressZipCode || '',
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
