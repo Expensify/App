@@ -16,9 +16,6 @@ const propTypes = {
     /** Child elements */
     children: PropTypes.node.isRequired,
 
-    /** Used to show the full page loading spinner */
-    isLoading: PropTypes.bool.isRequired,
-
     /** Props to fetch translation features */
     ...withLocalizePropTypes,
 
@@ -42,10 +39,6 @@ const FullPageOfflineBlockingView = (props) => {
                 <Text style={[styles.w70, styles.textAlignCenter]}>{props.translate('common.thisFeatureRequiresInternet')}</Text>
             </View>
         );
-    }
-
-    if (props.isLoading) {
-        return <FullScreenLoadingIndicator />;
     }
 
     return props.children;
