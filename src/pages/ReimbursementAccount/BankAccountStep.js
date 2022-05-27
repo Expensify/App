@@ -31,7 +31,7 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
-import FullPageOfflineView from '../../components/FullPageOfflineView';
+import FullPageOfflineBlockingView from '../../components/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -200,7 +200,7 @@ class BankAccountStep extends React.Component {
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
-                <FullPageOfflineView
+                <FullPageOfflineBlockingView
                     isLoading={false}
                     error=""
                 >
@@ -327,7 +327,7 @@ class BankAccountStep extends React.Component {
                             />
                         </ReimbursementAccountForm>
                     )}
-                </FullPageOfflineView>
+                </FullPageOfflineBlockingView>
             </View>
         );
     }
