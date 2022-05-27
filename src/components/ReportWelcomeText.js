@@ -66,9 +66,8 @@ const ReportWelcomeText = (props) => {
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
                 isArchivedRoom
-                    ? (
-                        <RenderHTML html={reportArchivedText} />
-                    ) : (
+                    ? <RenderHTML html={reportArchivedText} />
+                    : (
                         <>
                             {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
                             <Text style={styles.textAlignCenter}>
