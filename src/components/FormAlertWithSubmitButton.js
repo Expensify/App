@@ -109,6 +109,7 @@ const FormAlertWithSubmitButton = (props) => {
                     success
                     isDisabled
                     text={props.buttonText}
+                    style={[styles.mb3]}
                 />
                 <OfflineIndicator />
             </View>
