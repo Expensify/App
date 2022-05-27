@@ -514,12 +514,12 @@ function navigateToDetailsPage(report) {
  */
 function getArchivedText(report, reportActions, personalDetails, policies) {
     if (!isArchivedRoom(report)) {
-        return null;
+        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);
     }
 
     const reportClosedAction = lodashFindLast(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
     if (!reportClosedAction) {
-        return null;
+        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);;
     }
 
     const archiveReason = lodashGet(reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);

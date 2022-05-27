@@ -33,7 +33,7 @@ const propTypes = {
 };
 
 const ArchivedReportFooter = (props) => {
-    const archivedText = ReportUtils.getArchivedText(props.report, props.reportActions, props.personalDetails, props.policies) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+    const archivedText = ReportUtils.getArchivedText(props.report, props.reportActions, props.personalDetails, props.policies);
     return (
         <Banner html={archivedText} />
     );
