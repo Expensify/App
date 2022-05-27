@@ -59,9 +59,5 @@ FullPageOfflineBlockingView.propTypes = propTypes;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
-    }),
+    withNetwork(),
 )(FullPageOfflineBlockingView);
