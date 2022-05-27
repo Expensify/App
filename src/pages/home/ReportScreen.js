@@ -165,13 +165,7 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
-
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        let reportClosedAction;
-        if (isArchivedRoom) {
-            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-        }
-
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -198,8 +192,8 @@ class ReportScreen extends React.Component {
                                 isArchivedRoom
                                     ? (
                                         <ArchivedReportFooter
-                                            reportClosedAction={reportClosedAction}
                                             report={this.props.report}
+                                            reportActions={this.props.reportActions}
                                         />
                                     ) : (
                                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
