@@ -111,6 +111,7 @@ describe('OptionsListUtils', () => {
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
         },
     };
 
@@ -259,6 +260,11 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const POLICY = {
+        policyID: 'ABC123',
+        name: 'Hero Policy',
+    }
+
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
@@ -269,6 +275,7 @@ describe('OptionsListUtils', () => {
                     ownerEmail: 'mistersinister@marauders.com',
                     total: '1000',
                 },
+                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY.policyID}`]: POLICY
             },
         });
         Onyx.registerLogger(() => {});
@@ -707,9 +714,9 @@ describe('OptionsListUtils', () => {
                 lastMessageTimestamp: 0,
                 lastVisitedTimestamp: 1610666739302,
                 participants: ['test3@instantworkspace.com'],
-                policyID: 'Whatever',
+                policyID: 'ABC123',
                 reportID: 10,
-                reportName: "Someone's workspace",
+                reportName: '',
                 unreadActionCount: 0,
                 visibility: undefined,
             },
@@ -723,9 +730,9 @@ describe('OptionsListUtils', () => {
                 lastMessageTimestamp: 0,
                 lastVisitedTimestamp: 1610666739302,
                 participants: ['test3@instantworkspace.com'],
-                policyID: 'Whatever',
+                policyID: 'ABC123',
                 reportID: 11,
-                reportName: "Someone's workspace",
+                reportName: '',
                 unreadActionCount: 0,
                 visibility: undefined,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -740,9 +747,9 @@ describe('OptionsListUtils', () => {
                 lastMessageTimestamp: 0,
                 lastVisitedTimestamp: 1610666739302,
                 participants: ['test3@instantworkspace.com'],
-                policyID: 'Whatever',
+                policyID: 'ABC123',
                 reportID: 12,
-                reportName: '#admins',
+                reportName: 'admins',
                 unreadActionCount: 0,
                 visibility: undefined,
             },
@@ -755,9 +762,9 @@ describe('OptionsListUtils', () => {
                 lastMessageTimestamp: 0,
                 lastVisitedTimestamp: 1610666739302,
                 participants: ['test3@instantworkspace.com'],
-                policyID: 'Whatever',
+                policyID: 'ABC123',
                 reportID: 13,
-                reportName: '#admins',
+                reportName: 'admins',
                 unreadActionCount: 0,
                 visibility: undefined,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -777,7 +784,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(_.size(reportsWithEmptyChatRooms) - 2);
 
         expect(results.recentReports[0].isPolicyExpenseChat).toBe(true);
-        expect(results.recentReports[0].text).toBe("Someone's workspace");
+        expect(results.recentReports[0].text).toBe('Hero Policy');
 
         expect(results.recentReports[1].isChatRoom).toBe(true);
         expect(results.recentReports[1].text).toBe('#admins');
