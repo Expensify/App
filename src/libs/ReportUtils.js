@@ -451,10 +451,6 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @returns {String}
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
-    if (_.isEmpty(report.chatType)) {
-        return report.reportName;
-    }
-
     let formattedName;
     if (isDefaultRoom(report)) {
         formattedName = `#${report.reportName}`;
