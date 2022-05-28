@@ -85,7 +85,6 @@ class PDFView extends Component {
         }
 
         return (
-
             <View
                 style={containerStyle}
                 onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
@@ -112,14 +111,12 @@ class PDFView extends Component {
 
                     </Document>
                 </View>
-
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
                         onSubmit={password => this.onPasswordCallback(password)}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                     />
                 )}
-
             </View>
         );
     }
