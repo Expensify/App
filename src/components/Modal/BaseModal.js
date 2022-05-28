@@ -77,6 +77,7 @@ class BaseModal extends PureComponent {
         );
         return (
             <ReactNativeModal
+                statusBarTranslucent
                 onBackdropPress={(e) => {
                     if (e && e.type === 'keydown' && e.key === 'Enter') {
                         return;
