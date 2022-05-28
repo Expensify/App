@@ -155,13 +155,11 @@ class Button extends Component {
 
         // Setup and attach keypress handler for pressing the button with Enter key
         this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
-            if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading
-                || (e && e.target.nodeName === 'TEXTAREA') || !this.props.pressOnEnter) {
+            if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
-            e.preventDefault();
-            this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority);
+            this.props.onPress(e);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
 
     componentWillUnmount() {

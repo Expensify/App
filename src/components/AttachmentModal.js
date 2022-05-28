@@ -122,15 +122,20 @@ class AttachmentModal extends PureComponent {
 
     /**
      * Execute the onConfirm callback and close the modal.
+     *
+     * @param {Event} event Either a click event, keyboard event or undefined
      */
-    submitAndClose() {
+    submitAndClose(event) {
         // If the modal has already been closed, don't allow another submission
         if (!this.state.isModalOpen) {
             return;
         }
-
         if (this.props.onConfirm) {
-            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.sourceURL}));
+            // Ignore if submit was initiated by enter key and send-on-enter is disabled
+            if (!this.state.isSendOnEnterEnabled && !!event && event instanceof KeyboardEvent) {
+                return;
+            }
+            this.props.onConfirm(_.extend(this.state.file, {source: this.state.sourceURL}));
         }
 
         this.setState({isModalOpen: false});
@@ -265,7 +270,7 @@ class AttachmentModal extends PureComponent {
                             textStyles={[styles.buttonConfirmText]}
                             text={this.props.translate('common.send')}
                             onPress={this.submitAndClose}
-                            pressOnEnter={this.state.isSendOnEnterEnabled}
+                            pressOnEnter
                         />
                     )}
                 </Modal>
