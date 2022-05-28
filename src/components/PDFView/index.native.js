@@ -100,9 +100,7 @@ class PDFView extends Component {
 
         return (
             <TouchableWithoutFeedback style={[styles.flex1, this.props.style]}>
-
                 <View>
-
                     {this.state.shouldAttemptPdfLoad && (
                         <PDF
                             activityIndicator={<FullScreenLoadingIndicator />}
@@ -113,14 +111,12 @@ class PDFView extends Component {
                             onLoadComplete={this.terminatePasswordChallenge}
                         />
                     )}
-
                     {this.state.shouldRequestPassword && (
                         <PDFPasswordForm
                             onSubmit={this.attemptPdfLoadWithPassword}
                             isPasswordInvalid={this.state.isPasswordInvalid}
                         />
                     )}
-
                 </View>
             </TouchableWithoutFeedback>
         );

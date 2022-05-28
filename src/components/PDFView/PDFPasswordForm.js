@@ -37,11 +37,9 @@ class PDFPasswordForm extends Component {
     render() {
         return (
             <View style={styles.pdfPasswordForm}>
-
                 <Text style={[styles.mb4, styles.col]}>
                     {this.props.translate('attachmentView.pdfPasswordRequired')}
                 </Text>
-
                 <TextInput
                     label={this.props.translate('common.password')}
                     autoCompleteType="password"
@@ -52,13 +50,11 @@ class PDFPasswordForm extends Component {
                     secureTextEntry
                     autoFocus
                 />
-
                 {this.props.isPasswordInvalid && (
                     <Text style={[styles.formError]}>
                         {this.props.translate('attachmentView.incorrectPDFPassword')}
                     </Text>
                 )}
-
                 <Button
                     textStyles={[styles.buttonConfirmText]}
                     text={this.props.translate('common.confirm')}
@@ -67,7 +63,6 @@ class PDFPasswordForm extends Component {
                     isDisabled={!this.state.password}
                     isFocused
                 />
-
             </View>
         );
     }
