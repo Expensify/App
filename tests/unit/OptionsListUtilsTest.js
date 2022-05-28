@@ -263,7 +263,7 @@ describe('OptionsListUtils', () => {
     const POLICY = {
         policyID: 'ABC123',
         name: 'Hero Policy',
-    }
+    };
 
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
@@ -275,7 +275,7 @@ describe('OptionsListUtils', () => {
                     ownerEmail: 'mistersinister@marauders.com',
                     total: '1000',
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY.policyID}`]: POLICY
+                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY.policyID}`]: POLICY,
             },
         });
         Onyx.registerLogger(() => {});
