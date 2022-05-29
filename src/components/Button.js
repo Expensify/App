@@ -251,7 +251,7 @@ class Button extends Component {
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
-                    this.props.isDisabled ? styles.cursorDisabled : {},
+                    this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     ...this.additionalStyles,
                 ]}
                 nativeID={this.props.nativeID}

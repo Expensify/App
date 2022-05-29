@@ -45,6 +45,7 @@ import Monitor from '../../../assets/images/monitor.svg';
 import NewWindow from '../../../assets/images/new-window.svg';
 import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
+import OfflineCloud from '../../../assets/images/offline-cloud.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
 import PayPal from '../../../assets/images/paypal.svg';
@@ -76,6 +77,8 @@ import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 import Connect from '../../../assets/images/connect.svg';
 import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
+import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
+import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 
 export {
     ActiveRoomAvatar,
@@ -112,6 +115,8 @@ export {
     Eye,
     EyeDisabled,
     ExpensifyCard,
+    FallbackAvatar,
+    FallbackWorkspaceAvatar,
     Gallery,
     Gear,
     Hashtag,
@@ -131,6 +136,7 @@ export {
     NewWindow,
     NewWorkspace,
     Offline,
+    OfflineCloud,
     Paperclip,
     Paycheck,
     PayPal,

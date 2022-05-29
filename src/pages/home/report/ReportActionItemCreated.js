@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -17,7 +17,6 @@ const propTypes = {
 
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat: PropTypes.bool,
-
     }),
 
     /** Personal details of all the users */
@@ -38,6 +37,7 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+
     return (
         <View style={[
             styles.chatContent,
@@ -46,10 +46,12 @@ const ReportActionItemCreated = (props) => {
         ]}
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                <RoomHeaderAvatars
-                    icons={icons}
-                    shouldShowLargeAvatars={isPolicyExpenseChat}
-                />
+                <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
+                    <RoomHeaderAvatars
+                        icons={icons}
+                        shouldShowLargeAvatars={isPolicyExpenseChat}
+                    />
+                </Pressable>
                 <ReportWelcomeText report={props.report} />
             </View>
         </View>

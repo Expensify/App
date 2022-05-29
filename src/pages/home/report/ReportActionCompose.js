@@ -26,7 +26,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -34,10 +33,9 @@ import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import Text from '../../../components/Text';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
@@ -46,6 +44,8 @@ import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import networkPropTypes from '../../../components/networkPropTypes';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
+import OfflineIndicator from '../../../components/OfflineIndicator';
+import ExceededCommentLength from '../../../components/ExceededCommentLength';
 
 const propTypes = {
     /** Beta features list */
@@ -87,9 +87,6 @@ const propTypes = {
 
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
@@ -453,9 +450,16 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
-                {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} />}
+            <View style={[styles.chatItemComposeWithFirstRow]}>
+                <View style={[styles.flexRow, styles.chatItemComposeSecondaryRow, styles.chatItemComposeSecondaryRowOffset, styles.flexWrap, styles.tester]}>
+                    {shouldShowReportRecipientLocalTime && (
+                        <ParticipantLocalTime participant={reportRecipient} style={[styles.mr3]} />
+                    )}
+                    <OfflineIndicator style={[styles.mr3]} />
+                    <ExceededCommentLength commentLength={this.comment.length} style={[styles.mr3]} />
+                    <ReportTypingIndicator reportID={this.props.reportID} />
+                </View>
+
                 <View style={[
                     (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
@@ -595,31 +599,6 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween]}>
-                    <View>
-                        {this.props.network.isOffline ? (
-                            <View style={[
-                                styles.chatItemComposeSecondaryRowOffset,
-                                styles.flexRow,
-                                styles.alignItemsCenter]}
-                            >
-                                <Icon
-                                    src={Expensicons.Offline}
-                                    width={variables.iconSizeExtraSmall}
-                                    height={variables.iconSizeExtraSmall}
-                                />
-                                <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                    {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                                </Text>
-                            </View>
-                        ) : <ReportTypingIndicator reportID={this.props.reportID} />}
-                    </View>
-                    {hasExceededMaxCommentLength && (
-                        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
-                            {`${this.comment.length}/${CONST.MAX_COMMENT_LENGTH}`}
-                        </Text>
-                    )}
-                </View>
             </View>
         );
     }
@@ -634,7 +613,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withPersonalDetails(),
-    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
