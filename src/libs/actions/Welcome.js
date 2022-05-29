@@ -19,6 +19,7 @@ let isReadyPromise = new Promise((resolve) => {
 let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
 let isLoadingPolicyData = true;
+let email = '';
 
 /**
  * Check that a few requests have completed so that the welcome action can proceed:
@@ -87,6 +88,17 @@ Onyx.connect({
     },
 });
 
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val, key) => {
+        if (!val || !key) {
+            return;
+        }
+
+        email = val.email;
+    },
+});
+
 /**
  * Shows a welcome action on first login
  *
@@ -111,8 +123,8 @@ function show({routes, showCreateMenu}) {
         const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
         // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
-        const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report));
-        if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
+        const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email);
+        if (workspaceChatReport) {
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
             return;
         }
