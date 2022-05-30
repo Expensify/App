@@ -2,8 +2,8 @@ import _ from 'underscore';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
-import CONFIG from "../../CONFIG";
-import NetworkConnection from "../NetworkConnection";
+import CONFIG from '../../CONFIG';
+import NetworkConnection from '../NetworkConnection';
 
 let socket;
 const socketEventCallbacks = [];
@@ -394,10 +394,13 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent, isChu
      * @param {*} error
      */
     function onSubscriptionFailed(error) {
-        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+        console.log('yep, failed');
+        Log.hmmm('Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+    console.log(pusherChannelName);
+    console.log(eventName);
+    subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
         .catch(onSubscriptionFailed);
 }
 
@@ -422,5 +425,6 @@ export {
     reconnect,
     registerSocketEventCallback,
     registerCustomAuthorizer,
+    subscribeToPrivateUserChannelEvent,
     TYPE,
 };
