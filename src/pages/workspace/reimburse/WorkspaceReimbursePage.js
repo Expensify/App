@@ -24,8 +24,8 @@ const WorkspaceReimbursePage = props => (
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
     >
-        {(hasVBA, policyID) => (
-            <WorkspaceReimburseView policyID={policyID} hasVBA={hasVBA} />
+        {(isLoadingVBA, hasVBA, policyID) => (
+            <WorkspaceReimburseView policyID={policyID} isLoadingVBA={isLoadingVBA} hasVBA={hasVBA} />
         )}
     </WorkspacePageWithSections>
 );

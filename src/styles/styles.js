@@ -2525,6 +2525,13 @@ const styles = {
         marginBottom: 40,
         padding: 16,
     },
+
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 4,
+    },
 };
 
 export default styles;
