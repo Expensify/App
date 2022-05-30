@@ -218,12 +218,9 @@ class IOUAmountPage extends React.Component {
                 ]}
                 >
                     <TouchableOpacity onPress={() => {
-                        if (this.props.hasMultipleParticipants) {
-                            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
-                        }
-                        return Navigation.navigate(this.props.iouType === CONST.IOU.IOU_TYPE.SEND
-                            ? ROUTES.getIouSendCurrencyRoute(this.props.reportID)
-                            : ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+                        if (this.props.hasMultipleParticipants) { return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID)); }
+                        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) { return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID)); }
+                        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
                     }}
                     >
                         <Text style={styles.iouAmountText}>
