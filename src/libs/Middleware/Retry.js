@@ -1,40 +1,6 @@
-import lodashGet from 'lodash/get';
-import RetryCounter from '../RetryCounter';
 import * as PersistedRequests from '../actions/PersistedRequests';
-import * as MainQueue from '../Network/MainQueue';
 import Log from '../Log';
 import CONST from '../../CONST';
-
-// Keep track of retries for any non-persisted requests
-const mainQueueRetryCounter = new RetryCounter();
-
-/**
- * @param {Object} queuedRequest
- * @param {*} error
- * @returns {Boolean} true if we were able to retry
- */
-function retryFailedRequest(queuedRequest, error) {
-    // When the request did not reach its destination add it back the queue to be retried if we can
-    const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-    if (!shouldRetry) {
-        return false;
-    }
-
-    const retryCount = mainQueueRetryCounter.incrementRetries(queuedRequest);
-    Log.info('[Network] A retryable request failed', false, {
-        retryCount,
-        command: queuedRequest.command,
-        error: error.message,
-    });
-
-    if (retryCount < CONST.NETWORK.MAX_REQUEST_RETRIES) {
-        MainQueue.push(queuedRequest);
-        return true;
-    }
-
-    Log.info('[Network] Request was retried too many times with no success. No more retries left');
-    return false;
-}
 
 /**
  * @param {Promise} response
@@ -45,6 +11,11 @@ function retryFailedRequest(queuedRequest, error) {
 function Retry(response, request, isFromSequentialQueue) {
     return response
         .catch((error) => {
+            // Do not retry any requests that are cancelled
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+                return;
+            }
+
             if (isFromSequentialQueue) {
                 const retryCount = PersistedRequests.incrementRetries(request);
                 Log.info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
@@ -52,10 +23,6 @@ function Retry(response, request, isFromSequentialQueue) {
                     Log.info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
                     PersistedRequests.remove(request);
                 }
-                return;
-            }
-
-            if (retryFailedRequest(request, error)) {
                 return;
             }
 

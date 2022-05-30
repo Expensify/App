@@ -648,7 +648,7 @@ const styles = {
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
+        minHeight: 15,
         marginBottom: 5,
         marginTop: 5,
     },
@@ -2190,6 +2190,11 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    noSelect: {
+        boxShadow: 'none',
+        outline: 'none',
+    },
+
     cursorPointer: {
         cursor: 'pointer',
     },
@@ -2521,8 +2526,11 @@ const styles = {
         padding: 16,
     },
 
-    iouRejectButton: {
-        minWidth: 69,
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 4,
     },
 };
 
