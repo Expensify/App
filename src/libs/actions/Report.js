@@ -760,7 +760,8 @@ function subscribeToUserEvents() {
     Pusher.subscribeToPrivateUserChannelEvent(
         Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
         currentUserAccountID,
-        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
+        true,
     );
 
     // Live-update a report's pinned state when a 'report toggle pinned' event is received.
