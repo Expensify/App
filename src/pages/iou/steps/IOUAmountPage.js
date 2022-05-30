@@ -238,7 +238,7 @@ class IOUAmountPage extends React.Component {
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        blurOnSubmit={this.state.amount !== ''}
+                        blurOnSubmit={false}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
