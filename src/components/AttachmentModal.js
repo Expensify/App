@@ -120,8 +120,8 @@ class AttachmentModal extends PureComponent {
             return;
         }
         if (this.props.onConfirm) {
-            // Ignore if submit was initiated by enter key and send-on-enter is disabled
-            if (!this.state.isSendOnEnterEnabled && !!event && event instanceof KeyboardEvent) {
+            // Ignore the submit/close if it was initiated by enter key and send-on-enter is disabled
+            if (!this.state.isSendOnEnterEnabled && (!event || event instanceof KeyboardEvent)) {
                 return;
             }
             this.props.onConfirm(_.extend(this.state.file, {source: this.state.sourceURL}));
