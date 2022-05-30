@@ -20,7 +20,7 @@ import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
-import * as SequentialQueue from "../Network/SequentialQueue";
+import * as SequentialQueue from '../Network/SequentialQueue';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
