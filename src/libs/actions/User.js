@@ -20,6 +20,7 @@ import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
+import * as SequentialQueue from "../Network/SequentialQueue";
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -301,6 +302,13 @@ function subscribeToUserEvents() {
     }
 
     const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+
+    // Receive any relevant Onyx updates from the server
+    Pusher.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
+        SequentialQueue.getCurrentRequest().then(() => {
+            Onyx.update(pushJSON.onyxData);
+        });
+    });
 
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
