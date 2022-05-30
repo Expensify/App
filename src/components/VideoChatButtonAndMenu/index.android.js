@@ -8,7 +8,7 @@ import BaseVideoChatButtonAndMenu from './BaseVideoChatButtonAndMenu';
 // https://github.com/Expensify/App/issues/8851#issuecomment-1120236904
 const VideoChatButtonAndMenu = props => (
     <BaseVideoChatButtonAndMenu
-        newGoogleMeetingUrl={CONST.GOOGLE_MEET_URL_ANDROID}
+        googleMeetURL={CONST.GOOGLE_MEET_URL_ANDROID}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     />

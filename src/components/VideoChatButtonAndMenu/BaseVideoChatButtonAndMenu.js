@@ -43,7 +43,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                 text: props.translate('videoChatButtonAndMenu.googleMeet'),
                 onPress: () => {
                     this.toggleVideoChatMenu();
-                    Linking.openURL(this.props.newGoogleMeetingUrl || CONST.NEW_GOOGLE_MEET_MEETING_URL);
+                    Linking.openURL(this.props.googleMeetURL);
                 },
             },
         ];

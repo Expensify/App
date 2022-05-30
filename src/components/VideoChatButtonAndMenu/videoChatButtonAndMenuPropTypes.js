@@ -7,7 +7,7 @@ const propTypes = {
     isConcierge: PropTypes.bool,
 
     /** Link to open when user wants to create a new google meet meeting */
-    newGoogleMeetingUrl: PropTypes.string,
+    googleMeetURL: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
