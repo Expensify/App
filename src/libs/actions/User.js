@@ -48,7 +48,7 @@ Onyx.connect({
  * @param {String} password
  * @returns {Promise}
  */
-function changePasswordAndNavigate(oldPassword, password) {
+function changePassword(oldPassword, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return DeprecatedAPI.ChangePassword({oldPassword, password})
@@ -438,7 +438,7 @@ function generateStatementPDF(period) {
 }
 
 export {
-    changePasswordAndNavigate,
+    changePassword,
     closeAccount,
     getBetas,
     getUserDetails,
