@@ -187,8 +187,8 @@ function addBillingCard(params) {
  */
 function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-        submitting: false,
-        error: '',
+        isSubmitting: false,
+        serverErrorMessage: null,
     });
 }
 
