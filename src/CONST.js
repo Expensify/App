@@ -605,6 +605,12 @@ const CONST = {
         ROOM_PREFIX: '#',
     },
 
+    PUSHER: {
+        STATE: {
+            CONNECTED: 'connected',
+        },
+    },
+
     TERMS: {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
         CFPB_COMPLAINT: 'cfpb.gov/complaint',

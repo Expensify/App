@@ -358,7 +358,6 @@ function cleanupSession() {
     UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
     PushNotification.clearNotifications();
-    Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
 }

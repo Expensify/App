@@ -93,16 +93,9 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(() => {
-            Report.subscribeToUserEvents();
-            User.subscribeToUserEvents();
-            Policy.subscribeToPolicyEvents();
-        });
+        Report.subscribeToUserEvents();
+        User.subscribeToUserEvents();
+        Policy.subscribeToPolicyEvents();
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();

@@ -1,11 +1,14 @@
 import _ from 'underscore';
+import CONST from '../../CONST';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
+import * as OfflineStatus from '../actions/OfflineStatus';
 
 let socket;
 const socketEventCallbacks = [];
 let customAuthorizer;
+let pusherInitializedPromise;
 
 /**
  * Trigger each of the socket event callbacks with the event information
@@ -26,10 +29,9 @@ function callSocketEventCallbacks(eventName, data) {
  * @param {String} args.authEndpoint
  * @param {Object} [params]
  * @public
- * @returns {Promise} resolves when Pusher has connected
  */
 function init(args, params) {
-    return new Promise((resolve) => {
+    pusherInitializedPromise = new Promise((resolve) => {
         if (socket) {
             return resolve();
         }
@@ -78,6 +80,7 @@ function init(args, params) {
 
         socket.connection.bind('state_change', (states) => {
             callSocketEventCallbacks('state_change', states);
+            OfflineStatus.triggerOfflineStatusRefresh();
         });
     });
 }
@@ -185,50 +188,61 @@ function subscribe(
     isChunked = false,
     onResubscribe = () => {},
 ) {
-    return new Promise((resolve, reject) => {
-        // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
-        if (!socket) {
-            throw new Error(`[Pusher] instance not found. Pusher.subscribe()
-            most likely has been called before Pusher.init()`);
-        }
+    return pusherInitializedPromise
+        .then(() => new Promise((resolve, reject) => {
+            // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+            if (!socket) {
+                throw new Error(`[Pusher] instance not found. Pusher.subscribe()
+                most likely has been called before Pusher.init()`);
+            }
 
-        Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
-        let channel = getChannel(channelName);
+            Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
+            let channel = getChannel(channelName);
+            const isPrivateUserChannel = /private-user-accountID-\d/.test(channelName);
 
-        if (!channel || !channel.subscribed) {
-            channel = socket.subscribe(channelName);
-            let isBound = false;
-            channel.bind('pusher:subscription_succeeded', () => {
-                // Check so that we do not bind another event with each reconnect attempt
-                if (!isBound) {
-                    bindEventToChannel(channel, eventName, eventCallback, isChunked);
-                    resolve();
-                    isBound = true;
-                    return;
-                }
+            if (!channel || !channel.subscribed) {
+                channel = socket.subscribe(channelName);
+                let isBound = false;
+                channel.bind('pusher:subscription_succeeded', () => {
+                    if (isPrivateUserChannel) {
+                        OfflineStatus.triggerOfflineStatusRefresh();
+                    }
 
-                // When subscribing for the first time we register a success callback that can be
-                // called multiple times when the subscription succeeds again in the future
-                // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
-                // not fire on the first subscription_succeeded event.
-                onResubscribe();
-            });
+                    // Check so that we do not bind another event with each reconnect attempt
+                    if (!isBound) {
+                        bindEventToChannel(channel, eventName, eventCallback, isChunked);
+                        resolve();
+                        isBound = true;
+                        return;
+                    }
 
-            channel.bind('pusher:subscription_error', (data = {}) => {
-                const {type, error, status} = data;
-                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
-                    channelName,
-                    status,
-                    type,
-                    error,
+                    // When subscribing for the first time we register a success callback that can be
+                    // called multiple times when the subscription succeeds again in the future
+                    // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
+                    // not fire on the first subscription_succeeded event.
+                    onResubscribe();
                 });
-                reject(error);
-            });
-        } else {
-            bindEventToChannel(channel, eventName, eventCallback, isChunked);
-            resolve();
-        }
-    });
+
+                channel.bind('pusher:subscription_error', (data = {}) => {
+                    const {type, error, status} = data;
+                    Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                        channelName,
+                        status,
+                        type,
+                        error,
+                    });
+
+                    if (isPrivateUserChannel) {
+                        OfflineStatus.triggerOfflineStatusRefresh();
+                    }
+
+                    reject(error);
+                });
+            } else {
+                bindEventToChannel(channel, eventName, eventCallback, isChunked);
+                resolve();
+            }
+        }));
 }
 
 /**
@@ -258,7 +272,24 @@ function unsubscribe(channelName, eventName = '') {
 
         channel.unbind();
         socket.unsubscribe(channelName);
+
+        if (/private-user-accountID-\d/.test(channelName)) {
+            OfflineStatus.triggerOfflineStatusRefresh();
+        }
     }
+}
+
+/**
+ * Do we have an active websocket connection to the Pusher service?
+ *
+ * @returns {Boolean}
+ */
+function isConnected() {
+    if (!socket) {
+        return false;
+    }
+
+    return socket.connection.state === CONST.PUSHER.STATE.CONNECTED;
 }
 
 /**
@@ -332,19 +363,6 @@ function registerCustomAuthorizer(authorizer) {
 }
 
 /**
- * Disconnect from Pusher
- */
-function disconnect() {
-    if (!socket) {
-        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
-        return;
-    }
-
-    socket.disconnect();
-    socket = null;
-}
-
-/**
  * Disconnect and Re-Connect Pusher
  */
 function reconnect() {
@@ -372,10 +390,10 @@ export {
     subscribe,
     unsubscribe,
     getChannel,
+    isConnected,
     isSubscribed,
     isAlreadySubscribing,
     sendEvent,
-    disconnect,
     reconnect,
     registerSocketEventCallback,
     registerCustomAuthorizer,

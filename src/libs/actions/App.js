@@ -14,7 +14,7 @@ import * as Report from './Report';
 import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
-import NetworkConnection from '../NetworkConnection';
+import promiseAllSettled from '../promiseAllSettled';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -95,6 +95,7 @@ AppState.addEventListener('change', (nextAppState) => {
  * @returns {Promise}
  */
 function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
+    Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, true);
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
     getLocale();
@@ -114,10 +115,11 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
     }
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
-    return Promise.all([
+    return promiseAllSettled([
         PersonalDetails.fetchPersonalDetails(),
         Report.fetchAllReports(true, true),
-    ]);
+    ])
+        .then(() => Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, false));
 }
 
 /**
@@ -136,7 +138,17 @@ function fixAccountAndReloadData() {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => getAppData(true, false));
+let isOffline = true;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => {
+        const wasOffline = isOffline;
+        isOffline = val.isOffline;
+        if (wasOffline && !isOffline) {
+            getAppData(true, false);
+        }
+    },
+});
 
 export {
     setCurrentURL,

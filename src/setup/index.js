@@ -4,6 +4,13 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
+import * as NetInfo from '../libs/NetInfo';
+import * as Pusher from '../libs/Pusher/pusher';
+import PusherConnectionManager from '../libs/PusherConnectionManager';
+import CONFIG from '../CONFIG';
+import * as Report from '../libs/actions/Report';
+import * as User from '../libs/actions/User';
+import * as Policy from '../libs/actions/Policy';
 
 export default function () {
     /*
@@ -35,6 +42,15 @@ export default function () {
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
         },
+    });
+
+    NetInfo.init();
+
+    PusherConnectionManager.init();
+    Pusher.init({
+        appKey: CONFIG.PUSHER.APP_KEY,
+        cluster: CONFIG.PUSHER.CLUSTER,
+        authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
     });
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
