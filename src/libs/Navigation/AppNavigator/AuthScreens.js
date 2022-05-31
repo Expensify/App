@@ -11,14 +11,10 @@ import CONST from '../../../CONST';
 import compose from '../../compose';
 import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as Pusher from '../../Pusher/pusher';
-import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
-import NetworkConnection from '../../NetworkConnection';
-import CONFIG from '../../../CONFIG';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
@@ -92,7 +88,6 @@ class AuthScreens extends React.Component {
     }
 
     componentDidMount() {
-        NetworkConnection.listenForReconnect();
         Report.subscribeToUserEvents();
         User.subscribeToUserEvents();
         Policy.subscribeToPolicyEvents();

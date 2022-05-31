@@ -15,7 +15,6 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import NetworkConnection from '../NetworkConnection';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import CONFIG from '../../CONFIG';
@@ -740,10 +739,6 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, {reportID: pushJSON.reportID, reportActionID: pushJSON.reportActionID});
     }
 
-    function onPusherResubscribeToPrivateUserChannel() {
-        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
-    }
-
     /**
      * @param {*} pushJSON
      */
@@ -759,7 +754,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
         Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked)
         .catch(onSubscriptionFailed);
 }
 
