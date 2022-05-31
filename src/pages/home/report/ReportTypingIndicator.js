@@ -49,24 +49,21 @@ class ReportTypingIndicator extends React.Component {
         // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
             case 0:
-                return <></>;
+                return null;
+
             case 1:
                 return (
                     <TextWithEllipsis
                         leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
                         trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={styles.chatItemComposeSecondaryRow}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
                     />
                 );
+
             default:
                 return (
                     <Text
-                        style={[
-                            styles.chatItemComposeSecondaryRowSubText,
-                            styles.chatItemComposeSecondaryRowOffset,
-                        ]}
+                        style={[styles.chatItemComposeSecondaryRowSubText]}
                         numberOfLines={1}
                     >
                         {this.props.translate('reportTypingIndicator.multipleUsers')}
