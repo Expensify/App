@@ -188,7 +188,7 @@ function subscribe(
 ) {
     return pusherInitializedPromise
         .then(() => new Promise((resolve, reject) => {
-            // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+            // If we get here, the socket should be initialized. If not, throw an error so we notice on dev
             if (!socket) {
                 throw new Error(`[Pusher] instance not found. Pusher.subscribe()
                 most likely has been called before Pusher.init()`);
