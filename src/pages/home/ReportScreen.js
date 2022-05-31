@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
-import lodashFindLast from 'lodash/findLast';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -178,12 +177,7 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
-
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        let reportClosedAction;
-        if (isArchivedRoom) {
-            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-        }
 
         // If a reportActionID exists in the URL then let's close the drawer so that we can see the message comments on native.
         if (this.getReportActionID()) {
@@ -217,8 +211,8 @@ class ReportScreen extends React.Component {
                                 isArchivedRoom
                                     ? (
                                         <ArchivedReportFooter
-                                            reportClosedAction={reportClosedAction}
                                             report={this.props.report}
+                                            reportActions={this.props.reportActions}
                                         />
                                     ) : (
                                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
