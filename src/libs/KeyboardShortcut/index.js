@@ -84,6 +84,12 @@ function bindHandlerToKeydownEvent(event) {
             return true;
         }
 
+        // Determine if the event should bubble before executing the callback (which may have side-effects)
+        let shouldBubble = callback.shouldBubble || false;
+        if (_.isFunction(callback.shouldBubble)) {
+            shouldBubble = callback.shouldBubble();
+        }
+
         if (_.isFunction(callback.callback)) {
             callback.callback(event);
         }
@@ -92,10 +98,6 @@ function bindHandlerToKeydownEvent(event) {
         }
 
         // If the event should not bubble, short-circuit the loop
-        let shouldBubble = callback.shouldBubble || false;
-        if (_.isFunction(callback.shouldBubble)) {
-            shouldBubble = callback.shouldBubble();
-        }
         return shouldBubble;
     });
 }
