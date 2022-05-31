@@ -40,6 +40,7 @@ function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
     Onyx.merge(ONYXKEYS.SESSION, {
         shouldShowComposeInput: true,
+        error: null,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
     });
 }
