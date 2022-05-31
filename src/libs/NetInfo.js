@@ -2,7 +2,7 @@ import NetInfo from '@react-native-community/netinfo';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import Log from './Log';
-import * as OfflineStatus from './actions/OfflineStatus';
+import * as OfflineStatus from './actions/Network';
 
 let isInternetReachable = false;
 let hasPendingNetworkCheck = false;

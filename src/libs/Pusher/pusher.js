@@ -3,7 +3,7 @@ import CONST from '../../CONST';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
-import * as OfflineStatus from '../actions/OfflineStatus';
+import * as Network from '../actions/Network';
 
 let socket;
 const socketEventCallbacks = [];
@@ -80,7 +80,7 @@ function init(args, params) {
 
         socket.connection.bind('state_change', (states) => {
             callSocketEventCallbacks('state_change', states);
-            OfflineStatus.triggerOfflineStatusRefresh();
+            Network.refreshOfflineStatus();
         });
     });
 }
@@ -203,7 +203,7 @@ function subscribe(
                 let isBound = false;
                 channel.bind('pusher:subscription_succeeded', () => {
                     if (isPrivateUserChannel) {
-                        OfflineStatus.triggerOfflineStatusRefresh();
+                        Network.refreshOfflineStatus();
                     }
 
                     // Check so that we do not bind another event with each reconnect attempt
@@ -225,7 +225,7 @@ function subscribe(
                     });
 
                     if (isPrivateUserChannel) {
-                        OfflineStatus.triggerOfflineStatusRefresh();
+                        Network.refreshOfflineStatus();
                     }
 
                     reject(error);
@@ -266,7 +266,7 @@ function unsubscribe(channelName, eventName = '') {
         socket.unsubscribe(channelName);
 
         if (/private-user-accountID-\d/.test(channelName)) {
-            OfflineStatus.triggerOfflineStatusRefresh();
+            Network.refreshOfflineStatus();
         }
     }
 }
