@@ -64,20 +64,22 @@ class BaseTextInput extends Component {
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
         // Only update when value prop is provided
-        if (_.isUndefined(this.props.value) || this.state.value === this.props.value) {
+        if ((_.isUndefined(this.props.value) && _.isUndefined(this.input.value)) || this.state.value === this.props.value) {
             return;
         }
 
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: this.props.value});
-        this.input.setNativeProps({text: this.props.value});
+        if (!_.isUndefined(this.props.value)) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({value: this.props.value});
+            this.input.setNativeProps({text: this.props.value});
+        }
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (this.props.value === '') {
             this.input.clear();
         }
 
-        if (this.props.value) {
+        if (this.props.value || this.input.value) {
             this.activateLabel();
         } else if (!this.state.isFocused) {
             this.deactivateLabel();
@@ -134,7 +136,7 @@ class BaseTextInput extends Component {
     }
 
     activateLabel() {
-        if (this.state.value.length < 0 || this.isLabelActive) {
+        if (this.state.value.length < 0 || this.input.value.length < 0 || this.isLabelActive) {
             return;
         }
 
@@ -146,7 +148,7 @@ class BaseTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.props.forceActiveLabel || this.state.value.length !== 0 || this.props.prefixCharacter) {
+        if (this.props.forceActiveLabel || this.state.value.length !== 0 || this.input.value.length !== 0 || this.props.prefixCharacter) {
             return;
         }
 

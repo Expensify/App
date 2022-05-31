@@ -140,7 +140,6 @@ function addBillingCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
     DeprecatedAPI.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
