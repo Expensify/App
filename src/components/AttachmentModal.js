@@ -265,12 +265,13 @@ class AttachmentModal extends PureComponent {
                         }
                     },
                     show: () => {
-                        const showState = {isModalOpen: true};
+                        
                         const route = Navigation.getActiveRoute();
+                        let reportId = null
                         if (route.includes('/r/')) {
-                            showState.reportId = route.replace('/r/', '');
+                            reportId = route.replace('/r/', '');
                         }
-                        this.setState(showState);
+                        this.setState({isModalOpen: true,  reportId});
                     },
                 })}
             </>
