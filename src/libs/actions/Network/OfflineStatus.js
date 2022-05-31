@@ -20,7 +20,7 @@ function refreshOfflineStatus() {
         || (authToken && !Pusher.isSubscribed(`private-user-accountID-${accountID}`));
     if (isOffline !== wasOffline) {
         Log.info(`Switching app to ${isOffline ? 'offline' : 'online'} mode`);
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline});
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
     }
 }
 
