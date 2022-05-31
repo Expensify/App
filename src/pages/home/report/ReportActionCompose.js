@@ -155,6 +155,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+        this.updateComment(this.comment);
     }
 
     componentDidUpdate(prevProps) {
@@ -219,11 +220,6 @@ class ReportActionCompose extends React.Component {
     setTextInputRef(el) {
         ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
-
-        // I had an issue here when I set up reportActions in another component,
-        // I believe the loading delay prevented the element
-        // from being set here before compoenentDidMount was called
-        this.updateComment(this.comment);
     }
 
     /**
