@@ -210,7 +210,7 @@ class ImageView extends PureComponent {
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
                             styles.h100,
-                        ]} // Hide image until zoomScale scale calculated
+                        ]} // Hide image until zoomScale calculated
                         resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'} // For big dimension images 'contain' works much effective
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
@@ -250,7 +250,7 @@ class ImageView extends PureComponent {
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
-                        ]} // Hide image until zoomScale scale calculated
+                        ]} // Hide image until zoomScale calculated
                         resizeMode="contain"
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
