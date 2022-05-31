@@ -33,7 +33,7 @@ export default function () {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-            [ONYXKEYS.NETWORK]: {isOffline: false},
+            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.IOU]: {
                 loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
             },
