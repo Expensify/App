@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import * as NetInfo from '../../NetInfo';
 import * as Pusher from '../../Pusher/pusher';
-import * as OfflineStatusEvents from './index';
+import * as Network from './index';
 import Log from '../../Log';
 import ONYXKEYS from '../../../ONYXKEYS';
 
@@ -24,7 +24,7 @@ function refreshOfflineStatus() {
     }
 }
 
-OfflineStatusEvents.onRefreshOfflineStatus(refreshOfflineStatus);
+Network.onRefreshOfflineStatus(refreshOfflineStatus);
 
 // TODO: expired authToken handling
 Onyx.connect({
