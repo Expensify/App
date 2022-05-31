@@ -43,12 +43,12 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.canUseTouchScreen) {
-            return;
-        }
         Image.getSize(this.props.url, (width, height) => {
             this.setImageRegion(width, height);
         });
+        if (this.canUseTouchScreen) {
+            return;
+        }
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
 
@@ -203,14 +203,15 @@ class ImageView extends PureComponent {
             return (
                 <View
                     style={[styles.imageViewContainer, styles.overflowHidden]}
+                    onLayout={this.onContainerLayoutChanged}
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={[
+                        style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
                             styles.h100,
-                        ]}
-                        resizeMode="center"
+                        ]} // Hide image until zoomScale scale calculated
+                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'} // For big dimension images 'contain' works much effective
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
@@ -246,10 +247,10 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={[
+                        style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
-                        ]}
+                        ]} // Hide image until zoomScale scale calculated
                         resizeMode="contain"
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
