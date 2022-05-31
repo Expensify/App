@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import lodashEndsWith from 'lodash/endsWith';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -30,8 +29,6 @@ class DebitCardPage extends Component {
     constructor(props) {
         super(props);
 
-        this.submit = this.submit.bind(this);
-        this.addOrRemoveSlashToExpiryDate = this.addOrRemoveSlashToExpiryDate.bind(this);
         this.validate = this.validate.bind(this);
     }
 
@@ -86,42 +83,6 @@ class DebitCardPage extends Component {
         }
 
         return errors;
-    }
-
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     */
-    submit(values) {
-        PaymentMethods.addBillingCard(values);
-    }
-
-    /**
-     * @param {String} inputExpiryDate
-     */
-    addOrRemoveSlashToExpiryDate(inputExpiryDate) {
-        this.setState((prevState) => {
-            let expiryDate = inputExpiryDate;
-
-            // Remove the digit and '/' when backspace is pressed with expiry date ending with '/'
-            if (inputExpiryDate.length < prevState.expirationDate.length
-                && (((inputExpiryDate.length === 3 && lodashEndsWith(inputExpiryDate, '/'))
-                  || (inputExpiryDate.length === 2 && lodashEndsWith(prevState.expirationDate, '/'))))) {
-                expiryDate = inputExpiryDate.substring(0, inputExpiryDate.length - 1);
-            } else if (inputExpiryDate.length === 2 && _.indexOf(inputExpiryDate, '/') === -1) {
-                // An Expiry Date was added, so we should append a slash '/'
-                expiryDate = `${inputExpiryDate}/`;
-            } else if (inputExpiryDate.length > 2 && _.indexOf(inputExpiryDate, '/') === -1) {
-                // Expiry Date with MM and YY without slash, hence adding slash(/)
-                expiryDate = `${inputExpiryDate.slice(0, 2)}/${inputExpiryDate.slice(2)}`;
-            }
-            return {
-                expirationDate: expiryDate,
-                errors: {
-                    ...prevState.errors,
-                    expirationDate: false,
-                },
-            };
-        });
     }
 
     render() {
