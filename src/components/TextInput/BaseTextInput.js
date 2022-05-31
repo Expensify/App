@@ -136,7 +136,7 @@ class BaseTextInput extends Component {
     }
 
     activateLabel() {
-        if (this.state.value.length < 0 || this.input.value.length < 0 || this.isLabelActive) {
+        if ((this.state.value.length < 0 && _.isEmpty(this.input.value)) || this.isLabelActive) {
             return;
         }
 
@@ -148,7 +148,7 @@ class BaseTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.props.forceActiveLabel || this.state.value.length !== 0 || this.input.value.length !== 0 || this.props.prefixCharacter) {
+        if (this.props.forceActiveLabel || (!_.isEmpty(this.state.value) && !_.isEmpty(this.input.value)) || this.props.prefixCharacter) {
             return;
         }
 
