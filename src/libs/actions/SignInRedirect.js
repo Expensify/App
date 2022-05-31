@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
-import * as waitForOnyxToClear from '../waitForOnyxToClear';
 
 let currentActiveClients;
 Onyx.connect({
@@ -25,10 +24,8 @@ function clearStorageAndRedirect(errorMessage) {
     const preferredLocale = currentPreferredLocale;
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    waitForOnyxToClear.setIsOnyxClearing();
     Onyx.clear()
         .then(() => {
-            waitForOnyxToClear.setOnyxIsDoneClearing();
             if (preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
