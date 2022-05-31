@@ -140,7 +140,7 @@ function addBillingCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    API.AddBillingCard({
+    DeprecatedAPI.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
