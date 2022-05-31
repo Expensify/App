@@ -12,6 +12,7 @@ let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
+    initWithStoredValues: false,
 });
 
 let currentUserEmail;

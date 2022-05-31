@@ -6,9 +6,12 @@ import ComposeProviders from './ComposeProviders';
 
 // Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
 // the same key (e.g. FlatList renderItem components)
-const [withNetwork, NetworkProvider] = createOnyxContext(ONYXKEYS.NETWORK);
-const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS);
-const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
+const [withNetwork, NetworkProvider] = createOnyxContext({
+    key: ONYXKEYS.NETWORK,
+    initWithStoredValues: false,
+});
+const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext({key: ONYXKEYS.PERSONAL_DETAILS});
+const [withCurrentDate, CurrentDateProvider] = createOnyxContext({key: ONYXKEYS.CURRENT_DATE});
 const [
     withReportActionsDrafts,
     ReportActionsDraftsProvider,

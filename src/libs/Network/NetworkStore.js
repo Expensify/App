@@ -82,6 +82,7 @@ Onyx.connect({
 
         offline = network.isOffline;
     },
+    initWithStoredValues: false,
 });
 
 /**

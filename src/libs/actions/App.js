@@ -148,6 +148,7 @@ Onyx.connect({
             getAppData(true, false);
         }
     },
+    initWithStoredValues: false,
 });
 
 export {
