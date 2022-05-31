@@ -41,7 +41,7 @@ const OfflineIndicator = (props) => {
                 height={variables.iconSizeExtraSmall}
             />
             <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                {props.translate('reportActionCompose.youAppearToBeOffline')}
+                {props.translate('common.youAppearToBeOffline')}
             </Text>
         </View>
     );
