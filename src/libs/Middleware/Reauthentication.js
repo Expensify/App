@@ -1,11 +1,20 @@
+import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as NetworkStore from '../Network/NetworkStore';
 import * as MainQueue from '../Network/MainQueue';
 import * as Authentication from '../Authentication';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as Request from '../Request';
 import Log from '../Log';
+
+let isOffline = true;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    initWithStoredValues: false,
+    callback: val => isOffline = lodashGet(val, 'isOffline', true),
+});
 
 /**
  * Reauthentication middleware
@@ -24,7 +33,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 return;
             }
 
-            if (NetworkStore.isOffline()) {
+            if (isOffline) {
                 // If we are offline and somehow handling this response we do not want to reauthenticate
                 throw new Error('Unable to reauthenticate because we are offline');
             }

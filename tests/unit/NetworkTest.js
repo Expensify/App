@@ -59,7 +59,6 @@ test('failing to reauthenticate while offline should not log out user', () => {
     const TEST_USER_ACCOUNT_ID = 1;
 
     let isOffline;
-
     Onyx.connect({
         key: ONYXKEYS.NETWORK,
         callback: (val) => {

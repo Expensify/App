@@ -6,24 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 let credentials;
 let authToken;
 let currentUserEmail;
-let offline = false;
 let authenticating = false;
-
-// Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
-let reconnectCallback;
-function triggerReconnectCallback() {
-    if (!_.isFunction(reconnectCallback)) {
-        return;
-    }
-    return reconnectCallback();
-}
-
-/**
- * @param {Function} callbackFunction
- */
-function onReconnection(callbackFunction) {
-    reconnectCallback = callbackFunction;
-}
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
@@ -66,37 +49,11 @@ Onyx.connect({
     },
 });
 
-// We subscribe to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later.
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (network) => {
-        if (!network) {
-            return;
-        }
-
-        // Client becomes online emit connectivity resumed event
-        if (offline && !network.isOffline) {
-            triggerReconnectCallback();
-        }
-
-        offline = network.isOffline;
-    },
-    initWithStoredValues: false,
-});
-
 /**
  * @returns {Object}
  */
 function getCredentials() {
     return credentials;
-}
-
-/**
- * @returns {Boolean}
- */
-function isOffline() {
-    return offline;
 }
 
 /**
@@ -147,8 +104,6 @@ export {
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
     resetHasReadRequiredDataFromStorage,
-    isOffline,
-    onReconnection,
     isAuthenticating,
     setIsAuthenticating,
     getCredentials,

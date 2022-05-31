@@ -1,9 +1,18 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
 import HttpUtils from '../HttpUtils';
 import * as Request from '../Request';
+
+let isOffline = true;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    initWithStoredValues: false,
+    callback: val => isOffline = lodashGet(val, 'isOffline', true),
+});
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -45,7 +54,7 @@ function replay(request) {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function process() {
-    if (NetworkStore.isOffline()) {
+    if (isOffline) {
         return;
     }
 

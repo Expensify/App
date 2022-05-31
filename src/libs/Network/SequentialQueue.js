@@ -1,7 +1,7 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
-import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
@@ -15,6 +15,7 @@ let isReadyPromise = new Promise((resolve) => {
 resolveIsReadyPromise();
 
 let isSequentialQueueRunning = false;
+let isOffline = true;
 
 /**
  * This method will get any persisted requests and fire them off in sequence to retry them.
@@ -25,7 +26,7 @@ function process() {
     const persistedRequests = PersistedRequests.getAll();
 
     // This sanity check is also a recursion exit point
-    if (NetworkStore.isOffline() || _.isEmpty(persistedRequests)) {
+    if (isOffline || _.isEmpty(persistedRequests)) {
         return Promise.resolve();
     }
 
@@ -74,9 +75,6 @@ function isRunning() {
     return isSequentialQueueRunning;
 }
 
-// Flush the queue when the connection resumes
-NetworkStore.onReconnection(flush);
-
 /**
  * @param {Object} request
  */
@@ -85,7 +83,7 @@ function push(request) {
     PersistedRequests.save([request]);
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
-    if (NetworkStore.isOffline()) {
+    if (isOffline) {
         return;
     }
 
@@ -97,6 +95,20 @@ function push(request) {
 
     flush();
 }
+
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => {
+        const wasOffline = isOffline;
+        isOffline = lodashGet(val, 'isOffline', true);
+
+        // Flush the queue when the connection resumes
+        if (wasOffline && !isOffline) {
+            flush();
+        }
+    },
+    initWithStoredValues: false,
+});
 
 export {
     flush,
