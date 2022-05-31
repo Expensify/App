@@ -141,6 +141,7 @@ const InitialSettingsPage = (props) => {
             action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
+            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -195,6 +196,7 @@ const InitialSettingsPage = (props) => {
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
                                 badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
+                                fallbackIcon={item.fallbackIcon}
                             />
                         );
                     })}

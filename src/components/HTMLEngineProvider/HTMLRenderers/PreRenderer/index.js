@@ -31,7 +31,9 @@ class PreRenderer extends React.Component {
         const node = this.ref.getScrollableNode();
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;
 
-        if ((event.currentTarget === node) && horizontalOverflow) {
+        // Account for vertical scrolling variation when horizontally scrolling via touchpad by checking a large delta.
+        const isVerticalScrolling = Math.abs(event.deltaY) > 3; // This is for touchpads sensitive
+        if ((event.currentTarget === node) && horizontalOverflow && !isVerticalScrolling) {
             node.scrollLeft += event.deltaX;
             event.preventDefault();
             event.stopPropagation();

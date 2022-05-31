@@ -3,7 +3,7 @@ import {createRef} from 'react';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -20,7 +20,7 @@ import NameValuePair from './NameValuePair';
  * @returns {Promise}
  */
 function deleteDebitCard(fundID) {
-    return API.DeleteFund({fundID})
+    return DeprecatedAPI.DeleteFund({fundID})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
@@ -66,7 +66,7 @@ function continueSetup() {
  */
 function getPaymentMethods() {
     Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true);
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
         name: 'paypalMeAddress',
         includeDeleted: false,
@@ -98,7 +98,7 @@ function getPaymentMethods() {
  * @returns {Promise}
  */
 function setWalletLinkedAccount(password, bankAccountID, fundID) {
-    return API.SetWalletLinkedAccount({
+    return DeprecatedAPI.SetWalletLinkedAccount({
         password,
         bankAccountID,
         fundID,
@@ -140,7 +140,8 @@ function addBillingCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    API.AddBillingCard({
+    Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
+    DeprecatedAPI.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
@@ -207,7 +208,7 @@ function transferWalletBalance(paymentMethod) {
     };
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
-    API.TransferWalletBalance(parameters)
+    DeprecatedAPI.TransferWalletBalance(parameters)
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);

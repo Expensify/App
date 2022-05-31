@@ -135,6 +135,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        whiteSpace: 'pre',
     },
 };
 
@@ -643,7 +644,7 @@ const styles = {
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
+        minHeight: 15,
         marginBottom: 5,
         marginTop: 5,
     },
@@ -2189,6 +2190,11 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    noSelect: {
+        boxShadow: 'none',
+        outline: 'none',
+    },
+
     cursorPointer: {
         cursor: 'pointer',
     },
@@ -2518,6 +2524,13 @@ const styles = {
         justifyContent: 'center',
         marginBottom: 40,
         padding: 16,
+    },
+
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 4,
     },
 };
 
