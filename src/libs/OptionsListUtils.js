@@ -250,18 +250,13 @@ function createOption(logins, personalDetails, report, {
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    let text;
+    const text = ReportUtils.getReportName(report, personalDetailMap, policies);
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
-        text = ReportUtils.getReportName(report, personalDetailMap, policies);
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : subtitle;
     } else {
-        text = hasMultipleParticipants
-            ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
-                .join(', ')
-            : lodashGet(report, ['reportName'], personalDetail.displayName);
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
