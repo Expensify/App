@@ -105,6 +105,8 @@ export default {
         leaveRoom: 'Leave room',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
+        youAppearToBeOffline: 'You appear to be offline.',
+        thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         maxParticipantsReached: ({count}) => `You've selected the maximum number of participants. (${count})`,
     },
     attachmentPicker: {
@@ -159,7 +161,6 @@ export default {
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
-        youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',

@@ -32,7 +32,9 @@ function Retry(response, request, isFromSequentialQueue) {
                 console.debug('[Network] There was an error in the Log API command, unable to log to server!', error);
             }
 
-            request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+            if (request.resolve) {
+                request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+            }
         });
 }
 

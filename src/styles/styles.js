@@ -644,7 +644,7 @@ const styles = {
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
+        minHeight: 15,
         marginBottom: 5,
         marginTop: 5,
     },
@@ -2520,6 +2520,13 @@ const styles = {
         justifyContent: 'center',
         marginBottom: 40,
         padding: 16,
+    },
+
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 4,
     },
 };
 
