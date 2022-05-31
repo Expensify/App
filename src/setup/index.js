@@ -8,9 +8,6 @@ import * as NetInfo from '../libs/NetInfo';
 import * as Pusher from '../libs/Pusher/pusher';
 import PusherConnectionManager from '../libs/PusherConnectionManager';
 import CONFIG from '../CONFIG';
-import * as Report from '../libs/actions/Report';
-import * as User from '../libs/actions/User';
-import * as Policy from '../libs/actions/Policy';
 
 export default function () {
     /*

@@ -211,7 +211,6 @@ function subscribe(
                         bindEventToChannel(channel, eventName, eventCallback, isChunked);
                         resolve();
                         isBound = true;
-                        return;
                     }
                 });
 
