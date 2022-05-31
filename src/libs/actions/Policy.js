@@ -238,6 +238,7 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
+        .then(Navigation.isNavigationReady)
         .then(() => {
             Navigation.dismissModal();
             navigateToPolicy(newPolicyID);

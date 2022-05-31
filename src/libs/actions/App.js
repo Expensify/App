@@ -162,8 +162,7 @@ function fixAccountAndReloadData() {
  * @param {Object} session
  */
 function setUpPoliciesAndNavigate(session) {
-    Navigation.isNavigationReady()
-        .then(Linking.getInitialURL)
+    Linking.getInitialURL()
         .then((url) => {
             if (!url) {
                 Policy.getPolicyList();
@@ -183,9 +182,12 @@ function setUpPoliciesAndNavigate(session) {
             }
             Policy.getPolicyList();
             if (!isLoggingInAsNewUser && exitTo) {
-                // We must call dismissModal() to remove the /transition route from history
-                Navigation.dismissModal();
-                Navigation.navigate(exitTo);
+                Navigation.isNavigationReady()
+                    .then(() => {
+                        // We must call dismissModal() to remove the /transition route from history
+                        Navigation.dismissModal();
+                        Navigation.navigate(exitTo);
+                    });
             }
         });
 }
