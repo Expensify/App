@@ -12,13 +12,13 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
-    /** sourceUrl to determine the initial index of the attachment rendered in it's respective actions */
+    /** sourceUrl is used to determine the starting index in the array of attachments */
     sourceURL: PropTypes.string,
 
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** callback from the parent to change the name and sourceUrl of parent's state */
+    /** Callback to update the parent modal's state with a sourceUrl and name from the attachments array */
     onArrowPress: PropTypes.func,
 };
 
