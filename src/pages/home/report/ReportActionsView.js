@@ -503,7 +503,7 @@ class ReportActionsView extends React.Component {
                 />
                 <ReportActionsList
                     report={this.props.report}
-                    reportActionIDToHighlight={this.state.shouldHighlightReportActionID && this.props.reportActionID}
+                    reportActionIDToHighlight={this.state.shouldHighlightReportActionID && this.props.reportActionID ? this.props.reportActionID : 0}
                     onScroll={this.trackScroll}
                     onLayout={this.recordTimeToMeasureItemLayout}
                     sortedReportActions={this.sortedReportActions}

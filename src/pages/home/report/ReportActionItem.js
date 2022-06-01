@@ -54,7 +54,7 @@ const propTypes = {
     draftMessage: PropTypes.string,
 
     /** Should we highlight the current report action item */
-    shouldHighlight: PropTypes.bool,
+    shouldHighlight: PropTypes.bool.isRequired,
 
     /** Callback for when the item is rendered */
     onItemRendered: PropTypes.func.isRequired,
@@ -65,7 +65,6 @@ const propTypes = {
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
-    shouldHighlight: false,
 };
 
 class ReportActionItem extends Component {
