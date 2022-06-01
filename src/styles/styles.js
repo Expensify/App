@@ -1974,7 +1974,6 @@ const styles = {
     },
 
     attachmentModalArrowsIcon: {
-        
         height: variables.iconSizeNormal + 10,
         width: variables.iconSizeNormal + 10,
         borderRadius: variables.iconSizeNormal + 10,
