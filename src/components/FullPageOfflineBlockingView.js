@@ -35,7 +35,7 @@ const FullPageOfflineBlockingView = (props) => {
                     width={variables.iconSizeMondo}
                     height={variables.iconSizeMondo}
                 />
-                <Text style={[styles.h1]}>{props.translate('common.youAppearToBeOffline')}</Text>
+                <Text style={[styles.h1, styles.mt5]}>{props.translate('common.youAppearToBeOffline')}</Text>
                 <Text style={[styles.w70, styles.textAlignCenter]}>{props.translate('common.thisFeatureRequiresInternet')}</Text>
             </View>
         );
