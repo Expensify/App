@@ -158,7 +158,7 @@ class ReportActionCompose extends React.Component {
     componentDidUpdate(prevProps) {
         const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
         if (sidebarOpened) {
-            toggleReportActionComposeView(true, true);
+            toggleReportActionComposeView(true);
         }
 
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
