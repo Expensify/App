@@ -108,6 +108,11 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // If a reportActionID exists in the URL then let's close the drawer so that we can see the message comments on native.
+        if (this.getReportActionID()) {
+            Navigation.closeDrawer();
+        }
+
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -134,7 +139,7 @@ class ReportScreen extends React.Component {
      */
     getReportActionID() {
         const params = this.props.route.params;
-        return Number.parseInt(params.reportActionID || 0, 10);
+        return Number.parseInt(params.reportActionID || 0);
     }
 
     /**
@@ -178,11 +183,6 @@ class ReportScreen extends React.Component {
 
         const reportID = getReportID(this.props.route);
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-
-        // If a reportActionID exists in the URL then let's close the drawer so that we can see the message comments on native.
-        if (this.getReportActionID()) {
-            Navigation.closeDrawer();
-        }
 
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
