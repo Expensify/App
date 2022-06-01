@@ -107,7 +107,7 @@ describe('OptionsListUtils', () => {
             lastMessageTimestamp: 1,
             reportID: 10,
             isPinned: false,
-            participants: ['captain_britain@expensify.com', 'captain_america@expensify.com'],
+            participants: ['tonystark@expensify.com', 'steverogers@expensify.com'],
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -620,13 +620,20 @@ describe('OptionsListUtils', () => {
                 reportName: 'Captain Britain',
             },
         };
+        const personalDetailsWithNewParticipant = {
+            ...PERSONAL_DETAILS,
+            'captain_britain@expensify.com': {
+                displayName: 'Captain Britain',
+                login: 'captain_britain@expensify.com',
+            }
+        }
 
         return Report.setReportWithDraft(1, true)
             .then(() => {
                 // When we call getSidebarOptions() with no search value and default priority mode
                 const results = OptionsListUtils.getSidebarOptions(
                     reportsWithAddedPinnedMessagelessReport,
-                    PERSONAL_DETAILS,
+                    personalDetailsWithNewParticipant,
                     0,
                     CONST.PRIORITY_MODE.DEFAULT,
                 );
@@ -643,6 +650,7 @@ describe('OptionsListUtils', () => {
 
                 // And the most recent pinned report is first in the list of reports
                 let index = 0;
+                expect(results.recentReports[index].text).toBe('Captain Britain');
                 expect(results.recentReports[index].login).toBe('captain_britain@expensify.com');
 
                 // And the third report is the report with an IOU debt
@@ -650,7 +658,7 @@ describe('OptionsListUtils', () => {
                 expect(results.recentReports[index].login).toBe('mistersinister@marauders.com');
 
                 // And the fourth report is the report with a draft comment
-                expect(results.recentReports[++index].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
+                expect(results.recentReports[++index].text).toBe('Iron Man, Mister Fantastic');
 
                 // And the fifth report is the report with the lastMessage timestamp
                 expect(results.recentReports[++index].login).toBe('steverogers@expensify.com');
