@@ -110,7 +110,7 @@ class ReportScreen extends React.Component {
     componentDidMount() {
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
-        if (window) {
+        if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', this.viewportOffsetTop);
         }
     }
@@ -126,7 +126,7 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
-        if (window) {
+        if (window.visualViewport) {
             window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
         }
     }
