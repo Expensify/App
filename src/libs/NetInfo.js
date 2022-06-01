@@ -2,7 +2,7 @@ import NetInfo from '@react-native-community/netinfo';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import Log from './Log';
-import * as OfflineStatus from './actions/Network';
+import * as Network from './actions/Network';
 
 let isInternetReachable = false;
 let hasPendingNetworkCheck = false;
@@ -36,7 +36,7 @@ function init() {
     NetInfo.addEventListener((state) => {
         Log.info('[NetInfo] NetInfo state change', false, state);
         isInternetReachable = state.isInternetReachable;
-        OfflineStatus.triggerOfflineStatusRefresh();
+        Network.refreshOfflineStatus();
     });
 }
 
