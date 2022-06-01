@@ -271,10 +271,10 @@ class Button extends Component {
                     >
                         {this.renderContent()}
                         {this.props.isLoading && (
-                        <ActivityIndicator
-                            color={themeColors.textReversed}
-                            style={[styles.pAbsolute, styles.l0, styles.r0]}
-                        />
+                            <ActivityIndicator
+                                color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                style={[styles.pAbsolute, styles.l0, styles.r0]}
+                            />
                         )}
                     </OpacityView>
                 )}
