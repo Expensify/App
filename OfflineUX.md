@@ -59,10 +59,10 @@ Used when…
 How to implement: Use API.write() to implement this pattern. 
 
 # B - Optimistic WITH Feedback Pattern
-This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet.
+This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. When the user is online, the feature should just look like it succeeds immediately (we dont want the offline UI to flicker on and off when the user is online).
 
 Used when…
- - the user needs feedback that data is being synced to the server
+ - the user needs feedback that data is being sent to the server
 This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
 How to implement: Use API.write() to implement this pattern. 
