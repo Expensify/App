@@ -1129,18 +1129,6 @@ const styles = {
         paddingRight: 20,
     },
 
-    sidebarInnerRow: {
-        height: 64,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
-    sidebarInnerRowSmall: {
-        height: 52,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
     sidebarLinkText: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
@@ -1205,6 +1193,22 @@ const styles = {
         flexGrow: 1,
         flexBasis: 'auto',
         ...optionAlternateTextPlatformStyles,
+    },
+
+    optionRow: {
+        height: variables.optionRowHeight,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionRowCompact: {
+        height: variables.optionRowHeightCompact,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionsListSectionHeader: {
+        height: variables.optionsListSectionHeaderHeight,
     },
 
     appContent: {
