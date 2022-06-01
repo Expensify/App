@@ -625,8 +625,8 @@ describe('OptionsListUtils', () => {
             'captain_britain@expensify.com': {
                 displayName: 'Captain Britain',
                 login: 'captain_britain@expensify.com',
-            }
-        }
+            },
+        };
 
         return Report.setReportWithDraft(1, true)
             .then(() => {
