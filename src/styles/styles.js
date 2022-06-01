@@ -648,7 +648,7 @@ const styles = {
     },
 
     chatItemComposeSecondaryRow: {
-        minHeight: 15,
+        height: 15,
         marginBottom: 5,
         marginTop: 5,
     },

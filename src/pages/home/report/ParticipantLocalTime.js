@@ -1,4 +1,7 @@
 import React, {PureComponent} from 'react';
+import {
+    View,
+} from 'react-native';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
@@ -57,18 +60,23 @@ class ParticipantLocalTime extends PureComponent {
                 : this.props.participant.displayName);
 
         return (
-            <Text
-                style={[styles.chatItemComposeSecondaryRowSubText]}
-                numberOfLines={1}
-            >
-                {this.props.translate(
-                    'reportActionCompose.localTime',
-                    {
-                        user: reportRecipientDisplayName,
-                        time: this.state.localTime,
-                    },
-                )}
-            </Text>
+            <View style={[styles.chatItemComposeSecondaryRow]}>
+                <Text
+                    style={[
+                        styles.chatItemComposeSecondaryRowSubText,
+                        styles.chatItemComposeSecondaryRowOffset,
+                    ]}
+                    numberOfLines={1}
+                >
+                    {this.props.translate(
+                        'reportActionCompose.localTime',
+                        {
+                            user: reportRecipientDisplayName,
+                            time: this.state.localTime,
+                        },
+                    )}
+                </Text>
+            </View>
         );
     }
 }

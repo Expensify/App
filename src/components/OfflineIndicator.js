@@ -23,7 +23,11 @@ const OfflineIndicator = (props) => {
     }
 
     return (
-        <View style={[styles.flexRow]}>
+        <View style={[
+            styles.chatItemComposeSecondaryRowOffset,
+            styles.flexRow,
+            styles.alignItemsCenter]}
+        >
             <Icon
                 src={Expensicons.Offline}
                 width={variables.iconSizeExtraSmall}
