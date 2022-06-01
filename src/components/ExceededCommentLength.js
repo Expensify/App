@@ -16,7 +16,7 @@ const ExceededCommentLength = (props) => {
     }
 
     return (
-        <Text style={[styles.textMicro, styles.textDanger]}>
+        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
             {`${props.commentLength}/${CONST.MAX_COMMENT_LENGTH}`}
         </Text>
     );
