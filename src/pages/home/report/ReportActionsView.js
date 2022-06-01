@@ -103,7 +103,7 @@ class ReportActionsView extends React.Component {
         this.state = {
             isFloatingMessageCounterVisible: false,
             messageCounterCount: this.props.report.unreadActionCount,
-            selectedReportActionID: -1,
+            shouldHighlightReportActionID: false,
         };
 
         this.currentScrollOffset = 0;
@@ -205,7 +205,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.state.selectedReportActionID !== nextState.selectedReportActionID) {
+        if (this.state.shouldHighlightReportActionID !== nextState.shouldHighlightReportActionID) {
             return true;
         }
 
@@ -435,7 +435,7 @@ class ReportActionsView extends React.Component {
 
         if (this.actionIndexID !== -1) {
             ReportScrollManager.scrollToIndex({index: this.actionIndexID, viewPosition: 0.5});
-            this.setState({selectedReportActionID: this.props.reportActionID});
+            this.setState({shouldHighlightReportActionID: true});
         }
     }
 
@@ -503,7 +503,7 @@ class ReportActionsView extends React.Component {
                 />
                 <ReportActionsList
                     report={this.props.report}
-                    selectedReportActionID={this.state.selectedReportActionID}
+                    reportActionIDToHighlight={this.state.shouldHighlightReportActionID && this.props.reportActionID}
                     onScroll={this.trackScroll}
                     onLayout={this.recordTimeToMeasureItemLayout}
                     sortedReportActions={this.sortedReportActions}
