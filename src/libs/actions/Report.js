@@ -685,9 +685,8 @@ function getReportChannelName(reportID) {
  *
  * @param {String} eventName
  * @param {Function} onEvent
- * @param {Boolean} isChunked
  */
-function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
+function subscribeToPrivateUserChannelEvent(eventName, onEvent) {
     const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     /**
@@ -716,7 +715,7 @@ function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = fals
         Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
 
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel)
         .catch(onSubscriptionFailed);
 }
 
@@ -738,17 +737,13 @@ function subscribeToUserEvents() {
     subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
 
     // Live-update a report's actions when a 'chunked report comment' event is received.
-    subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_CHUNK,
-        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
-        true,
-    );
+    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_CHUNK, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
 
     // Live-update a report's actions when an 'edit comment' event is received.
     subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's actions when an 'edit comment chunk' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true);
+    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's pinned state when a 'report toggle pinned' event is received.
     subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED, pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
