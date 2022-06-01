@@ -2,6 +2,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
 import styles from '../../styles/styles';
@@ -98,21 +99,20 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
+        this.viewportOffsetTop = this.updateViewportOffsetTop.bind(this);
 
         this.state = {
             isLoading: true,
-            viewportHeightStyle: {height: '100%'},
+            viewportOffsetTop: 0,
         };
     }
 
     componentDidMount() {
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
-        window.visualViewport.addEventListener('resize', (e) => {
-            const viewportHeight = e.target.height;
-            const viewportHeightStyle = {height: viewportHeight};
-            this.setState({viewportHeightStyle});
-        });
+        if (window) {
+            window.visualViewport.addEventListener('resize', this.viewportOffsetTop);
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -126,6 +126,9 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
+        if (window) {
+            window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
+        }
     }
 
     /**
@@ -133,6 +136,14 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         Report.addAction(getReportID(this.props.route), text);
+    }
+
+    /**
+     * @param {SyntheticEvent} e
+     */
+    updateViewportOffsetTop(e) {
+        const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
+        this.setState({viewportOffsetTop});
     }
 
     /**
@@ -183,7 +194,7 @@ class ReportScreen extends React.Component {
         }
 
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1]}>
+            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <KeyboardAvoidingView>
                     <HeaderView
                         reportID={reportID}
@@ -205,7 +216,7 @@ class ReportScreen extends React.Component {
                             />
                         )}
                         {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                        <View style={[styles.chatFooter, this.props.isComposerFullSize && this.state.viewportHeightStyle]}>
+                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             {
                                 isArchivedRoom
                                     ? (
