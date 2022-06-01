@@ -158,10 +158,16 @@ class Form extends React.Component {
                     this.setTouchedInput(inputID);
                     this.validate(this.inputValues);
                 },
-                onInputChange: (value) => {
-                    this.inputValues[inputID] = value;
+                onInputChange: (value, key) => {
+                    const inputKey = key || inputID;
+                    this.inputValues[inputKey] = value;
+                    const inputRef = this.inputRefs[inputKey];
+
+                    if (key && inputRef && _.isFunction(inputRef.setNativeProps)) {
+                        inputRef.setNativeProps({value});
+                    }
                     if (child.props.shouldSaveDraft) {
-                        FormActions.setDraftValues(this.props.formID, {[inputID]: value});
+                        FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }
                     this.validate(this.inputValues);
                 },
