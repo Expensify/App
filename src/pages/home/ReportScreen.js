@@ -20,6 +20,7 @@ import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
+import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -151,6 +152,9 @@ class ReportScreen extends React.Component {
             Report.handleInaccessibleReport();
             return;
         }
+
+        // Always reset the state of the composer view when the current reportID changes
+        toggleReportActionComposeView(true);
         Report.updateCurrentlyViewedReportID(reportID);
     }
 
