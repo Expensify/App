@@ -33,7 +33,12 @@ class LogOutPreviousUserPage extends Component {
             return;
         }
 
-        // Set isNavigationReady so that we can navigate in the AuthScreens
+        // Since we conditionally render navigators in the AppNavigator, when we
+        // sign out and sign back in there will be a moment where no navigator
+        // is rendered and the navigation state is null. We can't navigate at
+        // that time, so we use a promise to delay transition navigation until
+        // it is ready. We set the navigation ready here since we know that the
+        // navigator is now rendered.
         Navigation.setIsNavigationReady();
     }
 
