@@ -1723,7 +1723,13 @@ const styles = {
     },
 
     pdfPasswordForm: {
-        maxWidth: 350,
+        narrowScreen: {
+            ...sizing.w100,
+            ...spacing.p5,
+        },
+        wideScreen: {
+            maxWidth: 350,
+        },
     },
 
     modalCenterContentContainer: {

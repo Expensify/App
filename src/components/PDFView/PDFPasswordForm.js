@@ -5,13 +5,16 @@ import Button from '../Button';
 import Text from '../Text';
 import TextInput from '../TextInput';
 import styles from '../../styles/styles';
+import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
     isPasswordInvalid: PropTypes.bool,
 
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -35,9 +38,13 @@ class PDFPasswordForm extends Component {
     }
 
     render() {
+        // On non-small screens set a max width on the form.
+        const containerStyles = this.props.isSmallScreenWidth
+            ? {} : styles.pdfPasswordForm.wideScreen;
+
         return (
-            <View style={styles.pdfPasswordForm}>
-                <Text style={[styles.mb4, styles.col]}>
+            <View style={containerStyles}>
+                <Text style={styles.mb4}>
                     {this.props.translate('attachmentView.pdfPasswordRequired')}
                 </Text>
                 <TextInput
@@ -71,4 +78,7 @@ class PDFPasswordForm extends Component {
 PDFPasswordForm.propTypes = propTypes;
 PDFPasswordForm.defaultProps = defaultProps;
 
-export default withLocalize(PDFPasswordForm);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(PDFPasswordForm);

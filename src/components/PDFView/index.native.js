@@ -98,9 +98,14 @@ class PDFView extends Component {
             pdfStyles.push(styles.invisible);
         }
 
+        // For small screens (and Android specifically) force the container view
+        // to take up the full width.
+        const containerStyles = this.props.isSmallScreenWidth
+            ? styles.pdfPasswordForm.narrowScreen : {};
+
         return (
             <TouchableWithoutFeedback style={[styles.flex1, this.props.style]}>
-                <View>
+                <View style={containerStyles}>
                     {this.state.shouldAttemptPdfLoad && (
                         <PDF
                             activityIndicator={<FullScreenLoadingIndicator />}
