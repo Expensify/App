@@ -5,8 +5,10 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'lodash';
 import CONST from '../CONST';
+import Navigation from '../libs/Navigation/Navigation';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
+import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
@@ -58,7 +60,7 @@ const propTypes = {
 const defaultProps = {
     sourceURL: null,
     onConfirm: null,
-    originalFileName: null,
+    originalFileName: '',
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
@@ -70,9 +72,12 @@ class AttachmentModal extends PureComponent {
         super(props);
 
         this.state = {
+            page: -1,
+            attachments: [],
             isModalOpen: false,
             isConfirmModalOpen: false,
-            file: null,
+            reportId: null,
+            file: {name: lodashGet(props, 'originalFileName', '')},
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
         };
@@ -80,6 +85,34 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
+        this.onArrowPress = this.onArrowPress.bind(this);
+    }
+
+    // this prevents a bug in iOS that would show the last image before closing then opening on a new image
+    static getDerivedStateFromProps(props, state) {
+        if (state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
+            return {
+                prevIsModalOpen: true,
+                file: {name: lodashGet(props, 'originalFileName', '')},
+                sourceURL: lodashGet(props, 'sourceURL', ''),
+            };
+        }
+
+        if (!state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
+            return {prevIsModalOpen: false};
+        }
+
+        return null;
+    }
+
+    /**
+     * callback in used in AttachmentCarousel to delegate when a user presses an arrow
+     * @param {Object} attachmentItem
+     */
+    onArrowPress(attachmentItem) {
+        const sourceURL = lodashGet(attachmentItem, 'sourceURL', '');
+        const file = lodashGet(attachmentItem, 'file', {name: ''});
+        this.setState({sourceURL, file});
     }
 
     /**
@@ -101,7 +134,7 @@ class AttachmentModal extends PureComponent {
      * @returns {Object}
      */
     splitExtensionFromFileName() {
-        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
+        const fullFileName = lodashGet(this.state, 'file.name', '').trim();
         const splittedFileName = fullFileName.split('.');
         const fileExtension = splittedFileName.pop();
         const fileName = splittedFileName.join('.');
@@ -180,9 +213,16 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={attachmentViewStyles}>
-                        {this.state.sourceURL && (
+                        <>
                             <AttachmentView sourceURL={sourceURL} file={this.state.file} />
-                        )}
+                            {this.state.reportId && (
+                                <AttachmentCarousel
+                                    reportId={this.state.reportId}
+                                    onArrowPress={this.onArrowPress}
+                                    sourceURL={this.state.sourceURL}
+                                />
+                            )}
+                        </>
                     </View>
 
                     {/* If we have an onConfirm method show a confirmation button */}
@@ -226,7 +266,12 @@ class AttachmentModal extends PureComponent {
                         }
                     },
                     show: () => {
-                        this.setState({isModalOpen: true});
+                        const route = Navigation.getActiveRoute();
+                        let reportId = null;
+                        if (route.includes('/r/')) {
+                            reportId = route.replace('/r/', '');
+                        }
+                        this.setState({isModalOpen: true, reportId});
                     },
                 })}
             </>

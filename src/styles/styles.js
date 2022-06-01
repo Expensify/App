@@ -2012,6 +2012,23 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
+    attachmentModalArrowsContainer: {
+        width: '90%',
+        position: 'absolute',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+
+    attachmentModalArrowsIcon: {
+        height: variables.iconSizeNormal + 10,
+        width: variables.iconSizeNormal + 10,
+        borderRadius: variables.iconSizeNormal + 10,
+        paddingTop: 5,
+        paddingLeft: 5,
+        backgroundColor: 'lightgrey',
+    },
+
     detailsPageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,
