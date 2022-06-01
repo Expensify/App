@@ -2,8 +2,10 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import CONST from '../../CONST';
 import Log from '../../libs/Log';
 import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
@@ -31,6 +33,7 @@ class BaseOptionsList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.renderSectionHeader = this.renderSectionHeader.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
@@ -75,6 +78,53 @@ class BaseOptionsList extends Component {
      */
     onScrollToIndexFailed(info) {
         Log.hmmm('[OptionsList] scrollToIndex failed', info);
+    }
+
+    /**
+     *
+     * @param {Array} data – this is a flat array of all the sections with all the section headers inline. It comes from react-native in this format
+     * @param {Number} index - the index of the current item in the `data` array
+     * @returns {Object}
+     */
+    getItemLayout(data, index) {
+        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+        const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
+
+        let offset = 0;
+        let currentIndex = 0;
+        let isItemSectionHeader = false;
+        _.any(this.props.sections, (section) => {
+            if (currentIndex >= index) {
+                // Stop iteration
+                return true;
+            }
+
+            const startOfNextSection = currentIndex + section.data.length;
+            if (startOfNextSection === index) {
+                isItemSectionHeader = true;
+            }
+
+            const nextIndex = Math.min(startOfNextSection, index);
+
+            if (!section.shouldShow || section.data.length === 0) {
+                // No height is added to the offset by this section, continue to the next section
+                return false;
+            }
+
+            if (section.title && !this.props.hideSectionHeaders) {
+                offset += sectionHeaderHeight;
+            }
+
+            offset += optionHeight * (nextIndex - currentIndex);
+            currentIndex = nextIndex;
+            return false;
+        });
+
+        return {
+            length: isItemSectionHeader ? sectionHeaderHeight : optionHeight,
+            offset,
+            index,
+        };
     }
 
     /**
@@ -129,7 +179,11 @@ class BaseOptionsList extends Component {
     renderSectionHeader({section: {title, shouldShow}}) {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
-                <View>
+
+                // Warning: this optionsListSectionHeader style is brittle – it's computed manually from the dynamic styles in the text node below.
+                // We do this only so that we can reference the height in getItemLayout
+                // 11pt font + 20px padding renders to 54px height
+                <View style={styles.optionsListSectionHeader}>
                     <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
                         {title}
                     </Text>
@@ -163,6 +217,7 @@ class BaseOptionsList extends Component {
                     onScrollToIndexFailed={this.onScrollToIndexFailed}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
+                    getItemLayout={this.getItemLayout}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
                     initialNumToRender={5}
