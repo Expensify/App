@@ -81,6 +81,8 @@ What: This pattern greys out the submit button on a form and does not allow the 
 
 When: This should be used when we cannot allow the user to submit the form while offline.
 
+How to implement: Use the `<FormAlertWithSubmitButton/>` component.
+
 # D - Full Page Blocking UI Pattern
 This pattern blocks the user from interacting with an entire page.
 
@@ -91,6 +93,8 @@ Used when…
 This should only be used in the most extreme cases when all other options have been completely and utterly exhausted
 
 What: This pattern blocks the user from interacting with an entire page.
+
+How to implement: Wrap the component you're working on in a `<FullPageOfflineBlockingView>` component. 
 
 ### UX Pattern Flow Chart
 
