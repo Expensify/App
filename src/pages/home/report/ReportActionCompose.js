@@ -444,13 +444,25 @@ class ReportActionCompose extends React.Component {
 
         return (
             <View style={[styles.chatItemComposeWithFirstRow]}>
-                <View style={[styles.flexRow, styles.chatItemComposeSecondaryRow, styles.chatItemComposeSecondaryRowOffset, styles.flexWrap, styles.tester]}>
-                    {shouldShowReportRecipientLocalTime && (
-                        <ParticipantLocalTime participant={reportRecipient} style={[styles.mr3]} />
-                    )}
-                    <OfflineIndicator style={[styles.mr3]} />
-                    <ExceededCommentLength commentLength={this.comment.length} style={[styles.mr3]} />
-                    <ReportTypingIndicator reportID={this.props.reportID} />
+                <View style={[styles.flexRow, styles.chatItemComposeSecondaryRow, styles.chatItemComposeSecondaryRowOffset, styles.flexWrap]}>
+                    {shouldShowReportRecipientLocalTime
+                        && (
+                            <View style={[styles.mr3]}>
+                                <ParticipantLocalTime participant={reportRecipient} />
+                            </View>
+                        )}
+
+                    <View style={[styles.mr3]}>
+                        <OfflineIndicator />
+                    </View>
+
+                    <View style={[styles.mr3]}>
+                        <ExceededCommentLength commentLength={this.comment.length} />
+                    </View>
+
+                    <View style={[styles.mr3]}>
+                        <ReportTypingIndicator reportID={this.props.reportID} />
+                    </View>
                 </View>
 
                 <View style={[
