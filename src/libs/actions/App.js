@@ -14,7 +14,6 @@ import * as Report from './Report';
 import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
-import promiseAllSettled from '../promiseAllSettled';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -115,11 +114,11 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
     }
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
-    return promiseAllSettled([
+    return Promise.all([
         PersonalDetails.fetchPersonalDetails(),
         Report.fetchAllReports(true, true),
     ])
-        .then(() => Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, false));
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, false));
 }
 
 /**
