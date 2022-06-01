@@ -104,7 +104,7 @@ const Template = (args) => {
             />
             <View style={styles.mt4}>
                 <StatePicker
-                    inputID="pickState"
+                    inputID="state"
                     shouldSaveDraft
                 />
             </View>
@@ -179,8 +179,8 @@ const defaultArgs = {
         if (!values.pickAnotherFruit) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!values.pickState) {
-            errors.pickState = 'Please select a state';
+        if (!values.state) {
+            errors.state = 'Please select a state';
         }
         if (!values.checkbox) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
@@ -204,7 +204,7 @@ const defaultArgs = {
         dob: '1990-01-01',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
-        pickState: 'AL',
+        state: 'AL',
         checkbox: false,
     },
 };
@@ -221,7 +221,7 @@ InputError.args = {
         pickFruit: '',
         dob: '',
         pickAnotherFruit: '',
-        pickState: '',
+        state: '',
         checkbox: false,
     },
 };

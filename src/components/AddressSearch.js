@@ -183,7 +183,7 @@ const AddressSearch = (props) => {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
-                        hint: props.hint,
+                        hint: displayListViewBorder ? undefined : props.hint,
                         value: props.value,
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
