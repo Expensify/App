@@ -101,12 +101,18 @@ class ReportScreen extends React.Component {
 
         this.state = {
             isLoading: true,
+            viewportHeightStyle: {height: '100%'},
         };
     }
 
     componentDidMount() {
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
+        window.visualViewport.addEventListener('resize', (e) => {
+            const viewportHeight = e.target.height;
+            const viewportHeightStyle = {height: viewportHeight};
+            this.setState({viewportHeightStyle});
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -199,7 +205,7 @@ class ReportScreen extends React.Component {
                             />
                         )}
                         {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                        <View style={[styles.chatFooter, this.props.isComposerFullSize && this.state.viewportHeightStyle]}>
                             {
                                 isArchivedRoom
                                     ? (
