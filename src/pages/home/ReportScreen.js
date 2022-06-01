@@ -139,7 +139,7 @@ class ReportScreen extends React.Component {
      */
     getReportActionID() {
         const params = this.props.route.params;
-        return Number.parseInt(params.reportActionID || 0);
+        return Number.parseInt(params.reportActionID || 0, 10);
     }
 
     /**
