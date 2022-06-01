@@ -673,15 +673,18 @@ describe('OptionsListUtils', () => {
                 expect(results.personalDetails.length).toBe(0);
 
                 // Pinned reports are always on the top in alphabetical order regardless of whether they are unread or have IOU debt.
-                // D report name (Alphabetically first among pinned reports)
+                // Mister Fantastic report name (Alphabetically first among pinned reports)
                 let index = 0;
+                expect(results.recentReports[index].text).toBe('Mister Fantastic');
+                expect(results.recentReports[index].login).toBe('reedrichards@expensify.com');
+
+                // d_email@email.com report name (Alphabetically second among pinned reports because of lowercase name)
+                expect(results.recentReports[++index].text).toBe('d_email@email.com');
                 expect(results.recentReports[index].login).toBe('d_email@email.com');
 
-                // Mister Fantastic report name (Alphabetically second among pinned reports)
-                expect(results.recentReports[++index].login).toBe('reedrichards@expensify.com');
-
-                // Z report name (Alphabetically third among pinned reports)
-                expect(results.recentReports[++index].login).toBe('z_email@email.com');
+                // z_email@email.com (Alphabetically third among pinned reports)
+                expect(results.recentReports[++index].text).toBe('z_email@email.com');
+                expect(results.recentReports[index].login).toBe('z_email@email.com');
 
                 // Unpinned report name ordered alphabetically after pinned reports
                 // Black Panther report name has unread message
