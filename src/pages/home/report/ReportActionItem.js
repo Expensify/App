@@ -53,8 +53,8 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /** Is the current item selected to scroll to */
-    isSelected: PropTypes.bool,
+    /** Should we highlight the current report action item */
+    shouldHighlight: PropTypes.bool,
 
     /** Callback for when the item is rendered */
     onItemRendered: PropTypes.func.isRequired,
@@ -65,7 +65,7 @@ const propTypes = {
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
-    isSelected: false,
+    shouldHighlight: false,
 };
 
 class ReportActionItem extends Component {
@@ -100,12 +100,12 @@ class ReportActionItem extends Component {
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action)
-            || !_.isEqual(this.props.isSelected, nextProps.isSelected)
+            || !_.isEqual(this.props.shouldHighlight, nextProps.shouldHighlight)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.isSelected && this.props.isSelected) {
+        if (!prevProps.shouldHighlight && this.props.shouldHighlight) {
             this.animateBackground();
         }
 
