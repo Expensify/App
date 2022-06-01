@@ -123,9 +123,9 @@ Any easy way to tell if something is a form is to try and find a submit button. 
 
 Answer NO if there is data coming back from the server that we can't know (example: a list of bank accounts from Plaid, input validation that the server must perform). Answer YES if we can know what the response from the server would be.
 
-6. Is there validation done on the server?
+6. Is there validation done on the server that can't be done on the front end?
 
-If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to the previous question (5) is YES (we could imagine that the server returns a 200 and we would know what the next page would look like). However, our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
+If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
 
 This question can be tricky, so if you’re unsure, please ask a question in #expensify-open-source and tag the contributor management engineer team.
 
