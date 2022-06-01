@@ -532,6 +532,7 @@ class ReportActionCompose extends React.Component {
                                                             onPress={(e) => {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
+                                                                this.focus(false);
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
