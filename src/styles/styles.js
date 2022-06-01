@@ -1974,12 +1974,13 @@ const styles = {
     },
 
     attachmentModalArrowsIcon: {
+        
+        height: variables.iconSizeNormal + 10,
+        width: variables.iconSizeNormal + 10,
+        borderRadius: variables.iconSizeNormal + 10,
         paddingTop: 5,
-        paddingRight: 5,
-        paddingBottom: 5,
-        paddingLeft: 7,
+        paddingLeft: 5,
         backgroundColor: 'lightgrey',
-        borderRadius: '100%',
     },
 
     detailsPageSectionVersion: {

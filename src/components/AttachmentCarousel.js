@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'lodash';
 import styles from '../styles/styles';
 import * as Expensicons from './Icon/Expensicons';
+import variables from '../styles/variables';
 import Icon from './Icon';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import CONFIG from '../CONFIG';
@@ -82,8 +83,8 @@ class AttachmentCarousel extends React.Component {
             <View style={[styles.cursorPointer, styles.attachmentModalArrowsIcon]}>
                 <Pressable onPress={() => this.cycleThroughAttachments(isBackArrow)}>
                     <Icon
-                        height={21}
-                        width={21}
+                        height={variables.iconSizeNormal}
+                        width={variables.iconSizeNormal}
                         fill="black"
                         src={isBackArrow ? Expensicons.BackArrow : Expensicons.ArrowRight}
                     />
