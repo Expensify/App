@@ -163,11 +163,12 @@ function getParticipantNames(personalDetailList) {
  * Default should be serachable by policy/domain name but not by participants.
  *
  * @param {Object} report
+ * @param {String} reportName
  * @param {Array} personalDetailList
  * @param {Boolean} isChatRoomOrPolicyExpenseChat
  * @return {String}
  */
-function getSearchText(report, personalDetailList, isChatRoomOrPolicyExpenseChat) {
+function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat) {
     const searchTerms = [];
 
     if (!isChatRoomOrPolicyExpenseChat) {
@@ -177,8 +178,8 @@ function getSearchText(report, personalDetailList, isChatRoomOrPolicyExpenseChat
         });
     }
     if (report) {
-        searchTerms.push(...report.reportName);
-        searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
+        searchTerms.push(...reportName);
+        searchTerms.push(..._.map(reportName.split(','), name => name.trim()));
 
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
@@ -250,7 +251,7 @@ function createOption(logins, personalDetails, report, {
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    const text = ReportUtils.getReportName(report, personalDetailMap, policies);
+    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     let alternateText;
     if (isChatRoom || isPolicyExpenseChat) {
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
@@ -262,7 +263,7 @@ function createOption(logins, personalDetails, report, {
             : Str.removeSMSDomain(personalDetail.login);
     }
     return {
-        text,
+        text: reportName,
         alternateText,
         icons: ReportUtils.getIcons(report, personalDetails, policies, lodashGet(personalDetail, ['avatar'])),
         tooltipText,
@@ -279,7 +280,7 @@ function createOption(logins, personalDetails, report, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList, isChatRoom || isPolicyExpenseChat),
+        searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
