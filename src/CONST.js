@@ -381,6 +381,10 @@ const CONST = {
         },
     },
 
+    PUSHER: {
+        PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+    },
+
     EMOJI_SPACER: 'SPACER',
 
     EMOJI_NUM_PER_ROW: 8,
