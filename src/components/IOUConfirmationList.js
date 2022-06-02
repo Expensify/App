@@ -126,13 +126,27 @@ class IOUConfirmationList extends Component {
         }];
 
         this.state = {
-            sections: this.getSections(formattedParticipants),
             participants: formattedParticipants,
-            selectedParticipants: formattedParticipants,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
+    }
+
+    /**
+     * Get selected participants
+     * @returns {Array}
+     */
+    getSelectedParticipants() {
+        return _.filter(this.state.participants, participant => participant.selected);
+    }
+
+    /**
+     * Get unselected participants
+     * @returns {Array}
+     */
+    getUnselectedParticipants() {
+        return _.filter(this.state.participants, participant => !participant.selected);
     }
 
     /**
@@ -163,22 +177,14 @@ class IOUConfirmationList extends Component {
     /**
      * Returns the sections needed for the OptionsSelector
      *
-     * @param {Array} participants
      * @returns {Array}
      */
-    getSections(participants) {
+    getSections() {
         const sections = [];
         if (this.props.hasMultipleParticipants) {
-            const [selected, unselected] = _.reduce(participants, (memo, participant) => {
-                if (participant.selected) {
-                    memo[0].push(participant);
-                } else {
-                    memo[1].push(participant);
-                }
-                return memo;
-            }, [[], []]);
-            const selectedParticipants = selected;
-            const unselectedParticipants = unselected;
+            const selectedParticipants = this.getSelectedParticipants();
+            const unselectedParticipants = this.getUnselectedParticipants();
+
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
@@ -230,12 +236,13 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return null;
         }
-        const splits = _.map(this.state.selectedParticipants, participant => ({
+        const selectedParticipants = this.getSelectedParticipants();
+        const splits = _.map(selectedParticipants, participant => ({
             email: OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(this.state.selectedParticipants),
+            amount: this.calculateAmount(selectedParticipants),
         }));
 
         splits.push({
@@ -243,7 +250,7 @@ class IOUConfirmationList extends Component {
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(this.state.selectedParticipants, true),
+            amount: this.calculateAmount(selectedParticipants, true),
         });
         return splits;
     }
@@ -256,8 +263,9 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return [];
         }
+        const selectedParticipants = this.getSelectedParticipants();
         return [
-            ...this.state.selectedParticipants,
+            ...selectedParticipants,
             OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
         ];
     }
@@ -291,7 +299,7 @@ class IOUConfirmationList extends Component {
     * @param {Object} option
     */
     toggleOption(option) {
-        // Return early if selected option is currently logged-in user.
+        // Return early if selected option is currently logged in user.
         if (option.login === this.props.session.email) {
             return;
         }
@@ -303,14 +311,7 @@ class IOUConfirmationList extends Component {
                 }
                 return participant;
             });
-            const newSelectedParticipants = _.where(newParticipants, {selected: true});
-            const newSections = this.getSections(newParticipants);
-
-            return {
-                sections: newSections,
-                participants: newParticipants,
-                selectedParticipants: newSelectedParticipants,
-            };
+            return {participants: newParticipants};
         });
     }
 
@@ -318,7 +319,8 @@ class IOUConfirmationList extends Component {
      * @param {String} paymentMethod
      */
     confirm(paymentMethod) {
-        if (_.isEmpty(this.state.selectedParticipants)) {
+        const selectedParticipants = this.getSelectedParticipants();
+        if (_.isEmpty(selectedParticipants)) {
             return;
         }
 
@@ -335,13 +337,14 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
+        const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        const shouldDisableButton = this.state.selectedParticipants.length === 0 || this.props.network.isOffline;
+        const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
         return (
             <OptionsSelector
-                sections={this.state.sections}
+                sections={this.getSections()}
                 value={this.props.comment}
                 onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
