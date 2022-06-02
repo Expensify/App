@@ -48,6 +48,8 @@ Used when…
  - there is no interaction with the server in any way
  - or data is READ from the server and does not need to show up-to-date data. The user will see stale data until the new data is put into Onyx and then the view updates to show the new data. 
 
+ **How to implement:** Use [`API.read()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L53-L55).
+
 # A - Optimistic Without Feedback Pattern
 
 This is the pattern where we queue the request to be sent when the user is online and we continue as if the request succeeded. 
