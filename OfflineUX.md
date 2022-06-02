@@ -54,7 +54,7 @@ Used when…
 
 This is the pattern where we queue the request to be sent when the user is online and we continue as if the request succeeded. 
 
-Used when…
+**Used when…**
  - the user should be given instant feedback and
  - there is no error handling in the server and
  - the user does not need to know when the change is done on the server in the background
@@ -64,8 +64,7 @@ Used when…
 # B - Optimistic WITH Feedback Pattern
 This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. When the user is online, the feature should just look like it succeeds immediately (we dont want the offline UI to flicker on and off when the user is online).
 
-Used when…
- - the user needs feedback that data is being sent to the server
+**Used when…**
 This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
 **How to implement:** Use API.write() to implement this pattern. Optimistic data should include some pending state for the action that is reflected in the UI. Success/failure data should revert the pending state and/or set a failure state accordingly.
@@ -73,7 +72,7 @@ This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, 
 # C - Blocking Form UI Pattern
 This pattern blocks the user from interacting with an entire page.
 
-Used when…
+**Used when…**
  - a form is used to make a WRITE request to the server and 
  - server has to do some validation of the parameters that can’t be done in the client or
  - server response will be unknown so it cannot be done optimistically
@@ -84,7 +83,7 @@ Used when…
 # D - Full Page Blocking UI Pattern
 This pattern blocks the user from interacting with an entire page.
 
-Used when…
+**Used when…**
  - blocking READ is being performed. This occurs when the data that a user sees cannot be stale data and the data can only be displayed after fetching it from the server (eg. Plaid's list of bank accounts)
  - the app is offline and the data cannot be fetched
  - an error occurs when fetching the data and the user needs instructions on what to do next
