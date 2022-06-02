@@ -22,12 +22,11 @@ Example: Pinning a chat
 
 When a user clicks the pin button <img style="height: 10px; width: 10px;" src="./assets/images/pin.svg"/> on a chat, two things should happen. 
 
-1. **API Request:** We send a request to the API to ensure the change is saved in the database. 
+1. **API Request:** We send a request to the API to ensure the change is saved in the database. This way the chat is pinned on all the user's devices, and will remain pinned even if they leave the app and come back. 
 
 2. **UI Changes:** The chat should go to the top of the list with the other pinned chats, and the pin button should look darker than it did before. This is visual feedback that clicking the pin button worked.
 
-If the user is offline, we don't need to wait for the API request to finish before doing all that visual stuff because this particular API request has almost no way of failing and we know what the server will return in advance. That means we can safely assume that when we send the command, it will succeed and that's why we let the user continue using the app as if the action succeeded.
-</div>
+If the user is offline, we don't need to wait for the API request to finish before doing all that visual stuff because this particular API request has almost no way of failing, and we know what the server will return in advance. That means we can safely assume that when we send the command, it will succeed and that's why we let the user continue using the app as if the action succeeded.
 
 <hr />
 
