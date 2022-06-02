@@ -10,9 +10,11 @@ exports.default = function notarizing(context) {
     const appName = context.packager.appInfo.productFilename;
 
     return notarize({
+        tool: 'notarytool',
         appBundleId: electron.appId,
         appPath: `${appOutDir}/${appName}.app`,
         appleId: process.env.APPLE_ID,
         appleIdPassword: process.env.APPLE_ID_PASSWORD,
+        teamId: '152696',
     });
 };
