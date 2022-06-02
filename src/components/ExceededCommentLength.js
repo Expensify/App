@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
 import CONST from '../CONST';
 import Text from './Text';
 import styles from '../styles/styles';
