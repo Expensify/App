@@ -248,36 +248,39 @@ class Button extends Component {
                     ...this.additionalStyles,
                 ]}
             >
-                {({pressed, hovered}) => (
-                    <OpacityView
-                        shouldDim={pressed}
-                        style={[
-                            styles.button,
-                            this.props.small ? styles.buttonSmall : undefined,
-                            this.props.medium ? styles.buttonMedium : undefined,
-                            this.props.large ? styles.buttonLarge : undefined,
-                            this.props.extraLarge ? styles.buttonExtraLarge : undefined,
-                            this.props.success ? styles.buttonSuccess : undefined,
-                            this.props.danger ? styles.buttonDanger : undefined,
-                            (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
-                            (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
-                            (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
-                            (this.props.success && hovered) ? styles.buttonSuccessHovered : undefined,
-                            (this.props.danger && hovered) ? styles.buttonDangerHovered : undefined,
-                            this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                            this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                            ...this.props.innerStyles,
-                        ]}
-                    >
-                        {this.renderContent()}
-                        {this.props.isLoading && (
-                            <ActivityIndicator
-                                color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
-                                style={[styles.pAbsolute, styles.l0, styles.r0]}
-                            />
-                        )}
-                    </OpacityView>
-                )}
+                {({pressed, hovered}) => {
+                    const activeAndHovered = !this.props.isDisabled && hovered;
+                    return (
+                        <OpacityView
+                            shouldDim={pressed}
+                            style={[
+                                styles.button,
+                                this.props.small ? styles.buttonSmall : undefined,
+                                this.props.medium ? styles.buttonMedium : undefined,
+                                this.props.large ? styles.buttonLarge : undefined,
+                                this.props.extraLarge ? styles.buttonExtraLarge : undefined,
+                                this.props.success ? styles.buttonSuccess : undefined,
+                                this.props.danger ? styles.buttonDanger : undefined,
+                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
+                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
+                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
+                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
+                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
+                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                                ...this.props.innerStyles,
+                            ]}
+                        >
+                            {this.renderContent()}
+                            {this.props.isLoading && (
+                                <ActivityIndicator
+                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
+                                />
+                            )}
+                        </OpacityView>
+                    );
+                }}
             </Pressable>
         );
     }
