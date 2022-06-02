@@ -125,9 +125,10 @@ class ReportActionsView extends React.Component {
             Report.updateLastReadActionID(this.props.reportID);
         });
 
-        // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
+        // If the reportID is not found or there is no last message timestamp then 
+        // we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
-        if (!this.props.report.reportID) {
+        if (!this.props.report.reportID || !this.props.report.lastMessageTimestamp) {
             Report.fetchChatReportsByIDs([this.props.reportID], true);
         }
         Report.subscribeToReportTypingEvents(this.props.reportID);
