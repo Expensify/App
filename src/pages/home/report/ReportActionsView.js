@@ -442,7 +442,7 @@ class ReportActionsView extends React.Component {
     /**
      * Records when a report actionID is done rendering.
      *
-     * @param {string} reportActionID
+     * @param {String} reportActionID
      */
     recordReportActionIDRendered(reportActionID) {
         this.renderedActionIDs.add(parseInt(reportActionID, 10));
