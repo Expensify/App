@@ -23,6 +23,7 @@ import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -66,6 +67,9 @@ const getPhoneNumber = (details) => {
 
 const DetailsPage = (props) => {
     const details = props.personalDetails[props.route.params.login];
+    if (!details) {
+        return <FullScreenLoadingIndicator />;
+    }
     const isSMSLogin = Str.isSMSLogin(details.login);
 
     // If we have a reportID param this means that we
