@@ -32,9 +32,10 @@ If the user is offline, we don't need to wait for the API request to finish befo
 
 1. In some instances, we simply wouldn't know _how_ to proceed because of a lack of information (often the server returns data that we wouldn't be able to guess the content of). 
 
-2. In other cases, we may be able to guess what a successful request would look like, but we don't want to misguide the user into believing their action was completed. For example, we don't want the user to believe that a financial transaction has been made when it actually hasn't. 
+1. We don't know _how_ to proceed because of a lack of information (often the server returns data that we wouldn't be able to guess the content of). 
 
-To handle problems like this, we have developed offline patterns and guidance on when to use them. These are called the Offline UX Patterns, which are explained below.
+2. We may be able to guess what a successful request would look like, but we don't want to misguide the user into believing their action was completed. For example, we don't want the user to believe that a financial transaction has been made when it actually hasn't. 
+
 
 ### Descriptions of the UX Patterns
 
