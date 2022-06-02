@@ -152,8 +152,13 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
+<<<<<<< HEAD
         versionCode 1001017101
         versionName "1.1.71-1"
+=======
+        versionCode 1001017100
+        versionName "1.1.71-0"
+>>>>>>> d27bb4e1a (Merge pull request #9272 from Expensify/version-PATCH-14176c54bfdc5c4a0d92d05759471c35e3e6aa97)
     }
     splits {
         abi {
