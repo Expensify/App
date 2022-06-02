@@ -15,6 +15,6 @@ exports.default = function notarizing(context) {
         appPath: `${appOutDir}/${appName}.app`,
         appleId: process.env.APPLE_ID,
         appleIdPassword: process.env.APPLE_ID_PASSWORD,
-        teamId: '152696',
+        teamId: '368M544MTT',
     });
 };
