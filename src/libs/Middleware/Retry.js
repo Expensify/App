@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import Log from '../Log';
 import CONST from '../../CONST';
@@ -18,12 +19,8 @@ function Retry(response, request, isFromSequentialQueue) {
 
             if (isFromSequentialQueue) {
                 const retryCount = PersistedRequests.incrementRetries(request);
-                Log.info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
-                if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                    Log.info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
-                    PersistedRequests.remove(request);
-                }
-                return;
+                Log.info('Persisted request failed', false, {command: request.command, error: error.message});
+                throw new Error('Retry request');
             }
 
             if (request.command !== 'Log') {

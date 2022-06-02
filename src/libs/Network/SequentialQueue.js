@@ -24,16 +24,50 @@ let isSequentialQueueRunning = false;
 function process() {
     const persistedRequests = PersistedRequests.getAll();
 
-    // This sanity check is also a recursion exit point
-    if (NetworkStore.isOffline() || _.isEmpty(persistedRequests)) {
+    if (_.isEmpty(persistedRequests)) {
         return Promise.resolve();
     }
+
+    isSequentialQueueRunning = true;
+    while (!_.isEmpty(persistedRequests)) {
+        // If we're not online, stop processing
+        if (NetworkStore.isOffline()) {
+            isSequentialQueueRunning = false;
+            return Promise.resolve();
+        }
+
+        const currentRequest = persistedRequests.shift();
+
+        try {
+            return Request.processWithMiddleware(currentRequest, true);
+        } catch(error) {
+            // If we get an error here it means the retry middleware threw and error and we want to retry the request
+            currentWaitTime = getRequestWaitTime(currentWaitTime);
+            sleep()
+
+        }
+    }
+
+
+
 
     const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => Request.processWithMiddleware(request, true)), Promise.resolve());
 
     // Do a recursive call in case the queue is not empty after processing the current batch
     return task.then(process);
 }
+
+function getRequestWaitTime(currentWaitTime) {
+    if (currentWaitTime) {
+        return Math.max(currentWaitTime * 2, 10000);
+    }
+
+    return 10 + _.random(90);
+}
+
+function sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
 
 function flush() {
     if (isSequentialQueueRunning) {
