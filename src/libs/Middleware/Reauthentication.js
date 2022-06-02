@@ -39,7 +39,9 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                         return data;
                     }
 
-                    request.resolve(data);
+                    if (request.resolve) {
+                        request.resolve(data);
+                    }
                     return;
                 }
 
@@ -81,7 +83,12 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 return data;
             }
 
-            request.resolve(data);
+            if (request.resolve) {
+                request.resolve(data);
+            }
+
+            // Return response data so we can chain the response with the following middlewares.
+            return data;
         });
 }
 

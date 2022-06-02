@@ -23,6 +23,9 @@ Request.use(Middleware.Reauthentication);
 // Retry - Handles retrying any failed requests.
 Request.use(Middleware.Retry);
 
+// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
+Request.use(Middleware.SaveResponseInOnyx);
+
 /**
  * @param {Object} parameters
  * @returns {Promise}
@@ -841,15 +844,6 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
- * Get the current wait time in minutes for an inbox call
- * @returns {Promise}
- */
-function Inbox_CallUser_WaitTime() {
-    const commandName = 'Inbox_CallUser_WaitTime';
-    return Network.post(commandName);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.reportIDList
  * @returns {Promise}
@@ -949,7 +943,6 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
-    Inbox_CallUser_WaitTime,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
