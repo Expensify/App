@@ -32,8 +32,8 @@ const FullPageOfflineBlockingView = (props) => {
                 <Icon
                     src={Expensicons.OfflineCloud}
                     fill={themeColors.offline}
-                    width={variables.iconSizeMondo}
-                    height={variables.iconSizeMondo}
+                    width={variables.iconSizeSuperLarge}
+                    height={variables.iconSizeSuperLarge}
                 />
                 <Text style={[styles.headerText, styles.textLarge, styles.mt5]}>{props.translate('common.youAppearToBeOffline')}</Text>
                 <Text style={[styles.w70, styles.textAlignCenter]}>{props.translate('common.thisFeatureRequiresInternet')}</Text>
