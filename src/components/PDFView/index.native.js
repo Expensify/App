@@ -100,7 +100,7 @@ class PDFView extends Component {
 
         // For small screens (and Android specifically) force the container view
         // to take up the full width when displaying the password form.
-        const containerStyles =  this.state.shouldRequestPassword && this.props.isSmallScreenWidth
+        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
             ? styles.pdfPasswordForm.narrowScreen : {};
 
         return (

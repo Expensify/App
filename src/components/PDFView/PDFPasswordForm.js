@@ -55,7 +55,6 @@ class PDFPasswordForm extends Component {
                     returnKeyType="done"
                     onSubmitEditing={this.submitPassword}
                     secureTextEntry
-                    autoFocus
                 />
                 {this.props.isPasswordInvalid && (
                     <Text style={[styles.formError]}>
