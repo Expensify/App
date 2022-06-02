@@ -320,6 +320,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    opacity0: {
+        opacity: 0,
+    },
+
     opacity1: {
         opacity: 1,
     },
@@ -644,7 +648,7 @@ const styles = {
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
+        minHeight: 15,
         marginBottom: 5,
         marginTop: 5,
     },
@@ -950,10 +954,6 @@ const styles = {
     sidebar: {
         backgroundColor: themeColors.sidebar,
         height: '100%',
-    },
-
-    resendLinkButton: {
-        minWidth: 124,
     },
 
     sidebarFooter: {
