@@ -365,7 +365,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeLogins = [],
-    excludeDefaultRooms = false,
+    excludeChatRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
@@ -439,15 +439,19 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        if (isChatRoom && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+        if (isChatRoom && excludeChatRooms) {
             return;
         }
 
-        if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
+        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
             return;
         }
 
         if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+            return;
+        }
+
+        if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
             return;
         }
 
@@ -703,7 +707,7 @@ function getNewChatOptions(
         betas,
         searchValue: searchValue.trim(),
         selectedOptions,
-        excludeDefaultRooms: true,
+        excludeChatRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
         maxRecentReportsToShow: 5,
