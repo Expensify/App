@@ -127,7 +127,7 @@ Answer NO if there is data coming back from the server that we can't know (examp
 
 If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
 
-This question can be tricky, so if you’re unsure, please ask a question in #expensify-open-source and tag the contributor management engineer team.
+This question can be tricky, so if you're unsure, please ask a question in the #expensify-open-source slack room and tag @contributor-management-engineering.
 
 7. Does the user need to know if the action was successful?
 
