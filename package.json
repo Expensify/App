@@ -1,10 +1,6 @@
 {
   "name": "new.expensify",
-<<<<<<< HEAD
   "version": "1.1.71-1",
-=======
-  "version": "1.1.71-0",
->>>>>>> d27bb4e1a (Merge pull request #9272 from Expensify/version-PATCH-14176c54bfdc5c4a0d92d05759471c35e3e6aa97)
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",

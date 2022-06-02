@@ -30,11 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-<<<<<<< HEAD
 	<string>1.1.71.1</string>
-=======
-	<string>1.1.71.0</string>
->>>>>>> d27bb4e1a (Merge pull request #9272 from Expensify/version-PATCH-14176c54bfdc5c4a0d92d05759471c35e3e6aa97)
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
