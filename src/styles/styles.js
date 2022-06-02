@@ -1394,6 +1394,8 @@ const styles = {
         alignSelf: 'flex-end',
         flex: 1,
         maxHeight: '100%',
+        marginVertical: 0,
+        paddingVertical: 5,
     },
 
     chatItemSubmitButton: {
