@@ -2,6 +2,7 @@ import CONFIG from '../CONFIG';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import * as Pusher from './Pusher/pusher';
+import CONST from '../CONST';
 
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
@@ -12,7 +13,7 @@ import * as Pusher from './Pusher/pusher';
  * @param {Boolean} isChunked
  */
 function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent, isChunked = false) {
-    const pusherChannelName = `private-encrypted-user-accountID-${accountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
 
     /**
      * @param {Object} pushJSON
