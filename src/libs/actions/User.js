@@ -21,6 +21,7 @@ import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
+import PusherUtils from '../PusherUtils';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -304,12 +305,12 @@ function subscribeToUserEvents() {
     const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Receive any relevant Onyx updates from the server
-    Pusher.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
             Onyx.update(pushJSON);
         });
     });
-    Pusher.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE_CHUNK, currentUserAccountID, (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE_CHUNK, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
             Onyx.update(pushJSON.onyxData);
         });
