@@ -457,7 +457,7 @@ class ReportActionsView extends React.Component {
      * Records when our FlatList is done measuring the heights and offset of items. Since native will hit this block immediately we'll use a param checkScrollToReportAction to prevent
      * calling the scroll method unnecessarily until the item has been rendered.
      *
-     * @param {boolean} checkScrollToReportAction
+     * @param {Boolean} checkScrollToReportAction
      */
     recordMeasurementDone(checkScrollToReportAction = true) {
         this.doneMeasuring = true;
