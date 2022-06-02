@@ -25,7 +25,7 @@ describe('CurrencySymbolUtils', () => {
     });
 
     describe('isCurrencySymbolLTR', () => {
-        test.each(symbolPositions)('Returns %s for prefrredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) => {
+        test.each(symbolPositions)('Returns %s for preferredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) => {
             const isSymbolLeft = CurrencySymbolUtils.isCurrencySymbolLTR(locale, currencyCode);
             expect(isSymbolLeft).toBe(isLeft);
         });
