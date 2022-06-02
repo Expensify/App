@@ -15,7 +15,7 @@
 
 Understanding the offline behavior of our app is vital to becoming a productive contributor to the Expensify codebase. Our mission is to support our users in every possible environment, and often our app is used in places where a stable internet connection is not guaranteed. 
 
-The most important concept to keep in mind while reading this document is that we want to allow users to do as much as possible when offline. At first, this might seem impossible because almost everything the user can touch in our app is related to an API request. However, in many cases, we can save that API request and assume it will succeed when the user is back online. We then allow the user to proceed as if their request already succeeded. We call this an optimistic response. Here, we use the word **optimistic** to indicate that we’re confident the request will succeed when the user is online, and we know what that successful response will look like. 
+The most important concept to keep in mind while reading this document is that we want to allow users to do as much as possible when offline. At first, this might seem impossible because almost everything the user can touch in our app is related to an API request. However, in many cases, we can save that API request and assume it will succeed when the user is back online. We then allow the user to proceed as if their request already succeeded. We call this an optimistic response. Here, we use the word **optimistic** to indicate that we're confident the request will succeed when the user is online, and we know what that successful response will look like. 
 
 <hr />
 Example: Pinning a chat
@@ -56,7 +56,6 @@ This is the pattern where we queue the request to be sent when the user is onlin
 
 **Used when…**
  - the user should be given instant feedback and
- - there is no error handling in the server and
  - the user does not need to know when the change is done on the server in the background
 
 **How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failData as we don't care what response comes back at all.
@@ -65,18 +64,19 @@ This is the pattern where we queue the request to be sent when the user is onlin
 This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. When the user is online, the feature should just look like it succeeds immediately (we dont want the offline UI to flicker on and off when the user is online).
 
 **Used when…**
+ - the user needs feedback that data will be sent to the server later
 This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
 **How to implement:** Use API.write() to implement this pattern. Optimistic data should include some pending state for the action that is reflected in the UI. Success/failure data should revert the pending state and/or set a failure state accordingly.
 
 # C - Blocking Form UI Pattern
-This pattern blocks the user from interacting with an entire page.
+This pattern greys out the submit button on a form and does not allow the form to be submitted. We also show a "You appear offline" message near the bottom of the screen. Importantly, we _do_ let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
 
 **Used when…**
  - a form is used to make a WRITE request to the server and 
  - server has to do some validation of the parameters that can’t be done in the client or
  - server response will be unknown so it cannot be done optimistically
- - If the request is moving money 
+ - If the request is moving money
 
 **How to implement:** Use the `<FormAlertWithSubmitButton/>` component. This pattern should use the `API.queue()` method because we need to wait 
 
@@ -103,8 +103,8 @@ The numbers in this section correlate to the numbers in each decision box above 
 
 1. Does the feature interact with the server?
 
-If you’re changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES. Note: sometimes you may see reqeusts that happen to fire at the same time as the feature you're working on, so be sure to double check. 
-If you’re making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored to, or retrieved from the server, then the answer is YES.
+If you're changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES. Note: Sometimes you may see requests that happen to fire at the same time as the feature you're working on, so be sure to double check. 
+If you're making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored to or retrieved from the server, then the answer is YES.
 
 2. What type of request is being made?
 
@@ -116,7 +116,7 @@ Example: The payment method list. We don't want the user to see a payment method
 
 4. Is the UI a form?
 
-Any easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out form inputs, answer YES to this question.
+An easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out form inputs, answer YES to this question.
 
 5. Can the server response be anticipated?
 
@@ -124,7 +124,7 @@ Answer NO if there is data coming back from the server that we can't know (examp
 
 6. Is there validation done on the server that can't be done on the front end?
 
-If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is NO (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
+If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is YES (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
 
 This question can be tricky, so if you're unsure, please ask a question in the #expensify-open-source slack room and tag @contributor-management-engineering.
 
