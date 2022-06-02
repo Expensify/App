@@ -17,10 +17,10 @@ Understanding the offline behavior of our app is vital to becoming a productive 
 
 The most important concept to keep in mind while reading this document is that we want to allow users to do as much as possible when offline. At first, this might seem impossible because almost everything the user can touch in our app is related to an API request. However, in many cases, we can save that API request and assume it will succeed when the user is back online. We then allow the user to proceed as if their request already succeeded. We call this an optimistic response. Here, we use the word **optimistic** to indicate that we’re confident the request will succeed when the user is online, and we know what that successful response will look like. 
 
-<div style="margin: 15px; padding: 15px; border: 3px solid grey">
+<hr />
 Example: Pinning a chat
 
-When a user clicks the pin button <img style="height: 10px; width: 10px; filter: invert(.5) saturate(5);" src="./assets/images/pin.svg"/> on a chat, two things should happen. 
+When a user clicks the pin button <img style="height: 10px; width: 10px;" src="./assets/images/pin.svg"/> on a chat, two things should happen. 
 
 1. **API Request:** We send a request to the API to ensure the change is saved in the database. 
 
@@ -29,7 +29,7 @@ When a user clicks the pin button <img style="height: 10px; width: 10px; filter:
 If the user is offline, we don't need to wait for the API request to finish before doing all that visual stuff because this particular API request has almost no way of failing and we know what the server will return in advance. That means we can safely assume that when we send the command, it will succeed and that's why we let the user continue using the app as if the action succeeded.
 </div>
 
-The example we just looked at is nice and simple, but some actions should use this apporach (example: requesting money from another user). For these types of actions, we can’t simply proceed as if the request already finished. Here are some reasons why:
+<hr />
 
 1. In some instances, we simply wouldn't know _how_ to proceed because of a lack of information (often the server returns data that we wouldn't be able to guess the content of). 
 
