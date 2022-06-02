@@ -8,6 +8,7 @@
 	<array>
 		<string>applinks:new.expensify.com</string>
 		<string>applinks:staging.new.expensify.com</string>
+		<string>webcredentials:new.expensify.com</string>
 	</array>
 </dict>
 </plist>
