@@ -109,7 +109,7 @@ If you’re making a new feature, think about whether any data would need to be 
 
 2. What type of request is being made?
 
-If there’s new data being saved on the server, you’re making a WRITE request. If you’re retrieving existing data from the server, you’re making a READ request. 
+If there's new data being saved on the server, you're making a WRITE request. If you're retrieving existing data from the server, you're making a READ request. If both things are happening, that's a WRITE request.
 
 3. Is it OK for the user to see stale data?
 
