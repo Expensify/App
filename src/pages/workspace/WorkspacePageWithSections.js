@@ -17,8 +17,13 @@ import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursement
 import userPropTypes from '../settings/userPropTypes';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withFullPolicy from './withFullPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
+
     /** The text to display in the header */
     headerText: PropTypes.string.isRequired,
 
@@ -65,12 +70,25 @@ const defaultProps = {
 
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
+    }
+
+    fetchData() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
         BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
     }
 
     render() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const isLoadingVBA = this.props.reimbursementAccount.loading;
         const hasVBA = achState === BankAccount.STATE.OPEN;
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
@@ -93,7 +111,7 @@ class WorkspacePageWithSections extends React.Component {
                     >
                         <View style={[styles.w100, styles.flex1]}>
 
-                            {this.props.children(hasVBA, policyID, isUsingECard)}
+                            {this.props.children(isLoadingVBA, hasVBA, policyID, isUsingECard)}
 
                         </View>
                     </ScrollView>
@@ -118,4 +136,5 @@ export default compose(
         },
     }),
     withFullPolicy,
+    withNetwork(),
 )(WorkspacePageWithSections);

@@ -135,6 +135,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        whiteSpace: 'pre',
     },
 };
 
@@ -317,6 +318,10 @@ const styles = {
 
     bgTransparent: {
         backgroundColor: 'transparent',
+    },
+
+    opacity0: {
+        opacity: 0,
     },
 
     opacity1: {
@@ -643,7 +648,7 @@ const styles = {
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
+        minHeight: 15,
         marginBottom: 5,
         marginTop: 5,
     },
@@ -951,10 +956,6 @@ const styles = {
         height: '100%',
     },
 
-    resendLinkButton: {
-        minWidth: 124,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -1042,9 +1043,9 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    singleEmojiText: {
-        fontSize: variables.fontSizeSingleEmoji,
-        lineHeight: variables.fontSizeSingleEmojiHeight,
+    onlyEmojisText: {
+        fontSize: variables.fontSizeOnlyEmojis,
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
     createMenuPositionSidebar: {
@@ -2189,6 +2190,11 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    noSelect: {
+        boxShadow: 'none',
+        outline: 'none',
+    },
+
     cursorPointer: {
         cursor: 'pointer',
     },
@@ -2518,6 +2524,13 @@ const styles = {
         justifyContent: 'center',
         marginBottom: 40,
         padding: 16,
+    },
+
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 4,
     },
 };
 

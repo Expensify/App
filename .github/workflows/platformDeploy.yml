@@ -209,13 +209,12 @@ jobs:
           max_attempts: 5
           command: npm ci
 
-      - uses: actions/cache@v2
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-
       - name: Install cocoapods
-        run: cd ios && pod install
+        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: cd ios && pod install
 
       - name: Decrypt profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_appstore.mobileprovision chat_expensify_appstore.mobileprovision.gpg

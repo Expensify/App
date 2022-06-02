@@ -105,6 +105,8 @@ export default {
         leaveRoom: 'Leave room',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
+        youAppearToBeOffline: 'You appear to be offline.',
+        thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -158,7 +160,6 @@ export default {
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
-        youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
@@ -535,6 +536,7 @@ export default {
         buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
+            noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid Tax ID Number',
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
