@@ -36,6 +36,7 @@ If the user is offline, we don't need to wait for the API request to finish befo
 
 2. We may be able to guess what a successful request would look like, but we don't want to misguide the user into believing their action was completed. For example, we don't want the user to believe that a financial transaction has been made when it actually hasn't. 
 
+To handle problems like this, we have developed offline UX patterns and guidance on when to use them. Every feature of this application should fit into one of these patterns.
 
 ### Descriptions of the UX Patterns
 
