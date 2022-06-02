@@ -14,6 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -29,6 +30,7 @@ class BaseTextInput extends Component {
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
+            height: variables.componentSizeLarge,
 
             // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
@@ -202,7 +204,7 @@ class BaseTextInput extends Component {
 
         return (
             <>
-                <View>
+                <View onLayout={event => this.setState({height: event.nativeEvent.layout.height})}>
                     <View
                         style={[
                             !this.props.multiline && styles.componentHeightLarge,
@@ -263,6 +265,7 @@ class BaseTextInput extends Component {
                                             !hasLabel && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
+                                            {height: this.state.height},
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
