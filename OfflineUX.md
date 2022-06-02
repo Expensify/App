@@ -30,7 +30,7 @@ If the user is offline, we don't need to wait for the API request to finish befo
 
 <hr />
 
-1. In some instances, we simply wouldn't know _how_ to proceed because of a lack of information (often the server returns data that we wouldn't be able to guess the content of). 
+The example we just looked at is nice and simple, but some actions should not use this approach (example: requesting money from another user). For these types of actions, we can't simply proceed as if the request already finished. Here are some reasons why:
 
 1. We don't know _how_ to proceed because of a lack of information (often the server returns data that we wouldn't be able to guess the content of). 
 
