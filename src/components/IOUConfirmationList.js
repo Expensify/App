@@ -177,8 +177,8 @@ class IOUConfirmationList extends Component {
                 }
                 return memo;
             }, [[], []]);
-            const selectedParticipants = selected || [];
-            const unselectedParticipants = unselected || [];
+            const selectedParticipants = selected;
+            const unselectedParticipants = unselected;
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);

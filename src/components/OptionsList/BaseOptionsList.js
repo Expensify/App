@@ -81,6 +81,9 @@ class BaseOptionsList extends Component {
     }
 
     /**
+     * This function is used to deterministically compute the layout of any given item in our list.
+     * We need to implement it so that we can programmatically scroll to any item in the list.
+     * If we don't, then we can only scroll to items in the virtual render window of the SectionList.
      *
      * @param {Array} data – this is a flat array of all the sections with all the section headers inline. It comes from react-native in this format
      * @param {Number} index - the index of the current item in the `data` array
@@ -93,7 +96,7 @@ class BaseOptionsList extends Component {
         let offset = 0;
         let currentIndex = 0;
         let isItemSectionHeader = false;
-        _.any(this.props.sections, (section) => {
+        _.some(this.props.sections, (section) => {
             if (currentIndex >= index) {
                 // Stop iteration
                 return true;
