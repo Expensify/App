@@ -15,9 +15,8 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import NetworkConnection from '../NetworkConnection';
 import Timing from './Timing';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
@@ -27,6 +26,7 @@ import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import PusherUtils from '../PusherUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -283,14 +283,14 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
 }
 
 /**
- * Given IOU and chat report ID fetches most recent IOU data from API.
+ * Given IOU and chat report ID fetches most recent IOU data from DeprecatedAPI.
  *
  * @param {Number} iouReportID
  * @param {Number} chatReportID
  * @returns {Promise}
  */
 function fetchIOUReport(iouReportID, chatReportID) {
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'reportStuff',
         reportIDList: iouReportID,
         shouldLoadOptionalKeys: true,
@@ -322,7 +322,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
  * @returns {Promise}
  */
 function fetchIOUReportID(debtorEmail) {
-    return API.GetIOUReport({
+    return DeprecatedAPI.GetIOUReport({
         debtorEmail,
     }).then((response) => {
         const iouReportID = response.reportID || 0;
@@ -352,7 +352,7 @@ function fetchIOUReportID(debtorEmail) {
 function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
-    return API.GetReportSummaryList({reportIDList: chatList.join(',')})
+    return DeprecatedAPI.GetReportSummaryList({reportIDList: chatList.join(',')})
         .then(({reportSummaryList, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
@@ -724,46 +724,6 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
- *
- * @param {String} eventName
- * @param {Function} onEvent
- * @param {Boolean} isChunked
- */
-function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
-    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-
-    /**
-     * @param {Object} pushJSON
-     */
-    function logPusherEvent(pushJSON) {
-        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, {reportID: pushJSON.reportID, reportActionID: pushJSON.reportActionID});
-    }
-
-    function onPusherResubscribeToPrivateUserChannel() {
-        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
-    }
-
-    /**
-     * @param {*} pushJSON
-     */
-    function onEventPush(pushJSON) {
-        logPusherEvent(pushJSON);
-        onEvent(pushJSON);
-    }
-
-    /**
-     * @param {*} error
-     */
-    function onSubscriptionFailed(error) {
-        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
-    }
-
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
-        .catch(onSubscriptionFailed);
-}
-
-/**
  * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
 function subscribeToUserEvents() {
@@ -778,23 +738,37 @@ function subscribeToUserEvents() {
     }
 
     // Live-update a report's actions when a 'report comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT,
+        currentUserAccountID,
+        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
+    );
 
     // Live-update a report's actions when a 'chunked report comment' event is received.
-    subscribeToPrivateUserChannelEvent(
+    PusherUtils.subscribeToPrivateUserChannelEvent(
         Pusher.TYPE.REPORT_COMMENT_CHUNK,
+        currentUserAccountID,
         pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
         true,
     );
 
     // Live-update a report's actions when an 'edit comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
+        currentUserAccountID,
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's actions when an 'edit comment chunk' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true);
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
+        currentUserAccountID,
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
+        true,
+    );
 
     // Live-update a report's pinned state when a 'report toggle pinned' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED, pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED,
+        currentUserAccountID,
+        pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
 }
 
 /**
@@ -916,7 +890,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants.');
     }
 
-    return API.CreateChatReport({
+    return DeprecatedAPI.CreateChatReport({
         emailList: participants.join(','),
     })
         .then((data) => {
@@ -959,7 +933,7 @@ function fetchActions(reportID, offset) {
         return;
     }
 
-    return API.Report_GetHistory({
+    return DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
         reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
@@ -998,7 +972,7 @@ function fetchAllReports(
     shouldDelayActionsFetch = false,
 ) {
     Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
@@ -1159,7 +1133,7 @@ function addAction(reportID, text, file) {
         },
     });
 
-    API.Report_AddComment({
+    DeprecatedAPI.Report_AddComment({
         reportID,
         file,
         reportComment: commentText,
@@ -1227,7 +1201,7 @@ function deleteReportComment(reportID, reportAction) {
     });
 
     // Try to delete the comment by calling the API
-    API.Report_EditComment({
+    DeprecatedAPI.Report_EditComment({
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
@@ -1282,7 +1256,7 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
-    API.Report_UpdateLastRead({
+    DeprecatedAPI.Report_UpdateLastRead({
         reportID,
         sequenceNumber: lastReadSequenceNumber,
         markAsUnread: manuallyMarked,
@@ -1297,7 +1271,7 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
     updateReportPinnedState(report.reportID, pinnedValue);
-    API.Report_TogglePinned({
+    DeprecatedAPI.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
     });
@@ -1414,7 +1388,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
     // Persist the updated report comment
-    API.Report_EditComment({
+    DeprecatedAPI.Report_EditComment({
         reportID,
         reportActionID: originalReportAction.reportActionID,
         reportComment: htmlForNewComment,
@@ -1484,7 +1458,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
  */
 function updateNotificationPreference(reportID, notificationPreference) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
-    API.Report_UpdateNotificationPreference({reportID, notificationPreference});
+    DeprecatedAPI.Report_UpdateNotificationPreference({reportID, notificationPreference});
 }
 
 /**
@@ -1517,7 +1491,7 @@ function handleInaccessibleReport() {
  */
 function createPolicyRoom(policyID, reportName, visibility) {
     Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
-    return API.CreatePolicyRoom({policyID, reportName, visibility})
+    return DeprecatedAPI.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
@@ -1549,7 +1523,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  */
 function renameReport(reportID, reportName) {
     Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
-    API.RenameReport({reportID, reportName})
+    DeprecatedAPI.RenameReport({reportID, reportName})
         .then((response) => {
             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));

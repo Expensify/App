@@ -320,6 +320,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    opacity0: {
+        opacity: 0,
+    },
+
     opacity1: {
         opacity: 1,
     },
@@ -950,10 +954,6 @@ const styles = {
     sidebar: {
         backgroundColor: themeColors.sidebar,
         height: '100%',
-    },
-
-    resendLinkButton: {
-        minWidth: 124,
     },
 
     sidebarFooter: {
@@ -2556,6 +2556,13 @@ const styles = {
         justifyContent: 'center',
         marginBottom: 40,
         padding: 16,
+    },
+
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 4,
     },
 };
 
