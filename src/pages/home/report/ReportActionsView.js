@@ -96,9 +96,11 @@ class ReportActionsView extends React.Component {
         super(props);
 
         this.appStateChangeListener = null;
-        this.actionIndexID = -1;
         this.renderedActionIDs = new Set();
         this.didLayout = false;
+
+        // We first set it as -1 since there is no indexID calculated to scroll to just yet.
+        this.actionIndexIDToScroll = -1;
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -214,7 +216,7 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (this.props.reportActionID && this.props.reportActionID !== prevProps.reportActionID && this.props.reportID === prevProps.reportID) {
-            this.actionIndexID = -1;
+            this.actionIndexIDToScroll = -1;
             this.doneScrollingToReportActionID = false;
             this.checkScrollToReportAction();
         }
@@ -307,6 +309,8 @@ class ReportActionsView extends React.Component {
             return;
         }
 
+        // doneMeasuring is true once BaseInvertedFlatList completes measureItemLayout for all items. Since we're loading more chats
+        // here we need to reset this variable until measurement is complete.
         this.doneMeasuring = false;
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
@@ -429,12 +433,12 @@ class ReportActionsView extends React.Component {
      * Scrolls to a specific report action ID
      */
     scrollToReportActionID() {
-        this.actionIndexID = _.findIndex(this.sortedReportActions, (
+        this.actionIndexIDToScroll = _.findIndex(this.sortedReportActions, (
             ({action}) => parseInt(action.reportActionID, 10) === this.props.reportActionID
         ));
 
-        if (this.actionIndexID !== -1) {
-            ReportScrollManager.scrollToIndex({index: this.actionIndexID, viewPosition: 0.5});
+        if (this.actionIndexIDToScroll !== -1) {
+            ReportScrollManager.scrollToIndex({index: this.actionIndexIDToScroll, viewPosition: 0.5});
             this.setState({shouldHighlightReportActionID: true});
         }
     }
