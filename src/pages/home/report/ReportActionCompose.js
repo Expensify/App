@@ -443,16 +443,9 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[styles.chatItemComposeWithFirstRow]}>
-                <View style={[styles.flexRow, styles.chatItemComposeSecondaryRow, styles.chatItemComposeSecondaryRowOffset, styles.flexWrap, styles.tester]}>
-                    {shouldShowReportRecipientLocalTime && (
-                        <ParticipantLocalTime participant={reportRecipient} style={[styles.mr3]} />
-                    )}
-                    <OfflineIndicator style={[styles.mr3]} />
-                    <ExceededCommentLength commentLength={this.comment.length} style={[styles.mr3]} />
-                    <ReportTypingIndicator reportID={this.props.reportID} />
-                </View>
-
+            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
+                {shouldShowReportRecipientLocalTime
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
@@ -591,6 +584,11 @@ class ReportActionCompose extends React.Component {
                             </TouchableOpacity>
                         </Tooltip>
                     </View>
+                </View>
+                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                    <OfflineIndicator />
+                    <ReportTypingIndicator reportID={this.props.reportID} />
+                    <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
             </View>
         );
