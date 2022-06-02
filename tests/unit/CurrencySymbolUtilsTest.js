@@ -1,7 +1,11 @@
 import _ from 'underscore';
 import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
 
-// Taken from GetCurrencyList API.
+// This file can get outdated. In that case, you can follow these steps to update it:
+// - in src/libs/API.js
+// - call: GetCurrencyList().then(data => console.log(data.currencyList));
+// - copy the json from console and format it to valid json using some external tool
+// - update currencyList.json
 import currencyList from './currencyList.json';
 
 const currencyCodeList = _.keys(currencyList);
