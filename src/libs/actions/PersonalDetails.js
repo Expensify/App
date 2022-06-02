@@ -117,6 +117,19 @@ function formatPersonalDetails(personalDetailsList) {
 }
 
 /**
+ * Get personal details for the email.
+ *
+ * @param {String} email
+ */
+function getPersonalDetailsForEmail(email) {
+    DeprecatedAPI.PersonalDetails_GetForEmails({emailList: email})
+        .then((data) => {
+            const details = _.pick(data, email);
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+        });
+}
+
+/**
  * Get the personal details for our organization
  * @returns {Promise}
  */
@@ -135,6 +148,10 @@ function fetchPersonalDetails() {
             }
 
             const allPersonalDetails = formatPersonalDetails(personalDetailsList);
+            const hasConciergeDetails = _.some(allPersonalDetails, person => person.login === CONST.EMAIL.CONCIERGE);
+            if (!hasConciergeDetails) {
+                getPersonalDetailsForEmail(CONST.EMAIL.CONCIERGE);
+            }
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             myPersonalDetails = allPersonalDetails[currentUserEmail];
