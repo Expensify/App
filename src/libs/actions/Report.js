@@ -705,29 +705,6 @@ function updateReportWithNewAction(
 }
 
 /**
- * Toggles the pinned state of the report.
- *
- * @param {Object} report
- */
-function togglePinnedState(report) {
-    const pinnedValue = !report.isPinned;
-
-    // Optimistically pin/unpin the report before we send out the command
-    const optimisticData = [
-        {
-            onyxMethod: 'merge',
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: pinnedValue,
-        },
-    ];
-
-    API.write('TogglePinnedChat', {
-        reportID: report.reportID,
-        pinnedValue,
-    }, {optimisticData});
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -777,13 +754,6 @@ function subscribeToUserEvents() {
         currentUserAccountID,
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
         true,
-    );
-
-    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_TOGGLE_PINNED,
-        currentUserAccountID,
-        pushJSON => togglePinnedState(pushJSON.report),
     );
 }
 
@@ -1277,6 +1247,29 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
         sequenceNumber: lastReadSequenceNumber,
         markAsUnread: manuallyMarked,
     });
+}
+
+/**
+ * Toggles the pinned state of the report.
+ *
+ * @param {Object} report
+ */
+function togglePinnedState(report) {
+    const isPinned = !report.isPinned;
+
+    // Optimistically pin/unpin the report before we send out the command
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {isPinned},
+        },
+    ];
+
+    API.write('TogglePinnedChat', {
+        reportID: report.reportID,
+        isPinned,
+    }, {optimisticData});
 }
 
 /**
