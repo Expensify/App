@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
-const withButtonStateCompletePropTypes = {
+const withDelayToggleButtonStatePropTypes = {
     /** A value whether the button state is complete */
     isButtonStateComplete: PropTypes.bool.isRequired,
 
@@ -11,7 +11,7 @@ const withButtonStateCompletePropTypes = {
 };
 
 export default function (WrappedComponent) {
-    class WithButtonStateComplete extends Component {
+    class WithDelayToggleButtonState extends Component {
         constructor(props) {
             super(props);
 
@@ -30,14 +30,14 @@ export default function (WrappedComponent) {
         }
 
         /**
-         * @param {Boolean} [resetAfterDelay=false] Impose delay before toggling state
+         * @param {Boolean} [resetAfterDelay=true] Impose delay before toggling state
          */
-        toggleButtonStateComplete(autoReset = false) {
+        toggleButtonStateComplete(resetAfterDelay = true) {
             this.setState({
                 isButtonStateComplete: true,
             });
 
-            if (autoReset) {
+            if (resetAfterDelay) {
                 this.resetButtonStateCompleteTimer = setTimeout(() => {
                     this.setState({
                         isButtonStateComplete: false,
@@ -58,23 +58,23 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithButtonStateComplete.displayName = `WithButtonStateComplete(${getComponentDisplayName(WrappedComponent)})`;
-    WithButtonStateComplete.propTypes = {
+    WithDelayToggleButtonState.displayName = `WithDelayToggleButtonState(${getComponentDisplayName(WrappedComponent)})`;
+    WithDelayToggleButtonState.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
             PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
         ]),
     };
-    WithButtonStateComplete.defaultProps = {
+    WithDelayToggleButtonState.defaultProps = {
         forwardedRef: undefined,
     };
 
     return React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithButtonStateComplete {...props} forwardedRef={ref} />
+        <WithDelayToggleButtonState {...props} forwardedRef={ref} />
     ));
 }
 
 export {
-    withButtonStateCompletePropTypes,
+    withDelayToggleButtonStatePropTypes,
 };
