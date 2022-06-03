@@ -47,7 +47,6 @@ Onyx.connect({
  *
  * @param {String} oldPassword
  * @param {String} password
- * @returns {Promise}
  */
 function changePassword(oldPassword, password) {
     const optimisticData = [
