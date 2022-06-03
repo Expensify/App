@@ -96,6 +96,8 @@ class BaseOptionsList extends Component {
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      *
      * @returns {Object}
+     * @note This implementation assumes that the list does not contain any headers or footers, because this component does not use those features at the time of writing.
+     *       If you want to add a header or footer to the SectionList, you'll need to adjust this function accordingly.
      */
     getItemLayout(data, index) {
         const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
