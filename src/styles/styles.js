@@ -1369,6 +1369,7 @@ const styles = {
     },
 
     textInputCompose: addOutlineWidth({
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
