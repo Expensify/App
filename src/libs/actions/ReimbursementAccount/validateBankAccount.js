@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as API from '../../API';
+import * as DeprecatedAPI from '../../deprecatedAPI';
 import BankAccount from '../../models/BankAccount';
 import CONST from '../../../CONST';
 import * as Localize from '../../Localize';
@@ -13,11 +13,11 @@ import * as errors from './errors';
 function validateBankAccount(bankAccountID, validateCode) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
-    API.BankAccount_Validate({bankAccountID, validateCode})
+    DeprecatedAPI.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
-                API.User_IsUsingExpensifyCard()
+                DeprecatedAPI.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {
                             loading: false,

@@ -6,11 +6,15 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
+import compose from '../libs/compose';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextLink from './TextLink';
 import Text from './Text';
 import RenderHTML from './RenderHTML';
+import OfflineIndicator from './OfflineIndicator';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Whether to show the alert text */
@@ -41,6 +45,9 @@ const propTypes = {
     isLoading: PropTypes.bool,
 
     ...withLocalizePropTypes,
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -95,6 +102,20 @@ const FormAlertWithSubmitButton = (props) => {
         );
     }
 
+    if (props.network.isOffline) {
+        return (
+            <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
+                <Button
+                    success
+                    isDisabled
+                    text={props.buttonText}
+                    style={[styles.mb3]}
+                />
+                <OfflineIndicator />
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
             {props.isAlertVisible && (
@@ -119,4 +140,7 @@ FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
 FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
 
-export default withLocalize(FormAlertWithSubmitButton);
+export default compose(
+    withLocalize,
+    withNetwork(),
+)(FormAlertWithSubmitButton);
