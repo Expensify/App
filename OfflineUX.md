@@ -44,7 +44,7 @@ To handle problems like this, we have developed offline UX patterns and guidance
 
 There’s no specific UI for this case. The feature either looks totally normal and works as expected (because it doesn’t need the server to function) or the feature looks like it did whenever connection was lost. 
 
-Used when…
+**Used when…**
  - there is no interaction with the server in any way
  - or data is READ from the server and does not need to show up-to-date data. The user will see stale data until the new data is put into Onyx and then the view updates to show the new data. 
 
