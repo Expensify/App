@@ -1208,7 +1208,7 @@ function addAction(reportID, text, file) {
 
     API.write('AddComment', {
         reportID,
-        file,
+        reportComment: commentText,
         clientID: optimisticReportActionID,
     }, {optimisticData});
 
