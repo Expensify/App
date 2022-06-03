@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -110,7 +111,7 @@ class Composer extends React.Component {
      */
     updateNumberOfLines(e) {
         const lineHeight = this.state.propStyles.lineHeight;
-        const paddingTopAndBottom = this.state.propStyles.paddingVertical * 2;
+        const paddingTopAndBottom = styles.textInputComposeSpacing.paddingVertical * 2;
         const inputHeight = lodashGet(e, 'nativeEvent.contentSize.height', null);
         if (!inputHeight) {
             return;
