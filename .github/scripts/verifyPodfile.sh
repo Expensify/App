@@ -17,7 +17,7 @@ else
     exit 1
 fi
 
-DIFF_OUTPUT=$(git diff --exit-code)
+DIFF_OUTPUT=$(git diff --exit-code ios/Podfile.lock)
 EXIT_CODE=$?
 
 if [[ DIFF_OUTPUT -eq 0 ]]; then
