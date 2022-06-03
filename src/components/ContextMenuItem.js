@@ -7,7 +7,7 @@ import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
-import withButtonStateComplete, {withButtonStateCompletePropTypes} from './withButtonStateComplete';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 
 const propTypes = {
     /** Icon Component */
@@ -34,7 +34,7 @@ const propTypes = {
     /** A description text to show under the title */
     description: PropTypes.string,
 
-    ...withButtonStateCompletePropTypes,
+    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
@@ -111,4 +111,4 @@ class ContextMenuItem extends Component {
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 
-export default withButtonStateComplete(ContextMenuItem);
+export default withDelayToggleButtonState(ContextMenuItem);

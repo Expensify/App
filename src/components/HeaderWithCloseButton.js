@@ -15,7 +15,7 @@ import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 import VirtualKeyboard from '../libs/VirtualKeyboard';
 import getButtonState from '../libs/getButtonState';
 import * as StyleUtils from '../styles/StyleUtils';
-import withButtonStateComplete, {withButtonStateCompletePropTypes} from './withButtonStateComplete';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 import compose from '../libs/compose';
 
 const propTypes = {
@@ -80,7 +80,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    ...withButtonStateCompletePropTypes,
+    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
@@ -119,7 +119,7 @@ class HeaderWithCloseButton extends Component {
         }
 
         this.props.onDownloadButtonPress();
-        this.props.toggleButtonStateComplete(true);
+        this.props.toggleButtonStateComplete();
     }
 
     render() {
@@ -220,5 +220,5 @@ HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
 export default compose(
     withLocalize,
-    withButtonStateComplete,
+    withDelayToggleButtonState,
 )(HeaderWithCloseButton);
