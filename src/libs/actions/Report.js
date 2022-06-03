@@ -1255,20 +1255,20 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  * @param {Object} report
  */
 function togglePinnedState(report) {
-    const isPinned = !report.isPinned;
+    const pinnedValue = !report.isPinned;
 
     // Optimistically pin/unpin the report before we send out the command
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {isPinned},
+            value: {isPinned: pinnedValue},
         },
     ];
 
     API.write('TogglePinnedChat', {
         reportID: report.reportID,
-        isPinned,
+        pinnedValue,
     }, {optimisticData});
 }
 
