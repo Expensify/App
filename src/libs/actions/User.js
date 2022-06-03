@@ -47,22 +47,32 @@ Onyx.connect({
  * @returns {Promise}
  */
 function changePassword(oldPassword, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.ACCOUNT,
+            value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
+    ];
 
-    return DeprecatedAPI.ChangePassword({oldPassword, password})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-                return;
-            }
-
-            const success = lodashGet(response, 'message', 'Password changed successfully.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
+    API.write('ChangePassword', {
+        oldPassword,
+        password,
+    }, {optimisticData, successData, failureData});
 }
 
 /**
