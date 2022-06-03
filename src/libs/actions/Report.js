@@ -655,29 +655,6 @@ function updateReportWithNewAction(
 }
 
 /**
- * Toggles the pinned state of the report.
- *
- * @param {Object} report
- */
-function togglePinnedState(report) {
-    const pinnedValue = !report.isPinned;
-
-    // Optimistically pin/unpin the report before we send out the command
-    const optimisticData = [
-        {
-            onyxMethod: 'merge',
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: pinnedValue,
-        },
-    ];
-
-    API.write('TogglePinnedChat', {
-        reportID: report.reportID,
-        pinnedValue,
-    }, {optimisticData});
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -722,7 +699,12 @@ function subscribeToUserEvents() {
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's actions when an 'edit comment chunk' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true);
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
+        currentUserAccountID,
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
+        true,
+    );
 }
 
 /**
@@ -1223,20 +1205,20 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  * @param {Object} report
  */
 function togglePinnedState(report) {
-    const pinnedValue = !report.isPinned;
+    const isPinned = !report.isPinned;
 
     // Optimistically pin/unpin the report before we send out the command
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: pinnedValue,
+            value: {isPinned},
         },
     ];
 
     API.write('TogglePinnedChat', {
         reportID: report.reportID,
-        pinnedValue,
+        isPinned,
     }, {optimisticData});
 }
 
