@@ -7,7 +7,6 @@ import withWindowDimensions from '../withWindowDimensions';
 import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
-import Log from '../../libs/Log';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './pdfViewPropTypes';
 
@@ -62,8 +61,6 @@ class PDFView extends Component {
         } else if (reason === CONST.REACT_PDF_PASSWORD_RESPONSES.INCORRECT_PASSWORD) {
             this.setState({shouldRequestPassword: true, isPasswordInvalid: true});
             this.props.onUserInputRequired(true);
-        } else {
-            Log.warn('[PDFView] pdf password requested for unknown reason: ', reason);
         }
     }
 
@@ -113,7 +110,7 @@ class PDFView extends Component {
                 </View>
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
-                        onSubmit={password => this.onPasswordCallback(password)}
+                        onSubmit={this.onPasswordCallback}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                     />
                 )}
