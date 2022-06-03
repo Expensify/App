@@ -233,6 +233,9 @@ class Button extends Component {
         return (
             <Pressable
                 onPress={(e) => {
+                    if (e.type === 'click') {
+                        e.currentTarget.blur();
+                    }
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.trigger();
                     }
