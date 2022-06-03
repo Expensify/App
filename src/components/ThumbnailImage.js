@@ -53,9 +53,10 @@ class ThumbnailImage extends PureComponent {
      * @param {Number} height - Height of the original image.
      * @returns {Object} - Object containing thumbnails width and height.
      */
-
     calculateThumbnailImageSize(width, height) {
-        if (!width || !height) { return {}; }
+        if (!width || !height) {
+            return {};
+        }
 
         // Width of the thumbnail works better as a constant than it does
         // a percentage of the screen width since it is relative to each screen
@@ -75,6 +76,12 @@ class ThumbnailImage extends PureComponent {
         return {thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
     }
 
+    /**
+     * Update the state with the computed thumbnail sizes.
+     *
+     * @param {{ width: number, height: number }} Params - width and height of the original image.
+     * @returns {void}
+     */
     updateImageSize({width, height}) {
         const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(width, height);
         this.setState({thumbnailWidth, thumbnailHeight});
