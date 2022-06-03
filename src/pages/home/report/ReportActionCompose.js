@@ -573,56 +573,58 @@ class ReportActionCompose extends React.Component {
                                         </>
                                     )}
                                 </AttachmentPicker>
-                                <Composer
-                                    autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
-                                    multiline
-                                    ref={this.setTextInputRef}
-                                    textAlignVertical="top"
-                                    placeholder={inputPlaceholder}
-                                    placeholderTextColor={themeColors.placeholderText}
-                                    onChangeText={this.updateComment}
-                                    onKeyPress={this.triggerHotkeyActions}
-                                    onDragEnter={(e, isOriginComposer) => {
-                                        if (!isOriginComposer) {
-                                            return;
-                                        }
+                                <View style={styles.textInputComposeSpacing}>
+                                    <Composer
+                                        autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
+                                        multiline
+                                        ref={this.setTextInputRef}
+                                        textAlignVertical="top"
+                                        placeholder={inputPlaceholder}
+                                        placeholderTextColor={themeColors.placeholderText}
+                                        onChangeText={this.updateComment}
+                                        onKeyPress={this.triggerHotkeyActions}
+                                        onDragEnter={(e, isOriginComposer) => {
+                                            if (!isOriginComposer) {
+                                                return;
+                                            }
 
-                                        this.setState({isDraggingOver: true});
-                                    }}
-                                    onDragOver={(e, isOriginComposer) => {
-                                        if (!isOriginComposer) {
-                                            return;
-                                        }
+                                            this.setState({isDraggingOver: true});
+                                        }}
+                                        onDragOver={(e, isOriginComposer) => {
+                                            if (!isOriginComposer) {
+                                                return;
+                                            }
 
-                                        this.setState({isDraggingOver: true});
-                                    }}
-                                    onDragLeave={() => this.setState({isDraggingOver: false})}
-                                    onDrop={(e) => {
-                                        e.preventDefault();
+                                            this.setState({isDraggingOver: true});
+                                        }}
+                                        onDragLeave={() => this.setState({isDraggingOver: false})}
+                                        onDrop={(e) => {
+                                            e.preventDefault();
 
-                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                        if (!file) {
-                                            return;
-                                        }
+                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                            if (!file) {
+                                                return;
+                                            }
 
-                                        displayFileInModal({file});
-                                        this.setState({isDraggingOver: false});
-                                    }}
-                                    style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                    defaultValue={this.props.comment}
-                                    maxLines={this.state.maxLines}
-                                    onFocus={() => this.setIsFocused(true)}
-                                    onBlur={() => this.setIsFocused(false)}
-                                    onPasteFile={file => displayFileInModal({file})}
-                                    shouldClear={this.state.textInputShouldClear}
-                                    onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                    selection={this.state.selection}
-                                    onSelectionChange={this.onSelectionChange}
-                                    isFullComposerAvailable={this.state.isFullComposerAvailable}
-                                    setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                />
+                                            displayFileInModal({file});
+                                            this.setState({isDraggingOver: false});
+                                        }}
+                                        style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                        defaultValue={this.props.comment}
+                                        maxLines={this.state.maxLines}
+                                        onFocus={() => this.setIsFocused(true)}
+                                        onBlur={() => this.setIsFocused(false)}
+                                        onPasteFile={file => displayFileInModal({file})}
+                                        shouldClear={this.state.textInputShouldClear}
+                                        onClear={() => this.setTextInputShouldClear(false)}
+                                        isDisabled={isComposeDisabled || isBlockedFromConcierge}
+                                        selection={this.state.selection}
+                                        onSelectionChange={this.onSelectionChange}
+                                        isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                        setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                    />
+                                </View>
                             </>
                         )}
                     </AttachmentModal>

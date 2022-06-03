@@ -1384,7 +1384,6 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        marginVertical: 5,
         paddingVertical: 0,
         ...textInputAlignSelf.center,
         textAlignVertical: 'center',
@@ -1394,8 +1393,12 @@ const styles = {
         alignSelf: 'flex-end',
         flex: 1,
         maxHeight: '100%',
-        marginVertical: 0,
+    },
+
+    textInputComposeSpacing: {
         paddingVertical: 5,
+        ...flex.flexRow,
+        flex: 1,
     },
 
     chatItemSubmitButton: {
