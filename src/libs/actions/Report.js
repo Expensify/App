@@ -27,6 +27,7 @@ import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
+import * as API from '../API';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1048,6 +1049,79 @@ function fetchAllReports(
         });
 }
 
+function addAttachment(reportID, file) {
+    // Generate the sequence number, the placeholder text, optimistic report action ID, etc.
+    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
+    const newSequenceNumber = highestSequenceNumber + 1;
+    const htmlForNewComment = 'Uploading Attachment...';
+    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
+    const optimisticReportActionID = parseInt(`${Date.now()}${randomNumber}`, 10);
+    const textForNewComment = '[Attachment]';
+
+    // ...
+
+    // Optimistically add the report comment into the report, with a pending state.
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageTimestamp: moment()
+                    .unix(),
+                lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
+                lastActorEmail: currentUserEmail,
+                optimisticReportActionIDs: [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID],
+
+                // This used to be updated in the response, but it can be done optimistically.
+                unreadActionCount: 0,
+            },
+        },
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    actorEmail: currentUserEmail,
+                    actorAccountID: currentUserAccountID,
+                    person: [
+                        {
+                            style: 'strong',
+                            text: myPersonalDetails.displayName || currentUserEmail,
+                            type: 'TEXT',
+                        },
+                    ],
+                    automatic: false,
+
+                    // Use the client generated ID as a optimistic action ID so we can remove it later
+                    sequenceNumber: optimisticReportActionID,
+                    clientID: optimisticReportActionID,
+                    avatar: myPersonalDetails.avatar,
+                    timestamp: moment().unix(),
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            html: htmlForNewComment,
+                            text: textForNewComment,
+                        },
+                    ],
+                    isFirstItem: false,
+                    isAttachment: true,
+                    attachmentInfo: file,
+                    isPending: true,
+                },
+            },
+        },
+    ];
+
+    API.write('AddCommentWithImage', {
+        reportID,
+        file,
+        clientID: optimisticReportActionID,
+    }, {optimisticData});
+}
+
 /**
  * Add an action item to a report
  *
@@ -1062,6 +1136,11 @@ function addAction(reportID, text, file) {
     const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
+
+    if (isAttachment) {
+        addAttachment(reportID, file);
+        return;
+    }
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
