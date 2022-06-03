@@ -26,7 +26,7 @@ When a user clicks the pin button <img style="height: 10px; width: 10px;" src=".
 
 2. **UI Changes:** The chat should go to the top of the list with the other pinned chats, and the pin button should look darker than it did before. This is visual feedback that clicking the pin button worked.
 
-If the user is offline, we don't need to wait for the API request to finish before doing all that visual stuff because this particular API request has almost no way of failing, and we know what the server will return in advance. That means we can safely assume that when we send the command, it will succeed and that's why we let the user continue using the app as if the action succeeded.
+If the user is offline, we don't need to wait for the API request to finish before doing all that visual stuff because this particular API request has almost no way of failing, and we know what the server will return in advance. That means we can safely assume that when we retry the command, it will succeed and that's why we let the user continue using the app as if the action succeeded.
 
 <hr />
 
