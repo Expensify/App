@@ -6,6 +6,7 @@ import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONS
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
