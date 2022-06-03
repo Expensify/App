@@ -463,14 +463,6 @@ const CONST = {
         PRODUCTION: 'production',
     },
 
-    // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
-    // from backgound). The times are based on how long it generally seems to take for the app to become interactive
-    // in each scenario.
-    FETCH_ACTIONS_DELAY: {
-        STARTUP: 8000,
-        RECONNECT: 1000,
-    },
-
     WALLET: {
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
