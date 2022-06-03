@@ -85,46 +85,51 @@ class BaseOptionsList extends Component {
      * We need to implement it so that we can programmatically scroll to any item in the list.
      * If we don't, then we can only scroll to items in the virtual render window of the SectionList.
      *
-     * @param {Array} data – this is a flat array of all the sections with all the section headers inline. It comes from react-native in this format
-     * @param {Number} index - the index of the current item in the `data` array
+     * @param {Array} data - This is the same as the data we pass into the component, i.e: all the non-empty sections
+     * @param {Number} index - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
+     *
+     *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
+     *     2. Each section includes a header, even if we don't provide/render one.
+     *
+     *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
+     *
+     *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
+     *
      * @returns {Object}
      */
     getItemLayout(data, index) {
         const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-        const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
 
         let offset = 0;
-        let currentIndex = 0;
-        let isItemSectionHeader = false;
-        _.some(this.props.sections, (section) => {
-            if (currentIndex >= index) {
-                // Stop iteration
-                return true;
+        let length = 0;
+        for (let i = 0; i < data.length; i++) {
+            const section = data[i];
+            const sectionHeaderHeight = section.title && !this.props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+
+            // The indexOffset of our section is the sum of the lengths of previous sections' data arrays.
+            // To correct it, in the context of the flat array described above, we need to account for the section headers of all previous sections, and the list header.
+            const correctedIndexOffset = section.indexOffset + i + 1;
+
+            if (correctedIndexOffset > index) {
+                break;
             }
 
-            const startOfNextSection = currentIndex + section.data.length;
-            if (startOfNextSection === index) {
-                isItemSectionHeader = true;
-            }
-
-            const nextIndex = Math.min(startOfNextSection, index);
-
-            if (!section.shouldShow || section.data.length === 0) {
-                // No height is added to the offset by this section, continue to the next section
-                return false;
-            }
-
-            if (section.title && !this.props.hideSectionHeaders) {
+            if (correctedIndexOffset === index) {
+                // This means that the index we're looking for is a section header.
+                length = sectionHeaderHeight;
+            } else {
+                // Otherwise, we are looking for something past this section's header, so we add its height to the offset
                 offset += sectionHeaderHeight;
-            }
 
-            offset += optionHeight * (nextIndex - currentIndex);
-            currentIndex = nextIndex;
-            return false;
-        });
+                // Also add to the offset the height of any other option rows in this section (leading up to the index we are looking for)
+                offset += (Math.min(correctedIndexOffset + section.data.length, index - 1) - correctedIndexOffset) * optionHeight;
+            }
+        }
+
+        length = length || optionHeight;
 
         return {
-            length: isItemSectionHeader ? sectionHeaderHeight : optionHeight,
+            length,
             offset,
             index,
         };
