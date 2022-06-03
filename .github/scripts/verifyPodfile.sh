@@ -12,8 +12,18 @@ echo "Podfile.lock: $podfileLockSha"
 
 if [ $podfileSha == $podfileLockSha ]; then
     echo -e "${GREEN}Podfile verified!${NC}"
+else
+    echo -e "${RED}Error: Podfile.lock out of date with Podfile. Did you forget to run \`cd ios && pod install\`?${NC}"
+    exit 1
+fi
+
+DIFF_OUTPUT=$(git diff --exit-code)
+EXIT_CODE=$?
+
+if [[ DIFF_OUTPUT -eq 0 ]]; then
+    echo -e "${GREEN}Podfile.lock is up to date!${NC}"
     exit 0
 else
-    echo -e "${RED}Error: Podfile.lock out of date with Podfile. Did you forget to run \`npx pod-install\`?${NC}"
+    echo -e "${RED}Error: Diff found on Podfile.lock. Did you forget to run \`cd ios && pod install\`?${NC}"
     exit 1
 fi
