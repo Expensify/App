@@ -78,7 +78,7 @@ This pattern greys out the submit button on a form and does not allow the form t
  - server response will be unknown so it cannot be done optimistically
  - If the request is moving money
 
-**How to implement:** Use the `<FormAlertWithSubmitButton/>` component. This pattern should use the `API.queue()` method because we need to wait 
+**How to implement:** Use the `<FormAlertWithSubmitButton/>` component. This pattern should use the `API.write()` method.
 
 # D - Full Page Blocking UI Pattern
 This pattern blocks the user from interacting with an entire page.
