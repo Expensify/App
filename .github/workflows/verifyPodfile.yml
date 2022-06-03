@@ -35,9 +35,11 @@ jobs:
 
       - name: Install pods
         uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        working-directory: ./ios
+        run: pod install
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: npx pod-install
+
 
       - run: ./.github/scripts/verifyPodfile.sh
