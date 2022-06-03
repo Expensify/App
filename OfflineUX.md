@@ -42,7 +42,7 @@ To handle problems like this, we have developed offline UX patterns and guidance
 
 # None - No Offline Behavior
 
- There’s no specific UI for this case. The feature either looks totally normal and works as expected (because it doesn’t need the server to function) or the feature looks like it did whenever connection was lost. 
+There’s no specific UI for this case. The feature either looks totally normal and works as expected (because it doesn’t need the server to function) or the feature looks like it did whenever connection was lost. 
 
 Used when…
  - there is no interaction with the server in any way
