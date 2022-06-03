@@ -104,6 +104,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
+                // TODO: Update this unit test with onyxUpdate
                 const channel = Pusher.getChannel(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.REPORT_COMMENT, {
                     reportID: REPORT_ID,
