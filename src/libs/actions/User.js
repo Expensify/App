@@ -53,21 +53,21 @@ function changePassword(oldPassword, password) {
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.ACCOUNT,
-            value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
+            value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
         },
     ];
     const successData = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.ACCOUNT,
-            value: {isLoading: false},
+            value: {loading: false},
         },
     ];
     const failureData = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.ACCOUNT,
-            value: {isLoading: false},
+            value: {loading: false},
         },
     ];
 
