@@ -417,6 +417,7 @@ class IOUModal extends Component {
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 selectedAmount={this.state.amount}
                                                 navigation={this.props.navigation}
+                                                iouType={this.props.iouType}
                                             />
                                         </AnimatedStep>
                                     )}
@@ -470,9 +471,6 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
-        iousReport: {
-            key: ONYXKEYS.COLLECTION.REPORT_IOUS,
         },
         iou: {
             key: ONYXKEYS.IOU,

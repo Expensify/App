@@ -234,7 +234,7 @@ class RequestCallPage extends Component {
             return;
         }
 
-        Inbox.getInboxCallWaitTime();
+        Inbox.openRequestCallPage();
     }
 
     validatePhoneInput() {

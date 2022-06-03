@@ -8,9 +8,11 @@ import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
-import createOnReadyTask from '../createOnReadyTask';
 
-const readyTask = createOnReadyTask();
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
 
 let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
@@ -28,7 +30,7 @@ function checkOnReady() {
         return;
     }
 
-    readyTask.setIsReady();
+    resolveIsReadyPromise();
 }
 
 Onyx.connect({
@@ -91,7 +93,7 @@ Onyx.connect({
  * @param {Function} params.showCreateMenu
  */
 function show({routes, showCreateMenu}) {
-    readyTask.isReady().then(() => {
+    isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
         }
@@ -122,7 +124,9 @@ function show({routes, showCreateMenu}) {
 }
 
 function resetReadyCheck() {
-    readyTask.reset();
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 }
 
 export {

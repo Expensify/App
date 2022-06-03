@@ -17,5 +17,3 @@ src/libs/Navigation/NavigationRoot.js @marcaaron
 src/libs/NetworkConnection.js @marcaaron
 src/libs/actions/NetworkRequestQueue.js @marcaaron
 src/libs/actions/ReportActions.js @marcaaron
-
-src/libs/ @AndrewGable @tgolen @cead22 @iwiznia @flodnv
