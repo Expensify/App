@@ -30,7 +30,7 @@ export default function (WrappedComponent) {
         }
 
         /**
-         * @param {*} autoReset autoReset
+         * @param {Boolean} [resetAfterDelay=false] Impose delay before toggling state
          */
         toggleButtonStateComplete(autoReset = false) {
             this.setState({
