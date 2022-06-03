@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -46,14 +47,11 @@ function requestInboxCall({
         });
 }
 
-function getInboxCallWaitTime() {
-    DeprecatedAPI.Inbox_CallUser_WaitTime()
-        .then((data) => {
-            Onyx.set(ONYXKEYS.INBOX_CALL_USER_WAIT_TIME, data.waitTime);
-        });
+function openRequestCallPage() {
+    API.read('OpenRequestCallPage');
 }
 
 export {
     requestInboxCall,
-    getInboxCallWaitTime,
+    openRequestCallPage,
 };
