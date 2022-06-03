@@ -172,6 +172,15 @@ describe('ReportUtils', () => {
                     expect(ReportUtils.getReportName({
                         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                         policyID: policy.policyID,
+                        isOwnPolicyExpenseChat: true,
+                        ownerEmail: 'ragnar@vikings.net',
+                    }, participantsPersonalDetails, policies)).toBe('Vikings Policy');
+                });
+
+                test('as admin', () => {
+                    expect(ReportUtils.getReportName({
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        policyID: policy.policyID,
                         isOwnPolicyExpenseChat: false,
                         ownerEmail: 'ragnar@vikings.net',
                     }, participantsPersonalDetails, policies)).toBe('Ragnar Lothbrok');
