@@ -336,8 +336,8 @@ function Report_GetHistory(parameters) {
  * @param {Boolean} parameters.pinnedValue
  * @returns {Promise}
  */
-function TogglePinnedChat(parameters) {
-    const commandName = 'TogglePinnedChat';
+function Report_TogglePinned(parameters) {
+    const commandName = 'Report_TogglePinned';
     requireParameters(['reportID', 'pinnedValue'],
         parameters, commandName);
     return Network.post(commandName, parameters);
@@ -953,7 +953,7 @@ export {
     RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
-    TogglePinnedChat,
+    Report_TogglePinned,
     Report_EditComment,
     Report_UpdateLastRead,
     Report_UpdateNotificationPreference,

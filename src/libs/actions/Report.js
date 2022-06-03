@@ -709,7 +709,7 @@ function updateReportWithNewAction(
  *
  * @param {Object} report
  */
- function togglePinnedState(report) {
+function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
 
     // Optimistically pin/unpin the report before we send out the command
