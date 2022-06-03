@@ -217,9 +217,15 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                        ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                        : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                    <TouchableOpacity onPress={() => {
+                        if (this.props.hasMultipleParticipants) {
+                            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
+                        }
+                        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+                            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID));
+                        }
+                        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+                    }}
                     >
                         <Text style={styles.iouAmountText}>
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
@@ -236,6 +242,7 @@ class IOUAmountPage extends React.Component {
                         value={formattedAmount}
                         placeholder={this.props.numberFormat(0)}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        blurOnSubmit={false}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>

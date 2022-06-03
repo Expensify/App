@@ -11,4 +11,6 @@ export default {
     PREFERRED_LOCALE: 'preferredLocale',
     EXPENSIFY_CARD_UPDATE: 'expensifyCardUpdate',
     SCREEN_SHARE_REQUEST: 'screenshareRequest',
+    ONYX_API_UPDATE: 'onyxApiUpdate',
+    ONYX_API_UPDATE_CHUNK: 'chunked-onyxApiUpdate',
 };
