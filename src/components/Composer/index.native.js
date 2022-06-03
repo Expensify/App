@@ -94,13 +94,13 @@ class Composer extends React.Component {
      * Calculates the max number of lines the text input can have
      *
      * @param {Number} lineHeight
-     * @param {Number} marginTopAndBottom
+     * @param {Number} paddingTopAndBottom
      * @param {Number} scrollHeight
      *
      * @returns {Number}
      */
-    getNumberOfLines(lineHeight, marginTopAndBottom, scrollHeight) {
-        return Math.ceil((scrollHeight - marginTopAndBottom) / lineHeight);
+    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
+        return Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
     }
 
     /**
@@ -110,12 +110,12 @@ class Composer extends React.Component {
      */
     updateNumberOfLines(e) {
         const lineHeight = this.state.propStyles.lineHeight;
-        const marginTopAndBottom = this.state.propStyles.marginVertical * 2;
+        const paddingTopAndBottom = this.state.propStyles.paddingVertical * 2;
         const inputHeight = lodashGet(e, 'nativeEvent.contentSize.height', null);
         if (!inputHeight) {
             return;
         }
-        const numberOfLines = this.getNumberOfLines(lineHeight, marginTopAndBottom, inputHeight);
+        const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
         this.updateIsFullComposerAvailable(numberOfLines);
     }
 
