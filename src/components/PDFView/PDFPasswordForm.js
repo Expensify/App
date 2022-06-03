@@ -25,7 +25,7 @@ class PDFPasswordForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            password: null,
+            password: '',
         };
         this.submitPassword = this.submitPassword.bind(this);
     }
@@ -66,7 +66,6 @@ class PDFPasswordForm extends Component {
                     text={this.props.translate('common.confirm')}
                     onPress={this.submitPassword}
                     style={styles.mt4}
-                    isDisabled={!this.state.password}
                     isFocused
                 />
             </View>
