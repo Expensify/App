@@ -15,11 +15,15 @@ const propTypes = {
 
     /** The ref to the modal container */
     forwardedRef: PropTypes.func,
+
+    /** Whether we should make status bar transclucent */
+    statusBarTranslucent: PropTypes.bool,
 };
 
 const defaultProps = {
     ...modalDefaultProps,
     forwardedRef: () => {},
+    statusBarTranslucent: true,
 };
 
 class BaseModal extends PureComponent {
@@ -77,6 +81,7 @@ class BaseModal extends PureComponent {
         );
         return (
             <ReactNativeModal
+                statusBarTranslucent={this.props.statusBarTranslucent}
                 onBackdropPress={(e) => {
                     if (e && e.type === 'keydown' && e.key === 'Enter') {
                         return;

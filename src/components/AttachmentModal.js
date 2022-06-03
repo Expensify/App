@@ -154,6 +154,7 @@ class AttachmentModal extends PureComponent {
         return (
             <>
                 <Modal
+                    statusBarTranslucent={false}
                     type={this.state.modalType}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
