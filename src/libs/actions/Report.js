@@ -1049,16 +1049,18 @@ function fetchAllReports(
         });
 }
 
+function getOptimisticReportActionID() {
+    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
+    return parseInt(`${Date.now()}${randomNumber}`, 10);
+}
+
 function addAttachment(reportID, file) {
     // Generate the sequence number, the placeholder text, optimistic report action ID, etc.
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
     const htmlForNewComment = 'Uploading Attachment...';
-    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
-    const optimisticReportActionID = parseInt(`${Date.now()}${randomNumber}`, 10);
     const textForNewComment = '[Attachment]';
-
-    // ...
+    const optimisticReportActionID = getOptimisticReportActionID();
 
     // Optimistically add the report comment into the report, with a pending state.
     const optimisticData = [
@@ -1135,7 +1137,6 @@ function addAction(reportID, text, file) {
     const parser = new ExpensiMark();
     const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
-    const attachmentInfo = isAttachment ? file : {};
 
     if (isAttachment) {
         addAttachment(reportID, file);
@@ -1145,103 +1146,102 @@ function addAction(reportID, text, file) {
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
-    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+    const htmlForNewComment = commentText;
+    const optimisticReportActionID = getOptimisticReportActionID();
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? '[Attachment]'
-        : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
+    const textForNewComment = htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
 
-    // Update the report in Onyx to have the new sequence number
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        maxSequenceNumber: newSequenceNumber,
-        lastMessageTimestamp: moment().unix(),
-        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
-        lastActorEmail: currentUserEmail,
-    });
+    // Optimistically add the report comment into the report, with a pending state.
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageTimestamp: moment()
+                    .unix(),
+                lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
+                lastActorEmail: currentUserEmail,
+                optimisticReportActionIDs: [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID],
 
-    // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
-    // remove the optimistic action when we add the real action created in the server. We do this because it's not
-    // safe to assume that this will use the very next sequenceNumber. An action created by another can overwrite that
-    // sequenceNumber if it is created before this one. We use a combination of current epoch timestamp (milliseconds)
-    // and a random number so that the probability of someone else having the same optimisticReportActionID is
-    // extremely low even if they left the comment at the same moment as another user on the same report. The random
-    // number is 3 digits because if we go any higher JS will convert the digits after the 16th position to 0's in
-    // optimisticReportActionID.
-    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
-    const optimisticReportActionID = parseInt(`${Date.now()}${randomNumber}`, 10);
-
-    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
-    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
-    // event, for whatever reason, from the server with the new action data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        optimisticReportActionIDs: [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID],
-    });
-
-    // Optimistically add the new comment to the store before waiting to save it to the server
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [optimisticReportActionID]: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-            actorEmail: currentUserEmail,
-            actorAccountID: currentUserAccountID,
-            person: [
-                {
-                    style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT',
-                },
-            ],
-            automatic: false,
-
-            // Use the client generated ID as a optimistic action ID so we can remove it later
-            sequenceNumber: optimisticReportActionID,
-            clientID: optimisticReportActionID,
-            avatar: myPersonalDetails.avatar,
-            timestamp: moment().unix(),
-            message: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                    html: htmlForNewComment,
-                    text: textForNewComment,
-                },
-            ],
-            isFirstItem: false,
-            isAttachment,
-            attachmentInfo,
-            loading: true,
-            shouldShow: true,
+                // This used to be updated in the response, but it can be done optimistically.
+                unreadActionCount: 0,
+            },
         },
-    });
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    actorEmail: currentUserEmail,
+                    actorAccountID: currentUserAccountID,
+                    person: [
+                        {
+                            style: 'strong',
+                            text: myPersonalDetails.displayName || currentUserEmail,
+                            type: 'TEXT',
+                        },
+                    ],
+                    automatic: false,
 
-    DeprecatedAPI.Report_AddComment({
+                    // Use the client generated ID as a optimistic action ID so we can remove it later
+                    sequenceNumber: optimisticReportActionID,
+                    clientID: optimisticReportActionID,
+                    avatar: myPersonalDetails.avatar,
+                    timestamp: moment().unix(),
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            html: htmlForNewComment,
+                            text: textForNewComment,
+                        },
+                    ],
+                    isFirstItem: false,
+                    isAttachment: false,
+                    isPending: true,
+                },
+            },
+        },
+    ];
+
+    API.write('AddComment', {
         reportID,
         file,
-        reportComment: commentText,
         clientID: optimisticReportActionID,
-        persist: true,
-    })
-        .then((response) => {
-            if (response.jsonCode === 408) {
-                Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [optimisticReportActionID]: null,
-                });
-                console.error(response.message);
-                return;
-            }
+    }, {optimisticData});
 
-            if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
-                Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [optimisticReportActionID]: null,
-                });
+    // DeprecatedAPI.Report_AddComment({
+    //     reportID,
+    //     file,
+    //     reportComment: commentText,
+    //     clientID: optimisticReportActionID,
+    //     persist: true,
+    // })
+    //     .then((response) => {
+    //         if (response.jsonCode === 408) {
+    //             Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
+    //             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    //                 [optimisticReportActionID]: null,
+    //             });
+    //             console.error(response.message);
+    //             return;
+    //         }
 
-                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
-                User.getUserDetails();
-                return;
-            }
+    //         if (response.jsonCode === 666 && reportID === conciergeChatReportID) {
+    //             Growl.error(Localize.translateLocal('reportActionCompose.blockedFromConcierge'));
+    //             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    //                 [optimisticReportActionID]: null,
+    //             });
 
-            updateReportWithNewAction(reportID, response.reportAction);
-        });
+    //             // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+    //             User.getUserDetails();
+    //             return;
+    //         }
+
+    //         updateReportWithNewAction(reportID, response.reportAction);
+    //     });
 }
 
 /**
