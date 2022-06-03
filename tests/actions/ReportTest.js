@@ -154,24 +154,6 @@ describe('actions/Report', () => {
             .then(() => {
                 // Before pusher event gets sent back, test that Onyx immediately updated the report pin state.
                 expect(reportIsPinned).toEqual(true);
-            })
-            .then(() => {
-                // We subscribed to the Pusher channel above and now we need to simulate a reportTogglePinned
-                // Pusher event so we can verify that pinning was handled correctly and merged into the report.
-                const channel = Pusher.getChannel(`private-encrypted-user-accountID-1${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.REPORT_TOGGLE_PINNED, {
-                    reportID: REPORT_ID,
-                    isPinned: true,
-                });
-
-                // Once an event is emitted to the Pusher channel we should see the report pin get updated
-                // by the Pusher callback and added to the storage so we must wait for promises to resolve again and
-                // then verify the data is in Onyx.
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
-                // Make sure the pin state gets from the Pusher callback into Onyx.
-                expect(reportIsPinned).toEqual(true);
             });
     });
 
