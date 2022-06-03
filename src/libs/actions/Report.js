@@ -16,6 +16,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
@@ -641,17 +642,7 @@ function subscribeToUserEvents() {
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's actions when an 'edit comment chunk' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
-        true,
-    );
-
-    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED,
-        currentUserAccountID,
-        pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
+    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true);
 }
 
 /**
@@ -1162,7 +1153,7 @@ function togglePinnedState(report) {
             value: pinnedValue,
         },
     ];
- 
+
     API.write('TogglePinnedChat', {
         reportID: report.reportID,
         pinnedValue,
