@@ -126,7 +126,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it('should update pins in Onyx when togglePinned event is handled via Pusher', () => {
+    it('should update pins in Onyx when togglePinned is called', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
@@ -144,15 +144,11 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                Report.subscribeToUserEvents();
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
                 Report.togglePinnedState(REPORT);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Before pusher event gets sent back, test that Onyx immediately updated the report pin state.
+                // Test that Onyx immediately updated the report pin state.
                 expect(reportIsPinned).toEqual(true);
             });
     });
