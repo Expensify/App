@@ -55,7 +55,8 @@ const StatePicker = forwardRef((props, ref) => (
         placeholder={{value: '', label: '-'}}
         items={STATES}
         onInputChange={props.onInputChange}
-        value={props.value ? props.value : props.defaultValue}
+        value={props.value}
+        defaultValue={props.defaultValue}
         label={props.label || props.translate('common.state')}
         errorText={props.errorText}
         onBlur={props.onBlur}

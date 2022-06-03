@@ -8,13 +8,16 @@ import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
-import createOnReadyTask from '../createOnReadyTask';
 
-const readyTask = createOnReadyTask();
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
 
 let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
 let isLoadingPolicyData = true;
+let email = '';
 
 /**
  * Check that a few requests have completed so that the welcome action can proceed:
@@ -28,7 +31,7 @@ function checkOnReady() {
         return;
     }
 
-    readyTask.setIsReady();
+    resolveIsReadyPromise();
 }
 
 Onyx.connect({
@@ -83,6 +86,17 @@ Onyx.connect({
     },
 });
 
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val, key) => {
+        if (!val || !key) {
+            return;
+        }
+
+        email = val.email;
+    },
+});
+
 /**
  * Shows a welcome action on first login
  *
@@ -91,7 +105,7 @@ Onyx.connect({
  * @param {Function} params.showCreateMenu
  */
 function show({routes, showCreateMenu}) {
-    readyTask.isReady().then(() => {
+    isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
         }
@@ -100,7 +114,7 @@ function show({routes, showCreateMenu}) {
         NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
 
         // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
-        const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report));
+        const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email);
         if (workspaceChatReport) {
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
             return;
@@ -122,7 +136,9 @@ function show({routes, showCreateMenu}) {
 }
 
 function resetReadyCheck() {
-    readyTask.reset();
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 }
 
 export {
