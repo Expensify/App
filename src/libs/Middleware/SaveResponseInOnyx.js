@@ -11,17 +11,16 @@ function SaveResponseInOnyx(response, request) {
         .then((responseData) => {
             // We'll only save the onyxData, successData and failureData for the refactored commands
             if (_.has(responseData, 'onyxData')) {
-                let data;
+                const data = [];
                 if (responseData.jsonCode === 200) {
-                    data = [
-                        ...request.successData,
-                        ...responseData.onyxData,
-                    ];
-                } else {
-                    data = [
-                        ...request.failureData,
-                        ...responseData.onyxData,
-                    ];
+                    if (request.successData) {
+                        data.push(...request.successData);
+                    }
+                } else if (request.failureData) {
+                    data.push(...request.failureData);
+                }
+                if (responseData.onyxData) {
+                    data.push(...responseData.onyxData);
                 }
                 Onyx.update(data);
             }

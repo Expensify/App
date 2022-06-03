@@ -15,7 +15,6 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import NetworkConnection from '../NetworkConnection';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
@@ -28,6 +27,7 @@ import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import PusherUtils from '../PusherUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -705,6 +705,29 @@ function updateReportWithNewAction(
 }
 
 /**
+ * Toggles the pinned state of the report.
+ *
+ * @param {Object} report
+ */
+ function togglePinnedState(report) {
+    const pinnedValue = !report.isPinned;
+
+    // Optimistically pin/unpin the report before we send out the command
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: pinnedValue,
+        },
+    ];
+
+    API.write('TogglePinnedChat', {
+        reportID: report.reportID,
+        pinnedValue,
+    }, {optimisticData});
+}
+
+/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -712,46 +735,6 @@ function updateReportWithNewAction(
  */
 function getReportChannelName(reportID) {
     return `private-report-reportID-${reportID}${CONFIG.PUSHER.SUFFIX}`;
-}
-
-/**
- * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
- *
- * @param {String} eventName
- * @param {Function} onEvent
- * @param {Boolean} isChunked
- */
-function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
-    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-
-    /**
-     * @param {Object} pushJSON
-     */
-    function logPusherEvent(pushJSON) {
-        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, {reportID: pushJSON.reportID, reportActionID: pushJSON.reportActionID});
-    }
-
-    function onPusherResubscribeToPrivateUserChannel() {
-        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
-    }
-
-    /**
-     * @param {*} pushJSON
-     */
-    function onEventPush(pushJSON) {
-        logPusherEvent(pushJSON);
-        onEvent(pushJSON);
-    }
-
-    /**
-     * @param {*} error
-     */
-    function onSubscriptionFailed(error) {
-        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
-    }
-
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
-        .catch(onSubscriptionFailed);
 }
 
 /**
@@ -769,20 +752,39 @@ function subscribeToUserEvents() {
     }
 
     // Live-update a report's actions when a 'report comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT,
+        currentUserAccountID,
+        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
+    );
 
     // Live-update a report's actions when a 'chunked report comment' event is received.
-    subscribeToPrivateUserChannelEvent(
+    PusherUtils.subscribeToPrivateUserChannelEvent(
         Pusher.TYPE.REPORT_COMMENT_CHUNK,
+        currentUserAccountID,
         pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
         true,
     );
 
     // Live-update a report's actions when an 'edit comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
+        currentUserAccountID,
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's actions when an 'edit comment chunk' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true);
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
+        currentUserAccountID,
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
+        true,
+    );
+
+    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_TOGGLE_PINNED,
+        currentUserAccountID,
+        pushJSON => togglePinnedState(pushJSON.report),
+    );
 }
 
 /**
@@ -1275,29 +1277,6 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
         sequenceNumber: lastReadSequenceNumber,
         markAsUnread: manuallyMarked,
     });
-}
-
-/**
- * Toggles the pinned state of the report.
- *
- * @param {Object} report
- */
-function togglePinnedState(report) {
-    const pinnedValue = !report.isPinned;
-
-    // Optimistically pin/unpin the report before we send out the command
-    const optimisticData = [
-        {
-            onyxMethod: 'merge',
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: pinnedValue,
-        },
-    ];
-
-    API.write('TogglePinnedChat', {
-        reportID: report.reportID,
-        pinnedValue,
-    }, {optimisticData});
 }
 
 /**
