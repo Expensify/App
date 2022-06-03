@@ -106,7 +106,11 @@ const AddressSearch = (props) => {
         if (_.size(values) === 0) {
             return;
         }
-        props.onInputChange(values);
+        if (props.inputID) {
+            _.each(values, (value, key) => props.onInputChange(value, key));
+        } else {
+            props.onInputChange(values);
+        }
     };
 
     return (
@@ -161,7 +165,7 @@ const AddressSearch = (props) => {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
-                        hint: props.hint,
+                        hint: displayListViewBorder ? undefined : props.hint,
                         value: props.value,
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,

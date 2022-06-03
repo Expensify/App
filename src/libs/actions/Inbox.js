@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
@@ -18,7 +19,7 @@ function requestInboxCall({
     taskID, policyID, firstName, lastName, phoneNumber, phoneNumberExtension,
 }) {
     Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
-    API.Inbox_CallUser({
+    DeprecatedAPI.Inbox_CallUser({
         policyID,
         firstName,
         lastName,
@@ -46,14 +47,11 @@ function requestInboxCall({
         });
 }
 
-function getInboxCallWaitTime() {
-    API.Inbox_CallUser_WaitTime()
-        .then((data) => {
-            Onyx.set(ONYXKEYS.INBOX_CALL_USER_WAIT_TIME, data.waitTime);
-        });
+function openRequestCallPage() {
+    API.read('OpenRequestCallPage');
 }
 
 export {
     requestInboxCall,
-    getInboxCallWaitTime,
+    openRequestCallPage,
 };
