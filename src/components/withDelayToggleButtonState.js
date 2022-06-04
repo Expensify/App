@@ -4,10 +4,10 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const withDelayToggleButtonStatePropTypes = {
     /** A value whether the button state is complete */
-    isButtonStateComplete: PropTypes.bool.isRequired,
+    isDelayButtonStateComplete: PropTypes.bool.isRequired,
 
     /** A function to call to change the complete state */
-    toggleButtonStateComplete: PropTypes.func.isRequired,
+    toggleDelayButtonState: PropTypes.func.isRequired,
 };
 
 export default function (WrappedComponent) {
@@ -16,9 +16,9 @@ export default function (WrappedComponent) {
             super(props);
 
             this.state = {
-                isButtonStateComplete: false,
+                isDelayButtonStateComplete: false,
             };
-            this.toggleButtonStateComplete = this.toggleButtonStateComplete.bind(this);
+            this.toggleDelayButtonState = this.toggleDelayButtonState.bind(this);
         }
 
         componentWillUnmount() {
@@ -30,20 +30,22 @@ export default function (WrappedComponent) {
         }
 
         /**
-         * @param {Boolean} [resetAfterDelay=true] Impose delay before toggling state
+         * @param {Boolean} [resetAfterDelay] Impose delay before toggling state
          */
-        toggleButtonStateComplete(resetAfterDelay = true) {
+        toggleDelayButtonState(resetAfterDelay) {
             this.setState({
-                isButtonStateComplete: true,
+                isDelayButtonStateComplete: true,
             });
 
-            if (resetAfterDelay) {
-                this.resetButtonStateCompleteTimer = setTimeout(() => {
-                    this.setState({
-                        isButtonStateComplete: false,
-                    });
-                }, 1800);
+            if (!resetAfterDelay) {
+                return;
             }
+
+            this.resetButtonStateCompleteTimer = setTimeout(() => {
+                this.setState({
+                    isDelayButtonStateComplete: false,
+                });
+            }, 1800);
         }
 
         render() {
@@ -51,8 +53,8 @@ export default function (WrappedComponent) {
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
-                    isButtonStateComplete={this.state.isButtonStateComplete}
-                    toggleButtonStateComplete={this.toggleButtonStateComplete}
+                    isDelayButtonStateComplete={this.state.isDelayButtonStateComplete}
+                    toggleDelayButtonState={this.toggleDelayButtonState}
                 />
             );
         }
