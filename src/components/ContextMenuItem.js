@@ -52,11 +52,8 @@ class ContextMenuItem extends Component {
         this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
     }
 
-    /**
-     * Called on button press and mark the run
-     */
     triggerPressAndUpdateSuccess() {
-        if (this.props.isButtonStateComplete) {
+        if (this.props.isDelayButtonStateComplete) {
             return;
         }
         this.props.onPress();
@@ -64,13 +61,13 @@ class ContextMenuItem extends Component {
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (this.props.successIcon || this.props.successText) {
-            this.props.toggleButtonStateComplete(this.props.autoReset);
+            this.props.toggleDelayButtonState(this.props.autoReset);
         }
     }
 
     render() {
-        const icon = this.props.isButtonStateComplete ? this.props.successIcon || this.props.icon : this.props.icon;
-        const text = this.props.isButtonStateComplete ? this.props.successText || this.props.text : this.props.text;
+        const icon = this.props.isDelayButtonStateComplete ? this.props.successIcon || this.props.icon : this.props.icon;
+        const text = this.props.isDelayButtonStateComplete ? this.props.successText || this.props.text : this.props.text;
         return (
             this.props.isMini
                 ? (
@@ -82,14 +79,14 @@ class ContextMenuItem extends Component {
                             style={
                                 ({hovered, pressed}) => [
                                     styles.reportActionContextMenuMiniButton,
-                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.props.isButtonStateComplete)),
+                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete)),
                                 ]
                             }
                         >
                             {({hovered, pressed}) => (
                                 <Icon
                                     src={icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isButtonStateComplete))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
                                 />
                             )}
                         </Pressable>
@@ -100,7 +97,7 @@ class ContextMenuItem extends Component {
                         icon={icon}
                         onPress={this.triggerPressAndUpdateSuccess}
                         wrapperStyle={styles.pr9}
-                        success={this.props.isButtonStateComplete}
+                        success={this.props.isDelayButtonStateComplete}
                         description={this.props.description}
                     />
                 )
