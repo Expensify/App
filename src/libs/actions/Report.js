@@ -581,16 +581,78 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
 }
 
 /**
- * Updates a report in the store with a new report action
+ * Attempt to notify the user when the report data changes
  *
  * @param {Number} reportID
  * @param {Object} reportAction
  * @param {String} [notificationPreference] On what cadence the user would like to be notified
  */
+function sendLocalNotification(reportID, reportAction, notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
+    if (reportAction.hasAttemptedToNotify) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportID}`, {hasAttemptedToNotify: true});
+
+    if (!ActiveClientManager.isClientTheLeader()) {
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
+    // We don't want to send a local notification if the user preference is daily or mute
+    if (notificationPreference === 'mute' || notificationPreference === 'daily') {
+        // eslint-disable-next-line max-len
+        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
+        return;
+    }
+
+    // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
+    const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+
+    if (isFromCurrentUser) {
+        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
+        return;
+    }
+
+    // If we are currently viewing this report do not show a notification.
+    if (reportID === lastViewedReportID && Visibility.isVisible()) {
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        return;
+    }
+
+    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
+    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
+        return;
+    }
+
+    // TODO: check how if we can use reportAction instead of updatedReportObject here or get the report related to the reportAction
+    // // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the
+    // // marker above the incoming message.
+    // if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
+    //     && updatedReportObject.unreadActionCount > 0) {
+    //     const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
+    //     setNewMarkerPosition(reportID, oldestUnreadSeq);
+    // }
+
+    Log.info('[LOCAL_NOTIFICATION] Creating notification');
+    LocalNotification.showCommentNotification({
+        reportAction,
+        onClick: () => {
+            // Navigate to this report onClick
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        },
+    });
+}
+
+/**
+ * Updates a report in the store with a new report action
+ *
+ * @param {Number} reportID
+ * @param {Object} reportAction
+ */
 function updateReportWithNewAction(
     reportID,
     reportAction,
-    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
@@ -658,50 +720,7 @@ function updateReportWithNewAction(
         }
     }
 
-    if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
-        return;
-    }
-
-    // We don't want to send a local notification if the user preference is daily or mute
-    if (notificationPreference === 'mute' || notificationPreference === 'daily') {
-        // eslint-disable-next-line max-len
-        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
-        return;
-    }
-
-    // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (isFromCurrentUser) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
-        return;
-    }
-
-    // If we are currently viewing this report do not show a notification.
-    if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
-        return;
-    }
-
-    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
-        return;
-    }
-
-    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the
-    // marker above the incoming message.
-    if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
-        && updatedReportObject.unreadActionCount > 0) {
-        const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
-        setNewMarkerPosition(reportID, oldestUnreadSeq);
-    }
-    Log.info('[LOCAL_NOTIFICATION] Creating notification');
-    LocalNotification.showCommentNotification({
-        reportAction,
-        onClick: () => {
-            // Navigate to this report onClick
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        },
-    });
+    sendLocalNotification(reportID, reportAction);
 }
 
 /**
@@ -1606,6 +1625,27 @@ function renameReport(reportID, reportName) {
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (reportAction) => {
+        // // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
+        // if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
+        //     const iouReportID = reportAction.originalMessage.IOUReportID;
+
+        //     // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chatReport
+        //     // as this would overwrite any existing IOUs. For all other cases we must update the chatReport with the iouReportID as
+        //     // if we don't, new IOUs would not be displayed and paid IOUs would still show as unpaid.
+        //     if (reportAction.originalMessage.IOUDetails === undefined) {
+        //         fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
+        //     }
+        // }
+        console.log('reportAction:', reportAction);
+
+        // TODO: get reportID from the reportAction
+        // sendLocalNotification(reportID, reportAction);
+    },
+});
 
 export {
     fetchAllReports,
