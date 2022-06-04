@@ -114,12 +114,12 @@ class HeaderWithCloseButton extends Component {
     }
 
     triggerButtonCompleteAndDownload() {
-        if (this.props.isButtonStateComplete) {
+        if (this.props.isDelayButtonStateComplete) {
             return;
         }
 
         this.props.onDownloadButtonPress();
-        this.props.toggleButtonStateComplete();
+        this.props.toggleDelayButtonState();
     }
 
     render() {
@@ -164,7 +164,7 @@ class HeaderWithCloseButton extends Component {
                                 >
                                     <Icon
                                         src={Expensicons.Download}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isButtonStateComplete))}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
                                     />
                                 </Pressable>
                             </Tooltip>
