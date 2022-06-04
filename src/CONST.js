@@ -377,7 +377,7 @@ const CONST = {
     PASSWORD_PAGE: {
         ERROR: {
             ALREADY_VALIDATED: 'Account already validated',
-            VALIDATE_CODE_FAILED: '',
+            VALIDATE_CODE_FAILED: 'Validate code failed',
         },
         ERROR_TYPE: {
             CURRENT: 'current',
