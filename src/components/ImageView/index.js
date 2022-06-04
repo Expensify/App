@@ -211,7 +211,7 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                         ]} // Hide image until zoomScale calculated
-                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'} // For big dimension images 'contain' works much effective
+                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'} // For big dimension images 'center' makes resizing the view. There is no sizing with 'contain'.
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
