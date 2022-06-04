@@ -16,7 +16,7 @@ const propTypes = {
     /** The ref to the modal container */
     forwardedRef: PropTypes.func,
 
-    /** Whether we should make status bar transclucent */
+    /** Whether the modal should go under the system statusbar */
     statusBarTranslucent: PropTypes.bool,
 };
 
@@ -81,7 +81,6 @@ class BaseModal extends PureComponent {
         );
         return (
             <ReactNativeModal
-                statusBarTranslucent={this.props.statusBarTranslucent}
                 onBackdropPress={(e) => {
                     if (e && e.type === 'keydown' && e.key === 'Enter') {
                         return;
@@ -117,6 +116,7 @@ class BaseModal extends PureComponent {
                 hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
+                statusBarTranslucent={this.props.statusBarTranslucent}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
