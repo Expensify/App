@@ -4,6 +4,7 @@ import {
     View, Pressable, Dimensions, Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
+<<<<<<< HEAD:src/components/VideoChatButtonAndMenu.js
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Popover from './Popover';
@@ -19,6 +20,33 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
+=======
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import Popover from '../Popover';
+import MenuItem from '../MenuItem';
+import ZoomIcon from '../../../assets/images/zoom-icon.svg';
+import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
+import CONST from '../../CONST';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import Tooltip from '../Tooltip';
+import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+
+const propTypes = {
+    /** Link to open when user wants to create a new google meet meeting */
+    googleMeetURL: PropTypes.string.isRequired,
+
+    ...videoChatButtonAndMenuPropTypes,
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+};
+>>>>>>> 99b2b8590 (Merge pull request #9315 from rushatgabhane/fix-console-error):src/components/VideoChatButtonAndMenu/BaseVideoChatButtonAndMenu.js
 
 const propTypes = {
     ...withLocalizePropTypes,
