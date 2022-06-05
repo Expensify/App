@@ -1,12 +1,12 @@
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'lodash';
 import styles from '../styles/styles';
 import * as Expensicons from './Icon/Expensicons';
-import variables from '../styles/variables';
-import Icon from './Icon';
+import themeColors from '../styles/themes/default';
+import Button from './Button';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
@@ -57,6 +57,8 @@ class AttachmentCarousel extends React.Component {
         this.state = {
             page,
             attachments,
+            isBackDisabled: page === 0,
+            isForwardDisabled: page === attachments.length - 1,
         };
 
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
@@ -67,37 +69,35 @@ class AttachmentCarousel extends React.Component {
      * @param {Boolean} shouldDecrement
     */
     cycleThroughAttachments(shouldDecrement) {
-        const attachments = this.state.attachments;
-        const page = this.state.page;
-        if (shouldDecrement ? page - 1 < 0 : page + 1 === attachments.length) {
-            return;
-        }
+        this.setState((prevState) => {
+            const attachments = prevState.attachments;
+            const page = prevState.page;
+            const nextIndex = shouldDecrement ? page - 1 : page + 1;
+            this.props.onArrowPress(attachments[nextIndex]);
 
-        const nextIndex = shouldDecrement ? page - 1 : page + 1;
-        this.props.onArrowPress(attachments[nextIndex]);
-        this.setState({page: nextIndex});
-    }
-
-    renderPressableView(isBackArrow) {
-        return (
-            <View style={[styles.cursorPointer, styles.attachmentModalArrowsIcon]}>
-                <Pressable onPress={() => this.cycleThroughAttachments(isBackArrow)}>
-                    <Icon
-                        height={variables.iconSizeNormal}
-                        width={variables.iconSizeNormal}
-                        fill="black"
-                        src={isBackArrow ? Expensicons.BackArrow : Expensicons.ArrowRight}
-                    />
-                </Pressable>
-            </View>
-        );
+            return {
+                page: nextIndex,
+                isBackDisabled: nextIndex === 0,
+                isForwardDisabled: nextIndex === attachments.length - 1,
+            };
+        });
     }
 
     render() {
         return (
             <View style={[styles.attachmentModalArrowsContainer]}>
-                {this.renderPressableView(true)}
-                {this.renderPressableView(false)}
+                <Button
+                    icon={Expensicons.BackArrow}
+                    iconFill={themeColors.text}
+                    onPress={() => this.cycleThroughAttachments(true)}
+                    isDisabled={this.state.isBackDisabled}
+                />
+                <Button
+                    icon={Expensicons.ArrowRight}
+                    iconFill={themeColors.text}
+                    onPress={() => this.cycleThroughAttachments(false)}
+                    isDisabled={this.state.isForwardDisabled}
+                />
             </View>
         );
     }
