@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {
     View, Pressable, Dimensions, Linking,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Popover from '../Popover';
@@ -12,13 +13,22 @@ import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import withWindowDimensions from '../withWindowDimensions';
-import withLocalize from '../withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import Tooltip from '../Tooltip';
-import {propTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+
+const propTypes = {
+    /** Link to open when user wants to create a new google meet meeting */
+    googleMeetURL: PropTypes.string.isRequired,
+
+    ...videoChatButtonAndMenuPropTypes,
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 class BaseVideoChatButtonAndMenu extends Component {
     constructor(props) {
