@@ -90,7 +90,7 @@ class AttachmentModal extends PureComponent {
 
     // this prevents a bug in iOS that would show the last image before closing then opening on a new image
     static getDerivedStateFromProps(props, state) {
-        if (state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
+        if (state.isModalOpen && props.sourceURL && state.isModalOpen !== state.prevIsModalOpen) {
             return {
                 prevIsModalOpen: true,
                 file: {name: lodashGet(props, 'originalFileName', '')},

@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'lodash';
-import styles from '../styles/styles';
-import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
 import Button from './Button';
+import * as Expensicons from './Icon/Expensicons';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
@@ -87,14 +87,18 @@ class AttachmentCarousel extends React.Component {
         return (
             <View style={[styles.attachmentModalArrowsContainer]}>
                 <Button
+                    medium
                     icon={Expensicons.BackArrow}
                     iconFill={themeColors.text}
+                    iconStyles={[styles.mr0]}
                     onPress={() => this.cycleThroughAttachments(true)}
                     isDisabled={this.state.isBackDisabled}
                 />
                 <Button
+                    medium
                     icon={Expensicons.ArrowRight}
                     iconFill={themeColors.text}
+                    iconStyles={[styles.mr0]}
                     onPress={() => this.cycleThroughAttachments(false)}
                     isDisabled={this.state.isForwardDisabled}
                 />
