@@ -47,7 +47,7 @@ class ImageView extends PureComponent {
     }
 
     componentDidUpdate() {
-        this.updateImageSize(true);
+        this.updateImageSize(false);
     }
 
     componentWillUnmount() {
