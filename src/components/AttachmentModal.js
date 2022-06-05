@@ -72,8 +72,6 @@ class AttachmentModal extends PureComponent {
         super(props);
 
         this.state = {
-            page: -1,
-            attachments: [],
             isModalOpen: false,
             isConfirmModalOpen: false,
             reportId: null,
