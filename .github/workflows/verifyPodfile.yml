@@ -38,7 +38,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd ios && pod install
+          command: cd ios && pod install && pod env
 
 
       - run: ./.github/scripts/verifyPodfile.sh
