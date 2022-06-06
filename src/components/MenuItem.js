@@ -48,6 +48,9 @@ const MenuItem = props => (
             if (props.disabled) {
                 return;
             }
+            if (e.type === 'click') {
+                e.currentTarget.blur();
+            }
 
             props.onPress(e);
         }}
