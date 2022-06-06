@@ -5,11 +5,27 @@ import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
+import RequestThrottle from '../RequestThrottle';
+import CONST from '../../CONST';
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
+
+const requestThrottle = new RequestThrottle();
+const errorsToRetry = [
+    CONST.ERROR.FAILED_TO_FETCH,
+    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
+    CONST.ERROR.NETWORK_REQUEST_FAILED,
+    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
+    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
+    CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED,
+    CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED,
+    CONST.ERROR.IOS_LOAD_FAILED,
+    CONST.ERROR.GATEWAY_TIMEOUT,
+    CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+];
 
 // Resolve the isReadyPromise immediately so that the queue starts working as soon as the page loads
 resolveIsReadyPromise();
@@ -24,50 +40,39 @@ let isSequentialQueueRunning = false;
 function process() {
     const persistedRequests = PersistedRequests.getAll();
 
-    if (_.isEmpty(persistedRequests)) {
+    // If we have no persisted requests or we are offline we don't want to make any requests so we return early
+    if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
+        requestThrottle.clear();
         return Promise.resolve();
     }
 
-    isSequentialQueueRunning = true;
-    while (!_.isEmpty(persistedRequests)) {
-        // If we're not online, stop processing
-        if (NetworkStore.isOffline()) {
-            isSequentialQueueRunning = false;
+    // Get the first request in the queue and process it
+    const request = persistedRequests.shift();
+    return Request.processWithMiddleware(request, true).then(() => {
+        // If the request is successful we want to:
+        // - Remove it from the queue
+        // - Clear any wait time we may have added if it failed before
+        // - Call process again to process the other requests in the queue
+        PersistedRequests.remove(request);
+        requestThrottle.clear();
+        return process();
+    }).catch((error) => {
+        // If a request fails with a non-retryable error we just remove it from the queue and return
+        if (!_.contains(errorsToRetry, error.message)) {
+            PersistedRequests.remove(request);
             return Promise.resolve();
         }
 
-        const currentRequest = persistedRequests.shift();
-
-        try {
-            return Request.processWithMiddleware(currentRequest, true);
-        } catch(error) {
-            // If we get an error here it means the retry middleware threw and error and we want to retry the request
-            currentWaitTime = getRequestWaitTime(currentWaitTime);
-            sleep()
-
+        // If the request failed and we want to retry it:
+        // - Check that we are not offline
+        // - Sleep for a period of time
+        // - Call process again. This will retry the same request since we have not removed it from the queue
+        if (NetworkStore.isOffline()) {
+            return Promise.resolve();
         }
-    }
-
-
-
-
-    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => Request.processWithMiddleware(request, true)), Promise.resolve());
-
-    // Do a recursive call in case the queue is not empty after processing the current batch
-    return task.then(process);
+        return requestThrottle.sleep(requestThrottle.getRequestWaitTime()).then(() => process());
+    });
 }
-
-function getRequestWaitTime(currentWaitTime) {
-    if (currentWaitTime) {
-        return Math.max(currentWaitTime * 2, 10000);
-    }
-
-    return 10 + _.random(90);
-}
-
-function sleep (time) {
-    return new Promise((resolve) => setTimeout(resolve, time));
-  }
 
 function flush() {
     if (isSequentialQueueRunning) {

@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Log from '../Log';
 import CONST from '../../CONST';
-import * as PersistedRequests from '../actions/PersistedRequests';
 
 /**
  * @param {String} message
@@ -53,15 +52,10 @@ function Logging(response, request) {
             return data;
         })
         .catch((error) => {
-            const persisted = lodashGet(request, 'data.persist');
-
             // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here besides
             // remove the request from the PersistedRequests if the request exists.
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 Log.info('[Network] Error: Request canceled', false, request);
-                if (persisted) {
-                    PersistedRequests.remove(request);
-                }
 
                 // Re-throw this error so the next handler can manage it
                 throw error;
