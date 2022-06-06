@@ -12,6 +12,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+
+      - name: Install bundler
+        run: |
+          bundle config path vendor/bundle
+          gem install bundler
+
+      - name: Install gems
+        run: bundle install
+
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
