@@ -97,7 +97,6 @@ class Composer extends React.Component {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
-                onChange={() => ComposerUtils.updateNumberOfLines(this.props, null)}
                 onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
