@@ -7,6 +7,7 @@ import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
+import updateIsFullComposerAvailable from '../../libs/ComposerUtils';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -117,21 +118,7 @@ class Composer extends React.Component {
             return;
         }
         const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
-        this.updateIsFullComposerAvailable(numberOfLines);
-    }
-
-    /**
-     * Update isFullComposerAvailable if needed
-     * @param {Number} numberOfLines The number of lines in the text input
-     */
-    updateIsFullComposerAvailable(numberOfLines) {
-        let isFullComposerAvailable = false;
-        if (numberOfLines >= CONST.REPORT.FULL_COMPOSER_MIN_LINES) {
-            isFullComposerAvailable = true;
-        }
-        if (isFullComposerAvailable !== this.props.isFullComposerAvailable) {
-            this.props.setIsFullComposerAvailable(isFullComposerAvailable);
-        }
+        updateIsFullComposerAvailable(this.props, numberOfLines);
     }
 
     render() {
