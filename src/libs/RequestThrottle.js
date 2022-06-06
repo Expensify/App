@@ -14,9 +14,11 @@ export default class RequestThrottle {
      */
     getRequestWaitTime() {
         if (this.waitTime) {
-            return Math.min(this.waitTime * 2, 10000);
+            this.waitTime = Math.min(this.waitTime * 2, 10000);
+        } else {
+            this.waitTime = 10 + _.random(90);
         }
-        return 10 + _.random(90);
+        return this.waitTime;
     }
 
     /**
