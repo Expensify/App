@@ -17,6 +17,9 @@ else
     exit 1
 fi
 
+declare LIB_PATH
+LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)/node_modules/diff-so-fancy"
+
 DIFF_OUTPUT=$(git diff --exit-code ios/Podfile.lock)
 EXIT_CODE=$?
 
@@ -25,5 +28,6 @@ if [[ EXIT_CODE -eq 0 ]]; then
     exit 0
 else
     echo -e "${RED}Error: Diff found on Podfile.lock. Did you forget to run \`cd ios && pod install\`? If your Cocoapods version differs, run \`bundle install\`.${NC}"
+    echo "$DIFF_OUTPUT" | $LIB_PATH/diff-so-fancy | less --tabs=4 -RFX
     exit 1
 fi
