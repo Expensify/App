@@ -3,7 +3,6 @@ import CONST from '../../CONST';
 import * as NetworkStore from '../Network/NetworkStore';
 import * as MainQueue from '../Network/MainQueue';
 import * as Authentication from '../Authentication';
-import * as PersistedRequests from '../actions/PersistedRequests';
 import * as Request from '../Request';
 import Log from '../Log';
 
@@ -79,7 +78,6 @@ function Reauthentication(response, request, isFromSequentialQueue) {
             }
 
             if (isFromSequentialQueue) {
-                PersistedRequests.remove(request);
                 return data;
             }
 
