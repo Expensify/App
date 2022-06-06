@@ -43,11 +43,13 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        this.updateImageSize(true);
-    }
-
-    componentDidUpdate() {
-        this.updateImageSize(false);
+        if (this.canUseTouchScreen) {
+            return;
+        }
+        Image.getSize(this.props.url, (width, height) => {
+            this.setImageRegion(width, height);
+        });
+        document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
 
     componentWillUnmount() {
@@ -169,22 +171,6 @@ class ImageView extends PureComponent {
             offsetY = y - (this.state.containerHeight / 2);
         }
         return {offsetX, offsetY};
-    }
-
-    /**
-     * ideally this is called everytime the prop url changes to update any differences in size
-     * @param {Boolean} isMounting
-     */
-    updateImageSize(isMounting) {
-        if (this.canUseTouchScreen) {
-            return;
-        }
-        Image.getSize(this.props.url, (width, height) => {
-            this.setImageRegion(width, height);
-        });
-        if (isMounting) {
-            document.addEventListener('mousemove', this.trackMovement.bind(this));
-        }
     }
 
     trackMovement(e) {
