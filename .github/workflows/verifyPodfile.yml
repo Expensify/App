@@ -34,11 +34,6 @@ jobs:
           command: npm ci
 
       - name: Install pods
-        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: cd ios && pod install && pod env
-
+        run: cd ios && pod install && pod env
 
       - run: ./.github/scripts/verifyPodfile.sh
