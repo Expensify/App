@@ -82,6 +82,10 @@ jobs:
       - name: Run Fastlane beta
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android beta
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+
 
       - name: Run Fastlane production
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
