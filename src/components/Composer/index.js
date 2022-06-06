@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
+import updateIsFullComposerAvailable from '../../libs/ComposerUtils';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -349,22 +350,11 @@ class Composer extends React.Component {
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
             const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
-            this.updateIsFullComposerAvailable(numberOfLines);
+            updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
             });
         });
-    }
-
-    /**
-     * Update isFullComposerAvailable if needed
-     * @param {Number} numberOfLines The number of lines in the text input
-     */
-    updateIsFullComposerAvailable(numberOfLines) {
-        const isFullComposerAvailable = numberOfLines > CONST.REPORT.FULL_COMPOSER_MIN_LINES;
-        if (isFullComposerAvailable !== this.props.isFullComposerAvailable) {
-            this.props.setIsFullComposerAvailable(isFullComposerAvailable);
-        }
     }
 
     render() {
