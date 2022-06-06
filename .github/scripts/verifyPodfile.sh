@@ -24,6 +24,6 @@ if [[ EXIT_CODE -eq 0 ]]; then
     echo -e "${GREEN}Podfile.lock is up to date!${NC}"
     exit 0
 else
-    echo -e "${RED}Error: Diff found on Podfile.lock. Did you forget to run \`cd ios && pod install\`?${NC}"
+    echo -e "${RED}Error: Diff found on Podfile.lock. Did you forget to run \`cd ios && pod install\`? If your Cocoapods version differs, run \`bundle install\`.${NC}"
     exit 1
 fi
