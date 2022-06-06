@@ -20,7 +20,7 @@ fi
 DIFF_OUTPUT=$(git diff --exit-code ios/Podfile.lock)
 EXIT_CODE=$?
 
-if [[ DIFF_OUTPUT -eq 0 ]]; then
+if [[ EXIT_CODE -eq 0 ]]; then
     echo -e "${GREEN}Podfile.lock is up to date!${NC}"
     exit 0
 else
