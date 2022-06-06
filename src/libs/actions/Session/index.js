@@ -40,6 +40,7 @@ function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
     Onyx.merge(ONYXKEYS.SESSION, {
         shouldShowComposeInput: true,
+        error: null,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
     });
 }
@@ -270,28 +271,24 @@ function signIn(password, twoFactorAuthCode) {
 /**
  * Uses a short lived authToken to continue a user's session from OldDot
  *
- * @param {String} accountID
  * @param {String} email
  * @param {String} shortLivedToken
  * @param {String} exitTo
  */
-function signInWithShortLivedToken(accountID, email, shortLivedToken) {
+function signInWithShortLivedToken(email, shortLivedToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    createTemporaryLogin(shortLivedToken, email).then((response) => {
-        Onyx.merge(ONYXKEYS.SESSION, {
-            accountID,
-            email,
-        });
-        if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
+    createTemporaryLogin(shortLivedToken, email)
+        .then((response) => {
+            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
 
-        User.getUserDetails();
-        Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-    });
+            User.getUserDetails();
+            Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
+        }).finally(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        });
 }
 
 /**
