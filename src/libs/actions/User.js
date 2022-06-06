@@ -49,32 +49,32 @@ Onyx.connect({
  * @param {String} password
  */
 function changePassword(oldPassword, password) {
-    const optimisticData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.ACCOUNT,
-            value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
-        },
-    ];
-    const successData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.ACCOUNT,
-            value: {loading: false},
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.ACCOUNT,
-            value: {loading: false},
-        },
-    ];
-
     API.write('ChangePassword', {
         oldPassword,
         password,
-    }, {optimisticData, successData, failureData});
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+    });
 }
 
 /**
