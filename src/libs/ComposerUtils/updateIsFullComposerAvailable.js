@@ -1,4 +1,4 @@
-import CONST from '../CONST';
+import CONST from '../../CONST';
 
 /**
  * Update isFullComposerAvailable if needed

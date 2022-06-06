@@ -1,13 +1,11 @@
 import React from 'react';
-import {Platform, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import updateIsFullComposerAvailable from '../../libs/ComposerUtils';
+import * as ComposerUtils from '../../libs/ComposerUtils';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -92,49 +90,20 @@ class Composer extends React.Component {
         this.props.onClear();
     }
 
-    /**
-     * Calculates the max number of lines the text input can have
-     *
-     * @param {Number} lineHeight
-     * @param {Number} paddingTopAndBottom
-     * @param {Number} scrollHeight
-     *
-     * @returns {Number}
-     */
-    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
-        return Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
-    }
-
-    /**
-     * Check the current scrollHeight of the textarea (minus any padding) and
-     * divide by line height to get the total number of rows for the textarea.
-     * @param {Event} e
-     */
-    updateNumberOfLines(e) {
-        const lineHeight = this.state.propStyles.lineHeight;
-        const paddingTopAndBottom = styles.textInputComposeSpacing.paddingVertical * 2;
-        const inputHeight = lodashGet(e, 'nativeEvent.contentSize.height', null);
-        if (!inputHeight) {
-            return;
-        }
-        const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
-        updateIsFullComposerAvailable(this.props, numberOfLines);
-    }
-
     render() {
         // On native layers we like to have the Text Input not focused so the
         // user can read new chats without the keyboard in the way of the view.
         // On Android, the selection prop is required on the TextInput but this prop has issues on IOS
         // https://github.com/facebook/react-native/issues/29063
-        const propsToPass = Platform.OS === 'ios' ? _.omit(this.props, 'selection') : this.props;
+        const propsToPass = _.omit(this.props, 'selection');
         return (
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
-                onChange={() => this.updateNumberOfLines()}
-                onContentSizeChange={e => this.updateNumberOfLines(e)}
+                onChange={() => ComposerUtils.updateNumberOfLines(this.props, null)}
+                onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
                 style={this.state.propStyles}

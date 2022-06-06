@@ -8,7 +8,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
-import updateIsFullComposerAvailable from '../../libs/ComposerUtils';
+import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
+import getNumberOfLines from '../../libs/ComposerUtils/index';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -189,22 +190,6 @@ class Composer extends React.Component {
     }
 
     /**
-     * Calculates the max number of lines the text input can have
-     *
-     * @param {Number} lineHeight
-     * @param {Number} paddingTopAndBottom
-     * @param {Number} scrollHeight
-     *
-     * @returns {Number}
-     */
-    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
-        const maxLines = this.props.maxLines;
-        let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
-        newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
-        return newNumberOfLines;
-    }
-
-    /**
      * Handles all types of drag-N-drop events on the composer
      *
      * @param {Object} e native Event
@@ -349,7 +334,7 @@ class Composer extends React.Component {
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
-            const numberOfLines = this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
