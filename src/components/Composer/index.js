@@ -361,10 +361,7 @@ class Composer extends React.Component {
      * @param {Number} numberOfLines The number of lines in the text input
      */
     updateIsFullComposerAvailable(numberOfLines) {
-        let isFullComposerAvailable = false;
-        if (numberOfLines >= CONST.REPORT.FULL_COMPOSER_MIN_LINES) {
-            isFullComposerAvailable = true;
-        }
+        const isFullComposerAvailable = numberOfLines > CONST.REPORT.FULL_COMPOSER_MIN_LINES;
         if (isFullComposerAvailable !== this.props.isFullComposerAvailable) {
             this.props.setIsFullComposerAvailable(isFullComposerAvailable);
         }
