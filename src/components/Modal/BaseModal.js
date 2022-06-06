@@ -15,15 +15,11 @@ const propTypes = {
 
     /** The ref to the modal container */
     forwardedRef: PropTypes.func,
-
-    /** Whether the modal should go under the system statusbar */
-    statusBarTranslucent: PropTypes.bool,
 };
 
 const defaultProps = {
     ...modalDefaultProps,
     forwardedRef: () => {},
-    statusBarTranslucent: true,
 };
 
 class BaseModal extends PureComponent {
