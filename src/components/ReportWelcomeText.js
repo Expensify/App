@@ -96,7 +96,7 @@ const ReportWelcomeText = (props) => {
                         {roomWelcomeMessage.phrase1}
                     </Text>
                     <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
-                        {props.report.reportName}
+                        {ReportUtils.getReportName(props.report, props.personalDetails, props.policies)}
                     </Text>
                     <Text>
                         {roomWelcomeMessage.phrase2}

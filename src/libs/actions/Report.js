@@ -138,46 +138,6 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
 }
 
 /**
- * Returns the title for a default room, a policy room or generates one based on the participants
- *
- * @param {Object} fullReport
- * @param {String} chatType
- * @param {String} oldPolicyName
- * @return {String}
- */
-function getChatReportName(fullReport, chatType, oldPolicyName) {
-    const isArchivedRoom = ReportUtils.isArchivedRoom({
-        chatType,
-        stateNum: fullReport.state,
-        statusNum: fullReport.status,
-    });
-
-    if (ReportUtils.isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${isArchivedRoom ? ` (${Localize.translateLocal('common.deleted')})` : ''}`;
-    }
-
-    // For a basic policy room, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
-        return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
-    }
-
-    if (ReportUtils.isPolicyExpenseChat({chatType})) {
-        const name = (isArchivedRoom && fullReport.isOwnPolicyExpenseChat)
-            ? oldPolicyName
-            : LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(fullReport, ['reportName'], ''));
-        return `${name}${isArchivedRoom ? ` (${Localize.translateLocal('common.archived')})` : ''}`;
-    }
-
-    const {sharedReportList} = fullReport;
-    return _.chain(sharedReportList)
-        .map(participant => participant.email)
-        .filter(participant => participant !== currentUserEmail)
-        .map(participant => PersonalDetails.getDisplayName(participant))
-        .value()
-        .join(', ');
-}
-
-/**
  * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited
  *
@@ -208,9 +168,6 @@ function getSimplifiedReportObject(report) {
     // Used for archived rooms, will store the policy name that the room used to belong to.
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
-    const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report, chatType, oldPolicyName)
-        : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
@@ -221,7 +178,7 @@ function getSimplifiedReportObject(report) {
 
     return {
         reportID: report.reportID,
-        reportName,
+        reportName: report.reportName,
         chatType,
         ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
