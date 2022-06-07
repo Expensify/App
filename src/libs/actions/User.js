@@ -52,7 +52,7 @@ function changePasswordAndNavigate(oldPassword, password) {
     return API.ChangePassword({oldPassword, password})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
+                const error = lodashGet(response, 'message', Localize.translateLocal('passwordPage.unableToChangePassword'));
                 const errorCode = lodashGet(response, 'jsonCode', 0);
                 if (errorCode === 401) {
                     Onyx.merge(ONYXKEYS.ACCOUNT, {error, errorType: CONST.PASSWORD_PAGE.ERROR_TYPE.CURRENT});

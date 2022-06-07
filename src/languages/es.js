@@ -334,6 +334,7 @@ export default {
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
+        unableToChangePassword: 'No se pudo cambiar la contraseña. Por favor inténtalo de nuevo.',
         errors: {
             currentPassword: 'Contraseña actual es requerido',
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
