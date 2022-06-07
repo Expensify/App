@@ -44,9 +44,6 @@ const ImageRenderer = (props) => {
         Config.EXPENSIFY.URL_API_ROOT,
     );
 
-    const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
-    const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
-
     return (
         <AttachmentModal
             allowDownload
@@ -63,8 +60,6 @@ const ImageRenderer = (props) => {
                         previewSourceURL={previewSource}
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
-                        imageWidth={imageWidth}
-                        imageHeight={imageHeight}
                     />
                 </PressableWithoutFocus>
             )}
