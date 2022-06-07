@@ -74,6 +74,8 @@ class AvatarWithImagePicker extends React.Component {
         this.animation = new SpinningIndicatorAnimation();
         this.setUploadLimitModalVisibility = this.setUploadLimitModalVisibility.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
+        this.updateAvatarImage = this.updateAvatarImage.bind(this);
+        this.openAvatarCropModal = this.openAvatarCropModal.bind(this);
         this.state = {
             isMenuVisible: false,
             isMaxUploadSizeModalOpen: false,
@@ -151,7 +153,7 @@ class AvatarWithImagePicker extends React.Component {
                 text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
-                        onPicked: avatar => this.openAvatarCropModal(avatar),
+                        onPicked: this.openAvatarCropModal,
                     });
                 },
             },
@@ -257,7 +259,7 @@ class AvatarWithImagePicker extends React.Component {
                 <AvatarCropModal
                     onClose={() => this.setState({isAvatarCropModalOpen: false})}
                     isVisible={this.state.isAvatarCropModalOpen}
-                    onSave={image => this.updateAvatarImage(image)}
+                    onSave={this.updateAvatarImage}
                     imageUri={lodashGet(this.state.image, 'uri')}
                 />
             </View>
