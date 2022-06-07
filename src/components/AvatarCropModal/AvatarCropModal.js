@@ -256,14 +256,7 @@ const AvatarCropModal = (props) => {
     }, [props.imageUri, imageContainerSize]);
 
     return (
-        <Modal
-            onClose={props.onClose}
-            isVisible={props.isVisible}
-            type={props.isSmallScreenWidth
-                ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-                : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            containerStyle={props.isSmallScreenWidth && styles.imageCropModal}
-        >
+        <Modal onClose={props.onClose} isVisible={props.isVisible} type={CONST.MODAL.MODAL_TYPE.CENTERED}>
             <SafeAreaView style={[styles.flex1, styles.pb5]}>
                 <HeaderWithCloseButton
                     title={props.translate('avatarCropModal.title')}
