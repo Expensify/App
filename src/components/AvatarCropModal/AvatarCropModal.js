@@ -39,6 +39,9 @@ const propTypes = {
     /** Callback to be called when user saves the image */
     onSave: PropTypes.func,
 
+    /** Modal visibility */
+    isVisible: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -256,7 +259,6 @@ const AvatarCropModal = (props) => {
         <Modal
             onClose={props.onClose}
             isVisible={props.isVisible}
-            shouldSetModalVisibility={props.shouldSetModalVisibility}
             type={props.isSmallScreenWidth
                 ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
                 : CONST.MODAL.MODAL_TYPE.CONFIRM}
