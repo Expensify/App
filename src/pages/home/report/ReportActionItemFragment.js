@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, ImageBackground, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
@@ -72,18 +72,28 @@ const ReportActionItemFragment = (props) => {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
                 return (
-                    Str.isImage(props.attachmentInfo.name)
-                        ? (
-                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}"/></comment>`} />
-                        ) : (
-                            <View style={[styles.chatItemAttachmentPlaceholder]}>
+                    <View style={[styles.chatItemAttachmentPlaceholder]}>
+                        {Str.isImage(props.attachmentInfo.name)
+                            ? (
+                                <ImageBackground
+                                    source={{uri: props.attachmentInfo.source}}
+                                    resizeMode="cover"
+                                    imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
+                                    style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                                >
+                                    <ActivityIndicator
+                                        size="large"
+                                        color={themeColors.uploadPreviewActivityIndicator}
+                                    />
+                                </ImageBackground>
+                            ) : (
                                 <ActivityIndicator
                                     size="large"
                                     color={themeColors.textSupporting}
                                     style={[styles.flex1]}
                                 />
-                            </View>
-                        )
+                            )}
+                    </View>
                 );
             }
 
