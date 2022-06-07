@@ -8,11 +8,6 @@ import * as Request from '../Request';
 import RequestThrottle from '../RequestThrottle';
 import CONST from '../../CONST';
 
-let resolveIsReadyPromise;
-let isReadyPromise = new Promise((resolve) => {
-    resolveIsReadyPromise = resolve;
-});
-
 const requestThrottle = new RequestThrottle();
 const errorsToRetry = [
     CONST.ERROR.FAILED_TO_FETCH,
@@ -27,11 +22,7 @@ const errorsToRetry = [
     CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
 ];
 
-// Resolve the isReadyPromise immediately so that the queue starts working as soon as the page loads
-resolveIsReadyPromise();
-
 let isSequentialQueueRunning = false;
-
 let currentRequest = null;
 
 /**
@@ -44,35 +35,34 @@ function process() {
 
     // If we have no persisted requests or we are offline we don't want to make any requests so we return early
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
+        isSequentialQueueRunning = false;
         requestThrottle.clear();
         return Promise.resolve();
     }
 
+    isSequentialQueueRunning = true;
+
     // Get the first request in the queue and process it
-    const request = persistedRequests.shift();
-    return Request.processWithMiddleware(request, true).then(() => {
+    currentRequest = persistedRequests.shift();
+    return Request.processWithMiddleware(currentRequest, true).then(() => {
         // If the request is successful we want to:
         // - Remove it from the queue
         // - Clear any wait time we may have added if it failed before
         // - Call process again to process the other requests in the queue
-        PersistedRequests.remove(request);
+        PersistedRequests.remove(currentRequest);
         requestThrottle.clear();
         return process();
     }).catch((error) => {
-        // If a request fails with a non-retryable error we just remove it from the queue and return
+        // If a request fails with a non-retryable error we just remove it from the queue and move on to the next request
         if (!_.contains(errorsToRetry, error.message)) {
-            PersistedRequests.remove(request);
-            return Promise.resolve();
+            PersistedRequests.remove(currentRequest);
+            return process();
         }
 
         // If the request failed and we want to retry it:
-        // - Check that we are not offline
         // - Sleep for a period of time
         // - Call process again. This will retry the same request since we have not removed it from the queue
-        if (NetworkStore.isOffline()) {
-            return Promise.resolve();
-        }
-        return requestThrottle.sleep(requestThrottle.getRequestWaitTime()).then(() => process());
+        requestThrottle.sleep().then(() => process());
     });
 }
 
@@ -87,24 +77,12 @@ function flush() {
         return;
     }
 
-    isSequentialQueueRunning = true;
-
-    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
-
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionID);
-            process()
-                .finally(() => {
-                    isSequentialQueueRunning = false;
-                    resolveIsReadyPromise();
-                    currentRequest = null;
-                });
+            process();
         },
     });
 }
@@ -119,6 +97,9 @@ function isRunning() {
 // Flush the queue when the connection resumes
 NetworkStore.onReconnection(flush);
 
+// Call flush immediately so that the queue starts running as soon as the page loads
+flush();
+
 /**
  * @param {Object} request
  */
@@ -131,13 +112,9 @@ function push(request) {
         return;
     }
 
-    // If the queue is running this request will run once it has finished processing the current batch
-    if (isSequentialQueueRunning) {
-        isReadyPromise.then(flush);
-        return;
+    if (!isSequentialQueueRunning) {
+        flush();
     }
-
-    flush();
 }
 
 /**
