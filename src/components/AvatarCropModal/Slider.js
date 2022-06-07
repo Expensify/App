@@ -5,12 +5,14 @@ import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import styles from '../../styles/styles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
+
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 const propTypes = {
     /** Width of the slider that will be rendered */
-    sliderLineWidth: PropTypes.number,
+    sliderContainerSize: PropTypes.number,
 
     /** React-native-reanimated lib handler which executes when the user is panning slider */
     onGestureEventHandler: gestureHandlerPropTypes,
@@ -20,7 +22,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    sliderLineWidth: 0,
+    sliderContainerSize: 0,
     onGestureEventHandler: () => {},
     sliderValue: {},
 };
@@ -34,7 +36,7 @@ const Slider = (props) => {
     }));
 
     return (
-        <View style={[{width: props.sliderLineWidth}, styles.sliderLine]}>
+        <View style={[StyleUtils.getAvatarCropSliderStyle(props.sliderContainerSize), styles.sliderLine]}>
             <PanGestureHandler onGestureEvent={props.onGestureEventHandler}>
                 <AnimatedView style={[styles.sliderKnob, rSliderStyle]} />
             </PanGestureHandler>

@@ -457,6 +457,17 @@ function getImageCropViewStyle(containerSize) {
     };
 }
 
+/**
+ * Generate a style for the Slider, based on its container width.
+ * @param {Number} sliderContainerSize
+ * @returns {Object}
+ */
+function getAvatarCropSliderStyle(sliderContainerSize) {
+    return {
+        width: sliderContainerSize,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -485,4 +496,5 @@ export {
     parseStyleAsArray,
     getPaddingLeft,
     getImageCropViewStyle,
+    getAvatarCropSliderStyle,
 };
