@@ -143,6 +143,7 @@ function createIOUSplit(params) {
             }
 
             chatReportID = response.reportID;
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             return DeprecatedAPI.CreateIOUSplit({
                 ...params,
                 splits: JSON.stringify(params.splits),
@@ -296,6 +297,7 @@ function payIOUReport({
 
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
         : DeprecatedAPI.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
 
     // Build the url for the user's platform of choice if they have selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me

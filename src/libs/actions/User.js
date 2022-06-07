@@ -281,6 +281,7 @@ function getDomainInfo() {
                 const {isFromPublicDomain} = response;
                 Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
                 DeprecatedAPI.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
