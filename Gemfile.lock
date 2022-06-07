@@ -268,13 +268,14 @@ GEM
       xcpretty (~> 0.2, >= 0.0.7)
 
 PLATFORMS
+  -darwin-21
   universal-darwin-20
   x86_64-darwin-19
 
 DEPENDENCIES
-  cocoapods (~> 1)
+  cocoapods (= 1.10.1)
   fastlane (~> 2)
   xcpretty (~> 0)
 
 BUNDLED WITH
-   2.2.5
+   2.3.8
