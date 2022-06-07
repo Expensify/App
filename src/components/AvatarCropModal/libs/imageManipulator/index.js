@@ -7,7 +7,7 @@ import _ from 'underscore';
  * @param {Number} height
  * @param {Number} angle
  * @returns {Object} Returns width and height of new canvas
- */ 
+ */
 function sizeFromAngle(width, height, angle) {
     const radians = (angle * Math.PI) / 180;
     let c = Math.cos(radians);
