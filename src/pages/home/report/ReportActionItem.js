@@ -26,6 +26,8 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import InlineSystemMessage from '../../../components/InlineSystemMessage';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -202,6 +204,9 @@ class ReportActionItem extends Component {
                         </View>
                     )}
                 </Hoverable>
+                <View style={styles.ml10}>
+                    <InlineSystemMessage message={this.props.action.error} />
+                </View>
             </PressableWithSecondaryInteraction>
         );
     }
