@@ -48,19 +48,15 @@ const ImageRenderer = (props) => {
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
-    if (imagePreviewModalDisabled) {
-        return (
-            <ThumbnailImage
-                previewSourceURL={previewSource}
-                style={styles.webViewStyles.tagStyles.img}
-                isAuthTokenRequired={isAttachment}
-                imageWidth={imageWidth}
-                imageHeight={imageHeight}
-            />
-        );
-    }
-
-    return (
+    return imagePreviewModalDisabled ? (
+        <ThumbnailImage
+            previewSourceURL={previewSource}
+            style={styles.webViewStyles.tagStyles.img}
+            isAuthTokenRequired={isAttachment}
+            imageWidth={imageWidth}
+            imageHeight={imageHeight}
+        />
+    ) : (
         <AttachmentModal
             allowDownload
             sourceURL={source}
