@@ -103,6 +103,9 @@ const propTypes = {
 
     /** Whether Button is on active screen */
     isFocused: PropTypes.bool.isRequired,
+
+    /** Id to use for this button */
+    nativeID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -133,6 +136,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
+    nativeID: '',
 };
 
 class Button extends Component {
@@ -247,6 +251,7 @@ class Button extends Component {
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     ...this.additionalStyles,
                 ]}
+                nativeID={this.props.nativeID}
             >
                 {({pressed, hovered}) => {
                     const activeAndHovered = !this.props.isDisabled && hovered;
