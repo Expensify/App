@@ -37,7 +37,6 @@ export default {
         privacy: 'Privacy',
         privacyPolicy: 'Privacy policy',
         delete: 'Delete',
-        deleted: 'deleted',
         archived: 'archived',
         contacts: 'Contacts',
         recents: 'Recents',
@@ -105,7 +104,7 @@ export default {
         leaveRoom: 'Leave room',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
-        youAppearToBeOffline: 'You appear to be offline.',
+        youAppearToBeOffline: 'You appear to be offline',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
     },
     attachmentPicker: {

@@ -37,7 +37,6 @@ export default {
         privacy: 'Privacidad',
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
-        deleted: 'eliminado',
         archived: 'archivado',
         contacts: 'Contactos',
         recents: 'Recientes',
@@ -105,7 +104,7 @@ export default {
         leaveRoom: 'Salir de la sala de chat',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
-        youAppearToBeOffline: 'Parece que estás desconectado.',
+        youAppearToBeOffline: 'Parece que estás desconectado',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
     },
     attachmentPicker: {

@@ -10,6 +10,7 @@ import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Child elements */
@@ -31,10 +32,10 @@ const FullPageOfflineBlockingView = (props) => {
                 <Icon
                     src={Expensicons.OfflineCloud}
                     fill={themeColors.offline}
-                    width={50}
-                    height={50}
+                    width={variables.iconSizeSuperLarge}
+                    height={variables.iconSizeSuperLarge}
                 />
-                <Text style={[styles.h1]}>{props.translate('common.youAppearToBeOffline')}</Text>
+                <Text style={[styles.headerText, styles.textLarge, styles.mt5]}>{props.translate('common.youAppearToBeOffline')}</Text>
                 <Text style={[styles.w70, styles.textAlignCenter]}>{props.translate('common.thisFeatureRequiresInternet')}</Text>
             </View>
         );
