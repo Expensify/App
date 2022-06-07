@@ -51,7 +51,7 @@ jobs:
           command: npm ci
 
       - name: Install pods
-        run: cd ios && pod install
+        run: cd ios && bundle exec pod install
       
       - name: Debug
         run: pod env
