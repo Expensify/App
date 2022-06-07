@@ -217,10 +217,12 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
                 .then((response) => {
                     Onyx.merge('test_chatList', response.chatList);
                 });
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             DeprecatedAPI.Get({returnValueList: 'personalDetailsList'})
                 .then((response) => {
                     Onyx.merge('test_personalDetailsList', response.personalDetailsList);
                 });
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             DeprecatedAPI.Get({returnValueList: 'account'})
                 .then((response) => {
                     Onyx.merge('test_account', response.account);
