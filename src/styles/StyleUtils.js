@@ -462,14 +462,14 @@ function getPaddingLeft(paddingLeft) {
 }
 
 /**
- * Get animated opacity for report chat list
- * @param {Animated.Value} fadeInAnimation
+ * Generate a style for the ImageCropView, based on its container size.
+ * @param {Number} containerSize
  * @returns {Object}
  */
-function getReportListAnimationStyle(fadeInAnimation) {
+function getImageCropViewStyle(containerSize) {
     return {
-        ...styles.flex1,
-        opacity: fadeInAnimation,
+        height: containerSize,
+        width: containerSize,
     };
 }
 
@@ -501,5 +501,5 @@ export {
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
-    getReportListAnimationStyle,
+    getImageCropViewStyle,
 };
