@@ -6,6 +6,7 @@ import Animated from 'react-native-reanimated';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
+import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -22,9 +23,8 @@ const propTypes = {
     /** Callback to execute when the Image lays out */
     onLayout: PropTypes.func,
 
-    /** Callback to execute when user panning image */
-    // eslint-disable-next-line react/forbid-prop-types
-    panGestureEventHandler: PropTypes.object,
+    /** React-native-reanimated lib handler which executes when the user panning image */
+    panGestureEventHandler: gestureHandlerPropTypes,
 };
 
 const defaultProps = {
