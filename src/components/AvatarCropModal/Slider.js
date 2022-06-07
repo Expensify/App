@@ -25,7 +25,10 @@ const defaultProps = {
     sliderValue: {},
 };
 
+// This component can't be written using class since reanimated API uses hooks.
 const Slider = (props) => {
+    // A memoized by reanimated style, which tracks
+    // a translateX shared value and updates a slider's position
     const rSliderStyle = useAnimatedStyle(() => ({
         transform: [{translateX: props.sliderValue.value}],
     }));
