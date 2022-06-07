@@ -45,8 +45,8 @@ const propTypes = {
 
 const defaultProps = {
     imageUri: null,
-    onClose: () => { },
-    onSave: () => { },
+    onClose: () => {},
+    onSave: () => {},
 };
 
 // This component can't be written using class since reanimated API uses hooks.

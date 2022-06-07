@@ -31,8 +31,8 @@ const defaultProps = {
     imageUri: '',
     containerSize: 0,
     imageStyle: null,
-    onLayout: () => { },
-    panGestureEventHandler: () => { },
+    onLayout: () => {},
+    panGestureEventHandler: () => {},
 };
 
 const ImageCropView = (props) => {

@@ -21,7 +21,7 @@ const propTypes = {
 
 const defaultProps = {
     sliderLineWidth: 0,
-    onGestureEventHandler: () => { },
+    onGestureEventHandler: () => {},
     sliderValue: {},
 };
 
