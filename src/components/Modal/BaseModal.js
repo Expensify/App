@@ -7,8 +7,8 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
-import getModalStyles from '../../styles/getModalStyles';
 import * as Modal from '../../libs/actions/Modal';
+import getModalStyles from '../../styles/getModalStyles';
 
 const propTypes = {
     ...modalPropTypes,
@@ -112,6 +112,7 @@ class BaseModal extends PureComponent {
                 hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
+                statusBarTranslucent={this.props.statusBarTranslucent}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
