@@ -75,9 +75,7 @@ const AvatarCropModal = (props) => {
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
     const initializeSliderContainer = useCallback(event => setSliderContainerSize(event.nativeEvent.layout.width), []);
 
-    /**
-     * Changes the modal state values to initial
-     */
+    // Changes the modal state values to initial
     const initializeImage = useCallback(() => {
         translateY.value = 0;
         translateX.value = 0;
@@ -86,18 +84,21 @@ const AvatarCropModal = (props) => {
         translateSlider.value = 0;
     }, []);
 
+    // In order to calculate proper image position/size/animation, we have to know its size.
+    // And we have to update image size if image url changes.
     useEffect(() => {
         if (!props.imageUri) {
             return;
         }
         initializeImage();
         Image.getSize(props.imageUri, (width, height) => {
-            // We need to have image sizes in shared values to properly calculate animation
+            // We need to have image sizes in shared values to properly calculate position/size/animation
             originalImageHeight.value = height;
             originalImageWidth.value = width;
 
-            // Slider and image rotation values are not updated, we need to change them slightly
-            // initializing image sizes, to display correctly
+            // Because the reanimated library has some internal optimizations,
+            // sometimes when the modal is hidden styles of the image and slider might not be updated.
+            // To trigger the update we need to change the slights value of the following values:
             translateSlider.value += 0.01;
             rotation.value += 360;
         });
