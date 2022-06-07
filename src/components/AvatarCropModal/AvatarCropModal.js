@@ -77,7 +77,7 @@ const AvatarCropModal = (props) => {
 
     /**
      * Changes the modal state values to initial
-    */
+     */
     const initializeImage = useCallback(() => {
         translateY.value = 0;
         translateX.value = 0;
@@ -109,14 +109,14 @@ const AvatarCropModal = (props) => {
      * @param {Number} value
      * @param {Array} minMax
      * @returns {Number}
-    */
+     */
     const clamp = useWorkletCallback((value, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
 
     /**
      * Returns current image size taking into account scale and rotation.
      *
      * @returns {Object}
-    */
+     */
     const getDisplayedImageSize = useWorkletCallback(() => {
         let height = imageContainerSize * scale.value;
         let width = imageContainerSize * scale.value;
@@ -137,7 +137,7 @@ const AvatarCropModal = (props) => {
      *
      * @param {Number} newX
      * @param {Number} newY
-    */
+     */
     const updateImageOffset = useWorkletCallback((offsetX, offsetY) => {
         const {height, width} = getDisplayedImageSize();
         const maxOffsetX = (width - imageContainerSize) / 2;
@@ -149,7 +149,7 @@ const AvatarCropModal = (props) => {
     /**
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
-    */
+     */
     const panGestureEventHandler = useAnimatedGestureHandler({
         onStart: (_, context) => {
             // we have to assign translate values to a context
@@ -170,7 +170,7 @@ const AvatarCropModal = (props) => {
     /**
      * Calculates new scale value and updates images offset to ensure
      * that image stays in the center of the container after changing scale.
-    */
+     */
     const panSliderGestureEventHandler = useAnimatedGestureHandler({
         onStart: (_, context) => {
             // we have to assign this value to a context

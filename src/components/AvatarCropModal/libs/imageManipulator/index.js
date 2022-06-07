@@ -7,7 +7,7 @@ import _ from 'underscore';
  * @param {Number} height
  * @param {Number} angle
  * @returns {Object} Returns width and height of new canvas
-*/
+ */ 
 function sizeFromAngle(width, height, angle) {
     const radians = (angle * Math.PI) / 180;
     let c = Math.cos(radians);
@@ -27,7 +27,7 @@ function sizeFromAngle(width, height, angle) {
  * @param {Object} canvas
  * @param {Number} degrees
  * @returns {Object}
-*/
+ */
 function rotateCanvas(canvas, degrees) {
     const {width, height} = sizeFromAngle(canvas.width, canvas.height, degrees);
 
@@ -52,7 +52,7 @@ function rotateCanvas(canvas, degrees) {
  * @param {Object} canvas
  * @param {Object} options
  * @returns {Object}
-*/
+ */
 function cropCanvas(canvas, options) {
     let {
         originX = 0, originY = 0, width = 0, height = 0,
@@ -80,7 +80,7 @@ function cropCanvas(canvas, options) {
 /**
  * @param {Object} canvas
  * @returns {Promise<File>}
-*/
+ */
 function convertCanvasToFile(canvas) {
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
@@ -96,7 +96,7 @@ function convertCanvasToFile(canvas) {
  *
  * @param {Number} uri
  * @returns {Promise<Object>}
-*/
+ */
 function loadImageAsync(uri) {
     return new Promise((resolve, reject) => {
         const imageSource = new Image();
@@ -123,7 +123,7 @@ function loadImageAsync(uri) {
  * @param {Object} actions
  * @param {Object} options
  * @returns {Promise<Object>} Returns cropped and rotated image
-*/
+ */
 function imageManipulator(uri, actions, options) {
     return new Promise((resolve) => {
         loadImageAsync(uri).then((originalCanvas) => {
