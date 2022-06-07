@@ -1426,6 +1426,10 @@ function renameReport(reportID, reportName) {
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
+    if (action.hasAttemptedToNotify) {
+        return;
+    }
+
     const newMaxSequenceNumber = action.sequenceNumber;
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
 
@@ -1443,6 +1447,7 @@ function viewNewReportAction(reportID, action) {
     };
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {hasAttemptedToNotify: true});
 
     // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.IOUReportID) {
