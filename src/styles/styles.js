@@ -2620,11 +2620,11 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         alignSelf: 'center',
-        backgroundColor: colors.black,
+        backgroundColor: themeColors.shadow,
     },
 
     sliderKnob: {
-        backgroundColor: colors.green,
+        backgroundColor: themeColors.badgeSuccessBG,
         position: 'absolute',
         height: 26,
         width: 26,
@@ -2634,7 +2634,7 @@ const styles = {
     },
 
     sliderLine: {
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
         height: 8,
         borderRadius: 4,
     },
@@ -2643,7 +2643,7 @@ const styles = {
         height: 40,
         width: 40,
         borderRadius: variables.componentBorderRadiusNormal,
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
         justifyContent: 'center',
         alignItems: 'center',
     },
