@@ -25,8 +25,8 @@ import Modal from '../Modal';
 import Text from '../Text';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import ImageCropView from './components/ImageCropView';
-import Slider from './components/Slider';
+import ImageCropView from './ImageCropView';
+import Slider from './Slider';
 import imageManipulator from './libs/imageManipulator';
 
 const propTypes = {
