@@ -37,13 +37,13 @@ const defaultProps = {
 };
 
 const ImageCropView = (props) => {
-    const containerStyles = StyleUtils.getAutoGrowTextInputStyle(props.containerSize);
+    const containerStyle = StyleUtils.getImageCropViewStyle(props.containerSize);
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View>
-                <View style={[containerStyles, styles.imageCropContainer]}>
+                <View style={[containerStyle, styles.imageCropContainer]}>
                     <AnimatedImage style={props.imageStyle} onLayout={props.onLayout} source={{uri: props.imageUri}} resizeMode="contain" />
-                    <View style={[containerStyles, styles.l0, styles.b0, styles.pAbsolute]}>
+                    <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                         <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
                     </View>
                 </View>
