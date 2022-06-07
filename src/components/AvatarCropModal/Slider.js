@@ -15,7 +15,7 @@ const propTypes = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */
     onGestureEventHandler: gestureHandlerPropTypes,
 
-    /** X posion of the slider knob */
+    /** X position of the slider knob */
     sliderValue: PropTypes.shape({value: PropTypes.number}),
 };
 
