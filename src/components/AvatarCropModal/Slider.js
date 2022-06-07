@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import styles from '../../styles/styles';
+import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -11,9 +12,8 @@ const propTypes = {
     /** Width of the image container that will be rendered */
     sliderLineWidth: PropTypes.number,
 
-    /** Callback to execute when user panning slider */
-    // eslint-disable-next-line react/forbid-prop-types
-    onGestureEventHandler: PropTypes.object,
+    /** React-native-reanimated lib handler which executes when the user panning slider */
+    onGestureEventHandler: gestureHandlerPropTypes,
 
     /** X posion of the slider knob */
     sliderValue: PropTypes.shape({value: PropTypes.number}),
