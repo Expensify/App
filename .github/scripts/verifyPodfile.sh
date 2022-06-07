@@ -20,7 +20,9 @@ fi
 declare LIB_PATH
 LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)/node_modules/diff-so-fancy"
 
-DIFF_OUTPUT=$(git diff --exit-code ios/Podfile.lock)
+# DIFF_OUTPUT=$(git diff --exit-code ios/Podfile.lock)
+# Look at full diff output for now:
+DIFF_OUTPUT=$(git diff --exit-code)
 EXIT_CODE=$?
 
 if [[ EXIT_CODE -eq 0 ]]; then

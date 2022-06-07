@@ -51,6 +51,9 @@ jobs:
           command: npm ci
 
       - name: Install pods
-        run: cd ios && pod install && pod env
+        run: cd ios && pod install
+      
+      - name: Debug
+        run: pod env
 
       - run: ./.github/scripts/verifyPodfile.sh
