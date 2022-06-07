@@ -945,6 +945,7 @@ export {
     DeleteBankAccount,
     Get,
     GetAccountStatus,
+    GetChats,
     GetShortLivedAuthToken,
     GetStatementPDF,
     GetIOUReport,

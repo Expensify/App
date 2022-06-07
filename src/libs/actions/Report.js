@@ -988,7 +988,7 @@ function fetchAllReports(
             if (reportIDs.length > 0) {
                 // return fetchChatReportsByIDs(reportIDs);
                 const simplifiedReports = {};
-                return API.GetChats({reportIDList: reportIDs})
+                return DeprecatedAPI.GetChats({reportIDList: reportIDs})
                     .then((chats) => {
                         // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
                         // variable called simplifiedReports which hold the participants (minus the current user) for each report.
