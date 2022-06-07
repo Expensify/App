@@ -7,8 +7,7 @@ import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import * as StyleUtils from '../../styles/StyleUtils';
-import gestureHandlerPropTypes from './gestureHandlerPropTypes'
-
+import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
