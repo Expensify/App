@@ -9,7 +9,7 @@ import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 const propTypes = {
-    /** Width of the image container that will be rendered */
+    /** Width of the slider that will be rendered */
     sliderLineWidth: PropTypes.number,
 
     /** React-native-reanimated lib handler which executes when the user panning slider */
