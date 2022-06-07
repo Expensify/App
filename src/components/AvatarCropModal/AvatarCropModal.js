@@ -27,7 +27,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
-import imageManipulator from './libs/imageManipulator';
+import imageManipulator from '../../libs/imageManipulator';
 
 const propTypes = {
     /** Link to image for cropping   */
