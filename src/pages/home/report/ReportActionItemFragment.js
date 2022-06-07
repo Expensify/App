@@ -72,21 +72,11 @@ const ReportActionItemFragment = (props) => {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
                 return (
-                    <View style={[styles.chatItemAttachmentPlaceholder]}>
-                        {Str.isImage(props.attachmentInfo.name)
-                            ? (
-                                <ImageBackground
-                                    source={{uri: props.attachmentInfo.source}}
-                                    resizeMode="cover"
-                                    imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
-                                    style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
-                                >
-                                    <ActivityIndicator
-                                        size="large"
-                                        color={themeColors.uploadPreviewActivityIndicator}
-                                    />
-                                </ImageBackground>
-                            ) : (
+                    Str.isImage(props.attachmentInfo.name)
+                        ? (
+                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
+                        ) : (
+                            <View style={[styles.chatItemAttachmentPlaceholder]}>
                                 <ActivityIndicator
                                     size="large"
                                     color={themeColors.textSupporting}
