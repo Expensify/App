@@ -8,7 +8,7 @@ import RNFetchBlob from 'rn-fetch-blob';
  * @param {Array<Object>} actions
  * @param {Object} options
  * @returns {Promise<Object>} Returns cropped and rotated image
-*/
+ */
 function imageManipulator(uri, actions, options) {
     return new Promise((resolve) => {
         RNImageManipulator.manipulate(uri, actions, options).then((result) => {
