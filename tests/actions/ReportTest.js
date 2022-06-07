@@ -47,6 +47,8 @@ describe('actions/Report', () => {
     });
 
     it('should store a new report action in Onyx when reportComment event is handled via Pusher', () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
