@@ -12,7 +12,7 @@ const propTypes = {
     /** Width of the slider that will be rendered */
     sliderLineWidth: PropTypes.number,
 
-    /** React-native-reanimated lib handler which executes when the user panning slider */
+    /** React-native-reanimated lib handler which executes when the user is panning slider */
     onGestureEventHandler: gestureHandlerPropTypes,
 
     /** X posion of the slider knob */

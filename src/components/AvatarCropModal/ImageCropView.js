@@ -23,7 +23,7 @@ const propTypes = {
     /** Callback to execute when the Image lays out */
     onLayout: PropTypes.func,
 
-    /** React-native-reanimated lib handler which executes when the user panning image */
+    /** React-native-reanimated lib handler which executes when the user is panning image */
     panGestureEventHandler: gestureHandlerPropTypes,
 };
 
