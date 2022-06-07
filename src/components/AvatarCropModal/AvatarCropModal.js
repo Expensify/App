@@ -63,7 +63,7 @@ const AvatarCropModal = (props) => {
     const translateSlider = useSharedValue(0);
 
     const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-    const [sliderLineWidth, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+    const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
 
     // An onLayout callback, that initializes the image container, for proper render of an image
     const initializeImageContainer = useCallback((event) => {
@@ -183,8 +183,8 @@ const AvatarCropModal = (props) => {
             context.translateSliderX = translateSlider.value;
         },
         onActive: (event, context) => {
-            const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderLineWidth]);
-            const newScale = ((newSliderValue / sliderLineWidth)
+            const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderContainerSize]);
+            const newScale = ((newSliderValue / sliderContainerSize)
                 * (CONST.AVATAR_CROP_MODAL.MAX_SCALE - CONST.AVATAR_CROP_MODAL.MIN_SCALE))
                 + CONST.AVATAR_CROP_MODAL.MIN_SCALE;
 
@@ -197,7 +197,7 @@ const AvatarCropModal = (props) => {
             const newY = translateY.value * differential;
             updateImageOffset(newX, newY);
         },
-    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderLineWidth]);
+    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize]);
 
     // A memoized by reanimated style, which updates when image size or scale changes
     const imageStyle = useAnimatedStyle(() => {
@@ -276,7 +276,7 @@ const AvatarCropModal = (props) => {
                         <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
                             <Icon src={Expensicons.Zoom} fill={colors.gray3} />
                             <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
-                                <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} sliderLineWidth={sliderLineWidth} />
+                                <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} sliderContainerSize={sliderContainerSize} />
                             </View>
                             <Pressable
                                 onPress={rotateImage}
