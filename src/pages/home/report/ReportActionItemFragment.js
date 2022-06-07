@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {ActivityIndicator, ImageBackground, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
@@ -82,8 +82,8 @@ const ReportActionItemFragment = (props) => {
                                     color={themeColors.textSupporting}
                                     style={[styles.flex1]}
                                 />
-                            )}
-                    </View>
+                            </View>
+                        )
                 );
             }
 
