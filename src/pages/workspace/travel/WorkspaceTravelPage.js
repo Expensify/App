@@ -25,12 +25,12 @@ const WorkspaceTravelPage = props => (
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
     >
-        {(isLoadingVBA, hasVBA, policyID) => (
+        {(hasVBA, policyID) => (
             <>
-                {!isLoadingVBA && !hasVBA && (
+                {!hasVBA && (
                     <WorkspaceTravelNoVBAView policyID={policyID} />
                 )}
-                {!isLoadingVBA && hasVBA && (
+                {hasVBA && (
                     <WorkspaceTravelVBAView />
                 )}
             </>

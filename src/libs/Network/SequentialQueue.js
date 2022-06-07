@@ -32,6 +32,8 @@ resolveIsReadyPromise();
 
 let isSequentialQueueRunning = false;
 
+let currentRequest = null;
+
 /**
  * This method will get any persisted requests and fire them off in sequence to retry them.
  *
@@ -101,6 +103,7 @@ function flush() {
                 .finally(() => {
                     isSequentialQueueRunning = false;
                     resolveIsReadyPromise();
+                    currentRequest = null;
                 });
         },
     });
@@ -137,8 +140,19 @@ function push(request) {
     flush();
 }
 
+/**
+ * @returns {Promise}
+ */
+function getCurrentRequest() {
+    if (currentRequest === null) {
+        return Promise.resolve();
+    }
+    return currentRequest;
+}
+
 export {
     flush,
+    getCurrentRequest,
     isRunning,
     push,
 };

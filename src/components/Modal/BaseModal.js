@@ -112,6 +112,7 @@ class BaseModal extends PureComponent {
                 hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
+                statusBarTranslucent={this.props.statusBarTranslucent}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
