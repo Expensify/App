@@ -1506,7 +1506,7 @@ function viewNewReportAction(reportID, action) {
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
-    if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
+    if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
         Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
