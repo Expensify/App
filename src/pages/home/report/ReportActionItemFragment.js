@@ -74,7 +74,7 @@ const ReportActionItemFragment = (props) => {
                 return (
                     Str.isImage(props.attachmentInfo.name)
                         ? (
-                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}"/></comment>`} />
+                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
                         ) : (
                             <View style={[styles.chatItemAttachmentPlaceholder]}>
                                 <ActivityIndicator
