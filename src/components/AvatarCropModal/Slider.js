@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
-import styles from '../../../styles/styles';
+import styles from '../../styles/styles';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
