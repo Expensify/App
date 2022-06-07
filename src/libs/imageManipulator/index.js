@@ -22,7 +22,7 @@ function sizeFromAngle(width, height, angle) {
 }
 
 /**
- * Created a new rotated canvas and returns it
+ * Creates a new rotated canvas
  *
  * @param {Object} canvas
  * @param {Number} degrees
