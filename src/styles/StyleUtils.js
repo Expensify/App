@@ -445,6 +445,18 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
+/**
+ * Generate a style for the ImageCropView, based on its container size.
+ * @param {Number} containerSize
+ * @returns {Object}
+ */
+function getImageCropViewStyle(containerSize) {
+    return {
+        height: containerSize,
+        width: containerSize,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -472,4 +484,5 @@ export {
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
     getPaddingLeft,
+    getImageCropViewStyle,
 };

@@ -1,12 +1,14 @@
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {Image, View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import gestureHandlerPropTypes from './gestureHandlerPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
+import gestureHandlerPropTypes from './gestureHandlerPropTypes'
+
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -36,11 +38,7 @@ const defaultProps = {
 };
 
 const ImageCropView = (props) => {
-    const containerStyles = useMemo(() => ({
-        height: props.containerSize,
-        width: props.containerSize,
-    }), [props.containerSize]);
-
+    const containerStyles = StyleUtils.getAutoGrowTextInputStyle(props.containerSize);
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View>
