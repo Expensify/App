@@ -17,7 +17,6 @@ function validateBankAccount(bankAccountID, validateCode) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
-                // eslint-disable-next-line rulesdir/no-multiple-api-calls
                 DeprecatedAPI.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {

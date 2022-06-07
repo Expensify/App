@@ -40,7 +40,6 @@ function fetchNameValuePairsAndBankAccount() {
             failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
 
             // Now that we have the bank account. Lets grab the rest of the bank info we need
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             return DeprecatedAPI.Get({
                 returnValueList: 'nameValuePairs, bankAccountList',
                 nvpNames: [
