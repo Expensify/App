@@ -26,24 +26,25 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import Text from '../../../components/Text';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
+import OfflineIndicator from '../../../components/OfflineIndicator';
+import ExceededCommentLength from '../../../components/ExceededCommentLength';
 
 const propTypes = {
     /** Beta features list */
@@ -86,17 +87,18 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
-    /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
-
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
+
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape({
+        /** Primary login of the user */
+        login: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -106,9 +108,9 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: {},
-    network: {isOffline: false},
     blockedFromConcierge: {},
     personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -128,6 +130,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
+        this.getIOUOptions = this.getIOUOptions.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -153,6 +156,11 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
+        if (sidebarOpened) {
+            toggleReportActionComposeView(true);
+        }
+
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
@@ -234,6 +242,45 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Returns the list of IOU Options
+     *
+     * @param {Array} reportParticipants
+     * @returns {Array<object>}
+     */
+    getIOUOptions(reportParticipants) {
+        const participants = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email);
+        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
+        const hasMultipleParticipants = participants.length > 1;
+        const iouOptions = [];
+
+        if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
+            return [];
+        }
+
+        if (hasMultipleParticipants) {
+            return [{
+                icon: Expensicons.Receipt,
+                text: this.props.translate('iou.splitBill'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
+            }];
+        }
+
+        iouOptions.push({
+            icon: Expensicons.MoneyCircle,
+            text: this.props.translate('iou.requestMoney'),
+            onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+        });
+        if (Permissions.canUseIOUSend(this.props.betas)) {
+            iouOptions.push({
+                icon: Expensicons.Send,
+                text: this.props.translate('iou.sendMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+            });
+        }
+        return iouOptions;
+    }
+
+    /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
@@ -304,7 +351,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.textInput.setNativeProps({text: newComment});
         this.setState({
-            isCommentEmpty: newComment.trim().length === 0,
+            isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
         });
 
         // Indicate that draft has been created.
@@ -371,7 +418,7 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (!trimmedComment || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -392,8 +439,6 @@ class ReportActionCompose extends React.Component {
         }
 
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
-        const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
 
@@ -417,7 +462,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        isUploadingAttachment
+                        headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
                             this.submitForm();
                             Report.addAction(this.props.reportID, '', file);
@@ -449,47 +494,7 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                animationIn="fadeInUp"
-                                                animationOut="fadeOutDown"
-                                                menuItems={[
-                                                    ...(!hasExcludedIOUEmails
-                                                        && Permissions.canUseIOU(this.props.betas) ? [
-                                                            hasMultipleParticipants
-                                                                ? {
-                                                                    icon: Expensicons.Receipt,
-                                                                    text: this.props.translate('iou.splitBill'),
-                                                                    onSelected: () => {
-                                                                        Navigation.navigate(
-                                                                            ROUTES.getIouSplitRoute(
-                                                                                this.props.reportID,
-                                                                            ),
-                                                                        );
-                                                                    },
-                                                                } : {
-                                                                    icon: Expensicons.MoneyCircle,
-                                                                    text: this.props.translate('iou.requestMoney'),
-                                                                    onSelected: () => {
-                                                                        Navigation.navigate(
-                                                                            ROUTES.getIouRequestRoute(
-                                                                                this.props.reportID,
-                                                                            ),
-                                                                        );
-                                                                    },
-                                                                },
-                                                        ] : []),
-                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
-                                                        {
-                                                            icon: Expensicons.Send,
-                                                            text: this.props.translate('iou.sendMoney'),
-                                                            onSelected: () => {
-                                                                Navigation.navigate(
-                                                                    ROUTES.getIOUSendRoute(
-                                                                        this.props.reportID,
-                                                                    ),
-                                                                );
-                                                            },
-                                                        },
-                                                    ] : []),
+                                                menuItems={[...this.getIOUOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
@@ -586,30 +591,10 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween]}>
-                    <View>
-                        {this.props.network.isOffline ? (
-                            <View style={[
-                                styles.chatItemComposeSecondaryRowOffset,
-                                styles.flexRow,
-                                styles.alignItemsCenter]}
-                            >
-                                <Icon
-                                    src={Expensicons.Offline}
-                                    width={variables.iconSizeExtraSmall}
-                                    height={variables.iconSizeExtraSmall}
-                                />
-                                <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                    {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                                </Text>
-                            </View>
-                        ) : <ReportTypingIndicator reportID={this.props.reportID} />}
-                    </View>
-                    {hasExceededMaxCommentLength && (
-                        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
-                            {`${this.comment.length}/${CONST.MAX_COMMENT_LENGTH}`}
-                        </Text>
-                    )}
+                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                    <OfflineIndicator />
+                    <ReportTypingIndicator reportID={this.props.reportID} />
+                    <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
             </View>
         );
@@ -625,7 +610,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withPersonalDetails(),
-    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -638,6 +622,9 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionCompose);

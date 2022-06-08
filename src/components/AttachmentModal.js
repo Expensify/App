@@ -18,6 +18,7 @@ import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
+import HeaderGap from './HeaderGap';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -25,9 +26,6 @@ import TextWithEllipsis from './TextWithEllipsis';
  */
 
 const propTypes = {
-    /** Determines title of the modal header depending on if we are uploading an attachment or not */
-    isUploadingAttachment: PropTypes.bool,
-
     /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
@@ -46,17 +44,24 @@ const propTypes = {
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool,
 
+    /** Determines if download Button should be shown or not */
+    allowDownload: PropTypes.bool,
+
+    /** Title shown in the header of the modal */
+    headerTitle: PropTypes.string,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    isUploadingAttachment: false,
     sourceURL: null,
     onConfirm: null,
     originalFileName: null,
     isAuthTokenRequired: false,
+    allowDownload: false,
+    headerTitle: null,
     onModalHide: () => {},
 };
 
@@ -145,9 +150,11 @@ class AttachmentModal extends PureComponent {
             : [styles.imageModalImageCenterContainer, styles.p5];
 
         const {fileName, fileExtension} = this.splitExtensionFromFileName();
+
         return (
             <>
                 <Modal
+                    statusBarTranslucent={false}
                     type={this.state.modalType}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
@@ -156,22 +163,21 @@ class AttachmentModal extends PureComponent {
                     onModalHide={this.props.onModalHide}
                     propagateSwipe
                 >
+                    {this.props.isSmallScreenWidth && <HeaderGap />}
                     <HeaderWithCloseButton
-                        title={this.props.isUploadingAttachment
-                            ? this.props.translate('reportActionCompose.sendAttachment')
-                            : this.props.translate('common.attachment')}
+                        title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
-                        shouldShowDownloadButton={!this.props.isUploadingAttachment}
+                        shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => fileDownload(sourceURL, this.props.originalFileName)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                        subtitle={(
+                        subtitle={fileName ? (
                             <TextWithEllipsis
                                 leadingText={fileName}
                                 trailingText={fileExtension ? `.${fileExtension}` : ''}
                                 wrapperStyle={[styles.w100]}
                                 textStyle={styles.mutedTextLabel}
                             />
-                        )}
+                        ) : ''}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (

@@ -1,17 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import * as ReportUtils from '../libs/reportUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import Tooltip from './Tooltip';
+import RenderHTML from './RenderHTML';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -31,7 +33,7 @@ const propTypes = {
 
     /* Onyx Props */
 
-    /** All of the personal details for everyone */
+    /** All the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
@@ -51,51 +53,41 @@ const ReportWelcomeText = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const reportArchivedText = ReportUtils.getArchivedText(props.report, props.reportActions, props.personalDetails, props.policies);
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = _.map(
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({
-            displayName, firstName, login, pronouns,
-        }) => {
-            const longName = displayName || Str.removeSMSDomain(login);
-            const longNameLocalized = Str.isSMSLogin(longName) ? props.toLocalPhone(longName) : longName;
-            const shortName = firstName || longNameLocalized;
-            let finalPronouns = pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-                const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                finalPronouns = props.translate(`pronouns.${localeKey}`);
-            }
-            return {
-                displayName: isMultipleParticipant ? shortName : longNameLocalized,
-                tooltip: Str.removeSMSDomain(login),
-                pronouns: finalPronouns,
-            };
-        },
+        isMultipleParticipant,
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
         <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
             {isPolicyExpenseChat && (
-                <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
-                    </Text>
-                    <Text style={[styles.textStrong]}>
-                        {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                        {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
-                    </Text>
-                    <Text>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
-                    </Text>
-                    <Text style={[styles.textStrong]}>
-                        {ReportUtils.getPolicyName(props.report, props.policies)}
-                    </Text>
-                    <Text>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
-                    </Text>
-                </>
+                isArchivedRoom
+                    ? <RenderHTML html={reportArchivedText} />
+                    : (
+                        <>
+                            {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
+                            <Text style={styles.textAlignCenter}>
+                                {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
+                            </Text>
+                            <Text style={[styles.textStrong]}>
+                                {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
+                                {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
+                            </Text>
+                            <Text>
+                                {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
+                            </Text>
+                            <Text style={[styles.textStrong]}>
+                                {ReportUtils.getPolicyName(props.report, props.policies)}
+                            </Text>
+                            <Text>
+                                {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
+                            </Text>
+                        </>
+                    )
             )}
             {isChatRoom && (
                 <>
@@ -103,8 +95,8 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {roomWelcomeMessage.phrase1}
                     </Text>
-                    <Text style={[styles.textStrong]}>
-                        {props.report.reportName}
+                    <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
+                        {ReportUtils.getReportName(props.report, props.personalDetails, props.policies)}
                     </Text>
                     <Text>
                         {roomWelcomeMessage.phrase2}
@@ -117,11 +109,15 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
-                    {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
+                    {_.map(displayNamesWithTooltips, ({
+                        displayName, pronouns, tooltip,
+                    }, index) => (
                         <Text key={displayName}>
-                            <Text style={[styles.textStrong]}>
-                                {displayName}
-                            </Text>
+                            <Tooltip text={tooltip}>
+                                <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
+                                    {displayName}
+                                </Text>
+                            </Tooltip>
                             {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                             {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
                             {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
@@ -146,6 +142,10 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reportActions: {
+            key: props => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.report.reportID}`,
+            canEvict: false,
         },
     }),
 )(ReportWelcomeText);

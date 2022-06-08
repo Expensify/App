@@ -15,17 +15,18 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import NetworkConnection from '../NetworkConnection';
 import Timing from './Timing';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
+import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
-import * as ReportUtils from '../reportUtils';
+import * as ReportUtils from '../ReportUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import PusherUtils from '../PusherUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -137,46 +138,6 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
 }
 
 /**
- * Returns the title for a default room, a policy room or generates one based on the participants
- *
- * @param {Object} fullReport
- * @param {String} chatType
- * @param {String} oldPolicyName
- * @return {String}
- */
-function getChatReportName(fullReport, chatType, oldPolicyName) {
-    const isArchivedRoom = ReportUtils.isArchivedRoom({
-        chatType,
-        stateNum: fullReport.state,
-        statusNum: fullReport.status,
-    });
-
-    if (ReportUtils.isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${isArchivedRoom ? ` (${Localize.translateLocal('common.deleted')})` : ''}`;
-    }
-
-    // For a basic policy room, return its original name
-    if (ReportUtils.isUserCreatedPolicyRoom({chatType})) {
-        return LoginUtils.getEmailWithoutMergedAccountPrefix(fullReport.reportName);
-    }
-
-    if (ReportUtils.isPolicyExpenseChat({chatType})) {
-        const name = (isArchivedRoom && fullReport.isOwnPolicyExpenseChat)
-            ? oldPolicyName
-            : LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(fullReport, ['reportName'], ''));
-        return `${name}${isArchivedRoom ? ` (${Localize.translateLocal('common.archived')})` : ''}`;
-    }
-
-    const {sharedReportList} = fullReport;
-    return _.chain(sharedReportList)
-        .map(participant => participant.email)
-        .filter(participant => participant !== currentUserEmail)
-        .map(participant => PersonalDetails.getDisplayName(participant))
-        .value()
-        .join(', ');
-}
-
-/**
  * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited
  *
@@ -206,9 +167,6 @@ function getSimplifiedReportObject(report) {
     // Used for archived rooms, will store the policy name that the room used to belong to.
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
-    const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report, chatType, oldPolicyName)
-        : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = ReportUtils.isChatRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
@@ -219,7 +177,7 @@ function getSimplifiedReportObject(report) {
 
     return {
         reportID: report.reportID,
-        reportName,
+        reportName: report.reportName,
         chatType,
         ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
@@ -281,14 +239,14 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
 }
 
 /**
- * Given IOU and chat report ID fetches most recent IOU data from API.
+ * Given IOU and chat report ID fetches most recent IOU data from DeprecatedAPI.
  *
  * @param {Number} iouReportID
  * @param {Number} chatReportID
  * @returns {Promise}
  */
 function fetchIOUReport(iouReportID, chatReportID) {
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'reportStuff',
         reportIDList: iouReportID,
         shouldLoadOptionalKeys: true,
@@ -320,7 +278,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
  * @returns {Promise}
  */
 function fetchIOUReportID(debtorEmail) {
-    return API.GetIOUReport({
+    return DeprecatedAPI.GetIOUReport({
         debtorEmail,
     }).then((response) => {
         const iouReportID = response.reportID || 0;
@@ -350,7 +308,7 @@ function fetchIOUReportID(debtorEmail) {
 function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
-    return API.GetReportSummaryList({reportIDList: chatList.join(',')})
+    return DeprecatedAPI.GetReportSummaryList({reportIDList: chatList.join(',')})
         .then(({reportSummaryList, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
@@ -518,9 +476,10 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
  * fetching the iouReport and therefore should only be called if we are certain that the fetched iouReport is currently
  * open - else we would overwrite the existing open iouReportID with a closed iouReportID.
  *
- * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
- * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a
- * closed IOU).
+ * Examples of correct usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
+ * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a closed
+ * IOU). Send Money is an incorrect use case, because these IOUReports are never associated with the chatReport and this would
+ * prevent outstanding IOUs from showing.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, used to sync the reports
@@ -588,44 +547,22 @@ function updateReportWithNewAction(
     reportAction,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
-    const newMaxSequenceNumber = reportAction.sequenceNumber;
-    const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
-    const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
-
-    // When handling an action from the current users we can assume that their
-    // last read actionID has been updated in the server but not necessarily reflected
-    // locally so we must first update it and then calculate the unread (which should be 0)
-    if (isFromCurrentUser) {
-        setLocalLastRead(reportID, newMaxSequenceNumber);
-    }
-
-    let messageText = lodashGet(reportAction, ['message', 0, 'html'], '');
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-        messageText = lodashGet(reportAction, 'originalMessage.html', '');
-    }
+    let messageText = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+        ? lodashGet(reportAction, 'originalMessage.html', '')
+        : lodashGet(reportAction, ['message', 0, 'html'], '');
 
     const parser = new ExpensiMark();
     messageText = parser.htmlToText(messageText);
 
-    // Always merge the reportID into Onyx
-    // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
-    // by handleReportChanged
     const updatedReportObject = {
+        // Always merge the reportID into Onyx. If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out by handleReportChanged
         reportID,
-
-        // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
-        // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
+        notificationPreference,
+        lastMessageTimestamp: reportAction.timestamp,
+        lastMessageText: ReportUtils.formatReportLastMessageText(messageText),
+        lastActorEmail: reportAction.actorEmail,
     };
-
-    // If the report action from pusher is a higher sequence number than we know about (meaning it has come from
-    // a chat participant in another application), then the last message text and author needs to be updated as well
-    if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
-        updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
-        updatedReportObject.lastMessageText = ReportUtils.formatReportLastMessageText(messageText);
-        updatedReportObject.lastActorEmail = reportAction.actorEmail;
-    }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
@@ -644,62 +581,6 @@ function updateReportWithNewAction(
     };
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
-
-    // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
-        const iouReportID = reportAction.originalMessage.IOUReportID;
-
-        // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
-        // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
-        // iouReport we must update the chatReport with the correct iouReportID. If we don't, then new IOUs would not
-        // be displayed and paid IOUs would show as unpaid.
-        fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
-    }
-
-    if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
-        return;
-    }
-
-    // We don't want to send a local notification if the user preference is daily or mute
-    if (notificationPreference === 'mute' || notificationPreference === 'daily') {
-        // eslint-disable-next-line max-len
-        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
-        return;
-    }
-
-    // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (isFromCurrentUser) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
-        return;
-    }
-
-    // If we are currently viewing this report do not show a notification.
-    if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
-        return;
-    }
-
-    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
-        return;
-    }
-
-    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the
-    // marker above the incoming message.
-    if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
-        && updatedReportObject.unreadActionCount > 0) {
-        const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
-        setNewMarkerPosition(reportID, oldestUnreadSeq);
-    }
-    Log.info('[LOCAL_NOTIFICATION] Creating notification');
-    LocalNotification.showCommentNotification({
-        reportAction,
-        onClick: () => {
-            // Navigate to this report onClick
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        },
-    });
 }
 
 /**
@@ -719,47 +600,7 @@ function updateReportPinnedState(reportID, isPinned) {
  * @returns {String}
  */
 function getReportChannelName(reportID) {
-    return `private-report-reportID-${reportID}`;
-}
-
-/**
- * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
- *
- * @param {String} eventName
- * @param {Function} onEvent
- * @param {Boolean} isChunked
- */
-function subscribeToPrivateUserChannelEvent(eventName, onEvent, isChunked = false) {
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
-
-    /**
-     * @param {Object} pushJSON
-     */
-    function logPusherEvent(pushJSON) {
-        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, {reportID: pushJSON.reportID, reportActionID: pushJSON.reportActionID});
-    }
-
-    function onPusherResubscribeToPrivateUserChannel() {
-        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
-    }
-
-    /**
-     * @param {*} pushJSON
-     */
-    function onEventPush(pushJSON) {
-        logPusherEvent(pushJSON);
-        onEvent(pushJSON);
-    }
-
-    /**
-     * @param {*} error
-     */
-    function onSubscriptionFailed(error) {
-        Log.hmmm('[Report] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
-    }
-
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
-        .catch(onSubscriptionFailed);
+    return `private-report-reportID-${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
 /**
@@ -771,29 +612,43 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
 
     // Live-update a report's actions when a 'report comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference));
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT,
+        currentUserAccountID,
+        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
+    );
 
     // Live-update a report's actions when a 'chunked report comment' event is received.
-    subscribeToPrivateUserChannelEvent(
+    PusherUtils.subscribeToPrivateUserChannelEvent(
         Pusher.TYPE.REPORT_COMMENT_CHUNK,
+        currentUserAccountID,
         pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
         true,
     );
 
     // Live-update a report's actions when an 'edit comment' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
+        currentUserAccountID,
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
 
     // Live-update a report's actions when an 'edit comment chunk' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message), true);
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
+        currentUserAccountID,
+        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
+        true,
+    );
 
     // Live-update a report's pinned state when a 'report toggle pinned' event is received.
-    subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED, pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED,
+        currentUserAccountID,
+        pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
 }
 
 /**
@@ -915,7 +770,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants.');
     }
 
-    return API.CreateChatReport({
+    return DeprecatedAPI.CreateChatReport({
         emailList: participants.join(','),
     })
         .then((data) => {
@@ -958,7 +813,7 @@ function fetchActions(reportID, offset) {
         return;
     }
 
-    return API.Report_GetHistory({
+    return DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
         reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
@@ -997,7 +852,7 @@ function fetchAllReports(
     shouldDelayActionsFetch = false,
 ) {
     Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
@@ -1158,7 +1013,7 @@ function addAction(reportID, text, file) {
         },
     });
 
-    API.Report_AddComment({
+    DeprecatedAPI.Report_AddComment({
         reportID,
         file,
         reportComment: commentText,
@@ -1226,7 +1081,7 @@ function deleteReportComment(reportID, reportAction) {
     });
 
     // Try to delete the comment by calling the API
-    API.Report_EditComment({
+    DeprecatedAPI.Report_EditComment({
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
@@ -1281,7 +1136,7 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
-    API.Report_UpdateLastRead({
+    DeprecatedAPI.Report_UpdateLastRead({
         reportID,
         sequenceNumber: lastReadSequenceNumber,
         markAsUnread: manuallyMarked,
@@ -1296,7 +1151,7 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
     updateReportPinnedState(report.reportID, pinnedValue);
-    API.Report_TogglePinned({
+    DeprecatedAPI.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
     });
@@ -1380,9 +1235,6 @@ Onyx.connect({
     callback: handleReportChanged,
 });
 
-// When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(fetchAllReports);
-
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
@@ -1416,13 +1268,17 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
     // Persist the updated report comment
-    API.Report_EditComment({
+    DeprecatedAPI.Report_EditComment({
         reportID,
         reportActionID: originalReportAction.reportActionID,
         reportComment: htmlForNewComment,
         sequenceNumber,
     })
-        .catch(() => {
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                return;
+            }
+
             // If it fails, reset Onyx
             actionToMerge[sequenceNumber] = originalReportAction;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
@@ -1482,7 +1338,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
  */
 function updateNotificationPreference(reportID, notificationPreference) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
-    API.Report_UpdateNotificationPreference({reportID, notificationPreference});
+    DeprecatedAPI.Report_UpdateNotificationPreference({reportID, notificationPreference});
 }
 
 /**
@@ -1515,12 +1371,18 @@ function handleInaccessibleReport() {
  */
 function createPolicyRoom(policyID, reportName, visibility) {
     Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
-    return API.CreatePolicyRoom({policyID, reportName, visibility})
+    return DeprecatedAPI.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
-            if (response.jsonCode !== 200) {
+            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
+                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
+                return;
+            }
+
+            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Growl.error(response.message);
                 return;
             }
+
             return fetchChatReportsByIDs([response.reportID]);
         })
         .then((chatReports) => {
@@ -1530,9 +1392,6 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 return;
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));
-        })
-        .catch(() => {
-            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
@@ -1544,22 +1403,131 @@ function createPolicyRoom(policyID, reportName, visibility) {
  */
 function renameReport(reportID, reportName) {
     Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
-    API.RenameReport({reportID, reportName})
+    DeprecatedAPI.RenameReport({reportID, reportName})
         .then((response) => {
-            if (response.jsonCode !== 200) {
+            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
+                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
+                return;
+            }
+
+            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Growl.error(response.message);
                 return;
             }
+
             Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
 
             // Update the report name so that the LHN and header display the updated name
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
         })
-        .catch(() => {
-            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
-        })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
+
+/**
+ * @param {Number} reportID
+ * @param {Object} action
+ */
+function viewNewReportAction(reportID, action) {
+    const newMaxSequenceNumber = action.sequenceNumber;
+    const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+
+    // When handling an action from the current users we can assume that their
+    // last read actionID has been updated in the server but not necessarily reflected
+    // locally so we must first update it and then calculate the unread (which should be 0)
+    if (isFromCurrentUser) {
+        setLocalLastRead(reportID, newMaxSequenceNumber);
+    }
+
+    const updatedReportObject = {
+        // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
+        // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
+    };
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
+
+    // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.IOUReportID) {
+        const iouReportID = action.originalMessage.IOUReportID;
+
+        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chatReport
+        // as this would overwrite any existing IOUs. For all other cases we must update the chatReport with the iouReportID as
+        // if we don't, new IOUs would not be displayed and paid IOUs would still show as unpaid.
+        if (action.originalMessage.IOUDetails === undefined) {
+            fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
+        }
+    }
+
+    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+    if (!ActiveClientManager.isClientTheLeader()) {
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
+    // We don't want to send a local notification if the user preference is daily or mute
+    if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
+        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
+        return;
+    }
+
+    // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
+    if (isFromCurrentUser) {
+        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
+        return;
+    }
+
+    // If we are currently viewing this report do not show a notification.
+    if (reportID === lastViewedReportID && Visibility.isVisible()) {
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        return;
+    }
+
+    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
+    if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
+        return;
+    }
+
+    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the marker above the incoming message.
+    const report = lodashGet(allReports, 'reportID', {});
+    if (lodashGet(report, 'newMarkerSequenceNumber', 0) === 0 && report.unreadActionCount > 0) {
+        const oldestUnreadSeq = (report.maxSequenceNumber - report.unreadActionCount) + 1;
+        setNewMarkerPosition(reportID, oldestUnreadSeq);
+    }
+
+    Log.info('[LOCAL_NOTIFICATION] Creating notification');
+    LocalNotification.showCommentNotification({
+        reportAction: action,
+        onClick: () => {
+            // Navigate to this report onClick
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        },
+    });
+}
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    initWithStoredValues: false,
+    callback: (actions, key) => {
+        // reportID can be derived from the Onyx key
+        const reportID = parseInt(key.split('_')[1], 10);
+        if (!reportID) {
+            return;
+        }
+
+        _.each(actions, (action) => {
+            if (!action.timestamp) {
+                return;
+            }
+
+            // If we are past the deadline to notify for this comment don't do it
+            if (moment.utc(action.timestamp * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
+                return;
+            }
+
+            viewNewReportAction(reportID, action);
+        });
+    },
+});
 
 export {
     fetchAllReports,
