@@ -38,6 +38,7 @@ function AmountTextInput(props) {
             value={props.formattedAmount}
             placeholder={props.placeholder}
             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+            blurOnSubmit={false}
         />
     );
 }
