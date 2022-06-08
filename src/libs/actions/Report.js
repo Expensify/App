@@ -930,7 +930,7 @@ function addAction(reportID, text, file) {
             isFirstItem: false,
             isAttachment,
             attachmentInfo,
-            loading: true,
+            isPending: true,
             shouldShow: true,
         },
     };
@@ -953,6 +953,17 @@ function addAction(reportID, text, file) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: optimisticReportActions,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    [optimisticReportActionID]: {
+                        isPending: false,
+                    },
+                },
             },
         ],
     });

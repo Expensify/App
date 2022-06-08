@@ -24,7 +24,7 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -175,7 +175,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
-                                    this.props.action.isPending || this.props.action.error,
+                                    (this.props.network.isOffline && this.props.action.isPending) || this.props.action.error,
                                 )}
                             >
                                 {!this.props.displayAsGroup
@@ -216,6 +216,7 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withNetwork(),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {

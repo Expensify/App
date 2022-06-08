@@ -69,7 +69,7 @@ describe('actions/Report', () => {
                 // the comment we left and it will be in a loading state because
                 // it's an "optimistic comment"
                 expect(action.message[0].text).toBe('Hello!');
-                expect(action.loading).toBe(true);
+                expect(action.isPending).toBe(true);
             });
     });
 });

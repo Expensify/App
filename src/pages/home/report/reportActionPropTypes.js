@@ -24,8 +24,7 @@ export default {
         IOUTransactionID: PropTypes.string,
     }),
 
-    /** If the reportAction is pending, that means we have not yet sent the Report_AddComment command to the server.
-    This should most often occur when the client is offline. */
+    /** Whether we have received a response back from the server */
     isPending: PropTypes.bool,
 
     /** Error message that's come back from the server. */
