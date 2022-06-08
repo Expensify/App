@@ -1004,12 +1004,12 @@ function addAction(reportID, text, file) {
     API.write('AddComment', parameters, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: optimisticReport,
             },
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: optimisticReportActions,
             },
