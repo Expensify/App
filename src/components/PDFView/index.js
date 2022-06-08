@@ -16,7 +16,7 @@ class PDFView extends Component {
         this.state = {
             numPages: null,
             windowWidth: Dimensions.get('window').width,
-            shouldRequestPassword: true,
+            shouldRequestPassword: false,
             isPasswordInvalid: false,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
