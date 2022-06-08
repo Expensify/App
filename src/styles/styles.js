@@ -1724,12 +1724,14 @@ const styles = {
     },
 
     pdfPasswordForm: {
-        narrowScreen: {
+        nativeNarrowContainer: {
             ...sizing.w100,
-            ...spacing.p5,
         },
         wideScreen: {
             maxWidth: 350,
+        },
+        narrowScreen: {
+            ...spacing.m5,
         },
     },
 

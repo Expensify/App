@@ -38,9 +38,10 @@ class PDFPasswordForm extends Component {
     }
 
     render() {
-        // On non-small screens set a max width on the form.
+        // Use container styles appropriate for screen size.
         const containerStyles = this.props.isSmallScreenWidth
-            ? {} : styles.pdfPasswordForm.wideScreen;
+            ? styles.pdfPasswordForm.narrowScreen
+            : styles.pdfPasswordForm.wideScreen;
 
         return (
             <View style={containerStyles}>
