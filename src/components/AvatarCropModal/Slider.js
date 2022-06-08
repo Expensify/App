@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
 
-
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 const propTypes = {
