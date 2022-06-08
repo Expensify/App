@@ -133,7 +133,7 @@ class PasswordPage extends Component {
         if (!this.validate()) {
             return;
         }
-        User.changePassword(this.state.currentPassword, this.state.newPassword);
+        User.updatePassword(this.state.currentPassword, this.state.newPassword);
     }
 
     render() {
