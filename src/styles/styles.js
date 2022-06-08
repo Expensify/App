@@ -1843,6 +1843,10 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportActionSystemMessageContainer: {
+        marginLeft: 42,
+    },
+
     reportDetailsTitleContainer: {
         ...flex.dFlex,
         ...flex.flexColumn,
@@ -2563,8 +2567,11 @@ const styles = {
         padding: 16,
     },
 
-    iouRejectButton: {
-        minWidth: 69,
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 6,
     },
 };
 
