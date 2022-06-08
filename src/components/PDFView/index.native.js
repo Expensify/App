@@ -89,12 +89,17 @@ class PDFView extends Component {
             styles.imageModalPDF,
             StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight),
         ];
+        const touchableStyles = [
+            styles.flex1,
+            this.props.style,
+        ];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
         // is positioned nicely. We're specifically hiding it because we still need to render
         // the PDF so that it can validate the password.
-        if (this.state.shouldRequestPassword && this.state.shouldAttemptPdfLoad) {
+        if (this.state.shouldRequestPassword) {
+            // touchableStyles.push(styles.invisible);
             pdfStyles.push(styles.invisible);
         }
 
@@ -104,9 +109,9 @@ class PDFView extends Component {
             ? styles.pdfPasswordForm.nativeNarrowContainer : {};
 
         return (
-            <TouchableWithoutFeedback style={[styles.flex1, this.props.style]}>
-                <View style={containerStyles}>
-                    {this.state.shouldAttemptPdfLoad && (
+            <View style={containerStyles}>
+                {this.state.shouldAttemptPdfLoad && (
+                    <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
                             activityIndicator={<FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
@@ -115,15 +120,15 @@ class PDFView extends Component {
                             password={this.state.password}
                             onLoadComplete={this.terminatePasswordChallenge}
                         />
-                    )}
-                    {this.state.shouldRequestPassword && (
-                        <PDFPasswordForm
-                            onSubmit={this.attemptPdfLoadWithPassword}
-                            isPasswordInvalid={this.state.isPasswordInvalid}
-                        />
-                    )}
-                </View>
-            </TouchableWithoutFeedback>
+                    </TouchableWithoutFeedback>
+                )}
+                {this.state.shouldRequestPassword && (
+                    <PDFPasswordForm
+                        onSubmit={this.attemptPdfLoadWithPassword}
+                        isPasswordInvalid={this.state.isPasswordInvalid}
+                    />
+                )}
+            </View>
         );
     }
 }
