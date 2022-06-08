@@ -452,13 +452,13 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @returns {String}
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
-    if (lodashGet(report, 'reportNameValuePairs.type') !== 'chat') {
-        return lodashGet(report, 'reportName', '');
+    let formattedName;
+    if (isDefaultRoom(report)) {
+        formattedName = `#${report.reportName}`;
     }
 
-    let formattedName;
-    if (isChatRoom(report)) {
-        formattedName = `#${report.reportName}`;
+    if (isUserCreatedPolicyRoom(report)) {
+        formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
