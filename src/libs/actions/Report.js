@@ -945,38 +945,38 @@ function addAction(reportID, text, file) {
     optimisticReport.optimisticReportActionIDs = [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID];
 
     // Optimistically add the new comment to the store before waiting to save it to the server
-    const optimisticReportActions = {};
+    const optimisticReportActions = {
+        [optimisticReportActionID]: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
+            person: [
+                {
+                    style: 'strong',
+                    text: myPersonalDetails.displayName || currentUserEmail,
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
 
-    optimisticReportActions[optimisticReportActionID] = {
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-        actorEmail: currentUserEmail,
-        actorAccountID: currentUserAccountID,
-        person: [
-            {
-                style: 'strong',
-                text: myPersonalDetails.displayName || currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        automatic: false,
-
-        // Use the client generated ID as a optimistic action ID so we can remove it later
-        sequenceNumber: optimisticReportActionID,
-        clientID: optimisticReportActionID,
-        avatar: myPersonalDetails.avatar,
-        timestamp: moment().unix(),
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: htmlForNewComment,
-                text: textForNewComment,
-            },
-        ],
-        isFirstItem: false,
-        isAttachment,
-        attachmentInfo,
-        loading: true,
-        shouldShow: true,
+            // Use the client generated ID as a optimistic action ID so we can remove it later
+            sequenceNumber: optimisticReportActionID,
+            clientID: optimisticReportActionID,
+            avatar: myPersonalDetails.avatar,
+            timestamp: moment().unix(),
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: htmlForNewComment,
+                    text: textForNewComment,
+                },
+            ],
+            isFirstItem: false,
+            isAttachment,
+            attachmentInfo,
+            loading: true,
+            shouldShow: true,
+        },
     };
 
     const parameters = {
