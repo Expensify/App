@@ -204,7 +204,7 @@ class ReportActionItem extends Component {
                         </View>
                     )}
                 </Hoverable>
-                <View style={styles.ml10}>
+                <View style={styles.reportActionSystemMessageContainer}>
                     <InlineSystemMessage message={this.props.action.error} />
                 </View>
             </PressableWithSecondaryInteraction>
