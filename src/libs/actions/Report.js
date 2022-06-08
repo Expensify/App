@@ -537,6 +537,51 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
 }
 
 /**
+ * Updates a report in the store with a new report action
+ *
+ * @param {Number} reportID
+ * @param {Object} reportAction
+ * @param {String} [notificationPreference] On what cadence the user would like to be notified
+ */
+function updateReportWithNewAction(
+    reportID,
+    reportAction,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+) {
+    const messageText = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+        ? lodashGet(reportAction, 'originalMessage.html', '')
+        : lodashGet(reportAction, ['message', 0, 'text'], '');
+
+    const updatedReportObject = {
+        // Always merge the reportID into Onyx. If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out by handleReportChanged
+        reportID,
+        maxSequenceNumber: reportAction.sequenceNumber,
+        notificationPreference,
+        lastMessageTimestamp: reportAction.timestamp,
+        lastMessageText: ReportUtils.formatReportLastMessageText(messageText),
+        lastActorEmail: reportAction.actorEmail,
+    };
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
+
+    const reportActionsToMerge = {};
+    if (reportAction.clientID) {
+        // Remove the optimistic action from the report since we are about to replace it
+        // with the real one (which has the true sequenceNumber)
+        reportActionsToMerge[reportAction.clientID] = null;
+    }
+
+    // Add the action into Onyx
+    reportActionsToMerge[reportAction.sequenceNumber] = {
+        ...reportAction,
+        isAttachment: ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})),
+        loading: false,
+    };
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+}
+
+/**
  * Updates a report in Onyx with a new pinned state.
  *
  * @param {Number} reportID
@@ -595,37 +640,7 @@ function subscribeToUserEvents() {
 function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
         Log.info('[Report] Handled event sent by Airship', false, {reportID});
-        const messageText = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-            ? lodashGet(reportAction, 'originalMessage.html', '')
-            : lodashGet(reportAction, ['message', 0, 'text'], '');
-
-        const updatedReportObject = {
-            // Always merge the reportID into Onyx. If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out by handleReportChanged
-            reportID,
-            maxSequenceNumber: reportAction.sequenceNumber,
-            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            lastMessageTimestamp: reportAction.timestamp,
-            lastMessageText: ReportUtils.formatReportLastMessageText(messageText),
-            lastActorEmail: reportAction.actorEmail,
-        };
-
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
-
-        const reportActionsToMerge = {};
-        if (reportAction.clientID) {
-            // Remove the optimistic action from the report since we are about to replace it
-            // with the real one (which has the true sequenceNumber)
-            reportActionsToMerge[reportAction.clientID] = null;
-        }
-
-        // Add the action into Onyx
-        reportActionsToMerge[reportAction.sequenceNumber] = {
-            ...reportAction,
-            isAttachment: ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})),
-            loading: false,
-        };
-
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+        updateReportWithNewAction(reportID, reportAction);
     });
 
     // Open correct report when push notification is clicked
