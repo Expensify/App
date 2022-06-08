@@ -54,6 +54,9 @@ const propTypes = {
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    fallbackIcon: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -66,6 +69,7 @@ const defaultProps = {
     isUsingDefaultAvatar: false,
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
+    fallbackIcon: Expensicons.FallbackAvatar,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -199,6 +203,8 @@ class AvatarWithImagePicker extends React.Component {
                                     containerStyles={styles.avatarLarge}
                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                     source={this.props.avatarURL}
+                                    fallbackIcon={this.props.fallbackIcon}
+                                    size={this.props.size}
                                 />
                             )
                             : (

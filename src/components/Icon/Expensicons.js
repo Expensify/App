@@ -52,6 +52,7 @@ import Monitor from '../../../assets/images/monitor.svg';
 import NewWindow from '../../../assets/images/new-window.svg';
 import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
+import OfflineCloud from '../../../assets/images/offline-cloud.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import PayPal from '../../../assets/images/paypal.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
@@ -79,6 +80,8 @@ import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 import Zoom from '../../../assets/images/zoom.svg';
+import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
+import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 
 export {
     ActiveRoomAvatar,
@@ -115,6 +118,8 @@ export {
     ExpensifyCard,
     Eye,
     EyeDisabled,
+    FallbackAvatar,
+    FallbackWorkspaceAvatar,
     Gallery,
     Gear,
     Hashtag,
@@ -135,6 +140,7 @@ export {
     NewWindow,
     NewWorkspace,
     Offline,
+    OfflineCloud,
     Paperclip,
     PayPal,
     Paycheck,

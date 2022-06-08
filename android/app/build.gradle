@@ -152,8 +152,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001015716
-        versionName "1.1.57-16"
+        versionCode 1001017302
+        versionName "1.1.73-2"
     }
     splits {
         abi {
@@ -167,9 +167,9 @@ android {
         release {
             if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
                 storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                storePassword System.getenv('MYAPP_UPLOAD_STORE_PASSWORD')
                 keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+                keyPassword System.getenv('MYAPP_UPLOAD_KEY_PASSWORD')
             }
         }
         debug {

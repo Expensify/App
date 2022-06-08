@@ -1,5 +1,5 @@
 import getPlatform from '../getPlatform';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';
 
@@ -51,7 +51,7 @@ function end(eventName, secondaryName = '') {
         return;
     }
 
-    API.Graphite_Timer({
+    DeprecatedAPI.Graphite_Timer({
         name: grafanaEventName,
         value: eventTime,
         platform: `${getPlatform()}`,

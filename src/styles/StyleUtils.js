@@ -36,6 +36,7 @@ function getAvatarStyle(size) {
         height: avatarSize,
         width: avatarSize,
         borderRadius: avatarSize,
+        backgroundColor: themeColors.offline,
     };
 }
 
@@ -386,9 +387,10 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
+ * @param {Boolean} [isPending]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false) {
+function getReportActionItemStyle(isHovered = false, isPending = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -397,6 +399,7 @@ function getReportActionItemStyle(isHovered = false) {
 
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
+        opacity: isPending ? 0.5 : 1,
         cursor: 'default',
     };
 }

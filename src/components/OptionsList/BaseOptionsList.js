@@ -111,7 +111,7 @@ class BaseOptionsList extends Component {
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                isDisabled={this.props.isDisabled}
+                isDisabled={this.props.isDisabled || section.isDisabled}
             />
         );
     }

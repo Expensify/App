@@ -6,13 +6,13 @@ import {
 import lodashGet from 'lodash/get';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
+import * as Link from '../../../libs/actions/Link';
+import CONFIG from '../../../CONFIG';
 import Text from '../../Text';
 import CONST from '../../../CONST';
-import CONFIG from '../../../CONFIG';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
-import * as Link from '../../../libs/actions/Link';
 
 const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -40,7 +40,8 @@ const AnchorRenderer = (props) => {
     }
 
     // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
-    if (internalExpensifyPath) {
+    // As attachments also use expensify.com we don't want it working the same as links.
+    if (internalExpensifyPath && !isAttachment) {
         return (
             <Text
                 style={styles.link}

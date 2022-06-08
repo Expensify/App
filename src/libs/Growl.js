@@ -1,12 +1,14 @@
 import React from 'react';
 import CONST from '../CONST';
-import createOnReadyTask from './createOnReadyTask';
 
 const growlRef = React.createRef();
-const growlReadyTask = createOnReadyTask();
+let resolveIsReadyPromise;
+const isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
 
 function setIsReady() {
-    growlReadyTask.setIsReady();
+    resolveIsReadyPromise();
 }
 
 /**
@@ -17,7 +19,7 @@ function setIsReady() {
  * @param {Number} [duration]
 */
 function show(bodyText, type, duration = CONST.GROWL.DURATION) {
-    growlReadyTask.isReady().then(() => growlRef.current.show(bodyText, type, duration));
+    isReadyPromise.then(() => growlRef.current.show(bodyText, type, duration));
 }
 
 /**
