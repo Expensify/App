@@ -2509,6 +2509,10 @@ const styles = {
         height: 153,
     },
 
+    avatarCropModalContainer: {
+        maxWidth: 500,
+    },
+
     imageCropContainer: {
         borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',

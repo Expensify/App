@@ -2,9 +2,7 @@ import PropTypes from 'prop-types';
 import React, {
     useCallback, useEffect, useState,
 } from 'react';
-import {
-    Image, Pressable, SafeAreaView, View,
-} from 'react-native';
+import {Image, Pressable, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
     interpolate,
@@ -28,6 +26,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 import imageManipulator from '../../libs/imageManipulator';
+import HeaderGap from '../HeaderGap';
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -68,11 +67,7 @@ const AvatarCropModal = (props) => {
     // An onLayout callback, that initializes the image container, for proper render of an image
     const initializeImageContainer = useCallback((event) => {
         const {height, width} = event.nativeEvent.layout;
-        if (props.isSmallScreenWidth) {
-            setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
-        } else {
-            setImageContainerSize(width);
-        }
+        setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
     }, [props.isSmallScreenWidth]);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
@@ -256,45 +251,49 @@ const AvatarCropModal = (props) => {
     }, [props.imageUri, imageContainerSize]);
 
     return (
-        <Modal onClose={props.onClose} isVisible={props.isVisible} type={CONST.MODAL.MODAL_TYPE.CENTERED}>
-            <SafeAreaView style={[styles.flex1, styles.pb5]}>
-                <HeaderWithCloseButton
-                    title={props.translate('avatarCropModal.title')}
-                    onCloseButtonPress={props.onClose}
+        <Modal
+            onClose={props.onClose}
+            isVisible={props.isVisible}
+            type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
+            containerStyle={styles.avatarCropModalContainer}
+        >
+            {props.isSmallScreenWidth && <HeaderGap />}
+            <HeaderWithCloseButton
+                title={props.translate('avatarCropModal.title')}
+                onCloseButtonPress={props.onClose}
+            />
+            <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
+            <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1]}>
+                <ImageCropView
+                    imageUri={props.imageUri}
+                    imageStyle={[imageStyle, styles.h100, styles.w100]}
+                    containerSize={imageContainerSize}
+                    panGestureEventHandler={panGestureEventHandler}
+                    onLayout={initializeImage}
                 />
-                <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
-                <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1]}>
-                    <ImageCropView
-                        imageUri={props.imageUri}
-                        imageStyle={[imageStyle, styles.h100, styles.w100]}
-                        containerSize={imageContainerSize}
-                        panGestureEventHandler={panGestureEventHandler}
-                        onLayout={initializeImage}
-                    />
-                    {/* To avoid layout shift we should hide this component until the parent container is initialized */}
-                    {imageContainerSize !== CONST.AVATAR_CROP_MODAL.INITIAL_SIZE && (
-                        <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
-                            <Icon src={Expensicons.Zoom} fill={colors.gray3} />
-                            <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
-                                <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} sliderContainerSize={sliderContainerSize} />
-                            </View>
-                            <Pressable
-                                onPress={rotateImage}
-                                style={[styles.imageCropRotateButton]}
-                            >
-                                <Icon src={Expensicons.Rotate} fill={colors.black} />
-                            </Pressable>
+                {/* To avoid layout shift we should hide this component until the parent container is initialized */}
+                {imageContainerSize !== CONST.AVATAR_CROP_MODAL.INITIAL_SIZE && (
+                    <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
+                        <Icon src={Expensicons.Zoom} fill={colors.gray3} />
+                        <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
+                            <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} sliderContainerSize={sliderContainerSize} />
                         </View>
-                    )}
-                </GestureHandlerRootView>
-                <Button
-                    success
-                    style={[styles.mh5, styles.mt6]}
-                    onPress={cropAndSaveImage}
-                    pressOnEnter
-                    text={props.translate('common.save')}
-                />
-            </SafeAreaView>
+                        <Pressable
+                            onPress={rotateImage}
+                            style={[styles.imageCropRotateButton]}
+                        >
+                            <Icon src={Expensicons.Rotate} fill={colors.black} />
+                        </Pressable>
+                    </View>
+                )}
+            </GestureHandlerRootView>
+            <Button
+                success
+                style={[styles.m5]}
+                onPress={cropAndSaveImage}
+                pressOnEnter
+                text={props.translate('common.save')}
+            />
         </Modal>
     );
 };
