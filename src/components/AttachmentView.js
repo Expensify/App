@@ -49,13 +49,11 @@ const AttachmentView = (props) => {
     if (Str.isPDF(props.sourceURL)
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         return (
-
             <PDFView
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}
                 onUserInputRequired={props.onUserInputRequired}
             />
-
         );
     }
 
