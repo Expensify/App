@@ -48,8 +48,8 @@ Onyx.connect({
  * @param {String} oldPassword
  * @param {String} password
  */
-function changePassword(oldPassword, password) {
-    API.write('ChangePassword', {
+function updatePassword(oldPassword, password) {
+    API.write('UpdatePassword', {
         oldPassword,
         password,
     }, {
@@ -453,7 +453,7 @@ function generateStatementPDF(period) {
 }
 
 export {
-    changePassword,
+    updatePassword,
     closeAccount,
     getBetas,
     getUserDetails,
