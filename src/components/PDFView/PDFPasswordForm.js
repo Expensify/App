@@ -49,7 +49,7 @@ class PDFPasswordForm extends Component {
                 </Text>
                 <TextInput
                     label={this.props.translate('common.password')}
-                    autoCompleteType="password"
+                    autoCompleteType="off"
                     textContentType="password"
                     onChangeText={password => this.setState({password})}
                     returnKeyType="done"
@@ -66,7 +66,6 @@ class PDFPasswordForm extends Component {
                     text={this.props.translate('common.confirm')}
                     onPress={this.submitPassword}
                     style={styles.mt4}
-                    isFocused
                 />
             </View>
         );
