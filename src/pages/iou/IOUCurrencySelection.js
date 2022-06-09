@@ -20,6 +20,7 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import * as IOU from '../../libs/actions/IOU';
+import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 
@@ -127,7 +128,7 @@ class IOUCurrencySelection extends Component {
     getCurrencyOptions() {
         const currencyListKeys = _.keys(this.props.currencyList);
         const currencyOptions = _.map(currencyListKeys, currencyCode => ({
-            text: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
+            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
             searchText: `${currencyCode} ${this.props.currencyList[currencyCode].symbol}`,
             currencyCode,
         }));
