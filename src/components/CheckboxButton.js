@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
-import {View} from 'react-native';
+import React from 'react';
+import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Should the input be disabled  */
@@ -32,54 +32,39 @@ const defaultProps = {
     forwardedRef: undefined,
 };
 
-class CheckboxButton extends Component {
-    constructor(props) {
-        super(props);
-
-        this.onClick = this.onClick.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
-        this.onToggle = this.onToggle.bind(this);
-    }
-
-    onClick() {
-        this.onToggle();
-    }
-
-    onKeyDown(event) {
+function CheckboxButton(props) {
+    function onKeyDown(event) {
         if (event.keyCode !== CONST.KEYCODE.SPACE) {
             return;
         }
 
-        this.onToggle();
-        event.stopPropagation();
-        event.preventDefault();
+        props.onPress();
     }
 
-    onToggle() {
-        if (this.props.disabled) {
+    function checkboxClicked(event) {
+        if (event.type !== 'click') {
             return;
         }
 
-        this.props.onPress();
+        props.onPress();
     }
 
-    render() {
-        return (
-            <View
-                focusable
-                onClick={this.onClick}
-                onKeyDown={this.onKeyDown}
-                ref={this.props.forwardedRef}
-                style={this.props.style}
-            >
-                {this.props.children}
-            </View>
-        );
-    }
+    return (
+        <Pressable
+            disabled={props.disabled}
+            onPress={checkboxClicked}
+            ref={props.forwardedRef}
+            style={props.style}
+            onKeyDown={onKeyDown}
+        >
+            {props.children}
+        </Pressable>
+    );
 }
 
 CheckboxButton.propTypes = propTypes;
 CheckboxButton.defaultProps = defaultProps;
+CheckboxButton.displayName = 'CheckboxButton';
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
