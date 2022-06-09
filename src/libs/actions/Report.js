@@ -618,7 +618,6 @@ function subscribeToUserEvents() {
         Pusher.TYPE.REPORT_COMMENT_CHUNK,
         currentUserAccountID,
         pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
-        true,
     );
 
     // Live-update a report's actions when an 'edit comment' event is received.
@@ -631,7 +630,6 @@ function subscribeToUserEvents() {
         Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
         currentUserAccountID,
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
-        true,
     );
 }
 
