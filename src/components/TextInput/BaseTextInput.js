@@ -66,14 +66,18 @@ class BaseTextInput extends Component {
         // Only update when value prop is provided
         const inputValue = this.props.value || this.input.value;
 
-        if (_.isEmpty(inputValue) || (this.state.value === inputValue && this.props.value !== '')) {
+        if (_.isEmpty(inputValue) || (this.state.value === inputValue && _.isEmpty(this.props.value))) {
             return;
         }
-        if(this.props.value === '')
-        {
-            this.deactivateLabel();
+
+        if (inputValue === '' || _.isEmpty(this.props.value)) {
             this.input.clear();
-            this.setState({value: ''});
+        }
+
+        if (_.isEmpty(this.props.value)) {
+            this.deactivateLabel();
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({value: this.props.value});
             return;
         }
 
@@ -82,9 +86,7 @@ class BaseTextInput extends Component {
         this.input.setNativeProps({text: inputValue});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
-        if (inputValue === '') {
-            this.input.clear();
-        }
+
 
         if (inputValue) {
             this.activateLabel();
