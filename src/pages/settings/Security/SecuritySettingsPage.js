@@ -9,6 +9,9 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
+import * as Pusher from '../../../libs/Pusher/pusher';
+
+import Config from '../../../CONFIG';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -58,6 +61,14 @@ const SecuritySettingsPage = (props) => {
                             shouldShowRightIcon
                         />
                     ))}
+                    <MenuItem
+                        title="Pusher test"
+                        onPress={() => {
+                            // console.log('here we trigger pusher');
+                            console.log('[MY SUFFIX]', Config.PUSHER.SUFFIX);
+                            // Pusher.sendEvent('private-encrypted-report-reportID-7', 'client-userIsTyping', {payload: 'yes'});
+                        }}
+                    />
                 </View>
             </ScrollView>
         </ScreenWrapper>
