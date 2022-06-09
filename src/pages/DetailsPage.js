@@ -2,6 +2,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {ActivityIndicator} from 'react-native-web';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import Text from '../components/Text';
@@ -23,6 +24,7 @@ import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import themeColors from '../styles/themes/default';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -66,6 +68,14 @@ const getPhoneNumber = (details) => {
 
 const DetailsPage = (props) => {
     const details = props.personalDetails[props.route.params.login];
+    if (!details) {
+        // Personal details have not loaded yet
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <ActivityIndicator color={themeColors.spinner} size="large" />
+            </View>
+        );
+    }
     const isSMSLogin = Str.isSMSLogin(details.login);
 
     // If we have a reportID param this means that we
