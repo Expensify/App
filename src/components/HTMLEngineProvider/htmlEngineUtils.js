@@ -26,7 +26,7 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
 function isInsideComment(tnode) {
     let currentNode = tnode;
     while (currentNode.parent) {
-        if (currentNode.domNode.name === 'comment') {
+        if (currentNode.domNode.name === 'comment' || currentNode.domNode.name === 'email-comment') {
             return true;
         }
         currentNode = currentNode.parent;

@@ -44,6 +44,9 @@ const propTypes = {
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
+    /** The reportAction's source */
+    source: PropTypes.string,
+
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
 
@@ -64,6 +67,7 @@ const defaultProps = {
     loading: false,
     isSingleLine: false,
     tooltipText: '',
+    source: '',
 };
 
 const ReportActionItemFragment = (props) => {
@@ -86,39 +90,52 @@ const ReportActionItemFragment = (props) => {
                         )
                 );
             }
+            let {html, text} = props.fragment;
 
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we replace them with line breaks and render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = props.fragment.html.replaceAll('<br />', ' ') === props.fragment.text;
+            const differByLineBreaksOnly = html.replaceAll('<br />', ' ') === text;
             if (differByLineBreaksOnly) {
-                const textWithLineBreaks = props.fragment.html.replaceAll('<br />', '\n');
+                const textWithLineBreaks = html.replaceAll('<br />', '\n');
                 // eslint-disable-next-line no-param-reassign
-                props.fragment = {...props.fragment, text: textWithLineBreaks, html: textWithLineBreaks};
+                html = textWithLineBreaks;
+                text = textWithLineBreaks;
             }
 
             // Only render HTML if we have html in the fragment
-            return props.fragment.html !== props.fragment.text
-                ? (
+            if (html !== text) {
+                if (props.source === 'email') {
+                    // Messages from email replies usually have complex HTML structure and they don't rely in white-space: pre to preserve spacing,
+                    // instead, the normally use &nbsp;
+                    return (
+                        <RenderHTML
+                            html={`<email-comment>${html + (props.fragment.isEdited ? '<edited></edited>' : '')}</email-comment>`}
+                        />
+                    );
+                }
+                return (
                     <RenderHTML
-                        html={`<comment>${props.fragment.html + (props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
+                        html={`<comment>${html + (props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
                     />
-                ) : (
-                    <Text
-                        selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined}
-                    >
-                        {Str.htmlDecode(props.fragment.text)}
-                        {props.fragment.isEdited && (
-                            <Text
-                                fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
-                            >
-                                {` ${props.translate('reportActionCompose.edited')}`}
-                            </Text>
-                        )}
-                    </Text>
                 );
+            }
+            return (
+                <Text
+                    selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                    style={EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined}
+                >
+                    {Str.htmlDecode(text)}
+                    {props.fragment.isEdited && (
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                        >
+                            {` ${props.translate('reportActionCompose.edited')}`}
+                        </Text>
+                    )}
+                </Text>
+            );
         }
         case 'TEXT':
             return (
