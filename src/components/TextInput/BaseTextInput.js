@@ -87,7 +87,6 @@ class BaseTextInput extends Component {
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
 
-
         if (inputValue) {
             this.activateLabel();
         } else if (!this.state.isFocused) {
