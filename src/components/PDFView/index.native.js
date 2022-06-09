@@ -28,12 +28,13 @@ class PDFView extends Component {
         this.state = {
             shouldRequestPassword: false,
             shouldAttemptPdfLoad: true,
+            shouldShowLoadingIndicator: true,
             isPasswordInvalid: false,
             password: '',
         };
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPdfLoadWithPassword = this.attemptPdfLoadWithPassword.bind(this);
-        this.terminatePasswordChallenge = this.terminatePasswordChallenge.bind(this);
+        this.finishPdfLoad = this.finishPdfLoad.bind(this);
     }
 
     /**
@@ -51,8 +52,12 @@ class PDFView extends Component {
             return;
         }
 
-        // Render password form, and don't render PDF.
-        this.setState({shouldRequestPassword: true, shouldAttemptPdfLoad: false});
+        // Render password form, and don't render PDF and loading indicator.
+        this.setState({
+            shouldRequestPassword: true,
+            shouldAttemptPdfLoad: false,
+            shouldShowLoadingIndicator: false,
+        });
 
         // The message provided by react-native-pdf doesn't indicate whether this
         // is an initial password request or if the password is invalid. So we just assume
@@ -64,7 +69,8 @@ class PDFView extends Component {
 
     /**
      * When the password is submitted via PDFPasswordForm, save the password
-     * in state and attempt to load the PDF.
+     * in state and attempt to load the PDF. Also show the loading indicator
+     * since react-native-pdf/PDF will need to reload the PDF.
      *
      * @param {String} password Password submitted via PDFPasswordForm
      */
@@ -72,16 +78,22 @@ class PDFView extends Component {
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
-        this.setState({password, shouldAttemptPdfLoad: true});
+        this.setState({
+            password,
+            shouldAttemptPdfLoad: true,
+            shouldShowLoadingIndicator: true,
+        });
     }
 
     /**
-     * When the PDF is loaded after a successful password challenge,
-     * hide PDFPasswordForm - and thus also make the react-native-pdf/PDF visible.
+     * After the PDF is successfully loaded hide PDFPasswordForm and the loading
+     * indicator.
      */
-    terminatePasswordChallenge() {
-        // Don't render PDFPasswordForm, and thus also render the PDF in visible state.
-        this.setState({shouldRequestPassword: false});
+    finishPdfLoad() {
+        this.setState({
+            shouldRequestPassword: false,
+            shouldShowLoadingIndicator: false,
+        });
     }
 
     render() {
@@ -113,12 +125,11 @@ class PDFView extends Component {
                 {this.state.shouldAttemptPdfLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
-                            activityIndicator={<FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
                             onError={this.initiatePasswordChallenge}
                             password={this.state.password}
-                            onLoadComplete={this.terminatePasswordChallenge}
+                            onLoadComplete={this.finishPdfLoad}
                         />
                     </TouchableWithoutFeedback>
                 )}
@@ -128,6 +139,7 @@ class PDFView extends Component {
                         isPasswordInvalid={this.state.isPasswordInvalid}
                     />
                 )}
+                {this.state.shouldShowLoadingIndicator && <FullScreenLoadingIndicator />}
             </View>
         );
     }
