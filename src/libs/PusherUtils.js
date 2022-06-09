@@ -10,9 +10,8 @@ import CONST from '../CONST';
  * @param {String} eventName
  * @param {String} accountID
  * @param {Function} onEvent
- * @param {Boolean} isChunked
  */
-function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent, isChunked = false) {
+function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
     const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
 
     /**
