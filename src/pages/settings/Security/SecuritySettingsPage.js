@@ -10,8 +10,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
 
-import Config from '../../../CONFIG';
-
 const propTypes = {
     ...withLocalizePropTypes,
 };
