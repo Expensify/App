@@ -3,7 +3,6 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
@@ -158,10 +157,8 @@ function getSimplifiedReportObject(report) {
     if (report.reportActionCount > 0) {
         // We are removing any html tags from the message html since we cannot access the text version of any comments as
         // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-        // We convert the line-breaks in html to space ' ' before striping the tags
-        lastMessageText = lastActionMessage
-            .replace(/((<br[^>]*>)+)/gi, ' ')
-            .replace(/(<([^>]+)>)/gi, '');
+        const parser = new ExpensiMark();
+        lastMessageText = parser.htmlToText(lastActionMessage);
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
@@ -548,9 +545,12 @@ function updateReportWithNewAction(
     reportAction,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
-    const messageText = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+    const messageHtml = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
         ? lodashGet(reportAction, 'originalMessage.html', '')
-        : lodashGet(reportAction, ['message', 0, 'text'], '');
+        : lodashGet(reportAction, ['message', 0, 'html'], '');
+
+    const parser = new ExpensiMark();
+    const messageText = parser.htmlToText(messageHtml);
 
     const updatedReportObject = {
         // Always merge the reportID into Onyx. If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out by handleReportChanged
@@ -948,7 +948,7 @@ function addAction(reportID, text, file) {
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? '[Attachment]'
-        : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
+        : parser.htmlToText(htmlForNewComment);
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -1261,7 +1261,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const actionToMerge = {};
     newReportAction.message[0].isEdited = true;
     newReportAction.message[0].html = htmlForNewComment;
-    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' '));
+    newReportAction.message[0].text = parser.htmlToText(htmlForNewComment);
     actionToMerge[sequenceNumber] = newReportAction;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
