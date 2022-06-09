@@ -23,9 +23,10 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {withNetwork} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import participantPropTypes from '../../../components/participantPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
@@ -61,6 +62,9 @@ const propTypes = {
         /** Email of the logged in person */
         email: PropTypes.string,
     }),
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
@@ -127,7 +131,7 @@ class ReportActionsView extends React.Component {
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
-        if (!this.props.report.reportID) {
+        if (!this.props.report.reportID || !this.props.personalDetails[this.props.report.reportID]) {
             Report.fetchChatReportsByIDs([this.props.reportID], true);
         }
         Report.subscribeToReportTypingEvents(this.props.reportID);
@@ -403,6 +407,11 @@ class ReportActionsView extends React.Component {
             return null;
         }
 
+        // Waiting until ONYX variables are loaded before displaying the component
+        if (_.isEmpty(this.props.personalDetails)) {
+            return null;
+        }
+
         return (
             <>
                 <FloatingMessageCounter
@@ -437,6 +446,7 @@ export default compose(
     withDrawerState,
     withLocalize,
     withNetwork(),
+    withPersonalDetails(),
     withOnyx({
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
