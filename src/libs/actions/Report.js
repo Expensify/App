@@ -16,6 +16,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
@@ -582,16 +583,6 @@ function updateReportWithNewAction(
 }
 
 /**
- * Updates a report in Onyx with a new pinned state.
- *
- * @param {Number} reportID
- * @param {Boolean} isPinned
- */
-function updateReportPinnedState(reportID, isPinned) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -642,11 +633,6 @@ function subscribeToUserEvents() {
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
         true,
     );
-
-    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED,
-        currentUserAccountID,
-        pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
 }
 
 /**
@@ -1148,11 +1134,20 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    updateReportPinnedState(report.reportID, pinnedValue);
-    DeprecatedAPI.Report_TogglePinned({
+
+    // Optimistically pin/unpin the report before we send out the command
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {isPinned: pinnedValue},
+        },
+    ];
+
+    API.write('TogglePinnedChat', {
         reportID: report.reportID,
         pinnedValue,
-    });
+    }, {optimisticData});
 }
 
 /**
