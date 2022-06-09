@@ -36,6 +36,7 @@ export default {
     iconSizeLarge: 24,
     iconSizeXLarge: 28,
     iconSizeExtraLarge: 40,
+    iconSizeSuperLarge: 60,
     emojiSize: 20,
     iouAmountTextSize: 40,
     mobileResponsiveWidthBreakpoint: 800,
@@ -46,4 +47,5 @@ export default {
     tooltipzIndex: 10050,
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
+    minHeightToShowGraphics: 854, // Login form layout breaks below this height due to insufficient space to show the form and graphics
 };

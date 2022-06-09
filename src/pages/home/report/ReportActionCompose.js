@@ -26,7 +26,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -34,17 +33,18 @@ import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import Text from '../../../components/Text';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
-import networkPropTypes from '../../../components/networkPropTypes';
+import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
+import OfflineIndicator from '../../../components/OfflineIndicator';
+import ExceededCommentLength from '../../../components/ExceededCommentLength';
 
 const propTypes = {
     /** Beta features list */
@@ -86,9 +86,6 @@ const propTypes = {
 
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
@@ -159,6 +156,11 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
+        if (sidebarOpened) {
+            toggleReportActionComposeView(true);
+        }
+
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
@@ -590,29 +592,9 @@ class ReportActionCompose extends React.Component {
                     </View>
                 </View>
                 <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <View>
-                        {this.props.network.isOffline ? (
-                            <View style={[
-                                styles.chatItemComposeSecondaryRowOffset,
-                                styles.flexRow,
-                                styles.alignItemsCenter]}
-                            >
-                                <Icon
-                                    src={Expensicons.Offline}
-                                    width={variables.iconSizeExtraSmall}
-                                    height={variables.iconSizeExtraSmall}
-                                />
-                                <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                    {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                                </Text>
-                            </View>
-                        ) : <ReportTypingIndicator reportID={this.props.reportID} />}
-                    </View>
-                    {hasExceededMaxCommentLength && (
-                        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow]}>
-                            {`${this.comment.length}/${CONST.MAX_COMMENT_LENGTH}`}
-                        </Text>
-                    )}
+                    <OfflineIndicator />
+                    <ReportTypingIndicator reportID={this.props.reportID} />
+                    <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
             </View>
         );
@@ -628,7 +610,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withPersonalDetails(),
-    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,

@@ -7,7 +7,7 @@ import * as Plaid from '../Plaid';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
-import * as API from '../../API';
+import * as DeprecatedAPI from '../../deprecatedAPI';
 import * as errors from './errors';
 import * as Localize from '../../Localize';
 import * as navigation from './navigation';
@@ -17,7 +17,7 @@ import * as navigation from './navigation';
  * @param {Number} bankAccountID
  */
 function setFreePlanVerifiedBankAccountID(bankAccountID) {
-    API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: bankAccountID});
+    DeprecatedAPI.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: bankAccountID});
 }
 
 /**
@@ -26,7 +26,7 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 function getBankAccountListAndGoToValidateStep(updatedACHData) {
     // Get an up-to-date bank account list so that we can allow the user to validate their newly
     // generated bank account
-    API.Get({returnValueList: 'bankAccountList'})
+    DeprecatedAPI.Get({returnValueList: 'bankAccountList'})
         .then((bankAccountListResponse) => {
             const bankAccountJSON = _.findWhere(bankAccountListResponse.bankAccountList, {
                 bankAccountID: updatedACHData.bankAccountID,
@@ -206,7 +206,7 @@ function mergeParamsWithLocalACHData(data) {
 function setupWithdrawalAccount(params) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
     const updatedACHData = mergeParamsWithLocalACHData(params);
-    API.BankAccount_SetupWithdrawal(updatedACHData)
+    DeprecatedAPI.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...updatedACHData}});
             const currentStep = updatedACHData.currentStep;
