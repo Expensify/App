@@ -533,16 +533,6 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
 }
 
 /**
- * Updates a report in Onyx with a new pinned state.
- *
- * @param {Number} reportID
- * @param {Boolean} isPinned
- */
-function updateReportPinnedState(reportID, isPinned) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
