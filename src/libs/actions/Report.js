@@ -547,12 +547,12 @@ function updateReportWithNewAction(
     reportAction,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
-    let messageText = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+    const messageHtml = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
         ? lodashGet(reportAction, 'originalMessage.html', '')
         : lodashGet(reportAction, ['message', 0, 'html'], '');
 
     const parser = new ExpensiMark();
-    messageText = parser.htmlToText(messageText);
+    const messageText = parser.htmlToText(messageHtml);
 
     const updatedReportObject = {
         // Always merge the reportID into Onyx. If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out by handleReportChanged
