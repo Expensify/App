@@ -40,7 +40,7 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent, isChu
     function onSubscriptionFailed(error) {
         Log.hmmm('Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel)
         .catch(onSubscriptionFailed);
 }
 
