@@ -63,9 +63,8 @@ class BaseTextInput extends Component {
 
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
-        // Only update when value prop is provided
-        const inputValue = this.props.value || this.input.value;
-        if (_.isEmpty(inputValue) || this.state.value === inputValue) {
+        const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
+        if (_.isUndefined(inputValue) || this.state.value === inputValue) {
             return;
         }
 
@@ -303,9 +302,11 @@ class BaseTextInput extends Component {
                     This Text component is intentionally positioned out of the screen.
                 */}
                 {this.props.autoGrow && (
+
+                    // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
                         style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
-                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
+                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2})}
                     >
                         {this.state.value || this.props.placeholder}
                     </Text>
