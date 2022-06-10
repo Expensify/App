@@ -305,8 +305,8 @@ class AttachmentPicker extends Component {
                 <Popover
                     onClose={this.close}
                     isVisible={this.state.isVisible}
-                    anchorPosition={styles.createMenuPosition}
                     onModalHide={this.onModalHide}
+                    anchorPosition={this.props.anchorPosition}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {

@@ -1,12 +1,13 @@
 /**
- * We don't need to get the position of the element on native platforms because the popover will be bottom mounted
+ * Returns the position of the clicked element
  *
+ * @param {Object} nativeEvent
  * @returns {Object}
  */
-function getClickedElementLocation() {
+function getClickedElementLocation(nativeEvent) {
     return {
-        bottom: 0,
-        left: 0,
+        bottom: nativeEvent.absolutePosition.y + nativeEvent.absolutePosition.height,
+        left: nativeEvent.absolutePosition.x,
     };
 }
 

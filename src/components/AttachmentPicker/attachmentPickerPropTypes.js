@@ -24,10 +24,19 @@ const propTypes = {
 
     /** The types of files that can be selected with this picker. */
     type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
+
+    /** The anchor position of the attachment picker */
+    anchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
     type: CONST.ATTACHMENT_PICKER_TYPE.FILE,
+    anchorPosition: {},
 };
 
 export {
