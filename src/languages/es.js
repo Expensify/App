@@ -37,7 +37,6 @@ export default {
         privacy: 'Privacidad',
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
-        deleted: 'eliminado',
         archived: 'archivado',
         contacts: 'Contactos',
         recents: 'Recientes',
@@ -105,9 +104,9 @@ export default {
         leaveRoom: 'Salir de la sala de chat',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
-        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo de participantes. (${count})`,
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -581,7 +580,6 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
-        maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',

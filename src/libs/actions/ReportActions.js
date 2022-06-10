@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
@@ -103,13 +104,14 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
  * @return {String}
  */
 function getLastVisibleMessageText(reportID) {
+    const parser = new ExpensiMark();
     const lastMessageIndex = _.findLastIndex(reportActions[reportID], action => (
         !ReportActionsUtils.isDeletedAction(action)
     ));
+    const htmlText = lodashGet(reportActions, [reportID, lastMessageIndex, 'message', 0, 'html'], '');
+    const messageText = parser.htmlToText(htmlText);
 
-    return ReportUtils.formatReportLastMessageText(
-        lodashGet(reportActions, [reportID, lastMessageIndex, 'message', 0, 'text'], ''),
-    );
+    return ReportUtils.formatReportLastMessageText(messageText);
 }
 
 export {

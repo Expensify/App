@@ -13,6 +13,7 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as IOU from '../../libs/actions/IOU';
+import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 
@@ -94,7 +95,7 @@ class IOUCurrencySelection extends Component {
      */
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
-            text: `${currencyCode} - ${currencyInfo.symbol}`,
+            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
             searchText: `${currencyCode} ${currencyInfo.symbol}`,
             currencyCode,
             keyForList: currencyCode,
