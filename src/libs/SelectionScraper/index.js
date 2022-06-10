@@ -103,7 +103,7 @@ const replaceNodes = (dom) => {
         }
 
         // Adding a new line after each comment here, because adding after each range is not working for chrome.
-        if (dom.attribs[tagAttribute] === 'comment') {
+        if (dom.attribs[tagAttribute] === 'comment' || dom.attribs[tagAttribute] === 'email-comment') {
             dom.children.push(new Element('br', {}));
         }
     }
