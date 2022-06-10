@@ -957,8 +957,13 @@ function addAction(reportID, text, file) {
         parameters.timezone = timezone;
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
             value: {timezone},
+        });
+        optimisticData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {[currentUserEmail]: timezone},
         });
         DateUtils.setTimezoneUpdated();
     }
