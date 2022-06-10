@@ -1,8 +1,7 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator} from 'react-native-web';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import Text from '../components/Text';
