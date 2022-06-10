@@ -35,7 +35,7 @@ const Slider = (props) => {
     }));
 
     return (
-        <View style={[StyleUtils.getAvatarCropSliderStyle(props.sliderContainerSize), styles.sliderLine]}>
+        <View style={[StyleUtils.getWidthAndHeightStyle(props.sliderContainerSize), styles.sliderLine]}>
             <PanGestureHandler onGestureEvent={props.onGestureEventHandler}>
                 <AnimatedView style={[styles.sliderKnob, rSliderStyle]} />
             </PanGestureHandler>

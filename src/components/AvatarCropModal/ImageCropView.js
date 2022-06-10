@@ -37,7 +37,7 @@ const defaultProps = {
 };
 
 const ImageCropView = (props) => {
-    const containerStyle = StyleUtils.getImageCropViewStyle(props.containerSize);
+    const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View>
