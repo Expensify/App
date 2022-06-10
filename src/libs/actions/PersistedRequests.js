@@ -11,7 +11,6 @@ Onyx.connect({
 });
 
 function clear() {
-    console.log('clearing');
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
@@ -19,7 +18,6 @@ function clear() {
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    console.log('adding', requestsToPersist);
     persistedRequests = lodashUnionWith(persistedRequests, requestsToPersist, _.isEqual);
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
@@ -28,7 +26,6 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    console.log('removing', requestToRemove);
     persistedRequests = _.reject(persistedRequests, persistedRequest => _.isEqual(persistedRequest, requestToRemove));
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }

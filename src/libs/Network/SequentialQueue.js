@@ -32,11 +32,9 @@ let currentRequest = null;
  */
 function process() {
     const persistedRequests = [...PersistedRequests.getAll()];
-    console.log('running queue', persistedRequests);
 
     // If we have no persisted requests or we are offline we don't want to make any requests so we return early
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
-        console.log('Offline or no requests');
         isSequentialQueueRunning = false;
         requestThrottle.clear();
         return Promise.resolve();
@@ -46,7 +44,6 @@ function process() {
 
     // Get the first request in the queue and process it
     currentRequest = persistedRequests.shift();
-    console.log('processing', currentRequest);
     return Request.processWithMiddleware(currentRequest, true).then(() => {
         // If the request is successful we want to:
         // - Remove it from the queue
@@ -54,12 +51,10 @@ function process() {
         // - Call process again to process the other requests in the queue
         PersistedRequests.remove(currentRequest);
         requestThrottle.clear();
-        console.log('done, moving on to next request');
         return process();
     }).catch((error) => {
         // If a request fails with a non-retryable error we just remove it from the queue and move on to the next request
         if (!_.contains(errorsToRetry, error.message)) {
-            console.log('not retrying, moving on', error);
             PersistedRequests.remove(currentRequest);
             return process();
         }
@@ -72,7 +67,6 @@ function process() {
 }
 
 function flush() {
-    console.log('Called flush');
     if (isSequentialQueueRunning) {
         return;
     }
@@ -88,7 +82,6 @@ function flush() {
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionID);
-            console.log('Call process');
             process();
         },
     });

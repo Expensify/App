@@ -26,8 +26,6 @@ export default class RequestThrottle {
      * @returns {Promise}
      */
     sleep() {
-        const wait = this.getRequestWaitTime();
-        console.log('sleeping', wait);
-        return new Promise(resolve => setTimeout(resolve, wait));
+        return new Promise(resolve => setTimeout(resolve, this.getRequestWaitTime()));
     }
 }
