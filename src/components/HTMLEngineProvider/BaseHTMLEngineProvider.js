@@ -33,11 +33,11 @@ const customHTMLElementModels = {
     }),
     comment: defaultHTMLElementModels.div.extend({
         tagName: 'comment',
-        mixedUAStyles: {whiteSpace: 'pre', backgroundColor: 'blue'},
+        mixedUAStyles: {whiteSpace: 'pre'},
     }),
     'email-comment': defaultHTMLElementModels.div.extend({
         tagName: 'email-comment',
-        mixedUAStyles: {whiteSpace: 'normal', backgroundColor: 'green'},
+        mixedUAStyles: {whiteSpace: 'normal'},
     }),
 };
 
