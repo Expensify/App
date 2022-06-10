@@ -64,7 +64,7 @@ const propTypes = {
     }),
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
