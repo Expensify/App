@@ -461,29 +461,6 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
-/**
- * Generate a style for the ImageCropView, based on its container size.
- * @param {Number} containerSize
- * @returns {Object}
- */
-function getImageCropViewStyle(containerSize) {
-    return {
-        height: containerSize,
-        width: containerSize,
-    };
-}
-
-/**
- * Generate a style for the Slider, based on its container width.
- * @param {Number} sliderContainerSize
- * @returns {Object}
- */
-function getAvatarCropSliderStyle(sliderContainerSize) {
-    return {
-        width: sliderContainerSize,
-    };
-}
-
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -512,6 +489,4 @@ export {
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
-    getImageCropViewStyle,
-    getAvatarCropSliderStyle,
 };
