@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -33,7 +34,7 @@ const ReportActionItemMessage = (props) => {
                     isAttachment={props.action.isAttachment}
                     attachmentInfo={props.action.attachmentInfo}
                     loading={props.action.loading}
-                    source={props.action.originalMessage.source}
+                    source={lodashGet(props.action, 'originalMessage.source')}
                 />
             ))}
         </View>
