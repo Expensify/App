@@ -26,6 +26,7 @@ import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
+import DateUtils from '../DateUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -937,19 +938,33 @@ function addAction(reportID, text, file) {
         clientID: optimisticReportActionID,
     };
 
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticReportActions,
+        },
+    ];
+
+    // Update the timezone if it's been 5 minutes from the last time the user added a comment
+    if (DateUtils.canUpdateTimezone()) {
+        const timezone = DateUtils.getCurrentTimezone();
+        parameters.timezone = timezone;
+        optimisticData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {timezone},
+        });
+        DateUtils.setTimezoneUpdated();
+    }
+
     API.write('AddComment', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: optimisticReport,
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: optimisticReportActions,
-            },
-        ],
+        optimisticData,
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,

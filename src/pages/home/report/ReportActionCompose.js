@@ -36,7 +36,6 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import DateUtils from '../../../libs/DateUtils';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -421,8 +420,6 @@ class ReportActionCompose extends React.Component {
         if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
-
-        DateUtils.throttledUpdateTimezone();
 
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
