@@ -56,9 +56,7 @@ function Logging(response, request) {
             // remove the request from the PersistedRequests if the request exists.
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 Log.info('[Network] Error: Request canceled', false, request);
-            }
-
-            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
+            } else if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
                 // Throw when we get a "Failed to fetch" error so we can retry. Very common if a user is offline or experiencing an unlikely scenario like
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] Error: Failed to fetch', {message: error.message, status: error.status});

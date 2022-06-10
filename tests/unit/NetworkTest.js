@@ -434,33 +434,6 @@ test('persisted request should not be cleared until a backend response occurs', 
         });
 });
 
-test(`persisted request should be retried up to ${CONST.NETWORK.MAX_REQUEST_RETRIES} times`, () => {
-    // We're setting up xhr handler that always rejects with a fetch error
-    const xhr = jest.spyOn(HttpUtils, 'xhr')
-        .mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
-
-    // Given we have a request made while we're offline
-    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
-        .then(() => {
-            // When network calls with `persist` are made
-            Network.post('mock command', {param1: 'value1', persist: true});
-            return waitForPromisesToResolve();
-        })
-
-        // When we resume connectivity
-        .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-        .then(waitForPromisesToResolve)
-        .then(() => {
-            // The request should be retried a number of times
-            expect(xhr).toHaveBeenCalledTimes(CONST.NETWORK.MAX_REQUEST_RETRIES);
-            _.each(xhr.mock.calls, (args) => {
-                expect(args).toEqual(
-                    expect.arrayContaining(['mock command', expect.objectContaining({param1: 'value1', persist: true})]),
-                );
-            });
-        });
-});
-
 test('test bad response will log alert', () => {
     global.fetch = jest.fn()
         .mockResolvedValueOnce({ok: false, status: 502, statusText: 'Bad Gateway'});
