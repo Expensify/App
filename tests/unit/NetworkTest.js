@@ -274,37 +274,6 @@ test('Request will not run until credentials are read from Onyx', () => {
     });
 });
 
-test('Non-retryable request will not be retried if connection is lost in flight', () => {
-    // Given a xhr mock that will fail as if network connection dropped
-    const xhr = jest.spyOn(HttpUtils, 'xhr')
-        .mockImplementationOnce(() => {
-            Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
-            return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
-        });
-
-    // Given a non-retryable request (that is bound to fail)
-    const promise = Network.post('Get');
-
-    return waitForPromisesToResolve()
-        .then(() => {
-            // When network connection is recovered
-            Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-            return waitForPromisesToResolve();
-        })
-        .then(() => {
-            // Advance the network request queue by 1 second so that it can realize it's back online
-            jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-            return waitForPromisesToResolve();
-        })
-        .then(() => {
-            // Then the request should only have been attempted once and we should get an unable to retry
-            expect(xhr).toHaveBeenCalledTimes(1);
-
-            // And the promise should be resolved with the special offline jsonCode
-            return expect(promise).resolves.toEqual({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
-        });
-});
-
 test('Retryable requests should be persisted while offline', () => {
     // We don't expect calls `xhr` so we make the test fail if such call is made
     const xhr = jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(new Error('Unexpected xhr call'));
@@ -448,28 +417,6 @@ test('test bad response will log alert', () => {
         })
         .then(() => {
             expect(logAlertSpy).toHaveBeenCalled();
-        });
-});
-
-test('test Failed to fetch error for non-retryable requests resolve with unable to retry jsonCode', () => {
-    // Setup xhr handler that rejects once with a Failed to Fetch
-    global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
-    const onResolved = jest.fn();
-
-    // Given we have a request made while online
-    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
-        .then(() => {
-            expect(NetworkStore.isOffline()).toBe(false);
-
-            // When network calls with are made
-            Network.post('mock command', {param1: 'value1'})
-                .then(onResolved);
-            return waitForPromisesToResolve();
-        })
-        .then(() => {
-            const response = onResolved.mock.calls[0][0];
-            expect(onResolved).toHaveBeenCalled();
-            expect(response.jsonCode).toBe(CONST.JSON_CODE.UNABLE_TO_RETRY);
         });
 });
 
