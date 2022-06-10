@@ -272,12 +272,14 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
-        FULL_COMPOSER_MIN_LINES: 3,
     },
     COMPOSER: {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
         MAX_LINES_FULL: -1,
+
+        // The minimum number of typed lines needed to enable the full screen composer
+        FULL_COMPOSER_MIN_LINES: 3,
     },
     MODAL: {
         MODAL_TYPE: {
