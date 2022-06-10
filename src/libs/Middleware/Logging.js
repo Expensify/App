@@ -56,9 +56,6 @@ function Logging(response, request) {
             // remove the request from the PersistedRequests if the request exists.
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 Log.info('[Network] Error: Request canceled', false, request);
-
-                // Re-throw this error so the next handler can manage it
-                throw error;
             }
 
             if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
@@ -102,7 +99,8 @@ function Logging(response, request) {
                 }, false);
             }
 
-            throw new Error(CONST.ERROR.XHR_FAILED);
+            // Re-throw this error so the next handler can manage it
+            throw error;
         });
 }
 
