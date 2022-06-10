@@ -5,13 +5,21 @@ import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
+import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 
 const propTypes = {
-    /** HTML to display in the banner. */
-    html: PropTypes.string.isRequired,
+    /** Text to display in the banner. */
+    text: PropTypes.string.isRequired,
+
+    /** Should this component render the text as HTML? */
+    shouldRenderHTML: PropTypes.bool,
+};
+
+const defaultProps = {
+    shouldRenderHTML: false,
 };
 
 const Banner = props => (
@@ -32,13 +40,18 @@ const Banner = props => (
                         fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                     />
                 </View>
-                <RenderHTML html={props.html} />
+                {
+                    props.shouldRenderHTML
+                        ? <RenderHTML html={props.text} />
+                        : <Text>{props.text}</Text>
+                }
             </View>
         )}
     </Hoverable>
 );
 
 Banner.propTypes = propTypes;
+Banner.defaultProps = defaultProps;
 Banner.displayName = 'Banner';
 
 export default memo(Banner);

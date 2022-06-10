@@ -7,7 +7,6 @@ export default {
     REPORT_COMMENT_CHUNK: 'chunked-reportComment',
     REPORT_COMMENT_EDIT_CHUNK: 'chunked-reportCommentEdit',
     REPORT_COMMENT_EDIT: 'reportCommentEdit',
-    REPORT_TOGGLE_PINNED: 'reportTogglePinned',
     PREFERRED_LOCALE: 'preferredLocale',
     EXPENSIFY_CARD_UPDATE: 'expensifyCardUpdate',
     SCREEN_SHARE_REQUEST: 'screenshareRequest',
