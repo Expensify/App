@@ -6,7 +6,7 @@ import CONST from '../../CONST';
  * @param {Number} numberOfLines The number of lines in the text input
  */
 function updateIsFullComposerAvailable(props, numberOfLines) {
-    const isFullComposerAvailable = numberOfLines >= CONST.REPORT.FULL_COMPOSER_MIN_LINES;
+    const isFullComposerAvailable = numberOfLines >= CONST.COMPOSER.FULL_COMPOSER_MIN_LINES;
     if (isFullComposerAvailable !== props.isFullComposerAvailable) {
         props.setIsFullComposerAvailable(isFullComposerAvailable);
     }
