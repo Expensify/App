@@ -146,7 +146,7 @@ class ReportActionCompose extends React.Component {
                 start: props.comment.length,
                 end: props.comment.length,
             },
-            maxLines: props.isSmallScreenWidth ? 6 : 16,
+            maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
         };
     }
 
@@ -299,9 +299,9 @@ class ReportActionCompose extends React.Component {
      * Set the maximum number of lines for the composer
      */
     setMaxLines() {
-        let maxLines = this.props.isSmallScreenWidth ? 6 : 16; // This is the same that slack has
+        let maxLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
         if (this.props.isComposerFullSize) {
-            maxLines = -1;
+            maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
         this.setState({maxLines});
     }

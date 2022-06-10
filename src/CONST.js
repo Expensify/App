@@ -274,6 +274,11 @@ const CONST = {
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
         FULL_COMPOSER_MIN_LINES: 3,
     },
+    COMPOSER: {
+        MAX_LINES: 16,
+        MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_FULL: -1,
+    },
     MODAL: {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
