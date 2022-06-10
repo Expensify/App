@@ -78,7 +78,7 @@ const ReportActionItemFragment = (props) => {
                 return (
                     Str.isImage(props.attachmentInfo.name)
                         ? (
-                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}"/></comment>`} />
+                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
                         ) : (
                             <View style={[styles.chatItemAttachmentPlaceholder]}>
                                 <ActivityIndicator
@@ -95,10 +95,9 @@ const ReportActionItemFragment = (props) => {
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we replace them with line breaks and render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = html.replaceAll('<br />', ' ') === text;
+            const differByLineBreaksOnly = Str.replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
             if (differByLineBreaksOnly) {
-                const textWithLineBreaks = html.replaceAll('<br />', '\n');
-                // eslint-disable-next-line no-param-reassign
+                const textWithLineBreaks = Str.replaceAll(props.fragment.html, '<br />', '\n');
                 html = textWithLineBreaks;
                 text = textWithLineBreaks;
             }

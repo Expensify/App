@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -452,13 +451,13 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @returns {String}
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
-    if (lodashGet(report, 'reportNameValuePairs.type') !== 'chat') {
-        return lodashGet(report, 'reportName', '');
+    let formattedName;
+    if (isDefaultRoom(report)) {
+        formattedName = `#${report.reportName}`;
     }
 
-    let formattedName;
-    if (isChatRoom(report)) {
-        formattedName = `#${report.reportName}`;
+    if (isUserCreatedPolicyRoom(report)) {
+        formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -503,42 +502,6 @@ function navigateToDetailsPage(report) {
     Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
 }
 
-/**
- * Get the text explaining why a report was archived.
- *
- * @param {Object} report
- * @param {Object} reportActions
- * @param {Object} personalDetails
- * @param {Object} policies
- * @returns {String|null}
- */
-function getArchivedText(report, reportActions, personalDetails, policies) {
-    if (!isArchivedRoom(report)) {
-        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);
-    }
-
-    const reportClosedAction = lodashFindLast(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-    if (!reportClosedAction) {
-        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);
-    }
-
-    const archiveReason = lodashGet(reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    let displayName = lodashGet(personalDetails, `${report.ownerEmail}.displayName`, report.ownerEmail);
-    let oldDisplayName;
-    if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
-        const newLogin = reportClosedAction.originalMessage.newLogin;
-        const oldLogin = reportClosedAction.originalMessage.oldLogin;
-        displayName = lodashGet(personalDetails, `${newLogin}.displayName`, newLogin);
-        oldDisplayName = lodashGet(personalDetails, `${oldLogin}.displayName`, oldLogin);
-    }
-
-    return Localize.translateLocal(`reportArchiveReasons.${archiveReason}`, {
-        displayName: `<strong>${displayName}</strong>`,
-        oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-        policyName: `<strong>${getPolicyName(report, policies)}</strong>`,
-    });
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -566,5 +529,4 @@ export {
     getDisplayNamesWithTooltips,
     getReportName,
     navigateToDetailsPage,
-    getArchivedText,
 };
