@@ -221,13 +221,13 @@ class OptionsSelector extends Component {
         }
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(prevProps) {
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
         const newOptions = this.flattenSections();
-        const newFocusedIndex = newOptions.length === lodashGet(prevState, 'allOptions.length') ? prevState.focusedIndex : this.props.selectedOptions.length;
+        const newFocusedIndex = this.props.selectedOptions.length;
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
             allOptions: newOptions,
