@@ -1242,7 +1242,7 @@ Onyx.connect({
  */
 function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
-    const htmlForNewComment = parser.replace(textForNewComment);
+    const htmlForNewComment = parser.replace(textForNewComment, {filterRules: _.map(_.filter(parser.rules, (({name}) => !['autolink'].includes(name))), ({name}) => name)});
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
