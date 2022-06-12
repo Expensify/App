@@ -380,6 +380,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     showReportsWithNoComments = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
+    sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
     prioritizeIOUDebts = false,
     prioritizeReportsWithDraftComments = false,
@@ -471,8 +472,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         })
     ));
 
-    // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-    allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+    if (sortPersonalDetailsByAlphaAsc) {
+        // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+    }
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
@@ -713,6 +716,36 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the options for the Workspace Member Invite view
+ *
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Array<String>} betas
+ * @param {String} searchValue
+ * @param {Array} selectedOptions
+ * @param {Array} excludeLogins
+ * @returns {Object}
+ */
+function getMemberInviteOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+) {
+    return getOptions(reports, personalDetails, 0, {
+        betas,
+        searchValue: searchValue.trim(),
+        selectedOptions,
+        excludeDefaultRooms: true,
+        includePersonalDetails: true,
+        excludeLogins,
+        sortPersonalDetailsByAlphaAsc: false,
+    });
+}
+
+/**
  * Build the options for the Sidebar a.k.a. LHN
  *
  * @param {Object} reports
@@ -804,6 +837,7 @@ export {
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
+    getMemberInviteOptions,
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
