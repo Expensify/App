@@ -305,7 +305,7 @@ describe('OptionsListUtils', () => {
         // Value with latest lastMessageTimestamp should be at the top.
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
-        expect(results.recentReports[1].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
+        expect(results.recentReports[1].text).toBe('Iron Man, Mister Fantastic');
 
         // When we filter again but provide a searchValue that should match with periods
         results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
@@ -376,7 +376,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(5);
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
         expect(results.recentReports[0].text).toBe('Captain America');
-        expect(results.recentReports[1].text).toBe('Mister Sinister');
+        expect(results.recentReports[1].text).toBe('Mr Sinister');
         expect(results.recentReports[2].text).toBe('Black Panther');
 
         // Test for Concierge's existence in chat options
