@@ -109,7 +109,6 @@ class GithubUtils {
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
-                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
                 isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
                 isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
                 tag,
