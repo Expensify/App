@@ -188,6 +188,7 @@ const CONST = {
     USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
+    GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -381,11 +382,17 @@ const CONST = {
         },
     },
 
+    PUSHER: {
+        PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+    },
+
     EMOJI_SPACER: 'SPACER',
 
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
+
+    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
 
     TOOLTIP_MAX_LINES: 3,
 

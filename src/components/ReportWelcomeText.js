@@ -10,6 +10,9 @@ import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import Tooltip from './Tooltip';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -85,8 +88,8 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {roomWelcomeMessage.phrase1}
                     </Text>
-                    <Text style={[styles.textStrong]}>
-                        {props.report.reportName}
+                    <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
+                        {ReportUtils.getReportName(props.report, props.personalDetails, props.policies)}
                     </Text>
                     <Text>
                         {roomWelcomeMessage.phrase2}
@@ -99,11 +102,15 @@ const ReportWelcomeText = (props) => {
                     <Text style={styles.textAlignCenter}>
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
-                    {_.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => (
+                    {_.map(displayNamesWithTooltips, ({
+                        displayName, pronouns, tooltip,
+                    }, index) => (
                         <Text key={displayName}>
-                            <Text style={[styles.textStrong]}>
-                                {displayName}
-                            </Text>
+                            <Tooltip text={tooltip}>
+                                <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
+                                    {displayName}
+                                </Text>
+                            </Tooltip>
                             {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                             {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
                             {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}

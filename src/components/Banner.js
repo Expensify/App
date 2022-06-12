@@ -31,6 +31,7 @@ const Banner = props => (
                 styles.p5,
                 styles.borderRadiusNormal,
                 isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
+                styles.breakAll,
             ]}
             >
                 <View style={[styles.mr3]}>
