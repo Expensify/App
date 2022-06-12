@@ -31,7 +31,7 @@ class PDFPasswordForm extends Component {
     }
 
     submitPassword() {
-        if (!this.state.password) {
+        if (_.isEmpty(this.state.password)) {
             return;
         }
         this.props.onSubmit(this.state.password);
@@ -56,6 +56,7 @@ class PDFPasswordForm extends Component {
                     returnKeyType="done"
                     onSubmitEditing={this.submitPassword}
                     secureTextEntry
+                    autoFocus
                 />
                 {this.props.isPasswordInvalid && (
                     <Text style={[styles.formError]}>
@@ -63,10 +64,10 @@ class PDFPasswordForm extends Component {
                     </Text>
                 )}
                 <Button
-                    textStyles={[styles.buttonConfirmText]}
                     text={this.props.translate('common.confirm')}
                     onPress={this.submitPassword}
                     style={styles.mt4}
+                    pressOnEnter
                 />
             </View>
         );
