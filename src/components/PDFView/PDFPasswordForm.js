@@ -31,6 +31,7 @@ class PDFPasswordForm extends Component {
         this.state = {
             password: '',
             validationErrorText: '',
+            isEditingInProgress: true,
         };
         this.submitPassword = this.submitPassword.bind(this);
         this.validateOnBlur = this.validateOnBlur.bind(this);
@@ -41,6 +42,7 @@ class PDFPasswordForm extends Component {
         if (_.isEmpty(this.state.password)) {
             return;
         }
+        this.setState({isEditingInProgress: false});
         this.props.onSubmit(this.state.password);
     }
 
@@ -48,7 +50,7 @@ class PDFPasswordForm extends Component {
         if (!_.isEmpty(password)) {
             this.setState({validationErrorText: ''});
         }
-        this.setState({password});
+        this.setState({password, isEditingInProgress: true});
     }
 
     validateOnBlur() {
@@ -83,7 +85,7 @@ class PDFPasswordForm extends Component {
                     secureTextEntry
                     autoFocus
                 />
-                {this.props.isPasswordInvalid && (
+                {!this.state.isEditingInProgress && this.props.isPasswordInvalid && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
                         <Icon src={Expensicons.Exclamation} fill={colors.red} />
                         <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
