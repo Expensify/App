@@ -5,7 +5,10 @@ import {View} from 'react-native';
 import Button from '../Button';
 import Text from '../Text';
 import TextInput from '../TextInput';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
+import colors from '../../styles/colors';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -81,9 +84,14 @@ class PDFPasswordForm extends Component {
                     autoFocus
                 />
                 {this.props.isPasswordInvalid && (
-                    <Text style={[styles.formError]}>
-                        {this.props.translate('attachmentView.passwordIncorrect')}
-                    </Text>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
+                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                        <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                            <Text style={styles.mutedTextLabel}>
+                                {this.props.translate('attachmentView.passwordIncorrect')}
+                            </Text>
+                        </View>
+                    </View>
                 )}
                 <Button
                     text={this.props.translate('common.confirm')}
