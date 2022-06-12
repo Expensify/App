@@ -109,6 +109,7 @@ class GithubUtils {
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
+                internalQA: this.getStagingDeployCashInternalQA(issue),
                 isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
                 isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
                 tag,
@@ -169,6 +170,31 @@ class GithubUtils {
             }),
         );
         return _.sortBy(deployBlockers, 'number');
+    }
+
+    /**
+     * Parse InternalQA section of the StagingDeployCash issue body.
+     *
+     * @private
+     *
+     * @param {Object} issue
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
+     */
+     static getStagingDeployCashInternalQA(issue) {
+        let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:.*\r?\n)+)/) || [];
+        if (internalQASection.length !== 2) {
+            return [];
+        }
+        internalQASection = internalQASection[1];
+        const internaQAPRs = _.map(
+            [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
+            match => ({
+                url: match[2],
+                number: Number.parseInt(match[3], 10),
+                isResolved: match[1] === 'x',
+            }),
+        );
+        return _.sortBy(internaQAPRs, 'number');
     }
 
     /**
