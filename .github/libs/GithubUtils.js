@@ -120,7 +120,7 @@ class GithubUtils {
     }
 
     /**
-     * Parse the PRList section of the StagingDeployCash issue body.
+     * Parse the PRList and Internal QA section of the StagingDeployCash issue body.
      *
      * @private
      *
@@ -144,7 +144,8 @@ class GithubUtils {
                 isAccessible: match[4] === 'x',
             }),
         );
-        return _.sortBy(PRList, 'number');
+        let internalQAPRList = getStagingDeployCashInternalQA(issue);
+        return _.sortBy(_.union(PRList, internalQAPRList), 'number');
     }
 
     /**
@@ -178,7 +179,7 @@ class GithubUtils {
      * @private
      *
      * @param {Object} issue
-     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
      */
      static getStagingDeployCashInternalQA(issue) {
         let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:.*\r?\n)+)/) || [];
@@ -192,6 +193,7 @@ class GithubUtils {
                 url: match[2],
                 number: Number.parseInt(match[3], 10),
                 isResolved: match[1] === 'x',
+                isAccessible: false,
             }),
         );
         return _.sortBy(internaQAPRs, 'number');
@@ -206,7 +208,6 @@ class GithubUtils {
      * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
-     * @param {Array} [verifiedInternalQAPRList] - The list of PRs with InternalQA label.
      * @param {Boolean} [isTimingDashboardChecked]
      * @param {Boolean} [isFirebaseChecked]
      * @returns {Promise}
@@ -218,7 +219,6 @@ class GithubUtils {
         accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
-        verifiedInternalQAPRList = [],
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
     ) {
@@ -278,7 +278,7 @@ class GithubUtils {
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n${_.contains(verifiedInternalQAPRList, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `\r\n${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` -${assigneeMentions}`;
                     });
