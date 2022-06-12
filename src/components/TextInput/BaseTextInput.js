@@ -14,7 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
-import CheckboxButton from '../CheckboxButton';
+import Checkbox from '../Checkbox';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -280,7 +280,7 @@ class BaseTextInput extends Component {
                                         selection={this.state.selection}
                                     />
                                     {this.props.secureTextEntry && (
-                                        <CheckboxButton
+                                        <Checkbox
                                             style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
                                         >
@@ -288,7 +288,7 @@ class BaseTextInput extends Component {
                                                 src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
                                                 fill={themeColors.icon}
                                             />
-                                        </CheckboxButton>
+                                        </Checkbox>
                                     )}
                                 </View>
                             </View>

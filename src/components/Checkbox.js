@@ -1,10 +1,10 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import CheckboxButton from './CheckboxButton';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -19,6 +19,15 @@ const propTypes = {
     /** Should the input be disabled  */
     disabled: PropTypes.bool,
 
+    /** Children to wrap in AnimatedStep. */
+    children: PropTypes.node,
+
+    /** Additional styles to add to checkbox button */
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([
         PropTypes.func,
@@ -29,27 +38,53 @@ const propTypes = {
 const defaultProps = {
     hasError: false,
     disabled: false,
+    style: [],
     forwardedRef: undefined,
+    children: null,
 };
 
-const Checkbox = props => (
-    <CheckboxButton
-        disabled={props.disabled}
-        onPress={() => props.onPress(!props.isChecked)}
-        ref={props.forwardedRef}
-    >
-        <View
-            style={[
-                styles.checkboxContainer,
-                props.isChecked && styles.checkedContainer,
-                props.hasError && styles.borderColorDanger,
-                props.disabled && styles.cursorDisabled,
-            ]}
+function Checkbox(props) {
+    function onKeyDown(event) {
+        if (event.keyCode !== CONST.KEYCODE.SPACE) {
+            return;
+        }
+
+        props.onPress();
+    }
+
+    function checkboxClicked(event) {
+        if (event.type !== 'click') {
+            return;
+        }
+
+        props.onPress();
+    }
+
+    return (
+        <Pressable
+            disabled={props.disabled}
+            onPress={checkboxClicked}
+            ref={props.forwardedRef}
+            style={props.style}
+            onKeyDown={onKeyDown}
         >
-            <Icon src={Expensicons.Checkmark} fill="white" height={14} width={14} />
-        </View>
-    </CheckboxButton>
-);
+            {props.children
+                ? props.children
+                : (
+                    <View
+                        style={[
+                            styles.checkboxContainer,
+                            props.isChecked && styles.checkedContainer,
+                            props.hasError && styles.borderColorDanger,
+                            props.disabled && styles.cursorDisabled,
+                        ]}
+                    >
+                        <Icon src={Expensicons.Checkmark} fill="white" height={14} width={14} />
+                    </View>
+                )}
+        </Pressable>
+    );
+}
 
 Checkbox.propTypes = propTypes;
 Checkbox.defaultProps = defaultProps;
