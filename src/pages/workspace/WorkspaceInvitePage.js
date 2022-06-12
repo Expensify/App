@@ -68,7 +68,7 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
+        } = OptionsListUtils.getMemberInviteOptions(
             [],
             props.personalDetails,
             props.betas,
@@ -192,7 +192,7 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = OptionsListUtils.getNewChatOptions(
+            } = OptionsListUtils.getMemberInviteOptions(
                 [],
                 this.props.personalDetails,
                 this.props.betas,
@@ -275,7 +275,7 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = OptionsListUtils.getNewChatOptions(
+                                        } = OptionsListUtils.getMemberInviteOptions(
                                             [],
                                             this.props.personalDetails,
                                             this.props.betas,
