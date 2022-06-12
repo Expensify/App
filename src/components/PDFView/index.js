@@ -21,6 +21,7 @@ class PDFView extends Component {
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
+        this.attemptPdfLoad = this.attemptPdfLoad.bind(this);
     }
 
     /**
@@ -62,6 +63,17 @@ class PDFView extends Component {
             this.setState({shouldRequestPassword: true, isPasswordInvalid: true});
             this.props.onUserInputRequired(true);
         }
+    }
+
+    /**
+     * Send password to react-pdf via its callback so that it can attempt to load
+     * the PDF.
+     *
+     * @param {String} password Password to send via callback to react-pdf
+     */
+    attemptPdfLoad(password) {
+        this.setState({isPasswordInvalid: false});
+        this.onPasswordCallback(password);
     }
 
     render() {
@@ -109,7 +121,7 @@ class PDFView extends Component {
                 </View>
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
-                        onSubmit={this.onPasswordCallback}
+                        onSubmit={this.attemptPdfLoad}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                     />
                 )}
