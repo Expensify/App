@@ -49,7 +49,7 @@ const MenuItem = props => (
                 return;
             }
 
-            if ('type' in e && e.type === 'click') {
+            if (e.type && e.type === 'click') {
                 e.currentTarget.blur();
             }
 
