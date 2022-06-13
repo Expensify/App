@@ -188,11 +188,12 @@ class IOUParticipantsSplit extends Component {
     render() {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-        const headerMessage = !maxParticipantsReached ? OptionsListUtils.getHeaderMessage(
+        const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
-        ) : '';
+            maxParticipantsReached,
+        );
         return (
             <>
                 <View style={[styles.flex1, styles.w100]}>
@@ -234,11 +235,6 @@ class IOUParticipantsSplit extends Component {
                 </View>
                 {lodashGet(this.props, 'participants', []).length > 0 && (
                     <FixedFooter>
-                        {maxParticipantsReached && (
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
-                                {this.props.translate('iou.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS})}
-                            </Text>
-                        )}
                         <Button
                             success
                             style={[styles.w100]}

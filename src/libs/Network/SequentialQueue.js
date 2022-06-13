@@ -17,6 +17,8 @@ resolveIsReadyPromise();
 let isSequentialQueueRunning = false;
 let isOffline = true;
 
+let currentRequest = null;
+
 /**
  * This method will get any persisted requests and fire them off in sequence to retry them.
  *
@@ -30,7 +32,10 @@ function process() {
         return Promise.resolve();
     }
 
-    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => Request.processWithMiddleware(request, true)), Promise.resolve());
+    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
+        currentRequest = Request.processWithMiddleware(request, true);
+        return currentRequest;
+    }), Promise.resolve());
 
     // Do a recursive call in case the queue is not empty after processing the current batch
     return task.then(process);
@@ -63,6 +68,7 @@ function flush() {
                 .finally(() => {
                     isSequentialQueueRunning = false;
                     resolveIsReadyPromise();
+                    currentRequest = null;
                 });
         },
     });
@@ -96,6 +102,16 @@ function push(request) {
     flush();
 }
 
+/**
+ * @returns {Promise}
+ */
+function getCurrentRequest() {
+    if (currentRequest === null) {
+        return Promise.resolve();
+    }
+    return currentRequest;
+}
+
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
@@ -112,6 +128,7 @@ Onyx.connect({
 
 export {
     flush,
+    getCurrentRequest,
     isRunning,
     push,
 };
