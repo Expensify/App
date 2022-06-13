@@ -1734,6 +1734,10 @@ const styles = {
             ...spacing.p5,
             ...sizing.h100,
         },
+        confirmButton: {
+            ...spacing.pt4,
+            marginTop: 'auto',
+        },
     },
 
     modalCenterContentContainer: {
