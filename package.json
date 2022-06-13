@@ -31,7 +31,7 @@
     "storybook-build": "build-storybook -o dist/docs",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
-    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js",
+    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env.envFile=.env.production",
     "check-metro-bundler-port": "node config/checkMetroBundlerPort.js"
   },
   "dependencies": {
