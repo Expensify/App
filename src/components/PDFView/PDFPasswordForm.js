@@ -12,7 +12,6 @@ import colors from '../../styles/colors';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withKeyboardState from '../withKeyboardState';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
@@ -86,12 +85,6 @@ class PDFPasswordForm extends Component {
                     secureTextEntry
                     autoFocus
                 />
-
-                {/* Add vertical spacer on narrow screens to push button to bottom */}
-                {this.props.isSmallScreenWidth && !this.props.isShown && (
-                    <View style={{flexGrow: 1}} />
-                )}
-
                 {!this.state.isEditingInProgress && this.props.isPasswordInvalid && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
                         <Icon src={Expensicons.Exclamation} fill={colors.red} />
@@ -105,7 +98,7 @@ class PDFPasswordForm extends Component {
                 <Button
                     text={this.props.translate('common.confirm')}
                     onPress={this.submitPassword}
-                    style={styles.mt4}
+                    style={styles.pdfPasswordForm.confirmButton}
                     pressOnEnter
                 />
             </View>
@@ -119,5 +112,4 @@ PDFPasswordForm.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withKeyboardState,
 )(PDFPasswordForm);
