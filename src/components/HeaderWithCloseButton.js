@@ -119,7 +119,7 @@ class HeaderWithCloseButton extends Component {
         }
 
         this.props.onDownloadButtonPress();
-        this.props.toggleDelayButtonState();
+        this.props.toggleDelayButtonState(true);
     }
 
     render() {
