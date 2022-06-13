@@ -56,10 +56,10 @@ class PDFView extends Component {
     initiatePasswordChallenge(callback, reason) {
         this.onPasswordCallback = callback;
 
-        if (reason === CONST.REACT_PDF_PASSWORD_RESPONSES.NEED_PASSWORD) {
+        if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.NEED_PASSWORD) {
             this.setState({shouldRequestPassword: true});
             this.props.onUserInputRequired(true);
-        } else if (reason === CONST.REACT_PDF_PASSWORD_RESPONSES.INCORRECT_PASSWORD) {
+        } else if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.INCORRECT_PASSWORD) {
             this.setState({shouldRequestPassword: true, isPasswordInvalid: true});
             this.props.onUserInputRequired(true);
         }

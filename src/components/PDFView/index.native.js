@@ -11,6 +11,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions from '../withWindowDimensions';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
+import CONST from '../../CONST';
 import {propTypes, defaultProps} from './pdfViewPropTypes';
 
 /**
@@ -126,6 +127,9 @@ class PDFView extends Component {
         const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
             ? styles.pdfPasswordForm.nativeNarrowContainer : {};
 
+        const keyboardBehavior = CONST.PDF_PASSWORD_FORM.KEYBOARD_AVOIDING_VIEW.BEHAVIOR;
+        const keyboardOffset = CONST.PDF_PASSWORD_FORM.KEYBOARD_AVOIDING_VIEW.KEYBOARD_VERTICAL_OFFSET;
+
         return (
             <View style={containerStyles}>
                 {this.state.shouldAttemptPdfLoad && (
@@ -141,9 +145,9 @@ class PDFView extends Component {
                 )}
                 {this.state.shouldRequestPassword && (
                     <KeyboardAvoidingView
-                        enabled={Platform.OS === 'ios'}
-                        behavior="padding"
-                        keyboardVerticalOffset={80}
+                        enabled={Platform.OS === CONST.PLATFORM.IOS}
+                        behavior={keyboardBehavior}
+                        keyboardVerticalOffset={keyboardOffset}
                     >
                         <PDFPasswordForm
                             onSubmit={this.attemptPdfLoadWithPassword}
