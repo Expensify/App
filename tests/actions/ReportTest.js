@@ -91,7 +91,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addAction(REPORT_ID, 'Testing a comment');
+                Report.createComment(REPORT_ID, 'Testing a comment');
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -197,7 +197,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addAction(REPORT_ID, 'Testing a comment');
+                Report.createComment(REPORT_ID, 'Testing a comment');
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
