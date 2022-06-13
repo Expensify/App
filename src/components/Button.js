@@ -236,6 +236,7 @@ class Button extends Component {
                     if (e.type === 'click') {
                         e.currentTarget.blur();
                     }
+
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.trigger();
                     }
