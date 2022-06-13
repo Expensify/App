@@ -11,7 +11,13 @@ let isOffline = true;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     initWithStoredValues: false,
-    callback: val => isOffline = lodashGet(val, 'isOffline', true),
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        isOffline = lodashGet(val, 'isOffline', true);
+    },
 });
 
 // Queue for network requests so we don't lose actions done by the user while offline

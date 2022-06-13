@@ -13,7 +13,13 @@ let isOffline = true;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     initWithStoredValues: false,
-    callback: val => isOffline = lodashGet(val, 'isOffline', true),
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        isOffline = lodashGet(val, 'isOffline', true);
+    },
 });
 
 /**

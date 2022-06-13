@@ -15,9 +15,11 @@ let accountID;
  */
 function refreshOfflineStatus() {
     const wasOffline = isOffline;
-    isOffline = !NetInfo.isInternetReachable()
-        || !Pusher.isConnected()
-        || (authToken && !Pusher.isSubscribed(`private-user-accountID-${accountID}`));
+    if (authToken) {
+        isOffline = !NetInfo.isInternetReachable() || !Pusher.isConnected() || !Pusher.isSubscribed(`private-user-accountID-${accountID}`);
+    } else {
+        isOffline = !NetInfo.isInternetReachable() || !Pusher.isConnected();
+    }
     if (isOffline !== wasOffline) {
         Log.info(`Switching app to ${isOffline ? 'offline' : 'online'} mode`);
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
@@ -35,3 +37,10 @@ Onyx.connect({
         refreshOfflineStatus();
     },
 });
+
+export {
+
+    // Only exported for unit tests
+    // eslint-disable-next-line import/prefer-default-export
+    refreshOfflineStatus,
+};
