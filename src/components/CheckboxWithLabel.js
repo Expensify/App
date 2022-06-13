@@ -90,6 +90,7 @@ const CheckboxWithLabel = (props) => {
                         styles.flexShrink1,
                         styles.alignItemsCenter,
                     ]}
+                    activeOpacity={1}
                 >
                     {props.label && (
                         <Text style={[styles.ml1]}>
