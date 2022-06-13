@@ -82,6 +82,7 @@ class PDFView extends Component {
             password,
             shouldAttemptPdfLoad: true,
             shouldShowLoadingIndicator: true,
+            isPasswordInvalid: false,
         });
     }
 
