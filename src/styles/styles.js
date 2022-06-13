@@ -1731,7 +1731,8 @@ const styles = {
             maxWidth: 350,
         },
         narrowScreen: {
-            ...spacing.m5,
+            ...spacing.p5,
+            ...sizing.h100,
         },
     },
 
