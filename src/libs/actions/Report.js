@@ -954,7 +954,7 @@ function addAction(reportID, text, file) {
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();
-        parameters.timezone = timezone;
+        parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
