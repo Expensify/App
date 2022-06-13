@@ -60,7 +60,7 @@ describe('actions/Report', () => {
         }));
 
         // When we add a new action to that report
-        addAction(REPORT_ID, 'Hello!');
+        Report.createComment(REPORT_ID, 'Hello!');
         return waitForPromisesToResolve()
             .then(() => {
                 const action = reportActions[ACTION_ID];
