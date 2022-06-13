@@ -238,6 +238,7 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
+        .then(Navigation.isNavigationReady)
         .then(() => {
             Navigation.dismissModal();
             navigateToPolicy(newPolicyID);
@@ -526,9 +527,12 @@ function subscribeToPolicyEvents() {
             // Remove the members from the policy
             Onyx.set(key, policyWithoutEmployee);
 
-            // Refetch the policy expense chats to update their state
+            // Refetch the policy expense chats to update their state and their actions to get the archive reason
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
+                _.each(policyExpenseChatIDs, (reportID) => {
+                    Report.fetchActions(reportID);
+                });
             }
 
             // Remove the default chats if we are one of the users getting removed

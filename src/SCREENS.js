@@ -6,5 +6,5 @@ export default {
     HOME: 'Home',
     LOADING: 'Loading',
     REPORT: 'Report',
-    LOG_IN_WITH_SHORT_LIVED_TOKEN: 'LogInWithShortLivedToken',
+    TRANSITION_FROM_OLD_DOT: 'TransitionFromOldDot',
 };

@@ -137,8 +137,8 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseDefaultRooms(this.props.betas)) {
-            Log.info('Not showing create Policy Room page since user is not on default rooms beta');
+        if (!Permissions.canUsePolicyRooms(this.props.betas)) {
+            Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
             Navigation.dismissModal();
             return null;
         }

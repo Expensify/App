@@ -1,7 +1,9 @@
 import React, {PureComponent} from 'react';
+import {
+    View,
+} from 'react-native';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import _ from 'underscore';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -9,20 +11,12 @@ import Text from '../../../components/Text';
 import Timers from '../../../libs/Timers';
 import CONST from '../../../CONST';
 import DateUtils from '../../../libs/DateUtils';
-import stylePropTypes from '../../../styles/stylePropTypes';
 
 const propTypes = {
     /** Personal details of the participant */
     participant: participantPropTypes.isRequired,
 
-    /** Additional style props */
-    style: stylePropTypes,
-
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    style: [],
 };
 
 class ParticipantLocalTime extends PureComponent {
@@ -60,29 +54,32 @@ class ParticipantLocalTime extends PureComponent {
     }
 
     render() {
-        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
         const reportRecipientDisplayName = this.props.participant.firstName
             || (Str.isSMSLogin(this.props.participant.login)
                 ? this.props.toLocalPhone(this.props.participant.displayName)
                 : this.props.participant.displayName);
 
         return (
-            <Text
-                style={[styles.chatItemComposeSecondaryRowSubText, ...additionalStyles]}
-                numberOfLines={1}
-            >
-                {this.props.translate(
-                    'reportActionCompose.localTime',
-                    {
-                        user: reportRecipientDisplayName,
-                        time: this.state.localTime,
-                    },
-                )}
-            </Text>
+            <View style={[styles.chatItemComposeSecondaryRow]}>
+                <Text
+                    style={[
+                        styles.chatItemComposeSecondaryRowSubText,
+                        styles.chatItemComposeSecondaryRowOffset,
+                    ]}
+                    numberOfLines={1}
+                >
+                    {this.props.translate(
+                        'reportActionCompose.localTime',
+                        {
+                            user: reportRecipientDisplayName,
+                            time: this.state.localTime,
+                        },
+                    )}
+                </Text>
+            </View>
         );
     }
 }
 
 ParticipantLocalTime.propTypes = propTypes;
-ParticipantLocalTime.defaultProps = defaultProps;
 export default withLocalize(ParticipantLocalTime);
