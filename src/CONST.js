@@ -702,10 +702,17 @@ const CONST = {
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
 
-    // Constants for password-related error responses received from react-pdf.
-    REACT_PDF_PASSWORD_RESPONSES: {
-        NEED_PASSWORD: 1,
-        INCORRECT_PASSWORD: 2,
+    PDF_PASSWORD_FORM: {
+        KEYBOARD_AVOIDING_VIEW: {
+            BEHAVIOR: 'padding',
+            KEYBOARD_VERTICAL_OFFSET: 85,
+        },
+
+        // Constants for password-related error responses received from react-pdf.
+        REACT_PDF_PASSWORD_RESPONSES: {
+            NEED_PASSWORD: 1,
+            INCORRECT_PASSWORD: 2,
+        },
     },
 };
 

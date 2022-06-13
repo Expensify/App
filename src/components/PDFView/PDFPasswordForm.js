@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import Button from '../Button';
 import Text from '../Text';
 import TextInput from '../TextInput';
@@ -68,6 +69,11 @@ class PDFPasswordForm extends Component {
             ? styles.pdfPasswordForm.narrowScreen
             : styles.pdfPasswordForm.wideScreen;
 
+        const buttonStyles = [
+            styles.pdfPasswordForm.confirmButton,
+            {paddingBottom: this.props.insets.bottom},
+        ];
+
         return (
             <View style={containerStyles}>
                 <Text style={styles.mb4}>
@@ -98,7 +104,7 @@ class PDFPasswordForm extends Component {
                 <Button
                     text={this.props.translate('common.confirm')}
                     onPress={this.submitPassword}
-                    style={styles.pdfPasswordForm.confirmButton}
+                    style={buttonStyles}
                     pressOnEnter
                 />
             </View>
@@ -112,4 +118,5 @@ PDFPasswordForm.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withSafeAreaInsets,
 )(PDFPasswordForm);
