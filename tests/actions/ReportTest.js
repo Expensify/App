@@ -208,8 +208,8 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const reportAddCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
-                expect(reportAddCommentCalls.length).toBe(1);
+                const createCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('CreateComment'));
+                expect(createCommentCalls.length).toBe(1);
             });
     });
 });
