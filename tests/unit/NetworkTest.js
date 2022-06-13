@@ -461,9 +461,26 @@ test(`persisted request should be retried up to ${CONST.NETWORK.MAX_REQUEST_RETR
         });
 });
 
-test('test bad response will log alert', () => {
+test('test Bad Gateway status will log hmmm', () => {
     global.fetch = jest.fn()
         .mockResolvedValueOnce({ok: false, status: 502, statusText: 'Bad Gateway'});
+
+    const logHmmmSpy = jest.spyOn(Log, 'hmmm');
+
+    // Given we have a request made while online
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            Network.post('MockBadNetworkResponse', {param1: 'value1'});
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            expect(logHmmmSpy).toHaveBeenCalled();
+        });
+});
+
+test('test unknown status will log alert', () => {
+    global.fetch = jest.fn()
+        .mockResolvedValueOnce({ok: false, status: 418, statusText: 'I\'m a teapot'});
 
     const logAlertSpy = jest.spyOn(Log, 'alert');
 
