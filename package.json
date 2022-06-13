@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.73-0",
+  "version": "1.1.76-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -155,7 +155,7 @@
     "electron-notarize": "^1.2.1",
     "electron-reloader": "^1.2.1",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "2.0.24",
+    "eslint-config-expensify": "2.0.29",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-jest": "^24.1.0",
     "flipper-plugin-bridgespy-client": "^0.1.9",

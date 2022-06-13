@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
+import lodashFindLast from 'lodash/findLast';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -20,6 +21,7 @@ import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
+import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -151,6 +153,9 @@ class ReportScreen extends React.Component {
             Report.handleInaccessibleReport();
             return;
         }
+
+        // Always reset the state of the composer view when the current reportID changes
+        toggleReportActionComposeView(true);
         Report.updateCurrentlyViewedReportID(reportID);
     }
 
@@ -168,7 +173,13 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
+
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
+        let reportClosedAction;
+        if (isArchivedRoom) {
+            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+        }
+
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -195,8 +206,8 @@ class ReportScreen extends React.Component {
                                 isArchivedRoom
                                     ? (
                                         <ArchivedReportFooter
+                                            reportClosedAction={reportClosedAction}
                                             report={this.props.report}
-                                            reportActions={this.props.reportActions}
                                         />
                                     ) : (
                                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
