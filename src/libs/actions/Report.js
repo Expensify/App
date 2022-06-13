@@ -962,7 +962,7 @@ function createComment(reportID, text, file) {
         DateUtils.setTimezoneUpdated();
     }
 
-    API.write(isAttachment ? 'CreateAttachment' : 'CreateComment', parameters, {
+    API.write(isAttachment ? 'CreateAttachmentWithOptionalComment' : 'CreateComment', parameters, {
         optimisticData,
         failureData: [
             {
@@ -982,7 +982,7 @@ function createComment(reportID, text, file) {
  * @param {Number} reportID
  * @param {Object} file
  */
-function createAttachment(reportID, file) {
+function createAttachmentWithOptionalComment(reportID, file) {
     createComment(reportID, '', file);
 }
 
@@ -1392,7 +1392,7 @@ export {
     fetchIOUReportByID,
     fetchIOUReportByIDAndUpdateChatReport,
     createComment,
-    createAttachment,
+    createAttachmentWithOptionalComment,
     updateLastReadActionID,
     updateNotificationPreference,
     setNewMarkerPosition,
