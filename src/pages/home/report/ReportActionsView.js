@@ -411,11 +411,6 @@ class ReportActionsView extends React.Component {
             return null;
         }
 
-        // Waiting until ONYX variables are loaded before displaying the component
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
-
         return (
             <>
                 {!this.props.isComposerFullSize && (
