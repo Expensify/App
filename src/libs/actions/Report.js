@@ -795,6 +795,12 @@ function fetchActions(reportID, offset) {
         return;
     }
 
+    if (reportActionsOffset === -1) {
+        Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, true);
+    } else {
+        Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, true);
+    }
+
     return DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
@@ -807,19 +813,13 @@ function fetchActions(reportID, offset) {
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+        }).finally(() => {
+            if (reportActionsOffset === -1) {
+                Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, false);
+            } else {
+                Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, false);
+            }
         });
-}
-
-/**
- * Get the actions of a report
- *
- * @param {Number} reportID
- * @param {Number} [offset]
- */
-function fetchActionsWithLoadingState(reportID, offset) {
-    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
-    fetchActions(reportID, offset)
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
 }
 
 /**
@@ -1547,7 +1547,6 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
-    fetchActionsWithLoadingState,
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
