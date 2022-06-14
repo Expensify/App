@@ -72,7 +72,11 @@ function Logging(response, request) {
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] Error: Failed to fetch', {message: error.message, status: error.status});
             } else if (_.contains([
-                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST, CONST.ERROR.NETWORK_REQUEST_FAILED, CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN, CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
+                CONST.ERROR.NETWORK_REQUEST_FAILED,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SPANISH,
             ], error.message)) {
                 // These errors seem to happen for native devices with interrupted connections. Often we will see logs about Pusher disconnecting together with these.
                 // This type of error may also indicate a problem with SSL certs.
@@ -97,8 +101,9 @@ function Logging(response, request) {
                 // we can get about these requests.
                 Log.hmmm('[Network] Error: Push_Authenticate', {message: error.message, status: error.status});
             } else if (error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED) {
-                // Auth (database connection) is down or bedrock has timed out while making a request. We currently can't tell the difference between these two states.
-                Log.hmmm('[Network] Error: Expensify service interrupted or timed out', {type: error.type, title: error.title, jsonCode: error.jsonCode});
+                // Expensify site is down completely OR
+                // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
+                Log.hmmm('[Network] Error: Expensify service interrupted or timed out', {error: error.title, status: error.status});
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request - ${error.message}`, {

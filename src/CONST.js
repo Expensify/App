@@ -334,6 +334,7 @@ const CONST = {
         IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
         IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
         IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
+        IOS_NETWORK_CONNECTION_LOST_SPANISH: 'La conexión a Internet parece estar desactivada.',
         IOS_LOAD_FAILED: 'Load failed',
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
@@ -388,6 +389,7 @@ const CONST = {
 
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+        PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
     },
 
     EMOJI_SPACER: 'SPACER',
