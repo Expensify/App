@@ -795,12 +795,6 @@ function fetchActions(reportID, offset) {
         return;
     }
 
-    if (reportActionsOffset === -1) {
-        Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, true);
-    } else {
-        Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, true);
-    }
-
     return DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
@@ -813,13 +807,30 @@ function fetchActions(reportID, offset) {
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-        }).finally(() => {
-            if (reportActionsOffset === -1) {
-                Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, false);
-            } else {
-                Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, false);
-            }
         });
+}
+
+/**
+ * Get the actions of a report during pagination
+ *
+ * @param {Number} reportID
+ * @param {Number} [offset]
+ */
+function fetchActionsWithPagination(reportID, offset) {
+    Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, true);
+    fetchActions(reportID, offset)
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, false));
+}
+
+/**
+ * Get the initial actions of a report
+ *
+ * @param {Number} reportID
+ */
+function fetchInitialActions(reportID) {
+    Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, true);
+    fetchActions(reportID)
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, false));
 }
 
 /**
@@ -1522,7 +1533,6 @@ Onyx.connect({
 
 export {
     fetchAllReports,
-    fetchActions,
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
@@ -1547,6 +1557,8 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
+    fetchActionsWithPagination,
+    fetchInitialActions,
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
