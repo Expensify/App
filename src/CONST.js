@@ -384,6 +384,7 @@ const CONST = {
 
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+        PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
     },
 
     EMOJI_SPACER: 'SPACER',
