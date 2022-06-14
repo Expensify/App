@@ -113,6 +113,9 @@ class HeaderWithCloseButton extends Component {
         this.triggerButtonCompleteAndDownload = this.triggerButtonCompleteAndDownload.bind(this);
     }
 
+    /**
+     * Called on download button press
+     */
     triggerButtonCompleteAndDownload() {
         if (this.props.isDelayButtonStateComplete) {
             return;
