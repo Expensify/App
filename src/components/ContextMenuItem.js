@@ -52,6 +52,9 @@ class ContextMenuItem extends Component {
         this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
     }
 
+    /**
+     * Called on button press and mark the run
+     */
     triggerPressAndUpdateSuccess() {
         if (this.props.isDelayButtonStateComplete) {
             return;

@@ -30,7 +30,7 @@ export default function (WrappedComponent) {
         }
 
         /**
-         * @param {Boolean} [resetAfterDelay] Impose delay before toggling state
+         * @param {Boolean} resetAfterDelay Impose delay before toggling state
          */
         toggleDelayButtonState(resetAfterDelay) {
             this.setState({
