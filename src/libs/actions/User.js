@@ -310,11 +310,6 @@ function subscribeToUserEvents() {
             Onyx.update(pushJSON);
         });
     });
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE_CHUNK, currentUserAccountID, (pushJSON) => {
-        SequentialQueue.getCurrentRequest().then(() => {
-            Onyx.update(pushJSON.onyxData);
-        });
-    });
 
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
