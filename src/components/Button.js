@@ -233,7 +233,7 @@ class Button extends Component {
         return (
             <Pressable
                 onPress={(e) => {
-                    if (e.type && e.type === 'click') {
+                    if (e && e.type === 'click') {
                         e.currentTarget.blur();
                     }
 
