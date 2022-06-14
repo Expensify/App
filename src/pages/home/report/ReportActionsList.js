@@ -48,7 +48,7 @@ const propTypes = {
     mostRecentIOUReportSequenceNumber: PropTypes.number,
 
     /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool.isRequired,
+    isLoadingMoreReportActions: PropTypes.bool.isRequired,
 
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
