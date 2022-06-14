@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.74-0",
+  "version": "1.1.77-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -31,7 +31,7 @@
     "storybook-build": "build-storybook -o dist/docs",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
-    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js",
+    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env.envFile=.env.production",
     "check-metro-bundler-port": "node config/checkMetroBundlerPort.js"
   },
   "dependencies": {
