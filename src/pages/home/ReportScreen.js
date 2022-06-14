@@ -112,7 +112,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
     }
 
@@ -120,8 +119,6 @@ class ReportScreen extends React.Component {
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
-
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
     }
 

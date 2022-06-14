@@ -170,7 +170,7 @@ class ReportActionsList extends React.Component {
                 initialNumToRender={this.calculateInitialNumToRender()}
                 onEndReached={this.props.loadMoreChats}
                 onEndReachedThreshold={0.75}
-                ListFooterComponent={this.props.isLoadingReportActions
+                ListFooterComponent={this.props.isLoadingMoreReportActions
                     ? <ActivityIndicator size="small" color={themeColors.spinner} />
                     : null}
                 keyboardShouldPersistTaps="handled"
