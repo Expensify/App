@@ -114,7 +114,8 @@ class HeaderWithCloseButton extends Component {
     }
 
     /**
-     * Called on download button press
+     * Method to trigger parent onDownloadButtonPress to download the file
+     * and toggleDelayButtonState to set button state and revert it after sometime.
      */
     triggerButtonCompleteAndDownload() {
         if (this.props.isDelayButtonStateComplete) {

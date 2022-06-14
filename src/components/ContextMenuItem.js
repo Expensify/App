@@ -53,7 +53,7 @@ class ContextMenuItem extends Component {
     }
 
     /**
-     * Called on button press and mark the run
+     * Method to call parent onPress and toggleDelayButtonState
      */
     triggerPressAndUpdateSuccess() {
         if (this.props.isDelayButtonStateComplete) {
