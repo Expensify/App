@@ -1,4 +1,7 @@
 import React from 'react';
+import Animated, {
+    FadeIn, FadeOut, Layout,
+} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import SkeletonViewLines from './SkeletonViewLines';
 import CONST from '../../CONST';
@@ -25,7 +28,7 @@ const ReportActionsSkeletonView = (props) => {
                 skeletonViewLines.push(<SkeletonViewLines numberOfRows={1} key={`skeletonViewLines${index}`} />);
         }
     }
-    return <>{skeletonViewLines}</>;
+    return <Animated.View layout={Layout.springify()} entering={FadeIn.duration(1000)} exiting={FadeOut.duration(1000)}>{skeletonViewLines}</Animated.View>;
 };
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
