@@ -21,6 +21,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -60,6 +61,12 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** The policies which the user has access to */
+    policies: PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -163,7 +170,14 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        if (!Permissions.canUseDefaultRooms(this.props.betas) && ReportUtils.isDefaultRoom(this.props.report)) {
+        // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
+        // For everyone else, one must be on the beta to see a default room.
+        const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(this.props.policies);
+        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(this.props.betas)) {
+            if (ReportUtils.isDomainRoom(this.props.report)) {
+                return null;
+            }
+        } else if (ReportUtils.isDefaultRoom(this.props.report) && !Permissions.canUseDefaultRooms(this.props.betas)) {
             return null;
         }
 
@@ -241,5 +255,8 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(ReportScreen);
