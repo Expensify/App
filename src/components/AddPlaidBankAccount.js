@@ -208,6 +208,11 @@ class AddPlaidBankAccount extends React.Component {
                         <ActivityIndicator color={themeColors.spinner} size="large" />
                     </View>
                 )}
+                {this.props.plaidBankAccounts.error && (
+                    <Text style={[styles.formError, styles.mh5]}>
+                        {this.props.plaidBankAccounts.error}
+                    </Text>
+                )}
                 {token && (
                     <PlaidLink
                         token={token}

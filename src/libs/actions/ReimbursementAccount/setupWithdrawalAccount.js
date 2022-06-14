@@ -33,10 +33,7 @@ function getBankAccountListAndGoToValidateStep(updatedACHData) {
             });
             const bankAccount = new BankAccount(bankAccountJSON);
             const achData = bankAccount.toACHData();
-            const needsToPassLatestChecks = achData.state === BankAccount.STATE.OPEN
-                && achData.needsToPassLatestChecks;
-            achData.bankAccountInReview = needsToPassLatestChecks
-                || achData.state === BankAccount.STATE.VERIFYING;
+            achData.bankAccountInReview = achData.state === BankAccount.STATE.VERIFYING;
 
             navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});

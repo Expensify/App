@@ -68,10 +68,7 @@ function fetchPlaidBankAccounts(publicToken, bank) {
             }
 
             Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {
-                error: {
-                    title: response.title,
-                    message: response.message,
-                },
+                error: response.message,
                 loading: false,
                 accounts: _.map(plaidBankAccounts, account => ({
                     ...account,

@@ -56,7 +56,6 @@ function fetchNameValuePairsAndBankAccount() {
             const failedValidationAttempts = lodashGet(nameValuePairs, failedValidationAttemptsName, 0);
             const maxAttemptsReached = failedValidationAttempts > CONST.BANK_ACCOUNT.VERIFICATION_MAX_ATTEMPTS;
 
-            const kycVerificationsMigration = lodashGet(nameValuePairs, CONST.NVP.KYC_MIGRATION, '');
             const throttledDate = lodashGet(nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
             const bankAccountJSON = _.find(bankAccountList, account => (
                 account.bankAccountID === bankAccountID
@@ -67,7 +66,6 @@ function fetchNameValuePairsAndBankAccount() {
 
             return {
                 maxAttemptsReached,
-                kycVerificationsMigration,
                 throttledDate,
                 bankAccount,
                 isPlaidDisabled,
@@ -80,27 +78,13 @@ function fetchNameValuePairsAndBankAccount() {
 }
 
 /**
- * @param {BankAccount} bankAccount
- * @param {String} kycVerificationsMigration
- * @returns {Boolean}
- */
-function getHasTriedToUpgrade(bankAccount, kycVerificationsMigration) {
-    if (!bankAccount) {
-        return false;
-    }
-
-    return bankAccount.getDateSigned() > (kycVerificationsMigration || '2020-01-13');
-}
-
-/**
  * @param {String} stepToOpen
  * @param {String} stepFromStorage
  * @param {Object} achData
  * @param {BankAccount} bankAccount
- * @param {Boolean} hasTriedToUpgrade
  * @returns {String}
  */
-function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade) {
+function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount) {
     // If we are providing a stepToOpen via a deep link then we will always navigate to that step. This
     // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
     // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
@@ -132,19 +116,14 @@ function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTr
         return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     }
 
-    if (bankAccount.needsToPassLatestChecks()) {
-        return hasTriedToUpgrade ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
-    }
-
     return CONST.BANK_ACCOUNT.STEP.ENABLE;
 }
 
 /**
  * @param {BankAccount} bankAccount
- * @param {Boolean} hasTriedToUpgrade
  * @returns {Boolean}
  */
-function getIsBankAccountInReview(bankAccount, hasTriedToUpgrade) {
+function getIsBankAccountInReview(bankAccount) {
     if (!bankAccount) {
         return false;
     }
@@ -153,26 +132,21 @@ function getIsBankAccountInReview(bankAccount, hasTriedToUpgrade) {
         return true;
     }
 
-    if (bankAccount.isOpen() && bankAccount.needsToPassLatestChecks()) {
-        return hasTriedToUpgrade;
-    }
-
     return false;
 }
 
 /**
  * @param {BankAccount} bankAccount
- * @param {Boolean} hasTriedToUpgrade
  * @param {String} subStep
  * @returns {Object}
  */
-function buildACHData(bankAccount, hasTriedToUpgrade, subStep) {
+function buildACHData(bankAccount, subStep) {
     return {
         ...(bankAccount ? bankAccount.toACHData() : {}),
         useOnfido: true,
         policyID: store.getReimbursementAccountWorkspaceID() || '',
         isInSetup: !bankAccount || bankAccount.isInSetup(),
-        bankAccountInReview: getIsBankAccountInReview(bankAccount, hasTriedToUpgrade),
+        bankAccountInReview: getIsBankAccountInReview(bankAccount),
         domainLimit: 0,
         subStep: bankAccount && bankAccount.isInSetup()
             ? CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL
@@ -196,14 +170,13 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     // Fetch the various NVPs we need to show any initial errors and the bank account itself
     fetchNameValuePairsAndBankAccount()
         .then(({
-            bankAccount, kycVerificationsMigration, throttledDate, maxAttemptsReached, isPlaidDisabled,
+            bankAccount, throttledDate, maxAttemptsReached, isPlaidDisabled,
         }) => {
             // If we already have a substep stored locally then we will add that to the new achData
             const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
-            const hasTriedToUpgrade = getHasTriedToUpgrade(bankAccount, kycVerificationsMigration);
-            const achData = buildACHData(bankAccount, hasTriedToUpgrade, subStep);
+            const achData = buildACHData(bankAccount, subStep);
             const stepFromStorage = store.getReimbursementAccountInSetup().currentStep;
-            const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade);
+            const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount);
 
             navigation.goToWithdrawalAccountSetupStep(currentStep, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
