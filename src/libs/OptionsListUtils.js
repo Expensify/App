@@ -443,7 +443,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
         // For everyone else, one must be on the beta to see a default room.
         const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(policies);
-        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(this.props.betas)) {
+        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(betas)) {
             if (ReportUtils.isDomainRoom(report)) {
                 return;
             }
