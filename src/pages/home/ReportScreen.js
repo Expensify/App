@@ -63,7 +63,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Flag to check if report data is being loaded */
-    isLoadingReportData: PropTypes.bool,
+    isLoadingInitialReportActions: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -78,7 +78,7 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     betas: [],
-    isLoadingReportData: false,
+    isLoadingInitialReportActions: false,
 };
 
 /**
@@ -101,8 +101,6 @@ class ReportScreen extends React.Component {
         this.onSubmitComment = this.onSubmitComment.bind(this);
 
         this.state = {
-            isLoading: true,
-            isSkeletonViewVisible: true,
             skeletonViewContainerHeight: 0,
         };
     }
@@ -113,9 +111,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.state.isSkeletonViewVisible && !this.props.isLoadingReportData) {
-            this.hideSkeletonView();
-        }
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -135,26 +130,13 @@ class ReportScreen extends React.Component {
         Report.addAction(getReportID(this.props.route), text);
     }
 
-    hideSkeletonView() {
-        this.setState({isSkeletonViewVisible: false});
-    }
-
     /**
      * When reports change there's a brief time content is not ready to be displayed
      *
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !getReportID(this.props.route) || this.state.isSkeletonViewVisible;
-    }
-
-    /**
-     * Configures a small loading transition and proceeds with rendering available data
-     */
-    prepareTransition() {
-        this.setState({isLoading: true});
-        clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
+        return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
     }
 
     /**
@@ -268,7 +250,7 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
-    isLoadingReportData: {
-        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    isLoadingInitialReportActions: {
+        key: ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS,
     },
 })(ReportScreen);

@@ -162,7 +162,10 @@ export default {
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
 
     // Are report actions loading?
-    IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
+    IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions',
+
+    // Are report actions loading with pagination?
+    IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions',
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
