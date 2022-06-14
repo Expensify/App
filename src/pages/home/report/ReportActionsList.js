@@ -1,20 +1,21 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
+import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Personal details of all the users */
@@ -171,7 +172,11 @@ class ReportActionsList extends React.Component {
                 onEndReached={this.props.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.props.isLoadingMoreReportActions
-                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
+                    ? (
+                        <ReportActionsSkeletonView
+                            containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                        />
+                    )
                     : null}
                 keyboardShouldPersistTaps="handled"
                 onLayout={this.props.onLayout}
