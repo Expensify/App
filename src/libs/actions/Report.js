@@ -1416,6 +1416,14 @@ function renameReport(reportID, reportName) {
 
 /**
  * @param {Number} reportID
+ * @param {Boolean} isComposerFullSize
+ */
+function setIsComposerFullSize(reportID, isComposerFullSize) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
+}
+
+/**
+ * @param {Number} reportID
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
@@ -1551,4 +1559,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    setIsComposerFullSize,
 };

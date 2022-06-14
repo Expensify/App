@@ -65,6 +65,9 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
@@ -207,6 +210,10 @@ class ReportActionsView extends React.Component {
         }
 
         if (this.state.shouldHighlightReportActionID !== nextState.shouldHighlightReportActionID) {
+            return true;
+        }
+
+        if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
             return true;
         }
 
@@ -502,25 +509,29 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <FloatingMessageCounter
-                    active={this.state.isFloatingMessageCounterVisible}
-                    count={this.state.messageCounterCount}
-                    onClick={this.scrollToBottomAndUpdateLastRead}
-                    onClose={this.hideFloatingMessageCounter}
-                />
-                <ReportActionsList
-                    report={this.props.report}
-                    reportActionIDToHighlight={this.state.shouldHighlightReportActionID && this.props.reportActionID ? this.props.reportActionID : 0}
-                    onScroll={this.trackScroll}
-                    onLayout={this.recordTimeToMeasureItemLayout}
-                    sortedReportActions={this.sortedReportActions}
-                    mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                    isLoadingReportActions={this.props.isLoadingReportActions}
-                    onItemRendered={this.recordReportActionIDRendered}
-                    onMeasurementEnd={this.recordMeasurementDone}
-                    loadMoreChats={this.loadMoreChats}
-                />
-                <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                {!this.props.isComposerFullSize && (
+                    <>
+                        <FloatingMessageCounter
+                            active={this.state.isFloatingMessageCounterVisible}
+                            count={this.state.messageCounterCount}
+                            onClick={this.scrollToBottomAndUpdateLastRead}
+                            onClose={this.hideFloatingMessageCounter}
+                        />
+                        <ReportActionsList
+                            report={this.props.report}
+                            reportActionIDToHighlight={this.state.shouldHighlightReportActionID && this.props.reportActionID ? this.props.reportActionID : 0}
+                            onScroll={this.trackScroll}
+                            onLayout={this.recordTimeToMeasureItemLayout}
+                            sortedReportActions={this.sortedReportActions}
+                            mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                            isLoadingReportActions={this.props.isLoadingReportActions}
+                            onItemRendered={this.recordReportActionIDRendered}
+                            onMeasurementEnd={this.recordMeasurementDone}
+                            loadMoreChats={this.loadMoreChats}
+                        />
+                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    </>
+                )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>
