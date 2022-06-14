@@ -63,7 +63,7 @@ const propTypes = {
     }),
 
     /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool,
+    isLoadingMoreReportActions: PropTypes.bool,
 
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
@@ -84,7 +84,7 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
-    isLoadingReportActions: false,
+    isLoadingMoreReportActions: false,
     isLoadingReportData: false,
 };
 
@@ -296,8 +296,8 @@ class ReportActionsView extends React.Component {
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.reportID, oldestActionSequenceNumber);
+        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        Report.fetchActions(this.props.reportID, offset);
     }
 
     scrollToBottomAndMarkReportAsRead() {
@@ -414,26 +414,22 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                {!this.props.isComposerFullSize && (
-                    <>
-                        <FloatingMessageCounter
-                            active={this.state.isFloatingMessageCounterVisible}
-                            count={this.state.messageCounterCount}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
-                            onClose={this.hideFloatingMessageCounter}
-                        />
-                        <ReportActionsList
-                            report={this.props.report}
-                            onScroll={this.trackScroll}
-                            onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.sortedReportActions}
-                            mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                            isLoadingReportActions={this.props.isLoadingReportActions}
-                            loadMoreChats={this.loadMoreChats}
-                        />
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                    </>
-                )}
+                <FloatingMessageCounter
+                    active={this.state.isFloatingMessageCounterVisible}
+                    count={this.state.messageCounterCount}
+                    onClick={this.scrollToBottomAndUpdateLastRead}
+                    onClose={this.hideFloatingMessageCounter}
+                />
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.sortedReportActions}
+                    mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                    isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
+                />
+                <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>
@@ -454,8 +450,8 @@ export default compose(
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
-        isLoadingReportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+        isLoadingMoreReportActions: {
+            key: ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS,
             initWithStoredValues: false,
         },
     }),
