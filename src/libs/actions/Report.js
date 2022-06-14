@@ -664,6 +664,12 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 function fetchActions(reportID) {
     const reportActionsOffset = -1;
 
+    if (reportActionsOffset === -1) {
+        Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, true);
+    } else {
+        Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, true);
+    }
+
     return DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
@@ -676,6 +682,12 @@ function fetchActions(reportID) {
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+        }).finally(() => {
+            if (reportActionsOffset === -1) {
+                Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, false);
+            } else {
+                Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, false);
+            }
         });
 }
 
