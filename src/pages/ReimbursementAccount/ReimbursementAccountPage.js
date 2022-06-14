@@ -5,12 +5,10 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Log from '../../libs/Log';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
-import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -19,6 +17,8 @@ import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -33,11 +33,11 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
-    /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** Information about the network  */
+    network: networkPropTypes.isRequired,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -70,14 +70,13 @@ const defaultProps = {
 
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
-        // We can specify a step to navigate to by using route params when the component mounts.
-        const stepToOpen = this.getStepToOpenFromRouteParams();
-
-        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
-        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+        this.fetchData();
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.fetchData();
+        }
         const currentStep = lodashGet(
             this.props,
             'reimbursementAccount.achData.currentStep',
@@ -144,13 +143,16 @@ class ReimbursementAccountPage extends React.Component {
         }
     }
 
-    render() {
-        if (!Permissions.canUseFreePlan(this.props.betas)) {
-            Log.info('Not showing new bank account page because user is not on free plan beta');
-            Navigation.dismissModal();
-            return null;
-        }
+    fetchData() {
+        // We can specify a step to navigate to by using route params when the component mounts.
+        // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
+        const stepToOpen = this.getStepToOpenFromRouteParams();
 
+        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
+        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+    }
+
+    render() {
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
         // display. We can also specify a specific route to navigate to via route params when the component first
@@ -243,15 +245,13 @@ ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
 
 export default compose(
+    withNetwork(),
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,

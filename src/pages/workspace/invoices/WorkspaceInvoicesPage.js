@@ -27,9 +27,10 @@ const WorkspaceInvoicesPage = props => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA ? (
+                {!hasVBA && (
                     <WorkspaceInvoicesNoVBAView policyID={policyID} />
-                ) : (
+                )}
+                {hasVBA && (
                     <WorkspaceInvoicesVBAView policyID={policyID} />
                 )}
             </>

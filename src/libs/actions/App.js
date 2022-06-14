@@ -1,8 +1,9 @@
-import {AppState} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
@@ -15,6 +16,8 @@ import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -49,13 +52,13 @@ function setCurrentURL(url) {
 */
 function setLocale(locale) {
     if (currentUserAccountID) {
-        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+        DeprecatedAPI.PreferredLocale_Update({name: 'preferredLocale', value: locale});
     }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
 function getLocale() {
-    API.Get({
+    DeprecatedAPI.Get({
         returnValueList: 'nameValuePairs',
         nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
     }).then((response) => {
@@ -125,13 +128,67 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
  * because some migrations might create new chat reports or their change data.
  */
 function fixAccountAndReloadData() {
-    API.User_FixAccount()
+    DeprecatedAPI.User_FixAccount()
         .then((response) => {
             if (!response.changed) {
                 return;
             }
             Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
             getAppData(false);
+        });
+}
+
+/**
+ * This action runs every time the AuthScreens are mounted. The navigator may
+ * not be ready yet, and therefore we need to wait before navigating within this
+ * action and any actions this method calls.
+ *
+ * getInitialURL allows us to access params from the transition link more easily
+ * than trying to extract them from the navigation state.
+
+ * The transition link contains an exitTo param that contains the route to
+ * navigate to after the user is signed in. A user can transition from OldDot
+ * with a different account than the one they are currently signed in with, so
+ * we only navigate if they are not signing in as a new user. Once they are
+ * signed in as that new user, this action will run again and the navigation
+ * will occur.
+
+ * When the exitTo route is 'workspace/new', we create a new
+ * workspace and navigate to it via Policy.createAndGetPolicyList.
+ *
+ * We subscribe to the session using withOnyx in the AuthScreens and
+ * pass it in as a parameter. withOnyx guarantees that the value has been read
+ * from Onyx because it will not render the AuthScreens until that point.
+ * @param {Object} session
+ */
+function setUpPoliciesAndNavigate(session) {
+    Linking.getInitialURL()
+        .then((url) => {
+            if (!url) {
+                Policy.getPolicyList();
+                return;
+            }
+            const path = new URL(url).pathname;
+            const params = new URLSearchParams(url);
+            const exitTo = params.get('exitTo');
+            const email = params.get('email');
+            const isLoggingInAsNewUser = session.email !== email;
+            const shouldCreateFreePolicy = !isLoggingInAsNewUser
+                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && exitTo === ROUTES.WORKSPACE_NEW;
+            if (shouldCreateFreePolicy) {
+                Policy.createAndGetPolicyList();
+                return;
+            }
+            Policy.getPolicyList();
+            if (!isLoggingInAsNewUser && exitTo) {
+                Navigation.isNavigationReady()
+                    .then(() => {
+                        // We must call dismissModal() to remove the /transition route from history
+                        Navigation.dismissModal();
+                        Navigation.navigate(exitTo);
+                    });
+            }
         });
 }
 
@@ -145,4 +202,5 @@ export {
     getLocale,
     getAppData,
     fixAccountAndReloadData,
+    setUpPoliciesAndNavigate,
 };

@@ -1,13 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
-import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -32,17 +28,12 @@ const propTypes = {
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
-    /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...fullPolicyPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    betas: [],
-
     ...fullPolicyDefaultProps,
 };
 
@@ -127,11 +118,6 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseFreePlan(this.props.betas)) {
-            Log.info('Not showing workspace editor page because user is not on free plan beta');
-            return <Navigation.DismissModal />;
-        }
-
         if (_.isEmpty(this.props.policy)) {
             return <FullScreenLoadingIndicator />;
         }
@@ -167,6 +153,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     fill={defaultTheme.iconSuccessFill}
                                 />
                             )}
+                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[styles.mb3]}
                             anchorPosition={{top: 172, right: 18}}
                             isUsingDefaultAvatar={!this.state.previewAvatarURL}
@@ -208,9 +195,6 @@ WorkspaceSettingsPage.defaultProps = defaultProps;
 export default compose(
     withFullPolicy,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,
