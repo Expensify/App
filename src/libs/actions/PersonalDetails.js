@@ -259,6 +259,10 @@ function setPersonalDetails(details, shouldGrowl) {
             } else {
                 console.debug('Error while setting personal details', response);
             }
+
+            Onyx.merge(ONYXKEYS.FORMS.PROFILE_FORM, {
+                isSubmitting: false,
+            });
         });
 }
 
