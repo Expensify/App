@@ -161,7 +161,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
+        if (nextProps.isLoadingMoreReportActions !== this.props.isLoadingMoreReportActions) {
             return true;
         }
 
@@ -268,7 +268,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.isLoadingReportActions) {
+        if (this.props.isLoadingMoreReportActions) {
             return;
         }
 
