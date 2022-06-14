@@ -126,7 +126,6 @@ class SetPasswordPage extends Component {
                             password={this.state.password}
                             updatePassword={password => this.setState({password})}
                             updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                            onSubmitEditing={this.validateAndSubmitForm}
                         />
                     </View>
                     <View>
