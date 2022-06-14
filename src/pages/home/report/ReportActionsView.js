@@ -109,7 +109,6 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.scrollToReportActionIDAttempt = 0;
         this.doneMeasuring = false;
         this.doneScrollingToReportActionID = false;
         this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
@@ -475,16 +474,20 @@ class ReportActionsView extends React.Component {
             return;
         }
 
+        const minSequenceNumber = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .min()
+            .value();
+
         if (this.doneMeasuring && !this.doneScrollingToReportActionID) {
             if (this.renderedActionIDs.has(this.props.reportActionID)) {
                 this.doneScrollingToReportActionID = true;
 
                 // We give a slight delay because if we attempt this too fast the scroll gets buggy on iOS as more items need to render.
                 setTimeout(this.scrollToReportActionID, 500);
-            } else if (this.renderedActionIDs.size === this.sortedReportActions.length && this.scrollToReportActionIDAttempt < 3) {
+            } else if (this.renderedActionIDs.size === this.sortedReportActions.length && minSequenceNumber !== 0) {
                 this.loadMoreChats();
-                ++this.scrollToReportActionIDAttempt;
-            } else if (this.scrollToReportActionIDAttempt === 3) {
+            } else {
                 // Mark it as done so that as the user scrolls up it does not auto scroll later
                 this.doneScrollingToReportActionID = true;
             }
