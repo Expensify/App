@@ -352,7 +352,7 @@ class GithubUtils {
                 isAccessible: match[4] === 'x',
             }),
         );
-        let internalQAPRList = getStagingDeployCashInternalQA(issue);
+        const internalQAPRList = this.getStagingDeployCashInternalQA(issue);
         return _.sortBy(_.union(PRList, internalQAPRList), 'number');
     }
 
@@ -389,7 +389,7 @@ class GithubUtils {
      * @param {Object} issue
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
      */
-     static getStagingDeployCashInternalQA(issue) {
+    static getStagingDeployCashInternalQA(issue) {
         let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:.*\r?\n)+)/) || [];
         if (internalQASection.length !== 2) {
             return [];
