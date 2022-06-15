@@ -589,7 +589,7 @@ function updateReportWithNewAction(
  * @returns {String}
  */
 function getReportChannelName(reportID) {
-    return `private-report-reportID-${reportID}${CONFIG.PUSHER.SUFFIX}`;
+    return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
 /**
@@ -601,7 +601,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
@@ -1416,6 +1416,14 @@ function renameReport(reportID, reportName) {
 
 /**
  * @param {Number} reportID
+ * @param {Boolean} isComposerFullSize
+ */
+function setIsComposerFullSize(reportID, isComposerFullSize) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
+}
+
+/**
+ * @param {Number} reportID
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
@@ -1551,4 +1559,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    setIsComposerFullSize,
 };
