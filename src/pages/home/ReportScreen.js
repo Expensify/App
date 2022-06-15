@@ -71,6 +71,9 @@ const propTypes = {
     policies: PropTypes.shape({
         /** The policy name */
         name: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
     }).isRequired,
 };
 
