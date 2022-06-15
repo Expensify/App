@@ -5,7 +5,7 @@ import SkeletonViewContentLoader from 'react-content-loader/native';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** Number of rows to show in Skeletal UI block */
+    /** Number of rows to show in Skeleton UI block */
     numberOfRows: PropTypes.number.isRequired,
 };
 
