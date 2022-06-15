@@ -18,7 +18,7 @@ import Popover from '../../../../components/Popover';
 import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
 import * as PaymentMethods from '../../../../libs/actions/PaymentMethods';
-import getClickedElementLocation from '../../../../libs/getClickedElementLocation';
+import getClickedTargetLocation from '../../../../libs/getClickedTargetLocation';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import CurrentWalletBalance from '../../../../components/CurrentWalletBalance';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -47,6 +47,7 @@ class BasePaymentsPage extends React.Component {
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
             addPaymentMethodButton: null,
+            addPaymentMethodNativeEventCurrentTarget: null,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -83,10 +84,10 @@ class BasePaymentsPage extends React.Component {
     }
 
     setMenuPosition() {
-        if (!this.state.addPaymentMethodButton) {
+        if (!this.state.addPaymentMethodNativeEventCurrentTarget) {
             return;
         }
-        const buttonPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
+        const buttonPosition = getClickedTargetLocation(this.state.addPaymentMethodNativeEventCurrentTarget);
         this.setPositionAddPaymentMenu(buttonPosition);
     }
 
@@ -125,10 +126,13 @@ class BasePaymentsPage extends React.Component {
      * @param {Boolean} isDefault
      */
     paymentMethodPressed(nativeEvent, accountType, account, isDefault) {
-        const position = getClickedElementLocation(nativeEvent);
+        const position = getClickedTargetLocation(nativeEvent.currentTarget);
+
         this.setState({
+            addPaymentMethodNativeEventCurrentTarget: nativeEvent.currentTarget,
             addPaymentMethodButton: nativeEvent,
         });
+
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -203,7 +207,10 @@ class BasePaymentsPage extends React.Component {
      * Hide the add payment modal
      */
     hideAddPaymentMenu() {
-        this.setState({shouldShowAddPaymentMenu: false});
+        this.setState({
+            addPaymentMethodNativeEventCurrentTarget: null,
+            shouldShowAddPaymentMenu: false
+        });
     }
 
     /**
