@@ -226,7 +226,7 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internaQAPRs = _.map(
+        const internalQAPRs = _.map(
             [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
                 url: match[2],
@@ -235,7 +235,7 @@ class GithubUtils {
                 isAccessible: false,
             }),
         );
-        return _.sortBy(internaQAPRs, 'number');
+        return _.sortBy(internalQAPRs, 'number');
     }
 
     /**
