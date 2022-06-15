@@ -1,7 +1,7 @@
 import React from 'react';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import { Keyboard, View } from 'react-native';
+import {Keyboard, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
@@ -145,7 +145,7 @@ class ReportScreen extends React.Component {
      */
     updateViewportOffsetTop(e) {
         const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-        this.setState({ viewportOffsetTop });
+        this.setState({viewportOffsetTop});
     }
 
     /**
@@ -193,7 +193,7 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, { marginTop: this.state.viewportOffsetTop }]}>
+            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <KeyboardAvoidingView>
 
                     <HeaderView
@@ -204,7 +204,7 @@ class ReportScreen extends React.Component {
                     <View
                         nativeID={CONST.REPORT.DROP_NATIVE_ID}
                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                        onLayout={event => this.setState({ skeletonViewContainerHeight: event.nativeEvent.layout.height })}
+                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                     >
 
                         {this.shouldShowLoader()
@@ -264,14 +264,14 @@ export default withOnyx({
         key: ONYXKEYS.SESSION,
     },
     reportActions: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
         canEvict: false,
     },
     report: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
     },
     isComposerFullSize: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
     },
     betas: {
         key: ONYXKEYS.BETAS,

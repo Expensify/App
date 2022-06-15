@@ -3,7 +3,7 @@ import {
     Keyboard,
     AppState,
 } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -14,16 +14,16 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
-import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
-import withDrawerState, { withDrawerPropTypes } from '../../../components/withDrawerState';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
-import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
 import ONYXKEYS from '../../../ONYXKEYS';
-import { withNetwork } from '../../../components/OnyxProvider';
+import {withNetwork} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
@@ -341,7 +341,7 @@ class ReportActionsView extends React.Component {
                 ? this.props.report.unreadActionCount
                 : prevState.messageCounterCount + this.props.report.unreadActionCount;
             this.updateNewMarkerPosition(messageCounterCount);
-            return { messageCounterCount };
+            return {messageCounterCount};
         });
     }
 
@@ -361,7 +361,7 @@ class ReportActionsView extends React.Component {
      * Show the new floating message counter
      */
     showFloatingMessageCounter() {
-        this.setState({ isFloatingMessageCounterVisible: true });
+        this.setState({isFloatingMessageCounterVisible: true});
     }
 
     /**
@@ -379,7 +379,7 @@ class ReportActionsView extends React.Component {
      *
      * @param {Object} {nativeEvent}
      */
-    trackScroll({ nativeEvent }) {
+    trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
         this.toggleFloatingMessageCounter();
     }
@@ -445,7 +445,7 @@ ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
 export default compose(
-    Performance.withRenderTrace({ id: '<ReportActionsView> rendering' }),
+    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
     withDrawerState,
     withLocalize,
