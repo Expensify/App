@@ -38,7 +38,6 @@ class PDFView extends Component {
             shouldRequestPassword: false,
             isPasswordInvalid: false,
         });
-        this.props.onUserInputRequired(false);
     }
 
     /**
@@ -58,10 +57,8 @@ class PDFView extends Component {
 
         if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.NEED_PASSWORD) {
             this.setState({shouldRequestPassword: true});
-            this.props.onUserInputRequired(true);
         } else if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.INCORRECT_PASSWORD) {
             this.setState({shouldRequestPassword: true, isPasswordInvalid: true});
-            this.props.onUserInputRequired(true);
         }
     }
 

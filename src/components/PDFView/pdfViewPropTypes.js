@@ -10,16 +10,12 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    /** Notify parent that we're requesting input from user */
-    onUserInputRequired: PropTypes.func,
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     sourceURL: '',
     style: {},
-    onUserInputRequired: () => {},
 };
 
 export {propTypes, defaultProps};

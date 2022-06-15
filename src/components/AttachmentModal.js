@@ -75,7 +75,6 @@ class AttachmentModal extends PureComponent {
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
-            isSendOnEnterEnabled: true,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -111,19 +110,14 @@ class AttachmentModal extends PureComponent {
 
     /**
      * Execute the onConfirm callback and close the modal.
-     *
-     * @param {Event} event Either a click event, keyboard event or undefined
      */
-    submitAndClose(event) {
+    submitAndClose() {
         // If the modal has already been closed, don't allow another submission
         if (!this.state.isModalOpen) {
             return;
         }
+
         if (this.props.onConfirm) {
-            // Ignore the submit/close if it was initiated by enter key and send-on-enter is disabled
-            if (!this.state.isSendOnEnterEnabled && (!event || event instanceof KeyboardEvent)) {
-                return;
-            }
             this.props.onConfirm(_.extend(this.state.file, {source: this.state.sourceURL}));
         }
 
@@ -187,13 +181,7 @@ class AttachmentModal extends PureComponent {
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
-                            <AttachmentView
-                                sourceURL={sourceURL}
-                                file={this.state.file}
-                                onUserInputRequired={(isRequired) => {
-                                    this.setState({isSendOnEnterEnabled: !isRequired});
-                                }}
-                            />
+                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
                         )}
                     </View>
 
