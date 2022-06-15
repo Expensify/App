@@ -18,6 +18,7 @@ import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import * as SessionUtils from '../SessionUtils';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -171,8 +172,7 @@ function setUpPoliciesAndNavigate(session) {
             const path = new URL(url).pathname;
             const params = new URLSearchParams(url);
             const exitTo = params.get('exitTo');
-            const email = params.get('email');
-            const isLoggingInAsNewUser = session.email !== email;
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(url, session.email);
             const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
