@@ -6,17 +6,39 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
+import * as OfflineStatus from '../../src/libs/actions/Network/OfflineStatus';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
 HttpUtils.xhr = jest.fn();
+
+const mockIsInternetReachable = jest.fn();
+mockIsInternetReachable.mockImplementation(() => true);
+jest.mock('../../src/libs/NetInfo', () => ({
+    isInternetReachable: (...args) => mockIsInternetReachable(...args),
+}));
+
+const mockIsPusherConnected = jest.fn();
+mockIsPusherConnected.mockImplementation(() => true);
+const mockIsPusherSubscribed = jest.fn();
+mockIsPusherSubscribed.mockImplementation(() => true);
+jest.mock('../../src/libs/Pusher/pusher', () => ({
+    isConnected: (...args) => mockIsPusherConnected(...args),
+    isSubscribed: (...args) => mockIsPusherSubscribed(...args),
+}));
 
 Onyx.init({
     keys: ONYXKEYS,
     registerStorageEventListener: () => {},
 });
 
-beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
+beforeEach(() => Onyx.clear()
+    .then(waitForPromisesToResolve)
+    .then(() => new Promise((resolve) => {
+        OfflineStatus.refreshOfflineStatus();
+        resolve();
+    }))
+    .then(waitForPromisesToResolve));
 
 test('Authenticate is called with saved credentials when a session expires', () => {
     // Given a test user and set of authToken with subscriptions to session and credentials
