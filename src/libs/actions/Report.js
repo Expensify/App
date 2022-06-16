@@ -849,7 +849,7 @@ function fetchAllReports(
  * @param {String} text
  * @param {File} [file]
  */
-function createComment(reportID, text, file) {
+function addComment(reportID, text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -962,7 +962,7 @@ function createComment(reportID, text, file) {
         DateUtils.setTimezoneUpdated();
     }
 
-    API.write(isAttachment ? 'CreateAttachmentWithOptionalComment' : 'CreateComment', parameters, {
+    API.write(isAttachment ? 'AddAttachmentWithOptionalComment' : 'AddComment', parameters, {
         optimisticData,
         failureData: [
             {
@@ -982,8 +982,8 @@ function createComment(reportID, text, file) {
  * @param {Number} reportID
  * @param {Object} file
  */
-function createAttachmentWithOptionalComment(reportID, file) {
-    createComment(reportID, '', file);
+function addAttachmentWithOptionalComment(reportID, file) {
+    addComment(reportID, '', file);
 }
 
 /**
@@ -1391,8 +1391,8 @@ export {
     fetchChatReportsByIDs,
     fetchIOUReportByID,
     fetchIOUReportByIDAndUpdateChatReport,
-    createComment,
-    createAttachmentWithOptionalComment,
+    addComment,
+    addAttachmentWithOptionalComment,
     updateLastReadActionID,
     updateNotificationPreference,
     setNewMarkerPosition,
