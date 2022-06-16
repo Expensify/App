@@ -74,6 +74,10 @@ function Checkbox(props) {
             ref={props.forwardedRef}
             style={props.style}
             onKeyDown={onKeyDown}
+            accessibilityRole="checkbox"
+            accessibilityState={{
+                checked: props.isChecked,
+            }}
         >
             {props.children
                 ? props.children
