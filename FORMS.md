@@ -187,7 +187,6 @@ function onSubmit(values) {
             label="Routing number"
             inputID="routingNumber"
             maxLength={8}
-            isFormInput
             shouldSaveDraft
         />
     </View>
@@ -195,22 +194,20 @@ function onSubmit(values) {
         label="Account number"
         inputID="accountNumber"
         containerStyles={[styles.mt4]}
-        isFormInput
     />
 </Form>
 ```
 
 ### Props provided to Form inputs
 
-The following props are available to form inputs:
+The following prop is available to form inputs:
 
 - inputID: An unique identifier for the input.
-- isFormInput: A flag that indicates that this input is being used with Form.js.
 
-Form.js will automatically provide the following props to any input flagged with the isFormInput prop.
+Form.js will automatically provide the following props to any input with the inputID prop.
 
 - ref: A React ref that must be attached to the input.
 - defaultValue: The input default value.
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
-- onChange: An onChange handler that saves draft values and calls validate.
+- onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).

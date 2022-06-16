@@ -188,6 +188,7 @@ const CONST = {
     USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
+    GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -272,6 +273,14 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
     },
+    COMPOSER: {
+        MAX_LINES: 16,
+        MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_FULL: -1,
+
+        // The minimum number of typed lines needed to enable the full screen composer
+        FULL_COMPOSER_MIN_LINES: 3,
+    },
     MODAL: {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
@@ -329,6 +338,7 @@ const CONST = {
         IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
         IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
         IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
+        IOS_NETWORK_CONNECTION_LOST_SPANISH: 'La conexión a Internet parece estar desactivada.',
         IOS_LOAD_FAILED: 'Load failed',
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
@@ -381,11 +391,20 @@ const CONST = {
         },
     },
 
+    PUSHER: {
+        PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+        PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+    },
+
     EMOJI_SPACER: 'SPACER',
 
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
+
+    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+
+    TOOLTIP_MAX_LINES: 3,
 
     LOGIN_TYPE: {
         PHONE: 'phone',
@@ -621,11 +640,10 @@ const CONST = {
         COMPACT: 'compact',
         DEFAULT: 'default',
     },
-    PHONE_MAX_LENGTH: 15,
-    PHONE_MIN_LENGTH: 5,
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         US_PHONE: /^\+1\d{10}$/,
+        US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,

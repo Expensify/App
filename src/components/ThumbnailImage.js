@@ -19,11 +19,19 @@ const propTypes = {
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 
+    /** Width of the thumbnail image */
+    imageWidth: PropTypes.number,
+
+    /** Height of the thumbnail image */
+    imageHeight: PropTypes.number,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     style: {},
+    imageWidth: 200,
+    imageHeight: 200,
 };
 
 class ThumbnailImage extends PureComponent {
@@ -31,14 +39,25 @@ class ThumbnailImage extends PureComponent {
         super(props);
 
         this.updateImageSize = this.updateImageSize.bind(this);
-
+        const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(props.imageWidth, props.imageHeight);
         this.state = {
-            thumbnailWidth: 200,
-            thumbnailHeight: 200,
+            thumbnailWidth,
+            thumbnailHeight,
         };
     }
 
-    updateImageSize({width, height}) {
+    /**
+     * Compute the thumbnails width and height given original image dimensions.
+     *
+     * @param {Number} width - Width of the original image.
+     * @param {Number} height - Height of the original image.
+     * @returns {Object} - Object containing thumbnails width and height.
+     */
+    calculateThumbnailImageSize(width, height) {
+        if (!width || !height) {
+            return {};
+        }
+
         // Width of the thumbnail works better as a constant than it does
         // a percentage of the screen width since it is relative to each screen
         // Note: Clamp minimum width 40px to support touch device
@@ -54,8 +73,17 @@ class ThumbnailImage extends PureComponent {
         } else {
             thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
         }
+        return {thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
+    }
 
-        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)});
+    /**
+     * Update the state with the computed thumbnail sizes.
+     *
+     * @param {{ width: number, height: number }} Params - width and height of the original image.
+     */
+    updateImageSize({width, height}) {
+        const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(width, height);
+        this.setState({thumbnailWidth, thumbnailHeight});
     }
 
     render() {

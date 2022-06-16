@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
 import Clipboard from '../../../../libs/Clipboard';
-import * as ReportUtils from '../../../../libs/reportUtils';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
@@ -51,6 +51,9 @@ export default [
             let {sourceURL} = attachmentDetails;
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
             fileDownload(sourceURL, originalFileName);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
         },
         getDescription: () => {},
     },

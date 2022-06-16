@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
+import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
 
@@ -9,7 +10,7 @@ import * as User from './actions/User';
  * @param {String} input
  * @returns {String}
  */
-function getEmojiUnicode(input) {
+const getEmojiUnicode = _.memoize((input) => {
     if (input.length === 0) {
         return '';
     }
@@ -40,7 +41,7 @@ function getEmojiUnicode(input) {
         }
     }
     return _.map(pairs, val => parseInt(val, 10).toString(16)).join(' ');
-}
+});
 
 /**
  * Function to remove Skin Tone and utf16 surrogates from Emoji
@@ -68,6 +69,34 @@ function isSingleEmoji(message) {
     const matchedUnicode = getEmojiUnicode(matchedEmoji);
     const currentMessageUnicode = trimEmojiUnicode(getEmojiUnicode(message));
     return matchedUnicode === currentMessageUnicode;
+}
+
+/**
+ * Validates that this message contains only emojis
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function containsOnlyEmojis(message) {
+    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+
+    if (!match) {
+        return false;
+    }
+
+    const codes = [];
+    _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
+        if (code !== CONST.EMOJI_INVISIBLE_CODEPOINT) {
+            codes.push(code);
+        }
+        return code;
+    }));
+
+    // Emojis are stored as multiple characters, so we're using spread operator
+    // to iterate over the actual emojis, not just characters that compose them
+    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+    return codes.length === messageCodes.length;
 }
 
 /**
@@ -178,4 +207,5 @@ export {
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
+    containsOnlyEmojis,
 };

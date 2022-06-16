@@ -1,7 +1,7 @@
 import getPlatform from '../getPlatform';
-import * as API from '../API';
 import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';
+import * as API from '../API';
 
 let timestampData = {};
 
@@ -51,7 +51,7 @@ function end(eventName, secondaryName = '') {
         return;
     }
 
-    API.Graphite_Timer({
+    API.write('SendPerformanceTiming', {
         name: grafanaEventName,
         value: eventTime,
         platform: `${getPlatform()}`,

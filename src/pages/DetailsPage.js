@@ -16,7 +16,7 @@ import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
-import * as ReportUtils from '../libs/reportUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
@@ -114,6 +114,7 @@ const DetailsPage = (props) => {
                                             containerStyles={[styles.avatarLarge, styles.mb3]}
                                             imageStyles={[styles.avatarLarge]}
                                             source={details.avatar}
+                                            size={CONST.AVATAR_SIZE.LARGE}
                                         />
                                     </PressableWithoutFocus>
                                 )}

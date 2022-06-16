@@ -30,13 +30,13 @@ export default {
         lastName: 'Apellido',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
+        phoneNumberPlaceholder: '(prefijo) + (número)',
         email: 'Email',
         and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
-        deleted: 'eliminado',
         archived: 'archivado',
         contacts: 'Contactos',
         recents: 'Recientes',
@@ -104,6 +104,9 @@ export default {
         leaveRoom: 'Salir de la sala de chat',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
+        youAppearToBeOffline: 'Parece que estás desconectado.',
+        thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -157,11 +160,12 @@ export default {
         writeSomething: 'Escribe algo...',
         sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
-        youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -177,6 +181,8 @@ export default {
     reportActionsView: {
         begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
         begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
+        beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
@@ -232,7 +238,6 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
-        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -532,6 +537,7 @@ export default {
         buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
+            noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Ingresa un número de identificación fiscal válido',
             website: 'Ingresa un sitio web válido',
             zipCode: 'Ingresa un código postal válido',
@@ -577,7 +583,6 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
-        maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -700,7 +705,6 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
-        companyPhonePlaceholder: '(prefijo) + (número)',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',

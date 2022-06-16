@@ -103,6 +103,9 @@ const propTypes = {
 
     /** Whether Button is on active screen */
     isFocused: PropTypes.bool.isRequired,
+
+    /** Id to use for this button */
+    nativeID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -133,6 +136,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
+    nativeID: '',
 };
 
 class Button extends Component {
@@ -173,14 +177,11 @@ class Button extends Component {
             return <ContentComponent />;
         }
 
-        if (this.props.isLoading) {
-            return <ActivityIndicator color={themeColors.textReversed} />;
-        }
-
         const textComponent = (
             <Text
                 selectable={false}
                 style={[
+                    this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
                     this.props.small && styles.buttonSmallText,
@@ -232,6 +233,10 @@ class Button extends Component {
         return (
             <Pressable
                 onPress={(e) => {
+                    if (e && e.type === 'click') {
+                        e.currentTarget.blur();
+                    }
+
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.trigger();
                     }
@@ -247,34 +252,44 @@ class Button extends Component {
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
-                    this.props.isDisabled ? styles.cursorDisabled : {},
+                    this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     ...this.additionalStyles,
                 ]}
+                nativeID={this.props.nativeID}
             >
-                {({pressed, hovered}) => (
-                    <OpacityView
-                        shouldDim={pressed}
-                        style={[
-                            styles.button,
-                            this.props.small ? styles.buttonSmall : undefined,
-                            this.props.medium ? styles.buttonMedium : undefined,
-                            this.props.large ? styles.buttonLarge : undefined,
-                            this.props.extraLarge ? styles.buttonExtraLarge : undefined,
-                            this.props.success ? styles.buttonSuccess : undefined,
-                            this.props.danger ? styles.buttonDanger : undefined,
-                            (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
-                            (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
-                            (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
-                            (this.props.success && hovered) ? styles.buttonSuccessHovered : undefined,
-                            (this.props.danger && hovered) ? styles.buttonDangerHovered : undefined,
-                            this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                            this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                            ...this.props.innerStyles,
-                        ]}
-                    >
-                        {this.renderContent()}
-                    </OpacityView>
-                )}
+                {({pressed, hovered}) => {
+                    const activeAndHovered = !this.props.isDisabled && hovered;
+                    return (
+                        <OpacityView
+                            shouldDim={pressed}
+                            style={[
+                                styles.button,
+                                this.props.small ? styles.buttonSmall : undefined,
+                                this.props.medium ? styles.buttonMedium : undefined,
+                                this.props.large ? styles.buttonLarge : undefined,
+                                this.props.extraLarge ? styles.buttonExtraLarge : undefined,
+                                this.props.success ? styles.buttonSuccess : undefined,
+                                this.props.danger ? styles.buttonDanger : undefined,
+                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
+                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
+                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
+                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
+                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
+                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                                ...this.props.innerStyles,
+                            ]}
+                        >
+                            {this.renderContent()}
+                            {this.props.isLoading && (
+                                <ActivityIndicator
+                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
+                                />
+                            )}
+                        </OpacityView>
+                    );
+                }}
             </Pressable>
         );
     }
