@@ -180,8 +180,10 @@ class ProfilePage extends Component {
                 [values.firstName.trim()],
             );
 
-            this.setState({hasFirstNameError});
-            errors.firstName = PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError);
+            if(hasFirstNameError) {
+                this.setState({hasFirstNameError});
+                errors.firstName = PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError);
+            }
         }
 
         if (values.lastName) {
@@ -190,8 +192,10 @@ class ProfilePage extends Component {
                 [values.lastName.trim()],
             );
 
-            this.setState({hasLastNameError});
-            errors.lastName = PersonalDetails.getMaxCharacterError(this.state.hasLastNameError);
+            if(hasLastNameError) {
+                this.setState({hasLastNameError});
+                errors.lastName = PersonalDetails.getMaxCharacterError(this.state.hasLastNameError);
+            }
         }
 
         if (values.pronouns) {
@@ -200,8 +204,10 @@ class ProfilePage extends Component {
                 [values.pronouns.trim()],
             );
 
-            this.setState({hasPronounError});
-            errors.pronouns = PersonalDetails.getMaxCharacterError(this.state.hasPronounError);
+            if(hasPronounError) {
+                this.setState({hasPronounError});
+                errors.pronouns = PersonalDetails.getMaxCharacterError(this.state.hasPronounError);
+            }
         }
 
         return errors;
