@@ -613,6 +613,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return 0;
         }], ['asc']);
     }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -718,26 +719,21 @@ function getNewChatOptions(
 /**
  * Build the options for the Workspace Member Invite view
  *
- * @param {Object} reports
  * @param {Object} personalDetails
  * @param {Array<String>} betas
  * @param {String} searchValue
- * @param {Array} selectedOptions
  * @param {Array} excludeLogins
  * @returns {Object}
  */
 function getMemberInviteOptions(
-    reports,
     personalDetails,
     betas = [],
     searchValue = '',
-    selectedOptions = [],
     excludeLogins = [],
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    return getOptions([], personalDetails, 0, {
         betas,
         searchValue: searchValue.trim(),
-        selectedOptions,
         excludeDefaultRooms: true,
         includePersonalDetails: true,
         excludeLogins,

@@ -631,7 +631,7 @@ describe('OptionsListUtils', () => {
 
     it('getMemberInviteOptions()', () => {
         // When we only pass personal details
-        let results = OptionsListUtils.getMemberInviteOptions([], PERSONAL_DETAILS, [], '');
+        let results = OptionsListUtils.getMemberInviteOptions(PERSONAL_DETAILS, [], '');
 
         // We should expect personal details PERSONAL_DETAILS order
         expect(results.personalDetails[0].text).toBe('Mister Fantastic');
@@ -640,13 +640,13 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
 
         // When we provide a search value that does not match any personal details
-        results = OptionsListUtils.getMemberInviteOptions([], PERSONAL_DETAILS, [], 'magneto');
+        results = OptionsListUtils.getMemberInviteOptions(PERSONAL_DETAILS, [], 'magneto');
 
         // Then no options will be returned
         expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches an email
-        results = OptionsListUtils.getNewChatOptions([], PERSONAL_DETAILS, [], 'peterparker@expensify.com');
+        results = OptionsListUtils.getMemberInviteOptions(PERSONAL_DETAILS, [], 'peterparker@expensify.com');
 
         // Then one personal should be in personalDetails list
         expect(results.personalDetails.length).toBe(1);
