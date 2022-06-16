@@ -16,11 +16,18 @@ function isLoggingInAsNewUser(transitionURL, sessionEmail) {
     const params = new URLSearchParams(transitionURL);
     const paramsEmail = params.get('email');
 
+    // If the email param matches what is stored in the session then we are
+    // definitely not logging in as a new user
+    if (paramsEmail === sessionEmail) {
+        return false;
+    }
+
+    // If they do not match it might be due to encoding, so check the raw value
     // Capture the un-encoded text in the email param
     const emailParamRegex = /[?&]email=([^&]*)/g;
     const matches = emailParamRegex.exec(transitionURL);
     const linkedEmail = lodashGet(matches, 1, null);
-    return paramsEmail !== sessionEmail && linkedEmail !== sessionEmail;
+    return linkedEmail !== sessionEmail;
 }
 
 export {
