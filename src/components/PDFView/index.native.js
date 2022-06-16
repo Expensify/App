@@ -54,6 +54,8 @@ class PDFView extends Component {
      * @param {String} message
      */
     initiatePasswordChallenge({message}) {
+        this.setState({shouldShowLoadingIndicator: false});
+
         if (!message.match(/password/i)) {
             return;
         }
@@ -62,7 +64,6 @@ class PDFView extends Component {
         this.setState({
             shouldRequestPassword: true,
             shouldAttemptPdfLoad: false,
-            shouldShowLoadingIndicator: false,
         });
 
         // The message provided by react-native-pdf doesn't indicate whether this
