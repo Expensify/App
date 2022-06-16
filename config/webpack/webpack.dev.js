@@ -23,7 +23,7 @@ module.exports = (env = {}) => {
 
     return merge(baseConfig, {
         mode: 'development',
-        devtool: 'inline-source-map',
+        devtool: 'eval-source-map',
         devServer: {
             contentBase: path.join(__dirname, '../../dist'),
             hot: true,
