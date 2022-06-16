@@ -10,9 +10,7 @@ import lodashGet from 'lodash/get';
 function isLoggingInAsNewUser(transitionURL, sessionEmail) {
     // The OldDot mobile app does not URL encode the parameters, but OldDot web
     // does. We don't want to deploy OldDot mobile again, so as a work around we
-    // compare both the raw and decoded email from the transition link. If both don't match
-    // the session email, then we are logging in as a new user.
-    // See https://github.com/Expensify/Mobile-Expensify/pull/12280#issuecomment-1155633503
+    // compare the session email to both the decoded and raw email from the transition link.
     const params = new URLSearchParams(transitionURL);
     const paramsEmail = params.get('email');
 
