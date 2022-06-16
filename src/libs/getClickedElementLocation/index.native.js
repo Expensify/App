@@ -9,6 +9,7 @@ import {StatusBar} from 'react-native';
 function getClickedElementLocation(ref) {
     return new Promise((resolve) => {
         ref.measureInWindow((x, y, width, height) => resolve({
+            // When statusbar is translucent, y coordinates does not include topEdgeOffset
             bottom: y + height + StatusBar.currentHeight,
             left: x,
         }));
