@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {withNavigationFocus} from '@react-navigation/compat';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -10,13 +11,29 @@ import Icon from './Icon';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import HapticFeedback from '../libs/HapticFeedback';
+import withNavigationFallback from './withNavigationFallback';
+import compose from '../libs/compose';
+import * as Expensicons from './Icon/Expensicons';
+import colors from '../styles/colors';
 
 const propTypes = {
     /** The text for the button label */
     text: PropTypes.string,
 
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon: PropTypes.bool,
+
     /** The icon asset to display to the left of the text */
     icon: PropTypes.func,
+
+    /** The icon asset to display to the right of the text */
+    iconRight: PropTypes.func,
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
     small: PropTypes.bool,
@@ -26,6 +43,9 @@ const propTypes = {
 
     /** medium sized button */
     medium: PropTypes.bool,
+
+    /** Extra large sized button */
+    extraLarge: PropTypes.bool,
 
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
@@ -80,16 +100,27 @@ const propTypes = {
 
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback: PropTypes.bool,
+
+    /** Whether Button is on active screen */
+    isFocused: PropTypes.bool.isRequired,
+
+    /** Id to use for this button */
+    nativeID: PropTypes.string,
 };
 
 const defaultProps = {
     text: '',
+    shouldShowRightIcon: false,
     icon: null,
+    iconRight: Expensicons.ArrowRight,
+    iconFill: colors.white,
+    iconStyles: [],
     isLoading: false,
     isDisabled: false,
     small: false,
     large: false,
     medium: false,
+    extraLarge: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
@@ -105,6 +136,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
+    nativeID: '',
 };
 
 class Button extends Component {
@@ -124,7 +156,7 @@ class Button extends Component {
 
         // Setup and attach keypress handler for pressing the button with Enter key
         this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
-            if (this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
+            if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
             this.props.onPress();
@@ -145,19 +177,17 @@ class Button extends Component {
             return <ContentComponent />;
         }
 
-        if (this.props.isLoading) {
-            return <ActivityIndicator color={themeColors.textReversed} />;
-        }
-
         const textComponent = (
             <Text
                 selectable={false}
                 style={[
+                    this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
+                    this.props.extraLarge && styles.buttonExtraLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
@@ -169,15 +199,29 @@ class Button extends Component {
 
         if (this.props.icon) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={styles.mr1}>
-                        <Icon
-                            src={this.props.icon}
-                            fill={themeColors.heading}
-                            small={this.props.small}
-                        />
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                        <View style={[
+                            styles.mr1,
+                            ...this.props.iconStyles,
+                        ]}
+                        >
+                            <Icon
+                                src={this.props.icon}
+                                fill={this.props.iconFill}
+                                small={this.props.small}
+                            />
+                        </View>
+                        {textComponent}
                     </View>
-                    {textComponent}
+                    {this.props.shouldShowRightIcon && (
+                        <View>
+                            <Icon
+                                src={this.props.iconRight}
+                                fill={this.props.iconFill}
+                            />
+                        </View>
+                    )}
                 </View>
             );
         }
@@ -189,6 +233,10 @@ class Button extends Component {
         return (
             <Pressable
                 onPress={(e) => {
+                    if (e && e.type === 'click') {
+                        e.currentTarget.blur();
+                    }
+
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.trigger();
                     }
@@ -204,33 +252,44 @@ class Button extends Component {
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
-                    this.props.isDisabled ? styles.cursorDisabled : {},
+                    this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     ...this.additionalStyles,
                 ]}
+                nativeID={this.props.nativeID}
             >
-                {({pressed, hovered}) => (
-                    <OpacityView
-                        shouldDim={pressed}
-                        style={[
-                            styles.button,
-                            this.props.small ? styles.buttonSmall : undefined,
-                            this.props.medium ? styles.buttonMedium : undefined,
-                            this.props.large ? styles.buttonLarge : undefined,
-                            this.props.success ? styles.buttonSuccess : undefined,
-                            this.props.danger ? styles.buttonDanger : undefined,
-                            (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
-                            (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
-                            (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
-                            (this.props.success && hovered) ? styles.buttonSuccessHovered : undefined,
-                            (this.props.danger && hovered) ? styles.buttonDangerHovered : undefined,
-                            this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                            this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                            ...this.props.innerStyles,
-                        ]}
-                    >
-                        {this.renderContent()}
-                    </OpacityView>
-                )}
+                {({pressed, hovered}) => {
+                    const activeAndHovered = !this.props.isDisabled && hovered;
+                    return (
+                        <OpacityView
+                            shouldDim={pressed}
+                            style={[
+                                styles.button,
+                                this.props.small ? styles.buttonSmall : undefined,
+                                this.props.medium ? styles.buttonMedium : undefined,
+                                this.props.large ? styles.buttonLarge : undefined,
+                                this.props.extraLarge ? styles.buttonExtraLarge : undefined,
+                                this.props.success ? styles.buttonSuccess : undefined,
+                                this.props.danger ? styles.buttonDanger : undefined,
+                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
+                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
+                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
+                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
+                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
+                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                                ...this.props.innerStyles,
+                            ]}
+                        >
+                            {this.renderContent()}
+                            {this.props.isLoading && (
+                                <ActivityIndicator
+                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
+                                />
+                            )}
+                        </OpacityView>
+                    );
+                }}
             </Pressable>
         );
     }
@@ -239,4 +298,7 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default Button;
+export default compose(
+    withNavigationFallback,
+    withNavigationFocus,
+)(Button);

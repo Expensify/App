@@ -28,7 +28,7 @@ import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -56,10 +56,13 @@ const defaultProps = {
     loginList: [],
 };
 
-const timezones = _.map(moment.tz.names(), timezone => ({
-    value: timezone,
-    label: timezone,
-}));
+const timezones = _.chain(moment.tz.names())
+    .filter(timezone => !timezone.startsWith('Etc/GMT'))
+    .map(timezone => ({
+        value: timezone,
+        label: timezone,
+    }))
+    .value();
 
 class ProfilePage extends Component {
     constructor(props) {
@@ -228,7 +231,7 @@ class ProfilePage extends Component {
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
-                            isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
+                            isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.state.avatar.uri}
                             onImageSelected={this.updateAvatar}
                             onImageRemoved={this.updateAvatar}
@@ -292,13 +295,12 @@ class ProfilePage extends Component {
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
-                                key={this.state.selectedTimezone}
                             />
                         </View>
                         <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
-                            onPress={this.setAutomaticTimezone}
+                            onInputChange={this.setAutomaticTimezone}
                         />
                     </ScrollView>
                     <FixedFooter>

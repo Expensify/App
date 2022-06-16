@@ -102,11 +102,10 @@ function getChannel(channelName) {
  * @param {Pusher.Channel} channel
  * @param {String} eventName
  * @param {Function} [eventCallback]
- * @param {Boolean} [isChunked] Do we expect this channel to send chunked/separate blocks of data that need recombining?
  *
  * @private
  */
-function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChunked = false) {
+function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
     if (!eventName) {
         return;
     }
@@ -120,7 +119,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
             return;
         }
-        if (!isChunked) {
+        if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
             eventCallback(data);
             return;
         }
@@ -169,9 +168,6 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
  * @param {String} channelName
  * @param {String} eventName
  * @param {Function} [eventCallback]
- * @param {Boolean} [isChunked] This parameters tells us whether or not we expect the result to come in individual
- * pieces/chunks (because it exceeds
- *  the 10kB limit that pusher has).
  * @param {Function} [onResubscribe] Callback to be called when reconnection happen
  *
  * @return {Promise}
@@ -182,7 +178,6 @@ function subscribe(
     channelName,
     eventName,
     eventCallback = () => {},
-    isChunked = false,
     onResubscribe = () => {},
 ) {
     return new Promise((resolve, reject) => {
@@ -201,7 +196,7 @@ function subscribe(
             channel.bind('pusher:subscription_succeeded', () => {
                 // Check so that we do not bind another event with each reconnect attempt
                 if (!isBound) {
-                    bindEventToChannel(channel, eventName, eventCallback, isChunked);
+                    bindEventToChannel(channel, eventName, eventCallback);
                     resolve();
                     isBound = true;
                     return;
@@ -214,18 +209,18 @@ function subscribe(
                 onResubscribe();
             });
 
-            channel.bind('pusher:subscription_error', (status) => {
-                if (status === 403) {
-                    Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
-                        channelName,
-                        status,
-                    });
-                }
-
-                reject(status);
+            channel.bind('pusher:subscription_error', (data = {}) => {
+                const {type, error, status} = data;
+                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                    channelName,
+                    status,
+                    type,
+                    error,
+                });
+                reject(error);
             });
         } else {
-            bindEventToChannel(channel, eventName, eventCallback, isChunked);
+            bindEventToChannel(channel, eventName, eventCallback);
             resolve();
         }
     });

@@ -16,6 +16,7 @@ import CircleHourglass from '../../../assets/images/circle-hourglass.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
+import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import DownArrow from '../../../assets/images/down.svg';
@@ -23,6 +24,7 @@ import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
+import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
@@ -45,6 +47,7 @@ import Monitor from '../../../assets/images/monitor.svg';
 import NewWindow from '../../../assets/images/new-window.svg';
 import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
+import OfflineCloud from '../../../assets/images/offline-cloud.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
 import PayPal from '../../../assets/images/paypal.svg';
@@ -74,6 +77,10 @@ import ActiveRoomAvatar from '../../../assets/images/avatars/room.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
+import Connect from '../../../assets/images/connect.svg';
+import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
+import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
+import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 
 export {
     ActiveRoomAvatar,
@@ -97,17 +104,23 @@ export {
     Clipboard,
     Close,
     ClosedSign,
+    Collapse,
     Concierge,
+    Connect,
     CreditCard,
     DeletedRoomAvatar,
+    DomainRoomAvatar,
     DownArrow,
     Download,
     Emoji,
     Exclamation,
     Exit,
+    Expand,
     Eye,
     EyeDisabled,
     ExpensifyCard,
+    FallbackAvatar,
+    FallbackWorkspaceAvatar,
     Gallery,
     Gear,
     Hashtag,
@@ -127,6 +140,7 @@ export {
     NewWindow,
     NewWorkspace,
     Offline,
+    OfflineCloud,
     Paperclip,
     Paycheck,
     PayPal,

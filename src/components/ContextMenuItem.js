@@ -7,6 +7,7 @@ import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 
 const propTypes = {
     /** Icon Component */
@@ -29,6 +30,11 @@ const propTypes = {
 
     /** Automatically reset the success status */
     autoReset: PropTypes.bool,
+
+    /** A description text to show under the title */
+    description: PropTypes.string,
+
+    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
@@ -36,30 +42,21 @@ const defaultProps = {
     successIcon: null,
     successText: '',
     autoReset: false,
+    description: '',
 };
 
 class ContextMenuItem extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            success: false,
-        };
+
         this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
     }
 
-    componentWillUnmount() {
-        if (!this.successResetTimer) {
-            return;
-        }
-
-        clearTimeout(this.successResetTimer);
-    }
-
     /**
-     * Called on button press and mark the run
+     * Method to call parent onPress and toggleDelayButtonState
      */
     triggerPressAndUpdateSuccess() {
-        if (this.state.success) {
+        if (this.props.isDelayButtonStateComplete) {
             return;
         }
         this.props.onPress();
@@ -67,18 +64,13 @@ class ContextMenuItem extends Component {
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (this.props.successIcon || this.props.successText) {
-            this.setState({
-                success: true,
-            });
-            if (this.props.autoReset) {
-                this.successResetTimer = setTimeout(() => this.setState({success: false}), 1800);
-            }
+            this.props.toggleDelayButtonState(this.props.autoReset);
         }
     }
 
     render() {
-        const icon = this.state.success ? this.props.successIcon || this.props.icon : this.props.icon;
-        const text = this.state.success ? this.props.successText || this.props.text : this.props.text;
+        const icon = this.props.isDelayButtonStateComplete ? this.props.successIcon || this.props.icon : this.props.icon;
+        const text = this.props.isDelayButtonStateComplete ? this.props.successText || this.props.text : this.props.text;
         return (
             this.props.isMini
                 ? (
@@ -90,14 +82,14 @@ class ContextMenuItem extends Component {
                             style={
                                 ({hovered, pressed}) => [
                                     styles.reportActionContextMenuMiniButton,
-                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.state.success)),
+                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete)),
                                 ]
                             }
                         >
                             {({hovered, pressed}) => (
                                 <Icon
                                     src={icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
                                 />
                             )}
                         </Pressable>
@@ -108,7 +100,8 @@ class ContextMenuItem extends Component {
                         icon={icon}
                         onPress={this.triggerPressAndUpdateSuccess}
                         wrapperStyle={styles.pr9}
-                        success={this.state.success}
+                        success={this.props.isDelayButtonStateComplete}
+                        description={this.props.description}
                     />
                 )
         );
@@ -118,4 +111,4 @@ class ContextMenuItem extends Component {
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 
-export default ContextMenuItem;
+export default withDelayToggleButtonState(ContextMenuItem);

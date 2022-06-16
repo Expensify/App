@@ -1,8 +1,6 @@
 import _ from 'underscore';
-import React from 'react';
 import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import linkTo from './linkTo';
@@ -11,6 +9,11 @@ import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+
+let resolveNavigationIsReadyPromise;
+let navigationIsReadyPromise = new Promise((resolve) => {
+    resolveNavigationIsReadyPromise = resolve;
+});
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -189,32 +192,21 @@ function isActiveRoute(routePath) {
 }
 
 /**
- * Alternative to the `Navigation.dismissModal()` function that we can use inside
- * the render function of other components to avoid breaking React rules about side-effects.
- *
- * Example:
- * ```jsx
- * if (!Permissions.canUseFreePlan(this.props.betas)) {
- *     return <Navigation.DismissModal />;
- * }
- * ```
+ * @returns {Promise}
  */
-class DismissModal extends React.Component {
-    componentDidMount() {
-        dismissModal(this.props.shouldOpenDrawer);
-    }
-
-    render() {
-        return null;
-    }
+function isNavigationReady() {
+    return navigationIsReadyPromise;
 }
 
-DismissModal.propTypes = {
-    shouldOpenDrawer: PropTypes.bool,
-};
-DismissModal.defaultProps = {
-    shouldOpenDrawer: false,
-};
+function setIsNavigationReady() {
+    resolveNavigationIsReadyPromise();
+}
+
+function resetIsNavigationReady() {
+    navigationIsReadyPromise = new Promise((resolve) => {
+        resolveNavigationIsReadyPromise = resolve;
+    });
+}
 
 export default {
     canNavigate,
@@ -223,10 +215,12 @@ export default {
     isActiveRoute,
     getActiveRoute,
     goBack,
-    DismissModal,
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+    isNavigationReady,
+    setIsNavigationReady,
+    resetIsNavigationReady,
 };
 
 export {

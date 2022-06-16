@@ -30,13 +30,13 @@ export default {
         lastName: 'Last name',
         phone: 'Phone',
         phoneNumber: 'Phone number',
+        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
         privacyPolicy: 'Privacy policy',
         delete: 'Delete',
-        deleted: 'deleted',
         archived: 'archived',
         contacts: 'Contacts',
         recents: 'Recents',
@@ -104,6 +104,9 @@ export default {
         leaveRoom: 'Leave room',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
+        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
+        youAppearToBeOffline: 'You appear to be offline.',
+        thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -157,11 +160,12 @@ export default {
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
-        youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
+        collapse: 'Collapse',
+        expand: 'Expand',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -175,6 +179,10 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'You missed the party in ',
+        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
+        beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
@@ -186,9 +194,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -232,7 +238,6 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
-        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -338,6 +343,11 @@ export default {
             newPasswordSameAsOld: 'New password must be different than your old password',
             newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
+    },
+    passwordConfirmationScreen: {
+        passwordUpdated: 'Password updated!',
+        allSet: 'You’re all set. Keep your new password safe.',
+        gotIt: 'Got it',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
@@ -527,6 +537,7 @@ export default {
         buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
+            noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid Tax ID Number',
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
@@ -572,7 +583,6 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
-        maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -685,7 +695,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
-        taxIDNumberPlaceholder: '9 digits, no hyphens',
+        taxIDNumberPlaceholder: '9 digits',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         incorporationState: 'Incorporation state',
@@ -693,7 +703,6 @@ export default {
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
-        companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
@@ -880,6 +889,7 @@ export default {
             disconnectYour: 'Disconnect your ',
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
+            areYouSure: 'Are you sure?',
         },
     },
     getAssistancePage: {
@@ -972,5 +982,19 @@ export default {
             helpTextConcierge: 'If the problem persists, reach out to',
         },
         refresh: 'Refresh',
+    },
+    fileDownload: {
+        success: {
+            title: 'Downloaded!',
+            message: 'Attachment successfully downloaded!',
+        },
+        generalError: {
+            title: 'Attachment Error',
+            message: 'Attachment cannot be downloaded',
+        },
+        permissionError: {
+            title: 'Access needed',
+            message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+        },
     },
 };

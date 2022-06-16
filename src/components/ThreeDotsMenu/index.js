@@ -94,8 +94,6 @@ class ThreeDotsMenu extends Component {
                     isVisible={this.state.isPopupMenuVisible}
                     anchorPosition={this.props.anchorPosition}
                     onItemSelected={() => this.togglePopupMenu()}
-                    animationIn="fadeInDown"
-                    animationOut="fadeOutUp"
                     menuItems={this.props.menuItems}
                 />
             </>

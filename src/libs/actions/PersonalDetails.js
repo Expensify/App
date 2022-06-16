@@ -5,11 +5,10 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import NetworkConnection from '../NetworkConnection';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
-import * as ReportUtils from '../reportUtils';
+import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Timing from './Timing';
@@ -99,6 +98,7 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
+        const avatarHighResolution = details.avatar || details.avatarThumbnail;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,
@@ -109,6 +109,7 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
+            avatarHighResolution,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
@@ -120,7 +121,7 @@ function formatPersonalDetails(personalDetailsList) {
  * @returns {Promise}
  */
 function fetchPersonalDetails() {
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -200,7 +201,7 @@ function getFromReportParticipants(reports) {
         return;
     }
 
-    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
+    DeprecatedAPI.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const existingDetails = _.pick(data, participantEmails);
 
@@ -273,7 +274,7 @@ function mergeLocalPersonalDetails(details) {
  * @param {boolean} shouldGrowl
  */
 function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)})
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
         .then((response) => {
             if (response.jsonCode === 200) {
                 if (details.timezone) {
@@ -288,9 +289,9 @@ function setPersonalDetails(details, shouldGrowl) {
                 Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
             } else if (response.jsonCode === 401) {
                 Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
+            } else {
+                console.debug('Error while setting personal details', response);
             }
-        }).catch((error) => {
-            console.debug('Error while setting personal details', error);
         });
 }
 
@@ -299,7 +300,7 @@ function setPersonalDetails(details, shouldGrowl) {
  * @returns {Object}
  */
 function getCurrencyList() {
-    return API.GetCurrencyList()
+    return DeprecatedAPI.GetCurrencyList()
         .then((data) => {
             const currencyListObject = JSON.parse(data.currencyList);
             Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
@@ -318,7 +319,7 @@ function fetchLocalCurrency() {
         isRetrievingCurrency: true,
     });
 
-    API.GetLocalCurrency({...coords})
+    DeprecatedAPI.GetLocalCurrency({...coords})
         .then((data) => {
             currency = data.currency;
         })
@@ -340,7 +341,7 @@ function fetchLocalCurrency() {
  */
 function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
-    API.User_UploadAvatar({file})
+    DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
@@ -365,12 +366,9 @@ function setAvatar(file) {
 function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
-    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
-
-// When the app reconnects from being offline, fetch all of the personal details
-NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
     fetchPersonalDetails,
