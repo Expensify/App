@@ -111,7 +111,6 @@ const Template = (args) => {
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
-                shouldSaveDraft
                 LabelComponent={() => (
                     <Text>I accept the Expensify Terms of Service</Text>
                 )}
