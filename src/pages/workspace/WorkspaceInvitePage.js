@@ -69,11 +69,9 @@ class WorkspaceInvitePage extends React.Component {
             personalDetails,
             userToInvite,
         } = OptionsListUtils.getMemberInviteOptions(
-            [],
             props.personalDetails,
             props.betas,
             '',
-            [],
             this.getExcludedUsers(),
         );
         this.state = {
@@ -193,11 +191,9 @@ class WorkspaceInvitePage extends React.Component {
                 personalDetails,
                 userToInvite,
             } = OptionsListUtils.getMemberInviteOptions(
-                [],
                 this.props.personalDetails,
                 this.props.betas,
                 prevState.searchValue,
-                [],
                 this.getExcludedUsers(),
             );
 
@@ -276,11 +272,9 @@ class WorkspaceInvitePage extends React.Component {
                                             personalDetails,
                                             userToInvite,
                                         } = OptionsListUtils.getMemberInviteOptions(
-                                            [],
                                             this.props.personalDetails,
                                             this.props.betas,
                                             searchValue,
-                                            [],
                                             this.getExcludedUsers(),
                                         );
                                         this.setState({
