@@ -91,7 +91,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.createComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -197,7 +197,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.createComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -208,8 +208,8 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const createCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('CreateComment'));
-                expect(createCommentCalls.length).toBe(1);
+                const addCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
+                expect(addCommentCalls.length).toBe(1);
             });
     });
 });
