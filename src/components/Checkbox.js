@@ -19,7 +19,7 @@ const propTypes = {
     /** Should the input be disabled  */
     disabled: PropTypes.bool,
 
-    /** Children to wrap in AnimatedStep. */
+    /** Children (icon) for Checkbox */
     children: PropTypes.node,
 
     /** Additional styles to add to checkbox button */
