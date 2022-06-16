@@ -10,6 +10,7 @@ import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
+import NetworkConnection from '../libs/NetworkConnection';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -31,6 +32,7 @@ const story = {
 
 const Template = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
+    NetworkConnection.setOfflineStatus(false);
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
     FormActions.setDraftValues(args.formID, args.draftValues);
@@ -128,6 +130,7 @@ const WithNativeEventHandler = (args) => {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
+    NetworkConnection.setOfflineStatus(false);
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
     FormActions.setDraftValues(args.formID, args.draftValues);
