@@ -273,6 +273,14 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
     },
+    COMPOSER: {
+        MAX_LINES: 16,
+        MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_FULL: -1,
+
+        // The minimum number of typed lines needed to enable the full screen composer
+        FULL_COMPOSER_MIN_LINES: 3,
+    },
     MODAL: {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
@@ -330,6 +338,7 @@ const CONST = {
         IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
         IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
         IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
+        IOS_NETWORK_CONNECTION_LOST_SPANISH: 'La conexión a Internet parece estar desactivada.',
         IOS_LOAD_FAILED: 'Load failed',
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
@@ -384,6 +393,7 @@ const CONST = {
 
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+        PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
     },
 
     EMOJI_SPACER: 'SPACER',

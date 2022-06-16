@@ -3,7 +3,6 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
@@ -17,6 +16,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
@@ -158,10 +158,8 @@ function getSimplifiedReportObject(report) {
     if (report.reportActionCount > 0) {
         // We are removing any html tags from the message html since we cannot access the text version of any comments as
         // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-        // We convert the line-breaks in html to space ' ' before striping the tags
-        lastMessageText = lastActionMessage
-            .replace(/((<br[^>]*>)+)/gi, ' ')
-            .replace(/(<([^>]+)>)/gi, '');
+        const parser = new ExpensiMark();
+        lastMessageText = parser.htmlToText(lastActionMessage);
         lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
     }
 
@@ -548,9 +546,12 @@ function updateReportWithNewAction(
     reportAction,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
-    const messageText = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+    const messageHtml = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
         ? lodashGet(reportAction, 'originalMessage.html', '')
-        : lodashGet(reportAction, ['message', 0, 'text'], '');
+        : lodashGet(reportAction, ['message', 0, 'html'], '');
+
+    const parser = new ExpensiMark();
+    const messageText = parser.htmlToText(messageHtml);
 
     const updatedReportObject = {
         // Always merge the reportID into Onyx. If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out by handleReportChanged
@@ -582,23 +583,13 @@ function updateReportWithNewAction(
 }
 
 /**
- * Updates a report in Onyx with a new pinned state.
- *
- * @param {Number} reportID
- * @param {Boolean} isPinned
- */
-function updateReportPinnedState(reportID, isPinned) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
  * @returns {String}
  */
 function getReportChannelName(reportID) {
-    return `private-report-reportID-${reportID}${CONFIG.PUSHER.SUFFIX}`;
+    return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
 /**
@@ -610,7 +601,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
@@ -622,31 +613,10 @@ function subscribeToUserEvents() {
         pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
     );
 
-    // Live-update a report's actions when a 'chunked report comment' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
-        true,
-    );
-
     // Live-update a report's actions when an 'edit comment' event is received.
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
         currentUserAccountID,
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
-
-    // Live-update a report's actions when an 'edit comment chunk' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
-        true,
-    );
-
-    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_TOGGLE_PINNED,
-        currentUserAccountID,
-        pushJSON => updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned));
 }
 
 /**
@@ -948,7 +918,7 @@ function addAction(reportID, text, file) {
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? '[Attachment]'
-        : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
+        : parser.htmlToText(htmlForNewComment);
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -1148,11 +1118,20 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    updateReportPinnedState(report.reportID, pinnedValue);
-    DeprecatedAPI.Report_TogglePinned({
+
+    // Optimistically pin/unpin the report before we send out the command
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {isPinned: pinnedValue},
+        },
+    ];
+
+    API.write('TogglePinnedChat', {
         reportID: report.reportID,
         pinnedValue,
-    });
+    }, {optimisticData});
 }
 
 /**
@@ -1261,7 +1240,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const actionToMerge = {};
     newReportAction.message[0].isEdited = true;
     newReportAction.message[0].html = htmlForNewComment;
-    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' '));
+    newReportAction.message[0].text = parser.htmlToText(htmlForNewComment);
     actionToMerge[sequenceNumber] = newReportAction;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
@@ -1423,6 +1402,14 @@ function renameReport(reportID, reportName) {
 
 /**
  * @param {Number} reportID
+ * @param {Boolean} isComposerFullSize
+ */
+function setIsComposerFullSize(reportID, isComposerFullSize) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
+}
+
+/**
+ * @param {Number} reportID
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
@@ -1558,4 +1545,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    setIsComposerFullSize,
 };
