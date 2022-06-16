@@ -86,8 +86,7 @@ class BasePaymentsPage extends React.Component {
         if (!this.state.addPaymentMethodButton) {
             return;
         }
-        const buttonPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
-        this.setPositionAddPaymentMenu(buttonPosition);
+        getClickedElementLocation(this.state.addPaymentMethodButton).then(position => this.setPositionAddPaymentMenu(position));
     }
 
     getSelectedPaymentMethodID() {
@@ -120,14 +119,14 @@ class BasePaymentsPage extends React.Component {
      * Display the delete/default menu, or the add payment method menu
      *
      * @param {Object} event
+     * @param {Object} menuItemref
      * @param {String} accountType
      * @param {String} account
      * @param {Boolean} isDefault
      */
-    paymentMethodPressed(event, accountType, account, isDefault) {
-        const position = getClickedElementLocation(event.nativeEvent);
+    paymentMethodPressed(event, menuItemref, accountType, account, isDefault) {
         this.setState({
-            addPaymentMethodButton: event.nativeEvent,
+            addPaymentMethodButton: menuItemref,
         });
         if (accountType) {
             let formattedSelectedPaymentMethod;
@@ -153,20 +152,22 @@ class BasePaymentsPage extends React.Component {
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
-            this.setState({
-                isSelectedPaymentMethodDefault: isDefault,
-                shouldShowDefaultDeleteMenu: true,
-                selectedPaymentMethod: account,
-                selectedPaymentMethodType: accountType,
-                formattedSelectedPaymentMethod,
+            getClickedElementLocation(menuItemref).then((position) => {
+                this.setState({
+                    isSelectedPaymentMethodDefault: isDefault,
+                    shouldShowDefaultDeleteMenu: true,
+                    selectedPaymentMethod: account,
+                    selectedPaymentMethodType: accountType,
+                    formattedSelectedPaymentMethod,
+                });
+                this.setPositionAddPaymentMenu(position);
             });
-            this.setPositionAddPaymentMenu(position);
             return;
         }
         this.setState({
             shouldShowAddPaymentMenu: true,
         });
-        this.setPositionAddPaymentMenu(position);
+        getClickedElementLocation(menuItemref).then(position => this.setPositionAddPaymentMenu(position));
     }
 
     /**

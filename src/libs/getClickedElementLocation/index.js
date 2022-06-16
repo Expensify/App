@@ -2,10 +2,10 @@
  * Returns the position of the clicked element
  *
  * @param {Object} nativeEvent
- * @returns {Object}
+ * @returns {Promise}
  */
 function getClickedElementLocation(nativeEvent) {
-    return nativeEvent.target.getBoundingClientRect();
+    return Promise.resolve(nativeEvent.target.getBoundingClientRect());
 }
 
 export default getClickedElementLocation;

@@ -1,14 +1,18 @@
+import {StatusBar} from 'react-native';
+
 /**
  * Returns the position of the clicked element
  *
- * @param {Object} nativeEvent
- * @returns {Object}
+ * @param {Object} ref
+ * @returns {Promise}
  */
-function getClickedElementLocation(nativeEvent) {
-    return {
-        bottom: nativeEvent.absolutePosition.y + nativeEvent.absolutePosition.height,
-        left: nativeEvent.absolutePosition.x,
-    };
+function getClickedElementLocation(ref) {
+    return new Promise((resolve) => {
+        ref.measureInWindow((x, y, width, height) => resolve({
+            bottom: y + height + StatusBar.currentHeight,
+            left: x,
+        }));
+    });
 }
 
 export default getClickedElementLocation;
