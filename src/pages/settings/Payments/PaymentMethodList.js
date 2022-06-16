@@ -127,7 +127,7 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
+            onPress: (event, ref) => this.props.onPress(event, ref, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
@@ -161,7 +161,7 @@ class PaymentMethodList extends Component {
             icon: Expensicons.CreditCard,
             style: [styles.mh4],
             iconStyles: [styles.mr4],
-            onPress: e => this.props.onPress(e),
+            onPress: (event, ref) => this.props.onPress(event, ref),
             isDisabled: this.props.isLoadingPayments,
             shouldShowRightIcon: true,
             success: true,
