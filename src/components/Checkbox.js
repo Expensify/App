@@ -53,14 +53,9 @@ function Checkbox(props) {
     }
 
     function checkboxClicked(event) {
-        // event.type will be undefined on native
-        if (!event.type) {
-            return props.onPress();
-        }
-
-        // if this was not triggered by click event
-        // we do not want to toggle checkbox
-        if (event.type !== 'click') {
+        // Pressable can be triggered with Enter key and by a click. As this is a checkbox,
+        // We do not want to toggle it, when Enter key is pressed.
+        if (event.type && event.type !== 'click') {
             return;
         }
 
