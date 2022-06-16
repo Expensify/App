@@ -1461,6 +1461,13 @@ function viewNewReportAction(reportID, action) {
         return;
     }
 
+    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the marker above the incoming message.
+    const report = lodashGet(allReports, 'reportID', {});
+    if (lodashGet(report, 'newMarkerSequenceNumber', 0) === 0 && report.unreadActionCount > 0) {
+        const oldestUnreadSeq = (report.maxSequenceNumber - report.unreadActionCount) + 1;
+        setNewMarkerPosition(reportID, oldestUnreadSeq);
+    }
+
     // If we are currently viewing this report do not show a notification.
     if (reportID === lastViewedReportID && Visibility.isVisible()) {
         Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
@@ -1470,13 +1477,6 @@ function viewNewReportAction(reportID, action) {
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
     if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
         return;
-    }
-
-    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the marker above the incoming message.
-    const report = lodashGet(allReports, 'reportID', {});
-    if (lodashGet(report, 'newMarkerSequenceNumber', 0) === 0 && report.unreadActionCount > 0) {
-        const oldestUnreadSeq = (report.maxSequenceNumber - report.unreadActionCount) + 1;
-        setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
 
     Log.info('[LOCAL_NOTIFICATION] Creating notification');
