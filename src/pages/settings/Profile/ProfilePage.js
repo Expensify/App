@@ -184,7 +184,7 @@ class ProfilePage extends Component {
             hasLastNameError,
             hasPronounError,
         });
-        
+
         if (hasFirstNameError) {
             errors.firstName = PersonalDetails.getMaxCharacterError(hasFirstNameError);
         }
