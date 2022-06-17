@@ -1794,7 +1794,6 @@ const styles = {
         },
         confirmButton: {
             ...spacing.pt4,
-            marginTop: 'auto',
         },
     },
 
