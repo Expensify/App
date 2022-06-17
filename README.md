@@ -19,6 +19,7 @@
 * [Deploying](#deploying)
 
 #### Additional Reading
+* [API Details](docs/API.md)
 * [Offline First](./OfflineUX.md)
 * [Contributing to Expensify](./CONTRIBUTING.md)
 * [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
