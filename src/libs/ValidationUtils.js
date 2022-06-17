@@ -321,7 +321,7 @@ function isValidRoutingNumber(number) {
  * @returns {Boolean[]}
  */
 function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value.length > maxLength);
+    return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
 }
 
 /**
