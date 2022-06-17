@@ -199,15 +199,15 @@ class ProfilePage extends Component {
         });
         
         if (hasFirstNameError) {
-            errors.firstName = PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError);
+            errors.firstName = PersonalDetails.getMaxCharacterError(hasFirstNameError);
         }
 
         if (hasLastNameError) {
-            errors.lastName = PersonalDetails.getMaxCharacterError(this.state.hasLastNameError);
+            errors.lastName = PersonalDetails.getMaxCharacterError(hasLastNameError);
         }
 
         if (hasPronounError) {
-            errors.pronouns = PersonalDetails.getMaxCharacterError(this.state.hasPronounError);
+            errors.pronouns = PersonalDetails.getMaxCharacterError(hasPronounError);
         }
 
         return errors;
