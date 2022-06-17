@@ -9,6 +9,7 @@ import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
 let navigationIsReadyPromise = new Promise((resolve) => {
@@ -78,10 +79,18 @@ function closeDrawer() {
  * @returns {String}
  */
 function getDefaultDrawerState(isSmallScreenWidth) {
-    if (didTapNotificationBeforeReady) {
-        return 'closed';
+    if (didTapNotificationBeforeReady || !isSmallScreenWidth) {
+        return CONST.DRAWER_STATUS.CLOSED;
     }
-    return isSmallScreenWidth ? 'open' : 'closed';
+
+    // On mobile when the App first open will return path `/`.
+    // On web when user refresh the page, the path will always return the ReportScreen on path `/r/{reportID}`,
+    // and will return path `/` if opening from the domain name e.g https://new.expensify.com
+    const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config);
+
+    // Commonly we want to show ReportScreen when user navigate to path `/r/{reportID}`
+    // and show the drawer when user navigate to the app with the domain name e.g https://new.expensify.com
+    return path === ROUTES.ROOT ? CONST.DRAWER_STATUS.OPEN : CONST.DRAWER_STATUS.CLOSED;
 }
 
 /**
