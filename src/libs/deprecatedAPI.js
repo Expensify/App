@@ -6,6 +6,7 @@ import * as Request from './Request';
 import * as Network from './Network';
 import * as Middleware from './Middleware';
 import CONST from '../CONST';
+import random from 'random-bigint';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Retry. Errors thrown in one middleware will bubble to the next e.g. an error thrown in
@@ -56,6 +57,7 @@ function CreateChatReport(parameters) {
     const commandName = 'CreateChatReport';
     requireParameters(['emailList'],
         parameters, commandName);
+    parameters.reportID = random(63);
     return Network.post(commandName, parameters);
 }
 
@@ -306,7 +308,7 @@ function RejectTransaction(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.reportComment
- * @param {Number} parameters.reportID
+ * @param {BigInt} parameters.reportID
  * @param {String} parameters.clientID
  * @param {File|Object} [parameters.file]
  * @returns {Promise}
