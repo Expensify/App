@@ -136,6 +136,7 @@ class PDFView extends Component {
                 {this.state.shouldAttemptPdfLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
+                            activityIndicator={<FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
                             onError={this.initiatePasswordChallenge}
@@ -153,10 +154,10 @@ class PDFView extends Component {
                         <PDFPasswordForm
                             onSubmit={this.attemptPdfLoadWithPassword}
                             isPasswordInvalid={this.state.isPasswordInvalid}
+                            shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
                         />
                     </KeyboardAvoidingView>
                 )}
-                {this.state.shouldShowLoadingIndicator && <FullScreenLoadingIndicator />}
             </View>
         );
     }

@@ -18,8 +18,11 @@ const propTypes = {
     /** If the submitted password is invalid (show an error message) */
     isPasswordInvalid: PropTypes.bool,
 
-    /** If the password field is auto-focused */
-    isPasswordFieldFocused: PropTypes.bool,
+    /** If the password field should be auto-focused */
+    shouldAutofocusPasswordField: PropTypes.bool,
+
+    /** If loading indicator should be shown */
+    shouldShowLoadingIndicator: PropTypes.bool,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -27,7 +30,8 @@ const propTypes = {
 
 const defaultProps = {
     isPasswordInvalid: false,
-    isPasswordFieldFocused: false,
+    shouldAutofocusPasswordField: false,
+    shouldShowLoadingIndicator: false,
 };
 
 class PDFPasswordForm extends Component {
@@ -92,7 +96,7 @@ class PDFPasswordForm extends Component {
                     onSubmitEditing={this.submitPassword}
                     errorText={this.state.validationErrorText}
                     onBlur={this.validateOnBlur}
-                    autoFocus={this.props.isPasswordFieldFocused}
+                    autoFocus={this.props.shouldAutofocusPasswordField}
                     secureTextEntry
                 />
                 {!this.state.isEditingInProgress && this.props.isPasswordInvalid && (
@@ -109,6 +113,7 @@ class PDFPasswordForm extends Component {
                     text={this.props.translate('common.confirm')}
                     onPress={this.submitPassword}
                     style={buttonStyles}
+                    isLoading={this.props.shouldShowLoadingIndicator}
                     pressOnEnter
                 />
             </View>
