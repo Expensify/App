@@ -187,33 +187,26 @@ class ProfilePage extends Component {
     validate(values) {
         const errors = {};
 
-        const [hasFirstNameError] = ValidationUtils.doesFailCharacterLimit(
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(
             CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
-            [values.firstName.trim()],
+            [values.firstName, values.lastName, values.pronouns],
         );
 
-        if(hasFirstNameError) {
-            this.setState({hasFirstNameError});
+        this.setState({
+            hasFirstNameError,
+            hasLastNameError,
+            hasPronounError,
+        });
+        
+        if (hasFirstNameError) {
             errors.firstName = PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError);
         }
 
-        const [hasLastNameError] = ValidationUtils.doesFailCharacterLimit(
-            CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
-            [values.lastName.trim()],
-        );
-
-        if(hasLastNameError) {
-            this.setState({hasLastNameError});
+        if (hasLastNameError) {
             errors.lastName = PersonalDetails.getMaxCharacterError(this.state.hasLastNameError);
         }
 
-        const [hasPronounError] = ValidationUtils.doesFailCharacterLimit(
-            CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
-            [values.pronouns.trim()],
-        );
-
-        if(hasPronounError) {
-            this.setState({hasPronounError});
+        if (hasPronounError) {
             errors.pronouns = PersonalDetails.getMaxCharacterError(this.state.hasPronounError);
         }
 
