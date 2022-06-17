@@ -80,7 +80,7 @@ class PDFView extends Component {
         const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
 
         const outerContainerStyle = [styles.PDFView, this.props.style];
-        const innerContainerStyle = [styles.w100, styles.h100, {width: pageWidth}];
+        const innerContainerStyle = [styles.h100];
 
         // If we're requesting a password then we need to set the background to
         // defaultModalContainer color (white) and hide - but still render -
