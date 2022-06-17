@@ -90,6 +90,7 @@ class PDFPasswordForm extends Component {
                 <TextInput
                     label={this.props.translate('common.password')}
                     autoCompleteType="off"
+                    autoCorrect={false}
                     textContentType="password"
                     onInputChange={this.updatePassword}
                     returnKeyType="done"
@@ -108,6 +109,9 @@ class PDFPasswordForm extends Component {
                             </Text>
                         </View>
                     </View>
+                )}
+                {this.props.isSmallScreenWidth && (
+                    <View style={{flexGrow: 1}} />
                 )}
                 <Button
                     text={this.props.translate('common.confirm')}
