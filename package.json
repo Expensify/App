@@ -74,6 +74,7 @@
     "onfido-sdk-ui": "^6.15.2",
     "prop-types": "^15.7.2",
     "pusher-js": "^7.0.6",
+    "random-bigint": "0.0.1",
     "react": "^17.0.2",
     "react-collapse": "^5.1.0",
     "react-dom": "^17.0.2",
