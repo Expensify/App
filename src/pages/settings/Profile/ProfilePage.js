@@ -187,40 +187,34 @@ class ProfilePage extends Component {
     validate(values) {
         const errors = {};
 
-        if (values.firstName) {
-            const [hasFirstNameError] = ValidationUtils.doesFailCharacterLimit(
-                50,
-                [values.firstName.trim()],
-            );
+        const [hasFirstNameError] = ValidationUtils.doesFailCharacterLimit(
+            CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
+            [values.firstName.trim()],
+        );
 
-            if(hasFirstNameError) {
-                this.setState({hasFirstNameError});
-                errors.firstName = PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError);
-            }
+        if(hasFirstNameError) {
+            this.setState({hasFirstNameError});
+            errors.firstName = PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError);
         }
 
-        if (values.lastName) {
-            const [hasLastNameError] = ValidationUtils.doesFailCharacterLimit(
-                50,
-                [values.lastName.trim()],
-            );
+        const [hasLastNameError] = ValidationUtils.doesFailCharacterLimit(
+            CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
+            [values.lastName.trim()],
+        );
 
-            if(hasLastNameError) {
-                this.setState({hasLastNameError});
-                errors.lastName = PersonalDetails.getMaxCharacterError(this.state.hasLastNameError);
-            }
+        if(hasLastNameError) {
+            this.setState({hasLastNameError});
+            errors.lastName = PersonalDetails.getMaxCharacterError(this.state.hasLastNameError);
         }
 
-        if (values.pronouns) {
-            const [hasPronounError] = ValidationUtils.doesFailCharacterLimit(
-                50,
-                [values.pronouns.trim()],
-            );
+        const [hasPronounError] = ValidationUtils.doesFailCharacterLimit(
+            CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
+            [values.pronouns.trim()],
+        );
 
-            if(hasPronounError) {
-                this.setState({hasPronounError});
-                errors.pronouns = PersonalDetails.getMaxCharacterError(this.state.hasPronounError);
-            }
+        if(hasPronounError) {
+            this.setState({hasPronounError});
+            errors.pronouns = PersonalDetails.getMaxCharacterError(this.state.hasPronounError);
         }
 
         return errors;

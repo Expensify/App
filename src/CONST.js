@@ -701,6 +701,8 @@ const CONST = {
 
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
+
+    PROFILE_INPUTS_CHARACTER_LIMIT: 50,
 };
 
 export default CONST;
