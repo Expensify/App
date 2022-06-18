@@ -5,6 +5,7 @@ import {
     Platform,
     TouchableWithoutFeedback,
     View,
+    Keyboard,
 } from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -82,6 +83,13 @@ class PDFView extends Component {
      * @param {String} password Password submitted via PDFPasswordForm
      */
     attemptPdfLoadWithPassword(password) {
+        // On Android we need to close the keyboard before rending the PDF.
+        // If the keyboard is open during PDF rendering then react-native-pdf
+        // scales the PDF view incorrectly.
+        if (Platform.OS === CONST.PLATFORM.ANDROID) {
+            Keyboard.dismiss();
+        }
+
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
@@ -119,7 +127,6 @@ class PDFView extends Component {
         // is positioned nicely. We're specifically hiding it because we still need to render
         // the PDF so that it can validate the password.
         if (this.state.shouldRequestPassword) {
-            // touchableStyles.push(styles.invisible);
             pdfStyles.push(styles.invisible);
         }
 
