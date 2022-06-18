@@ -111,7 +111,7 @@ class AvatarWithImagePicker extends React.Component {
     /**
      *  Toggle max upload limit modal's visibility
      * @param {Boolean} isVisible
-    */
+     */
     setUploadLimitModalVisibility(isVisible) {
         this.setState({isMaxUploadSizeModalOpen: isVisible});
     }
@@ -119,7 +119,7 @@ class AvatarWithImagePicker extends React.Component {
     /**
      *  Checks if the image has the valid size and triggers the onImageSelected callback
      * @param {Object} image
-    */
+     */
     updateAvatarImage(image) {
         if (!this.isValidSize(image)) {
             this.setUploadLimitModalVisibility(true);
@@ -139,7 +139,7 @@ class AvatarWithImagePicker extends React.Component {
 
     /**
      * @param {Object} image
-    */
+     */
     openAvatarCropModal(image) {
         this.setState({isAvatarCropModalOpen: true, image});
     }
