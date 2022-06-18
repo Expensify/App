@@ -4,6 +4,7 @@ import {
     Pressable, View, Animated, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import ImageSize from 'react-native-image-size';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
 import Icon from './Icon';
@@ -76,13 +77,16 @@ class AvatarWithImagePicker extends React.Component {
     constructor(props) {
         super(props);
         this.animation = new SpinningIndicatorAnimation();
-        this.setUploadLimitModalVisibility = this.setUploadLimitModalVisibility.bind(this);
+        this.hideErrorModal = this.hideErrorModal.bind(this);
+        this.showErrorModal = this.showErrorModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
         this.updateAvatarImage = this.updateAvatarImage.bind(this);
         this.openAvatarCropModal = this.openAvatarCropModal.bind(this);
         this.state = {
             isMenuVisible: false,
-            isMaxUploadSizeModalOpen: false,
+            isErrorModalVisible: false,
+            errorModalPrompt: null,
+            errorModalTitle: null,
             isAvatarCropModalOpen: false,
             image: null,
         };
@@ -109,11 +113,19 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     *  Toggle max upload limit modal's visibility
-     * @param {Boolean} isVisible
+     *  Shows error modal
+     * @param {String} title
+     * @param {String} prompt
      */
-    setUploadLimitModalVisibility(isVisible) {
-        this.setState({isMaxUploadSizeModalOpen: isVisible});
+    showErrorModal(title, prompt) {
+        this.setState({isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt});
+    }
+
+    /**
+     *  Hides error modal
+     */
+    hideErrorModal() {
+        this.setState({isErrorModalVisible: false});
     }
 
     /**
@@ -122,7 +134,10 @@ class AvatarWithImagePicker extends React.Component {
      */
     updateAvatarImage(image) {
         if (!this.isValidSize(image)) {
-            this.setUploadLimitModalVisibility(true);
+            this.showErrorModal(
+                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
+            );
             return;
         }
         this.props.onImageSelected(image);
@@ -138,10 +153,36 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
+     * Check if the attachment resolution is bigger than required.
+     * @param {Object} image
+     * @returns {Promise}
+     */
+    isValidResolution(image) {
+        return new Promise((resolve) => {
+            ImageSize.getSize(image.uri).then(({height, width}) => {
+                resolve(height > CONST.AVATAR_MIN_HEIGHT_PX && width > CONST.AVATAR_MIN_WIDTH_PX);
+            });
+        });
+    }
+
+    /** Validates if an image has a valid resolution and opens an avatar crop modal
      * @param {Object} image
      */
     openAvatarCropModal(image) {
-        this.setState({isAvatarCropModalOpen: true, image});
+        this.isValidResolution(image)
+            .then((isValidResolution) => {
+                if (isValidResolution) {
+                    this.setState({isAvatarCropModalOpen: true, image});
+                    return;
+                }
+                this.showErrorModal(
+                    this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                    this.props.translate('avatarWithImagePicker.tooSmallResolution', {
+                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                    }),
+                );
+            });
     }
 
     /**
@@ -254,11 +295,11 @@ class AvatarWithImagePicker extends React.Component {
                     </View>
                 </Pressable>
                 <ConfirmModal
-                    title={this.props.translate('avatarWithImagePicker.imageUploadFailed')}
-                    onConfirm={() => this.setUploadLimitModalVisibility(false)}
-                    onCancel={() => this.setUploadLimitModalVisibility(false)}
-                    isVisible={this.state.isMaxUploadSizeModalOpen}
-                    prompt={this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)})}
+                    title={this.state.errorModalTitle}
+                    onConfirm={() => this.hideErrorModal(false)}
+                    onCancel={() => this.hideErrorModal(false)}
+                    isVisible={this.state.isErrorModalVisible}
+                    prompt={this.state.errorModalPrompt}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />

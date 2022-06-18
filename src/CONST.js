@@ -15,6 +15,10 @@ const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
+
+    // Minimum width and height size in px for a selected image
+    AVATAR_MIN_WIDTH_PX: 80,
+    AVATAR_MIN_HEIGHT_PX: 80,
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
