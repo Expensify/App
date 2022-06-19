@@ -135,6 +135,8 @@ class EmojiPickerMenu extends Component {
 
         this.keyDownHandler = (keyBoardEvent) => {
             if (keyBoardEvent.key.startsWith('Arrow')) {
+                keyBoardEvent.preventDefault();
+
                 // Move the highlight when arrow keys are pressed
                 this.highlightAdjacentEmoji(keyBoardEvent.key);
                 return;
@@ -151,7 +153,6 @@ class EmojiPickerMenu extends Component {
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
             if (this.searchInput && !this.searchInput.isFocused()) {
                 this.setState({selectTextOnFocus: false});
-                this.searchInput.value = '';
                 this.searchInput.focus();
 
                 // Re-enable selection on the searchInput
@@ -352,7 +353,7 @@ class EmojiPickerMenu extends Component {
             this.setState({
                 filteredEmojis: this.emojis,
                 headerIndices: this.unfilteredHeaderIndices,
-                highlightedIndex: this.numColumns,
+                highlightedIndex: -1,
             });
             return;
         }

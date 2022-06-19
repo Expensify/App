@@ -26,6 +26,8 @@ import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ROUTES from '../../ROUTES';
+import networkPropTypes from '../../components/networkPropTypes';
+import {withNetwork} from '../../components/OnyxProvider';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -49,6 +51,9 @@ const propTypes = {
         // Local Currency Code of the current user
         localCurrencyCode: PropTypes.string,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
@@ -138,11 +143,15 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        PersonalDetails.fetchLocalCurrency();
+        this.fetchData();
         IOU.setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.fetchData();
+        }
+
         // Successfully close the modal if transaction creation has ended and there is no error
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
             Navigation.dismissModal();
@@ -213,6 +222,10 @@ class IOUModal extends Component {
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
+    }
+
+    fetchData() {
+        PersonalDetails.fetchLocalCurrency();
     }
 
     /**
@@ -404,6 +417,7 @@ class IOUModal extends Component {
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 selectedAmount={this.state.amount}
                                                 navigation={this.props.navigation}
+                                                iouType={this.props.iouType}
                                             />
                                         </AnimatedStep>
                                     )}
@@ -429,12 +443,12 @@ class IOUModal extends Component {
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                participants={this.state.participants}
+                                                participants={_.filter(this.state.participants, email => this.props.myPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                isGroupSplit={this.steps.length === 2}
+                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}
@@ -453,12 +467,10 @@ IOUModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
-        iousReport: {
-            key: ONYXKEYS.COLLECTION.REPORT_IOUS,
         },
         iou: {
             key: ONYXKEYS.IOU,

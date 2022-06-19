@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
@@ -20,17 +20,21 @@ import * as Localize from '../Localize';
 function fetchOnfidoToken(firstName, lastName, dob) {
     // Use Onyx.set() since we are resetting the Onfido flow completely.
     Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
-    API.Wallet_GetOnfidoSDKToken(firstName, lastName, dob)
+    DeprecatedAPI.Wallet_GetOnfidoSDKToken(firstName, lastName, dob)
         .then((response) => {
-            const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
-            Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
-                applicantID: apiResult.applicantID,
-                sdkToken: apiResult.sdkToken,
-                loading: false,
-                hasAcceptedPrivacyPolicy: true,
-            });
-        })
-        .catch(() => Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED}));
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
+                Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
+                    applicantID: apiResult.applicantID,
+                    sdkToken: apiResult.sdkToken,
+                    loading: false,
+                    hasAcceptedPrivacyPolicy: true,
+                });
+                return;
+            }
+
+            Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED});
+        });
 }
 
 /**
@@ -197,7 +201,7 @@ function activateWallet(currentStep, parameters) {
         Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: true});
     }
 
-    API.Wallet_Activate({
+    DeprecatedAPI.Wallet_Activate({
         currentStep,
         personalDetails,
         idologyAnswers,
@@ -263,6 +267,8 @@ function activateWallet(currentStep, parameters) {
                             'resultcode.pa.dob.match',
                             'resultcode.pa.dob.not.available',
                             'resultcode.pa.dob.does.not.match',
+                            'resultcode.blacklist.alert.ssn',
+                            'resultcode.blacklist.alert.address',
                         ];
                         if (_.some(hardFailures, hardFailure => _.contains(idologyErrors, hardFailure))) {
                             setWalletShouldShowFailedKYC(true);
@@ -320,7 +326,7 @@ function activateWallet(currentStep, parameters) {
  * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
  */
 function fetchUserWallet() {
-    API.Get({returnValueList: 'userWallet'})
+    DeprecatedAPI.Get({returnValueList: 'userWallet'})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;

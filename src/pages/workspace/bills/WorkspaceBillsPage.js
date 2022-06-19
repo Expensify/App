@@ -27,9 +27,10 @@ const WorkspaceBillsPage = props => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA ? (
+                {!hasVBA && (
                     <WorkspaceBillsNoVBAView policyID={policyID} />
-                ) : (
+                )}
+                {hasVBA && (
                     <WorkspaceBillsVBAView policyID={policyID} />
                 )}
             </>

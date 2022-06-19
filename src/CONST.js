@@ -86,7 +86,6 @@ const CONST = {
             PENDING: 'PENDING',
         },
         MAX_LENGTH: {
-            TAX_ID_NUMBER: 9,
             SSN: 4,
             ZIP_CODE: 5,
         },
@@ -111,7 +110,6 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
-        MONTHLY_SETTLEMENTS: 'monthlySettlements',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -190,6 +188,7 @@ const CONST = {
     USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
+    GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -274,6 +273,14 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
     },
+    COMPOSER: {
+        MAX_LINES: 16,
+        MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_FULL: -1,
+
+        // The minimum number of typed lines needed to enable the full screen composer
+        FULL_COMPOSER_MIN_LINES: 3,
+    },
     MODAL: {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
@@ -311,12 +318,37 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    JSON_CODE: {
+        SUCCESS: 200,
+        NOT_AUTHENTICATED: 407,
+        EXP_ERROR: 666,
+        UNABLE_TO_RETRY: 'unableToRetry',
+    },
     ERROR: {
-        API_OFFLINE: 'session.offlineMessageRetry',
+        XHR_FAILED: 'xhrFailed',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUGBOT: 'ENSURE_BUGBOT',
+        PUSHER_ERROR: 'PusherError',
+        WEB_SOCKET_ERROR: 'WebSocketError',
+        NETWORK_REQUEST_FAILED: 'Network request failed',
+        SAFARI_DOCUMENT_LOAD_ABORTED: 'cancelled',
+        FIREFOX_DOCUMENT_LOAD_ABORTED: 'NetworkError when attempting to fetch resource.',
+        IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
+        IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
+        IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
+        IOS_NETWORK_CONNECTION_LOST_SPANISH: 'La conexión a Internet parece estar desactivada.',
+        IOS_LOAD_FAILED: 'Load failed',
+        SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
+        GATEWAY_TIMEOUT: 'Gateway Timeout',
+        EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+    },
+    ERROR_TYPE: {
+        SOCKET: 'Expensify\\Auth\\Error\\Socket',
+    },
+    ERROR_TITLE: {
+        SOCKET: 'Issue connecting to database',
     },
     NETWORK: {
         METHOD: {
@@ -325,10 +357,6 @@ const CONST = {
         MAX_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-    },
-    JSON_CODE: {
-        SUCCESS: 200,
-        NOT_AUTHENTICATED: 407,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
@@ -363,11 +391,20 @@ const CONST = {
         },
     },
 
+    PUSHER: {
+        PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+        PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+    },
+
     EMOJI_SPACER: 'SPACER',
 
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
+
+    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+
+    TOOLTIP_MAX_LINES: 3,
 
     LOGIN_TYPE: {
         PHONE: 'phone',
@@ -381,12 +418,25 @@ const CONST = {
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
+    ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
         IMAGE: 'image',
     },
 
+    ATTACHMENT_FILE_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
+        VIDEO: 'video',
+    },
+
+    FILE_TYPE_REGEX: {
+        IMAGE: /\.(jpg|jpeg|png|webp|avif|gif|tiff|wbmp|ico|jng|bmp|heic|svg|svg2)$/,
+        VIDEO: /\.(3gp|h261|h263|h264|m4s|jpgv|jpm|jpgm|mp4|mp4v|mpg4|mpeg|mpg|ogv|ogg|mov|qt|webm|flv|mkv|wmv|wav|avi|movie|f4v|avchd|mp2|mpe|mpv|m4v|swf)$/,
+    },
+    IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
@@ -397,7 +447,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
 
-    COMPOSER_MAX_HEIGHT: 116,
+    COMPOSER_MAX_HEIGHT: 125,
 
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
@@ -590,11 +640,10 @@ const CONST = {
         COMPACT: 'compact',
         DEFAULT: 'default',
     },
-    PHONE_MAX_LENGTH: 15,
-    PHONE_MIN_LENGTH: 5,
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         US_PHONE: /^\+1\d{10}$/,
+        US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
@@ -612,7 +661,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d+(\.\d*)?$/,
+        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -620,6 +669,8 @@ const CONST = {
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
+        TAX_ID: /^\d{9}$/,
+        NON_NUMERIC: /\D/g,
     },
 
     PRONOUNS: {
@@ -657,6 +708,9 @@ const CONST = {
             this.EMAIL.ADMIN,
         ];
     },
+
+    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
+    MAX_COMMENT_LENGTH: 60000,
 };
 
 export default CONST;

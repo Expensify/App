@@ -3,11 +3,18 @@ import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import HttpsError from './Errors/HttpsError';
 
 let shouldUseSecureStaging = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
     callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
+});
+
+let shouldFailAllRequests = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: val => shouldFailAllRequests = (val && _.isBoolean(val.shouldFailAllRequests)) ? val.shouldFailAllRequests : false,
 });
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
@@ -31,11 +38,41 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
         body,
     })
         .then((response) => {
+            // Test mode where all requests will succeed in the server, but fail to return a response
+            if (shouldFailAllRequests) {
+                throw new HttpsError({
+                    message: CONST.ERROR.FAILED_TO_FETCH,
+                });
+            }
+
             if (!response.ok) {
-                throw Error(response.statusText);
+                // Expensify site is down or something temporary like a Bad Gateway or unknown error occurred
+                if (response.status === 504 || response.status === 502 || response.status === 520) {
+                    throw new HttpsError({
+                        message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                        status: response.status,
+                        title: 'Issue connecting to Expensify site',
+                    });
+                }
+
+                throw new HttpsError({
+                    message: response.statusText,
+                    status: response.status,
+                });
             }
 
             return response.json();
+        })
+        .then((response) => {
+            // Auth is down or timed out while making a request
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
+                throw new HttpsError({
+                    message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                    status: CONST.JSON_CODE.EXP_ERROR,
+                    title: CONST.ERROR_TITLE.SOCKET,
+                });
+            }
+            return response;
         });
 }
 
@@ -49,7 +86,14 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
  */
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     const formData = new FormData();
-    _.each(data, (val, key) => formData.append(key, val));
+    _.each(data, (val, key) => {
+        // Do not send undefined request parameters to our API. They will be processed as strings of 'undefined'.
+        if (_.isUndefined(val)) {
+            return;
+        }
+
+        formData.append(key, val);
+    });
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     if (shouldUseSecure && shouldUseSecureStaging) {

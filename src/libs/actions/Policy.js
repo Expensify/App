@@ -1,16 +1,18 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
+import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
+import * as Pusher from '../Pusher/pusher';
 
 const allPolicies = {};
 Onyx.connect({
@@ -21,6 +23,13 @@ Onyx.connect({
         }
 
         allPolicies[key] = {...allPolicies[key], ...val};
+    },
+});
+let sessionEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        sessionEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -118,7 +127,7 @@ function updateAllPolicies(policyCollection) {
 function create(name = '') {
     Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
-    return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
+    return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
@@ -167,7 +176,7 @@ function createAndNavigate(name = '') {
  * @returns {Promise}
  */
 function deletePolicy(policyID) {
-    return API.Policy_Delete({policyID})
+    return DeprecatedAPI.Policy_Delete({policyID})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
@@ -201,9 +210,11 @@ function deletePolicy(policyID) {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
-    API.GetPolicySummaryList()
+    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
+    DeprecatedAPI.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode !== 200) {
+                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
                 return;
             }
 
@@ -215,6 +226,8 @@ function getPolicyList() {
             if (!_.isEmpty(policyCollection)) {
                 updateAllPolicies(policyCollection);
             }
+
+            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
         });
 }
 
@@ -225,6 +238,7 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
+        .then(Navigation.isNavigationReady)
         .then(() => {
             Navigation.dismissModal();
             navigateToPolicy(newPolicyID);
@@ -235,7 +249,7 @@ function createAndGetPolicyList() {
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
-    API.GetFullPolicy(policyID)
+    DeprecatedAPI.GetFullPolicy(policyID)
         .then((data) => {
             if (data.jsonCode !== 200) {
                 return;
@@ -251,18 +265,6 @@ function loadFullPolicy(policyID) {
                 ...getSimplifiedPolicyObject(policy, true),
             });
         });
-}
-
-/**
- * Is the user an admin of a free policy (aka workspace)?
- *
- * @param {Array} policies
- * @returns {Boolean}
- */
-function isAdminOfFreePolicy(policies) {
-    return _.some(policies, policy => policy
-        && policy.type === CONST.POLICY.TYPE.FREE
-        && policy.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -288,15 +290,12 @@ function removeMembers(members, policyID) {
     Onyx.set(key, policy);
 
     // Make the API call to remove a login from the policy
-    API.Policy_Employees_Remove({
+    DeprecatedAPI.Policy_Employees_Remove({
         emailList: members.join(','),
         policyID,
     })
         .then((data) => {
             if (data.jsonCode === 200) {
-                if (!_.isEmpty(data.policyExpenseChatIDs)) {
-                    Report.fetchChatReportsByIDs(data.policyExpenseChatIDs);
-                }
                 return;
             }
             const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
@@ -329,7 +328,7 @@ function invite(logins, welcomeNote, policyID) {
     Onyx.merge(key, policy);
 
     // Make the API call to merge the login into the policy
-    API.Policy_Employees_Merge({
+    DeprecatedAPI.Policy_Employees_Merge({
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
         welcomeNote,
         policyID,
@@ -377,7 +376,7 @@ function updateLocalPolicyValues(policyID, values) {
  */
 function update(policyID, values, shouldGrowl = false) {
     updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
-    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+    DeprecatedAPI.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
                 throw new Error();
@@ -404,7 +403,7 @@ function update(policyID, values, shouldGrowl = false) {
  */
 function uploadAvatar(policyID, file) {
     updateLocalPolicyValues(policyID, {isAvatarUploading: true});
-    API.User_UploadAvatar({file})
+    DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode === 200) {
                 // Update the policy with the new avatarURL as soon as we get it
@@ -440,7 +439,7 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {Object} values
  */
 function setCustomUnit(policyID, values) {
-    API.Policy_CustomUnit_Update({
+    DeprecatedAPI.Policy_CustomUnit_Update({
         policyID: policyID.toString(),
         customUnit: JSON.stringify(values),
         lastModified: null,
@@ -469,7 +468,7 @@ function setCustomUnit(policyID, values) {
  * @param {Object} values
  */
 function setCustomUnitRate(policyID, customUnitID, values) {
-    API.Policy_CustomUnitRate_Update({
+    DeprecatedAPI.Policy_CustomUnitRate_Update({
         policyID: policyID.toString(),
         customUnitID: customUnitID.toString(),
         customUnitRate: JSON.stringify(values),
@@ -503,12 +502,42 @@ function updateLastAccessedWorkspace(policyID) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
+/**
+ * Subscribe to public-policyEditor-[policyID] events.
+ */
+function subscribeToPolicyEvents() {
+    _.each(allPolicies, (policy, key) => {
+        const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
+        Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
+            const policyWithoutEmployee = _.clone(policy);
+            policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
+
+            // Remove the members from the policy
+            Onyx.set(key, policyWithoutEmployee);
+
+            // Refetch the policy expense chats to update their state and their actions to get the archive reason
+            if (!_.isEmpty(policyExpenseChatIDs)) {
+                Report.fetchChatReportsByIDs(policyExpenseChatIDs);
+                _.each(policyExpenseChatIDs, (reportID) => {
+                    Report.fetchActions(reportID);
+                });
+            }
+
+            // Remove the default chats if we are one of the users getting removed
+            if (removedEmails.includes(sessionEmail) && !_.isEmpty(defaultRoomChatIDs)) {
+                _.each(defaultRoomChatIDs, (chatID) => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatID}`, null);
+                });
+            }
+        });
+    });
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
     removeMembers,
     invite,
-    isAdminOfFreePolicy,
     create,
     uploadAvatar,
     update,
@@ -520,4 +549,5 @@ export {
     setCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
+    subscribeToPolicyEvents,
 };

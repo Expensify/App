@@ -1,8 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -20,16 +17,13 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
 import NetworkConnection from '../../NetworkConnection';
 import CONFIG from '../../../CONFIG';
-import * as GeoLocation from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
-import NameValuePair from '../../actions/NameValuePair';
 import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import * as BankAccounts from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -38,11 +32,13 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
+import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
+import networkPropTypes from '../../../components/networkPropTypes';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -80,16 +76,9 @@ const modalScreenListeners = {
 
 const propTypes = {
     /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    network: {isOffline: true},
 };
 
 class AuthScreens extends React.Component {
@@ -110,33 +99,15 @@ class AuthScreens extends React.Component {
         }).then(() => {
             Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
+            Policy.subscribeToPolicyEvents();
         });
 
-        // Fetch some data we need on initialization
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-        App.getLocale();
-        PersonalDetails.fetchPersonalDetails();
-        User.getUserDetails();
-        User.getBetas();
-        User.getDomainInfo();
-        PersonalDetails.fetchLocalCurrency();
-        Report.fetchAllReports(true, true);
-        GeoLocation.fetchCountryCodeByRequestIP();
+        // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        BankAccounts.fetchFreePlanVerifiedBankAccount();
-        BankAccounts.fetchUserWallet();
+        App.getAppData(false);
 
-        // Load policies, maybe creating a new policy first.
-        Linking.getInitialURL()
-            .then((url) => {
-                if (this.shouldCreateFreePolicy(url)) {
-                    Policy.createAndGetPolicyList();
-                    return;
-                }
-
-                Policy.getPolicyList();
-            });
+        App.fixAccountAndReloadData();
+        App.setUpPoliciesAndNavigate(this.props.session);
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -180,25 +151,6 @@ class AuthScreens extends React.Component {
         Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-    }
-
-    /**
-     * @param {String} [url]
-     * @returns {Boolean}
-     */
-    shouldCreateFreePolicy(url = '') {
-        if (!url) {
-            return false;
-        }
-
-        const path = new URL(url).pathname;
-        const params = new URLSearchParams(url);
-        const exitTo = params.get('exitTo');
-        const email = params.get('email');
-        const isLoggingInAsNewUser = !_.isNull(this.props.session.email) && (email !== this.props.session.email);
-        return !isLoggingInAsNewUser
-            && Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
-            && exitTo === ROUTES.WORKSPACE_NEW;
     }
 
     render() {
@@ -256,9 +208,9 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
+                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
-                    component={LogInWithShortLivedTokenPage}
+                    component={LogOutPreviousUserPage}
                 />
 
                 {/* These are the various modal routes */}
@@ -366,13 +318,10 @@ class AuthScreens extends React.Component {
 }
 
 AuthScreens.propTypes = propTypes;
-AuthScreens.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },

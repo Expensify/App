@@ -20,6 +20,9 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import * as IOU from '../../libs/actions/IOU';
+import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 /**
  * IOU Currency selection for selecting currency
@@ -51,7 +54,11 @@ const propTypes = {
         // ISO4217 Code for the currency
         ISO4217: PropTypes.string,
     })),
+
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
     ...withLocalizePropTypes,
+
 };
 
 const defaultProps = {
@@ -84,7 +91,15 @@ class IOUCurrencySelection extends Component {
     }
 
     componentDidMount() {
-        PersonalDetails.getCurrencyList();
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
     }
 
     /**
@@ -113,11 +128,15 @@ class IOUCurrencySelection extends Component {
     getCurrencyOptions() {
         const currencyListKeys = _.keys(this.props.currencyList);
         const currencyOptions = _.map(currencyListKeys, currencyCode => ({
-            text: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
+            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
             searchText: `${currencyCode} ${this.props.currencyList[currencyCode].symbol}`,
             currencyCode,
         }));
         return currencyOptions;
+    }
+
+    fetchData() {
+        PersonalDetails.getCurrencyList();
     }
 
     /**
@@ -244,4 +263,5 @@ export default compose(
         myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
         iou: {key: ONYXKEYS.IOU},
     }),
+    withNetwork(),
 )(IOUCurrencySelection);

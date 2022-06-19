@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -15,7 +14,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as ReportUtils from '../libs/reportUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -108,16 +107,9 @@ class ReportDetailsPage extends Component {
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
-        const displayNamesWithTooltips = _.map(
+        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
             OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
-            ({displayName, firstName, login}) => {
-                const displayNameTrimmed = Str.isSMSLogin(login) ? this.props.toLocalPhone(displayName) : displayName;
-
-                return {
-                    displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                    tooltip: Str.removeSMSDomain(login),
-                };
-            },
+            isMultipleParticipant,
         );
         return (
             <ScreenWrapper>
@@ -140,7 +132,7 @@ class ReportDetailsPage extends Component {
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
-                                        fullTitle={this.props.report.reportName}
+                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.personalDetails, this.props.policies)}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled
                                         numberOfLines={1}

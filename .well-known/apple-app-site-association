@@ -39,9 +39,16 @@
                     {
                         "/": "/partners/plaid/oauth_ios",
                         "comment": "Plaid setup"
+                    },
+                    {
+                        "/": "/statements/*",
+                        "comment": "Wallet statements"
                     }
                 ]
             }
         ]
+    },
+    "webcredentials": {
+        "apps": ["368M544MTT.com.chat.expensify.chat"]
     }
 }

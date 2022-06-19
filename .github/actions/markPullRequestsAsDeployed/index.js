@@ -328,7 +328,7 @@ class GithubUtils {
     }
 
     /**
-     * Parse the PRList section of the StagingDeployCash issue body.
+     * Parse the PRList and Internal QA section of the StagingDeployCash issue body.
      *
      * @private
      *
@@ -352,7 +352,8 @@ class GithubUtils {
                 isAccessible: match[4] === 'x',
             }),
         );
-        return _.sortBy(PRList, 'number');
+        const internalQAPRList = this.getStagingDeployCashInternalQA(issue);
+        return _.sortBy(_.union(PRList, internalQAPRList), 'number');
     }
 
     /**
@@ -378,6 +379,32 @@ class GithubUtils {
             }),
         );
         return _.sortBy(deployBlockers, 'number');
+    }
+
+    /**
+     * Parse InternalQA section of the StagingDeployCash issue body.
+     *
+     * @private
+     *
+     * @param {Object} issue
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
+     */
+    static getStagingDeployCashInternalQA(issue) {
+        let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:.*\r?\n)+)/) || [];
+        if (internalQASection.length !== 2) {
+            return [];
+        }
+        internalQASection = internalQASection[1];
+        const internalQAPRs = _.map(
+            [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
+            match => ({
+                url: match[2],
+                number: Number.parseInt(match[3], 10),
+                isResolved: match[1] === 'x',
+                isAccessible: false,
+            }),
+        );
+        return _.sortBy(internalQAPRs, 'number');
     }
 
     /**

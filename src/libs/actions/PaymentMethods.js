@@ -3,7 +3,7 @@ import {createRef} from 'react';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -21,7 +21,7 @@ import * as store from './ReimbursementAccount/store';
  * @returns {Promise}
  */
 function deleteDebitCard(fundID) {
-    return API.DeleteFund({fundID})
+    return DeprecatedAPI.DeleteFund({fundID})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
@@ -80,7 +80,7 @@ function cleanLocalReimbursementData(bankAccounts) {
  */
 function getPaymentMethods() {
     Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true);
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
         name: 'paypalMeAddress',
         includeDeleted: false,
@@ -113,7 +113,7 @@ function getPaymentMethods() {
  * @returns {Promise}
  */
 function setWalletLinkedAccount(password, bankAccountID, fundID) {
-    return API.SetWalletLinkedAccount({
+    return DeprecatedAPI.SetWalletLinkedAccount({
         password,
         bankAccountID,
         fundID,
@@ -155,8 +155,7 @@ function addBillingCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
-    API.AddBillingCard({
+    DeprecatedAPI.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
@@ -167,7 +166,7 @@ function addBillingCard(params) {
         isP2PDebitCard: true,
         password: params.password,
     }).then(((response) => {
-        let errorMessage = '';
+        let serverErrorMessage = '';
         if (response.jsonCode === 200) {
             const cardObject = {
                 additionalData: {
@@ -188,12 +187,12 @@ function addBillingCard(params) {
             Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             continueSetup();
         } else {
-            errorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
+            serverErrorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
 
-        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
-            submitting: false,
-            error: errorMessage,
+        Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+            isSubmitting: false,
+            serverErrorMessage,
         });
     }));
 }
@@ -202,9 +201,9 @@ function addBillingCard(params) {
  * Resets the values for the add debit card form back to their initial states
  */
 function clearDebitCardFormErrorAndSubmit() {
-    Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
-        submitting: false,
-        error: '',
+    Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+        isSubmitting: false,
+        serverErrorMessage: null,
     });
 }
 
@@ -223,7 +222,7 @@ function transferWalletBalance(paymentMethod) {
     };
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
-    API.TransferWalletBalance(parameters)
+    DeprecatedAPI.TransferWalletBalance(parameters)
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);

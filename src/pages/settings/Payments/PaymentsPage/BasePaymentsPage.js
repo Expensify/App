@@ -30,6 +30,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
+import {withNetwork} from '../../../../components/OnyxProvider';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -60,10 +61,18 @@ class BasePaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        PaymentMethods.getPaymentMethods();
+        this.fetchData();
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
     }
 
     componentWillUnmount() {
@@ -186,6 +195,10 @@ class BasePaymentsPage extends React.Component {
         throw new Error('Invalid payment method type selected');
     }
 
+    fetchData() {
+        PaymentMethods.getPaymentMethods();
+    }
+
     /**
      * Hide the add payment modal
      */
@@ -279,7 +292,6 @@ class BasePaymentsPage extends React.Component {
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
-                            isLoadingPayments={this.props.isLoadingPaymentMethods}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                             actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
                                 ? this.state.selectedPaymentMethodType
@@ -433,16 +445,13 @@ BasePaymentsPage.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
         },
         walletTransfer: {
             key: ONYXKEYS.WALLET_TRANSFER,
-        },
-        isLoadingPaymentMethods: {
-            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-            initWithStoredValues: false,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

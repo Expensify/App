@@ -21,15 +21,19 @@ Labels and hints are enabled by passing the appropriate props to each input:
 
 ### Character Limits
 
-If a field has a character limit we should give that field a max limit and let the user know how many characters there are left outside of the input and below it. This is done by passing the maxLength prop to TextInput.
+If a field has a character limit we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
 
 ```jsx
 <TextInput
     maxLength={20}
 />
 ```
+Note: We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
+The phone number can be formatted in different ways.
 
-![char-limit](https://user-images.githubusercontent.com/22219519/156266959-945c6d26-be9b-426b-9399-98d31ea214c9.png)
+- 2109400803
+- +12109400803
+- (210)-940-0803
 
 ### Native Keyboards
 
@@ -66,7 +70,9 @@ All forms should define an order in which the inputs should be filled out, and u
 3. Add an event listener to the page/component we are creating and update the tab index state on tab/shift + tab key press
 4. Set focus to the input with that tab index.
 
-Additionally, ressing the enter key on any focused field should submit the form.
+Additionally, pressing the enter key on any focused field should submit the form.
+
+Note: This doesn't apply to the multiline fields. To keep the browser behavior consistent, pressing enter on the multiline should not be intercepted. It should follow the default browser behavior (such as adding a newline).
 
 ### Modifying User Input on Change
 
@@ -181,7 +187,6 @@ function onSubmit(values) {
             label="Routing number"
             inputID="routingNumber"
             maxLength={8}
-            isFormInput
             shouldSaveDraft
         />
     </View>
@@ -189,22 +194,20 @@ function onSubmit(values) {
         label="Account number"
         inputID="accountNumber"
         containerStyles={[styles.mt4]}
-        isFormInput
     />
 </Form>
 ```
 
 ### Props provided to Form inputs
 
-The following props are available to form inputs:
+The following prop is available to form inputs:
 
 - inputID: An unique identifier for the input.
-- isFormInput: A flag that indicates that this input is being used with Form.js.
 
-Form.js will automatically provide the following props to any input flagged with the isFormInput prop.
+Form.js will automatically provide the following props to any input with the inputID prop.
 
 - ref: A React ref that must be attached to the input.
 - defaultValue: The input default value.
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
-- onChange: An onChange handler that saves draft values and calls validate.
+- onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).

@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -15,7 +16,7 @@ import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import * as ReportUtils from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import * as User from '../../../libs/actions/User';
@@ -71,6 +72,8 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.saveButtonID = 'saveButton';
+        this.cancelButtonID = 'cancelButton';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -126,7 +129,6 @@ class ReportActionItemMessageEdit extends React.Component {
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
      * @param {String} newDraft
      */
-
     debouncedSaveDraft(newDraft) {
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
     }
@@ -210,6 +212,14 @@ class ReportActionItemMessageEdit extends React.Component {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
+                        onBlur={(event) => {
+                            // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
+                            if (_.contains([this.saveButtonID, this.cancelButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
+                                return;
+                            }
+
+                            toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
+                        }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
@@ -226,12 +236,14 @@ class ReportActionItemMessageEdit extends React.Component {
                     <Button
                         small
                         style={[styles.mr2]}
+                        nativeID={this.cancelButtonID}
                         onPress={this.deleteDraft}
                         text={this.props.translate('common.cancel')}
                     />
                     <Button
                         small
                         success
+                        nativeID={this.saveButtonID}
                         style={[styles.mr2]}
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}

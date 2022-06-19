@@ -15,7 +15,6 @@ const includeModules = [
     'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
-    'react-native-onyx',
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
@@ -56,7 +55,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'assets/css', to: 'css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
-                {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association'},
+                {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
 
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
