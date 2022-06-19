@@ -126,7 +126,11 @@ class SetPasswordPage extends Component {
                             password={this.state.password}
                             updatePassword={password => this.setState({password})}
                             updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                            onSubmitEditing={this.validateAndSubmitForm}
+
+                            // This prop is required, but it needs to stay as a no-op because the form is submitted
+                            // and validated from the button below, and adding a submit/validate here would trigger
+                            // it twice
+                            onSubmitEditing={() => {}}
                         />
                     </View>
                     <View>
