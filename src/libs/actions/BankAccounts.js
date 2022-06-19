@@ -106,6 +106,8 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
  */
 function deleteBankAccount(bankAccountID) {
     const reimbursementBankAccountId = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
+    // Early return as DeleteBankAccount API is called inside `resetFreePlanBankAccount`
     if (reimbursementBankAccountId === bankAccountID) {
         ReimbursementAccount.resetFreePlanBankAccount();
         return;
