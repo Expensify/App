@@ -110,8 +110,7 @@ function deleteBankAccount(bankAccountID) {
         ReimbursementAccount.resetFreePlanBankAccount();
         return;
     }
-
-    API.DeleteBankAccount({
+    DeprecatedAPI.DeleteBankAccount({
         bankAccountID,
     }).then((response) => {
         if (response.jsonCode === 200) {
