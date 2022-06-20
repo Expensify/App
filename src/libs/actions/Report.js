@@ -613,24 +613,10 @@ function subscribeToUserEvents() {
         pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
     );
 
-    // Live-update a report's actions when a 'chunked report comment' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
-    );
-
     // Live-update a report's actions when an 'edit comment' event is received.
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
         currentUserAccountID,
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
-
-    // Live-update a report's actions when an 'edit comment chunk' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
-    );
 }
 
 /**
