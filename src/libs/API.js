@@ -19,7 +19,14 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
     // Assemble all the request data we'll be storing in the queue
     const request = {
         command,
-        data,
+        data: {
+            ...data,
+
+            // We add this here because this was passed in the old api requests and some middlewares still expect this.
+            // This should be removed once we are no longer using deprecatedAPI
+            shouldRetry: true,
+            canCancel: true,
+        },
         ..._.omit(onyxData, 'optimisticData'),
     };
 
