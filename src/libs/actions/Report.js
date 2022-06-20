@@ -1314,8 +1314,14 @@ function syncChatAndIOUReports(chatReport, iouReport) {
  * @param {String} notificationPreference
  */
 function updateNotificationPreference(reportID, notificationPreference) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
-    DeprecatedAPI.Report_UpdateNotificationPreference({reportID, notificationPreference});
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference},
+        },
+    ];
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference}, {optimisticData});
 }
 
 /**
