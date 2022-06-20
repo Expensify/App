@@ -61,9 +61,25 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         };
 
         this.measureTooltip = this.measureTooltip.bind(this);
+        this.updateTooltipTextWidth = this.updateTooltipTextWidth.bind(this);
     }
 
     componentDidMount() {
+        this.updateTooltipTextWidth();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.text === this.props.text) {
+            return;
+        }
+        this.updateTooltipTextWidth();
+    }
+
+    /**
+     * Update tooltipTextWidth
+     */
+
+    updateTooltipTextWidth() {
         this.setState({
             tooltipTextWidth: this.textRef.offsetWidth,
         });
