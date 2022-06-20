@@ -171,14 +171,14 @@ function isChatRoom(report) {
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
- * @param {Boolean} [ignoreDefaultRooms]
+ * @param {String[]} [reportTypesToIgnore]
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms) {
+function findLastAccessedReport(reports, reportTypesToIgnore) {
     let sortedReports = sortReportsByLastVisited(reports);
 
-    if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report));
+    if (reportTypesToIgnore) {
+        sortedReports = _.filter(sortedReports, report => !_.contains(reportTypesToIgnore, lodashGet(report, ['chatType'], '')));
     }
 
     return _.last(sortedReports);
@@ -512,6 +512,7 @@ export {
     isDefaultRoom,
     isAdminRoom,
     isAnnounceRoom,
+    isDomainRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,

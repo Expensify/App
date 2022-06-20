@@ -213,7 +213,7 @@ class IOUParticipantsSplit extends Component {
                                 this.props.personalDetails,
                                 this.props.betas,
                                 searchValue,
-                                [],
+                                this.props.participants,
                                 CONST.EXPENSIFY_EMAILS,
                             );
                             this.setState({
