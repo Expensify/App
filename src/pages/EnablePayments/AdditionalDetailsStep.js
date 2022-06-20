@@ -106,6 +106,18 @@ class AdditionalDetailsStep extends React.Component {
             'ssn',
         ];
 
+        this.errorTranslationKeys = {
+            legalFirstName: 'bankAccount.error.firstName',
+            legalLastName: 'bankAccount.error.lastName',
+            addressStreet: 'bankAccount.error.addressStreet',
+            addressCity: 'bankAccount.error.addressCity',
+            addressState: 'bankAccount.error.addressState',
+            addressZip: 'bankAccount.error.zipCode',
+            phoneNumber: 'bankAccount.error.phoneNumber',
+            dob: 'bankAccount.error.dob',
+            ssn: 'bankAccount.error.ssnLast4',
+        };
+
         this.fieldNameTranslationKeys = {
             legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
             legalLastName: 'additionalDetailsStep.legalLastNameLabel',
@@ -141,7 +153,7 @@ class AdditionalDetailsStep extends React.Component {
             return '';
         }
 
-        return `${this.props.translate(this.fieldNameTranslationKeys[fieldName])} ${this.props.translate('common.isRequiredField')}.`;
+        return this.props.translate(this.errorTranslationKeys[fieldName]);
     }
 
     /**
