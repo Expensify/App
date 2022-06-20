@@ -32,7 +32,7 @@ function process() {
     }
 
     const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
-        currentRequest = Request.processWithMiddleware(request, true);
+        currentRequest = Request.processWithMiddleware({...request, shouldRetry: true, canCancel: true}, true);
         return currentRequest;
     }), Promise.resolve());
 
