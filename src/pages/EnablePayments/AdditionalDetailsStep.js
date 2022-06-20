@@ -115,6 +115,7 @@ class AdditionalDetailsStep extends React.Component {
             addressZip: 'bankAccount.error.zipCode',
             phoneNumber: 'bankAccount.error.phoneNumber',
             dob: 'bankAccount.error.dob',
+            age: 'bankAccount.error.age',
             ssn: 'bankAccount.error.ssnLast4',
         };
 
@@ -176,6 +177,10 @@ class AdditionalDetailsStep extends React.Component {
             errors.dob = true;
         }
 
+        if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
+            errors.age = true;
+        }
+
         if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
             errors.addressStreet = true;
         }
@@ -211,6 +216,16 @@ class AdditionalDetailsStep extends React.Component {
                 phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
             },
         });
+    }
+
+    /**
+     * Clear both errors associated with dob, and set the new value.
+     *
+     * @param {String} value
+     */
+    clearDateErrorsAndSetValue(value) {
+        this.formHelper.clearErrors(this.props, ['dob', 'age']);
+        Wallet.updateAdditionalDetailsDraft({dob: value});
     }
 
     /**
@@ -339,10 +354,10 @@ class AdditionalDetailsStep extends React.Component {
                                 <DatePicker
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                    onInputChange={val => this.clearErrorAndSetValue('dob', val)}
+                                    onInputChange={val => this.clearDateErrorsAndSetValue(val)}
                                     defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                     placeholder={this.props.translate('common.dob')}
-                                    errorText={this.getErrorText('dob')}
+                                    errorText={this.getErrorText('dob') || this.getErrorText('age')}
                                     maximumDate={new Date()}
                                 />
                                 <TextInput
