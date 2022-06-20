@@ -168,7 +168,7 @@ function getSimplifiedReportObject(report) {
 
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = ReportUtils.isChatRoom({chatType})
-        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
+        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY)
         : '';
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
