@@ -77,11 +77,6 @@ class PDFPasswordForm extends Component {
             ? styles.pdfPasswordForm.narrowScreen
             : styles.pdfPasswordForm.wideScreen;
 
-        const buttonStyles = [
-            styles.pdfPasswordForm.confirmButton,
-            {paddingBottom: this.props.insets.bottom},
-        ];
-
         return (
             <View style={containerStyles}>
                 <Text style={styles.mb4}>
@@ -89,10 +84,10 @@ class PDFPasswordForm extends Component {
                 </Text>
                 <TextInput
                     label={this.props.translate('common.password')}
-                    autoCompleteType="off"
+                    autoComplete="off"
                     autoCorrect={false}
                     textContentType="password"
-                    onInputChange={this.updatePassword}
+                    onChangeText={this.updatePassword}
                     returnKeyType="done"
                     onSubmitEditing={this.submitPassword}
                     errorText={this.state.validationErrorText}
@@ -111,12 +106,12 @@ class PDFPasswordForm extends Component {
                     </View>
                 )}
                 {this.props.isSmallScreenWidth && (
-                    <View style={{flexGrow: 1}} />
+                    <View style={styles.flexGrow1} />
                 )}
                 <Button
                     text={this.props.translate('common.confirm')}
                     onPress={this.submitPassword}
-                    style={buttonStyles}
+                    style={[styles.pt4, {paddingBottom: this.props.insets.bottom}]}
                     isLoading={this.props.shouldShowLoadingIndicator}
                     pressOnEnter
                 />
