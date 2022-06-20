@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView, findNodeHandle} from 'react-native';
+import {View, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
@@ -384,9 +384,9 @@ class OptionsSelector extends Component {
                         this.props.shouldTextInputAppearBelowOptions
                             ? (
                                 <>
-                                    <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
+                                    <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
                                         {optionsList}
-                                    </ScrollView>
+                                    </View>
                                     <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
                                         {textInput}
                                     </View>
