@@ -211,10 +211,10 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                         ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
-                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'} // When Image dimensions are lower
-                        // than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
-                        // Both `center` and `contain` keeps the image centered on both x and y axis.
 
+                        // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
+                        // Both `center` and `contain` keeps the image centered on both x and y axis.
+                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
