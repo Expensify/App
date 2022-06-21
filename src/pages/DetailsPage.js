@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView, ActivityIndicator} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -19,11 +19,11 @@ import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
+import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
-import themeColors from '../styles/themes/default';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -69,11 +69,7 @@ const DetailsPage = (props) => {
     const details = props.personalDetails[props.route.params.login];
     if (!details) {
         // Personal details have not loaded yet
-        return (
-            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <ActivityIndicator color={themeColors.spinner} size="large" />
-            </View>
-        );
+        return <FullscreenLoadingIndicator />;
     }
     const isSMSLogin = Str.isSMSLogin(details.login);
 
