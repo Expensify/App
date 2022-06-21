@@ -12,7 +12,7 @@ When the web server responds to an API call the response is sent to the server i
 
     The network library will look for any `onyxData` in the response and send it straight to `Onyx.update(response.onyxData)`.
 
-2. **Pusher Event** (web socket) - Data returned with a Pusher event is sent to all currently connected clients for the user that made the request, as well as any other necessary participants (eg. like other people in the chat)
+2. **Pusher Event** (web socket) - Data returned with a Pusher event is sent to all currently connected clients for the user that made the request, as well as any other necessary participants (e.g. other people in the chat).
 
     Pusher listens for an `onyxApiUpdate` event and sends the data straight to `Onyx.update(pushJSON)`.
 ## READ Responses
