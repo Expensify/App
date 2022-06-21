@@ -22,8 +22,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
         data: {
             ...data,
 
-            // We add this here because this was passed in the old api requests and some middlewares still expect this.
-            // This should be removed once we are no longer using deprecatedAPI
+            // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
             shouldRetry: true,
             canCancel: true,
         },
