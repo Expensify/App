@@ -22,7 +22,7 @@ function isDevelopment() {
 /**
  * Get the URL based on the environment we are in
  *
- * @returns {Promise<unknown>}
+ * @returns {Promise}
  */
 function getEnvironmentURL() {
     return new Promise((resolve) => {
