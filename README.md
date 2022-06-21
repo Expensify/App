@@ -287,11 +287,11 @@ This application is built with the following principles.
     5. UI inputs push data to the server (React component -> Action -> XHR to server).
     6. Go to 1
     ![New Expensify Data Flow Chart](/web/data_flow.png)
-2. **Offline first**
+1. **Offline first**
     - Be sure to read [OfflineFirst.md](./OfflineUX.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
-4. **UI Binds to data on disk**
+1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
     - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
@@ -302,7 +302,7 @@ This application is built with the following principles.
         - The order that actions are done in. All actions should be done in parallel instead of sequence.
             - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
-5. **Actions manage Onyx Data**
+1. **Actions manage Onyx Data**
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Action methods should only have return values (data or a promise) if they are called by other actions. This is done to encourage that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
@@ -316,7 +316,7 @@ This application is built with the following principles.
         4. server responds
         5. UI updates with data from the server
 
-6. **Cross Platform 99.9999%**
+1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
