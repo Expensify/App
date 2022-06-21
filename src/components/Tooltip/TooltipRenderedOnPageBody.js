@@ -75,10 +75,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         this.updateTooltipTextWidth();
     }
 
-    /**
-     * Update tooltipTextWidth
-     */
-
     updateTooltipTextWidth() {
         this.setState({
             tooltipTextWidth: this.textRef.offsetWidth,
