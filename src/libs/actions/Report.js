@@ -589,7 +589,7 @@ function updateReportWithNewAction(
  * @returns {String}
  */
 function getReportChannelName(reportID) {
-    return `private-report-reportID-${reportID}${CONFIG.PUSHER.SUFFIX}`;
+    return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
 /**
@@ -601,7 +601,7 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
@@ -613,24 +613,10 @@ function subscribeToUserEvents() {
         pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
     );
 
-    // Live-update a report's actions when a 'chunked report comment' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference),
-    );
-
     // Live-update a report's actions when an 'edit comment' event is received.
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
         currentUserAccountID,
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
-
-    // Live-update a report's actions when an 'edit comment chunk' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
-    );
 }
 
 /**
@@ -1419,6 +1405,14 @@ function renameReport(reportID, reportName) {
 
 /**
  * @param {Number} reportID
+ * @param {Boolean} isComposerFullSize
+ */
+function setIsComposerFullSize(reportID, isComposerFullSize) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
+}
+
+/**
+ * @param {Number} reportID
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
@@ -1554,4 +1548,5 @@ export {
     createPolicyRoom,
     renameReport,
     getLastReadSequenceNumber,
+    setIsComposerFullSize,
 };

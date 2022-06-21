@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.75-1",
+  "version": "1.1.78-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -31,7 +31,7 @@
     "storybook-build": "build-storybook -o dist/docs",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
-    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js",
+    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env.envFile=.env.production",
     "check-metro-bundler-port": "node config/checkMetroBundlerPort.js"
   },
   "dependencies": {
@@ -42,7 +42,6 @@
     "@onfido/react-native-sdk": "^2.2.0",
     "@react-native-async-storage/async-storage": "^1.15.5",
     "@react-native-community/cameraroll": "^4.1.2",
-    "@react-native-community/cli": "6.2.0",
     "@react-native-community/clipboard": "^1.5.1",
     "@react-native-community/datetimepicker": "^3.5.2",
     "@react-native-community/netinfo": "^8.3.0",
@@ -62,7 +61,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "dotenv": "^8.2.0",
-    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#e989d858aa2ab8191284ae106acf9cd323ab879d",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#3d87e9b87c6e5ce5fa4bac05bceb3cdf3ad6ca56",
     "fbjs": "^3.0.2",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
