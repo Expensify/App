@@ -809,6 +809,101 @@ function fetchActionsWithLoadingState(reportID, offset) {
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
 }
 
+function getChats(shouldRecordHomePageTiming, shouldDelayActionsFetch) {
+    const simplifiedReports = {};
+    return DeprecatedAPI.GetChats()
+        .then((chats) => {
+            // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
+            // variable called simplifiedReports which hold the participants (minus the current user) for each report.
+            // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
+            // personal details of all the participants and even link up their avatars to report icons.
+            const reportIOUData = {};
+            _.each(chats.reportList, (report) => {
+                const simplifiedReport = getSimplifiedReportObject(report);
+                simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
+            });
+
+            _.each(chats.iouReportList, (iouReportObject) => {
+                if (!iouReportObject) {
+                    return;
+                }
+
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
+                reportIOUData[iouReportKey] = getSimplifiedIOUReport(iouReportObject, iouReportObject.chatReportID);
+                simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
+                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
+            });
+
+            // We use mergeCollection such that it updates the collection in one go.
+            // Any withOnyx subscribers to this key will also receive the complete updated props just once
+            // than updating props for each report and re-rendering had merge been used.
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
+
+            // Fetch the personal details if there are any
+            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
+            return simplifiedReports;
+        })
+        .then((returnedReports) => {
+            returnedReports = returnedReports.reportList;
+            Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+            Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+
+            // If at this point the user still doesn't have a Concierge report, create it for them.
+            // This means they were a participant in reports before their account was created (e.g. default rooms)
+            const hasConciergeChat = _.some(returnedReports, report => ReportUtils.isConciergeChatReport(report));
+            if (!hasConciergeChat) {
+                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+            }
+
+            if (shouldRecordHomePageTiming) {
+                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+            }
+
+            // Delay fetching report history as it significantly increases sign in to interactive time.
+            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
+            // cancel the timer we'll make unnecessary API requests from the sign in page.
+            Timers.register(setTimeout(() => {
+                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
+                // content and improve chat switching experience by only downloading content we don't have yet.
+                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
+                // data processing by Onyx.
+                const reportIDsWithMissingActions = _.chain(returnedReports)
+                    .map(report => report.reportID)
+                    .filter(reportID => ReportActions.isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .value();
+
+                // Once we have the reports that are missing actions we will find the intersection between the most
+                // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
+                // set to avoid making too many network requests at once.
+                const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
+                    .map(report => report.reportID)
+                    .reverse()
+                    .intersection(reportIDsWithMissingActions)
+                    .slice(0, 10)
+                    .value();
+
+                if (_.isEmpty(reportIDsToFetchActions)) {
+                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    return;
+                }
+
+                Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
+                    reportIDs: reportIDsToFetchActions,
+                });
+                _.each(reportIDsToFetchActions, (reportID) => {
+                    const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                    fetchActions(reportID, offset);
+                });
+
+                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
+                // more requests and operations. Startup delay is longer since there is a lot more work done to build
+                // up the UI when the app first initializes.
+            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
+        });
+}
+
 /**
  * Get all of our reports
  *
@@ -821,6 +916,7 @@ function fetchAllReports(
     shouldDelayActionsFetch = false,
 ) {
     Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+    // return getChats(shouldRecordHomePageTiming, shouldDelayActionsFetch);
     return DeprecatedAPI.Get({
         returnValueList: 'chatList',
     })
@@ -834,48 +930,12 @@ function fetchAllReports(
 
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (reportIDs.length > 0) {
-                // return fetchChatReportsByIDs(reportIDs);
-                const simplifiedReports = {};
-                return DeprecatedAPI.GetChats({reportIDList: reportIDs})
-                    .then((chats) => {
-                        // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
-                        // variable called simplifiedReports which hold the participants (minus the current user) for each report.
-                        // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
-                        // personal details of all the participants and even link up their avatars to report icons.
-                        const reportIOUData = {};
-                        _.each(chats.reportList, (report) => {
-                            const simplifiedReport = getSimplifiedReportObject(report);
-                            simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
-                        });
-
-                        _.each(chats.iouReportList, (iouReportObject) => {
-                            if (!iouReportObject) {
-                                return;
-                            }
-
-                            const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-                            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
-                            reportIOUData[iouReportKey] = getSimplifiedIOUReport(iouReportObject, iouReportObject.chatReportID);
-                            simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
-                            simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
-                        });
-
-                        // We use mergeCollection such that it updates the collection in one go.
-                        // Any withOnyx subscribers to this key will also receive the complete updated props just once
-                        // than updating props for each report and re-rendering had merge been used.
-                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
-                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
-
-                        // Fetch the personal details if there are any
-                        PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
-                        return simplifiedReports;
-                    });
+                return fetchChatReportsByIDs(reportIDs);
             }
 
             return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
         .then((returnedReports) => {
-            returnedReports = returnedReports.reportList;
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
             Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
 

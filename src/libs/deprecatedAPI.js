@@ -152,9 +152,9 @@ function GetAccountStatus(parameters) {
  * @param {String} parameters.reportIDList
  * @returns {Promise}
  */
-function GetChats(parameters) {
+function GetChats() {
     const commandName = 'Get_Chats';
-    requireParameters(['reportIDList'], parameters, commandName);
+    const parameters = {};
     return Network.post(commandName, parameters);
 }
 
