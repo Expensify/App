@@ -10,6 +10,7 @@ const withDrawerPropTypes = {
 export default function withDrawerState(WrappedComponent) {
     const WithDrawerState = (props) => {
         const drawerStatus = useDrawerStatus();
+
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
