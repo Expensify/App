@@ -79,42 +79,43 @@ class PDFPasswordForm extends Component {
 
         return (
             <View style={containerStyles}>
-                <Text style={styles.mb4}>
-                    {this.props.translate('attachmentView.pdfPasswordFormLabel')}
-                </Text>
-                <TextInput
-                    label={this.props.translate('common.password')}
-                    autoComplete="off"
-                    autoCorrect={false}
-                    textContentType="password"
-                    onChangeText={this.updatePassword}
-                    returnKeyType="done"
-                    onSubmitEditing={this.submitPassword}
-                    errorText={this.state.validationErrorText}
-                    onBlur={this.validateOnBlur}
-                    autoFocus={this.props.shouldAutofocusPasswordField}
-                    secureTextEntry
-                />
-                {!this.state.isEditingInProgress && this.props.isPasswordInvalid && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
-                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                        <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                            <Text style={styles.mutedTextLabel}>
-                                {this.props.translate('attachmentView.passwordIncorrect')}
-                            </Text>
+                <View style={this.props.isSmallScreenWidth ? styles.flexGrow1 : {}}>
+                    <Text style={styles.mb4}>
+                        {this.props.translate('attachmentView.pdfPasswordFormLabel')}
+                    </Text>
+                    <TextInput
+                        label={this.props.translate('common.password')}
+                        autoComplete="off"
+                        autoCorrect={false}
+                        textContentType="password"
+                        onChangeText={this.updatePassword}
+                        returnKeyType="done"
+                        onSubmitEditing={this.submitPassword}
+                        errorText={this.state.validationErrorText}
+                        onBlur={this.validateOnBlur}
+                        autoFocus={this.props.shouldAutofocusPasswordField}
+                        secureTextEntry
+                    />
+                </View>
+                <View>
+                    {!this.state.isEditingInProgress && this.props.isPasswordInvalid && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.flexGrow1]}>
+                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                                <Text style={styles.mutedTextLabel}>
+                                    {this.props.translate('attachmentView.passwordIncorrect')}
+                                </Text>
+                            </View>
                         </View>
-                    </View>
-                )}
-                {this.props.isSmallScreenWidth && (
-                    <View style={styles.flexGrow1} />
-                )}
-                <Button
-                    text={this.props.translate('common.confirm')}
-                    onPress={this.submitPassword}
-                    style={[styles.pt4, {paddingBottom: this.props.insets.bottom}]}
-                    isLoading={this.props.shouldShowLoadingIndicator}
-                    pressOnEnter
-                />
+                    )}
+                    <Button
+                        text={this.props.translate('common.confirm')}
+                        onPress={this.submitPassword}
+                        style={[styles.pt4, {paddingBottom: this.props.insets.bottom}]}
+                        isLoading={this.props.shouldShowLoadingIndicator}
+                        pressOnEnter
+                    />
+                </View>
             </View>
         );
     }
