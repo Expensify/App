@@ -121,15 +121,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: () => true,
-        onPress: (closePopover, {reportAction, reportID}) => {
-            Environment.getEnvironmentURL()
-                .then((environmentURL) => {
-                    const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
-                    Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
-                });
-            hideContextMenu(true, ReportActionComposeFocusManager.focus);
-        },
+        shouldShow: () => false,
+        onPress: () => {},
         getDescription: () => {},
     },
 
