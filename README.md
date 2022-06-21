@@ -19,6 +19,8 @@
 * [Deploying](#deploying)
 
 #### Additional Reading
+* [API Details](docs/API.md)
+* [Offline First](./OfflineUX.md)
 * [Contributing to Expensify](./CONTRIBUTING.md)
 * [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](./CLA.md)
@@ -286,6 +288,7 @@ This application is built with the following principles.
     6. Go to 1
     ![New Expensify Data Flow Chart](/web/data_flow.png)
 1. **Offline first**
+    - Be sure to read [OfflineFirst.md](./OfflineUX.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
