@@ -257,13 +257,13 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
      */
     static getStagingDeployCashInternalQA(issue) {
-        let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:.*\r?\n)+)/) || [];
+        let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) || [];
         if (internalQASection.length !== 2) {
             return [];
         }
         internalQASection = internalQASection[1];
         const internalQAPRs = _.map(
-            [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
                 url: match[2],
                 number: Number.parseInt(match[3], 10),
