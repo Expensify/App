@@ -63,4 +63,5 @@ export default {
     },
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
+    DEV_PORT: process.env.PORT || 8080,
 };
