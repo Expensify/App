@@ -137,6 +137,7 @@ class PasswordForm extends React.Component {
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         blurOnSubmit={false}
+                        autoCapitalize="none"
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
