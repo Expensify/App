@@ -766,6 +766,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
             const simplifiedReportObject = getSimplifiedReportObject(data);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, simplifiedReportObject);
 
+            // Fetch the personal details if there are any
+            PersonalDetails.getFromReportParticipants([simplifiedReportObject]);
+
             if (shouldNavigate) {
                 // Redirect the logged in person to the new report
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
