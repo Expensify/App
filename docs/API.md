@@ -28,7 +28,7 @@ The data will be returned with the HTTPS response.
 ## WRITE Responses
 This response happens when new data is created in the database.
 
-New data (`jsonCode===200`) should be sent to all connected clients so a **Pusher Event** is used to update another currently connected clients with the new data that was created.
+New data (`jsonCode===200`) should be sent to all connected clients, so a **Pusher Event** is used to update all other currently connected clients with the new data that was created.
 
 In PHP, the response is added like this:
 ```php
