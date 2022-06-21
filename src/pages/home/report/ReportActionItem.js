@@ -192,7 +192,6 @@ class ReportActionItem extends Component {
                     />
                 );
         }
-
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
