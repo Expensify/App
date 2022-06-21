@@ -1307,21 +1307,22 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
-/**
- * Updates a user's notification preferences for a chat room
- *
- * @param {Number} reportID
- * @param {String} notificationPreference
- */
-function updateNotificationPreference(reportID, notificationPreference) {
+function updateNotificationPreference(reportID, previousValue, newValue) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference},
+            value: {notificationPreference: newValue},
         },
     ];
-    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference}, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: previousValue},
+        },
+    ];
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
 }
 
 /**
