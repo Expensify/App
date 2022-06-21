@@ -562,13 +562,6 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
         currentUserAccountID,
         pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
-
-    // Live-update a report's actions when an 'edit comment chunk' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(
-        Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK,
-        currentUserAccountID,
-        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message),
-    );
 }
 
 /**
