@@ -167,9 +167,7 @@ function getSimplifiedReportObject(report) {
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = ReportUtils.isChatRoom({chatType})
-        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
-        : '';
+    const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily');
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
