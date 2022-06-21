@@ -28,6 +28,7 @@ export default function linkTo(navigation, path) {
     }
 
     const action = getActionFromState(state, linkingConfig.config);
+
     if (action !== undefined) {
         root.dispatch(action);
     } else {
