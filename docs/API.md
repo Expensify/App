@@ -18,7 +18,7 @@ When the web server responds to an API call the response is sent to the server i
 ## READ Responses
 This is a response that returns data from the database that didn't exist before.
 
-A READ response is very specific to the client making the request, so it's data is returned with the **HTTPS Response**. This prevents a lot of unnecessary data from being sent to other clients that will never use it.
+A READ response is very specific to the client making the request, so its data is returned with the **HTTPS Response**. This prevents a lot of unnecessary data from being sent to other clients that will never use it.
 
 In PHP, the response is added like this:
 ```php
