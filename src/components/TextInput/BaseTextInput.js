@@ -199,6 +199,7 @@ class BaseTextInput extends Component {
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
+        const keyboardType = this.props.getKeyboardType ? this.props.getKeyboardType(this.state.passwordHidden) : this.props.keyboardType;
 
         return (
             <>
@@ -272,6 +273,7 @@ class BaseTextInput extends Component {
                                         secureTextEntry={this.state.passwordHidden}
                                         onPressOut={this.props.onPress}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
+                                        keyboardType={keyboardType}
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable
