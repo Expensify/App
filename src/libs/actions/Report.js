@@ -1310,14 +1310,14 @@ function syncChatAndIOUReports(chatReport, iouReport) {
 function updateNotificationPreference(reportID, previousValue, newValue) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {notificationPreference: newValue},
         },
     ];
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {notificationPreference: previousValue},
         },
