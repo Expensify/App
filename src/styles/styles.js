@@ -2641,6 +2641,7 @@ const styles = {
         backgroundColor: themeColors.border,
         height: 8,
         borderRadius: 4,
+        alignSelf: 'stretch',
     },
 
     imageCropRotateButton: {
