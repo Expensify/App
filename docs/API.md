@@ -53,8 +53,6 @@ For example: Accessing the data for a chat report will return the data if the re
 - Nouns can be optional eg. `SignIn`
 - Verbs should be unique and indicate the user's action (as perceived by the user). eg. `Request`, `Open`, `Accept`, `Pay`
   - If a unique verb cannot be used, then use only the standard verbs: `Update`, `Add`, `Delete`
-  - Use Create/Delete to create or destroy the only copy of data
-  - Use Add/Remove when we're just dealing with the copy of data
 - Names must NOT include names of parameters eg. Bad: `SignInWithPasswordOr2FA` Good: `SignIn`
 - Names must NOT the word Page or View, eg. Bad: `OpenReportPage` Good: `OpenReport`
 - Names must NOT reveal backend implementation details that the user does not know about eg. `AddVBBA` (users don't know what a VBBA is - verified business bank account) Good: `AddBankAccount`
