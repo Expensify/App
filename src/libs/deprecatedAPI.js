@@ -346,19 +346,6 @@ function Report_TogglePinned(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {Number} parameters.reportActionID
- * @param {String} parameters.reportComment
- * @returns {Promise}
- */
-function Report_EditComment(parameters) {
-    const commandName = 'Report_EditComment';
-    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
