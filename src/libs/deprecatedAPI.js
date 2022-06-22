@@ -263,13 +263,38 @@ function Report_GetHistory(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {Number} parameters.reportActionID
- * @param {String} parameters.reportComment
+ * @param {Boolean} parameters.pinnedValue
  * @returns {Promise}
  */
-function Report_EditComment(parameters) {
-    const commandName = 'Report_EditComment';
-    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
+function Report_TogglePinned(parameters) {
+    const commandName = 'Report_TogglePinned';
+    requireParameters(['reportID', 'pinnedValue'],
+        parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {Number} parameters.sequenceNumber
+ * @returns {Promise}
+ */
+function Report_UpdateLastRead(parameters) {
+    const commandName = 'Report_UpdateLastRead';
+    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.notificationPreference
+ * @returns {Promise}
+ *
+ */
+function Report_UpdateNotificationPreference(parameters) {
+    const commandName = 'Report_UpdateNotificationPreference';
+    requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
