@@ -8,6 +8,8 @@ import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
+import Navigation from './Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 let sessionEmail;
 Onyx.connect({
@@ -169,14 +171,14 @@ function isChatRoom(report) {
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
- * @param {Boolean} [ignoreDefaultRooms]
+ * @param {String[]} [reportTypesToIgnore]
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms) {
+function findLastAccessedReport(reports, reportTypesToIgnore) {
     let sortedReports = sortReportsByLastVisited(reports);
 
-    if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report));
+    if (reportTypesToIgnore) {
+        sortedReports = _.filter(sortedReports, report => !_.contains(reportTypesToIgnore, lodashGet(report, ['chatType'], '')));
     }
 
     return _.last(sortedReports);
@@ -449,13 +451,13 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @returns {String}
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
-    if (lodashGet(report, 'reportNameValuePairs.type') !== 'chat') {
-        return lodashGet(report, 'reportName', '');
+    let formattedName;
+    if (isDefaultRoom(report)) {
+        formattedName = `#${report.reportName}`;
     }
 
-    let formattedName;
-    if (isChatRoom(report)) {
-        formattedName = `#${report.reportName}`;
+    if (isUserCreatedPolicyRoom(report)) {
+        formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -481,6 +483,25 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 }
 
+/**
+ * Navigate to the details page of a given report
+ *
+ * @param {Object} report
+ */
+function navigateToDetailsPage(report) {
+    const participants = lodashGet(report, 'participants', []);
+
+    if (isChatRoom(report) || isPolicyExpenseChat(report)) {
+        Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
+        return;
+    }
+    if (participants.length === 1) {
+        Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+        return;
+    }
+    Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -491,6 +512,7 @@ export {
     isDefaultRoom,
     isAdminRoom,
     isAnnounceRoom,
+    isDomainRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
@@ -507,4 +529,5 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    navigateToDetailsPage,
 };

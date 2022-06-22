@@ -234,7 +234,7 @@ class RequestCallPage extends Component {
             return;
         }
 
-        Inbox.getInboxCallWaitTime();
+        Inbox.openRequestCallPage();
     }
 
     validatePhoneInput() {
@@ -301,6 +301,7 @@ class RequestCallPage extends Component {
                                 <TextInput
                                     label={this.props.translate('common.phoneNumber')}
                                     name="phone"
+                                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                     autoCorrect={false}
                                     value={this.state.phoneNumber}
                                     placeholder="2109400803"
@@ -310,6 +311,7 @@ class RequestCallPage extends Component {
                                 />
                                 <TextInput
                                     label={this.props.translate('requestCallPage.extension')}
+                                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                     autoCompleteType="off"
                                     autoCorrect={false}
                                     value={this.state.phoneExtension}

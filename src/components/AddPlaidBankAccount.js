@@ -118,6 +118,7 @@ class AddPlaidBankAccount extends React.Component {
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, {
             password: 'passwordForm.error.incorrectPassword',
+            selectedBank: 'bankAccount.error.noBankAccountSelected',
         }, inputKey);
     }
 
@@ -253,7 +254,7 @@ class AddPlaidBankAccount extends React.Component {
                                     label: this.props.translate('bankAccount.chooseAnAccount'),
                                 } : {}}
                                 value={this.state.selectedIndex}
-                                hasError={this.getErrors().selectedBank}
+                                errorText={this.getErrorText('selectedBank')}
                             />
                         </View>
                         {!_.isUndefined(this.state.selectedIndex) && this.props.isPasswordRequired && (
