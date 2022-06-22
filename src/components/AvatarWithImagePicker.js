@@ -296,8 +296,8 @@ class AvatarWithImagePicker extends React.Component {
                 </Pressable>
                 <ConfirmModal
                     title={this.state.errorModalTitle}
-                    onConfirm={() => this.hideErrorModal(false)}
-                    onCancel={() => this.hideErrorModal(false)}
+                    onConfirm={this.hideErrorModal}
+                    onCancel={this.hideErrorModal}
                     isVisible={this.state.isErrorModalVisible}
                     prompt={this.state.errorModalPrompt}
                     confirmText={this.props.translate('common.close')}

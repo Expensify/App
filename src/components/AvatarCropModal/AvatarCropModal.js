@@ -2,7 +2,9 @@ import PropTypes from 'prop-types';
 import React, {
     useCallback, useEffect, useState,
 } from 'react';
-import {Image, Pressable, View} from 'react-native';
+import {
+    ActivityIndicator, Image, Pressable, View,
+} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
     interpolate,
@@ -63,24 +65,42 @@ const AvatarCropModal = (props) => {
 
     const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+    const [isImageContainerInitialized, setIsImageContainerInitialized] = useState(false);
+    const [isImageInitialized, setIsImageInitialized] = useState(false);
 
     // An onLayout callback, that initializes the image container, for proper render of an image
     const initializeImageContainer = useCallback((event) => {
+        setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
         setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
     }, [props.isSmallScreenWidth]);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
-    const initializeSliderContainer = useCallback(event => setSliderContainerSize(event.nativeEvent.layout.width), []);
+    const initializeSliderContainer = useCallback((event) => {
+        setSliderContainerSize(event.nativeEvent.layout.width);
+    }, []);
 
     // Changes the modal state values to initial
-    const initializeImage = useCallback(() => {
+    const resetState = useCallback(() => {
+        originalImageWidth.value = CONST.AVATAR_CROP_MODAL.INITIAL_SIZE;
+        originalImageHeight.value = CONST.AVATAR_CROP_MODAL.INITIAL_SIZE;
         translateY.value = 0;
         translateX.value = 0;
         scale.value = CONST.AVATAR_CROP_MODAL.MIN_SCALE;
         rotation.value = 0;
         translateSlider.value = 0;
+        setImageContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+        setSliderContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+        setIsImageContainerInitialized(false);
+        setIsImageInitialized(false);
     }, []);
+
+    // Closes the modal and cleans up the animation state
+    // for the proper display  on the next modal invocation
+    const closeModal = useCallback(() => {
+        props.onClose();
+        setTimeout(resetState, 500);
+    });
 
     // In order to calculate proper image position/size/animation, we have to know its size.
     // And we have to update image size if image url changes.
@@ -88,11 +108,11 @@ const AvatarCropModal = (props) => {
         if (!props.imageUri) {
             return;
         }
-        initializeImage();
         Image.getSize(props.imageUri, (width, height) => {
             // We need to have image sizes in shared values to properly calculate position/size/animation
             originalImageHeight.value = height;
             originalImageWidth.value = width;
+            setIsImageInitialized(true);
 
             // Because the reanimated library has some internal optimizations,
             // sometimes when the modal is hidden styles of the image and slider might not be updated.
@@ -100,7 +120,7 @@ const AvatarCropModal = (props) => {
             translateSlider.value += 0.01;
             rotation.value += 360;
         });
-    }, [props.imageUri, initializeImage]);
+    }, [props.imageUri]);
 
     /**
      * Validates that value is within the provided mix/max range.
@@ -245,14 +265,14 @@ const AvatarCropModal = (props) => {
 
         imageManipulator(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1})
             .then((newImage) => {
-                props.onClose();
+                closeModal();
                 props.onSave(newImage);
             });
     }, [props.imageUri, imageContainerSize]);
 
     return (
         <Modal
-            onClose={props.onClose}
+            onClose={closeModal}
             isVisible={props.isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             containerStyle={styles.avatarCropModalContainer}
@@ -260,32 +280,42 @@ const AvatarCropModal = (props) => {
             {props.isSmallScreenWidth && <HeaderGap />}
             <HeaderWithCloseButton
                 title={props.translate('avatarCropModal.title')}
-                onCloseButtonPress={props.onClose}
+                onCloseButtonPress={closeModal}
             />
             <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
             <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1]}>
-                <ImageCropView
-                    imageUri={props.imageUri}
-                    imageStyle={[imageStyle, styles.h100, styles.w100]}
-                    containerSize={imageContainerSize}
-                    panGestureEventHandler={panGestureEventHandler}
-                    onLayout={initializeImage}
-                />
-                {/* To avoid layout shift we should hide this component until the parent container is initialized */}
-                {imageContainerSize !== CONST.AVATAR_CROP_MODAL.INITIAL_SIZE && (
-                    <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
-                        <Icon src={Expensicons.Zoom} fill={colors.gray3} />
-                        <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
-                            <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} sliderContainerSize={sliderContainerSize} />
-                        </View>
-                        <Pressable
-                            onPress={rotateImage}
-                            style={[styles.imageCropRotateButton]}
-                        >
-                            <Icon src={Expensicons.Rotate} fill={colors.black} />
-                        </Pressable>
-                    </View>
-                )}
+
+                {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
+                {(!isImageInitialized || !isImageContainerInitialized)
+                    ? <ActivityIndicator style={[styles.flex1]} size="large" />
+                    : (
+                        <>
+                            <ImageCropView
+                                    imageUri={props.imageUri}
+                                    imageStyle={[imageStyle, styles.h100, styles.w100]}
+                                    containerSize={imageContainerSize}
+                                    panGestureEventHandler={panGestureEventHandler}
+                                    originalImageHeight={originalImageHeight}
+                                    originalImageWidth={originalImageWidth}
+                                    scale={scale}
+                                    translateY={translateY}
+                                    translateX={translateX}
+                                    rotation={rotation}
+                            />
+                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
+                                <Icon src={Expensicons.Zoom} fill={colors.gray3} />
+                                <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
+                                    <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} />
+                                </View>
+                                <Pressable
+                                    onPress={rotateImage}
+                                    style={[styles.imageCropRotateButton]}
+                                >
+                                    <Icon src={Expensicons.Rotate} fill={colors.black} />
+                                </Pressable>
+                            </View>
+                        </>
+                    )}
             </GestureHandlerRootView>
             <Button
                 success

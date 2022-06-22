@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Image, View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -18,11 +18,23 @@ const propTypes = {
     /** Size of the image container that will be rendered */
     containerSize: PropTypes.number,
 
-    /** Styles for image component */
-    imageStyle: PropTypes.arrayOf(PropTypes.object),
+    /** The height of the selected image */
+    originalImageHeight: PropTypes.shape({value: PropTypes.number}).isRequired,
 
-    /** Callback to execute when the Image lays out */
-    onLayout: PropTypes.func,
+    /** The width of the selected image */
+    originalImageWidth: PropTypes.shape({value: PropTypes.number}).isRequired,
+
+    /** The rotation value of the selected image */
+    rotation: PropTypes.shape({value: PropTypes.number}).isRequired,
+
+    /** The relative image shift along X-axis */
+    translateX: PropTypes.shape({value: PropTypes.number}).isRequired,
+
+    /** The relative image shift along Y-axis */
+    translateY: PropTypes.shape({value: PropTypes.number}).isRequired,
+
+    /** The scale factor of the image */
+    scale: PropTypes.shape({value: PropTypes.number}).isRequired,
 
     /** React-native-reanimated lib handler which executes when the user is panning image */
     panGestureEventHandler: gestureHandlerPropTypes,
@@ -31,18 +43,33 @@ const propTypes = {
 const defaultProps = {
     imageUri: '',
     containerSize: 0,
-    imageStyle: null,
-    onLayout: () => {},
-    panGestureEventHandler: () => {},
+    panGestureEventHandler: () => { },
 };
 
 const ImageCropView = (props) => {
     const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
+
+    // A memoized by reanimated style, which updates when image size or scale changes
+    const imageStyle = useAnimatedStyle(() => {
+        const height = props.originalImageHeight.value;
+        const width = props.originalImageWidth.value;
+        const aspectRatio = height > width ? height / width : width / height;
+        const rotate = interpolate(props.rotation.value, [0, 360], [0, 360]);
+        return {
+            transform: [
+                {translateX: props.translateX.value},
+                {translateY: props.translateY.value},
+                {scale: props.scale.value * aspectRatio},
+                {rotate: `${rotate}deg`},
+            ],
+        };
+    }, [props.originalImageHeight, props.originalImageWidth]);
+
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View>
                 <View style={[containerStyle, styles.imageCropContainer]}>
-                    <AnimatedImage style={props.imageStyle} onLayout={props.onLayout} source={{uri: props.imageUri}} resizeMode="contain" />
+                    <AnimatedImage style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
                     <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                         <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
                     </View>
@@ -55,4 +82,7 @@ const ImageCropView = (props) => {
 ImageCropView.displayName = 'ImageCropView';
 ImageCropView.propTypes = propTypes;
 ImageCropView.defaultProps = defaultProps;
-export default ImageCropView;
+
+// React.memo is needed here to prevent styles recompilation
+// which sometimes may cause glitches during rerender of the modal
+export default React.memo(ImageCropView);
