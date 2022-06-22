@@ -9,7 +9,6 @@ These are best practices related to the current API used for App. This does not 
 - Creating data needs to be flawlessly fast on every connection (offline, slow 3G, etc).
 - For new objects created from the client (reports, reportActions, policies) we're going to generate a random string ID immediately on the client, rather than needing to wait for the server to give us an ID for the created object.
 
-
 ## Response Handling
 When the web server responds to an API call the response is sent to the server in one of two ways.
 1. **HTTPS Response** - Data that is returned with the HTTPS response is only sent to the client that initiated the request.
@@ -60,4 +59,11 @@ For example: Accessing the data for a chat report will return the data if the re
 - Names must NOT reveal backend implementation details that the user does not know about eg. `AddVBBA` (users don't know what a VBBA is - verified business bank account) Good: `AddBankAccount`
 - For deep links like `StartAppWhileSignedInAndOpenWorkspace`, create separate commands for each specific scenario like `StartAppWhileSignedIn` and `OpenWorkspace`, where both requests will be triggered in parallel.
 
-## 
+## FAQ
+Q: How should error messages be persisted to Onyx?
+A:- The API layer Pusher onyxData should set specific error messages.
+  - In cases where the API does not set an error, a generic error message can be set in the API.write onyxData `failureData` block.
+  - Previous errors should be cleared by local onyxData when a new request is made
+
+Q: How should we remove local data from the store if the data no longer exist in the server? eg. local policy data for policies the user is no longer a member of.
+A: Use Onyx.set(key, null) for each data (eg. policy) not found in the server.
