@@ -6,6 +6,8 @@ These are best practices related to the current API used for App. This does not 
 - There should be no client-side handling that is unique to any API call.
 - Data is pushed to the client and put straight into Onyx by low-level libraries.
 - Clients should be kept up-to-date with many small incremental changes to data.
+- Creating data needs to be flawlessly fast on every connection (offline, slow 3G, etc).
+
 ## Response Handling
 When the web server responds to an API call the response is sent to the server in one of two ways.
 1. **HTTPS Response** - Data that is returned with the HTTPS response is only sent to the client that initiated the request.
