@@ -1,11 +1,11 @@
 /**
- * We don't need to get the position of the element on native platforms because the popover will be bottom mounted
+ * Returns the position of the clicked element
  *
  * @param {Object} nativeEvent
- * @returns {Object}
+ * @returns {Promise}
  */
-function getClickedElementLocation(nativeEvent) {
-    return nativeEvent.target.getBoundingClientRect();
+ function getClickedElementLocation(nativeEvent) {
+    return Promise.resolve(nativeEvent.target.getBoundingClientRect());
 }
 
 export default getClickedElementLocation;
