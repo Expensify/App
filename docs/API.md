@@ -6,7 +6,7 @@ These are best practices related to the current API used for App. This does not 
 - There should be no client-side handling that is unique to any API call.
 - Data is pushed to the client and put straight into Onyx by low-level libraries.
 - Clients should be kept up-to-date with many small incremental changes to data.
-- Creating data needs to be flawlessly fast on every connection (offline, slow 3G, etc).
+- Creating data needs to be optimistic on every connection (offline, slow 3G, etc), eg. `RequestMoney` or `SplitBill` should work without waiting for a server response.
 - For new objects created from the client (reports, reportActions, policies) we're going to generate a random string ID immediately on the client, rather than needing to wait for the server to give us an ID for the created object.
 - Every new command added should be done right the first time (following the correct pattern and not worrying about unblocking a newsletter initiative quickly).
 
