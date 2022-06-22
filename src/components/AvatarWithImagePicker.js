@@ -113,7 +113,7 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     *  Shows error modal
+     *  Show the error modal
      * @param {String} title
      * @param {String} prompt
      */
@@ -122,7 +122,7 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     *  Hides error modal
+     *  Hide the error modal
      */
     hideErrorModal() {
         this.setState({isErrorModalVisible: false});
