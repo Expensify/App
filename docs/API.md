@@ -8,6 +8,7 @@ These are best practices related to the current API used for App. This does not 
 - Clients should be kept up-to-date with many small incremental changes to data.
 - Creating data needs to be flawlessly fast on every connection (offline, slow 3G, etc).
 - For new objects created from the client (reports, reportActions, policies) we're going to generate a random string ID immediately on the client, rather than needing to wait for the server to give us an ID for the created object.
+- Every new command added should be done right the first time (following the correct pattern and not worrying about unblocking a newsletter initiative quickly).
 
 ## Response Handling
 When the web server responds to an API call the response is sent to the server in one of two ways.
