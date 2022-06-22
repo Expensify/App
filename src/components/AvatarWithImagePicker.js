@@ -85,8 +85,8 @@ class AvatarWithImagePicker extends React.Component {
         this.state = {
             isMenuVisible: false,
             isErrorModalVisible: false,
-            errorModalPrompt: null,
-            errorModalTitle: null,
+            errorModalPrompt: '',
+            errorModalTitle: '',
             isAvatarCropModalOpen: false,
             image: null,
         };
@@ -133,14 +133,17 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      */
     updateAvatarImage(image) {
-        if (!this.isValidSize(image)) {
-            this.showErrorModal(
-                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
-            );
+        if (this.isValidSize(image)) {
+            this.props.onImageSelected(image);
             return;
         }
-        this.props.onImageSelected(image);
+
+        // Since in react native we can't show two modals simultaneously
+        // we have to add delay before opening another one
+        setTimeout(() => this.showErrorModal(
+            this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+            this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
+        ), 500);
     }
 
     /**
