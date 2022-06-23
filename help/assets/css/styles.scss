@@ -18,6 +18,10 @@
     border-right-width: 1px;
     border-style: solid;
 
+    .logo {
+        width: 150px;
+    }
+
     .lhn-content {
         padding-top: 24px;
         margin-left: 32px;
@@ -29,25 +33,6 @@
     margin-left: 375px;
     padding: 48px;
     box-sizing: border-box;
-}
-
-
-.logo {
-    width: 150px;
-}
-
-.current {
-    color: green;
-}
-
-.toc {
-    color: white;
-    background-color: var(--color-dark);
-    position: fixed;
-    width: 300%;
-    left: 0;
-    top: 0;
-    z-index: 5000;
 }
 
 .main-navigation-tree {
@@ -70,6 +55,10 @@
         position: absolute;
         color: #c5c9ca;
         font-size: larger;
+    }
+
+    .caret-icon-down {
+        left: 44px;
     }
 
     .selected-hub {
