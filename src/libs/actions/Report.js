@@ -473,7 +473,7 @@ function setNewMarkerPosition(reportID, sequenceNumber) {
  * @param {Object} message
  */
 // function updateReportActionMessage(reportID, sequenceNumber, message) {
-//   
+//
 //     const actionToMerge = {};
 //     actionToMerge[sequenceNumber] = {message: [message]};
 //     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
@@ -967,72 +967,6 @@ function addComment(reportID, text) {
 }
 
 /**
- * Deletes a comment from the report, basically sets it as empty string
- *
- * @param {Number} reportID
- * @param {Object} reportAction
- */
-function deleteReportComment(reportID, reportAction) {
-    // Optimistic Response
-    const sequenceNumber = reportAction.sequenceNumber;
-    const reportActionsToMerge = {};
-    // const oldMessage = {...reportAction.message};
-    reportActionsToMerge[sequenceNumber] = {
-        ...reportAction,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: '',
-                text: '',
-            },
-        ],
-    };
-
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-    //     setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
-    // });
-
-    // Optimistically update the report action with the new message
-    const optimisticData = [
-        {
-            onyxMethod: 'merge',
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {reportComment: htmlForNewComment, sequenceNumber},
-        },
-    ];
-
-    // Persist the updated report comment
-    API.write('UpdateReportComment', {
-        reportID,
-        reportActionID: originalReportAction.reportActionID,
-        reportComment: '',
-        sequenceNumber
-    }, {optimisticData});
-
-    // Try to delete the comment by calling the API
-    // DeprecatedAPI.Report_EditComment({
-    //     reportID,
-    //     reportActionID: reportAction.reportActionID,
-    //     reportComment: '',
-    //     sequenceNumber,
-    // })
-    //     .then((response) => {
-    //         if (response.jsonCode === 200) {
-    //             return;
-    //         }
-
-    //         // Reverse Optimistic Response
-    //         reportActionsToMerge[sequenceNumber] = {
-    //             ...reportAction,
-    //             message: oldMessage,
-    //         };
-    //         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-    //             setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
-    //         });
-    //     });
-}
-
-/**
  * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
  * network layer handle the delayed write.
  *
@@ -1330,6 +1264,83 @@ Onyx.connect({
     callback: handleReportChanged,
 });
 
+// Onyx.connect({
+//     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+//     callback: (report) => {
+//         console.log(report);
+//     },
+// });
+
+/**
+ * Deletes a comment from the report, basically sets it as empty string
+ *
+ * @param {Number} reportID
+ * @param {Object} reportAction
+ */
+function deleteReportComment(reportID, reportAction) {
+    // Optimistic Response
+    const sequenceNumber = reportAction.sequenceNumber;
+    const reportActionsToMerge = {};
+
+    // const oldMessage = {...reportAction.message};
+    reportActionsToMerge[sequenceNumber] = {
+        ...reportAction,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                html: '',
+                text: '',
+            },
+        ],
+    };
+
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+    //     setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+    // });
+
+    // Optimistically update the report action with the new message
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                reportID,
+                reportActionID: reportAction.reportActionID,
+                sequenceNumber,
+            },
+        },
+    ];
+
+    // Persist the updated report comment
+    API.write('DeleteComment', {
+        reportID,
+        reportActionID: reportAction.reportActionID,
+        sequenceNumber,
+    }, {optimisticData});
+
+    // Try to delete the comment by calling the API
+    // DeprecatedAPI.Report_EditComment({
+    //     reportID,
+    //     reportActionID: reportAction.reportActionID,
+    //     reportComment: '',
+    //     sequenceNumber,
+    // })
+    //     .then((response) => {
+    //         if (response.jsonCode === 200) {
+    //             return;
+    //         }
+
+    //         // Reverse Optimistic Response
+    //         reportActionsToMerge[sequenceNumber] = {
+    //             ...reportAction,
+    //             message: oldMessage,
+    //         };
+    //         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+    //             setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+    //         });
+    //     });
+}
+
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
@@ -1369,16 +1380,21 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {reportComment: htmlForNewComment, sequenceNumber},
+            value: {
+                reportID,
+                sequenceNumber,
+                reportActionID,
+                message: htmlForNewComment,
+            },
         },
     ];
 
     // Persist the updated report comment
-    API.write('UpdateReportComment', {
+    API.write('UpdateComment', {
         reportID,
-        reportActionID: originalReportAction.reportActionID,
+        sequenceNumber,
         reportComment: htmlForNewComment,
-        sequenceNumber
+        reportActionID: originalReportAction.reportActionID,
     }, {optimisticData});
 
     // DeprecatedAPI.Report_EditComment({
@@ -1659,7 +1675,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     initWithStoredValues: false,
     callback: (actions, key) => {
-
         // reportID can be derived from the Onyx key
         const reportID = parseInt(key.split('_')[1], 10);
         if (!reportID) {
