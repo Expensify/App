@@ -495,7 +495,7 @@ class ReportActionCompose extends React.Component {
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
                             this.submitForm();
-                            Report.createAttachment(this.props.reportID, file);
+                            Report.addAttachment(this.props.reportID, file);
                             this.setTextInputShouldClear(false);
                         }}
                     >

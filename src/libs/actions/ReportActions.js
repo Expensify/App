@@ -34,7 +34,7 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         const actionsArray = _.toArray(actions);
         reportActions[reportID] = actionsArray;
-        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.isPending);
+        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.isLoading);
         const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
         if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
             return;
