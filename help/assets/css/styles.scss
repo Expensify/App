@@ -17,6 +17,11 @@
     border-right-color: rgb(236, 236, 236);
     border-right-width: 1px;
     border-style: solid;
+
+    .lhn-content {
+        padding-top: 24px;
+        margin-left: 32px;
+    }
 }
 
 .content-area {
@@ -78,8 +83,15 @@
 
 /////
 .main-navigation-tree {
-    ul {
-        margin-left: 30px;
+    li {
+        margin-top: 12px;
+    }
+
+    .caret-icon {
+        width: 16px;
+        left: 48px;
+        padding-top: 3px;
+        position: absolute;
     }
 
     // .nested-treeview {
