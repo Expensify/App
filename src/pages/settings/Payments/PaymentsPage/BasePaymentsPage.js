@@ -47,7 +47,6 @@ class BasePaymentsPage extends React.Component {
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
             addPaymentMethodButton: null,
-            addPaymentMethodNativeEventCurrentTarget: null,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -84,10 +83,11 @@ class BasePaymentsPage extends React.Component {
     }
 
     setMenuPosition() {
-        if (!this.state.addPaymentMethodNativeEventCurrentTarget) {
+        if (!this.state.addPaymentMethodButton) {
             return;
         }
-        const buttonPosition = getClickedTargetLocation(this.state.addPaymentMethodNativeEventCurrentTarget);
+
+        const buttonPosition = getClickedTargetLocation(this.state.addPaymentMethodButton);
         this.setPositionAddPaymentMenu(buttonPosition);
     }
 
@@ -129,8 +129,7 @@ class BasePaymentsPage extends React.Component {
         const position = getClickedTargetLocation(nativeEvent.currentTarget);
 
         this.setState({
-            addPaymentMethodNativeEventCurrentTarget: nativeEvent.currentTarget,
-            addPaymentMethodButton: nativeEvent,
+            addPaymentMethodButton: nativeEvent.currentTarget,
         });
 
         if (accountType) {
@@ -208,7 +207,7 @@ class BasePaymentsPage extends React.Component {
      */
     hideAddPaymentMenu() {
         this.setState({
-            addPaymentMethodNativeEventCurrentTarget: null,
+            addPaymentMethodButton: null,
             shouldShowAddPaymentMenu: false
         });
     }
