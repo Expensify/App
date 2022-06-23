@@ -83,9 +83,10 @@ function getDefaultDrawerState(isSmallScreenWidth) {
         return CONST.DRAWER_STATUS.CLOSED;
     }
 
-    // When the user opens the app via Root url, open the drawer else close the drawer.
-    const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config);
-    return path === ROUTES.ROOT ? CONST.DRAWER_STATUS.OPEN : CONST.DRAWER_STATUS.CLOSED;
+    // When the user opens the app via Report url, close the drawer else open the drawer.
+    const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1);
+    // eslint-disable-next-line no-use-before-define
+    return path === ROUTES.HOME || !isDrawerRoute(path) ? CONST.DRAWER_STATUS.OPEN : CONST.DRAWER_STATUS.CLOSED;
 }
 
 /**
