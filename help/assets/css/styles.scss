@@ -88,10 +88,11 @@
     }
 
     .caret-icon {
-        width: 16px;
         left: 48px;
-        padding-top: 3px;
+        padding-top: 1px;
         position: absolute;
+        color: #c5c9ca;
+        font-size: larger;
     }
 
     // .nested-treeview {
