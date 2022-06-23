@@ -430,6 +430,9 @@ class ReportActionCompose extends React.Component {
         }
     }
 
+    /**
+     * @returns {String}
+     */
     prepareCommentAndResetComposer() {
         const trimmedComment = this.comment.trim();
 
@@ -447,6 +450,7 @@ class ReportActionCompose extends React.Component {
 
         // Important to reset the selection on Submit action
         this.textInput.setNativeProps({selection: {start: 0, end: 0}});
+        return trimmedComment;
     }
 
     /**

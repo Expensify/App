@@ -841,6 +841,12 @@ function fetchAllReports(
         });
 }
 
+/**
+ * @param {Number} reportID
+ * @param {String} [text]
+ * @param {File} [file]
+ * @returns {Object}
+ */
 function buildOptimisticReportAction(reportID, text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
@@ -848,7 +854,6 @@ function buildOptimisticReportAction(reportID, text, file) {
     const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
-
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
@@ -902,6 +907,32 @@ function buildOptimisticReportAction(reportID, text, file) {
     };
 }
 
+function updateAndGetOptimisticTimezoneData() {
+    let timezone = '{}';
+    const optimisticTimezoneData = [];
+
+    // Update the timezone if it's been 5 minutes from the last time the user added a comment
+    if (DateUtils.canUpdateTimezone()) {
+        timezone = JSON.stringify(DateUtils.getCurrentTimezone());
+        optimisticTimezoneData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+            value: {timezone},
+        });
+        optimisticTimezoneData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {[currentUserEmail]: timezone},
+        });
+        DateUtils.setTimezoneUpdated();
+    }
+
+    return {
+        optimisticTimezoneData,
+        timezone,
+    };
+}
+
 /**
  * Add an action item to a report
  *
@@ -933,10 +964,13 @@ function addComment(reportID, text) {
         [reportAction.clientID]: reportAction,
     };
 
+    const {optimisticTimezoneData, timezone} = updateAndGetOptimisticTimezoneData();
+
     const parameters = {
         reportID,
         reportComment: commentText,
         clientID: reportAction.clientID,
+        timezone,
     };
 
     const optimisticData = [
@@ -950,24 +984,8 @@ function addComment(reportID, text) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
+        ...optimisticTimezoneData,
     ];
-
-    // Update the timezone if it's been 5 minutes from the last time the user added a comment
-    if (DateUtils.canUpdateTimezone()) {
-        const timezone = DateUtils.getCurrentTimezone();
-        parameters.timezone = JSON.stringify(timezone);
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-            value: {timezone},
-        });
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {[currentUserEmail]: timezone},
-        });
-        DateUtils.setTimezoneUpdated();
-    }
 
     API.write('AddComment', parameters, {
         optimisticData,
@@ -983,31 +1001,6 @@ function addComment(reportID, text) {
             },
         ],
     });
-}
-function updateAndGetOptimisticTimezoneData() {
-    let timezone = '{}';
-    const optimisticTimezoneData = [];
-
-    // Update the timezone if it's been 5 minutes from the last time the user added a comment
-    if (DateUtils.canUpdateTimezone()) {
-        timezone = JSON.stringify(DateUtils.getCurrentTimezone());
-        optimisticTimezoneData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-            value: {timezone},
-        });
-        optimisticTimezoneData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {[currentUserEmail]: timezone},
-        });
-        DateUtils.setTimezoneUpdated();
-    }
-
-    return {
-        optimisticTimezoneData,
-        timezone,
-    };
 }
 
 /**
@@ -1064,6 +1057,7 @@ function addAttachment(reportID, file, text = '') {
         reportID,
         reportComment: reportCommentText,
         clientID: reportAction.clientID,
+        commentClientID: reportCommentAction.clientID,
         file,
         timezone,
     };
