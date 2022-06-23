@@ -7,9 +7,32 @@
     --color-dark: #0B1B34;
 }
 
+.lhn {
+    height: 100%;
+    width: 375px;
+    position: fixed;
+    // z-index: 1;
+    // top: 0;
+    // left: 0;
+    background-color: #fafafa;
+    // overflow-x: hidden;
+    padding-top: 20px;
+
+    border-right-color: rgb(236, 236, 236);
+    border-right-width: 1px;
+    border-style: solid;
+}
+
+.content-area {
+    /* Same as the width of the lhn */
+    margin-left: 375px;
+    padding: 0px 10px;
+}
+
 .current {
     color: green;
 }
+
 .toc {
     color: white;
     background-color: var(--color-dark);
@@ -92,5 +115,3 @@
         transform: rotate(90deg);
     }
 }
-
-
