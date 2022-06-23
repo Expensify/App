@@ -1,0 +1,93 @@
+---
+---
+:root {
+    --color-dark: #0B1B34;
+}
+
+.current {
+    color: green;
+}
+.toc {
+    color: white;
+    background-color: var(--color-dark);
+    position: fixed;
+    width: 300%;
+    left: 0;
+    top: 0;
+    z-index: 5000;
+}
+
+.card {
+    display: flex;
+    flex-wrap: nowrap;
+    border-radius: 15px;
+    border: 1px solid lightgray;
+    padding: 20px;
+}
+
+.left-icon {
+    display: flex;
+    align-items: center;
+    padding-right: 15px;
+}
+
+.right-icon {
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+}
+
+.body {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    flex-grow: 2;
+}
+
+.description {
+    margin-top: 15px;
+}
+
+/////
+.main-navigation-tree {
+    ul {
+        margin-left: 30px;
+    }
+
+    // .nested-treeview {
+    //     display: none;
+    // }
+
+    .active-treeview {
+        display: block;
+        padding-inline-start: 20px;
+    }
+
+    .caret {
+        cursor: pointer;
+        -webkit-user-select: none;
+        /* Safari 3.1+ */
+        -moz-user-select: none;
+        /* Firefox 2+ */
+        -ms-user-select: none;
+        /* IE 10+ */
+        user-select: none;
+    }
+
+    .caret::before {
+        content: "\25B6";
+        color: black;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .caret-down::before {
+        -ms-transform: rotate(90deg);
+        /* IE 9 */
+        -webkit-transform: rotate(90deg);
+        /* Safari */
+        transform: rotate(90deg);
+    }
+}
+
+
