@@ -15,6 +15,22 @@
 		<img src="/assets/images/expensify-help.svg" class="logo" />
 
 		<!-- LHN content (Main navigation tree or Article TOC) -->
+		<div class="lhn-content">
+			<span><a href="/index.html">Home</a></span>
+			{% case page.lhn_content %}
+			{% when "homepage" %}
+				{% include home-navigation-tree.html %}
+			{% when "request-money" %}
+				{% include request-money-navigation-tree.html %}
+			{% when "send-money" %}
+				{% include send-money-navigation-tree.html %}
+			{% else %}
+				<span class="left-caret">Back</span>
+				<span>In this article</span>
+				<div class="article-toc"></div>
+			{% endcase %}
+		</div>
+
 
 		<!-- Concierge button anchored at the bottom of the LHN-->
 		<div class="floating-concierge-button">
