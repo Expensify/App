@@ -81,9 +81,8 @@ class BaseOptionsList extends Component {
     }
 
     /**
-     * This function is used to deterministically compute the layout of any given item in our list.
-     * We need to implement it so that we can programmatically scroll to any item in the list.
-     * If we don't, then we can only scroll to items in the virtual render window of the SectionList.
+     * This function is used to compute the layout of any given item in our list.
+     * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
      * @param {Array} data - This is the same as the data we pass into the component, i.e: all the non-empty sections
      * @param {Number} index - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
@@ -96,8 +95,6 @@ class BaseOptionsList extends Component {
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      *
      * @returns {Object}
-     * @note This implementation assumes that the list does not contain any headers or footers, because this component does not use those features at the time of writing.
-     *       If you want to add a header or footer to the SectionList, you'll need to adjust this function accordingly.
      */
     getItemLayout(data, index) {
         const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
