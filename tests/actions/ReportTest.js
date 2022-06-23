@@ -101,7 +101,7 @@ describe('actions/Report', () => {
                 clientID = resultAction.sequenceNumber;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction.isPending).toEqual(true);
+                expect(resultAction.isLoading).toEqual(true);
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
@@ -141,7 +141,7 @@ describe('actions/Report', () => {
                 const resultAction = reportActions[ACTION_ID];
 
                 // Verify that our action is no longer in the loading state
-                expect(resultAction.isPending).not.toBeDefined();
+                expect(resultAction.isLoading).not.toBeDefined();
             });
     });
 

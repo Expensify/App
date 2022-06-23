@@ -25,7 +25,7 @@ export default {
     }),
 
     /** Whether we have received a response back from the server */
-    isPending: PropTypes.bool,
+    isLoading: PropTypes.bool,
 
     /** Error message that's come back from the server. */
     error: PropTypes.string,

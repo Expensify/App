@@ -175,7 +175,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
-                                    (this.props.network.isOffline && this.props.action.isPending) || this.props.action.error,
+                                    (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
                                 {!this.props.displayAsGroup

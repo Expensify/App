@@ -920,7 +920,7 @@ function addComment(reportID, text, file) {
             isFirstItem: false,
             isAttachment,
             attachmentInfo,
-            isPending: true,
+            isLoading: true,
             shouldShow: true,
         },
     };
@@ -962,7 +962,7 @@ function addComment(reportID, text, file) {
         DateUtils.setTimezoneUpdated();
     }
 
-    API.write(isAttachment ? 'AddAttachmentWithOptionalComment' : 'AddComment', parameters, {
+    API.write(isAttachment ? 'AddAttachment' : 'AddComment', parameters, {
         optimisticData,
         failureData: [
             {
@@ -970,7 +970,7 @@ function addComment(reportID, text, file) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: {
                     [optimisticReportActionID]: {
-                        isPending: false,
+                        isLoading: false,
                     },
                 },
             },
@@ -982,7 +982,7 @@ function addComment(reportID, text, file) {
  * @param {Number} reportID
  * @param {Object} file
  */
-function addAttachmentWithOptionalComment(reportID, file) {
+function addAttachment(reportID, file) {
     addComment(reportID, '', file);
 }
 
@@ -1392,7 +1392,7 @@ export {
     fetchIOUReportByID,
     fetchIOUReportByIDAndUpdateChatReport,
     addComment,
-    addAttachmentWithOptionalComment,
+    addAttachment,
     updateLastReadActionID,
     updateNotificationPreference,
     setNewMarkerPosition,

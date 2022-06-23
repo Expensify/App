@@ -387,10 +387,10 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
- * @param {Boolean} [isPending]
+ * @param {Boolean} [isLoading]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false, isPending = false) {
+function getReportActionItemStyle(isHovered = false, isLoading = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -399,7 +399,7 @@ function getReportActionItemStyle(isHovered = false, isPending = false) {
 
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
-        opacity: isPending ? 0.5 : 1,
+        opacity: isLoading ? 0.5 : 1,
         cursor: 'default',
     };
 }
