@@ -12,7 +12,7 @@
     width: 375px;
     position: fixed;
     background-color: #fafafa;
-    padding: 32px;
+    padding: 36px;
     box-sizing: border-box;
     border-right-color: rgb(236, 236, 236);
     border-right-width: 1px;
@@ -22,7 +22,8 @@
 .content-area {
     /* Same as the width of the lhn */
     margin-left: 375px;
-    padding: 0px 10px;
+    padding: 48px;
+    box-sizing: border-box;
 }
 
 
