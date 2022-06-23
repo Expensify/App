@@ -1121,10 +1121,41 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
     });
 }
 
+/**
+ * Marks the new report actions as read
+ *
+ * @param {Number} reportID
+ */
+function readNewestAction(reportID) {
+    const sequenceNumber = reportMaxSequenceNumbers[reportID];
+    API.write('ReadNewestAction',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                },
+            }],
+            successData: [],
+            failureData: [],
+        });
+}
+
+/**
+ * Sets the last read comment on a report
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
 function markCommentAsUnread(reportID, sequenceNumber) {
     API.write('MarkCommentAsUnread',
         {
-            markAsUnread: true,
             reportID,
             sequenceNumber,
         },
@@ -1578,4 +1609,5 @@ export {
     getLastReadSequenceNumber,
     setIsComposerFullSize,
     markCommentAsUnread,
+    readNewestAction,
 };
