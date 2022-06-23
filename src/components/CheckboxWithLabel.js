@@ -9,15 +9,15 @@ import InlineErrorText from './InlineErrorText';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
-        return new Error('One of "label" or "LabelComponent" must be provided.');
+        return new Error('One of "label" or "LabelComponent" must be provided');
     }
 
     if (props.label && typeof props.label !== 'string') {
-        return new Error('Label must be of type string');
+        return new Error('Prop "label" must be a string');
     }
 
     if (props.LabelComponent && typeof props.LabelComponent !== 'function') {
-        return new Error('Label must be of type string');
+        return new Error('Prop "LabelComponent" must be a function');
     }
 };
 
