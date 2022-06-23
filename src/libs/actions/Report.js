@@ -841,14 +841,7 @@ function fetchAllReports(
         });
 }
 
-/**
- * Add an action item to a report
- *
- * @param {Number} reportID
- * @param {String} text
- * @param {File} [file]
- */
-function addComment(reportID, text, file) {
+function buildOptimisticReportAction(reportID, text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -856,22 +849,11 @@ function addComment(reportID, text, file) {
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
 
-    // The new sequence number will be one higher than the highest
-    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
-    const newSequenceNumber = highestSequenceNumber + 1;
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? '[Attachment]'
         : parser.htmlToText(htmlForNewComment);
-
-    // Update the report in Onyx to have the new sequence number
-    const optimisticReport = {
-        maxSequenceNumber: newSequenceNumber,
-        lastMessageTimestamp: moment().unix(),
-        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
-        lastActorEmail: currentUserEmail,
-    };
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
     // remove the optimistic action when we add the real action created in the server. We do this because it's not
@@ -884,14 +866,9 @@ function addComment(reportID, text, file) {
     const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const optimisticReportActionID = parseInt(`${Date.now()}${randomNumber}`, 10);
 
-    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
-    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
-    // event, for whatever reason, from the server with the new action data
-    optimisticReport.optimisticReportActionIDs = [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID];
-
-    // Optimistically add the new comment to the store before waiting to save it to the server
-    const optimisticReportActions = {
-        [optimisticReportActionID]: {
+    return {
+        commentText,
+        reportAction: {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
@@ -923,12 +900,43 @@ function addComment(reportID, text, file) {
             shouldShow: true,
         },
     };
+}
+
+/**
+ * Add an action item to a report
+ *
+ * @param {Number} reportID
+ * @param {String} text
+ */
+function addComment(reportID, text) {
+    const {reportAction, commentText} = buildOptimisticReportAction(reportID, text);
+
+    // The new sequence number will be one higher than the highest
+    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
+    const newSequenceNumber = highestSequenceNumber + 1;
+
+    // Update the report in Onyx to have the new sequence number
+    const optimisticReport = {
+        maxSequenceNumber: newSequenceNumber,
+        lastMessageTimestamp: moment().unix(),
+        lastMessageText: ReportUtils.formatReportLastMessageText(reportAction.message[0].text),
+        lastActorEmail: currentUserEmail,
+    };
+
+    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
+    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
+    // event, for whatever reason, from the server with the new action data
+    optimisticReport.optimisticReportActionIDs = [...(optimisticReportActionIDs[reportID] || []), reportAction.clientID];
+
+    // Optimistically add the new comment to the store before waiting to save it to the server
+    const optimisticReportActions = {
+        [reportAction.clientID]: reportAction,
+    };
 
     const parameters = {
         reportID,
-        file,
         reportComment: commentText,
-        clientID: optimisticReportActionID,
+        clientID: reportAction.clientID,
     };
 
     const optimisticData = [
@@ -961,14 +969,14 @@ function addComment(reportID, text, file) {
         DateUtils.setTimezoneUpdated();
     }
 
-    API.write(isAttachment ? 'AddAttachment' : 'AddComment', parameters, {
+    API.write('AddComment', parameters, {
         optimisticData,
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: {
-                    [optimisticReportActionID]: {
+                    [reportAction.clientID]: {
                         isLoading: false,
                     },
                 },
@@ -976,13 +984,118 @@ function addComment(reportID, text, file) {
         ],
     });
 }
+function updateAndGetOptimisticTimezoneData() {
+    let timezone = '{}';
+    const optimisticTimezoneData = [];
+
+    // Update the timezone if it's been 5 minutes from the last time the user added a comment
+    if (DateUtils.canUpdateTimezone()) {
+        timezone = JSON.stringify(DateUtils.getCurrentTimezone());
+        optimisticTimezoneData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+            value: {timezone},
+        });
+        optimisticTimezoneData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {[currentUserEmail]: timezone},
+        });
+        DateUtils.setTimezoneUpdated();
+    }
+
+    return {
+        optimisticTimezoneData,
+        timezone,
+    };
+}
 
 /**
  * @param {Number} reportID
  * @param {Object} file
+ * @param {String} [text]
  */
-function addAttachment(reportID, file) {
-    addComment(reportID, '', file);
+function addAttachment(reportID, file, text = '') {
+    let reportCommentAction;
+    let reportCommentText;
+
+    if (text) {
+        const builtAction = buildOptimisticReportAction(reportID, text);
+        reportCommentAction = builtAction.reportAction;
+        reportCommentText = builtAction.commentText;
+    }
+
+    const {reportAction, commentText} = buildOptimisticReportAction(reportID, '', file);
+
+    // AddAttachment can create up to two actions. An attachment and a report comment simultaneously. Therefore we may need a newSequenceNumber that is 1 or 2 larger than the current.
+    // The new sequence number will be one higher than the highest
+    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
+    const newSequenceNumber = highestSequenceNumber + (commentText ? 2 : 1);
+
+    // Update the report in Onyx to have the new sequence number
+    const optimisticReport = {
+        maxSequenceNumber: newSequenceNumber,
+        lastMessageTimestamp: moment().unix(),
+        lastMessageText: ReportUtils.formatReportLastMessageText(reportAction.message[0].text),
+        lastActorEmail: currentUserEmail,
+    };
+
+    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
+    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
+    // event, for whatever reason, from the server with the new action data
+    optimisticReport.optimisticReportActionIDs = [...(optimisticReportActionIDs[reportID] || []), reportAction.clientID];
+
+    // We also add the optimistic comment here if we have the optional text
+    if (text) {
+        optimisticReport.optimisticReportActionIDs.push(reportCommentAction.clientID);
+    }
+
+    // Optimistically add the new comment to the store before waiting to save it to the server
+    const optimisticReportActions = {
+        [reportAction.clientID]: reportAction,
+    };
+
+    if (text) {
+        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+    }
+
+    const {optimisticTimezoneData, timezone} = updateAndGetOptimisticTimezoneData();
+    const parameters = {
+        reportID,
+        reportComment: reportCommentText,
+        clientID: reportAction.clientID,
+        file,
+        timezone,
+    };
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticReportActions,
+        },
+        ...optimisticTimezoneData,
+    ];
+
+    API.write('AddAttachment', parameters, {
+        optimisticData,
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    [reportAction.clientID]: {
+                        isLoading: false,
+                    },
+                },
+            },
+        ],
+    });
 }
 
 /**

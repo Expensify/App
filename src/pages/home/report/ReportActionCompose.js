@@ -430,6 +430,25 @@ class ReportActionCompose extends React.Component {
         }
     }
 
+    prepareCommentAndResetComposer() {
+        const trimmedComment = this.comment.trim();
+
+        // Don't submit empty comments or comments that exceed the character limit
+        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+            return '';
+        }
+
+        this.updateComment('');
+        this.setTextInputShouldClear(true);
+        if (this.props.isComposerFullSize) {
+            Report.setIsComposerFullSize(this.props.reportID, false);
+        }
+        this.setState({isFullComposerAvailable: false});
+
+        // Important to reset the selection on Submit action
+        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
+    }
+
     /**
      * Add a new comment to this chat
      *
@@ -440,23 +459,12 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        const trimmedComment = this.comment.trim();
-
-        // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        const comment = this.prepareCommentAndResetComposer();
+        if (!comment) {
             return;
         }
 
-        this.props.onSubmit(trimmedComment);
-        this.updateComment('');
-        this.setTextInputShouldClear(true);
-        if (this.props.isComposerFullSize) {
-            Report.setIsComposerFullSize(this.props.reportID, false);
-        }
-        this.setState({isFullComposerAvailable: false});
-
-        // Important to reset the selection on Submit action
-        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
+        this.props.onSubmit(comment);
     }
 
     render() {
@@ -494,8 +502,8 @@ class ReportActionCompose extends React.Component {
                     <AttachmentModal
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
-                            this.submitForm();
-                            Report.addAttachment(this.props.reportID, file);
+                            const comment = this.prepareCommentAndResetComposer();
+                            Report.addAttachment(this.props.reportID, file, comment);
                             this.setTextInputShouldClear(false);
                         }}
                     >
