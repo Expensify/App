@@ -83,10 +83,7 @@ function getDefaultDrawerState(isSmallScreenWidth) {
         return CONST.DRAWER_STATUS.CLOSED;
     }
 
-    // We define the drawer status when the user navigates to the web App.
-    // If the user navigates to the Home route, we will open the drawer.
-    // For note the initialRouteName is SCREENS.REPORT, so other than navigating to the Home route,
-    // the user will fall back to the Report route and we close the drawer.
+    // When the user opens the app via Root url, open the drawer else close the drawer.
     const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config);
     return path === ROUTES.ROOT ? CONST.DRAWER_STATUS.OPEN : CONST.DRAWER_STATUS.CLOSED;
 }
