@@ -54,7 +54,7 @@ For example: Accessing the data for a chat report will return the data if the re
 - Verbs should be unique and indicate the user's action (as perceived by the user). eg. `Request`, `Open`, `Accept`, `Pay`
   - If a unique verb cannot be used, then use only the standard verbs: `Update`, `Add`, `Delete`
 - Names must NOT include names of parameters eg. Bad: `SignInWithPasswordOr2FA` Good: `SignIn`
-- Names must NOT the word Page or View, eg. Bad: `OpenReportPage` Good: `OpenReport`
+- Names must NOT include the word Page or View, eg. Bad: `OpenReportPage` Good: `OpenReport`
 - Names must NOT reveal backend implementation details that the user does not know about eg. `AddVBBA` (users don't know what a VBBA is - verified business bank account) Good: `AddBankAccount`
 - For deep links like `StartAppWhileSignedInAndOpenWorkspace`, create separate commands for each specific scenario like `StartAppWhileSignedIn` and `OpenWorkspace`, where both requests will be triggered in parallel.
 
