@@ -83,13 +83,11 @@ function getDefaultDrawerState(isSmallScreenWidth) {
         return CONST.DRAWER_STATUS.CLOSED;
     }
 
-    // On mobile when the App first open will return path `/`.
-    // On web when user refresh the page, the path will always return the ReportScreen on path `/r/{reportID}`,
-    // and will return path `/` if opening from the domain name e.g https://new.expensify.com
+    // We define the drawer status when the user navigates to the web App.
+    // If the user navigates to the Home route, we will open the drawer.
+    // For note the initialRouteName is SCREENS.REPORT, so other than navigating to the Home route,
+    // the user will fall back to the Report route and we close the drawer.
     const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config);
-
-    // Commonly we want to show ReportScreen when user navigate to path `/r/{reportID}`
-    // and show the drawer when user navigate to the app with the domain name e.g https://new.expensify.com
     return path === ROUTES.ROOT ? CONST.DRAWER_STATUS.OPEN : CONST.DRAWER_STATUS.CLOSED;
 }
 
