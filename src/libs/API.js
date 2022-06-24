@@ -6,9 +6,7 @@ import {version} from '../../package.json';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
- * That object will have all the data needed to make the WRITE request later. In other words, we'll queue the WRITE
- * request so that if the network is unavailable or the app is closed, we can send the WRITE request whenever the
- * network comes back.
+ * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  *
  * @param {String} command - Name of API command to call
  * @param {Object} apiCommandParameters - The object of parameters to send to the API
