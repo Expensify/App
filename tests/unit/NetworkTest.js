@@ -657,6 +657,7 @@ test('Sequential queue will succeed if triggered while reauthentication via main
     // Given offline state where all requests will eventually succeed without issue and assumed to be valid credentials
     const xhr = jest.spyOn(HttpUtils, 'xhr')
         .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
+        .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
         .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, authToken: 'newToken'});
 
     return Onyx.multiSet({
@@ -679,8 +680,8 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             expect(SequentialQueue.isRunning()).toBe(false);
             expect(NetworkStore.isAuthenticating()).toBe(false);
 
-            // There should be no calls at this point since we were online when we made our only request
-            expect(xhr.mock.calls.length).toBe(0);
+            // There should be one call at this point since we made one online request to the main queue and one offline request to the sequential queue
+            expect(xhr.mock.calls.length).toBe(1);
 
             // Come back from offline to trigger the sequential queue flush
             return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
@@ -701,17 +702,20 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             // We are not offline anymore
             expect(isOffline).toBe(false);
 
-            // First call to xhr is the MockCommand that failed with a 407
+            // First call to xhr is the Push_Authenticate request that could not call Authenticate because we went offline
             const [firstCommand] = xhr.mock.calls[0];
-            expect(firstCommand).toBe('MockCommand');
+            expect(firstCommand).toBe('Push_Authenticate');
 
-            // Second command should be the call to Authenticate
+            // Second call to xhr is the MockCommand that also failed with a 407
             const [secondCommand] = xhr.mock.calls[1];
-            expect(secondCommand).toBe('Authenticate');
+            expect(secondCommand).toBe('MockCommand');
 
-            // Third command is a retry of the failed persisted request
+            // Third command should be the call to Authenticate
             const [thirdCommand] = xhr.mock.calls[2];
-            expect(thirdCommand).toBe('MockCommand');
+            expect(thirdCommand).toBe('Authenticate');
+
+            const [fourthCommand] = xhr.mock.calls[3];
+            expect(fourthCommand).toBe('MockCommand');
 
             // We are using the new authToken
             expect(NetworkStore.getAuthToken()).toBe('newToken');
