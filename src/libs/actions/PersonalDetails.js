@@ -135,6 +135,9 @@ function fetchPersonalDetails() {
             }
 
             const allPersonalDetails = formatPersonalDetails(personalDetailsList);
+
+            // Flag which details belong to the currently logged in user for easy access before storing
+            allPersonalDetails[currentUserEmail].isCurrentUser = true;
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             myPersonalDetails = allPersonalDetails[currentUserEmail];
