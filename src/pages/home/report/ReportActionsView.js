@@ -103,8 +103,8 @@ class ReportActionsView extends React.Component {
         this.renderedActionIDs = new Set();
         this.didLayout = false;
 
-        // We first set it as -1 since there is no indexID calculated to scroll to just yet.
-        this.actionIndexIDToScroll = -1;
+        // We first set it as -1 since there is no index calculated to scroll to just yet.
+        this.actionScrollTargetIndex = -1;
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -223,7 +223,8 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (this.props.reportActionID && this.props.reportActionID !== prevProps.reportActionID && this.props.reportID === prevProps.reportID) {
-            this.actionIndexIDToScroll = -1;
+            // We've received a new reportActionID, we need to reset some variables to its initial state so that we can scroll to the new index.
+            this.actionScrollTargetIndex = -1;
             this.isDoneScrollingToReportActionID = false;
             this.checkScrollToReportAction();
         }
@@ -440,12 +441,12 @@ class ReportActionsView extends React.Component {
      * Scrolls to a specific report action ID
      */
     scrollToReportActionID() {
-        this.actionIndexIDToScroll = _.findIndex(this.sortedReportActions, (
+        this.actionScrollTargetIndex = _.findIndex(this.sortedReportActions, (
             ({action}) => action.reportActionID === this.props.reportActionID
         ));
 
-        if (this.actionIndexIDToScroll !== -1) {
-            ReportScrollManager.scrollToIndex({index: this.actionIndexIDToScroll, viewPosition: 0.5});
+        if (this.actionScrollTargetIndex !== -1) {
+            ReportScrollManager.scrollToIndex({index: this.actionScrollTargetIndex, viewPosition: 0.5});
             this.setState({shouldHighlightReportActionID: true});
         }
     }
@@ -475,10 +476,14 @@ class ReportActionsView extends React.Component {
 
     /**
      * Determine if we can scroll now or not.
-     * On web we can scroll only after measurements of all rendered items are done while on native we can scroll after rendering of the specific item is done.
+     * When measuring items we must wait until all items have been measured before scrolling. When not measuring items we will scroll once the specific item we are looking for has rendered.
      */
     checkScrollToReportAction() {
         if (!this.props.reportActionID) {
+            return;
+        }
+
+        if (!this.isDoneMeasuring || this.isDoneScrollingToReportActionID) {
             return;
         }
 
@@ -487,18 +492,16 @@ class ReportActionsView extends React.Component {
             .min()
             .value();
 
-        if (this.isDoneMeasuring && !this.isDoneScrollingToReportActionID) {
-            if (this.renderedActionIDs.has(this.props.reportActionID)) {
-                this.isDoneScrollingToReportActionID = true;
+        if (this.renderedActionIDs.has(this.props.reportActionID)) {
+            this.isDoneScrollingToReportActionID = true;
 
-                // We give a slight delay because if we attempt this too fast the scroll gets buggy on iOS as more items need to render.
-                setTimeout(this.scrollToReportActionID, 500);
-            } else if (this.renderedActionIDs.size === this.sortedReportActions.length && minSequenceNumber !== 0) {
-                this.loadMoreChats();
-            } else {
-                // Mark it as done so that as the user scrolls up it does not auto scroll later
-                this.isDoneScrollingToReportActionID = true;
-            }
+            // We give a slight delay because if we attempt this too fast the scroll gets buggy on iOS as more items need to render.
+            setTimeout(this.scrollToReportActionID, 500);
+        } else if (this.renderedActionIDs.size === this.sortedReportActions.length && minSequenceNumber !== 0) {
+            this.loadMoreChats();
+        } else {
+            // Mark it as done so that as the user scrolls up it does not auto scroll later
+            this.isDoneScrollingToReportActionID = true;
         }
     }
 
