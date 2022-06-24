@@ -104,6 +104,10 @@ class ReportActionItem extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.props.shouldHighlight) {
+            this.animateBackground();
+        }
+
         if (prevProps.draftMessage || !this.props.draftMessage) {
             return;
         }
@@ -163,9 +167,6 @@ class ReportActionItem extends Component {
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
-        }
-        if (this.props.shouldHighlight) {
-            this.animateBackground();
         }
 
         let children;
