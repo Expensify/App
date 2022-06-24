@@ -4,6 +4,15 @@ import * as Request from './Request';
 import * as SequentialQueue from './Network/SequentialQueue';
 import {version} from '../../package.json';
 
+/**
+ *
+ * @param {String} command - Name of API command to call
+ * @param {Object} apiCommandParameters - The object of parameters to send to the API
+ * @param {Object} onyxData
+ * @param {Object} [onyxData.optimisticData] - An object of data that will be merged into Onyx before the request is made
+ * @param {Object} [onyxData.successData] - An object of data that will be merged into Onyx when the request succeeds.
+ * @param {Object} [onyxData.failureData] - An object of data that will be merged into Onyx when the request fails.
+ */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
