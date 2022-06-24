@@ -39,6 +39,8 @@ class BaseOptionsList extends Component {
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
+
+        this.flattenedData = this.buildFlatSectionArray();
     }
 
     shouldComponentUpdate(nextProps) {
@@ -59,6 +61,14 @@ class BaseOptionsList extends Component {
         }
 
         return false;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(this.props.sections, prevProps.sections)) {
+            return;
+        }
+
+        this.flattenedData = this.buildFlatSectionArray();
     }
 
     onViewableItemsChanged() {
@@ -84,7 +94,7 @@ class BaseOptionsList extends Component {
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
-     * @param {Array} data - This is the same as the data we pass into the component, i.e: all the non-empty sections
+     * @param {Array} data - This is the same as the data we pass into the component
      * @param {Number} flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
      *
      *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
@@ -97,50 +107,48 @@ class BaseOptionsList extends Component {
      * @returns {Object}
      */
     getItemLayout(data, flatDataArrayIndex) {
-        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-
-        let offset = 0;
-        let length = 0;
-        for (let sectionIndex = 0; sectionIndex < data.length; sectionIndex++) {
-            const section = data[sectionIndex];
-            const sectionHeaderHeight = section.title && !this.props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
-
-            /*
-             * The indexOffset of our section is the sum of the lengths of previous sections' data arrays, and does not include the list header or section headers.
-             * To use it to find the start of our section in the flat array described above, we need to account for the section headers of all previous sections and the list header.
-             *
-             * - To determine the number of previous section headers, we use the sectionIndex.
-             *     - In the first section, the sectionIndex is 0 and there are 0 previous section headers.
-             *     - In the second section, the sectionIndex is 1 and there is 1 previous section header.
-             *     - etc...
-             * - The +1 is for the main list header that comes before all the sections.
-             */
-            const startOfSectionInFlatArray = section.indexOffset + sectionIndex + 1;
-
-            if (startOfSectionInFlatArray > flatDataArrayIndex) {
-                // This means we've iterated beyond the section containing the item we're actually looking for. So the offset is already computed and we can break
-                break;
-            }
-
-            if (startOfSectionInFlatArray === flatDataArrayIndex) {
-                // This means that the index we're looking for is a section header.
-                length = sectionHeaderHeight;
-            } else {
-                // Otherwise, we are looking for something past this section's header, so we add its height to the offset
-                offset += sectionHeaderHeight;
-
-                // Also add to the offset the height of any other option rows in this section (leading up to the index we are looking for)
-                offset += (Math.min(startOfSectionInFlatArray + section.data.length, flatDataArrayIndex - 1) - startOfSectionInFlatArray) * optionHeight;
-            }
-        }
-
-        length = length || optionHeight;
-
+        const targetItem = this.flattenedData[flatDataArrayIndex];
         return {
-            length,
-            offset,
+            length: targetItem.length,
+            offset: targetItem.offset,
             index: flatDataArrayIndex,
         };
+    }
+
+    /**
+     * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
+     *
+     * @returns {Array<Object>}
+     */
+    buildFlatSectionArray() {
+        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+        let offset = 0;
+
+        // Start with just an empty list header
+        const flatArray = [{length: 0, offset}];
+
+        // Build the flat array
+        for (let sectionIndex = 0; sectionIndex < this.props.sections.length; sectionIndex++) {
+            const section = this.props.sections[sectionIndex];
+
+            // Add the section header
+            const sectionHeaderHeight = section.title && !this.props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+            flatArray.push({length: sectionHeaderHeight, offset});
+            offset += sectionHeaderHeight;
+
+            // Add section items
+            for (let i = 0; i < section.data.length; i++) {
+                flatArray.push({length: optionHeight, offset});
+                offset += optionHeight;
+            }
+
+            // Add the section footer
+            flatArray.push({length: 0, offset});
+        }
+
+        // Then add the list footer
+        flatArray.push({length: 0, offset});
+        return flatArray;
     }
 
     /**
@@ -229,7 +237,7 @@ class BaseOptionsList extends Component {
                     onScrollBeginDrag={this.props.onScrollBeginDrag}
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
-                    sections={_.filter(this.props.sections, section => section.data.length !== 0)}
+                    sections={this.props.sections}
                     keyExtractor={this.extractKey}
                     onScrollToIndexFailed={this.onScrollToIndexFailed}
                     stickySectionHeadersEnabled={false}
