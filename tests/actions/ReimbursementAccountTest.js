@@ -6,6 +6,7 @@ import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import BankAccount from '../../src/libs/models/BankAccount';
+import * as OfflineStatus from '../../src/libs/actions/Network/OfflineStatus';
 
 const TEST_BANK_ACCOUNT_ID = 1;
 const TEST_BANK_ACCOUNT_CITY = 'Opa-locka';
@@ -32,9 +33,30 @@ Onyx.connect({
     callback: val => reimbursementAccount = val,
 });
 
+const mockIsInternetReachable = jest.fn();
+mockIsInternetReachable.mockImplementation(() => true);
+jest.mock('../../src/libs/NetInfo', () => ({
+    isInternetReachable: (...args) => mockIsInternetReachable(...args),
+}));
+
+const mockIsPusherConnected = jest.fn();
+mockIsPusherConnected.mockImplementation(() => true);
+const mockIsPusherSubscribed = jest.fn();
+mockIsPusherSubscribed.mockImplementation(() => true);
+jest.mock('../../src/libs/Pusher/pusher', () => ({
+    isConnected: (...args) => mockIsPusherConnected(...args),
+    isSubscribed: (...args) => mockIsPusherSubscribed(...args),
+}));
+
 beforeAll(() => Onyx.init());
 
 beforeEach(() => Onyx.clear()
+    .then(waitForPromisesToResolve)
+    .then(() => new Promise((resolve) => {
+        OfflineStatus.refreshOfflineStatus();
+        resolve();
+    }))
+    .then(waitForPromisesToResolve)
     .then(() => {
         TestHelper.signInWithTestUser();
         return waitForPromisesToResolve();
