@@ -291,7 +291,8 @@ class OptionsSelector extends Component {
             return;
         }
 
-        const {index: itemIndex, sectionIndex} = option;
+        const itemIndex = option.index;
+        const sectionIndex = option.sectionIndex;
 
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
