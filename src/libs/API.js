@@ -47,10 +47,10 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
 }
 
 /**
- * API.makeRequestWithSideEffects() is for blocking commands that have "side-effects" (such as authentication or
- * redirecting the user to other pages). It works just like API.read(), except that it will return a promise.
- * Since "side-effects" are something we're trying to avoid, the intention is to use API.makeRequestWithSideEffects()
- * only sparingly. These commands are often ones that contact third-party services, like Onfido and Plaid.
+ * For commands where the network response must be accessed directly or when there is functionality that can only happen once the request is finished (eg. calling third-party services like Onfide and Plaid, redirecting a user depending on the response data, etc.). 
+ * It works just like API.read(), except that it will return a promise.
+ * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted. 
+ * It is best to discuss it in Slack anytime you are tempted to use this method.
  *
  * @param {String} command - Name of API command to call
  * @param {Object} apiCommandParameters - The object of parameters to send to the API
