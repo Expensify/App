@@ -16,7 +16,13 @@ import Timing from './Timing';
 let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = val ? val.email : '',
+    callback: (val) => {
+        if (!val || !val.email) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
 });
 
 let personalDetails;

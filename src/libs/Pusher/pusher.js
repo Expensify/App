@@ -86,6 +86,18 @@ function init(args, params) {
 }
 
 /**
+ * Get the Pusher connection. Used only in tests to access the Pusher mock.
+ *
+ * @returns {Object}
+ */
+function getSocket() {
+    if (process.env.JEST_WORKER_ID === undefined) {
+        throw new Error('Pusher.getConnection can only be used by Jest to access the mock');
+    }
+    return socket;
+}
+
+/**
  * Returns a Pusher channel for a channel name
  *
  * @param {String} channelName
@@ -373,6 +385,7 @@ if (window) {
 
 export {
     init,
+    getSocket,
     subscribe,
     unsubscribe,
     getChannel,

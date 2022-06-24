@@ -14,23 +14,25 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import * as OfflineStatus from '../../src/libs/actions/Network/OfflineStatus';
+
+const TEST_USER_ACCOUNT_ID = 1;
+const TEST_USER_LOGIN = 'test@test.com';
+
+const mockIsInternetReachable = jest.fn();
+mockIsInternetReachable.mockImplementation(() => true);
+jest.mock('../../src/libs/NetInfo', () => ({
+    isInternetReachable: (...args) => mockIsInternetReachable(...args),
+}));
+
+const mockIsPusherSubscribed = jest.fn();
+let mockPusherSocket;
 
 describe('actions/Report', () => {
     beforeAll(() => {
-        // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
-        // channel already in a subscribed state. These methods are normally used to prevent
-        // duplicated subscriptions, but we don't need them for this test so forcing them to
-        // return false will make the testing less complex.
-        Pusher.isSubscribed = jest.fn().mockReturnValue(false);
+        Pusher.isConnected = jest.fn().mockReturnValue(true);
+        Pusher.isSubscribed = mockIsPusherSubscribed;
         Pusher.isAlreadySubscribing = jest.fn().mockReturnValue(false);
-
-        // Connect to Pusher
-        PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        });
 
         Onyx.init({
             keys: ONYXKEYS,
@@ -38,19 +40,50 @@ describe('actions/Report', () => {
         });
     });
 
-    beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
+    beforeEach(() => {
+        // Connect to Pusher
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+        });
+        mockPusherSocket = Pusher.getSocket();
+        mockPusherSocket.connection.emit('connected');
+
+        return waitForPromisesToResolve()
+            .then(() => TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN))
+            .then(() => {
+                mockIsPusherSubscribed.mockReturnValue(false);
+                Report.subscribeToUserEvents();
+                mockIsPusherSubscribed.mockReturnValue(true);
+                OfflineStatus.refreshOfflineStatus();
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
+                    [TEST_USER_LOGIN]: {
+                        accountID: TEST_USER_ACCOUNT_ID,
+                        email: TEST_USER_LOGIN,
+                        firstName: 'Test',
+                        lastName: 'User',
+                    },
+                });
+                return waitForPromisesToResolve();
+            });
+    });
 
     afterEach(() => {
         // Unsubscribe from account channel after each test since we subscribe in the function
         // subscribeToUserEvents and we don't want duplicate event subscriptions.
         Pusher.unsubscribe(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
+        return Onyx.clear()
+            .then(waitForPromisesToResolve);
     });
 
     it('should store a new report action in Onyx when reportComment event is handled via Pusher', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
         const ACTION_ID = 1;
         const REPORT_ACTION = {
@@ -73,26 +106,10 @@ describe('actions/Report', () => {
 
         let clientID;
 
-        // Set up Onyx with some test user data
-        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-            .then(() => {
-                Report.subscribeToUserEvents();
-                return waitForPromisesToResolve();
-            })
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
-                [TEST_USER_LOGIN]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    email: TEST_USER_LOGIN,
-                    firstName: 'Test',
-                    lastName: 'User',
-                },
-            }))
-            .then(() => {
-                // This is a fire and forget response, but once it completes we should be able to verify that we
-                // have an "optimistic" report action in Onyx.
-                Report.addAction(REPORT_ID, 'Testing a comment');
-                return waitForPromisesToResolve();
-            })
+        // This is a fire and forget response, but once it completes we should be able to verify that we
+        // have an "optimistic" report action in Onyx.
+        Report.addAction(REPORT_ID, 'Testing a comment');
+        return waitForPromisesToResolve()
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
 
@@ -129,8 +146,6 @@ describe('actions/Report', () => {
     });
 
     it('should update pins in Onyx when togglePinned is called', () => {
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
         const REPORT = {
             reportID: REPORT_ID,
@@ -143,12 +158,8 @@ describe('actions/Report', () => {
             callback: val => reportIsPinned = lodashGet(val, 'isPinned'),
         });
 
-        // Set up Onyx with some test user data
-        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-            .then(() => {
-                Report.togglePinnedState(REPORT);
-                return waitForPromisesToResolve();
-            })
+        Report.togglePinnedState(REPORT);
+        return waitForPromisesToResolve()
             .then(() => {
                 // Test that Onyx immediately updated the report pin state.
                 expect(reportIsPinned).toEqual(true);
@@ -156,38 +167,24 @@ describe('actions/Report', () => {
     });
 
     it('Should not leave duplicate comments when logger sends packet because of calling process queue while processing the queue', () => {
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
         const LOGGER_MAX_LOG_LINES = 50;
 
-        // GIVEN a test user with initial data
-        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
-                [TEST_USER_LOGIN]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    email: TEST_USER_LOGIN,
-                    firstName: 'Test',
-                    lastName: 'User',
-                },
-            }))
-            .then(() => {
-                global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock();
 
-                // WHEN we add enough logs to send a packet
-                for (let i = 0; i <= LOGGER_MAX_LOG_LINES; i++) {
-                    Log.info('Test log info');
-                }
+        // GIVEN we add enough logs to send a packet
+        for (let i = 0; i <= LOGGER_MAX_LOG_LINES; i++) {
+            Log.info('Test log info');
+        }
 
-                // And leave a comment on a report
-                Report.addAction(REPORT_ID, 'Testing a comment');
+        // And leave a comment on a report
+        Report.addAction(REPORT_ID, 'Testing a comment');
 
-                // Then we should expect that there is on persisted request
-                expect(PersistedRequests.getAll().length).toBe(1);
+        // Then we should expect that there is one persisted request
+        expect(PersistedRequests.getAll().length).toBe(1);
 
-                // When we wait for the queue to run
-                return waitForPromisesToResolve();
-            })
+        // When we wait for the queue to run
+        return waitForPromisesToResolve()
             .then(() => {
                 // THEN only ONE call to Report_AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;

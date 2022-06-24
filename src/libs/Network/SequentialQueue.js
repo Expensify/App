@@ -115,6 +115,10 @@ function getCurrentRequest() {
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
+        if (!val) {
+            return;
+        }
+
         const wasOffline = isOffline;
         isOffline = lodashGet(val, 'isOffline', true);
 
