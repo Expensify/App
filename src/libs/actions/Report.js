@@ -1242,6 +1242,9 @@ Onyx.connect({
  */
 function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
+    
+    // Do not autolink if someone explicitly tries to remove a link from message.
+    // https://github.com/Expensify/App/issues/9090
     const htmlForNewComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
     //  Delete the comment if it's empty
