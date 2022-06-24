@@ -184,6 +184,10 @@ class ProfilePage extends Component {
         }, true);
     }
 
+    /**
+     * @param {Object} values - An object containing the value of each inputID
+     * @returns {Object} - An object containing the errors for each inputID
+     */
     validate(values) {
         const errors = {};
 
