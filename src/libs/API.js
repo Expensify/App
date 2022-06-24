@@ -47,9 +47,11 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
 }
 
 /**
- * For commands where the network response must be accessed directly or when there is functionality that can only happen once the request is finished (eg. calling third-party services like Onfide and Plaid, redirecting a user depending on the response data, etc.). 
+ * For commands where the network response must be accessed directly or when there is functionality that can only
+ * happen once the request is finished (eg. calling third-party services like Onfide and Plaid, redirecting a user
+ * depending on the response data, etc.).
  * It works just like API.read(), except that it will return a promise.
- * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted. 
+ * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted.
  * It is best to discuss it in Slack anytime you are tempted to use this method.
  *
  * @param {String} command - Name of API command to call
