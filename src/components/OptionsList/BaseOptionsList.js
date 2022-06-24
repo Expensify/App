@@ -3,7 +3,6 @@ import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
-import Log from '../../libs/Log';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
@@ -35,7 +34,6 @@ class BaseOptionsList extends Component {
         this.renderSectionHeader = this.renderSectionHeader.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
         this.extractKey = this.extractKey.bind(this);
-        this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
@@ -78,16 +76,6 @@ class BaseOptionsList extends Component {
 
         this.didLayout = true;
         this.props.onLayout();
-    }
-
-    /**
-     * We must implement this method in order to use the ref.scrollToLocation() method.
-     * See: https://reactnative.dev/docs/sectionlist#scrolltolocation
-     *
-     * @param {Object} info
-     */
-    onScrollToIndexFailed(info) {
-        Log.hmmm('[OptionsList] scrollToIndex failed', info);
     }
 
     /**
@@ -239,7 +227,6 @@ class BaseOptionsList extends Component {
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
                     keyExtractor={this.extractKey}
-                    onScrollToIndexFailed={this.onScrollToIndexFailed}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}
