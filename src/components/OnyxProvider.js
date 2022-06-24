@@ -15,7 +15,7 @@ const [withCurrentDate, CurrentDateProvider] = createOnyxContext({key: ONYXKEYS.
 const [
     withReportActionsDrafts,
     ReportActionsDraftsProvider,
-] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
+] = createOnyxContext({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS});
 
 const propTypes = {
     /** Rendered child component */
