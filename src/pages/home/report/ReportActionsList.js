@@ -36,7 +36,7 @@ const propTypes = {
     }).isRequired,
 
     /** The reportActionID to highlight */
-    reportActionIDToHighlight: PropTypes.number.isRequired,
+    reportActionIDToHighlight: PropTypes.string.isRequired,
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
@@ -136,7 +136,7 @@ class ReportActionsList extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
-                shouldHighlight={this.props.reportActionIDToHighlight === parseInt(item.action.reportActionID, 10)}
+                shouldHighlight={this.props.reportActionIDToHighlight === item.action.reportActionID}
                 onItemRendered={this.props.onItemRendered}
             />
         );

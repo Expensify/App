@@ -131,7 +131,7 @@ class ReportScreen extends React.Component {
 
     componentDidUpdate(prevProps) {
         // If a reportActionID exists in the URL then let's close the drawer so that we can see the message comments on native.
-        if (this.getReportActionID()) {
+        if (this.props.route.params.reportActionID) {
             Navigation.closeDrawer();
         }
 
@@ -155,16 +155,6 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         Report.addAction(getReportID(this.props.route), text);
-    }
-
-    /**
-     * Get the currently viewed report ID as number
-     *
-     * @returns {Number}
-     */
-    getReportActionID() {
-        const params = this.props.route.params;
-        return Number.parseInt(params.reportActionID || 0, 10);
     }
 
     /**
@@ -250,7 +240,7 @@ class ReportScreen extends React.Component {
                         {!this.shouldShowLoader() && (
                             <ReportActionsView
                                 reportID={reportID}
-                                reportActionID={this.getReportActionID()}
+                                reportActionID={this.props.route.params.reportActionID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
