@@ -1015,17 +1015,16 @@ function addActions(reportID, text = '', file) {
     }
 
     const failureDataReportActions = {};
+    const defaultLoadingState = {
+        isLoading: false,
+    };
 
     if (text) {
-        failureDataReportActions[reportCommentAction.clientID] = {
-            isLoading: false,
-        };
+        failureDataReportActions[reportCommentAction.clientID] = defaultLoadingState;
     }
 
     if (file) {
-        failureDataReportActions[attachmentAction.clientID] = {
-            isLoading: false,
-        };
+        failureDataReportActions[attachmentAction.clientID] = defaultLoadingState;
     }
 
     API.write(commandName, parameters, {
