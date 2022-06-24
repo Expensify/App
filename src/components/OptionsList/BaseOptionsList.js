@@ -33,6 +33,7 @@ class BaseOptionsList extends Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderSectionHeader = this.renderSectionHeader.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
+        this.buildFlatSectionArray = this.buildFlatSectionArray.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
@@ -95,6 +96,10 @@ class BaseOptionsList extends Component {
      * @returns {Object}
      */
     getItemLayout(data, flatDataArrayIndex) {
+        if (!_.has(this.flattenedData, flatDataArrayIndex)) {
+            this.flattenedData = this.buildFlatSectionArray();
+        }
+
         const targetItem = this.flattenedData[flatDataArrayIndex];
         return {
             length: targetItem.length,
