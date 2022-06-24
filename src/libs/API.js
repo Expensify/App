@@ -9,7 +9,7 @@ import {version} from '../../package.json';
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  *
  * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Name value pairs of parameters to send to the API.
+ * @param {Object} apiCommandParameters - The object of parameters to send to the API.
  * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
  *                             into Onyx before and after a request is made. Each nested object will be formatted in
  *                             the same way as an API response.
@@ -55,7 +55,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * It is best to discuss it in Slack anytime you are tempted to use this method.
  *
  * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Name value pairs of parameters to send to the API.
+ * @param {Object} apiCommandParameters - The object of parameters to send to the API.
  * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
  *                             into Onyx before and after a request is made. Each nested object will be formatted in
  *                             the same way as an API response.
@@ -91,7 +91,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  *
  * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Name value pairs of parameters to send to the API.
+ * @param {Object} apiCommandParameters - The object of parameters to send to the API.
  * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
  *                             into Onyx before and after a request is made. Each nested object will be formatted in
  *                             the same way as an API response.
