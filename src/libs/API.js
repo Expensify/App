@@ -5,7 +5,6 @@ import * as SequentialQueue from './Network/SequentialQueue';
 import {version} from '../../package.json';
 
 /**
- * Function for WRITE commands.
  * All calls to API.write() will be persisted to disk as a JSON object.
  * That object will have all the data needed to make the WRITE request later. In other words, we'll queue the WRITE
  * request so that if the network is unavailable or the app is closed, we can send the WRITE request whenever the
