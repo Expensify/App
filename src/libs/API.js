@@ -47,6 +47,20 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
     SequentialQueue.push(request);
 }
 
+/**
+ * API.makeRequestWithSideEffects() is for blocking commands that have "side-effects" (such as authentication or
+ * redirecting the user to other pages). It works just like API.read(), except that it will return a promise.
+ * Since "side-effects" are something we're trying to avoid, the intention is to use API.makeRequestWithSideEffects()
+ * only sparingly. These commands are often ones that contact third-party services, like Onfido and Plaid.
+ *
+ * @param {String} command - Name of API command to call
+ * @param {Object} apiCommandParameters - The object of parameters to send to the API
+ * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data
+ * @param {Object} [onyxData.optimisticData] - An object of data that will be merged into Onyx before the request is made
+ * @param {Object} [onyxData.successData] - An object of data that will be merged into Onyx when the request succeeds.
+ * @param {Object} [onyxData.failureData] - An object of data that will be merged into Onyx when the request fails.
+ * @returns {Promise}
+ */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}) {
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
