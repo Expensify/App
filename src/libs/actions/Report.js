@@ -919,8 +919,8 @@ function buildOptimisticReportAction(reportID, text, file) {
  * @param {Object} [file]
  */
 function addActions(reportID, text = '', file) {
+    let reportCommentText = '';
     let reportCommentAction;
-    let reportCommentText;
     let attachmentAction;
     let commandName = 'AddComment';
 
@@ -930,8 +930,9 @@ function addActions(reportID, text = '', file) {
         reportCommentText = reportComment.commentText;
     }
 
-    // When we are adding an attachment we will call AddAttachment
     if (file) {
+        // When we are adding an attachment we will call AddAttachment.
+        // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
         const attachment = buildOptimisticReportAction(reportID, '', file);
         attachmentAction = attachment.reportAction;
@@ -940,10 +941,10 @@ function addActions(reportID, text = '', file) {
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    // AddActions can create up to two actions. An attachment and a report comment simultaneously. Therefore we may need a newSequenceNumber that is 1 or 2 larger than the current.
-    // The new sequence number will be one higher than the highest
+    // We need a newSequenceNumber that is n larger than the current depending on how many actions we are adding.
+    const actionCount = text && file ? 2 : 1;
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
-    const newSequenceNumber = highestSequenceNumber + (text && file ? 2 : 1);
+    const newSequenceNumber = highestSequenceNumber + actionCount;
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
@@ -966,13 +967,11 @@ function addActions(reportID, text = '', file) {
         optimisticReport.optimisticReportActionIDs.push(attachmentAction.clientID);
     }
 
-    // Optimistically add the new comment to the store before waiting to save it to the server
+    // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
-
     if (text) {
         optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
     }
-
     if (file) {
         optimisticReportActions[attachmentAction.clientID] = attachmentAction;
     }
