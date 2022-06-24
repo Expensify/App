@@ -57,7 +57,9 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  *
  * @param {String} command - Name of API command to call
  * @param {Object} apiCommandParameters - The object of parameters to send to the API
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data
+ * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
+ *                             into Onyx before and after a request is made. Each nested object will be formatted in
+ *                             the same way as an API response.
  * @param {Object} [onyxData.optimisticData] - An object of data that will be merged into Onyx before the request is made
  * @param {Object} [onyxData.successData] - An object of data that will be merged into Onyx when the request succeeds.
  * @param {Object} [onyxData.failureData] - An object of data that will be merged into Onyx when the request fails.
@@ -94,7 +96,9 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  *
  * @param {String} command - Name of API command to call
  * @param {Object} apiCommandParameters - The object of parameters to send to the API
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data
+ * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
+ *                             into Onyx before and after a request is made. Each nested object will be formatted in
+ *                             the same way as an API response.
  * @param {Object} [onyxData.optimisticData] - An object of data that will be merged into Onyx before the request is made
  * @param {Object} [onyxData.successData] - An object of data that will be merged into Onyx when the request succeeds.
  * @param {Object} [onyxData.failureData] - An object of data that will be merged into Onyx when the request fails.
