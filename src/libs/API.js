@@ -86,10 +86,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
 }
 
 /**
- * Function for READ commands.
- * Calls to API.read() will not be persisted to disk. Instead, they will be immediately sent to the API without
- * utilizing a queue. This method will then utilize Onyx.update() to update Onyx with the API response received
- * via HTTPS.
+ * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  *
  * @param {String} command - Name of API command to call
  * @param {Object} apiCommandParameters - The object of parameters to send to the API
