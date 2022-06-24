@@ -235,7 +235,7 @@ class ProfilePage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <Form
-                        style={[styles.flex1, styles.p5]}
+                        style={[styles.p5]}
                         formID={ONYXKEYS.FORMS.PROFILE_FORM}
                         validate={this.validate}
                         onSubmit={this.updatePersonalDetails}
