@@ -63,8 +63,8 @@ For example: Accessing the data for a chat report will return the data if the re
 ### How should error messages be persisted to Onyx?
 
 - The API layer Pusher onyxData should set specific error messages.
-- In cases where the API does not set an error, a generic error message can be set in the API.write onyxData `failureData` block.
-- Previous errors should be cleared in the `optimisticData` when a new request is made
+- In cases where the API does not set an error, a generic error message can be set in the API.write parameter `onyxData.failureData`.
+- Previous errors should be cleared in the `onyxData.optimisticData` when a new request is made.
 
 ### How should we remove local data from the store if the data no longer exist in the server? eg. local policy data for policies the user is no longer a member of.
 
