@@ -546,12 +546,13 @@ function updateReportWithNewAction(
     reportAction,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
+    const isAttachment = ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
     const messageHtml = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
         ? lodashGet(reportAction, 'originalMessage.html', '')
         : lodashGet(reportAction, ['message', 0, 'html'], '');
 
     const parser = new ExpensiMark();
-    const messageText = parser.htmlToText(messageHtml);
+    const messageText = isAttachment ? `[${Localize.translateLocal('common.attachment')}]` : parser.htmlToText(messageHtml);
 
     const updatedReportObject = {
         // Always merge the reportID into Onyx. If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out by handleReportChanged
@@ -575,7 +576,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})),
+        isAttachment,
         loading: false,
     };
 
