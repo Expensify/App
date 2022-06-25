@@ -38,8 +38,8 @@ import networkPropTypes from '../components/networkPropTypes';
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: personalDetailsPropType.isRequired,
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.arrayOf(PropTypes.shape({
@@ -99,7 +99,8 @@ const defaultProps = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.myPersonalDetails);
+        const myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(myPersonalDetails);
         this.state = {
             firstName,
             hasFirstNameError: false,
@@ -355,8 +356,8 @@ export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
