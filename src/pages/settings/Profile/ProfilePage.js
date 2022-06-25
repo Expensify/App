@@ -70,11 +70,8 @@ class ProfilePage extends Component {
 
         this.state = {
             firstName: props.myPersonalDetails.firstName,
-            hasFirstNameError: false,
             lastName: props.myPersonalDetails.lastName,
-            hasLastNameError: false,
             pronouns: props.myPersonalDetails.pronouns,
-            hasPronounError: false,
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
@@ -85,7 +82,6 @@ class ProfilePage extends Component {
 
         this.getLogins = this.getLogins.bind(this);
         this.validate = this.validate.bind(this);
-        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.updateAvatar = this.updateAvatar.bind(this);
     }
@@ -104,18 +100,6 @@ class ProfilePage extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(stateToUpdate);
-    }
-
-    /**
-     * Set the form to use automatic timezone
-     *
-     * @param {Boolean} isAutomaticTimezone
-     */
-    setAutomaticTimezone(isAutomaticTimezone) {
-        this.setState(({selectedTimezone}) => ({
-            isAutomaticTimezone,
-            selectedTimezone: isAutomaticTimezone ? moment.tz.guess() : selectedTimezone,
-        }));
     }
 
     /**
@@ -159,7 +143,9 @@ class ProfilePage extends Component {
     /**
      * Submit form to update personal details
      */
-    updatePersonalDetails() {
+    updatePersonalDetails(values) {
+        console.log('Update personal details: ', values);
+
         // Check if the user has modified their avatar
         if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
             // If the user removed their profile photo, replace it accordingly with the default avatar
@@ -174,12 +160,12 @@ class ProfilePage extends Component {
         }
 
         PersonalDetails.setPersonalDetails({
-            firstName: this.state.firstName.trim(),
-            lastName: this.state.lastName.trim(),
-            pronouns: this.state.pronouns.trim(),
+            firstName: values.firstName.trim(),
+            lastName: values.lastName.trim(),
+            pronouns: values.pronouns.trim(),
             timezone: {
-                automatic: this.state.isAutomaticTimezone,
-                selected: this.state.selectedTimezone,
+                automatic: values.isAutomaticTimezone,
+                selected: values.timezone,
             },
         }, true);
     }
@@ -195,12 +181,6 @@ class ProfilePage extends Component {
             CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
             [values.firstName, values.lastName, values.pronouns],
         );
-
-        this.setState({
-            hasFirstNameError,
-            hasLastNameError,
-            hasPronounError,
-        });
 
         if (hasFirstNameError) {
             errors.firstName = PersonalDetails.getMaxCharacterError(hasFirstNameError);
@@ -223,8 +203,6 @@ class ProfilePage extends Component {
             value: `${CONST.PRONOUNS.PREFIX}${key}`,
         }));
 
-        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
-
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -246,6 +224,7 @@ class ProfilePage extends Component {
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.state.avatar.uri}
+                            defaultValue={this.state.avatar.uri}
                             onImageSelected={this.updateAvatar}
                             onImageRemoved={this.updateAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
@@ -261,10 +240,7 @@ class ProfilePage extends Component {
                                     inputID="firstName"
                                     name="fname"
                                     label={this.props.translate('common.firstName')}
-                                    value={this.state.firstName}
-                                    hasError={this.state.hasFirstNameError}
-                                    errorText={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
-                                    onChangeText={firstName => this.setState({firstName})}
+                                    defaultValue={this.state.firstName}
                                     placeholder={this.props.translate('profilePage.john')}
                                 />
                             </View>
@@ -273,42 +249,29 @@ class ProfilePage extends Component {
                                     inputID="lastName"
                                     name="lname"
                                     label={this.props.translate('common.lastName')}
-                                    value={this.state.lastName}
-                                    hasError={this.state.hasLastNameError}
-                                    errorText={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
-                                    onChangeText={lastName => this.setState({lastName})}
+                                    defaultValue={this.state.lastName}
                                     placeholder={this.props.translate('profilePage.doe')}
                                 />
                             </View>
                         </View>
                         <View style={styles.mb6}>
                             <Picker
-                                inputID="pronounsPicker"
+                                inputID="pronouns"
                                 label={this.props.translate('profilePage.preferredPronouns')}
-                                onInputChange={(pronouns) => {
-                                    const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
-                                    this.setState({
-                                        pronouns: hasSelfSelectedPronouns ? '' : pronouns,
-                                        hasSelfSelectedPronouns,
-                                    });
-                                }}
                                 items={pronounsList}
                                 placeholder={{
                                     value: '',
                                     label: this.props.translate('profilePage.selectYourPronouns'),
                                 }}
-                                value={pronounsPickerValue}
+                                defaultValue={this.state.pronouns}
                                 shouldSaveDraft
                             />
                             {this.state.hasSelfSelectedPronouns && (
                                 <View style={styles.mt2}>
                                     <TextInput
-                                        inputID="pronounSelected"
-                                        value={this.state.pronouns}
-                                        onChangeText={pronouns => this.setState({pronouns})}
+                                        inputID="selfSelectedPronoun"
+                                        defaultValue={this.state.pronouns}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                        hasError={this.state.hasPronounError}
-                                        errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
                                     />
                                 </View>
                             )}
@@ -318,29 +281,29 @@ class ProfilePage extends Component {
                             label={this.props.translate('profilePage.emailAddress')}
                             type="email"
                             login={this.state.logins.email}
+                            defaultValue={this.state.logins.email}
                         />
                         <LoginField
                             inputID="loginPhoneNumber"
                             label={this.props.translate('common.phoneNumber')}
                             type="phone"
                             login={this.state.logins.phone}
+                            defaultValue={this.state.logins.phone}
                         />
                         <View style={styles.mb3}>
                             <Picker
-                                inputID="timezonePicker"
+                                inputID="timezone"
                                 label={this.props.translate('profilePage.timezone')}
-                                onInputChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
-                                value={this.state.selectedTimezone}
+                                defaultValue={this.state.selectedTimezone}
                                 shouldSaveDraft
                             />
                         </View>
                         <CheckboxWithLabel
-                            inputID="setTimezoneAutomatically"
+                            inputID="isAutomaticTimezone"
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                            isChecked={this.state.isAutomaticTimezone}
-                            onInputChange={this.setAutomaticTimezone}
+                            defaultValue={this.state.isAutomaticTimezone}
                             shouldSaveDraft
                         />
                     </Form>
