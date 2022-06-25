@@ -14,9 +14,10 @@ import * as CurrentDate from './actions/CurrentDate';
 
 let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = lodashGet(val, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const currentUser = _.findWhere(val, {isCurrentUser: true});
+        timezone = lodashGet(currentUser, 'timezone', CONST.DEFAULT_TIME_ZONE);
     },
 });
 
