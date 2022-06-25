@@ -98,12 +98,6 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Primary login of the user */
-        login: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -115,7 +109,6 @@ const defaultProps = {
     reportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
-    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -137,6 +130,7 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -265,7 +259,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Array<object>}
      */
     getIOUOptions(reportParticipants) {
-        const participants = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email);
+        const participants = _.filter(reportParticipants, email => this.myPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
         const iouOptions = [];
@@ -693,9 +687,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionCompose);
