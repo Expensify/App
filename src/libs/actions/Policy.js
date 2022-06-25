@@ -506,15 +506,9 @@ function updateLastAccessedWorkspace(policyID) {
  * Subscribe to public-policyEditor-[policyID] events.
  */
 function subscribeToPolicyEvents() {
-    _.each(allPolicies, (policy, key) => {
+    _.each(allPolicies, (policy) => {
         const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
         Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
-            const policyWithoutEmployee = _.clone(policy);
-            policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
-
-            // Remove the members from the policy
-            Onyx.set(key, policyWithoutEmployee);
-
             // Refetch the policy expense chats to update their state and their actions to get the archive reason
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
