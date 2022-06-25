@@ -293,7 +293,7 @@ function setPersonalDetails(details, shouldGrowl) {
                 console.debug('Error while setting personal details', response);
             }
 
-            Onyx.merge(ONYXKEYS.FORMS.PROFILE_FORM, {
+            Onyx.merge(ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM, {
                 isSubmitting: false,
             });
         });
