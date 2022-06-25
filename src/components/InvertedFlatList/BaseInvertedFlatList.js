@@ -156,9 +156,10 @@ class BaseInvertedFlatList extends Component {
             );
         }
 
-        // For native devices since we're not measuring let's make this callback sooner.
-        this.props.onMeasurementEnd(false);
-        return this.props.renderItem({item, index});
+        // For flatList, for scrollIndex to work properly if we're not measuring items we'll want to track
+        // when the reportActionID is rendered so that we can scroll to it.
+        const shouldTrackItemRendered = true;
+        return this.props.renderItem({item, index, shouldTrackItemRendered});
     }
 
     render() {

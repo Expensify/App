@@ -446,6 +446,7 @@ class ReportActionsView extends React.Component {
         ));
 
         if (this.actionScrollTargetIndex !== -1) {
+            this.isDoneScrollingToReportActionID = true;
             ReportScrollManager.scrollToIndex({index: this.actionScrollTargetIndex, viewPosition: 0.5});
             this.setState({shouldHighlightReportActionID: true});
         }
@@ -462,46 +463,41 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Records when our FlatList is done measuring the heights and offset of items. Since native will hit this block immediately we'll use a param checkScrollToReportAction to prevent
-     * calling the scroll method unnecessarily until the item has been rendered.
-     *
-     * @param {Boolean} shouldScrollToReportAction
+     * Records when our FlatList is done measuring the heights and offset of items.
      */
-    recordMeasurementDone(shouldScrollToReportAction = true) {
+    recordMeasurementDone() {
         this.isDoneMeasuring = true;
-        if (shouldScrollToReportAction) {
-            this.checkScrollToReportAction();
-        }
+        this.checkScrollToReportAction();
     }
 
     /**
      * Determine if we can scroll now or not.
-     * When measuring items we must wait until all items have been measured before scrolling. When not measuring items we will scroll once the specific item we are looking for has rendered.
+     * When measuring items we must wait until all items have been measured before scrolling.
+     * When not measuring items we will scroll once the specific item we are looking for has rendered.
      */
     checkScrollToReportAction() {
-        if (!this.props.reportActionID) {
+        if (!this.props.reportActionID || this.isDoneScrollingToReportActionID) {
             return;
         }
 
-        if (!this.isDoneMeasuring || this.isDoneScrollingToReportActionID) {
-            return;
-        }
-
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
-
-        if (this.renderedActionIDs.has(this.props.reportActionID)) {
-            this.isDoneScrollingToReportActionID = true;
-
+        const reportAction = _.find(this.sortedReportActions, ({action}) => action.reportActionID === this.props.reportActionID);
+        console.log(`over here check scroll size, ${this.sortedReportActions.length}`);
+        if (this.isDoneMeasuring && reportAction) {
+            this.scrollToReportActionID();
+        } else if (this.renderedActionIDs.has(this.props.reportActionID)) {
             // We give a slight delay because if we attempt this too fast the scroll gets buggy on iOS as more items need to render.
-            setTimeout(this.scrollToReportActionID, 500);
-        } else if (this.renderedActionIDs.size === this.sortedReportActions.length && minSequenceNumber !== 0) {
-            this.loadMoreChats();
-        } else {
-            // Mark it as done so that as the user scrolls up it does not auto scroll later
-            this.isDoneScrollingToReportActionID = true;
+            setTimeout(this.scrollToReportActionID, 10);
+        } else if (!reportAction) {
+            debugger;
+            const test = this.sortedReportActions[this.sortedReportActions.length - 1].sequenceNumber;
+            const minSequenceNumber = _.chain(this.props.reportActions).pluck('sequenceNumber').min().value();
+            if (minSequenceNumber !== 0) {
+                console.log('over here loading more chats');
+                this.loadMoreChats();
+            } else {
+                // Mark it as done so that as the user scrolls up it does not auto scroll later
+                this.isDoneScrollingToReportActionID = true;
+            }
         }
     }
 
@@ -523,7 +519,7 @@ class ReportActionsView extends React.Component {
                         />
                         <ReportActionsList
                             report={this.props.report}
-                            reportActionIDToHighlight={this.state.shouldHighlightReportActionID && this.props.reportActionID ? this.props.reportActionID : ''}
+                            reportActionID={this.props.reportActionID}
                             onScroll={this.trackScroll}
                             onLayout={this.recordTimeToMeasureItemLayout}
                             sortedReportActions={this.sortedReportActions}
@@ -532,6 +528,7 @@ class ReportActionsView extends React.Component {
                             onItemRendered={this.recordReportActionIDRendered}
                             onMeasurementEnd={this.recordMeasurementDone}
                             loadMoreChats={this.loadMoreChats}
+                            shouldHighlightReportActionID={this.state.shouldHighlightReportActionID}
                         />
                         <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     </>

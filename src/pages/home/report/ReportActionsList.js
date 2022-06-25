@@ -35,8 +35,11 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
-    /** The reportActionID to highlight */
-    reportActionIDToHighlight: PropTypes.string.isRequired,
+    /** The reportActionID provided in the URL */
+    reportActionID: PropTypes.string.isRequired,
+
+    /** Should the reportActionID be highlighted */
+    shouldHighlightReportActionID: PropTypes.bool.isRequired,
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
@@ -124,9 +127,11 @@ class ReportActionsList extends React.Component {
     renderItem({
         item,
         index,
+        shouldTrackItemRendered,
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+
         return (
             <ReportActionItem
                 reportID={this.props.report.reportID}
@@ -136,8 +141,8 @@ class ReportActionsList extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
-                shouldHighlight={this.props.reportActionIDToHighlight === item.action.reportActionID}
-                onItemRendered={this.props.onItemRendered}
+                shouldHighlight={this.props.shouldHighlightReportActionID && this.props.reportActionID === item.action.reportActionID}
+                onItemRendered={shouldTrackItemRendered ? this.props.onItemRendered : () => {}}
             />
         );
     }
