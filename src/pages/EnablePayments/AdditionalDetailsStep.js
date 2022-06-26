@@ -62,8 +62,8 @@ const propTypes = {
     /** Stores the personal details typed by the user */
     walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes,
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: personalDetailsPropType.isRequired,
+    /** Personal details of all the users, including current user */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 };
 
 const defaultProps = {
@@ -93,6 +93,7 @@ class AdditionalDetailsStep extends React.Component {
         super(props);
 
         this.activateWallet = this.activateWallet.bind(this);
+        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
 
         this.requiredFields = [
             'legalFirstName',
@@ -233,7 +234,7 @@ class AdditionalDetailsStep extends React.Component {
         const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
-        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.myPersonalDetails);
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.myPersonalDetails);
 
         return (
             <ScreenWrapper>
@@ -370,8 +371,8 @@ export default compose(
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
             initWithStoredValues: false,
         },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(AdditionalDetailsStep);
