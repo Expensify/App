@@ -45,13 +45,6 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    // The personal details of the person who is logged in
-    myPersonalDetails: PropTypes.shape({
-
-        // Local Currency Code of the current user
-        localCurrencyCode: PropTypes.string,
-    }),
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -90,9 +83,6 @@ const defaultProps = {
     report: {
         participants: [],
     },
-    myPersonalDetails: {
-        localCurrencyCode: CONST.CURRENCY.USD,
-    },
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
 };
 
@@ -112,6 +102,13 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.sendMoney = this.sendMoney.bind(this);
+
+        // Get my details from the list of personal details and set my local currency to USD if not already set
+        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
+        if (!_.has(this.myPersonalDetails, 'localCurrencyCode') || _.isEmpty(this.myPersonalDetails.localCurrencyCode)) {
+            this.myPersonalDetails.localCurrencyCode = CONST.CURRENCY.USD;
+        }
+
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
@@ -144,7 +141,7 @@ class IOUModal extends Component {
 
     componentDidMount() {
         this.fetchData();
-        IOU.setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
+        IOU.setIOUSelectedCurrency(this.myPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
@@ -443,7 +440,7 @@ class IOUModal extends Component {
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                participants={_.filter(this.state.participants, email => this.props.myPersonalDetails.login !== email.login)}
+                                                participants={_.filter(this.state.participants, email => this.myPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
@@ -477,9 +474,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(IOUModal);
