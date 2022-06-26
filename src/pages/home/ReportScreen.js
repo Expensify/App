@@ -33,7 +33,7 @@ const propTypes = {
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
 
-            /** The reportActionID of the report to scroll to */
+            /** The reportActionID to scroll to */
             reportActionID: PropTypes.string,
         }).isRequired,
     }).isRequired,
@@ -130,7 +130,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If a reportActionID exists in the URL then let's close the drawer so that we can see the message comments on native.
+        // If a reportActionID exists in the URL then let's close the drawer so that we can continue to see the message comments on native platforms.
         if (this.props.route.params.reportActionID) {
             Navigation.closeDrawer();
         }
