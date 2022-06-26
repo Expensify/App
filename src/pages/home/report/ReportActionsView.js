@@ -424,7 +424,6 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-
                 {!this.props.isComposerFullSize && (
                     <>
                         <FloatingMessageCounter
