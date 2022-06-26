@@ -104,7 +104,7 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * callback in used in AttachmentCarousel to delegate when a user presses an arrow
+     * Helps to navigate between next/previous attachments
      * @param {Object} attachmentItem
      */
     onArrowPress(attachmentItem) {

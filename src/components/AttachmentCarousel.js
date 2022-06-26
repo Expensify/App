@@ -62,17 +62,24 @@ class AttachmentCarousel extends React.Component {
         };
 
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
+        this.handleArrowPress = this.handleArrowPress.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleArrowPress);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleArrowPress);
     }
 
     /**
      * increments or decrements the index to get another selected item
-     * @param {Boolean} shouldDecrement
+     * @param {Number} deltaSlide
     */
-    cycleThroughAttachments(shouldDecrement) {
-        this.setState((prevState) => {
-            const attachments = prevState.attachments;
-            const page = prevState.page;
-            const nextIndex = shouldDecrement ? page - 1 : page + 1;
+    cycleThroughAttachments(deltaSlide) {
+        this.setState(({attachments, page}) => {
+            const nextIndex = page + deltaSlide;
             this.props.onArrowPress(attachments[nextIndex]);
 
             return {
@@ -83,6 +90,20 @@ class AttachmentCarousel extends React.Component {
         });
     }
 
+    /**
+     * Listens for keyboard shortcuts and applies the action
+     *
+     * @param {Object} e
+     */
+    handleArrowPress(e) {
+        if (e.key === 'ArrowLeft' && !this.state.isBackDisabled) {
+            this.cycleThroughAttachments(-1);
+        }
+        if (e.key === 'ArrowRight' && !this.state.isForwardDisabled) {
+            this.cycleThroughAttachments(1);
+        }
+    }
+
     render() {
         return (
             <View style={[styles.attachmentModalArrowsContainer]}>
@@ -91,7 +112,7 @@ class AttachmentCarousel extends React.Component {
                     icon={Expensicons.BackArrow}
                     iconFill={themeColors.text}
                     iconStyles={[styles.mr0]}
-                    onPress={() => this.cycleThroughAttachments(true)}
+                    onPress={() => this.cycleThroughAttachments(-1)}
                     isDisabled={this.state.isBackDisabled}
                 />
                 <Button
@@ -99,7 +120,7 @@ class AttachmentCarousel extends React.Component {
                     icon={Expensicons.ArrowRight}
                     iconFill={themeColors.text}
                     iconStyles={[styles.mr0]}
-                    onPress={() => this.cycleThroughAttachments(false)}
+                    onPress={() => this.cycleThroughAttachments(1)}
                     isDisabled={this.state.isForwardDisabled}
                 />
             </View>
