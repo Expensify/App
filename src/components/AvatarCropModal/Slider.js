@@ -6,8 +6,6 @@ import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import styles from '../../styles/styles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
-const AnimatedView = Animated.createAnimatedComponent(View);
-
 const propTypes = {
 
     /** React-native-reanimated lib handler which executes when the user is panning slider */
@@ -33,7 +31,7 @@ const Slider = (props) => {
     return (
         <View style={[styles.sliderLine]}>
             <PanGestureHandler onGestureEvent={props.onGestureEventHandler}>
-                <AnimatedView style={[styles.sliderKnob, rSliderStyle]} />
+                <Animated.View style={[styles.sliderKnob, rSliderStyle]} />
             </PanGestureHandler>
         </View>
     );
