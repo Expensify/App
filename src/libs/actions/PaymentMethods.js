@@ -11,6 +11,7 @@ import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import NameValuePair from './NameValuePair';
+import * as store from './ReimbursementAccount/store';
 
 /**
  * Deletes a debit card
@@ -60,6 +61,19 @@ function continueSetup() {
 }
 
 /**
+ * Clears local reimbursement account if it doesn't exist in bankAccounts
+ * @param {Object[]} bankAccounts
+ */
+function cleanLocalReimbursementData(bankAccounts) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
+    // We check if the bank account list doesn't have the reimbursementAccount
+    if (!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
+    }
+}
+
+/**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
  *
  * @returns {Promise}
@@ -77,6 +91,7 @@ function getPaymentMethods() {
             // Convert bank accounts/cards from an array of objects, to a map with the bankAccountID as the key
             const bankAccounts = _.object(_.map(lodashGet(response, 'bankAccountList', []), bankAccount => [bankAccount.bankAccountID, bankAccount]));
             const debitCards = _.object(_.map(lodashGet(response, 'fundList', []), fund => [fund.fundID, fund]));
+            cleanLocalReimbursementData(bankAccounts);
             Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
@@ -273,4 +288,5 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     dismissWalletConfirmModal,
+    cleanLocalReimbursementData,
 };

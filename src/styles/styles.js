@@ -1328,6 +1328,10 @@ const styles = {
         minHeight: 90,
     },
 
+    chatItemFullComposeRow: {
+        ...sizing.h100,
+    },
+
     chatItemComposeBoxColor: {
         borderColor: themeColors.border,
     },
@@ -1343,6 +1347,12 @@ const styles = {
         minHeight: variables.componentSizeNormal,
     },
 
+    chatItemFullComposeBox: {
+        ...flex.flex1,
+        ...spacing.mt4,
+        ...sizing.h100,
+    },
+
     chatFooter: {
         minHeight: 65,
         marginBottom: 5,
@@ -1350,6 +1360,12 @@ const styles = {
         paddingRight: 20,
         display: 'flex',
         backgroundColor: themeColors.appBG,
+    },
+
+    chatFooterFullCompose: {
+        flex: 1,
+        flexShrink: 1,
+        flexBasis: '100%',
     },
 
     textInputCompose: addOutlineWidth({
@@ -1368,11 +1384,22 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        marginVertical: 5,
         paddingVertical: 0,
         ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
+
+    textInputFullCompose: {
+        alignSelf: 'flex-end',
+        flex: 1,
+        maxHeight: '100%',
+    },
+
+    textInputComposeSpacing: {
+        paddingVertical: 6,
+        ...flex.flexRow,
+        flex: 1,
+    },
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
@@ -1457,6 +1484,16 @@ const styles = {
         alignSelf: 'flex-end',
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
+        height: 26,
+        marginBottom: 6,
+        marginTop: 6,
+        justifyContent: 'center',
+        width: 39,
+    },
+
+    composerSizeButton: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
         height: 26,
         marginBottom: 6,
         marginTop: 6,
