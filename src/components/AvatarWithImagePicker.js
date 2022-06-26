@@ -1,10 +1,9 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    Pressable, View, Animated, StyleSheet,
+    Pressable, View, Animated, StyleSheet, Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import ImageSize from 'react-native-image-size';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
 import Icon from './Icon';
@@ -162,7 +161,7 @@ class AvatarWithImagePicker extends React.Component {
      */
     isValidResolution(image) {
         return new Promise((resolve) => {
-            ImageSize.getSize(image.uri).then(({height, width}) => {
+            Image.getSize(image.uri, (width, height) => {
                 resolve(height > CONST.AVATAR_MIN_HEIGHT_PX && width > CONST.AVATAR_MIN_WIDTH_PX);
             });
         });
