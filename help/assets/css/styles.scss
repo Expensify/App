@@ -304,10 +304,20 @@ textarea {
     }
 }
 
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    row-gap: 10px;
+    column-gap: 20px;
+}
 
 .card {
     display: flex;
     flex-wrap: nowrap;
+    flex: 42%;
+    flex-grow: 0;
+	flex-shrink: 0;
     border-radius: 15px;
     border: 1px solid lightgray;
     padding: 20px;
