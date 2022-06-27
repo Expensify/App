@@ -925,6 +925,11 @@ export default {
             phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
         },
     },
+    requestCallConfirmationScreen: {
+        callRequested: 'Call successfully requested!',
+        allSet: 'You’re all set. You will be receiving a call from us soon.',
+        gotIt: 'Got it',
+    },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {

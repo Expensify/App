@@ -923,6 +923,11 @@ export default {
             phoneExtension: 'Please enter a valid phone extension number',
         },
     },
+    requestCallConfirmationScreen: {
+        callRequested: 'Call successfully requested!',
+        allSet: 'You’re all set. You will be receiving a call from us soon.',
+        gotIt: 'Got it',
+    },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
