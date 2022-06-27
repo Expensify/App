@@ -8,9 +8,6 @@ import Onyx from 'react-native-onyx';
 function SaveResponseInOnyx(response, request) {
     return response
         .then((responseData) => {
-            if (request.command === 'RequestCall') {
-                debugger;
-            }
             // We'll only save the onyxData, successData and failureData for the refactored commands
             const data = [];
             if (responseData.jsonCode === 200) {
