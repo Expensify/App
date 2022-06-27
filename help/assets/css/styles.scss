@@ -1,10 +1,244 @@
 ---
 ---
 @import url('./fonts.css');
-@import url('./styles.old.css');
 
 :root {
     --color-dark: #0B1B34;
+    --spacing-default: 32px;
+}
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font: inherit;
+    font-size: 100%;
+    vertical-align: baseline;
+}
+
+html {
+    line-height: 1;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+caption,
+th,
+td {
+    text-align: left;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+q,
+blockquote {
+    quotes: none;
+}
+
+q:before,
+q:after,
+blockquote:before,
+blockquote:after {
+    content: "";
+    content: none;
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+menu,
+nav,
+section,
+summary {
+    display: block;
+}
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+    height: 100%;
+    min-height: 100%;
+    background: #fff;
+}
+
+hr {
+    background: #0185FF;
+    border: none;
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+    margin: 0 0 15px;
+}
+
+strong {
+    font-weight: 700;
+    font-family: "GTAmericaExp-Bold", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+}
+
+em {
+    font-style: italic;
+}
+
+a {
+    color: #0185FF;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #006FD6;
+    text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--color-dark);
+    font-family: "GTAmericaExp-Regular";
+    font-weight: 400;
+    margin-bottom: 12px;
+    line-height: 1.33;
+}
+
+h1 {
+    font-size: 36px;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 26px;
+}
+
+h3 {
+    font-size: 20px;
+}
+
+h5 {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #0185FF;
+    margin-bottom: 6px;
+}
+
+h6 {
+    font-size: 11px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+p {
+    margin: 0 0 var(--spacing-default);
+}
+
+code {
+    background-color: #F5F6F8;
+    color: #32435E;
+    font-family: Menlo, Consolas, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, monospace;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    line-height: 1.4;
+    font-weight: 400;
+    font-family: "GTAmericaExp-Regular", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-size: 16px;
+    color: var(--color-dark);
 }
 
 .lhn {
