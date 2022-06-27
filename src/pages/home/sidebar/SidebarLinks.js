@@ -57,15 +57,6 @@ const propTypes = {
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Display name of the current user from their personal details */
-        displayName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-    }),
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -91,9 +82,6 @@ const defaultProps = {
     reports: {},
     reportsWithDraft: {},
     personalDetails: {},
-    myPersonalDetails: {
-        avatar: ReportUtils.getDefaultAvatar(),
-    },
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     initialReportDataLoaded: false,
@@ -172,6 +160,13 @@ class SidebarLinks extends React.Component {
 
     constructor(props) {
         super(props);
+
+        // Get my details from the list of personal details and set default avatar if not already set
+        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
+        if (!_.has(this.myPersonalDetails, 'avatar') || _.isEmpty(this.myPersonalDetails.avatar)) {
+            this.myPersonalDetails.avatar = ReportUtils.getDefaultAvatar();
+        }
+
         this.state = {
             activeReport: {
                 reportID: props.currentlyViewedReportID,
@@ -287,7 +282,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatar}
+                            source={this.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                             isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                             tooltipText={this.props.translate('common.settings')}
@@ -332,9 +327,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
