@@ -34,7 +34,7 @@ if [[ -z "${CI}" && -z "$(command -v shellcheck)" ]]; then
   brew install shellcheck
 fi
 
-bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+curl -s curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash -s -- 1.6.13
 ./actionlint -color || EXIT_CODE=1
 
 # Cleanup after ourselves and delete actionlint
