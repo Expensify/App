@@ -1383,7 +1383,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             value: {
                 reportID,
                 sequenceNumber,
-                reportActionID,
+                reportActionID: originalReportAction.reportActionID,
                 message: htmlForNewComment,
             },
         },
