@@ -904,8 +904,8 @@ export default {
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
-        subtitle: '¿Tienes preguntas o necesitas ayuda?',
-        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        subtitle: '¿Necesitas ayuda?',
+        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
         extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
