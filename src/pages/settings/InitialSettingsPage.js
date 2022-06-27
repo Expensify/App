@@ -23,18 +23,13 @@ import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
+import personalDetailsPropType from '../personalDetailsPropType';
 
 const propTypes = {
     /* Onyx Props */
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Display name of the current user from their personal details */
-        displayName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-    }),
+    /** Personal details of all the users, including current user */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -73,7 +68,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    myPersonalDetails: {},
+    personalDetails: {},
     session: {},
     policies: {},
     userWallet: {
@@ -124,10 +119,12 @@ const InitialSettingsPage = (props) => {
         {style: 'currency', currency: 'USD'},
     );
 
+    const myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
+
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
-    if (_.isEmpty(props.myPersonalDetails)) {
+    if (_.isEmpty(myPersonalDetails)) {
         return null;
     }
 
@@ -160,20 +157,20 @@ const InitialSettingsPage = (props) => {
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                source={props.myPersonalDetails.avatar}
+                                source={myPersonalDetails.avatar}
                                 isActive={props.network.isOffline === false}
-                                tooltipText={props.myPersonalDetails.displayName}
+                                tooltipText={myPersonalDetails.displayName}
                             />
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
                             <Text style={[styles.displayName]} numberOfLines={1}>
-                                {props.myPersonalDetails.displayName
-                                    ? props.myPersonalDetails.displayName
+                                {myPersonalDetails.displayName
+                                    ? myPersonalDetails.displayName
                                     : Str.removeSMSDomain(props.session.email)}
                             </Text>
                         </Pressable>
-                        {props.myPersonalDetails.displayName && (
+                        {myPersonalDetails.displayName && (
                             <Text
                                 style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
@@ -214,8 +211,8 @@ export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         session: {
             key: ONYXKEYS.SESSION,
