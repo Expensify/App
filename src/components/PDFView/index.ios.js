@@ -1,6 +1,6 @@
 import React from 'react';
 import BasePDFViewNative from './BasePDFViewNative';
-import {propTypes, defaultProps} from './pdfViewPropTypes';
+import * as pdfViewPropTypes from './pdfViewPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
 
 const PDFView = props => (
@@ -12,8 +12,8 @@ const PDFView = props => (
     />
 );
 
-PDFView.propTypes = propTypes;
-PDFView.defaultProps = defaultProps;
+PDFView.propTypes = pdfViewPropTypes.propTypes;
+PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 PDFView.displayName = 'PDFView';
 
 export default withWindowDimensions(PDFView);

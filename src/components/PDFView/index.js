@@ -8,7 +8,7 @@ import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
 import CONST from '../../CONST';
-import {propTypes, defaultProps} from './pdfViewPropTypes';
+import * as pdfViewPropTypes from './pdfViewPropTypes';
 
 class PDFView extends Component {
     constructor(props) {
@@ -128,7 +128,7 @@ class PDFView extends Component {
     }
 }
 
-PDFView.propTypes = propTypes;
-PDFView.defaultProps = defaultProps;
+PDFView.propTypes = pdfViewPropTypes.propTypes;
+PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
 export default withWindowDimensions(PDFView);
