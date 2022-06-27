@@ -58,6 +58,7 @@ Onyx.connect({
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
+const reportActionNotificationReceipts = {};
 
 /**
  * Map of the most recent sequenceNumber for a reports_* key in Onyx by reportID.
@@ -1480,7 +1481,12 @@ function viewNewReportAction(reportID, action) {
         setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
 
+    if (reportActionNotificationReceipts[action.reportActionID]) {
+        return;
+    }
+
     Log.info('[LOCAL_NOTIFICATION] Creating notification');
+    reportActionNotificationReceipts[action.reportActionID] = true;
     LocalNotification.showCommentNotification({
         reportAction: action,
         onClick: () => {
