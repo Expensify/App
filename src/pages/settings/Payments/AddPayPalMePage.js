@@ -43,19 +43,6 @@ class AddPayPalMePage extends React.Component {
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
     }
 
-    componentDidMount() {
-        PaymentMethods.getPaymentMethods();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.payPalMeUsername === this.props.payPalMeUsername) {
-            return;
-        }
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({payPalMeUsername: this.props.payPalMeUsername});
-    }
-
     /**
      * Sets the payPalMeUsername for the current user
      */
