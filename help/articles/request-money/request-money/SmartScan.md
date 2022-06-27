@@ -1,3 +1,5 @@
+---
+---
 SmartScan is the time-saving tool that every Expensify user needs. Using SmartScan, you can quickly upload receipts and walk away to take care of more important things. Behind the scenes, SmartScan will process the expense data from your receipt and create an expense or automatically attach the receipt to a matching imported credit card expense.
 
 # What is SmartScan?
@@ -9,6 +11,7 @@ SmartScan is simple on the outside and complex on the inside. When you SmartScan
 # How SmartScan Works:
 
 While you're enjoying your coffee, thinking about what to pack or waiting for your package, we’ll scan the information from the receipt without any more input necessary from you.
+
 1. First it uses **“optical character recognition” (OCR)** on receipt images to extract the text from the image.
 2. Then it analyzes that text to determine what portions correspond to the **merchant name**, **amount**, **[currency](https://community.expensify.com/discussion/5743/deep-dive-currency-in-expensify-overview/)**, and **date** of the purchase. If it can't detect a specific currency symbol, it will default to the currency based on your current location. You can also write one in by hand if it's not noted!
 3. Finally, SmartScan consults your list of existing expenses to see if the newly processed receipt image corresponds to a purchase that has already been imported via a credit card connection or CSV spreadsheet. We will then merge these transactions. **Different currencies?** No problem. We'll still match 'em.
@@ -22,7 +25,7 @@ If our OCR technology can't read the receipt, we will make sure it's flagged for
 You can SmartScan receipts from a variety of sources to quickly and easily create expenses.
 
 ### SmartScan physical receipts with the Expensify mobile app
-- Open Expensify app and use the big green camera button to snap a photo. Use 3D touch to make it even faster! 
+- Open Expensify app and use the big green camera button to snap a photo. Use 3D touch to make it even faster!
 - Tap "Add details" to add a description if you want to, or select a custom category or tag.
 - Put your phone back in your pocket and forget about the receipt entirely.
 - Toss your receipt in the trash... Or burn it! We’ll take over from here!
@@ -53,8 +56,9 @@ Pro tip: Expensify offer receipt integrations with popular apps such as Uber and
 ## How-to: Email Receipts as a Copilot
 
 Because emailing receipts to receipts@expensify.com sends the receipts directly to the account tied to the senders email, there is an additional step you need to take when sending receipts as a copilot.
-1. Click forward on the email and address it to receipts@expensify.com 
-2. Add the email address of the user whose account you want the receipts to go to in the subject line 
+
+1. Click forward on the email and address it to receipts@expensify.com
+2. Add the email address of the user whose account you want the receipts to go to in the subject line
 3. Click Send
 
 As long as you are a Copilot for this user, the receipts will be placed in their account and can be found on the Expenses page.
@@ -93,6 +97,7 @@ Want to know more about Concierge? Meet our friendly AI bot [here](https://commu
 ## Can I disable SmartScan?
 
 For users on Track, Submit and Collect policies, you can disable SmartScan in your account settings.
+
 1. Disabling SmartScan
 2. Log into your account using your preferred web browser,
 3. Head to your Settings > Your Account > Preferences > SmartScanning page,
