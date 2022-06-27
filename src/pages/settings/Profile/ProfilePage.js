@@ -277,14 +277,12 @@ class ProfilePage extends Component {
                             )}
                         </View>
                         <LoginField
-                            inputID="loginEmail"
                             label={this.props.translate('profilePage.emailAddress')}
                             type="email"
                             login={this.state.logins.email}
                             defaultValue={this.state.logins.email}
                         />
                         <LoginField
-                            inputID="loginPhoneNumber"
                             label={this.props.translate('common.phoneNumber')}
                             type="phone"
                             login={this.state.logins.phone}
