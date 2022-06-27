@@ -45,6 +45,12 @@
 	<div class="content-area">
 
 		<div class="article-toc-content">
+			{% if page.lhn_content == "" %}
+				<h1>
+					{{ page.name | remove: '.md' | split: "-" |  join: " " }}
+				</h1>
+			{% endif %}
+
 			{{ content }}
 		</div>
 
