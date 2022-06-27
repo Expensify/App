@@ -9,9 +9,6 @@ import _ from 'underscore';
 function SaveResponseInOnyx(response, request) {
     return response
         .then((responseData) => {
-            if (request.command === 'RequestCall') {
-                debugger;
-            }
             // We'll only save the onyxData, successData and failureData for the refactored commands
             if (_.has(responseData, 'onyxData')) {
                 const data = [];
