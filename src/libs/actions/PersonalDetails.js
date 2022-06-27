@@ -254,8 +254,6 @@ function mergeLocalPersonalDetails(details) {
     // displayName is a generated field so we'll use the firstName and lastName + login to update it.
     mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
 
-    // Update the associated Onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
 }
 
@@ -303,7 +301,7 @@ function fetchLocalCurrency() {
             currency = data.currency;
         })
         .then(() => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: {localCurrencyCode: currency}});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {
