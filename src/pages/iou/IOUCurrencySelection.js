@@ -23,18 +23,15 @@ import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import personalDetailsPropType from '../personalDetailsPropType';
 
 /**
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
 
-    // The personal details of the person who is logged in
-    myPersonalDetails: PropTypes.shape({
-
-        // Local Currency Code of the current user
-        localCurrencyCode: PropTypes.string,
-    }),
+    /** Personal details of all the users, including current user */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Holds data related to IOU */
     iou: PropTypes.shape({
@@ -62,9 +59,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    myPersonalDetails: {
-        localCurrencyCode: CONST.CURRENCY.USD,
-    },
+    personalDetails: {},
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -78,10 +73,16 @@ class IOUCurrencySelection extends Component {
         const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList),
             '');
 
+        // Get my details from the list of personal details and set my local currency to USD if not already set
+        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
+        if (!_.has(this.myPersonalDetails, 'localCurrencyCode') || _.isEmpty(this.myPersonalDetails.localCurrencyCode)) {
+            this.myPersonalDetails.localCurrencyCode = CONST.CURRENCY.USD;
+        }
+
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
-            toggledCurrencyCode: this.props.iou.selectedCurrencyCode || this.props.myPersonalDetails.localCurrencyCode,
+            toggledCurrencyCode: this.props.iou.selectedCurrencyCode || this.myPersonalDetails.localCurrencyCode,
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
@@ -260,7 +261,7 @@ export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-        myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
+        personalDetails: {key: ONYXKEYS.PERSONAL_DETAILS},
         iou: {key: ONYXKEYS.IOU},
     }),
     withNetwork(),
