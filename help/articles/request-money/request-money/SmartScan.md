@@ -8,7 +8,7 @@ SmartScan is simple on the outside and complex on the inside. When you SmartScan
 - Expensify accounts come with 25 free SmartScans per month. If you’re an individual user and you need access to unlimited SmartScans, check out the **[Monthly Subscription](https://community.expensify.com/discussion/5535/deep-dive-the-monthly-subscription-is-it-right-for-me)**!
 - If your organization is already using Expensify and you belong to a company policy, you’ll have access to unlimited SmartScans by default.
 
-# How SmartScan Works:
+## How SmartScan Works:
 
 While you're enjoying your coffee, thinking about what to pack or waiting for your package, we’ll scan the information from the receipt without any more input necessary from you.
 

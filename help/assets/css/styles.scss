@@ -260,6 +260,11 @@ textarea {
         padding-top: 24px;
         margin-left: 32px;
     }
+
+    ul,
+    li {
+        list-style: none;
+    }
 }
 
 .content-area {
@@ -274,7 +279,6 @@ textarea {
     ul,
     li {
         margin-bottom: 12px;
-        list-style: none;
 
         /* Apply recursive style to add a margin to the nested items */
         ul,
