@@ -125,8 +125,6 @@ function fetchPersonalDetails() {
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
-            let myPersonalDetails = {};
-
             // If personalDetailsList does not have the current user ensure we initialize their details with an empty
             // object at least
             const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
@@ -139,15 +137,6 @@ function fetchPersonalDetails() {
             // Flag which details belong to the currently logged in user for easy access before storing
             allPersonalDetails[currentUserEmail].isCurrentUser = true;
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-
-            myPersonalDetails = allPersonalDetails[currentUserEmail];
-
-            // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
-            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
-            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
-
-            // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
         });
 }
 
