@@ -371,12 +371,13 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    sortByLastMessageTimestamp = false,
+    sortByLastMessageTimestamp = true,
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
+    sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
     prioritizeIOUDebts = false,
     prioritizeReportsWithDraftComments = false,
@@ -472,12 +473,17 @@ function getOptions(reports, personalDetails, activeReportID, {
         }));
     });
 
-    const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
+    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         })
     ));
+
+    if (sortPersonalDetailsByAlphaAsc) {
+        // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+    }
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
@@ -650,7 +656,6 @@ function getSearchOptions(
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: false,
         forcePolicyNamePreview: true,
         prioritizeIOUDebts: false,
     });
@@ -720,6 +725,31 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the options for the Workspace Member Invite view
+ *
+ * @param {Object} personalDetails
+ * @param {Array<String>} betas
+ * @param {String} searchValue
+ * @param {Array} excludeLogins
+ * @returns {Object}
+ */
+function getMemberInviteOptions(
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    excludeLogins = [],
+) {
+    return getOptions([], personalDetails, 0, {
+        betas,
+        searchValue: searchValue.trim(),
+        excludeDefaultRooms: true,
+        includePersonalDetails: true,
+        excludeLogins,
+        sortPersonalDetailsByAlphaAsc: false,
+    });
+}
+
+/**
  * Build the options for the Sidebar a.k.a. LHN
  *
  * @param {Object} reports
@@ -752,7 +782,6 @@ function getSidebarOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
         prioritizePinnedReports: true,
         ...sideBarOptions,
@@ -812,6 +841,7 @@ export {
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
+    getMemberInviteOptions,
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,

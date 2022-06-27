@@ -17,18 +17,6 @@ import * as PolicyUtils from '../../PolicyUtils';
 import CONST from '../../../CONST';
 
 const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /** Route specific parameters used on this screen */
-        params: PropTypes.shape({
-            /** The ID of the report this screen should display */
-            reportID: PropTypes.string,
-
-            /** The reportActionID of the report to scroll to */
-            reportActionID: PropTypes.string,
-        }),
-    }),
-
     /** Available reports that would be displayed in this navigator */
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
@@ -48,9 +36,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {},
-    },
     reports: {},
     betas: [],
 };
