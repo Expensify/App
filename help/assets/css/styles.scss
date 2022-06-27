@@ -4,7 +4,7 @@
 
 :root {
     --color-dark: #0B1B34;
-    --spacing-default: 32px;
+    --spacing-default: 24px;
 }
 
 html,
@@ -274,6 +274,7 @@ textarea {
     ul,
     li {
         margin-bottom: 12px;
+        list-style: none;
 
         /* Apply recursive style to add a margin to the nested items */
         ul,
