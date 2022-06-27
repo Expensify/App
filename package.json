@@ -87,7 +87,7 @@
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^4.7.3",
-    "react-native-image-size": "github:Expensify/react-native-image-size#6b5ab5110dc3ed554f8eafbc38d7d87c17147972",
+    "react-native-image-size": "^1.1.3",
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "1.0.5",
