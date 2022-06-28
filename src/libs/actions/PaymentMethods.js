@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONST from '../../CONST';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -12,28 +13,6 @@ import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import NameValuePair from './NameValuePair';
 import * as store from './ReimbursementAccount/store';
-
-/**
- * Deletes a debit card
- *
- * @param {Number} fundID
- *
- * @returns {Promise}
- */
-function deleteDebitCard(fundID) {
-    return DeprecatedAPI.DeleteFund({fundID})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
-                Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
-            } else {
-                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-            }
-        })
-        .catch(() => {
-            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-        });
-}
 
 function deletePayPalMe() {
     NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, '');
@@ -273,9 +252,30 @@ function dismissWalletConfirmModal() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
 }
 
+function deletePaymentCard(fundID) {
+    API.write('DeletePaymentCard', {
+        fundID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.CARD_LIST}`,
+                value: {[fundID]: {isLoading: true}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.CARD_LIST}`,
+                value: {[fundID]: {isLoading: false}},
+            },
+        ],
+    });
+}
+
 export {
-    deleteDebitCard,
     deletePayPalMe,
+    deletePaymentCard,
     getPaymentMethods,
     setWalletLinkedAccount,
     addBillingCard,
