@@ -331,6 +331,7 @@ class OptionsSelector extends Component {
                     this.relatedTarget = e.relatedTarget;
                 }}
                 selectTextOnFocus
+                blurOnSubmit={Boolean(this.state.allOptions.length)}
             />
         );
         const optionsList = this.props.shouldShowOptions ? (
