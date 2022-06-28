@@ -66,7 +66,6 @@ function openDrawer() {
  * @private
  */
 function closeDrawer() {
-    console.log('over here close drawer');
     if (!canNavigate('closeDrawer')) {
         return;
     }
