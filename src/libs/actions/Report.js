@@ -27,6 +27,7 @@ import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
+import {read} from "../API";
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1141,6 +1142,60 @@ function togglePinnedState(report) {
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+}
+
+/**
+ * Open a report
+ *
+ * @param {String} reportID
+ * @returns {Promise}
+ */
+function openReport(reportID) {
+    const sequenceNumber = reportMaxSequenceNumbers[reportID];
+    API.read('OpenReport',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    history: [],
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                    lastVisitedTimestamp: Date.now(),
+                },
+            }],
+            successData: [],
+            failureData: [],
+        });
+}
+
+/**
+ * Open a report
+ *
+ * @param {String} reportID
+ * @returns {Promise}
+ */
+function readOldestAction(reportID) {
+    const sequenceNumber = reportMaxSequenceNumbers[reportID];
+    API.read('ReadOldestAction',
+        {
+            reportID,
+            history,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                    lastVisitedTimestamp: Date.now(),
+                },
+            }],
+            successData: [],
+            failureData: [],
+        });
 }
 
 /**
