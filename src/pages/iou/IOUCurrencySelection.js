@@ -1,17 +1,24 @@
 import React, {Component} from 'react';
+import {SectionList, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import styles from '../../styles/styles';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import OptionsSelector from '../../components/OptionsSelector';
+import Text from '../../components/Text';
+import OptionRow from '../../components/OptionRow';
+import TextInput from '../../components/TextInput';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import Button from '../../components/Button';
+import FixedFooter from '../../components/FixedFooter';
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -21,6 +28,21 @@ import networkPropTypes from '../../components/networkPropTypes';
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
+
+    // The personal details of the person who is logged in
+    myPersonalDetails: PropTypes.shape({
+
+        // Local Currency Code of the current user
+        localCurrencyCode: PropTypes.string,
+    }),
+
+    /** Holds data related to IOU */
+    iou: PropTypes.shape({
+
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
+    }),
+
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(PropTypes.shape({
         // Symbol for the currency
@@ -40,6 +62,12 @@ const propTypes = {
 };
 
 const defaultProps = {
+    myPersonalDetails: {
+        localCurrencyCode: CONST.CURRENCY.USD,
+    },
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
     currencyList: {},
 };
 
@@ -47,13 +75,16 @@ class IOUCurrencySelection extends Component {
     constructor(props) {
         super(props);
 
-        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList), '');
+        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList),
+            '');
 
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
+            toggledCurrencyCode: this.props.iou.selectedCurrencyCode || this.props.myPersonalDetails.localCurrencyCode,
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
+        this.toggleOption = this.toggleOption.bind(this);
         this.getSections = this.getSections.bind(this);
         this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
         this.changeSearchValue = this.changeSearchValue.bind(this);
@@ -91,19 +122,31 @@ class IOUCurrencySelection extends Component {
     }
 
     /**
+     *
      * @returns {Object}
      */
     getCurrencyOptions() {
-        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
+        const currencyListKeys = _.keys(this.props.currencyList);
+        const currencyOptions = _.map(currencyListKeys, currencyCode => ({
             text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
-            searchText: `${currencyCode} ${currencyInfo.symbol}`,
+            searchText: `${currencyCode} ${this.props.currencyList[currencyCode].symbol}`,
             currencyCode,
-            keyForList: currencyCode,
         }));
+        return currencyOptions;
     }
 
     fetchData() {
         PersonalDetails.getCurrencyList();
+    }
+
+    /**
+     * Function which toggles a currency in the list
+     *
+     * @param {String} toggledCurrencyCode
+     *
+     */
+    toggleOption(toggledCurrencyCode) {
+        this.setState({toggledCurrencyCode});
     }
 
     /**
@@ -124,31 +167,86 @@ class IOUCurrencySelection extends Component {
 
     /**
      * Confirms the selection of currency and sets values in Onyx
-     *
-     * @param {Object} option
-     * @param {String} option.currencyCode
+     * @return {void}
      */
-    confirmCurrencySelection(option) {
-        IOU.setIOUSelectedCurrency(option.currencyCode);
+    confirmCurrencySelection() {
+        IOU.setIOUSelectedCurrency(this.state.toggledCurrencyCode);
         Navigation.goBack();
     }
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (!this.textInput) {
+                    return;
+                }
+
+                this.textInput.focus();
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                        onCloseButtonPress={Navigation.goBack}
+                        onCloseButtonPress={() => Navigation.goBack()}
                     />
-                    <OptionsSelector
-                        sections={this.getSections()}
-                        onSelectRow={this.confirmCurrencySelection}
-                        value={this.state.searchValue}
-                        onChangeText={this.changeSearchValue}
-                        shouldDelayFocus
-                        placeholderText={this.props.translate('common.search')}
-                    />
+                    <View style={[styles.flex1, styles.w100]}>
+                        <View style={[styles.flex1]}>
+                            <View style={[styles.ph5, styles.pv3]}>
+                                <TextInput
+                                    ref={el => this.textInput = el}
+                                    value={this.state.searchValue}
+                                    onChangeText={this.changeSearchValue}
+                                    placeholder={this.props.translate('common.search')}
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <SectionList
+                                    indicatorStyle="white"
+                                    keyboardShouldPersistTaps="always"
+                                    showsVerticalScrollIndicator={false}
+                                    sections={this.getSections()}
+                                    keyExtractor={option => option.currencyCode}
+                                    stickySectionHeadersEnabled={false}
+                                    renderItem={({item, key}) => (
+                                        <OptionRow
+                                            key={key}
+                                            mode="compact"
+                                            hoverStyle={styles.hoveredComponentBG}
+                                            option={item}
+                                            onSelectRow={() => this.toggleOption(item.currencyCode)}
+                                            isSelected={
+                                                item.currencyCode === this.state.toggledCurrencyCode
+                                            }
+                                            showSelectedState
+                                            hideAdditionalOptionStates
+                                        />
+                                    )}
+                                    renderSectionHeader={({section: {title}}) => (
+                                        <View>
+                                            {this.state.currencyData.length === 0 ? (
+                                                <Text style={[styles.ph5, styles.textLabel, styles.colorMuted]}>
+                                                    {this.props.translate('common.noResultsFound')}
+                                                </Text>
+                                            ) : (
+                                                <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                                    {title}
+                                                </Text>
+                                            )}
+                                        </View>
+                                    )}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <FixedFooter>
+                        <Button
+                            success
+                            isDisabled={!this.props.iou.selectedCurrencyCode}
+                            style={[styles.w100]}
+                            text={this.props.translate('iou.confirm')}
+                            onPress={this.confirmCurrencySelection}
+                        />
+                    </FixedFooter>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
@@ -162,6 +260,8 @@ export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
+        iou: {key: ONYXKEYS.IOU},
     }),
     withNetwork(),
 )(IOUCurrencySelection);

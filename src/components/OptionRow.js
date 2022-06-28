@@ -99,13 +99,13 @@ const OptionRow = (props) => {
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
-        styles.optionRowCompact,
+        styles.sidebarInnerRowSmall,
         styles.justifyContentCenter,
     ] : [
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
-        styles.optionRow,
+        styles.sidebarInnerRow,
         styles.justifyContentCenter,
     ]);
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor

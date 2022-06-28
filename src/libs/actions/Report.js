@@ -164,10 +164,12 @@ function getSimplifiedReportObject(report) {
     }
 
     // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '').toString();
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily');
+    const notificationPreference = ReportUtils.isChatRoom({chatType})
+        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
+        : '';
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
@@ -1219,10 +1221,7 @@ Onyx.connect({
  */
 function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
-
-    // Do not autolink if someone explicitly tries to remove a link from message.
-    // https://github.com/Expensify/App/issues/9090
-    const htmlForNewComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
+    const htmlForNewComment = parser.replace(textForNewComment);
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {

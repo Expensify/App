@@ -8,7 +8,6 @@ import withLocalize, {
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import TextInput from '../../components/TextInput';
-import * as ComponentUtils from '../../libs/ComponentUtils';
 
 const propTypes = {
     /** String to control the first password box in the form */
@@ -72,8 +71,8 @@ class NewPasswordForm extends React.Component {
                 <TextInput
                     label={`${this.props.translate('setPasswordPage.enterPassword')}`}
                     secureTextEntry
-                    autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}
-                    textContentType="newPassword"
+                    autoCompleteType="password"
+                    textContentType="password"
                     value={this.props.password}
                     onChangeText={password => this.props.updatePassword(password)}
                     onBlur={() => this.onBlurNewPassword()}

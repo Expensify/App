@@ -99,7 +99,7 @@ class DebitCardPage extends Component {
                         formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                         validate={this.validate}
                         onSubmit={PaymentMethods.addBillingCard}
-                        submitButtonText={this.props.translate('common.save')}
+                        submitButtonText="Save"
                         style={[styles.mh5, styles.flexGrow1]}
                     >
                         <TextInput

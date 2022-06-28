@@ -68,10 +68,12 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getMemberInviteOptions(
+        } = OptionsListUtils.getNewChatOptions(
+            [],
             props.personalDetails,
             props.betas,
             '',
+            [],
             this.getExcludedUsers(),
         );
         this.state = {
@@ -190,10 +192,12 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = OptionsListUtils.getMemberInviteOptions(
+            } = OptionsListUtils.getNewChatOptions(
+                [],
                 this.props.personalDetails,
                 this.props.betas,
                 prevState.searchValue,
+                [],
                 this.getExcludedUsers(),
             );
 
@@ -271,10 +275,12 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = OptionsListUtils.getMemberInviteOptions(
+                                        } = OptionsListUtils.getNewChatOptions(
+                                            [],
                                             this.props.personalDetails,
                                             this.props.betas,
                                             searchValue,
+                                            [],
                                             this.getExcludedUsers(),
                                         );
                                         this.setState({
@@ -283,8 +289,8 @@ class WorkspaceInvitePage extends React.Component {
                                             personalDetails,
                                         });
                                     }}
-                                    onConfirmSelection={this.inviteUser}
                                     headerMessage={headerMessage}
+                                    disableArrowKeysActions
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
