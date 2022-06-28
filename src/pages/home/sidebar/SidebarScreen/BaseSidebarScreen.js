@@ -18,6 +18,7 @@ import * as Policy from '../../../../libs/actions/Policy';
 import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
+import * as PolicyUtils from '../../../../libs/PolicyUtils';
 
 const propTypes = {
 
@@ -163,7 +164,7 @@ class BaseSidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(!this.props.isCreatingWorkspace && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                ...(!this.props.isCreatingWorkspace && !PolicyUtils.isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: Expensicons.NewWorkspace,
                                         iconWidth: 46,
