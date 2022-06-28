@@ -114,9 +114,32 @@ function getLastVisibleMessageText(reportID) {
     return ReportUtils.formatReportLastMessageText(messageText);
 }
 
+/**
+ * Updates a report action's message to be a new value.
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ * @param {Object} message
+ */
+function updateReportActionMessage(reportID, sequenceNumber, message) {
+    const actionToMerge = {};
+    actionToMerge[sequenceNumber] = {message: [message]};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
+        // If the message is deleted, update the last read message and the unread counter
+        // if (!message.html) {
+        //     setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
+        // }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastMessageText: getLastVisibleMessageText(reportID),
+        });
+    });
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
+    updateReportActionMessage,
 };

@@ -511,29 +511,6 @@ function setNewMarkerPosition(reportID, sequenceNumber) {
 }
 
 /**
- * Updates a report action's message to be a new value.
- *
- * @param {Number} reportID
- * @param {Number} sequenceNumber
- * @param {Object} message
- */
-// function updateReportActionMessage(reportID, sequenceNumber, message) {
-//
-//     const actionToMerge = {};
-//     actionToMerge[sequenceNumber] = {message: [message]};
-//     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-//         // If the message is deleted, update the last read message and the unread counter
-//         if (!message.html) {
-//             setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
-//         }
-
-//         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-//             lastMessageText: ReportActions.getLastVisibleMessageText(reportID),
-//         });
-//     });
-// }
-
-/**
  * Updates a report in the store with a new report action
  *
  * @param {Number} reportID
@@ -1265,13 +1242,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     const sequenceNumber = originalReportAction.sequenceNumber;
-    const newReportAction = {...originalReportAction};
-    const actionToMerge = {};
-    newReportAction.message[0].isEdited = true;
-    newReportAction.message[0].html = htmlForNewComment;
-    newReportAction.message[0].text = parser.htmlToText(htmlForNewComment);
-    actionToMerge[sequenceNumber] = newReportAction;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
     // Optimistically update the report action with the new message
     const optimisticData = [
@@ -1279,10 +1249,14 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                reportID,
-                sequenceNumber,
-                reportActionID: originalReportAction.reportActionID,
-                message: htmlForNewComment,
+                [sequenceNumber]: {
+                    isPending: true,
+                    message: [{
+                        isEdited: true,
+                        html: htmlForNewComment,
+                        text: parser.htmlToText(htmlForNewComment)
+                    }]
+                }
             },
         },
     ];
