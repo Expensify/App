@@ -26,7 +26,7 @@ jobs:
           echo "DEPLOY_BLOCKER_TITLE=$(sed -e "s/'/'\\\\''/g; s/\`/\\\\\`/g; 1s/^/'/; \$s/\$/'/" <<< "$TITLE")";} >> "$GITHUB_ENV"
 
       - name: Update StagingDeployCash with new deploy blocker
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 

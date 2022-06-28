@@ -17,7 +17,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Wait for staging deploys to finish
-        uses: Expensify/App/.github/actions/awaitStagingDeploys@main
+        uses: Expensify/App/.github/actions/javascript/awaitStagingDeploys@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 

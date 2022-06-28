@@ -50,7 +50,7 @@ jobs:
 
       - name: Generate version
         id: bumpVersion
-        uses: Expensify/App/.github/actions/bumpVersion@main
+        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           SEMVER_LEVEL: ${{ github.event.inputs.SEMVER_LEVEL }}
@@ -67,7 +67,7 @@ jobs:
           git push origin ${{ env.VERSION_BRANCH }}
 
       - name: Update main branch
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml

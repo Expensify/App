@@ -65,7 +65,7 @@ jobs:
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/isStagingDeployLocked@main
+        uses: Expensify/App/.github/actions/javascript/isStagingDeployLocked@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -110,7 +110,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
@@ -124,7 +124,7 @@ jobs:
 
       - name: Update staging branch from main
         if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
@@ -135,7 +135,7 @@ jobs:
 
       - name: Cherry pick to staging
         if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: cherryPick.yml
@@ -152,7 +152,7 @@ jobs:
           git tag ${{ env.NEW_VERSION }}
 
       - name: Update StagingDeployCash
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ env.NEW_VERSION }}
@@ -170,7 +170,7 @@ jobs:
 
       - name: Wait for staging deploys to finish
         if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/awaitStagingDeploys@main
+        uses: Expensify/App/.github/actions/javascript/awaitStagingDeploys@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           TAG: ${{ env.NEW_VERSION }}
