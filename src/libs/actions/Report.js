@@ -1355,15 +1355,15 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 isEdited: true,
                 html: htmlForEditedComment,
                 text: textForEditedComment,
-            }]
-        }
+            }],
+        },
     };
 
     // Optimistically update the report itself if the user edited the lastest message
     const optimisticReport = {};
     if (sequenceNumber === highestSequenceNumber) {
         optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForEditedComment);
-    };
+    }
 
     // Group all Optmistic data changes
     const optimisticData = [
@@ -1383,7 +1383,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportID,
         sequenceNumber,
         reportComment: htmlForEditedComment,
-        reportActionID: originalReportAction.reportActionID
+        reportActionID: originalReportAction.reportActionID,
     };
 
     // Persist the updated report comment
