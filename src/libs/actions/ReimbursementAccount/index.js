@@ -7,7 +7,12 @@ import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
 
 export {goToWithdrawalAccountSetupStep} from './navigation';
-export {showBankAccountErrorModal, setBankAccountFormValidationErrors, showBankAccountFormValidationError} from './errors';
+export {
+    showBankAccountErrorModal,
+    setBankAccountFormValidationErrors,
+    resetReimbursementAccount,
+    showBankAccountFormValidationError,
+} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account

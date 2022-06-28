@@ -155,7 +155,7 @@ class BankAccountStep extends React.Component {
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
             // Params passed via the Plaid callback when an account is selected
-            plaidAccessToken: params.plaidLinkToken,
+            plaidAccessToken: params.plaidAccessToken,
             accountNumber: params.account.accountNumber,
             routingNumber: params.account.routingNumber,
             plaidAccountID: params.account.plaidAccountID,
@@ -226,9 +226,9 @@ class BankAccountStep extends React.Component {
                             success
                             extraLarge
                         />
-                        {this.props.isPlaidDisabled && (
+                        {this.props.error && (
                             <Text style={[styles.formError, styles.mh5]}>
-                                {this.props.translate('bankAccount.error.tooManyAttempts')}
+                                {this.props.error}
                             </Text>
                         )}
                         <MenuItem
@@ -268,15 +268,18 @@ class BankAccountStep extends React.Component {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <AddPlaidBankAccount
+                        reimbursementAccount={this.props.reimbursementAccount}
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSubmit={this.addPlaidAccount}
                         onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                         receivedRedirectURI={this.props.receivedRedirectURI}
                         plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
+                        allowDebit
                     />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ReimbursementAccountForm
+                        reimbursementAccount={this.props.reimbursementAccount}
                         onSubmit={this.addManualAccount}
                     >
                         <Text style={[styles.mb5]}>

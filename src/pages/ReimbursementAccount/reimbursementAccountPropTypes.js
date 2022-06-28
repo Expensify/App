@@ -25,9 +25,6 @@ export default PropTypes.shape({
     maxAttemptsReached: PropTypes.bool,
 
     /** Alert message to display above submit button */
-    errorModalMessage: PropTypes.string,
-
-    /** Error set when handling the API response */
     error: PropTypes.string,
 
     /** Object containing various errors */

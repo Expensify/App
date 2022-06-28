@@ -177,6 +177,7 @@ class RequestorStep extends React.Component {
                     </ScrollView>
                 ) : (
                     <ReimbursementAccountForm
+                        reimbursementAccount={this.props.reimbursementAccount}
                         onSubmit={this.submit}
                     >
                         <Text>{this.props.translate('requestorStep.subtitle')}</Text>

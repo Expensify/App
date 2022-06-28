@@ -33,8 +33,8 @@ const AddPersonalBankAccountPage = props => (
                 onBackButtonPress={Navigation.goBack}
             />
             <AddPlaidBankAccount
-                onSubmit={({account, password, plaidLinkToken}) => {
-                    BankAccounts.addPersonalBankAccount(account, password, plaidLinkToken);
+                onSubmit={(params) => {
+                    BankAccounts.addPersonalBankAccount(params.account, params.password, params.plaidAccessToken);
                 }}
                 onExitPlaid={Navigation.goBack}
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}

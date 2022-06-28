@@ -268,7 +268,6 @@ class BankAccount {
             bankAccountID: this.getID(),
             state: this.getState(),
             validateCodeExpectedDate: this.getValidateCodeExpectedDate(),
-            needsToPassLatestChecks: this.needsToPassLatestChecks(),
             needsToUpgrade: this.needsToUpgrade(),
         }, this.getAdditionalData());
     }
