@@ -9,7 +9,6 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import NameValuePair from '../../../libs/actions/NameValuePair';
-import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -41,19 +40,6 @@ class AddPayPalMePage extends React.Component {
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
-    }
-
-    componentDidMount() {
-        PaymentMethods.getPaymentMethods();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.payPalMeUsername === this.props.payPalMeUsername) {
-            return;
-        }
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({payPalMeUsername: this.props.payPalMeUsername});
     }
 
     /**
