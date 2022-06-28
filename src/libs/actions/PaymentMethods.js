@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONST from '../../CONST';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -213,7 +214,7 @@ function clearDebitCardFormErrorAndSubmit() {
  * @param {*} paymentMethod.methodID
  * @param {String} paymentMethod.accountType
  */
-function transferWalletBalance(paymentMethod) {
+function transferBalance(transferAmount, paymentMethod) {
     const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
         ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT
         : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
@@ -233,6 +234,30 @@ function transferWalletBalance(paymentMethod) {
         }).catch(() => {
             Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
+        });
+
+        API.write('TransferBalance', parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: 'merge',
+                    key: ONYXKEYS.WALLET_TRANSFER,
+                    value: {transferAmount, loading: true, error: null},
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: 'merge',
+                    key: ONYXKEYS.WALLET_TRANSFER,
+                    value: {loading: false},
+                },
+           ],
+            failureData: [
+                {
+                    onyxMethod: 'merge',
+                    key: ONYXKEYS.WALLET_TRANSFER,
+                    value: {loading: false},
+                },
+            ],
         });
 }
 
@@ -282,7 +307,7 @@ export {
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
-    transferWalletBalance,
+    transferBalance,
     resetWalletTransferData,
     saveWalletTransferAmount,
     saveWalletTransferAccountTypeAndID,

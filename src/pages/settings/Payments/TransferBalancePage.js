@@ -138,7 +138,7 @@ class TransferBalancePage extends React.Component {
      */
     saveTransferAmountAndStartTransfer(transferAmount, selectedAccount) {
         PaymentMethods.saveWalletTransferAmount(transferAmount);
-        PaymentMethods.transferWalletBalance(selectedAccount);
+        PaymentMethods.transferBalance(transferAmount, selectedAccount);
     }
 
     /**
