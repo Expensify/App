@@ -1228,46 +1228,64 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
-    const htmlForNewComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
+    const htmlForEditedComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
+    const textForEditedComment = parser.htmlToText(htmlForEditedComment);
 
     //  Delete the comment if it's empty
-    if (_.isEmpty(htmlForNewComment)) {
+    if (_.isEmpty(htmlForEditedComment)) {
         deleteReportComment(reportID, originalReportAction);
         return;
     }
 
     // Skip the Edit if message is not changed
-    if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
+    if (originalReportAction.message[0].html === htmlForEditedComment.trim()) {
         return;
     }
 
     const sequenceNumber = originalReportAction.sequenceNumber;
+    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
 
     // Optimistically update the report action with the new message
+    const optimisticReportActions = {
+        [sequenceNumber]: {
+            isPending: true,
+            message: [{
+                isEdited: true,
+                html: htmlForEditedComment,
+                text: textForEditedComment,
+            }]
+        }
+    };
+
+    // Optimistically update the report itself if the user edited the lastest message
+    const optimisticReport = {};
+    if (sequenceNumber === highestSequenceNumber) {
+        optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForEditedComment);
+    };
+
+    // Group all Optmistic data changes
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [sequenceNumber]: {
-                    isPending: true,
-                    message: [{
-                        isEdited: true,
-                        html: htmlForNewComment,
-                        text: parser.htmlToText(htmlForNewComment)
-                    }]
-                }
-            },
+            value: optimisticReportActions,
         },
     ];
 
-    // Persist the updated report comment
-    API.write('UpdateComment', {
+    const parameters = {
         reportID,
         sequenceNumber,
-        reportComment: htmlForNewComment,
-        reportActionID: originalReportAction.reportActionID,
-    }, {optimisticData});
+        reportComment: htmlForEditedComment,
+        reportActionID: originalReportAction.reportActionID
+    };
+
+    // Persist the updated report comment
+    API.write('UpdateComment', parameters, {optimisticData});
 
     // DeprecatedAPI.Report_EditComment({
     //     reportID,
