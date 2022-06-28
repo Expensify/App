@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../../components/OptionsSelector';
@@ -15,7 +14,6 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 
 /**
  * IOU Currency selection for selecting currency
@@ -33,10 +31,7 @@ const propTypes = {
         ISO4217: PropTypes.string,
     })),
 
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
     ...withLocalizePropTypes,
-
 };
 
 const defaultProps = {
