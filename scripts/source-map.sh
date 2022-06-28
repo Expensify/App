@@ -14,15 +14,13 @@ LOCAL_PACKAGES=$(npm bin)
 NODE_MODULES="$SCRIPTS_DIR/../node_modules"
 source "$SCRIPTS_DIR/shellUtils.sh";
 
-echo $NODE_MODULES
-
 title "Generating $PLATFORM Source Map File"
 
 info ""
 info "1. Generating packager map"
 info ""
 
-$LOCAL_PACKAGES/react-native bundle \
+"$LOCAL_PACKAGES/react-native" bundle \
   --platform $PLATFORM \
   --dev false \
   --entry-file index.js \
@@ -53,13 +51,13 @@ info "Using hermes OS-BIN: '$OS_BIN'"
 info ""
 
 # In react native 0.69 this path needs to change to NODE_MODULES/react-native/sdks/hermesc/$OS_BIN/hermesc
-$NODE_MODULES/hermes-engine/$OS_BIN/hermesc -O -emit-binary -output-source-map -out=index.$PLATFORM.bundle.hbc index.$PLATFORM.bundle
+"$NODE_MODULES/hermes-engine/$OS_BIN/hermesc" -O -emit-binary -output-source-map -out=index.$PLATFORM.bundle.hbc index.$PLATFORM.bundle
 
 info ""
 info "3. Merging source maps"
 info ""
 
-node $NODE_MODULES/react-native/scripts/compose-source-maps.js \
+node "$NODE_MODULES/react-native/scripts/compose-source-maps.js" \
   index.$PLATFORM.bundle.packager.map \
   index.$PLATFORM.bundle.hbc.map \
   -o index.$PLATFORM.bundle.map
