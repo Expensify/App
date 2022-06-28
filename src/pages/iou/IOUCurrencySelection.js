@@ -59,18 +59,6 @@ class IOUCurrencySelection extends Component {
         this.changeSearchValue = this.changeSearchValue.bind(this);
     }
 
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -100,10 +88,6 @@ class IOUCurrencySelection extends Component {
             currencyCode,
             keyForList: currencyCode,
         }));
-    }
-
-    fetchData() {
-        PersonalDetails.getCurrencyList();
     }
 
     /**
