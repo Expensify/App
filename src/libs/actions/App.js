@@ -132,6 +132,13 @@ function openApp() {
 }
 
 /**
+ * Refreshes data when the app reconnects
+ */
+function reconnectApp() {
+    API.read('ReconnectApp');
+}
+
+/**
  * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
  * because some migrations might create new chat reports or their change data.
  */
@@ -200,7 +207,10 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => getAppData(true, false));
+NetworkConnection.onReconnect(() => {
+    getAppData(true, false);
+    reconnectApp();
+});
 
 export {
     setCurrentURL,
