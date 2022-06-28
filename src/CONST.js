@@ -415,6 +415,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
+        VISIBLE_PASSWORD: 'visible-password',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
