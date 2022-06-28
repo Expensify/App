@@ -151,23 +151,6 @@ class PaymentMethodList extends Component {
             });
         }
 
-        if (!this.props.shouldShowAddPaymentMethodButton) {
-            return combinedPaymentMethods;
-        }
-
-        combinedPaymentMethods.push({
-            type: BUTTON,
-            text: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Expensicons.CreditCard,
-            style: [styles.mh4],
-            iconStyles: [styles.mr4],
-            onPress: e => this.props.onPress(e),
-            isDisabled: this.props.isLoadingPayments,
-            shouldShowRightIcon: true,
-            success: true,
-            key: 'addPaymentMethodButton',
-        });
-
         return combinedPaymentMethods;
     }
 
@@ -235,11 +218,29 @@ class PaymentMethodList extends Component {
 
     render() {
         return (
-            <FlatList
-                data={this.createPaymentMethodList()}
-                renderItem={this.renderItem}
-                keyExtractor={item => item.key}
-            />
+            <>
+                <FlatList
+                    bounces={false}
+                    data={this.createPaymentMethodList()}
+                    renderItem={this.renderItem}
+                    keyExtractor={item => item.key}
+                />
+                {
+                    this.props.shouldShowAddPaymentMethodButton
+                    && (
+                        <Button
+                            text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                            icon={Expensicons.CreditCard}
+                            onPress={e => this.props.onPress(e)}
+                            isDisabled={this.props.isLoadingPayments}
+                            style={[styles.mb4, styles.mh4]}
+                            success
+                            shouldShowRightIco
+                            extraLarge
+                        />
+                    )
+                }
+            </>
         );
     }
 }

@@ -45,7 +45,8 @@ class BasePaymentsPage extends React.Component {
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
-            anchorPositionLeft: 0,
+            anchorPositionBottom: 0,
+            anchorPositionRigth: 0,
             addPaymentMethodButton: null,
         };
 
@@ -109,10 +110,24 @@ class BasePaymentsPage extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.bottom,
+            anchorPositionTop: position.top + position.height,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionLeft: position.left + 13,
+            anchorPositionRigth: (window.innerWidth - position.right) + 13,
+        });
+    }
+
+    /**
+     * Set position of the payment method menu
+     *
+     * @param {Object} position
+     */
+    setPositionAddPaymentMethod(position) {
+        this.setState({
+            anchorPositionBottom: window.innerHeight - position.top,
+
+            // We want the position to be 5px to the right of the left border
+            anchorPositionRigth: (window.innerWidth - position.right) + 5,
         });
     }
 
@@ -129,6 +144,8 @@ class BasePaymentsPage extends React.Component {
         this.setState({
             addPaymentMethodButton: nativeEvent,
         });
+
+        // The delete/default menu
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -166,7 +183,9 @@ class BasePaymentsPage extends React.Component {
         this.setState({
             shouldShowAddPaymentMenu: true,
         });
-        this.setPositionAddPaymentMenu(position);
+
+        // Add payment method menu
+        this.setPositionAddPaymentMethod(position);
     }
 
     /**
@@ -305,8 +324,8 @@ class BasePaymentsPage extends React.Component {
                         isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
                         anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
+                            bottom: this.state.anchorPositionBottom,
+                            right: this.state.anchorPositionRigth,
                         }}
                         onItemSelected={method => this.addPaymentMethodTypePressed(method)}
                     />
@@ -315,7 +334,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hideDefaultDeleteMenu}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
+                            right: this.state.anchorPositionRigth,
                         }}
                     >
                         <View
@@ -388,7 +407,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hidePasswordPrompt}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
+                            right: this.state.anchorPositionRigth,
                         }}
                         onSubmit={(password) => {
                             this.hidePasswordPrompt();
@@ -406,7 +425,7 @@ class BasePaymentsPage extends React.Component {
                         cancelText={this.props.translate('common.cancel')}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
+                            right: this.state.anchorPositionRigth,
                         }}
                         onConfirm={() => {
                             this.setState({
