@@ -44,12 +44,14 @@
 
 	<div class="content-area">
 
+		<!-- Article title (only shown in article pages) -->
+		{% if page.lhn_content == nil %}
+			<h1>
+				{{ page.name | remove: '.md' | split: "-" |  join: " " }}
+			</h1>
+		{% endif %}
+
 		<div class="article-toc-content">
-			{% if page.lhn_content == nil %}
-				<h1>
-					{{ page.name | remove: '.md' | split: "-" |  join: " " }}
-				</h1>
-			{% endif %}
 
 			{{ content }}
 		</div>
