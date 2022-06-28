@@ -87,6 +87,9 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Is the composer full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
         // The date that the user will be unblocked
@@ -123,6 +126,7 @@ class ReportActionCompose extends React.Component {
         this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.comment = props.comment;
@@ -134,6 +138,7 @@ class ReportActionCompose extends React.Component {
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
+            isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -141,6 +146,7 @@ class ReportActionCompose extends React.Component {
                 start: props.comment.length,
                 end: props.comment.length,
             },
+            maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
         };
     }
 
@@ -152,6 +158,7 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+        this.setMaxLines();
         this.updateComment(this.comment);
     }
 
@@ -167,6 +174,10 @@ class ReportActionCompose extends React.Component {
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
+        }
+
+        if (this.props.isComposerFullSize !== prevProps.isComposerFullSize) {
+            this.setMaxLines();
         }
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
@@ -193,6 +204,10 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
+    }
+
+    setIsFullComposerAvailable(isFullComposerAvailable) {
+        this.setState({isFullComposerAvailable});
     }
 
     /**
@@ -278,6 +293,17 @@ class ReportActionCompose extends React.Component {
             });
         }
         return iouOptions;
+    }
+
+    /**
+     * Set the maximum number of lines for the composer
+     */
+    setMaxLines() {
+        let maxLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+        if (this.props.isComposerFullSize) {
+            maxLines = CONST.COMPOSER.MAX_LINES_FULL;
+        }
+        this.setState({maxLines});
     }
 
     /**
@@ -427,6 +453,10 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
+        if (this.props.isComposerFullSize) {
+            Report.setIsComposerFullSize(this.props.reportID, false);
+        }
+        this.setState({isFullComposerAvailable: false});
 
         // Important to reset the selection on Submit action
         this.textInput.setNativeProps({selection: {start: 0, end: 0}});
@@ -440,7 +470,9 @@ class ReportActionCompose extends React.Component {
 
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
+
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
+            && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -449,15 +481,16 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow]}>
+            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
-                    styles.chatItemComposeBox,
                     styles.flexRow,
+                    styles.chatItemComposeBox,
+                    this.props.isComposerFullSize && styles.chatItemFullComposeBox,
                     hasExceededMaxCommentLength && styles.borderColorDanger,
                 ]}
                 >
@@ -474,7 +507,42 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <View style={[styles.justifyContentEnd]}>
+                                            <View style={[
+                                                styles.dFlex, styles.flexColumn,
+                                                (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                            ]}
+                                            >
+                                                {this.props.isComposerFullSize && (
+                                                    <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
+                                                        <TouchableOpacity
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
+                                                                Report.setIsComposerFullSize(this.props.reportID, false);
+                                                            }}
+                                                            style={styles.composerSizeButton}
+                                                            underlayColor={themeColors.componentBG}
+                                                            disabled={isBlockedFromConcierge}
+                                                        >
+                                                            <Icon src={Expensicons.Collapse} />
+                                                        </TouchableOpacity>
+                                                    </Tooltip>
+
+                                                )}
+                                                {(!this.props.isComposerFullSize && this.state.isFullComposerAvailable) && (
+                                                    <Tooltip text={this.props.translate('reportActionCompose.expand')}>
+                                                        <TouchableOpacity
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
+                                                                Report.setIsComposerFullSize(this.props.reportID, true);
+                                                            }}
+                                                            style={styles.composerSizeButton}
+                                                            underlayColor={themeColors.componentBG}
+                                                            disabled={isBlockedFromConcierge}
+                                                        >
+                                                            <Icon src={Expensicons.Expand} />
+                                                        </TouchableOpacity>
+                                                    </Tooltip>
+                                                )}
                                                 <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                     <TouchableOpacity
                                                         onPress={(e) => {
@@ -511,53 +579,58 @@ class ReportActionCompose extends React.Component {
                                         </>
                                     )}
                                 </AttachmentPicker>
-                                <Composer
-                                    autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
-                                    multiline
-                                    ref={this.setTextInputRef}
-                                    textAlignVertical="top"
-                                    placeholder={inputPlaceholder}
-                                    placeholderTextColor={themeColors.placeholderText}
-                                    onChangeText={this.updateComment}
-                                    onKeyPress={this.triggerHotkeyActions}
-                                    onDragEnter={(e, isOriginComposer) => {
-                                        if (!isOriginComposer) {
-                                            return;
-                                        }
+                                <View style={styles.textInputComposeSpacing}>
+                                    <Composer
+                                        autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
+                                        multiline
+                                        ref={this.setTextInputRef}
+                                        textAlignVertical="top"
+                                        placeholder={inputPlaceholder}
+                                        placeholderTextColor={themeColors.placeholderText}
+                                        onChangeText={this.updateComment}
+                                        onKeyPress={this.triggerHotkeyActions}
+                                        onDragEnter={(e, isOriginComposer) => {
+                                            if (!isOriginComposer) {
+                                                return;
+                                            }
 
-                                        this.setState({isDraggingOver: true});
-                                    }}
-                                    onDragOver={(e, isOriginComposer) => {
-                                        if (!isOriginComposer) {
-                                            return;
-                                        }
+                                            this.setState({isDraggingOver: true});
+                                        }}
+                                        onDragOver={(e, isOriginComposer) => {
+                                            if (!isOriginComposer) {
+                                                return;
+                                            }
 
-                                        this.setState({isDraggingOver: true});
-                                    }}
-                                    onDragLeave={() => this.setState({isDraggingOver: false})}
-                                    onDrop={(e) => {
-                                        e.preventDefault();
+                                            this.setState({isDraggingOver: true});
+                                        }}
+                                        onDragLeave={() => this.setState({isDraggingOver: false})}
+                                        onDrop={(e) => {
+                                            e.preventDefault();
 
-                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                        if (!file) {
-                                            return;
-                                        }
+                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                            if (!file) {
+                                                return;
+                                            }
 
-                                        displayFileInModal({file});
-                                        this.setState({isDraggingOver: false});
-                                    }}
-                                    style={[styles.textInputCompose, styles.flex4]}
-                                    defaultValue={this.props.comment}
-                                    maxLines={this.props.isSmallScreenWidth ? 6 : 16} // This is the same that slack has
-                                    onFocus={() => this.setIsFocused(true)}
-                                    onBlur={() => this.setIsFocused(false)}
-                                    onPasteFile={file => displayFileInModal({file})}
-                                    shouldClear={this.state.textInputShouldClear}
-                                    onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                    selection={this.state.selection}
-                                    onSelectionChange={this.onSelectionChange}
-                                />
+                                            displayFileInModal({file});
+                                            this.setState({isDraggingOver: false});
+                                        }}
+                                        style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                        defaultValue={this.props.comment}
+                                        maxLines={this.state.maxLines}
+                                        onFocus={() => this.setIsFocused(true)}
+                                        onBlur={() => this.setIsFocused(false)}
+                                        onPasteFile={file => displayFileInModal({file})}
+                                        shouldClear={this.state.textInputShouldClear}
+                                        onClear={() => this.setTextInputShouldClear(false)}
+                                        isDisabled={isComposeDisabled || isBlockedFromConcierge}
+                                        selection={this.state.selection}
+                                        onSelectionChange={this.onSelectionChange}
+                                        isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                        setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                    />
+                                </View>
                             </>
                         )}
                     </AttachmentModal>

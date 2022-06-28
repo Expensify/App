@@ -164,6 +164,8 @@ export default {
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
