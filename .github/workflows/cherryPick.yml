@@ -69,20 +69,7 @@ jobs:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Decrypt Botify GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import Botify GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git for Botify
-        run: |
-          git config user.signingkey 367811D53E34168C
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
 
       - name: Create branch for new pull request
         run: |
