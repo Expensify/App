@@ -5,17 +5,14 @@ on:
     branches: [main]
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   confirmPassingBuild:
     runs-on: ubuntu-latest
+    needs: lint
 
     steps:
-      - name: Run lint
-        id: lint
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          WORKFLOW: lint.yml
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
       - name: Run tests
         id: tests
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
