@@ -87,31 +87,29 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
+ * Updates a report action's message to be a new value.
+ *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
- * @param {Number} currentUserAccountID
- * @param {Object} [actionsToMerge]
- * @returns {Boolean}
+ * @param {Object} message
  */
-function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge = {}) {
-    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
-    const action = lodashMerge({}, existingReportActions, actionsToMerge)[sequenceNumber];
-    return action.actorAccountID === currentUserAccountID;
-}
+function updateReportActionMessage(reportID, sequenceNumber, message) {
+    const actionToMerge = {};
+    actionToMerge[sequenceNumber] = {message: [message]};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
+        // If the message is deleted, update the last read message and the unread counter
+        // if (!message.html) {
+        //     setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
+        // }
 
-/**
- * @param {Number} reportID
- * @param {String} sequenceNumber
- */
-function deleteOptimisticReportAction(reportID, sequenceNumber) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [sequenceNumber]: null,
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastMessageText: getLastVisibleMessageText(reportID),
+        });
     });
 }
 
 export {
     getDeletedCommentsCount,
     getLastVisibleMessageText,
-    isFromCurrentUser,
-    deleteOptimisticReportAction,
+    updateReportActionMessage,
 };
