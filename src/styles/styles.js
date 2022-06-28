@@ -1449,7 +1449,7 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: `${fontFamily.GTA_BOLD}, ${fontFamily.SEGOE_UI_EMOJI}, ${fontFamily.NOTO_COLOR_EMOJI}`,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
