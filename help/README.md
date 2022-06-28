@@ -4,15 +4,38 @@
 
 ### Add content
 
-Copy the [template](link to the TEMPLATE.md) file and rename it with the name of the article title with dashes (i.e. [Everything-about-SmartScan.md](link)) and put the new file inside of the respective hub folder ([send-money](link) or [request-money](link)) or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the content).
+Copy the [template](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/TEMPLATE.md) file and rename it with the name of the article title, i.e. [SmartScan.md](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/request-money/SmartScan.md), (you can use dashes for spaces if it's needed) and put the new file inside of the respective hub folder ([send-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money) or [request-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money)) or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the content).
 
 The sections of the article will be filled and nested in automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
 ### Add a new entry in the LHN and hub page
 
-In order to add a new article entry in the LHN, update the corresponding navigation tree file from the folder [_includes](link) by adding a new entry like `<li><a href="relative-file-path">Article Title</li>`, where "relative-file-path" will be the path of the file name without the extension file, i.e. "request-money/request-money/Everything-about-SmartScan".
+In order to add a new article entry in the LHN, update the corresponding navigation tree file (either for [Request Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/request-money-navigation-tree.html) or [Send Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/send-money-navigation-tree.html)) from the folder [_includes](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes) by adding a new entry like:
 
-Also update the respective hub page ([send-money/index.html](link) or [request-money/index.html](link)) by adding a new Card element (`<div class="card">...</div>`) with the article page and a link to the relative path (open one of the hub files to see an example).
+```
+<li><a href="#request-money">Request Money</a>
+    <ul>
+        <li><a href="./request-money/SmartScan">SmartScan</a></li>
+    </ul>
+</li>
+```
+
+where `./request-money/SmartScan` will be the relative path of the file name without the extension file, and `"#request-money"` is the ID of element in the hub page (in this case in the [`Request Money`](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html#L12) hub page).
+
+Also update the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money/index.html) or [request-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html)) by adding a new Card element:
+
+```
+<div class="card" onclick="openArticle('./request-money/SmartScan')">
+    <div class="body">
+        <div class="title">SmartScan</div>
+    </div>
+    <div class="right-icon">
+        <i class="fa-solid fa-angle-right caret-icon"></i>
+    </div>
+</div>
+```
+
+with the article title (SmartScan in this example) and a link to the relative path of the article (which in this case is `./request-money/SmartScan` like in the previous example).
 
 ### Test locally
 
@@ -20,10 +43,10 @@ If you're updating in your local repo, you can test the changes in your machine 
 
 ## How the project is structured
 
-The [help](link) folder will contain the following main folders:
-- *_layouts*: it will have at the moment only one file ([default.html](link)) which will render the common HTML elements and the assets on every page.
+The [help](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help) folder will contain the following main folders:
+- *_layouts*: it will have at the moment only one file ([default.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_layouts/default.html)) which will render the common HTML elements and the assets on every page.
 - *_includes*: it will contain HTML content that can be reused on different pages. It will have the files home-navigation-tree.html, request-money-navigation-tree.html and  send-money-navigation-tree.html that will be rendered in the LHN.
-- *assets*: it will contain the three sub-folders css, images, and js. 
+- *assets*: it will contain the three sub-folders css, images, and js.
   - The css folder can contain either .css or .sass files (where SASS files will be processed by Jekyll and it will generate a CSS file in an output folder also generated by Jekyll).
   -  In order to organize the image files, we're going to have multiple sub-folders grouped by subject in the images folder.
 - *send-money*: it will contain an index.html file with the content of the hub and will have a folder for each stage. Each sub-folder stage will contain all the articles related to that stage or subsection.
