@@ -1,5 +1,6 @@
 ---
 ---
+<!-- The lines above are required by Jekyll to process the .md file -->
 # About
 SmartScan is the time-saving tool that every Expensify user needs. Using SmartScan, you can quickly upload receipts and walk away to take care of more important things. Behind the scenes, SmartScan will process the expense data from your receipt and create an expense or automatically attach the receipt to a matching imported credit card expense.
 

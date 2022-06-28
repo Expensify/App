@@ -1,5 +1,7 @@
 ---
 ---
+<!-- The lines above are required by Jekyll to process the .md file -->
+
 # About
 <!--
 This short blurb provides all the context the user might need to know what the feature is and why they'd use it. If there are particular best practices embedded in the design, we'd explain why they're best practices here.
