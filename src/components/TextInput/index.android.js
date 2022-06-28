@@ -2,6 +2,7 @@ import React, {forwardRef} from 'react';
 import styles from '../../styles/styles';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import CONST from '../../CONST';
 
 const TextInput = forwardRef((props, ref) => (
     <BaseTextInput
@@ -13,7 +14,7 @@ const TextInput = forwardRef((props, ref) => (
         autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
         innerRef={ref}
         inputStyle={[styles.baseTextInput, ...props.inputStyle]}
-        getKeyboardType={passwordHidden => (props.secureTextEntry && !passwordHidden ? 'visible-password' : props.keyboardType)}
+        getKeyboardType={passwordHidden => (props.secureTextEntry && !passwordHidden ? CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD : props.keyboardType)}
     />
 ));
 
