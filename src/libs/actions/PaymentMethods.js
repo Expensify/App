@@ -221,44 +221,30 @@ function transferBalance(transferAmount, paymentMethod) {
     const parameters = {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
-    DeprecatedAPI.TransferWalletBalance(parameters)
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-            Onyx.merge(ONYXKEYS.USER_WALLET, {currentBalance: 0});
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
-            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        }).catch(() => {
-            Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
-        });
-
-        API.write('TransferBalance', parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: 'merge',
-                    key: ONYXKEYS.WALLET_TRANSFER,
-                    value: {transferAmount, loading: true, error: null},
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: 'merge',
-                    key: ONYXKEYS.WALLET_TRANSFER,
-                    value: {loading: false},
-                },
-           ],
-            failureData: [
-                {
-                    onyxMethod: 'merge',
-                    key: ONYXKEYS.WALLET_TRANSFER,
-                    value: {loading: false},
-                },
-            ],
-        });
+    API.write('TransferBalance', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {transferAmount, loading: true, error: null},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {loading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {loading: false},
+            },
+        ],
+    });
 }
 
 function resetWalletTransferData() {
