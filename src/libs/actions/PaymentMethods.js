@@ -10,7 +10,6 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
-import ROUTES from '../../ROUTES';
 import NameValuePair from './NameValuePair';
 import * as store from './ReimbursementAccount/store';
 
@@ -210,6 +209,7 @@ function clearDebitCardFormErrorAndSubmit() {
 
 /**
  * Call the API to transfer wallet balance.
+ * @param {Number} transferAmount
  * @param {Object} paymentMethod
  * @param {*} paymentMethod.methodID
  * @param {String} paymentMethod.accountType
