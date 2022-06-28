@@ -256,7 +256,7 @@ function validateIdentity(identity) {
  * @param {Boolean} [isCountryCodeOptional]
  * @returns {Boolean}
  */
-function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
+function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
     // Remove non alphanumeric characters from the phone number
     const sanitizedPhone = phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
     const isUsPhone = isCountryCodeOptional
