@@ -66,6 +66,7 @@ function openDrawer() {
  * @private
  */
 function closeDrawer() {
+    console.log('over here close drawer');
     if (!canNavigate('closeDrawer')) {
         return;
     }
@@ -105,7 +106,7 @@ function goBack(shouldOpenDrawer = true) {
 }
 
 /**
- * We navigate to the certains screens with a custom action so that we can preserve the browser history in web. react-navigation does not handle this well
+ * We navigate to the certain screens with a custom action so that we can preserve the browser history in web. react-navigation does not handle this well
  * and only offers a "mobile" navigation paradigm e.g. in order to add a history item onto the browser history stack one would need to use the "push" action.
  * However, this is not performant as it would keep stacking ReportScreen instances (which are quite expensive to render).
  * We're also looking to see if we have a participants route since those also have a reportID param, but do not have the problem described above and should not use the custom action.
@@ -114,8 +115,8 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !isParticipantsRoute;
+    const {reportID, reportActionID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+    return (reportID || reportActionID) && !isParticipantsRoute;
 }
 
 /**
