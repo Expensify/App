@@ -45,7 +45,7 @@ const propTypes = {
     loading: PropTypes.bool,
 
     /** The reportAction's source */
-    source: PropTypes.string,
+    source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']),
 
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
@@ -104,18 +104,13 @@ const ReportActionItemFragment = (props) => {
 
             // Only render HTML if we have html in the fragment
             if (html !== text) {
-                if (props.source === 'email') {
-                    // Messages from email replies usually have complex HTML structure and they don't rely in white-space: pre to preserve spacing,
-                    // instead, they normally use &nbsp;
-                    return (
-                        <RenderHTML
-                            html={`<email-comment>${html + (props.fragment.isEdited ? '<edited></edited>' : '')}</email-comment>`}
-                        />
-                    );
-                }
+                const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
+                const htmlContent = html + editedTag;
                 return (
                     <RenderHTML
-                        html={`<comment>${html + (props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
+                        html={props.source === 'email'
+                            ? `<email-comment>${htmlContent}</email-comment>`
+                            : `<comment>${htmlContent}</comment>`}
                     />
                 );
             }
