@@ -45,7 +45,7 @@
 	<div class="content-area">
 
 		<div class="article-toc-content">
-			{% if page.lhn_content == "" %}
+			{% if page.lhn_content == nil %}
 				<h1>
 					{{ page.name | remove: '.md' | split: "-" |  join: " " }}
 				</h1>
