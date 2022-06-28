@@ -761,42 +761,11 @@ const CONST = {
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
 
-    AVATAR_CROP_MODAL: {
-        // The next two constants control what is min and max value of the image crop scale.
-        // Values define in how many times the image can be bigger than its container.
-        // Notice: that values less than 1 mean that the image won't cover the container fully.
-        MAX_SCALE: 3, // 3x scale is used commonly in different apps.
-        MIN_SCALE: 1, // 1x min scale means that the image covers the container completely
-
-        // This const defines the initial container size, before layout measurement.
-        // Since size cant be null, we have to define some initial value.
-        INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
-    },
-
     ONYX: {
         METHOD: {
             MERGE: 'merge',
-            SET: 'set',
-        },
-    },
-    MICROSECONDS_PER_MS: 1000,
-    RED_BRICK_ROAD_PENDING_ACTION: {
-        ADD: 'add',
-        DELETE: 'delete',
-        UPDATE: 'update',
-    },
-    BRICK_ROAD_INDICATOR_STATUS: {
-        ERROR: 'error',
-    },
-    REPORT_DETAILS_MENU_ITEM: {
-        MEMBERS: 'member',
-        SETTINGS: 'settings',
-        INVITE: 'invite',
-        LEAVE_ROOM: 'leaveRoom',
-    },
-    MAX_64BIT_LEFT_HALF: 9223372036,
-    MAX_64BIT_RIGHT_HALF: 854775807,
-    IOS_KEYBOARD_SPACE_OFFSET: -30,
+        }
+    }
 };
 
 export default CONST;
