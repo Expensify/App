@@ -106,7 +106,7 @@ const ReportActionItemFragment = (props) => {
             if (html !== text) {
                 if (props.source === 'email') {
                     // Messages from email replies usually have complex HTML structure and they don't rely in white-space: pre to preserve spacing,
-                    // instead, the normally use &nbsp;
+                    // instead, they normally use &nbsp;
                     return (
                         <RenderHTML
                             html={`<email-comment>${html + (props.fragment.isEdited ? '<edited></edited>' : '')}</email-comment>`}
