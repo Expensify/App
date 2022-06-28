@@ -1,5 +1,5 @@
-if (tocbot) {
-    tocbot.init({
+if (window.tocbot) {
+    window.tocbot.init({
         // Where to render the table of contents.
         tocSelector: '.article-toc',
 
@@ -12,6 +12,6 @@ if (tocbot) {
     });
 }
 
-function openArticle(path) {
-    location.href = path;
+function openArticle(path) { // eslint-disable-line no-unused-vars
+    window.location.href = path;
 }
