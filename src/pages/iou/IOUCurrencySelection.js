@@ -15,7 +15,6 @@ import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
-import personalDetailsPropType from '../personalDetailsPropType';
 
 /**
  * IOU Currency selection for selecting currency
@@ -60,12 +59,6 @@ class IOUCurrencySelection extends Component {
         super(props);
 
         const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList), '');
-
-        // Get my details from the list of personal details and set my local currency to USD if not already set
-        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
-        if (!_.has(this.myPersonalDetails, 'localCurrencyCode') || _.isEmpty(this.myPersonalDetails.localCurrencyCode)) {
-            this.myPersonalDetails.localCurrencyCode = CONST.CURRENCY.USD;
-        }
 
         this.state = {
             searchValue: '',
