@@ -117,6 +117,7 @@ class AdditionalDetailsStep extends React.Component {
             dob: 'bankAccount.error.dob',
             age: 'bankAccount.error.age',
             ssn: 'bankAccount.error.ssnLast4',
+            ssnFull9: 'additionalDetailsStep.ssnFull9Error',
         };
 
         this.fieldNameTranslationKeys = {
@@ -189,7 +190,11 @@ class AdditionalDetailsStep extends React.Component {
             errors.phoneNumber = true;
         }
 
-        if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn) && !ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+        if (this.props.walletAdditionalDetails.shouldAskForFullSSN) {
+            if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+                errors.ssnFull9 = true;
+            }
+        } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
             errors.ssn = true;
         }
 
@@ -226,6 +231,16 @@ class AdditionalDetailsStep extends React.Component {
     clearDateErrorsAndSetValue(value) {
         this.formHelper.clearErrors(this.props, ['dob', 'age']);
         Wallet.updateAdditionalDetailsDraft({dob: value});
+    }
+
+    /**
+     * Clear ssn and ssnFull9 error and set the new value
+     *
+     * @param {String} value
+     */
+    clearSSNErrorAndSetValue(value) {
+        this.formHelper.clearErrors(this.props, ['ssn', 'ssnFull9']);
+        Wallet.updateAdditionalDetailsDraft({ssn: value});
     }
 
     /**
@@ -363,9 +378,9 @@ class AdditionalDetailsStep extends React.Component {
                                 <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                    onChangeText={val => this.clearErrorAndSetValue('ssn', val)}
+                                    onChangeText={val => this.clearSSNErrorAndSetValue(val)}
                                     value={this.props.walletAdditionalDetailsDraft.ssn || ''}
-                                    errorText={this.getErrorText('ssn')}
+                                    errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                     maxLength={shouldAskForFullSSN ? 9 : 4}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 />
