@@ -39,7 +39,11 @@ function openOldDotLink(url) {
     }
 
     function buildOldDotURL({shortLivedAuthToken}) {
-        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+        const hasHashParams = url.indexOf('#') !== -1;
+        const hasURLParams = url.indexOf('?') !== -1;
+
+        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
+        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${hasHashParams || hasURLParams ? '&' : '?'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
     }
 
     asyncOpenURL(DeprecatedAPI.GetShortLivedAuthToken(), buildOldDotURL);
