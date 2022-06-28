@@ -8,18 +8,14 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  test:
+    uses: ./.github/workflows/test.yml
+
   confirmPassingBuild:
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [lint, test]
 
     steps:
-      - name: Run tests
-        id: tests
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          WORKFLOW: test.yml
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
       - uses: 8398a7/action-slack@v3
