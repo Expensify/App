@@ -2,8 +2,6 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import createCallback from '../createCallback';
-import createOnReadyTask from '../createOnReadyTask';
 
 let credentials;
 let authToken;
@@ -11,8 +9,26 @@ let currentUserEmail;
 let offline = false;
 let authenticating = false;
 
-const [triggerConnectivityResumed, onConnectivityResumed] = createCallback();
-const requiredDataReadyTask = createOnReadyTask();
+// Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
+let reconnectCallback;
+function triggerReconnectCallback() {
+    if (!_.isFunction(reconnectCallback)) {
+        return;
+    }
+    return reconnectCallback();
+}
+
+/**
+ * @param {Function} callbackFunction
+ */
+function onReconnection(callbackFunction) {
+    reconnectCallback = callbackFunction;
+}
+
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
 
 /**
  * This is a hack to workaround the fact that Onyx may not yet have read these values from storage by the time Network starts processing requests.
@@ -23,11 +39,14 @@ function checkRequiredData() {
         return;
     }
 
-    requiredDataReadyTask.setIsReady();
+    resolveIsReadyPromise();
 }
 
 function resetHasReadRequiredDataFromStorage() {
-    requiredDataReadyTask.reset();
+    // Create a new promise and a new resolve function
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 }
 
 Onyx.connect({
@@ -58,7 +77,7 @@ Onyx.connect({
 
         // Client becomes online emit connectivity resumed event
         if (offline && !network.isOffline) {
-            triggerConnectivityResumed();
+            triggerReconnectCallback();
         }
 
         offline = network.isOffline;
@@ -104,7 +123,7 @@ function getCurrentUserEmail() {
  * @returns {Promise}
  */
 function hasReadRequiredDataFromStorage() {
-    return requiredDataReadyTask.isReady();
+    return isReadyPromise;
 }
 
 /**
@@ -128,7 +147,7 @@ export {
     hasReadRequiredDataFromStorage,
     resetHasReadRequiredDataFromStorage,
     isOffline,
-    onConnectivityResumed,
+    onReconnection,
     isAuthenticating,
     setIsAuthenticating,
     getCredentials,

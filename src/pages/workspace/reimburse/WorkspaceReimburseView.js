@@ -27,7 +27,7 @@ const propTypes = {
     /** The policy ID currently being configured */
     policyID: PropTypes.string.isRequired,
 
-    /** Does the user has a VBA into its account? */
+    /** Does the user have a VBA in their account? */
     hasVBA: PropTypes.bool.isRequired,
 
     /** Policy values needed in the component */
@@ -211,7 +211,7 @@ class WorkspaceReimburseView extends React.Component {
                         />
                     </Section>
                 )}
-                {Boolean(this.props.hasVBA) && (
+                {this.props.hasVBA && (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                         icon={Illustrations.BankUserGreen}

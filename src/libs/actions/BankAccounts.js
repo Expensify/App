@@ -1,13 +1,15 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import * as Plaid from './Plaid';
 import * as ReimbursementAccount from './ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PaymentMethods from './PaymentMethods';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -51,7 +53,7 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
     const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
         bankAccount.plaidAccountID === account.plaidAccountID
     ));
-    API.BankAccount_Create({
+    DeprecatedAPI.BankAccount_Create({
         accountNumber: unmaskedAccount.accountNumber,
         addressName: unmaskedAccount.addressName,
         allowDebit: false,
@@ -103,7 +105,14 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
  * @param {Number} bankAccountID
  */
 function deleteBankAccount(bankAccountID) {
-    API.DeleteBankAccount({
+    const reimbursementBankAccountId = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
+    // Early return as DeleteBankAccount API is called inside `resetFreePlanBankAccount`
+    if (reimbursementBankAccountId === bankAccountID) {
+        ReimbursementAccount.resetFreePlanBankAccount();
+        return;
+    }
+    DeprecatedAPI.DeleteBankAccount({
         bankAccountID,
     }).then((response) => {
         if (response.jsonCode === 200) {
