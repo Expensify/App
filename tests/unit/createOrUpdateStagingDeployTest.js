@@ -5,7 +5,7 @@ const core = require('@actions/core');
 const moment = require('moment');
 const GitUtils = require('../../.github/libs/GitUtils');
 const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
+const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
