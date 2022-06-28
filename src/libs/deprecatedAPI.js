@@ -682,13 +682,6 @@ function GetLocalCurrency(parameters) {
 /**
  * @returns {Promise}
  */
-function GetCurrencyList() {
-    return Mobile_GetConstants({data: ['currencyList']});
-}
-
-/**
- * @returns {Promise}
- */
 function User_IsUsingExpensifyCard() {
     return Network.post('User_IsUsingExpensifyCard', {});
 }
@@ -897,7 +890,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    GetCurrencyList,
     Policy_Create,
     Policy_CustomUnit_Update,
     Policy_CustomUnitRate_Update,

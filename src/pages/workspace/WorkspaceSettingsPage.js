@@ -51,18 +51,6 @@ class WorkspaceSettingsPage extends React.Component {
         this.validate = this.validate.bind(this);
     }
 
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
     /**
      * @returns {Object[]}
      */
@@ -72,10 +60,6 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
-    }
-
-    fetchData() {
-        PersonalDetails.getCurrencyList();
     }
 
     removeAvatar() {
