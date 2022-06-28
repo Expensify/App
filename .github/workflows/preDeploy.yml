@@ -17,14 +17,11 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      - id: didBuildFail
-        run: echo "::set-output name=DID_BUILD_FAIL::${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}"
-
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
       - uses: 8398a7/action-slack@v3
         name: Job failed Slack notification
-        if: ${{ fromJSON(steps.didBuildFail.DID_BUILD_FAIL) }}
+        if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         with:
           status: custom
           fields: workflow, repo
@@ -41,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-      - if: ${{ fromJSON(steps.didBuildFail.DID_BUILD_FAIL) }}
+      - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         run: exit 1
 
   chooseDeployActions:
