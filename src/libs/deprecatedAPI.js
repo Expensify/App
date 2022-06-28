@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
@@ -592,13 +591,6 @@ function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
 }
 
 /**
- * @returns {Promise}
- */
-function Plaid_GetLinkToken() {
-    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.currentStep
  * @param {String} [parameters.onfidoData] - JSON string
@@ -610,19 +602,6 @@ function Plaid_GetLinkToken() {
 function Wallet_Activate(parameters) {
     const commandName = 'Wallet_Activate';
     requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.publicToken
- * @param {Boolean} parameters.allowDebit
- * @param {String} parameters.bank
- * @returns {Promise}
- */
-function BankAccount_Get(parameters) {
-    const commandName = 'BankAccount_Get';
-    requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
@@ -921,7 +900,6 @@ function GetStatementPDF(parameters) {
 export {
     AddBillingCard,
     BankAccount_Create,
-    BankAccount_Get,
     BankAccount_SetupWithdrawal,
     BankAccount_Validate,
     ChangePassword,
@@ -947,7 +925,6 @@ export {
     PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
-    Plaid_GetLinkToken,
     Policy_Employees_Merge,
     Push_Authenticate,
     RejectTransaction,

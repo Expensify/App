@@ -1,15 +1,15 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import * as Plaid from './Plaid';
 import * as ReimbursementAccount from './ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as PaymentMethods from './PaymentMethods';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as store from './ReimbursementAccount/store';
+import requireParameters from '../requireParameters';
+import ROUTES from '../../ROUTES';
 
 export {
     setupWithdrawalAccount,
@@ -18,6 +18,7 @@ export {
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
+    resetReimbursementAccount,
     resetFreePlanBankAccount,
     validateBankAccount,
     hideBankAccountErrors,
@@ -28,12 +29,10 @@ export {
     cancelResetFreePlanBankAccount,
 } from './ReimbursementAccount';
 export {
-    fetchPlaidBankAccounts,
+    openPlaidBankAccountSelector,
     clearPlaidBankAccountsAndToken,
-    fetchPlaidLinkToken,
-    getPlaidBankAccounts,
+    openPlaidBankLogin,
     getBankName,
-    getPlaidAccessToken,
 } from './Plaid';
 export {
     fetchOnfidoToken,
@@ -46,57 +45,77 @@ export {
  *
  * @param {Object} account
  * @param {String} password
- * @param {String} plaidLinkToken
+ * @param {String} plaidAccessToken
  */
-function addPersonalBankAccount(account, password, plaidLinkToken) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
-    const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
-        bankAccount.plaidAccountID === account.plaidAccountID
-    ));
-    DeprecatedAPI.BankAccount_Create({
-        accountNumber: unmaskedAccount.accountNumber,
-        addressName: unmaskedAccount.addressName,
+function addPersonalBankAccount(account, password, plaidAccessToken) {
+    const commandName = 'AddPersonalBankAccount';
+
+    const parameters = {
+        accountNumber: account.accountNumber,
+        addressName: account.addressName,
         allowDebit: false,
         confirm: false,
-        isSavings: unmaskedAccount.isSavings,
+        isSavings: account.isSavings,
         password,
-        routingNumber: unmaskedAccount.routingNumber,
+        routingNumber: account.routingNumber,
         setupType: 'plaid',
         additionalData: JSON.stringify({
-            useOnFido: false,
-            policyID: '',
-            plaidLinkToken,
-            isInSetup: true,
-            bankAccountInReview: null,
-            currentStep: 'AccountOwnerInformationStep',
             bankName: Plaid.getBankName(),
-            plaidAccountID: unmaskedAccount.plaidAccountID,
-            ownershipType: '',
+            plaidAccountID: account.plaidAccountID,
             acceptTerms: true,
             country: 'US',
             currency: CONST.CURRENCY.USD,
             fieldsType: 'local',
-            plaidAccessToken: Plaid.getPlaidAccessToken(),
+            plaidAccessToken,
         }),
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                PaymentMethods.getPaymentMethods()
-                    .then(() => {
-                        PaymentMethods.continueSetup();
-                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-                    });
-                return;
-            }
+    };
 
-            if (response.message === 'Incorrect Expensify password entered') {
-                ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
-            }
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-        })
-        .catch(() => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-        });
+    requireParameters([
+        'accountNumber',
+        'addressName',
+        'isSavings',
+        'password',
+        'routingNumber',
+    ], parameters, commandName);
+
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: true,
+                    error: '',
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                    error: '',
+
+                    // Once the bank account has been added, we show a success message with a Continue button.
+                    // When clicking on the button, we should redirect to this route.
+                    successRoute: ROUTES.SETTINGS_PAYMENTS,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                },
+            },
+        ],
+    };
+
+    API.write(commandName, parameters, onyxData);
 }
 
 /**
