@@ -571,9 +571,16 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
-        pdfPasswordFormLabel: 'This PDF is password protected. Please enter the password to view it.',
         passwordRequired: 'Please enter a password',
         passwordIncorrect: 'Incorrect password. Please try again.',
+        pdfPasswordForm: {
+            title: 'Password protected PDF',
+            infoText: 'This PDF is password protected.',
+            beforeLinkText: 'Please',
+            linkText: 'enter the password',
+            afterLinkText: 'to view it.',
+            formLabel: 'This PDF is password protected. Please enter the password to view it.',
+        },
     },
     pronouns: {
         heHimHis: 'He/him',
