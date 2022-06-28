@@ -111,7 +111,7 @@ jobs:
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
-        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
+        uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
