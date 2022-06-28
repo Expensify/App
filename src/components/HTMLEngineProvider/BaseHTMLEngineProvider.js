@@ -56,7 +56,7 @@ const BaseHTMLEngineProvider = (props) => {
             systemFonts={_.values(fontFamily)}
         >
             <RenderHTMLConfigProvider
-                defaultTextProps={defaultTextProps}
+                defaultTextProps={{...defaultTextProps, allowFontScaling: false}}
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
