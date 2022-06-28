@@ -272,13 +272,6 @@ function resetWalletTransferData() {
 }
 
 /**
- * @param {Number} transferAmount
- */
-function saveWalletTransferAmount(transferAmount) {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {transferAmount});
-}
-
-/**
  * @param {String} selectedAccountType
  * @param {String} selectedAccountID
  */
@@ -309,7 +302,6 @@ export {
     clearDebitCardFormErrorAndSubmit,
     transferBalance,
     resetWalletTransferData,
-    saveWalletTransferAmount,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     dismissWalletConfirmModal,
