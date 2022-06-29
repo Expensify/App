@@ -142,7 +142,7 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerAndMarkReadOnce();
         }
 
-        Report.openReport();
+        Report.openReport(this.props.reportID);
         this.fetchData();
     }
 
@@ -199,7 +199,7 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            Report.openReport();
+            Report.openReport(this.props.reportID);
             this.fetchData();
         }
 
