@@ -242,7 +242,7 @@ class ProfilePage extends Component {
                                     inputID="firstName"
                                     name="fname"
                                     label={this.props.translate('common.firstName')}
-                                    defaultValue={this.state.firstName}
+                                    defaultValue={this.props.myPersonalDetails.firstName}
                                     placeholder={this.props.translate('profilePage.john')}
                                 />
                             </View>
@@ -251,7 +251,7 @@ class ProfilePage extends Component {
                                     inputID="lastName"
                                     name="lname"
                                     label={this.props.translate('common.lastName')}
-                                    defaultValue={this.state.lastName}
+                                    defaultValue={this.props.myPersonalDetails.lastName}
                                     placeholder={this.props.translate('profilePage.doe')}
                                 />
                             </View>
@@ -265,14 +265,14 @@ class ProfilePage extends Component {
                                     value: '',
                                     label: this.props.translate('profilePage.selectYourPronouns'),
                                 }}
-                                defaultValue={this.state.pronouns}
+                                defaultValue={this.props.myPersonalDetails.pronouns}
                                 shouldSaveDraft
                             />
                             {this.state.hasSelfSelectedPronouns && (
                                 <View style={styles.mt2}>
                                     <TextInput
                                         inputID="selfSelectedPronoun"
-                                        defaultValue={this.state.pronouns}
+                                        defaultValue={this.props.myPersonalDetails.pronouns}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
                                     />
                                 </View>
