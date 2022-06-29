@@ -130,11 +130,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If a reportActionID exists in the URL then let's close the drawer so that we can continue to see the message comments on native platforms.
-        if (this.props.route.params.reportActionID) {
-            Navigation.closeDrawer();
-        }
-
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }

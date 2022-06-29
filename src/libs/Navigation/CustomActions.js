@@ -79,13 +79,20 @@ function pushDrawerRoute(route) {
             navigateBackToRootDrawer();
         }
 
-        // If we're trying to navigate to the same screen that is already active there's nothing more to do except close the drawer.
-        // This prevents unnecessary re-rendering the screen and adding duplicate items to the browser history.
         const activeState = getActiveState();
         const activeScreenName = getScreenNameFromState(activeState);
         const activeScreenParams = getParamsFromState(activeState);
-        if (newScreenName === activeScreenName && _.isEqual(activeScreenParams, newScreenParams)) {
-            return DrawerActions.closeDrawer();
+        if (newScreenName === activeScreenName && activeScreenParams.reportID === newScreenParams.reportID) {
+            // If we're trying to navigate to the same screen that is already active there's nothing more to do except close the drawer.
+            // This prevents unnecessary re-rendering the screen and adding duplicate items to the browser history.
+            if (!newScreenParams.reportActionID) {
+                return DrawerActions.closeDrawer();
+            }
+
+            // If we're trying to navigate to the same screen with a new prop then let's just set the new params and not reset the navigation.
+            if (activeScreenParams.reportActionID !== newScreenParams.reportActionID) {
+                return CommonActions.setParams(newScreenParams);
+            }
         }
 
         let state = currentState;

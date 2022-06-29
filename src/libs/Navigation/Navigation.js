@@ -114,18 +114,13 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, reportActionID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !reportActionID && !isParticipantsRoute;
-}
-
-/**
- * Returns the current active route
- * @returns {String}
- */
-function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
-        : '';
+    const {
+        reportID,
+        isParticipantsRoute,
+        isDetailsRoute,
+        isSettingsRoute,
+    } = ROUTES.parseReportRouteParams(route);
+    return reportID && !isParticipantsRoute && !isDetailsRoute && !isSettingsRoute;
 }
 
 /**
@@ -139,16 +134,7 @@ function navigate(route = ROUTES.HOME) {
 
     if (route === ROUTES.HOME) {
         if (isLoggedIn) {
-            // Let's clean the URL when visiting home so that its always just r/<reportID>
-            // if reportActionID is present in the URL the drawer will open so let's remove it.
-            const activeRoute = getActiveRoute().substring(1);
-            const {reportActionID} = ROUTES.parseReportRouteParams(activeRoute);
-            if (reportActionID) {
-                const newRoute = activeRoute.replace(`/${reportActionID}`, '');
-                linkTo(navigationRef.current, newRoute);
-            } else {
-                openDrawer();
-            }
+            openDrawer();
             return;
         }
 
@@ -184,6 +170,16 @@ function dismissModal(shouldOpenDrawer = false) {
     if (normalizedShouldOpenDrawer) {
         openDrawer();
     }
+}
+
+/**
+ * Returns the current active route
+ * @returns {String}
+ */
+function getActiveRoute() {
+    return navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
+        : '';
 }
 
 /**
