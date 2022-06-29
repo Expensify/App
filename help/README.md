@@ -26,8 +26,8 @@ i.e.
 1. Open the Terminal command line in macOS.
 2. Navigate to the `help` folder in the command line.
 3. Run `jekyll serve`.
-4. Open localhost:4000 in the browser to site running locally.
-5. Modify an .html or .md file and refresh the page in the browser.
+4. Open localhost:4000 in the browser to see the site running locally.
+5. Modify a `.html` or `.md` file and refresh the page in the browser.
 
 # How the project is structured
 
@@ -47,9 +47,9 @@ More details about the Jekyll project structure can be found [here](https://jeky
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/TEMPLATE.md) file and rename it with the name of the article title, i.e. [SmartScan.md](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/request-money/SmartScan.md), (you can use dashes for spaces if it's needed) and put the new file inside of the respective hub folder ([send-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money) or [request-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money)) or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the content).
+Copy the [template](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/TEMPLATE.md) file and rename it with the name of the article title, i.e. [SmartScan.md](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/request-money/SmartScan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder ([send-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money) or [request-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money)) or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
 
-The sections of the article will be filled and nested in automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
+The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
 ## Add a new entry in the hub page
 
@@ -112,7 +112,7 @@ If it's required, you can add a new row of Card buttons with the following HTML 
 
 ### Add a Card button
 
-A card button is the box that contains the article title and the caret right icon `>`. When it's pressed it navigates to the article.
+A card button is the box that contains the article title and the caret right icon `>`. It navigates to the article when it's pressed.
 
 In order to add a new Card button in the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money/index.html) or [request-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html)) just copy and pase the following Card element:
 
@@ -127,12 +127,12 @@ In order to add a new Card button in the respective hub page ([send-money/index.
 </div>
 ```
 
-Then replace the article title accordingly (in this case replace the value `SmartScan` with the new article title) and add a link to the relative path of the article (in this case replace `./request-money/SmartScan` accordingly to the path of the new article file without the extension file).
+Then replace the article title accordingly (in this case replace the value `SmartScan` with the new article title) and add a link to the relative path of the article (in this case replace `./request-money/SmartScan` accordingly to the path of the new article file without the file extension).
 
 ## Add a new entry in the LHN page
 
 There are 2 main components in the LHN page:
-  1. Stage title anchor: which navigates the State title in the hub page and contains inside the Article links
+  1. Stage title anchor: which navigates the State title in the hub page and contains inside the Article links.
   2. Article links: which navigate to the corresponding article page.
 
 ```
@@ -164,7 +164,7 @@ Just add copy and paste the following HTML block in the corresponding navigation
 </li>
 ```
 
-where `"#request-money"` is the ID of Stage title in the hub page (the same as in the example of the `Add a Stage title (optional)` section).
+Where `"#request-money"` is the ID of Stage title in the hub page (the same as in the example of the `Add a Stage title (optional)` section).
 
 ### Add a new Article link
 
@@ -176,4 +176,4 @@ Add the next HTML block inside of the corresponding Stage title anchor:
 </ul>
 ```
 
-where `./request-money/SmartScan` will be the relative path of the file name (exactly the same as in the `Add a Card button` example above).
+Where `./request-money/SmartScan` will be the relative path of the file name (exactly the same as in the `Add a Card button` example above).
