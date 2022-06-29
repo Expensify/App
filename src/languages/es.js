@@ -926,7 +926,7 @@ export default {
     },
     requestCallConfirmationScreen: {
         callRequested: '¡Llamada solicitada con éxito!',
-        allSet: 'Listo! Pronto recibirás una llamada nuestra.',
+        allSet: 'Todo listo! Pronto recibirás una llamada nuestra.',
         gotIt: 'Entendido',
     },
     emojiPicker: {
