@@ -161,16 +161,6 @@ class OptionsSelector extends Component {
                 }
 
                 this.selectRow(focusedOption);
-
-                if (!this.props.canSelectMultipleOptions) {
-                    return;
-                }
-
-                // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
-                this.scrollToIndex(0);
-                this.setState({
-                    focusedIndex: this.props.selectedOptions.length,
-                });
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
@@ -223,6 +213,11 @@ class OptionsSelector extends Component {
             }
             this.scrollToIndex(this.state.focusedIndex);
         });
+
+        if (newOptions.length <= newFocusedIndex || !_.isEqual(this.props.selectedOptions, prevProps.selectedOptions)) {
+            return;
+        }
+        this.scrollToIndex(newFocusedIndex);
     }
 
     componentWillUnmount() {
@@ -308,6 +303,16 @@ class OptionsSelector extends Component {
             this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
+
+        if (!this.props.canSelectMultipleOptions) {
+            return;
+        }
+
+        // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
+        this.scrollToIndex(0);
+        this.setState({
+            focusedIndex: this.props.selectedOptions.length,
+        });
     }
 
     render() {
