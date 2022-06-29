@@ -832,32 +832,28 @@ function fetchAllReports(
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (reportIDs.length > 0) {
                 // return fetchChatReportsByIDs(reportIDs);
-                let fetchedReports;
                 const simplifiedReports = {};
                 return ReportActions.GetChats({reportIDList: reportIDs})
-                    .then((iouReportObjects) => {
-                        fetchedReports = iouReportObjects.reportList;
-
+                    .then((chats) => {
                         // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
                         // variable called simplifiedReports which hold the participants (minus the current user) for each report.
                         // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
                         // personal details of all the participants and even link up their avatars to report icons.
                         const reportIOUData = {};
-                        _.each(fetchedReports, (report) => {
+                        _.each(chats.reportList, (report) => {
                             const simplifiedReport = getSimplifiedReportObject(report);
                             simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
                         });
 
-                        window.fetchedReports = fetchedReports;
-                        _.each(fetchedReports, (iouReportObject) => {
+                        _.each(chats.iouReportList, (iouReportObject) => {
                             if (!iouReportObject) {
                                 return;
                             }
 
                             const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-                            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.reportID}`;
-                            reportIOUData[iouReportKey] = iouReportObject;
-                            simplifiedReports[reportKey].iouReportID = iouReportObject.iouChatReportID;
+                            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
+                            reportIOUData[iouReportKey] = getSimplifiedIOUReport(iouReportObject, iouReportObject.chatReportID);
+                            simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
                         });
 
                         // We use mergeCollection such that it updates the collection in one go.
