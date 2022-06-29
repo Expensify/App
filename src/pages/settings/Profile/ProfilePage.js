@@ -130,6 +130,7 @@ class ProfilePage extends Component {
 
     /**
      * Submit form to update personal details
+     * @param {Object} values
      */
     updatePersonalDetails(values) {
         console.log('Update personal details: ', values);
