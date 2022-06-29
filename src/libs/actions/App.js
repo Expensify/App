@@ -9,7 +9,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import NameValuePair from './NameValuePair';
 import * as PersonalDetails from './PersonalDetails';
 import * as User from './User';
 import * as Report from './Report';
@@ -59,20 +58,6 @@ function setLocale(locale) {
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
-function getLocale() {
-    DeprecatedAPI.Get({
-        returnValueList: 'nameValuePairs',
-        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    }).then((response) => {
-        const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-        if (preferredLocale === currentPreferredLocale) {
-            return;
-        }
-
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-    });
-}
-
 function setSidebarLoaded() {
     if (isSidebarLoaded) {
         return;
@@ -100,9 +85,6 @@ AppState.addEventListener('change', (nextAppState) => {
  * @returns {Promise}
  */
 function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
-    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-    getLocale();
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
@@ -217,7 +199,6 @@ export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
-    getLocale,
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
