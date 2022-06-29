@@ -128,7 +128,8 @@ export default {
         const pathSegments = route.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
-            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
+            reportActionID: lodashGet(pathSegments, 2),
+            isParticipantsRoute: lodashGet(pathSegments, 2) === 'participants',
         };
     },
 };
