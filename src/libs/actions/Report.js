@@ -831,12 +831,51 @@ function fetchAllReports(
 
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (reportIDs.length > 0) {
-                return fetchChatReportsByIDs(reportIDs);
+                // return fetchChatReportsByIDs(reportIDs);
+                let fetchedReports;
+                const simplifiedReports = {};
+                return ReportActions.GetChats({reportIDList: reportIDs})
+                    .then((iouReportObjects) => {
+                        fetchedReports = iouReportObjects.reportList;
+
+                        // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
+                        // variable called simplifiedReports which hold the participants (minus the current user) for each report.
+                        // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
+                        // personal details of all the participants and even link up their avatars to report icons.
+                        const reportIOUData = {};
+                        _.each(fetchedReports, (report) => {
+                            const simplifiedReport = getSimplifiedReportObject(report);
+                            simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
+                        });
+
+                        window.fetchedReports = fetchedReports;
+                        _.each(fetchedReports, (iouReportObject) => {
+                            if (!iouReportObject) {
+                                return;
+                            }
+
+                            const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+                            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.reportID}`;
+                            reportIOUData[iouReportKey] = iouReportObject;
+                            simplifiedReports[reportKey].iouReportID = iouReportObject.iouChatReportID;
+                        });
+
+                        // We use mergeCollection such that it updates the collection in one go.
+                        // Any withOnyx subscribers to this key will also receive the complete updated props just once
+                        // than updating props for each report and re-rendering had merge been used.
+                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
+                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
+
+                        // Fetch the personal details if there are any
+                        PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
+                        return simplifiedReports;
+                    });
             }
 
             return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
         .then((returnedReports) => {
+            returnedReports = returnedReports.reportList;
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
             Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
 
