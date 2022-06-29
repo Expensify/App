@@ -732,11 +732,6 @@ const CONST = {
     MAX_COMMENT_LENGTH: 60000,
 
     PDF_PASSWORD_FORM: {
-        KEYBOARD_AVOIDING_VIEW: {
-            BEHAVIOR: 'padding',
-            KEYBOARD_VERTICAL_OFFSET: 85,
-        },
-
         // Constants for password-related error responses received from react-pdf.
         REACT_PDF_PASSWORD_RESPONSES: {
             NEED_PASSWORD: 1,

@@ -1,34 +1,24 @@
 import React, {Component} from 'react';
 import PDF from 'react-native-pdf';
-import {
-    KeyboardAvoidingView,
-    TouchableWithoutFeedback,
-    View,
-    Keyboard,
-} from 'react-native';
+import {TouchableWithoutFeedback, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
-import CONST from '../../CONST';
 import {propTypes as pdfViewPropTypes, defaultProps as pdfViewDefaultProps} from './pdfViewPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
 
 const propTypes = {
     ...pdfViewPropTypes,
 
-    /** If keyboard should be dismissed before loading PDF */
-    dismissKeyboardBeforePdfLoad: PropTypes.bool,
-
-    /** If KeyboardAvoidingView is enabled */
-    enableKeyboardAvoidingView: PropTypes.bool,
+    /** Notify parent that a PDF load attempt is in progress */
+    onAttemptPdfLoad: PropTypes.func,
 };
 
 const defaultProps = {
     ...pdfViewDefaultProps,
-    dismissKeyboardBeforePdfLoad: true,
-    enableKeyboardAvoidingView: false,
+    onAttemptPdfLoad: () => {},
 };
 
 /**
@@ -99,12 +89,7 @@ class BasePDFViewNative extends Component {
      * @param {String} password Password submitted via PDFPasswordForm
      */
     attemptPdfLoadWithPassword(password) {
-        // On Android we need to close the keyboard before rendering the PDF.
-        // If the keyboard is open during PDF rendering then react-native-pdf
-        // scales the PDF view incorrectly.
-        if (this.props.dismissKeyboardBeforePdfLoad) {
-            Keyboard.dismiss();
-        }
+        this.props.onAttemptPdfLoad();
 
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
@@ -151,9 +136,6 @@ class BasePDFViewNative extends Component {
         const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
             ? styles.pdfPasswordForm.nativeNarrowContainer : {};
 
-        const keyboardBehavior = CONST.PDF_PASSWORD_FORM.KEYBOARD_AVOIDING_VIEW.BEHAVIOR;
-        const keyboardOffset = CONST.PDF_PASSWORD_FORM.KEYBOARD_AVOIDING_VIEW.KEYBOARD_VERTICAL_OFFSET;
-
         return (
             <View style={containerStyles}>
                 {this.state.shouldAttemptPdfLoad && (
@@ -169,17 +151,11 @@ class BasePDFViewNative extends Component {
                     </TouchableWithoutFeedback>
                 )}
                 {this.state.shouldRequestPassword && (
-                    <KeyboardAvoidingView
-                        enabled={this.props.enableKeyboardAvoidingView}
-                        behavior={keyboardBehavior}
-                        keyboardVerticalOffset={keyboardOffset}
-                    >
-                        <PDFPasswordForm
-                            onSubmit={this.attemptPdfLoadWithPassword}
-                            isPasswordInvalid={this.state.isPasswordInvalid}
-                            shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
-                        />
-                    </KeyboardAvoidingView>
+                    <PDFPasswordForm
+                        onSubmit={this.attemptPdfLoadWithPassword}
+                        isPasswordInvalid={this.state.isPasswordInvalid}
+                        shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
+                    />
                 )}
             </View>
         );
