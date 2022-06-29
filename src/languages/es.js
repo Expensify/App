@@ -925,9 +925,9 @@ export default {
         },
     },
     requestCallConfirmationScreen: {
-        callRequested: 'Call successfully requested!',
-        allSet: 'You’re all set. You will be receiving a call from us soon.',
-        gotIt: 'Got it',
+        callRequested: '¡Llamada solicitada con éxito!',
+        allSet: 'Estás listo. Pronto recibirás una llamada nuestra.',
+        gotIt: 'Entendido',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
