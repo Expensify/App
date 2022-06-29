@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
 import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
 import * as ReportUtils from '../ReportUtils';
@@ -114,9 +115,17 @@ function getLastVisibleMessageText(reportID) {
     return ReportUtils.formatReportLastMessageText(messageText);
 }
 
+/**
+ * Calls API command GetChats
+ */
+function getChats() {
+    API.read('GetChats');
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
+    getChats,
 };
