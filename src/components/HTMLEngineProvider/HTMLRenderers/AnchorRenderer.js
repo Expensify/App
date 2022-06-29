@@ -4,6 +4,7 @@ import {
     TNodeChildrenRenderer,
 } from 'react-native-render-html';
 import lodashGet from 'lodash/get';
+import {withNavigation} from '@react-navigation/compat';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
 import * as Link from '../../../libs/actions/Link';
@@ -33,7 +34,10 @@ const AnchorRenderer = (props) => {
         return (
             <Text
                 style={styles.link}
-                onPress={() => Navigation.navigate(internalNewExpensifyPath)}
+                onPress={() => {
+                    props.navigation.setParams({reportActionID: String(280690)});
+                    // Navigation.navigate(internalNewExpensifyPath);
+                }}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>
@@ -91,4 +95,4 @@ const AnchorRenderer = (props) => {
 AnchorRenderer.propTypes = htmlRendererPropTypes;
 AnchorRenderer.displayName = 'AnchorRenderer';
 
-export default AnchorRenderer;
+export default withNavigation(AnchorRenderer);

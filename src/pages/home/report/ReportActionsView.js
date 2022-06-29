@@ -223,6 +223,7 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (this.props.reportActionID && this.props.reportActionID !== prevProps.reportActionID && this.props.reportID === prevProps.reportID) {
+            console.log('yes this is true');
             // We've received a new reportActionID, we need to reset some variables to its initial state so that we can scroll to the new index.
             this.actionScrollTargetIndex = -1;
             this.isDoneScrollingToReportActionID = false;
@@ -319,6 +320,7 @@ class ReportActionsView extends React.Component {
 
         // isDoneMeasuring is true once BaseInvertedFlatList completes measureItemLayout for all items. Since we're loading more chats
         // we need to reset this variable until measurement is complete so that we can re-attempt to scroll to our target action from our route params
+        console.log('@marcaaron - loading more chats');
         this.isDoneMeasuring = false;
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
@@ -466,6 +468,7 @@ class ReportActionsView extends React.Component {
      * Records when our FlatList is done measuring the heights and offset of items.
      */
     recordMeasurementDone() {
+        console.log('@marcaaron - done measuring');
         this.isDoneMeasuring = true;
         this.checkScrollToReportAction();
     }
@@ -477,14 +480,20 @@ class ReportActionsView extends React.Component {
      */
     checkScrollToReportAction() {
         if (!this.props.reportActionID || this.isDoneScrollingToReportActionID) {
+            console.log('@marcaaron - done scrolling to report action');
             return;
         }
 
         const reportAction = _.find(this.sortedReportActions, ({action}) => action.reportActionID === this.props.reportActionID);
+        console.log('@marcaaron: ', this.sortedReportActions, this.props.reportActionID);
+        console.log({doneMeasuring: this.isDoneMeasuring, reportAction, hasRendered: this.renderedActionIDs.has(this.props.reportActionID)});
+
         if ((this.isDoneMeasuring && reportAction) || this.renderedActionIDs.has(this.props.reportActionID)) {
+            console.log('@marcaaron: yes we have this action and we are done measuring');
             // We give a slight delay because if we attempt this immediately the scroll doesn't work as the item is not actually properly rendered yet.
             setTimeout(this.scrollToReportActionID, 10);
         } else if (!reportAction) {
+            console.log('@marcaaron: action does not exist');
             const lastSortedReportAction = this.sortedReportActions[this.sortedReportActions.length - 1];
             const minSequenceNumber = lodashGet(lastSortedReportAction, ['action', 'sequenceNumber'], 0);
             if (minSequenceNumber !== 0) {
@@ -494,6 +503,7 @@ class ReportActionsView extends React.Component {
                 this.isDoneScrollingToReportActionID = true;
             }
         }
+        console.log('@marcaaron: nothing happens');
     }
 
     render() {
