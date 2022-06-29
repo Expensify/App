@@ -579,7 +579,7 @@ export default {
             beforeLinkText: 'Please',
             linkText: 'enter the password',
             afterLinkText: 'to view it.',
-            formLabel: 'This PDF is password protected. Please enter the password to view it.',
+            formLabel: 'View PDF',
         },
     },
     pronouns: {

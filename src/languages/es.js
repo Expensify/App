@@ -579,7 +579,7 @@ export default {
             beforeLinkText: 'Por favor',
             linkText: 'introduzca la contraseña',
             afterLinkText: 'para verlo.',
-            formLabel: 'Este PDF está protegido por contraseña. Por favor, introduzca la contraseña para verlo.',
+            formLabel: 'Ver PDF',
         },
     },
     pronouns: {

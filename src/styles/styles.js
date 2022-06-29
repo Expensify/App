@@ -1769,10 +1769,11 @@ const styles = {
             ...sizing.w100,
         },
         wideScreen: {
-            maxWidth: 350,
+            width: 350,
         },
         narrowScreen: {
             ...spacing.p5,
+            ...sizing.w100,
             ...sizing.h100,
         },
     },

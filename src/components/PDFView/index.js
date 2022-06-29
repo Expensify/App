@@ -87,7 +87,7 @@ class PDFView extends Component {
         // the PDF component.
         if (this.state.shouldRequestPassword) {
             innerContainerStyle.push(styles.invisible);
-            outerContainerStyle.push(styles.defaultModalContainer);
+            outerContainerStyle.push(styles.defaultModalContainer, styles.dFlex);
         }
 
         return (
