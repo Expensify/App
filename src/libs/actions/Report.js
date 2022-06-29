@@ -1122,6 +1122,23 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
 }
 
 /**
+ * Gets all the report actions and updates the last read message
+ *
+ * @param {Number} reportID
+ */
+function openReport(reportID) {
+    API.write('OpenReport',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [],
+            successData: [],
+            failureData: [],
+        });
+}
+
+/**
  * Marks the new report actions as read
  *
  * @param {Number} reportID
@@ -1610,4 +1627,5 @@ export {
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
+    openReport,
 };
