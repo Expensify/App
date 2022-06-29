@@ -120,9 +120,9 @@ function getUnreadActionCount(report) {
 
 /**
  * Returns the number of unread actions for a reportID
- * 
- * @param {Number} reportID 
- * @param {Number} sequenceNumber 
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
  * @returns {Number}
  */
 function getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber) {
@@ -1125,12 +1125,21 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  * @param {Number} reportID
  */
 function openReport(reportID) {
+    const sequenceNumber = reportMaxSequenceNumbers[reportID];
     API.write('OpenReport',
         {
             reportID,
+            sequenceNumber,
         },
         {
-            optimisticData: [],
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                },
+            }],
             successData: [],
             failureData: [],
         });
