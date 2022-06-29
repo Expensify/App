@@ -35,12 +35,6 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
-});
-
 /**
  * @param {String} url
  */
