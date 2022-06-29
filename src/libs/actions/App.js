@@ -2,6 +2,7 @@ import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
@@ -125,6 +126,20 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
 }
 
 /**
+ * Fetches data needed for app initialization
+ */
+function openApp() {
+    API.read('OpenApp');
+}
+
+/**
+ * Refreshes data when the app reconnects
+ */
+function reconnectApp() {
+    API.read('ReconnectApp');
+}
+
+/**
  * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
  * because some migrations might create new chat reports or their change data.
  */
@@ -193,7 +208,10 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => getAppData(true, false));
+NetworkConnection.onReconnect(() => {
+    getAppData(true, false);
+    reconnectApp();
+});
 
 export {
     setCurrentURL,
@@ -203,4 +221,5 @@ export {
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
+    openApp,
 };
