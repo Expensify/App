@@ -117,9 +117,10 @@ function getLastVisibleMessageText(reportID) {
 
 /**
  * Calls API command GetChats
+ * @return {Promise}
  */
 function getChats() {
-    API.read('GetChats');
+    return API.makeRequestWithSideEffects('GetChats');
 }
 
 export {
