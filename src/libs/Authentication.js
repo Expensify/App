@@ -58,10 +58,19 @@ function Authenticate(parameters) {
  * @returns {Promise}
  */
 function reauthenticate(command = '') {
+    const credentials = NetworkStore.getCredentials();
+
+    // Hack to prevent Authenticate.reauthenticate from being called after calling new LogOut command
+    // LogOut used to have `shouldRetry: false` which prevented this in the old middleware, but now
+    // shouldRetry is hard coded to `true` in `API.write`
+    if (!credentials) {
+        NetworkStore.setIsAuthenticating(false);
+        return;
+    }
+
     // Prevent any more requests from being processed while authentication happens
     NetworkStore.setIsAuthenticating(true);
 
-    const credentials = NetworkStore.getCredentials();
     return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
