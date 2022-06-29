@@ -72,7 +72,7 @@ const propTypes = {
         loading: PropTypes.bool,
 
         /** Error message to display from Server */
-        errorMessage: PropTypes.string,
+        error: PropTypes.string,
     }),
 
     /** The number of minutes the user has to wait for an inbox call */
@@ -354,9 +354,9 @@ class RequestCallPage extends Component {
                                             <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
                                         </View>
                                     )}
-                                    {!_.isEmpty(this.props.requestCallForm.errorMessage) && (
+                                    {!_.isEmpty(this.props.requestCallForm.error) && (
                                         <Text style={styles.formError}>
-                                            {this.props.requestCallForm.errorMessage}
+                                            {this.props.requestCallForm.error}
                                         </Text>
                                     )}
                                     <Button

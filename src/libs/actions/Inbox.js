@@ -60,7 +60,7 @@ function openRequestCallPage() {
         onyxMethod: 'merge',
         key: ONYXKEYS.REQUEST_CALL_FORM,
         value: {
-            errorMessage: '',
+            error: '',
         },
     }];
     API.read('OpenRequestCallPage', {}, {optimisticData});
