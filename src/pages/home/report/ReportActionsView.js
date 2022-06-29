@@ -122,7 +122,7 @@ class ReportActionsView extends React.Component {
                 return;
             }
 
-            Report.updateLastReadActionID(this.props.reportID);
+            Report.openReport(this.props.reportID);
         });
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
@@ -142,6 +142,7 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerAndMarkReadOnce();
         }
 
+        Report.openReport();
         this.fetchData();
     }
 
@@ -198,6 +199,7 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            Report.openReport();
             this.fetchData();
         }
 
@@ -350,7 +352,7 @@ class ReportActionsView extends React.Component {
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
-            Report.updateLastReadActionID(this.props.reportID);
+            Report.readNewestAction(this.props.reportID);
         }
     }
 
