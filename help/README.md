@@ -8,21 +8,70 @@ Copy the [template](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a3
 
 The sections of the article will be filled and nested in automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
-### Add a new entry in the LHN and hub page
+### Add a new entry in the hub page
 
-In order to add a new article entry in the LHN, update the corresponding navigation tree file (either for [Request Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/request-money-navigation-tree.html) or [Send Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/send-money-navigation-tree.html)) from the folder [_includes](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes) by adding a new entry like:
+There are 3 main components in the hub page: 1. Stage title, 2. Row of Card buttons and 3. Card buttons.
 
 ```
-<li><a href="#request-money">Request Money</a>
-    <ul>
-        <li><a href="./request-money/SmartScan">SmartScan</a></li>
-    </ul>
-</li>
+<!-- 1. Stage title -->
+<h2 id="request-money">
+    Request Money
+</h2>
+
+<!-- 2. Row of Card buttons -->
+<div class="cards-row">
+
+    <!-- 3. Card buttons -->
+
+    <div class="card" onclick="openArticle('./request-money/SmartScan')">
+        <div class="body">
+            <div class="title">SmartScan</div>
+        </div>
+        <div class="right-icon">
+            <i class="fa-solid fa-angle-right caret-icon"></i>
+        </div>
+    </div>
+
+    <div class="card" onclick="openArticle('./request-money/AnotherArticle')">
+        <div class="body">
+            <div class="title">Another Article</div>
+        </div>
+        <div class="right-icon">
+            <i class="fa-solid fa-angle-right caret-icon"></i>
+        </div>
+    </div>
+
+    <!-- More Card buttons here... -->
+
+</div>
+```
+#### Add a Stage title (optional)
+
+In order to add a new stage title in the hub page just copy and paste the following HTML block in the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money/index.html) or [request-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html)) and modify the values accordingly:
+
+```
+<h2 id="request-money">
+    Request Money
+</h2>
 ```
 
-where `./request-money/SmartScan` will be the relative path of the file name without the extension file, and `"#request-money"` is the ID of element in the hub page (in this case in the [`Request Money`](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html#L12) hub page).
+Where `id` is an arbitrary value that will help us to anchor this title to the LHN element.
 
-Also update the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money/index.html) or [request-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html)) by adding a new Card element:
+#### Add a Row of Card buttons (optional)
+
+If it's required, you can add a new row of Card buttons with the following HTML block:
+
+```
+<div class="cards-row">
+    <!-- Add Cards components here -->
+</div>
+```
+
+#### Add a Card button
+
+A card button is the box that contains the article title and the caret right icon `>`. When it's pressed it navigates to the article.
+
+In order to add a new Card button in the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money/index.html) or [request-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html)) just copy and pase the following Card element:
 
 ```
 <div class="card" onclick="openArticle('./request-money/SmartScan')">
@@ -35,7 +84,22 @@ Also update the respective hub page ([send-money/index.html](https://github.com/
 </div>
 ```
 
-with the article title (SmartScan in this example) and a link to the relative path of the article (which in this case is `./request-money/SmartScan` like in the previous example).
+Then replace the article title accordingly (in this case replace the value `SmartScan` with the new article title) and add a link to the relative path of the article (in this case replace `./request-money/SmartScan` accordingly to the path of the new article file without the extension file).
+
+### Add a new entry in the hub page
+
+In order to add a new article entry in the LHN, update the corresponding navigation tree file (either for [Request Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/request-money-navigation-tree.html) or [Send Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/send-money-navigation-tree.html)) from the folder [_includes](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes) by adding a new entry like:
+
+```
+<li><a href="#request-money">Request Money</a>
+    <ul>
+        <li><a href="./request-money/SmartScan">SmartScan</a></li>
+    </ul>
+</li>
+```
+
+where `./request-money/SmartScan` will be the relative path of the file name (exactly the same as in the `Add a Card button` example above), and `"#request-money"` is the ID of element in the hub page (in this case in the [`Request Money`](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html#L12) hub page).
+
 
 ### Test locally
 
