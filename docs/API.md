@@ -44,7 +44,7 @@ The data will automatically be sent to the user via Pusher.
 When there is an error on a WRITE response (`jsonCode!==200`), the error must come back to the client on the HTTPS response. The error is only relevant to the client that made the request and it wouldn't make sense to send it out to all connected clients.
 
 Error messages should be returned and stored as a String under the `error` property. If absoultely needed, additional error properties can be stored under other, more specific fields that sit at the same level as `error`:
-```
+```php
 [
     'onyxMethod' => 'merge',
     'key' => OnyxKeys::WALLET_ADDITIONAL_DETAILS,
