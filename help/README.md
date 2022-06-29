@@ -129,16 +129,51 @@ In order to add a new Card button in the respective hub page ([send-money/index.
 
 Then replace the article title accordingly (in this case replace the value `SmartScan` with the new article title) and add a link to the relative path of the article (in this case replace `./request-money/SmartScan` accordingly to the path of the new article file without the extension file).
 
-## Add a new entry in the hub page
+## Add a new entry in the LHN page
 
-In order to add a new article entry in the LHN, update the corresponding navigation tree file (either for [Request Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/request-money-navigation-tree.html) or [Send Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/send-money-navigation-tree.html)) from the folder [_includes](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes) by adding a new entry like:
+There are 2 main components in the LHN page:
+  1. Stage title anchor: which navigates the State title in the hub page and contains inside the Article links
+  2. Article links: which navigate to the corresponding article page.
 
 ```
+<!-- 1.Stage title anchor -->
 <li><a href="#request-money">Request Money</a>
+
+    <!-- 2. Article links -->
     <ul>
         <li><a href="./request-money/SmartScan">SmartScan</a></li>
     </ul>
+
+    <ul>
+        <li><a href="./request-money/AnotherArticle">Another Article</a></li>
+    </ul>
+
+    <!-- More Article links here... -->
+</li>
+
+<!-- More Stage title anchors here... -->
+```
+
+### Add a new Stage title anchor (optional)
+
+Just add copy and paste the following HTML block in the corresponding navigation tree file (either for [Request Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/request-money-navigation-tree.html) or [Send Money](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/_includes/send-money-navigation-tree.html)):
+
+```
+<li><a href="#request-money">Request Money</a>
+    <!-- Article links will be here -->
 </li>
 ```
 
-where `./request-money/SmartScan` will be the relative path of the file name (exactly the same as in the `Add a Card button` example above), and `"#request-money"` is the ID of element in the hub page (in this case in the [`Request Money`](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html#L12) hub page).
+where `"#request-money"` is the ID of Stage title in the hub page (the same as in the example of the `Add a Stage title (optional)` section).
+
+### Add a new Article link
+
+Add the next HTML block inside of the corresponding Stage title anchor:
+
+```
+<ul>
+    <li><a href="./request-money/SmartScan">SmartScan</a></li>
+</ul>
+```
+
+where `./request-money/SmartScan` will be the relative path of the file name (exactly the same as in the `Add a Card button` example above).
