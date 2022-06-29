@@ -27,7 +27,6 @@ import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
-import {read} from "../API";
 
 let currentUserEmail;
 let currentUserAccountID;
