@@ -81,7 +81,7 @@ There are 3 main components in the hub page: 1. Stage title, 2. Row of Card butt
 
 In order to add a new stage title in the hub page just copy and paste the following HTML block in the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money/index.html) or [request-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html)) and modify the values accordingly:
 
-```
+```html
 <h2 id="request-money">
     Request Money
 </h2>
