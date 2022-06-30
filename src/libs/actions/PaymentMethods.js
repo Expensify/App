@@ -264,7 +264,7 @@ function resetWalletTransferData() {
         selectedAccountID: null,
         filterPaymentMethodType: null,
         loading: false,
-        shouldShowConfirmModal: false,
+        shouldShowTransferSuccess: false,
     });
 }
 
