@@ -14,11 +14,8 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
-import redirectToSignIn from './SignInRedirect';
 import NameValuePair from './NameValuePair';
-import Growl from '../Growl';
 import * as Localize from '../Localize';
-import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
@@ -88,26 +85,21 @@ function closeAccount(message) {
             {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
-                value: {isModalOpen: false, isLoading: true},
+                value: {isLoading: true},
             },
         ],
         successData: [
             {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
-                value: {isLoading: false},
-            },
-            {
-                onyxMethod: 'set',
-                key: ONYXKEYS.SESSION,
-                value: null,
+                value: {error: '', isLoading: false},
             },
         ],
         failureData: [
             {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
-                value: {isModalOpen: true, isLoading: false},
+                value: {isLoading: false},
             },
         ],
     });
