@@ -170,7 +170,7 @@ function addPaymentCard(params) {
         optimisticData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
+                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
 
                 // TODO: We use isSubmitting in Form. Are we changing this?
                 value: {isLoading: true},
@@ -179,7 +179,7 @@ function addPaymentCard(params) {
         successData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
+                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
 
                 // TODO: We use isSubmitting in Form. Are we changing this?
                 value: {isLoading: false},
@@ -188,7 +188,7 @@ function addPaymentCard(params) {
         failureData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
+                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
 
                 // TODO: We use isSubmitting in Form. Are we changing this?
                 // TODO: We use serverErrorMessage in Form. Are we changing this?
