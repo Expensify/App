@@ -1147,22 +1147,21 @@ function saveReportComment(reportID, comment) {
  * Open a report
  *
  * @param {String} reportID
- * @returns {Promise}
  */
 function openReport(reportID) {
     const sequenceNumber = reportMaxSequenceNumbers[reportID];
-    API.read('OpenReport',
+    API.write('OpenReport',
         {
             reportID,
+            sequenceNumber,
         },
         {
             optimisticData: [{
                 onyxMethod: 'merge',
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    history: [],
-                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                     lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                 },
             }],
             successData: [],
@@ -1171,17 +1170,15 @@ function openReport(reportID) {
 }
 
 /**
- * Open a report
+ * Gets the first/oldest action for the chat/report
  *
  * @param {String} reportID
- * @returns {Promise}
  */
 function readOldestAction(reportID) {
     const sequenceNumber = reportMaxSequenceNumbers[reportID];
-    API.read('ReadOldestAction',
+    API.write('ReadOldestAction',
         {
             reportID,
-            history,
         },
         {
             optimisticData: [{
