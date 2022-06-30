@@ -124,7 +124,7 @@ There are 2 main components in the LHN page associated with the hub you're addin
   1. Stage title anchor: which navigates the Stage title in the hub page and contains an unordered list of Article links.
   2. Article links: which navigate to the corresponding article page.
 
-```
+```html
 <!-- 1.Stage title anchor -->
 <li><a href="#request-money">Request Money</a>
 
