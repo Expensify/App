@@ -21,6 +21,7 @@ import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as Welcome from '../Welcome';
+import * as API from '../../API';
 
 let credentials = {};
 Onyx.connect({
@@ -444,47 +445,15 @@ const reauthenticatePusher = _.throttle(() => {
         });
 }, 5000, {trailing: false});
 
-/**
- * @param {String} socketID
- * @param {String} channelName
- * @param {Function} callback
- */
 function authenticatePusher(socketID, channelName, callback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
-    DeprecatedAPI.Push_Authenticate({
+    API.read('AuthenticatePusher', {
         socket_id: socketID,
         channel_name: channelName,
         shouldRetry: false,
         forceNetworkRequest: true,
-    })
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
-                callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
-
-                // Attempt to refresh the authToken then reconnect to Pusher
-                reauthenticatePusher();
-                return;
-            }
-
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
-                callback(new Error(`Pusher failed to authenticate because code: ${response.jsonCode} message: ${response.message}`), {auth: ''});
-                return;
-            }
-
-            Log.info(
-                '[PusherAuthorizer] Pusher authenticated successfully',
-                false,
-                {channelName},
-            );
-            callback(null, response);
-        })
-        .catch((error) => {
-            Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
-            callback(new Error('Push_Authenticate request failed'), {auth: ''});
-        });
+    });
 }
 
 /**
