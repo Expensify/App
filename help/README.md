@@ -105,7 +105,7 @@ A card button is the box that contains the article title and the caret right ico
 
 In order to add a new Card button in the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money/index.html) or [request-money/index.html](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/index.html)) just copy and pase the following Card element:
 
-```
+```html
 <div class="card" onclick="openArticle('./request-money/SmartScan')">
     <div class="body">
         <div class="title">SmartScan</div>
