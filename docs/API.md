@@ -46,7 +46,7 @@ When there is an error on a WRITE response (`jsonCode!==200`), the error must co
 Error messages should be returned and stored as a String under the `error` property. If absoultely needed, additional error properties can be stored under other, more specific fields that sit at the same level as `error`:
 ```php
 [
-    'onyxMethod' => 'merge',
+    'onyxMethod' => Onyx::METHOD_MERGE,
     'key' => OnyxKeys::WALLET_ADDITIONAL_DETAILS,
     'value' => [
         'error' => 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
