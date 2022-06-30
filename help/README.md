@@ -93,7 +93,7 @@ Where `id` is an arbitrary value that will help us to anchor this title to the L
 
 If it's required, you can add a new row of Card buttons with the following HTML block:
 
-```
+```html
 <div class="cards-row">
     <!-- Add Cards components here -->
 </div>
