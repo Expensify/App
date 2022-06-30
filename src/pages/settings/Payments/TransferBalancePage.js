@@ -174,10 +174,10 @@ class TransferBalancePage extends React.Component {
                 <ScreenWrapper>
                     <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
                         <HeaderWithCloseButton
-                            title="Success"
+                            title={this.props.translate('paymentsPage.allSet')}
                             onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
                         />
-                        <SuccessfulBalanceTransferPage 
+                        <SuccessfulBalanceTransferPage
                             walletTransfer={this.props.walletTransfer}
                         />
                     </KeyboardAvoidingView>

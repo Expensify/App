@@ -32,7 +32,7 @@ const SuccessfulBalanceTransferPage = props => (
                 })}
             </Text>
             <Button
-                text={props.translate('paymentsPage.allSet')}
+                text={props.translate('paymentsPage.gotIt')}
                 onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
                 style={[styles.mt4]}
                 iconStyles={[styles.mr5]}
