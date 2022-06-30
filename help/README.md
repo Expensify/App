@@ -119,7 +119,7 @@ Then replace the article title accordingly (in this case replace the value `Smar
 
 ## Add a new entry in the LHN page
 
-There are 2 main components in the LHN page:
+There are 2 main components in the LHN page associated with the hub you're adding an article to:
   1. Stage title anchor: which navigates the State title in the hub page and contains inside the Article links.
   2. Article links: which navigate to the corresponding article page.
 
