@@ -2,13 +2,14 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Dimensions} from 'react-native';
 import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
-import styles from '../../styles/styles';
-import withWindowDimensions from '../withWindowDimensions';
-import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import PDFPasswordForm from './PDFPasswordForm';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
+import getOperatingSystem from '../../libs/getOperatingSystem';
 import CONST from '../../CONST';
+import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
+import withWindowDimensions from '../withWindowDimensions';
 
 class PDFView extends Component {
     constructor(props) {
@@ -22,6 +23,7 @@ class PDFView extends Component {
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPdfLoad = this.attemptPdfLoad.bind(this);
+        this.avoidKeyboard = this.avoidKeyboard.bind(this);
     }
 
     /**
@@ -73,6 +75,19 @@ class PDFView extends Component {
         this.onPasswordCallback(password);
     }
 
+    /**
+     * On Android browsers notify parent that the UI should be updated to
+     * accommodate keyboard.
+     *
+     * @param {Boolean} shouldAvoidKeyboard
+     */
+    avoidKeyboard(shouldAvoidKeyboard) {
+        if (getOperatingSystem() !== CONST.OS.ANDROID) {
+            return;
+        }
+        this.props.onAvoidKeyboard(shouldAvoidKeyboard);
+    }
+
     render() {
         const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
@@ -121,6 +136,7 @@ class PDFView extends Component {
                         onSubmit={this.attemptPdfLoad}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
+                        onAvoidKeyboard={this.avoidKeyboard}
                     />
                 )}
             </View>
