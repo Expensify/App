@@ -78,6 +78,7 @@ class AttachmentModal extends PureComponent {
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
+            shouldHideConfirmButton: false,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -246,12 +247,18 @@ class AttachmentModal extends PureComponent {
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
-                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
+                            <AttachmentView
+                                sourceURL={sourceURL}
+                                file={this.state.file}
+                                onAvoidKeyboard={shouldAvoid => this.setState({
+                                    shouldHideConfirmButton: shouldAvoid,
+                                })}
+                            />
                         )}
                     </View>
 
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {this.props.onConfirm && (
+                    {this.props.onConfirm && !this.state.shouldHideConfirmButton && (
                         <Button
                             success
                             style={[styles.buttonConfirm]}

@@ -9,12 +9,16 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
+    /** Notify parent that the UI should be updated to avoid keyboard */
+    onAvoidKeyboard: PropTypes.func,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     sourceURL: '',
     style: {},
+    onAvoidKeyboard: () => {},
 };
 
 export {propTypes, defaultProps};
