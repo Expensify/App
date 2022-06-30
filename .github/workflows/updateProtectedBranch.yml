@@ -55,6 +55,8 @@ jobs:
         run: echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Create temporary branch to resolve conflicts
         if: ${{ contains(fromJSON('["staging", "production"]'), github.event.inputs.TARGET_BRANCH) }}
