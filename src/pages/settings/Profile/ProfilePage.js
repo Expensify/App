@@ -70,9 +70,6 @@ class ProfilePage extends Component {
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
 
         this.state = {
-            firstName: props.myPersonalDetails.firstName,
-            lastName: props.myPersonalDetails.lastName,
-            pronouns: props.myPersonalDetails.pronouns,
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
@@ -146,8 +143,6 @@ class ProfilePage extends Component {
      * @param {Object} values
      */
     updatePersonalDetails(values) {
-        console.log('Update personal details: ', values);
-
         // Check if the user has modified their avatar
         if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
             // If the user removed their profile photo, replace it accordingly with the default avatar
