@@ -223,7 +223,7 @@ function transferBalance(transferAmount, paymentMethod) {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
 
-    API.write('TransferBalance', parameters, {
+    API.write('TransferWalletBalance', parameters, {
         optimisticData: [
             {
                 onyxMethod: 'merge',
