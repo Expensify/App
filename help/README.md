@@ -19,7 +19,7 @@ bundle install
 
 1. Open the Terminal command line in macOS.
 2. Navigate to the `help` folder in the command line.
-3. Run `jekyll serve`.
+3. Run `bundle exec jekyll serve --livereload`.
 4. Open http://localhost:4000 in the browser to see the site running locally.
 5. Modify a `.html` or `.md` file and refresh the page in the browser.
 
