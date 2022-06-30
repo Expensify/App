@@ -127,17 +127,12 @@ There are 2 main components in the LHN page associated with the hub you're addin
 ```html
 <!-- 1.Stage title anchor -->
 <li><a href="#request-money">Request Money</a>
-
     <!-- 2. Article links -->
     <ul>
         <li><a href="./request-money/SmartScan">SmartScan</a></li>
-    </ul>
-
-    <ul>
         <li><a href="./request-money/AnotherArticle">Another Article</a></li>
+        <!-- More Article links here... -->
     </ul>
-
-    <!-- More Article links here... -->
 </li>
 
 <!-- More Stage title anchors here... -->
