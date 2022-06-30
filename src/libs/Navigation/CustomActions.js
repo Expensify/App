@@ -105,7 +105,7 @@ function pushDrawerRoute(route) {
         }
 
         const screenRoute = {type: 'route', name: newScreenName};
-        const history = state.history ? [...state.history] : _.map([screenRoute], () => screenRoute);
+        const history = _.map(state.history ? [...state.history] : [screenRoute], () => screenRoute);
 
         // Force drawer to close
         // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142

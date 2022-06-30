@@ -220,6 +220,7 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
+
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <KeyboardAvoidingView>
@@ -227,6 +228,7 @@ class ReportScreen extends React.Component {
                         reportID={reportID}
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
+
                     <View
                         nativeID={CONST.REPORT.DROP_NATIVE_ID}
                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}

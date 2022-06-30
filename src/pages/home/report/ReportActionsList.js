@@ -131,7 +131,6 @@ class ReportActionsList extends React.Component {
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
-
         return (
             <ReportActionItem
                 reportID={this.props.report.reportID}
