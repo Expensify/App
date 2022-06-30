@@ -3,6 +3,7 @@ import {createRef} from 'react';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -153,11 +154,11 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
  *
  * @param {Object} params
  */
-function addBillingCard(params) {
+function addPaymentCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    DeprecatedAPI.AddBillingCard({
+    API.write('AddPaymentCard', {
         cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
@@ -167,36 +168,36 @@ function addBillingCard(params) {
         currency: CONST.CURRENCY.USD,
         isP2PDebitCard: true,
         password: params.password,
-    }).then(((response) => {
-        let serverErrorMessage = '';
-        if (response.jsonCode === 200) {
-            const cardObject = {
-                additionalData: {
-                    isBillingCard: false,
-                    isP2PDebitCard: true,
-                },
-                addressName: params.nameOnCard,
-                addressState: params.addressState,
-                addressStreet: params.addressStreet,
-                addressZip: params.addressZipCode,
-                cardMonth,
-                cardNumber: CardUtils.maskCardNumber(params.cardNumber),
-                cardYear,
-                currency: 'USD',
-                fundID: lodashGet(response, 'fundID', ''),
-            };
-            Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
-            Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            continueSetup();
-        } else {
-            serverErrorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
-        }
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
 
-        Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-            isSubmitting: false,
-            serverErrorMessage,
-        });
-    }));
+                // TODO: We use isSubmitting in Form. Are we changing this?
+                value: {isLoading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
+
+                // TODO: We use isSubmitting in Form. Are we changing this?
+                value: {isLoading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
+
+                // TODO: We use isSubmitting in Form. Are we changing this?
+                // TODO: We use serverErrorMessage in Form. Are we changing this?
+                value: {isLoading: false},
+            },
+        ],
+    });
 }
 
 /**
@@ -307,9 +308,8 @@ export {
     deletePayPalMe,
     deletePaymentCard,
     getPaymentMethods,
-    openPaymentsPage,
-    makeDefaultPaymentMethod,
-    addBillingCard,
+    setWalletLinkedAccount,
+    addPaymentCard,
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,

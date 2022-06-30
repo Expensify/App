@@ -104,14 +104,64 @@ class DebitCardPage extends Component {
                         inputID="nameOnCard"
                         label={this.props.translate('addDebitCardPage.nameOnCard')}
                     />
-                    <TextInput
-                        inputID="cardNumber"
-                        label={this.props.translate('addDebitCardPage.debitCardNumber')}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                    />
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex1, styles.mr2]}>
+                    <Form
+                        formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
+                        validate={this.validate}
+                        onSubmit={PaymentMethods.addPaymentCard}
+                        submitButtonText={this.props.translate('common.save')}
+                        style={[styles.mh5, styles.flexGrow1]}
+                    >
+                        <TextInput
+                            inputID="nameOnCard"
+                            label={this.props.translate('addDebitCardPage.nameOnCard')}
+                        />
+                        <TextInput
+                            inputID="cardNumber"
+                            label={this.props.translate('addDebitCardPage.debitCardNumber')}
+                            containerStyles={[styles.mt4]}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        />
+                        <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flex1, styles.mr2]}>
+                                <TextInput
+                                    inputID="expirationDate"
+                                    label={this.props.translate('addDebitCardPage.expiration')}
+                                    placeholder={this.props.translate('addDebitCardPage.expirationDate')}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <TextInput
+                                    inputID="securityCode"
+                                    label={this.props.translate('addDebitCardPage.cvv')}
+                                    maxLength={4}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                />
+                            </View>
+                        </View>
+                        <View>
+                            <AddressSearch
+                                inputID="addressStreet"
+                                label={this.props.translate('addDebitCardPage.billingAddress')}
+                                containerStyles={[styles.mt4]}
+                            />
+                        </View>
+                        <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flex2, styles.mr2]}>
+                                <TextInput
+                                    inputID="addressZipCode"
+                                    label={this.props.translate('common.zip')}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <StatePicker
+                                    inputID="addressState"
+                                />
+                            </View>
+                        </View>
+                        <View style={[styles.mt4]}>
                             <TextInput
                                 inputID="expirationDate"
                                 label={this.props.translate('addDebitCardPage.expiration')}
