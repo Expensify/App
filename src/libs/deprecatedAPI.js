@@ -343,12 +343,48 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.message
+ * @param {String} parameters.password
+ * @param {String|null} parameters.bankAccountID
+ * @param {String|null} parameters.fundID
  * @returns {Promise}
  */
-function User_Delete(parameters) {
-    const commandName = 'User_Delete';
+function SetWalletLinkedAccount(parameters) {
+    const commandName = 'SetWalletLinkedAccount';
+    requireParameters(['password'], parameters, commandName);
     return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.subscribed
+ * @returns {Promise}
+ */
+function UpdateAccount(parameters) {
+    const commandName = 'UpdateAccount';
+    requireParameters(['subscribed'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function User_GetBetas() {
+    return Network.post('User_GetBetas');
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
+ * @param {Boolean} [parameters.requireCertainty]
+ * @returns {Promise}
+ */
+function User_IsFromPublicDomain(parameters) {
+    const commandName = 'User_IsFromPublicDomain';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, {
+        ...{requireCertainty: true},
+        ...parameters,
+    });
 }
 
 /**
