@@ -128,9 +128,9 @@ export default {
         const pathSegments = route.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
-            isParticipantsRoute: lodashGet(pathSegments, 2) == 'participants',
-            isDetailsRoute: lodashGet(pathSegments, 2) == 'details',
-            isSettingsRoute: lodashGet(pathSegments, 2) == 'settings',
+            isParticipantsRoute: lodashGet(pathSegments, 2) === 'participants',
+            isDetailsRoute: lodashGet(pathSegments, 2) === 'details',
+            isSettingsRoute: lodashGet(pathSegments, 2) === 'settings',
         };
     },
 };
