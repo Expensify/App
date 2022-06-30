@@ -31,6 +31,7 @@ The [help](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d89
 index.html: it will have the homepage content.
 
 More details about the Jekyll project structure can be found [here](https://jekyllrb.com/docs/structure/).
+
 # How to add a new Article
 
 ## Add content
