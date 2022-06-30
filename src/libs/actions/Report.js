@@ -1202,7 +1202,15 @@ function readOldestAction(reportID) {
  * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
-    
+    const isNotLoadingData = {
+        onyxMethod: 'merge',
+        key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+        value: {
+            isLoading: false,
+        },
+    };
+
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
 
     API.write('MarkCommentAsUnread',
         {
@@ -1219,22 +1227,10 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 },
             }],
             successData: [
-                {
-                    onyxMethod: 'merge',
-                    key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
-                    value: {
-                        isLoading: false,
-                    },
-                },
+                isNotLoadingData,
             ],
             failureData: [
-                {
-                    onyxMethod: 'merge',
-                    key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
-                    value: {
-                        isLoading: false,
-                    },
-                },
+                isNotLoadingData,
             ],
         });
 }
