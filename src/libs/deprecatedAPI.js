@@ -453,16 +453,6 @@ function UpdateAccount(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.message
- * @returns {Promise}
- */
-function User_Delete(parameters) {
-    const commandName = 'User_Delete';
-    return Network.post(commandName, parameters);
-}
-
-/**
  * @returns {Promise}
  */
 function User_GetBetas() {

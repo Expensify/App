@@ -83,17 +83,33 @@ function updatePassword(oldPassword, password) {
  * @param {String} message optional reason for closing account
  */
 function closeAccount(message) {
-    DeprecatedAPI.User_Delete({message}).then((response) => {
-        console.debug('User_Delete: ', JSON.stringify(response));
-
-        if (response.jsonCode === 200) {
-            Growl.show(Localize.translateLocal('closeAccountPage.closeAccountSuccess'), CONST.GROWL.SUCCESS);
-            redirectToSignIn();
-            return;
-        }
-
-        // Inform user that they are currently unable to close their account
-        CloseAccountActions.showCloseAccountModal();
+    API.write('CloseAccount', {message}, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+                value: {isModalOpen: false, isLoading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+                value: {isLoading: false},
+            },
+            {
+                onyxMethod: 'set',
+                key: ONYXKEYS.SESSION,
+                value: null,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+                value: {isModalOpen: true, isLoading: false},
+            },
+        ],
     });
 }
 
