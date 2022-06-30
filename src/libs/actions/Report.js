@@ -1218,14 +1218,7 @@ function markCommentAsUnread(reportID, sequenceNumber) {
             sequenceNumber,
         },
         {
-            optimisticData: [{
-                onyxMethod: 'merge',
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
-                },
-            }],
+            optimisticData: [],
             successData: [
                 isNotLoadingData,
             ],
