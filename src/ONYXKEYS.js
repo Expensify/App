@@ -196,4 +196,7 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
     },
+
+    // Pusher token
+    PUSHER_AUTHORIZATION: 'pusherAuthorization',
 };
