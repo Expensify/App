@@ -177,7 +177,9 @@ class TransferBalancePage extends React.Component {
                             title="Success"
                             onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
                         />
-                        <SuccessfulBalanceTransferPage />
+                        <SuccessfulBalanceTransferPage 
+                            walletTransfer={this.props.walletTransfer}
+                        />
                     </KeyboardAvoidingView>
                 </ScreenWrapper>
             );
