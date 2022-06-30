@@ -19,6 +19,8 @@ jobs:
     steps:
       - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         run: exit 1
@@ -168,6 +170,8 @@ jobs:
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   # Check if actor is member of Expensify organization by looking for Expensify/expensify team
   isExpensifyEmployee:
