@@ -43,6 +43,7 @@ const defaultProps = {
  *
  * @param {Object} reports
  * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Object} policies
  * @returns {Object}
  */
 const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => {

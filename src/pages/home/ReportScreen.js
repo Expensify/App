@@ -194,7 +194,9 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        if (!Permissions.canUseDefaultRooms(this.props.betas) && ReportUtils.isDefaultRoom(this.props.report) && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
+        if (!Permissions.canUseDefaultRooms(this.props.betas)
+            && ReportUtils.isDefaultRoom(this.props.report)
+            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
             return null;
         }
 
