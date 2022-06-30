@@ -10,13 +10,9 @@ Onyx.connect({
 /**
 * Unset CloseAccount error message to hide modal
  */
-function hideCloseAccountErrorModal() {
+export default function hideCloseAccountErrorModal() {
     if (!isCloseAccountErrorModalOpen) {
         return;
     }
     Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT_DATA, {error: ''});
 }
-
-export {
-    hideCloseAccountErrorModal,
-};
