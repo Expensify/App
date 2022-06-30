@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 
 /**
  * @param {Promise} response
@@ -11,7 +10,7 @@ function SaveResponseInOnyx(response, request) {
         .then((responseData) => {
             // We'll only save the onyxData, successData and failureData for the refactored commands
             const data = [];
-            if (responseData.jsonCode == 200) {
+            if (responseData.jsonCode === 200) {
                 if (request.successData) {
                     data.push(...request.successData);
                 }
