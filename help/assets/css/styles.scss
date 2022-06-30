@@ -284,6 +284,8 @@ textarea {
         ul,
         li {
             margin-top: 12px;
+            color: #069;
+            cursor: pointer;
         }
     }
 
@@ -301,6 +303,11 @@ textarea {
 
     .selected-hub {
         font-weight: bold;
+    }
+
+    .link {
+        color: #069;
+        cursor: pointer;
     }
 }
 
