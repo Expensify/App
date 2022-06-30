@@ -24,8 +24,14 @@ import ONYXKEYS from '../../../ONYXKEYS';
 const propTypes = {
     /** Onyx Props */
 
-    /** Is the Close Account information modal open? */
-    isCloseAccoutModalOpen: PropTypes.bool,
+    /** Data from when user attempts to close their account */
+    closeAccountData: PropTypes.shape({
+        /** Error message if previous attempt to close account was unsuccessful */
+        error: PropTypes.string.isRequired,
+
+        /** Is account currently being closed? */
+        isLoading: PropTypes.bool.isRequired,
+    }),
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -38,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isCloseAccoutModalOpen: false,
+    closeAccountData: {error: '', isLoading: false},
 };
 
 class CloseAccountPage extends Component {
@@ -105,7 +111,7 @@ class CloseAccountPage extends Component {
                         <Button
                             danger
                             text={this.props.translate('closeAccountPage.closeAccount')}
-                            isLoading={this.state.loading}
+                            isLoading={this.props.closeAccountData.isLoading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
                             isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase()}
                         />
@@ -128,8 +134,8 @@ class CloseAccountPage extends Component {
                                 {this.props.translate('closeAccountPage.closeAccountTryAgainAfter')}
                             </Text>
                         )}
-                        onConfirm={CloseAccountActions.hideCloseAccountModal}
-                        isVisible={this.props.isCloseAccoutModalOpen}
+                        onConfirm={CloseAccountActions.hideCloseAccountErrorModal}
+                        isVisible={this.props.closeAccountData.error}
                         shouldShowCancelButton={false}
                     />
                 </KeyboardAvoidingView>
@@ -146,9 +152,9 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
-        isCloseAccoutModalOpen: {
-            key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN,
-            initWithStoredValues: false,
+        closeAccountData: {
+            key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+            initWithStoredValues: {error: '', isLoading: false},
         },
         session: {
             key: ONYXKEYS.SESSION,
