@@ -108,11 +108,12 @@ jobs:
 
       - name: Update staging branch from main
         if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
-        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "staging" }'
+          TARGET_BRANCH: staging
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Determine if this pull request will be cherry-picked
         run: echo "DO_CHERRY_PICK=${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}" >> "$GITHUB_ENV"
