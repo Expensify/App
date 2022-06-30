@@ -24,6 +24,7 @@ import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
+import SuccessfulBalanceTransferPage from './SuccessfulBalanceTransferPage';
 
 const propTypes = {
     /** User's wallet information */
@@ -168,6 +169,18 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
+        if (this.props.walletTransfer.shouldShowTransferSuccess) {
+            return (
+                <ScreenWrapper>
+                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
+                        <HeaderWithCloseButton
+                            title="Success"
+                        />
+                        <SuccessfulBalanceTransferPage />
+                    </KeyboardAvoidingView>
+                </ScreenWrapper>
+            );
+        }
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         const selectedPaymentType = selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
