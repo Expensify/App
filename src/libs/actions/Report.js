@@ -1172,6 +1172,30 @@ function readNewestAction(reportID) {
 }
 
 /**
+ * Gets the actions from the oldest unread action.
+ *
+ * @param {String} reportID
+ */
+function readOldestAction(reportID) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
+    API.read('ReadOldestAction',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    reportActionsToMerge: [],
+                },
+            }],
+            successData: [],
+            failureData: [],
+        });
+}
+
+/**
  * Sets the last read comment on a report
  *
  * @param {Number} reportID
@@ -1229,31 +1253,6 @@ function togglePinnedState(report) {
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
-}
-
-/**
- * Gets the first/oldest action for the chat/report
- *
- * @param {String} reportID
- */
-function readOldestAction(reportID) {
-    const sequenceNumber = reportMaxSequenceNumbers[reportID];
-    API.write('ReadOldestAction',
-        {
-            reportID,
-        },
-        {
-            optimisticData: [{
-                onyxMethod: 'merge',
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {
-                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
-                    lastVisitedTimestamp: Date.now(),
-                },
-            }],
-            successData: [],
-            failureData: [],
-        });
 }
 
 /**
