@@ -1,5 +1,11 @@
 name: 'Announce failed workflow in Slack'
 description: 'Post failed workflow in Slack #announce channel'
+
+inputs:
+  SLACK_WEBHOOK:
+    description: 'URL of the slack webhook'
+    required: true
+
 runs:
   using: composite
   steps:
@@ -19,4 +25,4 @@ runs:
           }
       env:
         GITHUB_TOKEN: ${{ github.token }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK }}
