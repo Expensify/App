@@ -1177,31 +1177,6 @@ function readNewestAction(reportID) {
  * @param {String} reportID
  */
 function readOldestAction(reportID) {
-    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
-    API.read('ReadOldestAction',
-        {
-            reportID,
-        },
-        {
-            optimisticData: [{
-                onyxMethod: 'merge',
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {
-                    reportActionsToMerge: [],
-                },
-            }],
-            successData: [],
-            failureData: [],
-        });
-}
-
-/**
- * Sets the last read comment on a report
- *
- * @param {Number} reportID
- * @param {Number} sequenceNumber
- */
-function markCommentAsUnread(reportID, sequenceNumber) {
     const isNotLoadingData = {
         onyxMethod: 'merge',
         key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
@@ -1212,10 +1187,9 @@ function markCommentAsUnread(reportID, sequenceNumber) {
 
     Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
 
-    API.write('MarkCommentAsUnread',
+    API.write('ReadOldestAction',
         {
             reportID,
-            sequenceNumber,
         },
         {
             optimisticData: [],
@@ -1225,6 +1199,32 @@ function markCommentAsUnread(reportID, sequenceNumber) {
             failureData: [
                 isNotLoadingData,
             ],
+        });
+}
+
+/**
+ * Sets the last read comment on a report
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function markCommentAsUnread(reportID, sequenceNumber) {
+    API.write('MarkCommentAsUnread',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                },
+            }],
+            successData: [],
+            failureData: [],
         });
 }
 
