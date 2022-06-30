@@ -227,21 +227,31 @@ function transferBalance(transferAmount, paymentMethod) {
             {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.WALLET_TRANSFER,
-                value: {transferAmount, loading: true, error: null},
+                value: {
+                    transferAmount,
+                    loading: true,
+                    error: null,
+                },
             },
         ],
         successData: [
             {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.WALLET_TRANSFER,
-                value: {loading: false},
+                value: {
+                    loading: false,
+                    shouldShowTransferSuccess: true,
+                },
             },
         ],
         failureData: [
             {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.WALLET_TRANSFER,
-                value: {loading: false},
+                value: {
+                    loading: false,
+                    shouldShowTransferSuccess: false,
+                },
             },
         ],
     });
@@ -277,6 +287,11 @@ function dismissWalletConfirmModal() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
 }
 
+function dismissSuccessfulTransferBalancePage() {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowTransferSuccess: false});
+    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+}
+
 export {
     deleteDebitCard,
     deletePayPalMe,
@@ -286,6 +301,7 @@ export {
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
+    dismissSuccessfulTransferBalancePage,
     transferBalance,
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
