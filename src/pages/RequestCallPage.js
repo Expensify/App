@@ -14,7 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
-import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import Icon from '../components/Icon';
 import CONST from '../CONST';
@@ -36,6 +35,7 @@ import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
 import * as Session from '../libs/actions/Session';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
+import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -359,12 +359,10 @@ class RequestCallPage extends Component {
                                             {this.props.requestCallForm.error}
                                         </Text>
                                     )}
-                                    <Button
-                                        success
-                                        pressOnEnter
-                                        onPress={this.onSubmit}
-                                        style={[styles.w100]}
-                                        text={this.props.translate('requestCallPage.callMe')}
+                                    <FormAlertWithSubmitButton
+                                        buttonText={this.props.translate('requestCallPage.callMe')}
+                                        onSubmit={this.onSubmit}
+                                        containerStyles={[styles.w100, styles.mb2, styles.mh0]}
                                         isLoading={this.props.requestCallForm.loading}
                                         isDisabled={isBlockedFromConcierge}
                                     />
