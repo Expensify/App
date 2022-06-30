@@ -2,17 +2,6 @@
 
 Expensify Help is mainly composed of static HTML (`.html`) and Markdown (`.md`) files. We use [Jekyll](https://jekyllrb.com/) to generate a static site from those HTML and Markdown files.
 
-## HTML and Markdown basics
-
-We use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) to create hierarchy in the article content (you can open this file in raw format and you will notice the `#` characters).
-
-In both HTML and Markdown files we use the [comment block](https://www.w3schools.com/html/html_comments.asp) to leave a note to the person who is editing the file. The content of the comment won't be rendered in the site.
-
-i.e.
-```
-<!-- This is a comment and won't be displayed in the page -->
-```
-
 # Test locally
 
 ## Pre-requisites
