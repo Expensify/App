@@ -36,7 +36,7 @@ More details about the Jekyll project structure can be found [here](https://jeky
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/TEMPLATE.md) file and rename it with the name of the article title, i.e. [SmartScan.md](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/request-money/SmartScan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder ([send-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/send-money) or [request-money](https://github.com/Expensify/App/tree/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money)) or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
+Copy the [template](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/TEMPLATE.md) file and rename it with the name of the article title, i.e. [SmartScan.md](https://github.com/Expensify/App/blob/e6cea38ef22f83ae4730a34a9281d8962388dff8/help/articles/request-money/request-money/SmartScan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
