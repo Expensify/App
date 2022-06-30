@@ -28,6 +28,9 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
+    /** Notify parent that the UI should be modified to accommodate keyboard */
+    onAvoidKeyboard: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +40,7 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
+    onAvoidKeyboard: () => {},
 };
 
 const AttachmentView = (props) => {
@@ -48,6 +52,7 @@ const AttachmentView = (props) => {
             <PDFView
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}
+                onAvoidKeyboard={props.onAvoidKeyboard}
             />
         );
     }

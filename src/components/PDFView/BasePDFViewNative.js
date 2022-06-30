@@ -155,6 +155,7 @@ class BasePDFViewNative extends Component {
                         onSubmit={this.attemptPdfLoadWithPassword}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
+                        onAvoidKeyboard={this.props.onAvoidKeyboard}
                     />
                 )}
             </View>

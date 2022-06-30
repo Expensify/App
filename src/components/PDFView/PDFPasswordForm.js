@@ -24,6 +24,9 @@ const propTypes = {
     /** If loading indicator should be shown */
     shouldShowLoadingIndicator: PropTypes.bool,
 
+    /** Notify parent that the UI should be updated to avoid keyboard */
+    onAvoidKeyboard: PropTypes.func,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -32,6 +35,7 @@ const defaultProps = {
     isPasswordInvalid: false,
     shouldAutofocusPasswordField: false,
     shouldShowLoadingIndicator: false,
+    onAvoidKeyboard: () => {},
 };
 
 class PDFPasswordForm extends Component {
@@ -65,6 +69,9 @@ class PDFPasswordForm extends Component {
     }
 
     validateOnBlur() {
+        // Notify parent that keyboard is no longer visible (on mobile devices).
+        this.props.onAvoidKeyboard(false);
+
         if (!_.isEmpty(this.state.password)) {
             return;
         }
@@ -100,6 +107,7 @@ class PDFPasswordForm extends Component {
                             onSubmitEditing={this.submitPassword}
                             errorText={this.state.validationErrorText}
                             onBlur={this.validateOnBlur}
+                            onFocus={() => this.props.onAvoidKeyboard(true)}
                             autoFocus={this.props.shouldAutofocusPasswordField}
                             secureTextEntry
                         />
