@@ -302,7 +302,6 @@ class IOUModal extends Component {
             amount,
             currency,
             requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-            requestorPhoneNumber: this.state.participants[0].phoneNumber,
             comment,
             newIOUReportDetails,
         })
