@@ -175,6 +175,7 @@ class TransferBalancePage extends React.Component {
                     <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
                         <HeaderWithCloseButton
                             title="Success"
+                            onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
                         />
                         <SuccessfulBalanceTransferPage />
                     </KeyboardAvoidingView>
