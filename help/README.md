@@ -7,7 +7,6 @@ Expensify Help is mainly composed of static HTML (`.html`) and Markdown (`.md`) 
 ## Pre-requisites
 
 - Clone and/or pull the [App repo](https://github.com/Expensify/App) to your local machine
-    - You can do it from from a Terminal command line by running `git clone https://github.com/Expensify/App.git`
 - Install jekyll in your computer by running `gem install bundler jekyll` in the command line.
 
 ## Steps
