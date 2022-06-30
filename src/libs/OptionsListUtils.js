@@ -440,7 +440,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
             return;
         }
 
