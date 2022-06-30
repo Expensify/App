@@ -7,8 +7,8 @@ import Icon from '../Icon';
 import Text from '../Text';
 
 const propTypes = {
-    /** Src url for the icon (should be from Expensicons) */
-    icon: PropTypes.string.isRequired,
+    /** Expensicon for the page */
+    icon: PropTypes.func.isRequired,
 
     /** Color for the icon (should be from theme) */
     iconColor: PropTypes.string.isRequired,
