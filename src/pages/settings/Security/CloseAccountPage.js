@@ -27,7 +27,7 @@ const propTypes = {
     /** Data from when user attempts to close their account */
     closeAccountData: PropTypes.shape({
         /** Error message if previous attempt to close account was unsuccessful */
-        error: PropTypes.string.isRequired,
+        error: PropTypes.string,
 
         /** Is account currently being closed? */
         isLoading: PropTypes.bool.isRequired,
@@ -135,7 +135,7 @@ class CloseAccountPage extends Component {
                             </Text>
                         )}
                         onConfirm={CloseAccountActions.hideCloseAccountErrorModal}
-                        isVisible={this.props.closeAccountData.error}
+                        isVisible={Boolean(this.props.closeAccountData.error)}
                         shouldShowCancelButton={false}
                     />
                 </KeyboardAvoidingView>
