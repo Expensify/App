@@ -29,9 +29,10 @@ jobs:
 
       - name: Create new branch
         run: |
-          git checkout -b version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          git push --set-upstream origin version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}" >> "$GITHUB_ENV"
+          BRANCH_NAME="version-${{ github.event.inputs.SEMVER_LEVEL }}-$(uuidgen)"
+          git checkout -b "$BRANCH_NAME"
+          git push --set-upstream origin "$BRANCH_NAME"
+          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
 
       - name: Generate version
         id: bumpVersion
@@ -60,3 +61,5 @@ jobs:
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

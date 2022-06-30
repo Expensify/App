@@ -255,7 +255,6 @@ class NewChatPage extends Component {
                                     shouldFocusOnSelectRow={this.props.isGroupChat}
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
-                                    maxParticipantsReached={maxParticipantsReached}
                                     onConfirmSelection={this.props.isGroupChat ? this.createGroup : this.createChat}
                                 />
                             )}

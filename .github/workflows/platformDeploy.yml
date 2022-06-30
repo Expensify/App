@@ -357,6 +357,8 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
