@@ -1202,6 +1202,8 @@ function readOldestAction(reportID) {
  * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
+    
+
     API.write('MarkCommentAsUnread',
         {
             reportID,
@@ -1216,8 +1218,24 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                     unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                 },
             }],
-            successData: [],
-            failureData: [],
+            successData: [
+                {
+                    onyxMethod: 'merge',
+                    key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: 'merge',
+                    key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
         });
 }
 
