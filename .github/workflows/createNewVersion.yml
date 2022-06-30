@@ -44,9 +44,10 @@ jobs:
 
       - name: Create new branch
         run: |
-          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-$(uuidgen)" >> "$GITHUB_ENV"
-          git checkout -b ${{ env.VERSION_BRANCH }}
-          git push --set-upstream origin ${{ env.VERSION_BRANCH }}
+          BRANCH_NAME="version-${{ github.event.inputs.SEMVER_LEVEL }}-$(uuidgen)"
+          git checkout -b "$BRANCH_NAME"
+          git push --set-upstream origin "$BRANCH_NAME"
+          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
 
       - name: Generate version
         id: bumpVersion
