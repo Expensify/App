@@ -174,11 +174,11 @@ function isChatRoom(report) {
  * @param {Boolean} [ignoreDefaultRooms]
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report));
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE);
     }
 
     return _.last(sortedReports);
@@ -211,6 +211,17 @@ function isArchivedRoom(report) {
 function getPolicyName(report, policies) {
     const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+}
+
+/**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -516,6 +527,7 @@ export {
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,
+    getPolicyType,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
