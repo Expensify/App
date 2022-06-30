@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+<<<<<<< HEAD
       - name: Run lint
         id: lint
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
@@ -43,6 +44,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+=======
+      - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+>>>>>>> 0e1ee055f (Merge pull request #9618 from Expensify/Rory-CompositeRunStepsActions)
 
   chooseDeployActions:
     runs-on: ubuntu-latest
@@ -68,7 +73,7 @@ jobs:
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/isStagingDeployLocked@main
+        uses: Expensify/App/.github/actions/javascript/isStagingDeployLocked@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -113,7 +118,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
@@ -127,7 +132,7 @@ jobs:
 
       - name: Update staging branch from main
         if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
@@ -138,7 +143,7 @@ jobs:
 
       - name: Cherry pick to staging
         if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: cherryPick.yml
@@ -155,7 +160,7 @@ jobs:
           git tag ${{ env.NEW_VERSION }}
 
       - name: Update StagingDeployCash
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ env.NEW_VERSION }}
@@ -173,7 +178,7 @@ jobs:
 
       - name: Wait for staging deploys to finish
         if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/awaitStagingDeploys@main
+        uses: Expensify/App/.github/actions/javascript/awaitStagingDeploys@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           TAG: ${{ env.NEW_VERSION }}
@@ -187,26 +192,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
-        with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
 
   # Check if actor is member of Expensify organization by looking for Expensify/expensify team
   isExpensifyEmployee:
