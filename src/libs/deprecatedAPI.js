@@ -27,15 +27,6 @@ Request.use(Middleware.Retry);
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
- * @param {Object} parameters
- * @returns {Promise}
- */
-function AddBillingCard(parameters) {
-    const commandName = 'User_AddBillingCard';
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken
  * @param {String} parameters.password
@@ -919,7 +910,6 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
