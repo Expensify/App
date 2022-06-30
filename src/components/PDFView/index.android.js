@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {Keyboard} from 'react-native';
 import BasePDFViewNative from './BasePDFViewNative';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
+import withWindowDimensions from '../withWindowDimensions';
 
 class PDFView extends Component {
     constructor(props) {
@@ -33,4 +34,4 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default PDFView;
+export default withWindowDimensions(PDFView);
