@@ -4,7 +4,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 let isCloseAccountErrorModalOpen;
 Onyx.connect({
     key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
-    callback: data => isCloseAccountErrorModalOpen = Boolean(data.error),
+    callback: data => isCloseAccountErrorModalOpen = Boolean(data && data.error),
 });
 
 /**
