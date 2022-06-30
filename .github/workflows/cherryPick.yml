@@ -70,6 +70,8 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Create branch for new pull request
         run: |

@@ -35,6 +35,8 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Tag version
         run: git tag "$(npm run print-version --silent)"
@@ -54,6 +56,8 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Checkout production branch
         run: git checkout production
