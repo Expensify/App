@@ -1,4 +1,4 @@
-# Welcome to the New Help site
+# Welcome to the Expensify Help site
 
 The content of the Expensify Help is mainly composed of HTML and Markdown files (also referred as `.md` files in the documentation). We use [Jekyll](https://jekyllrb.com/) to generate a static site from those HTML and Markdown files.
 
