@@ -44,7 +44,7 @@ The sections of the article will be filled and nested automatically in the LHN, 
 
 There are 3 main components in the hub page: 1. Stage title, 2. Row of Card buttons and 3. Card buttons.
 
-```
+```html
 <!-- 1. Stage title -->
 <h2 id="request-money">
     Request Money
