@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
@@ -52,10 +53,24 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    if (currentUserAccountID) {
-        DeprecatedAPI.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    // If user is not signed in, change just locally.
+    if (!currentUserAccountID) {
+        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+        return;
     }
-    Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+
+    // Optimistically change preferred locale
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            value: locale,
+        },
+    ];
+
+    API.write('UpdatePreferredLocale', {
+        value: locale,
+    }, {optimisticData});
 }
 
 function getLocale() {
