@@ -168,10 +168,22 @@ function isChatRoom(report) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Object} policies
  * @returns {Object}
  */
 function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
@@ -211,17 +223,6 @@ function isArchivedRoom(report) {
 function getPolicyName(report, policies) {
     const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
