@@ -955,7 +955,6 @@ export {
     UpdateAccount,
     UpdatePolicy,
     User_SignUp,
-    User_Delete,
     User_GetBetas,
     User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,
