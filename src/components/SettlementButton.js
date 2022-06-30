@@ -24,15 +24,11 @@ const propTypes = {
     /** Should we show paypal option */
     shouldShowPaypal: PropTypes.bool,
 
-    /** Associated phone login for the person we are sending money to */
-    recipientPhoneNumber: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currency: CONST.CURRENCY.USD,
-    recipientPhoneNumber: '',
     shouldShowPaypal: false,
 };
 
@@ -64,61 +60,9 @@ class SettlementButton extends React.Component {
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         });
 
-        // Venmo requires an async call to the native layer to determine availability and will be added as an option if available.
-        this.checkVenmoAvailabilityPromise = null;
-
         this.state = {
             buttonOptions,
         };
-    }
-
-    componentDidMount() {
-        this.addVenmoPaymentOptionToMenu();
-    }
-
-    componentWillUnmount() {
-        if (!this.checkVenmoAvailabilityPromise) {
-            return;
-        }
-
-        this.checkVenmoAvailabilityPromise.cancel();
-        this.checkVenmoAvailabilityPromise = null;
-    }
-
-    /**
-     * @returns {Boolean}
-     */
-    doesRecipientHaveValidPhoneLogin() {
-        return this.props.recipientPhoneNumber && ValidationUtils.isValidUSPhone(this.props.recipientPhoneNumber);
-    }
-
-    /**
-     * Adds Venmo, if available, as the second option in the menu of payment options
-     */
-    addVenmoPaymentOptionToMenu() {
-        if (this.props.currency !== CONST.CURRENCY.USD || !this.doesRecipientHaveValidPhoneLogin()) {
-            return;
-        }
-
-        this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
-        this.checkVenmoAvailabilityPromise
-            .promise
-            .then((isVenmoInstalled) => {
-                if (!isVenmoInstalled) {
-                    return;
-                }
-
-                this.setState(prevState => ({
-                    buttonOptions: [...prevState.buttonOptions.slice(0, 1),
-                        {
-                            text: this.props.translate('iou.settleVenmo'),
-                            icon: Expensicons.Venmo,
-                            value: CONST.IOU.PAYMENT_TYPE.VENMO,
-                        },
-                        ...prevState.buttonOptions.slice(1),
-                    ],
-                }));
-            });
     }
 
     render() {
