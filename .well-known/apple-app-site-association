@@ -47,5 +47,8 @@
                 ]
             }
         ]
+    },
+    "webcredentials": {
+        "apps": ["368M544MTT.com.chat.expensify.chat"]
     }
 }

@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import lodashGet from 'lodash/get';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
@@ -46,6 +47,14 @@ const propTypes = {
     /** Customize the TextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** A map of inputID key names */
+    renamedInputKeys: PropTypes.shape({
+        street: PropTypes.string,
+        city: PropTypes.string,
+        state: PropTypes.string,
+        zipCode: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -58,6 +67,12 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
+    renamedInputKeys: {
+        street: 'addressStreet',
+        city: 'addressCity',
+        state: 'addressState',
+        zipCode: 'addressZipCode',
+    },
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -107,7 +122,10 @@ const AddressSearch = (props) => {
             return;
         }
         if (props.inputID) {
-            _.each(values, (value, key) => props.onInputChange(value, key));
+            _.each(values, (value, key) => {
+                const inputKey = lodashGet(props.renamedInputKeys, key, key);
+                props.onInputChange(value, inputKey);
+            });
         } else {
             props.onInputChange(values);
         }

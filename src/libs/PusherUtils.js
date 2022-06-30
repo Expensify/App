@@ -10,9 +10,8 @@ import CONST from '../CONST';
  * @param {String} eventName
  * @param {String} accountID
  * @param {Function} onEvent
- * @param {Boolean} isChunked
  */
-function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent, isChunked = false) {
+function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
     const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
 
     /**
@@ -40,7 +39,7 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent, isChu
     function onSubscriptionFailed(error) {
         Log.hmmm('Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, isChunked, onPusherResubscribeToPrivateUserChannel)
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel)
         .catch(onSubscriptionFailed);
 }
 
