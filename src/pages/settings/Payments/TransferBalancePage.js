@@ -24,7 +24,6 @@ import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
-import SuccessfulBalanceTransferPage from './SuccessfulBalanceTransferPage';
 
 const propTypes = {
     /** User's wallet information */
@@ -177,9 +176,28 @@ class TransferBalancePage extends React.Component {
                             title={this.props.translate('paymentsPage.allSet')}
                             onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
                         />
-                        <SuccessfulBalanceTransferPage
-                            walletTransfer={this.props.walletTransfer}
-                        />
+                        <View style={[styles.flex1]}>
+                            <View style={[styles.ph5]}>
+                                <Text style={styles.mb3}>
+                                    {this.props.translate('paymentsPage.transferConfirmText', {
+                                        amount: this.props.numberFormat(
+                                            this.props.walletTransfer.transferAmount / 100,
+                                            { style: 'currency', currency: 'USD' },
+                                        ),
+                                    })}
+                                </Text>
+                            </View>
+                        </View>
+
+                <FixedFooter>
+                    <Button
+                        text={this.props.translate('paymentsPage.gotIt')}
+                        onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
+                        style={[styles.mt4]}
+                        iconStyles={[styles.mr5]}
+                        success
+                    />
+                </FixedFooter>
                     </KeyboardAvoidingView>
                 </ScreenWrapper>
             );
