@@ -14,12 +14,7 @@ span,
 applet,
 object,
 iframe,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
+[att^=h],
 p,
 blockquote,
 pre,
@@ -172,11 +167,11 @@ em {
 a {
     color: #0185FF;
     text-decoration: none;
-}
 
-a:hover {
-    color: #006FD6;
-    text-decoration: underline;
+    &:hover {
+        color: #006FD6;
+        text-decoration: underline;
+    }
 }
 
 h1,
