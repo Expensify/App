@@ -191,11 +191,16 @@ class OptionsSelector extends Component {
             CTRLEnterConfig.shortcutKey,
             () => {
                 const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!this.canSelectMultipleOptions && !focusedOption) {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection(focusedOption);
                     return;
                 }
 
-                this.props.onConfirmSelection(focusedOption);
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
             },
             CTRLEnterConfig.descriptionKey,
             CTRLEnterConfig.modifiers,
