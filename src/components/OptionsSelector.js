@@ -192,7 +192,7 @@ class OptionsSelector extends Component {
             () => {
                 const focusedOption = this.state.allOptions[this.state.focusedIndex];
                 if (this.props.canSelectMultipleOptions) {
-                    this.props.onConfirmSelection(focusedOption);
+                    this.props.onConfirmSelection();
                     return;
                 }
 
