@@ -17,6 +17,9 @@ import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
+    /** Children to wrap */
+    children: PropTypes.node,
+
     /** Whether to show the alert text */
     isAlertVisible: PropTypes.bool.isRequired,
 
@@ -51,6 +54,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    children: null,
     message: '',
     isDisabled: false,
     isMessageHtml: false,
@@ -124,14 +128,18 @@ const FormAlertWithSubmitButton = (props) => {
                     {getAlertPrompt()}
                 </View>
             )}
-            <Button
-                success
-                pressOnEnter
-                text={props.buttonText}
-                onPress={props.onSubmit}
-                isDisabled={props.isDisabled}
-                isLoading={props.isLoading}
-            />
+            {props.children ? (
+                props.children
+            ) : (
+                <Button
+                    success
+                    pressOnEnter
+                    text={props.buttonText}
+                    onPress={props.onSubmit}
+                    isDisabled={props.isDisabled}
+                    isLoading={props.isLoading}
+                />
+            )}
         </View>
     );
 };
