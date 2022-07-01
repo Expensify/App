@@ -139,7 +139,7 @@ const InitialSettingsPage = (props) => {
             icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
             action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-            iconStyles: [styles.popoverMenuIconEmphasized],
+            iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
         }))
