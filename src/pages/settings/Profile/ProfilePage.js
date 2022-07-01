@@ -68,13 +68,13 @@ class ProfilePage extends Component {
         super(props);
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
+        this.hasSelfSelectedPronouns = !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX);
+        this.selectedTimezone = lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
+        this.isAutomaticTimezone = lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic);
+        this.logins = this.getLogins(props.loginList);
+        this.avatar = {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login))};
 
         this.state = {
-            hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            logins: this.getLogins(props.loginList),
-            avatar: {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login))},
             isAvatarChanged: false,
         };
 
@@ -85,19 +85,10 @@ class ProfilePage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        let stateToUpdate = {};
-
         // Recalculate logins if loginList has changed
         if (this.props.loginList !== prevProps.loginList) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
+            this.logins = this.getLogins(this.props.loginList);
         }
-
-        if (_.isEmpty(stateToUpdate)) {
-            return;
-        }
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState(stateToUpdate);
     }
 
     /**
@@ -135,7 +126,13 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
+        if (_.isUndefined(avatar)) {
+            this.avatar = {uri: ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)};
+        } else {
+            this.avatar = avatar;
+        }
+
+        this.setState({isAvatarChanged: !_.isUndefined(avatar)});
     }
 
     /**
@@ -144,12 +141,12 @@ class ProfilePage extends Component {
      */
     updatePersonalDetails(values) {
         // Check if the user has modified their avatar
-        if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+        if ((this.props.myPersonalDetails.avatar !== this.avatar.uri) && this.state.isAvatarChanged) {
             // If the user removed their profile photo, replace it accordingly with the default avatar
-            if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
-                PersonalDetails.deleteAvatar(this.state.avatar.uri);
+            if (this.avatar.uri.includes('/images/avatars/avatar')) {
+                PersonalDetails.deleteAvatar(this.avatar.uri);
             } else {
-                PersonalDetails.setAvatar(this.state.avatar);
+                PersonalDetails.setAvatar(this.avatar);
             }
 
             // Reset the changed state
@@ -219,9 +216,9 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             inputID="avatar"
                             isUploading={this.props.myPersonalDetails.avatarUploading}
-                            isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
-                            avatarURL={this.state.avatar.uri}
-                            defaultValue={this.state.avatar.uri}
+                            isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
+                            avatarURL={this.avatar.uri}
+                            defaultValue={this.avatar.uri}
                             onImageSelected={this.updateAvatar}
                             onImageRemoved={this.updateAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
@@ -263,7 +260,7 @@ class ProfilePage extends Component {
                                 defaultValue={this.props.myPersonalDetails.pronouns}
                                 shouldSaveDraft
                             />
-                            {this.state.hasSelfSelectedPronouns && (
+                            {this.hasSelfSelectedPronouns && (
                                 <View style={styles.mt2}>
                                     <TextInput
                                         inputID="selfSelectedPronoun"
@@ -276,29 +273,29 @@ class ProfilePage extends Component {
                         <LoginField
                             label={this.props.translate('profilePage.emailAddress')}
                             type="email"
-                            login={this.state.logins.email}
-                            defaultValue={this.state.logins.email}
+                            login={this.logins.email}
+                            defaultValue={this.logins.email}
                         />
                         <LoginField
                             label={this.props.translate('common.phoneNumber')}
                             type="phone"
-                            login={this.state.logins.phone}
-                            defaultValue={this.state.logins.phone}
+                            login={this.logins.phone}
+                            defaultValue={this.logins.phone}
                         />
                         <View style={styles.mb3}>
                             <Picker
                                 inputID="timezone"
                                 label={this.props.translate('profilePage.timezone')}
                                 items={timezones}
-                                isDisabled={this.state.isAutomaticTimezone}
-                                defaultValue={this.state.selectedTimezone}
+                                isDisabled={this.isAutomaticTimezone}
+                                defaultValue={this.selectedTimezone}
                                 shouldSaveDraft
                             />
                         </View>
                         <CheckboxWithLabel
                             inputID="isAutomaticTimezone"
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                            defaultValue={this.state.isAutomaticTimezone}
+                            defaultValue={this.isAutomaticTimezone}
                             shouldSaveDraft
                         />
                     </Form>
