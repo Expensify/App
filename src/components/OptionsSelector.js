@@ -224,12 +224,12 @@ class OptionsSelector extends Component {
         this.setState({
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
+        }, () => {
+            if (this.state.allOptions.length <= newFocusedIndex) {
+                return;
+            }
+            this.scrollToIndex(newFocusedIndex);
         });
-
-        if (newOptions.length <= newFocusedIndex) {
-            return;
-        }
-        this.scrollToIndex(newFocusedIndex);
     }
 
     componentWillUnmount() {
