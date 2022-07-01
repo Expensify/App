@@ -10,9 +10,14 @@ Onyx.connect({
 /**
 * Unset CloseAccount error message to hide modal
  */
-export default function hideCloseAccountErrorModal() {
+function hideCloseAccountErrorModal() {
     if (!isCloseAccountErrorModalOpen) {
         return;
     }
     Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT_DATA, {error: ''});
 }
+
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    hideCloseAccountErrorModal,
+};
