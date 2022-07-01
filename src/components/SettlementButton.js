@@ -13,6 +13,7 @@ import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import KYCWall from './KYCWall';
+import FormAlertWrapper from './FormAlertWrapper';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -123,28 +124,26 @@ class SettlementButton extends React.Component {
 
     render() {
         return (
-            <KYCWall
-                onSuccessfulKYC={() => this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)}
-                enablePaymentsRoute={this.props.enablePaymentsRoute}
-                addBankAccountRoute={this.props.addBankAccountRoute}
-                addDebitCardRoute={this.props.addDebitCardRoute}
-            >
-                {triggerKYCFlow => (
-                    <ButtonWithMenu
-                        isDisabled={this.props.isDisabled}
-                        isLoading={this.props.isLoading}
-                        onPress={(event, iouPaymentType) => {
-                            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                                triggerKYCFlow(event);
-                                return;
-                            }
+            <>
+                <FormAlertWrapper>
+                    {isOffline => (
+                        <ButtonWithMenu
+                            isDisabled={isOffline}
+                            isLoading={this.props.isLoading}
+                            onPress={(event, iouPaymentType) => {
+                                if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                                    console.log(test);
+                                    return;
+                                }
 
-                            this.props.onPress(iouPaymentType);
-                        }}
-                        options={this.state.buttonOptions}
-                    />
-                )}
-            </KYCWall>
+                                this.props.onPress(iouPaymentType);
+                            }}
+                            options={this.state.buttonOptions}
+                        />
+
+                    )}
+                </FormAlertWrapper>
+            </>
         );
     }
 }
