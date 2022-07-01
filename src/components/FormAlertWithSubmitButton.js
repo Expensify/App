@@ -21,16 +21,16 @@ const propTypes = {
     children: PropTypes.node,
 
     /** Whether to show the alert text */
-    isAlertVisible: PropTypes.bool.isRequired,
+    isAlertVisible: PropTypes.bool,
 
     /** Whether the button is disabled */
     isDisabled: PropTypes.bool,
 
     /** Submit function */
-    onSubmit: PropTypes.func.isRequired,
+    onSubmit: PropTypes.func,
 
     /** Text for the button */
-    buttonText: PropTypes.string.isRequired,
+    buttonText: PropTypes.string,
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed: PropTypes.func,
@@ -54,6 +54,9 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isAlertVisible: false,
+    buttonText: '',
+    onSubmit: () => {},
     children: null,
     message: '',
     isDisabled: false,
@@ -106,7 +109,7 @@ const FormAlertWithSubmitButton = (props) => {
         );
     }
 
-    if (props.network.isOffline) {
+    if (props.network.isOffline && !props.children) {
         return (
             <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
                 <Button
@@ -129,7 +132,7 @@ const FormAlertWithSubmitButton = (props) => {
                 </View>
             )}
             {props.children ? (
-                props.children
+                props.children(props.network.isOffline)
             ) : (
                 <Button
                     success
