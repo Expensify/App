@@ -268,6 +268,18 @@ function loadFullPolicy(policyID) {
 }
 
 /**
+ * Is the user an admin of a free policy (aka workspace)?
+ *
+ * @param {Array} policies
+ * @returns {Boolean}
+ */
+function isAdminOfFreePolicy(policies) {
+    return _.some(policies, policy => policy
+        && policy.type === CONST.POLICY.TYPE.FREE
+        && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} members
@@ -506,15 +518,9 @@ function updateLastAccessedWorkspace(policyID) {
  * Subscribe to public-policyEditor-[policyID] events.
  */
 function subscribeToPolicyEvents() {
-    _.each(allPolicies, (policy, key) => {
+    _.each(allPolicies, (policy) => {
         const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
         Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
-            const policyWithoutEmployee = _.clone(policy);
-            policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
-
-            // Remove the members from the policy
-            Onyx.set(key, policyWithoutEmployee);
-
             // Refetch the policy expense chats to update their state and their actions to get the archive reason
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
@@ -538,6 +544,7 @@ export {
     loadFullPolicy,
     removeMembers,
     invite,
+    isAdminOfFreePolicy,
     create,
     uploadAvatar,
     update,
