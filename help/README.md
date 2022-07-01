@@ -20,6 +20,7 @@ bundle install
 1. Open the Terminal command line in macOS.
 2. Navigate to the `help` folder in the command line.
 3. Run `bundle exec jekyll serve --livereload`.
+    - _Note: If you see an error like `Unable to load the EventMachine C Extension...`, try running `gem uninstall eventmachine && bundle install`. If that doesn't work just removing the `--livereload` flag should work._
 4. Open http://localhost:4000 in the browser to see the site running locally.
 5. Modify a `.html` or `.md` file and refresh the page in the browser.
 
