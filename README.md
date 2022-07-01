@@ -44,7 +44,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 ## Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11580) for installing cocoapods.
 
-* To install the iOS dependencies, run: `npm install && cd ios/ && pod install && cd ..`
+* To install the iOS dependencies, run: `npm install && cd ios/ && bundle exec pod install && cd ..`
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
