@@ -77,7 +77,6 @@ import Trashcan from '../../../assets/images/trashcan.svg';
 import UpArrow from '../../../assets/images/arrow-up.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Users from '../../../assets/images/users.svg';
-import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 
@@ -162,7 +161,6 @@ export {
     UpArrow,
     Upload,
     Users,
-    Venmo,
     Wallet,
     Workspace,
 };
