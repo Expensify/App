@@ -17,6 +17,9 @@ const propTypes = {
     /** Callback to execute when the dropdown element is pressed */
     onDropdownPress: PropTypes.func,
 
+    /** Should this button be disabled? */
+    isDisabled: PropTypes.bool,
+
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 };
@@ -24,6 +27,7 @@ const propTypes = {
 const defaultProps = {
     onButtonPress: () => {},
     onDropdownPress: () => {},
+    isDisabled: false,
     isLoading: false,
 };
 
