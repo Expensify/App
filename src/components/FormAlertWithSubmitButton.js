@@ -109,6 +109,7 @@ const FormAlertWithSubmitButton = (props) => {
         );
     }
 
+    // Display generic offline button unless this component is wrapping custom components
     if (props.network.isOffline && !props.children) {
         return (
             <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
