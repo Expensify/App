@@ -1151,11 +1151,9 @@ function openReport(reportID) {
  * @param {Number} reportID
  */
 function readNewestAction(reportID) {
-    const sequenceNumber = reportMaxSequenceNumbers[reportID];
     API.write('ReadNewestAction',
         {
             reportID,
-            sequenceNumber,
         },
         {
             optimisticData: [{
