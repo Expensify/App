@@ -8,7 +8,7 @@ Onyx.connect({
 });
 
 /**
-* Unset CloseAccount error message to hide modal
+ * Unset CloseAccount error message to hide modal
  */
 function hideCloseAccountErrorModal() {
     if (!isCloseAccountErrorModalOpen) {
