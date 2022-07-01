@@ -182,22 +182,21 @@ class TransferBalancePage extends React.Component {
                                     {this.props.translate('paymentsPage.transferConfirmText', {
                                         amount: this.props.numberFormat(
                                             this.props.walletTransfer.transferAmount / 100,
-                                            { style: 'currency', currency: 'USD' },
+                                            {style: 'currency', currency: 'USD'},
                                         ),
                                     })}
                                 </Text>
                             </View>
                         </View>
-
-                <FixedFooter>
-                    <Button
-                        text={this.props.translate('paymentsPage.gotIt')}
-                        onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
-                        style={[styles.mt4]}
-                        iconStyles={[styles.mr5]}
-                        success
-                    />
-                </FixedFooter>
+                        <FixedFooter>
+                            <Button
+                                text={this.props.translate('paymentsPage.gotIt')}
+                                onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
+                                style={[styles.mt4]}
+                                iconStyles={[styles.mr5]}
+                                success
+                            />
+                        </FixedFooter>
                     </KeyboardAvoidingView>
                 </ScreenWrapper>
             );
