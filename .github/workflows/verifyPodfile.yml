@@ -54,6 +54,6 @@ jobs:
         run: cd ios && bundle exec pod install
       
       - name: Debug
-        run: pod ipc spec ../node_modules-react-native-webview/react-native-webview.podspec
+        run: pod ipc spec ../node_modules/react-native-webview/react-native-webview.podspec
 
       - run: ./.github/scripts/verifyPodfile.sh
