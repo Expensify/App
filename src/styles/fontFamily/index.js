@@ -1,5 +1,5 @@
 import bold from '../bold';
-import emojiFont from '../emojiFont';
+import emojiFont from './emoji';
 
 const fontFamily = {
     GTA_ITALIC: 'GTAmericaExp-RgIt',
