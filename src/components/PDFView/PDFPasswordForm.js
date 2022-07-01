@@ -48,13 +48,14 @@ class PDFPasswordForm extends Component {
             shouldShowForm: false,
         };
         this.submitPassword = this.submitPassword.bind(this);
+        this.validate = this.validate.bind(this);
         this.validateOnBlur = this.validateOnBlur.bind(this);
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
     }
 
     submitPassword() {
-        this.validateOnBlur();
+        this.validate();
         if (!_.isEmpty(this.state.password)) {
             this.setState({isEditingInProgress: false});
             this.props.onSubmit(this.state.password);
@@ -69,9 +70,13 @@ class PDFPasswordForm extends Component {
     }
 
     validateOnBlur() {
-        // Notify parent that keyboard is no longer visible (on mobile devices).
+        // Notify parent that keyboard is no longer visible (for mobile devices).
         this.props.onAvoidKeyboard(false);
 
+        this.validate();
+    }
+
+    validate() {
         if (!_.isEmpty(this.state.password)) {
             return;
         }
