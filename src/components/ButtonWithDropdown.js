@@ -37,6 +37,7 @@ const ButtonWithDropdown = props => (
             success
             onPress={props.onButtonPress}
             text={props.buttonText}
+            isDisabled={props.isDisabled}
             isLoading={props.isLoading}
             shouldRemoveRightBorderRadius
             style={[styles.flex1]}
@@ -45,6 +46,7 @@ const ButtonWithDropdown = props => (
         <Button
             success
             style={[styles.buttonDropdown]}
+            isDisabled={props.isDisabled}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
             ContentComponent={() => (
