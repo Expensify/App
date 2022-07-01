@@ -17,8 +17,14 @@ import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
-    /** Children to wrap */
+    /** Text for the button */
+    buttonText: PropTypes.string,
+
+    /** Allow custom buttons and components to be wrapped by FormAlertWithSubmitButton */
     children: PropTypes.node,
+
+    /** Styles for container element */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether to show the alert text */
     isAlertVisible: PropTypes.bool,
@@ -26,44 +32,38 @@ const propTypes = {
     /** Whether the button is disabled */
     isDisabled: PropTypes.bool,
 
-    /** Submit function */
-    onSubmit: PropTypes.func,
-
-    /** Text for the button */
-    buttonText: PropTypes.string,
-
-    /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsLinkPressed: PropTypes.func,
-
-    /** Error message to display above button */
-    message: PropTypes.string,
+    /** Is the button in a loading state */
+    isLoading: PropTypes.bool,
 
     /** Whether message is in html format */
     isMessageHtml: PropTypes.bool,
 
-    /** Styles for container element */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Is the button in a loading state */
-    isLoading: PropTypes.bool,
-
-    ...withLocalizePropTypes,
+    /** Error message to display above button */
+    message: PropTypes.string,
 
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
+
+    /** Callback fired when the "fix the errors" link is pressed */
+    onFixTheErrorsLinkPressed: PropTypes.func,
+
+    /** Submit function */
+    onSubmit: PropTypes.func,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    isAlertVisible: false,
     buttonText: '',
-    onSubmit: () => {},
     children: null,
-    message: '',
-    isDisabled: false,
-    isMessageHtml: false,
     containerStyles: [],
+    isAlertVisible: false,
+    isDisabled: false,
     isLoading: false,
+    isMessageHtml: false,
+    message: '',
     onFixTheErrorsLinkPressed: () => {},
+    onSubmit: () => {},
 };
 
 const FormAlertWithSubmitButton = (props) => {
