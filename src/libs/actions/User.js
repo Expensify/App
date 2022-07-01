@@ -267,6 +267,40 @@ function isBlockedFromConcierge(blockedFromConcierge) {
 }
 
 /**
+ * Adds a paypal.me address for the user
+ *
+ * @param {String} address
+ */
+function addPaypalMeAddress(address) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            value: address,
+        },
+    ];
+    API.write('AddPaypalMeAddress', {
+        value: address,
+    }, {optimisticData});
+}
+
+/**
+ * Deletes a paypal.me address for the user
+ *
+ */
+function deletePaypalMeAddress() {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            value: '',
+        },
+    ];
+    API.write('DeletePaypalMeAddress', {}, {optimisticData});
+    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+}
+
+/**
  * Fetch the public domain info for the current user.
  *
  * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
@@ -467,4 +501,6 @@ export {
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
+    deletePaypalMeAddress,
+    addPaypalMeAddress,
 };

@@ -10,7 +10,7 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
-import NameValuePair from './NameValuePair';
+import * as User from './User';
 import * as store from './ReimbursementAccount/store';
 
 /**
@@ -36,14 +36,8 @@ function deleteDebitCard(fundID) {
 }
 
 function deletePayPalMe() {
-    const optimisticData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: '',
-        },
-    ];
-    API.write('DeletePaypalUsername', {}, {optimisticData});
+
+    User.deletePaypalMeAddress();
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
