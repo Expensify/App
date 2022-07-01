@@ -52,7 +52,18 @@ class AddPayPalMePage extends React.Component {
             return;
         }
         this.setState({payPalMeUsernameError: false});
-        NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
+        
+        const optimisticData = [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+                value: this.state.payPalMeUsername,
+            },
+        ];
+        API.write('AddPaypalUsername', {
+            value: this.state.payPalMeUsername,
+        }, {optimisticData});
+        
         Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
