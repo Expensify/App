@@ -216,7 +216,7 @@ class OptionsSelector extends Component {
             focusedIndex: newFocusedIndex,
         });
 
-        if (newOptions.length <= newFocusedIndex || !_.isEqual(this.props.selectedOptions, prevProps.selectedOptions)) {
+        if (newOptions.length < newFocusedIndex || !_.isEqual(this.props.selectedOptions, prevProps.selectedOptions)) {
             return;
         }
         this.scrollToIndex(newFocusedIndex);
