@@ -120,7 +120,7 @@ class AttachmentModal extends PureComponent {
      * @param {Boolean} showArrows
      */
     onShowArrow(showArrows) {
-        this.setState({ showArrows })
+        this.setState({showArrows});
     }
 
     /**
@@ -220,8 +220,8 @@ class AttachmentModal extends PureComponent {
                             />
                         ) : ''}
                     />
-                    <View 
-                        style={attachmentViewStyles} 
+                    <View
+                        style={attachmentViewStyles}
                         onMouseEnter={() => this.onShowArrow(true)}
                         onMouseLeave={() => this.onShowArrow(false)}
                     >

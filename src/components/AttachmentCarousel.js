@@ -23,6 +23,7 @@ const propTypes = {
     onArrowPress: PropTypes.func,
 
     /** Hides arrows if set to false */
+    showArrows: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -108,9 +109,9 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
-        const styling = [styles.attachmentModalArrowsContainer]
+        const styling = [styles.attachmentModalArrowsContainer];
         if (!this.props.showArrows) {
-            styling.push(styles.attachmentModalArrowsHidden)
+            styling.push(styles.attachmentModalArrowsHidden);
         }
 
         return (
