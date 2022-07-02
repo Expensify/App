@@ -187,7 +187,12 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                 throttledDate,
                 maxAttemptsReached,
                 error: '',
+                loading: false,
+            });
+            Onyx.merge(ONYXKEYS.PLAID_DATA, {
                 isPlaidDisabled,
+                error: '',
+                loading: false,
             });
         });
 }

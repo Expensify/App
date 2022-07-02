@@ -177,7 +177,6 @@ class RequestorStep extends React.Component {
                     </ScrollView>
                 ) : (
                     <ReimbursementAccountForm
-                        reimbursementAccount={this.props.reimbursementAccount}
                         onSubmit={this.submit}
                     >
                         <Text>{this.props.translate('requestorStep.subtitle')}</Text>
@@ -210,7 +209,7 @@ class RequestorStep extends React.Component {
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
                             }}
-                            errors={this.props.reimbursementAccount.errors}
+                            errors={this.props.reimbursementAccount.errorFields}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.isControllingOfficer}
