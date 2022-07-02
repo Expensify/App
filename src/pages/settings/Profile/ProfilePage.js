@@ -68,13 +68,13 @@ class ProfilePage extends Component {
         super(props);
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
-        this.hasSelfSelectedPronouns = !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX);
         this.selectedTimezone = lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
         this.isAutomaticTimezone = lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic);
         this.logins = this.getLogins(props.loginList);
         this.avatar = {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login))};
-
+        this.pronouns = props.myPersonalDetails.pronouns;
         this.state = {
+            hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             isAvatarChanged: false,
         };
 
@@ -153,7 +153,7 @@ class ProfilePage extends Component {
         PersonalDetails.setPersonalDetails({
             firstName: values.firstName.trim(),
             lastName: values.lastName.trim(),
-            pronouns: values.pronouns.trim(),
+            pronouns: (this.state.hasSelfSelectedPronouns) ? values.selfSelectedPronoun.trim() : values.pronouns.trim(),
             timezone: {
                 automatic: values.isAutomaticTimezone,
                 selected: values.timezone,
@@ -172,6 +172,12 @@ class ProfilePage extends Component {
             CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
             [values.firstName, values.lastName, values.pronouns],
         );
+
+        const hasSelfSelectedPronouns = values.pronouns === CONST.PRONOUNS.SELF_SELECT;
+        this.pronouns = hasSelfSelectedPronouns ? '' : values.pronouns;
+        this.setState({
+            hasSelfSelectedPronouns,
+        });
 
         if (hasFirstNameError) {
             errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.PROFILE_INPUTS_CHARACTER_LIMIT});
@@ -193,6 +199,8 @@ class ProfilePage extends Component {
             label: value,
             value: `${CONST.PRONOUNS.PREFIX}${key}`,
         }));
+
+        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
 
         return (
             <ScreenWrapper>
@@ -254,14 +262,14 @@ class ProfilePage extends Component {
                                     value: '',
                                     label: this.props.translate('profilePage.selectYourPronouns'),
                                 }}
-                                defaultValue={this.props.myPersonalDetails.pronouns}
+                                defaultValue={pronounsPickerValue}
                                 shouldSaveDraft
                             />
-                            {this.hasSelfSelectedPronouns && (
+                            {this.state.hasSelfSelectedPronouns && (
                                 <View style={styles.mt2}>
                                     <TextInput
                                         inputID="selfSelectedPronoun"
-                                        defaultValue={this.props.myPersonalDetails.pronouns}
+                                        defaultValue={this.pronouns}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
                                     />
                                 </View>
