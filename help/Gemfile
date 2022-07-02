@@ -32,4 +32,7 @@ gem "wdm", "~> 0.1.1", :platforms => [:mingw, :x64_mingw, :mswin]
 # do not have a Java counterpart.
 gem "http_parser.rb", "~> 0.6.0", :platforms => [:jruby]
 
+# Enable Dart-sass instead of default LibSass, which has been deprecated since October 2020
+gem 'sass-embedded', '~> 1.0'
+
 gem "webrick", "~> 1.7"
