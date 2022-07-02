@@ -86,9 +86,10 @@ class ProfilePage extends Component {
 
     componentDidUpdate(prevProps) {
         // Recalculate logins if loginList has changed
-        if (this.props.loginList !== prevProps.loginList) {
-            this.logins = this.getLogins(this.props.loginList);
+        if (this.props.loginList === prevProps.loginList) {
+            return;
         }
+        this.logins = this.getLogins(this.props.loginList);
     }
 
     /**
