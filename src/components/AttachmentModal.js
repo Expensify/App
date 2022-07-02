@@ -75,6 +75,7 @@ class AttachmentModal extends PureComponent {
             isModalOpen: false,
             isConfirmModalOpen: false,
             reportId: null,
+            showArrows: false,
             file: {name: lodashGet(props, 'originalFileName', '')},
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
@@ -84,6 +85,7 @@ class AttachmentModal extends PureComponent {
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
         this.onArrowPress = this.onArrowPress.bind(this);
+        this.onShowArrow = this.onShowArrow.bind(this);
     }
 
     // this prevents a bug in iOS that would show the last image before closing then opening on a new image
@@ -111,6 +113,14 @@ class AttachmentModal extends PureComponent {
         const sourceURL = lodashGet(attachmentItem, 'sourceURL', '');
         const file = lodashGet(attachmentItem, 'file', {name: ''});
         this.setState({sourceURL, file});
+    }
+
+    /**
+     * Toggles the visibility of the arrows on mouse hover
+     * @param {Boolean} showArrows
+     */
+    onShowArrow(showArrows) {
+        this.setState({ showArrows })
     }
 
     /**
@@ -210,11 +220,16 @@ class AttachmentModal extends PureComponent {
                             />
                         ) : ''}
                     />
-                    <View style={attachmentViewStyles}>
+                    <View 
+                        style={attachmentViewStyles} 
+                        onMouseEnter={() => this.onShowArrow(true)}
+                        onMouseLeave={() => this.onShowArrow(false)}
+                    >
                         <>
                             <AttachmentView sourceURL={sourceURL} file={this.state.file} />
                             {this.state.reportId && (
                                 <AttachmentCarousel
+                                    showArrows={this.state.showArrows}
                                     reportId={this.state.reportId}
                                     onArrowPress={this.onArrowPress}
                                     sourceURL={this.state.sourceURL}

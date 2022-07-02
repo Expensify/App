@@ -21,12 +21,15 @@ const propTypes = {
 
     /** Callback to update the parent modal's state with a sourceUrl and name from the attachments array */
     onArrowPress: PropTypes.func,
+
+    /** Hides arrows if set to false */
 };
 
 const defaultProps = {
     sourceURL: '',
     reportActions: {},
     onArrowPress: () => {},
+    showArrows: true,
 };
 
 class AttachmentCarousel extends React.Component {
@@ -105,8 +108,13 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
+        const styling = [styles.attachmentModalArrowsContainer]
+        if (!this.props.showArrows) {
+            styling.push(styles.attachmentModalArrowsHidden)
+        }
+
         return (
-            <View style={[styles.attachmentModalArrowsContainer]}>
+            <View style={styling}>
                 <Button
                     medium
                     icon={Expensicons.BackArrow}

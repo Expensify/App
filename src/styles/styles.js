@@ -2018,6 +2018,11 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         flexDirection: 'row',
+        opacity: 1,
+    },
+
+    attachmentModalArrowsHidden: {
+        opacity: 0
     },
 
     detailsPageSectionVersion: {
