@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as store from './ReimbursementAccount/store';
-import requireParameters from '../requireParameters';
 import ROUTES from '../../ROUTES';
 
 export {
@@ -49,32 +48,16 @@ function addPersonalBankAccount(account, password, plaidAccessToken) {
     const commandName = 'AddPersonalBankAccount';
 
     const parameters = {
-        accountNumber: account.accountNumber,
         addressName: account.addressName,
-        allowDebit: false,
-        confirm: false,
-        isSavings: account.isSavings,
-        password,
         routingNumber: account.routingNumber,
+        accountNumber: account.accountNumber,
+        isSavings: account.isSavings,
         setupType: 'plaid',
-        additionalData: JSON.stringify({
-            plaidAccountID: account.plaidAccountID,
-            acceptTerms: true,
-            country: CONST.COUNTRY.US,
-            currency: CONST.CURRENCY.USD,
-            fieldsType: 'local',
-            plaidAccessToken,
-            bankName: account.bankName,
-        }),
+        bank: account.bankName,
+        plaidAccountID: account.plaidAccountID,
+        plaidAccessToken,
+        password,
     };
-
-    requireParameters([
-        'accountNumber',
-        'addressName',
-        'isSavings',
-        'password',
-        'routingNumber',
-    ], parameters, commandName);
 
     const onyxData = {
         optimisticData: [
