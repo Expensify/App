@@ -2,7 +2,6 @@ import React from 'react';
 import {
     Keyboard,
     AppState,
-    Animated,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -32,7 +31,6 @@ import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -104,7 +102,6 @@ class ReportActionsView extends React.Component {
         this.state = {
             isFloatingMessageCounterVisible: false,
             messageCounterCount: this.props.report.unreadActionCount,
-            fadeInAnimation: new Animated.Value(0),
         };
 
         this.currentScrollOffset = 0;
@@ -149,7 +146,6 @@ class ReportActionsView extends React.Component {
         }
 
         this.fetchData();
-        this.fadeIn();
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -271,14 +267,6 @@ class ReportActionsView extends React.Component {
 
     fetchData() {
         Report.fetchInitialActions(this.props.reportID);
-    }
-
-    fadeIn() {
-        Animated.timing(this.state.fadeInAnimation, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-        }).start();
     }
 
     /**
@@ -432,17 +420,15 @@ class ReportActionsView extends React.Component {
                             onClick={this.scrollToBottomAndUpdateLastRead}
                             onClose={this.hideFloatingMessageCounter}
                         />
-                        <Animated.View style={[styles.flex1, {opacity: this.state.fadeInAnimation}]}>
-                            <ReportActionsList
-                                report={this.props.report}
-                                onScroll={this.trackScroll}
-                                onLayout={this.recordTimeToMeasureItemLayout}
-                                sortedReportActions={this.sortedReportActions}
-                                mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                                isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
-                                loadMoreChats={this.loadMoreChats}
-                            />
-                        </Animated.View>
+                        <ReportActionsList
+                            report={this.props.report}
+                            onScroll={this.trackScroll}
+                            onLayout={this.recordTimeToMeasureItemLayout}
+                            sortedReportActions={this.sortedReportActions}
+                            mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                            isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
+                            loadMoreChats={this.loadMoreChats}
+                        />
                         <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     </>
                 )}
