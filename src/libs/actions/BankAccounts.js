@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
-import * as Plaid from './Plaid';
 import * as ReimbursementAccount from './ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
@@ -30,9 +29,8 @@ export {
 } from './ReimbursementAccount';
 export {
     openPlaidBankAccountSelector,
-    clearPlaidBankAccountsAndToken,
+    clearOnyxObject,
     openPlaidBankLogin,
-    getBankName,
 } from './Plaid';
 export {
     fetchOnfidoToken,
@@ -60,13 +58,13 @@ function addPersonalBankAccount(account, password, plaidAccessToken) {
         routingNumber: account.routingNumber,
         setupType: 'plaid',
         additionalData: JSON.stringify({
-            bankName: Plaid.getBankName(),
             plaidAccountID: account.plaidAccountID,
             acceptTerms: true,
-            country: 'US',
+            country: CONST.COUNTRY.US,
             currency: CONST.CURRENCY.USD,
             fieldsType: 'local',
             plaidAccessToken,
+            bankName: account.bankName,
         }),
     };
 
@@ -82,7 +80,7 @@ function addPersonalBankAccount(account, password, plaidAccessToken) {
         optimisticData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: true,
                     error: '',
@@ -92,7 +90,7 @@ function addPersonalBankAccount(account, password, plaidAccessToken) {
         successData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: false,
                     error: '',
@@ -106,7 +104,7 @@ function addPersonalBankAccount(account, password, plaidAccessToken) {
         failureData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: false,
                     error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),

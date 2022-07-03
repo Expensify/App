@@ -326,7 +326,7 @@ class BasePaymentsPage extends React.Component {
                         >
                             {isPopoverBottomMount && (
                                 <MenuItem
-                                    title={this.state.formattedSelectedPaymentMethod.title}
+                                    title={this.state.formattedSelectedPaymentMethod.title || ''}
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}

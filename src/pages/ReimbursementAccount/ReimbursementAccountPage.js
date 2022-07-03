@@ -212,9 +212,9 @@ class ReimbursementAccountPage extends React.Component {
                     {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                         <BankAccountStep
                             achData={achData}
-                            isPlaidDisabled={this.props.plaidBankAccounts.isPlaidDisabled}
+                            isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
                             receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                            plaidLinkOAuthToken={this.props.plaidLinkToken}
+                            plaidLinkOAuthToken={this.props.plaidData.plaidLinkToken}
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
@@ -253,11 +253,8 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        plaidLinkToken: {
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
-        },
-        plaidBankAccounts: {
-            key: ONYXKEYS.PLAID_BANK_ACCOUNTS,
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
     }),
     withLocalize,
