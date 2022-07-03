@@ -6,6 +6,7 @@ import withDrawerState, {withDrawerPropTypes} from '../../../components/withDraw
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
@@ -172,7 +173,7 @@ class ReportActionsList extends React.Component {
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
-            <Animated.View style={[styles.flex1, {opacity: this.state.fadeInAnimation}]}>
+            <Animated.View style={StyleUtils.getReportListAnimationStyle(this.state.fadeInAnimation)}>
                 <InvertedFlatList
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
@@ -190,7 +191,7 @@ class ReportActionsList extends React.Component {
                     ListFooterComponent={this.props.isLoadingMoreReportActions
                         ? (
                             <ReportActionsSkeletonView
-                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT}
+                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 2}
                             />
                         )
                         : null}

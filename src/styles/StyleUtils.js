@@ -448,6 +448,18 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
+/**
+ * Get animated opacity for report chat list
+ * @param {Animated.Value} fadeInAnimation
+ * @returns {Object}
+ */
+function getReportListAnimationStyle(fadeInAnimation) {
+    return {
+        ...styles.flex1,
+        opacity: fadeInAnimation,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -475,4 +487,5 @@ export {
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
     getPaddingLeft,
+    getReportListAnimationStyle,
 };
