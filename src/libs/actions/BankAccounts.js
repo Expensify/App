@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as store from './ReimbursementAccount/store';
-import ROUTES from '../../ROUTES';
 
 export {
     setupWithdrawalAccount,
@@ -77,10 +76,7 @@ function addPersonalBankAccount(account, password, plaidAccessToken) {
                 value: {
                     loading: false,
                     error: '',
-
-                    // Once the bank account has been added, we show a success message with a Continue button.
-                    // When clicking on the button, we should redirect to this route.
-                    successRoute: ROUTES.SETTINGS_PAYMENTS,
+                    success: Localize.translateLocal('paymentsPage.addBankAccountSuccess'),
                 },
             },
         ],

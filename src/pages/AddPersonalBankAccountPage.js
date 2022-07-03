@@ -23,12 +23,13 @@ import FormHelper from '../libs/FormHelper';
 import * as ReimbursementAccount from '../libs/actions/ReimbursementAccount';
 import TextInput from '../components/TextInput';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus/index.native';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
     personalBankAccount: PropTypes.shape({
         error: PropTypes.string,
-        successRoute: PropTypes.string,
+        success: PropTypes.string,
         loading: PropTypes.bool,
     }),
 };
@@ -36,7 +37,7 @@ const propTypes = {
 const defaultProps = {
     personalBankAccount: {
         error: '',
-        successRoute: '',
+        success: '',
         loading: false,
     },
 };
@@ -119,7 +120,7 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     render() {
-        const successRoute = lodashGet(this.props, 'personalBankAccount.successRoute', '');
+        const success = lodashGet(this.props, 'personalBankAccount.success', '');
         const error = lodashGet(this.props, 'personalBankAccount.error', '');
         const loading = lodashGet(this.props, 'personalBankAccount.loading', false);
 
@@ -132,16 +133,16 @@ class AddPersonalBankAccountPage extends React.Component {
                         shouldShowBackButton
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {successRoute ? (
+                    {success ? (
                         <>
                             <Text style={[styles.formSuccess, styles.mh5]}>
-                                {this.props.translate('paymentsPage.addBankAccountSuccess')}
+                                {success}
                             </Text>
                             <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
                                 <Button
                                     success
                                     text={this.props.translate('common.continue')}
-                                    onPress={() => Navigation.navigate(successRoute)}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                                 />
                             </View>
                         </>
