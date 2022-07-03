@@ -5,19 +5,11 @@ import * as API from '../API';
 import * as Localize from '../Localize';
 
 /**
- * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
- *
- * @private
- */
-let bankName = '';
-
-/**
  * We clear these out of storage once we are done with them so the user must re-enter Plaid credentials upon returning.
+ * @param {String} onyxKey
  */
-function clearPlaidBankAccountsAndToken() {
-    bankName = '';
-    Onyx.set(ONYXKEYS.PLAID_BANK_ACCOUNTS, {});
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, null);
+function clearOnyxObject(onyxKey) {
+    Onyx.set(onyxKey, {});
 }
 
 /**
@@ -32,28 +24,27 @@ function openPlaidBankLogin(allowDebit) {
 
 /**
  * @param {String} publicToken
- * @param {String} bank
+ * @param {String} bankName
  * @param {Boolean} allowDebit
  */
-function openPlaidBankAccountSelector(publicToken, bank, allowDebit) {
-    bankName = bank;
-
+function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
     API.read('OpenPlaidBankAccountSelector', {
         publicToken,
         allowDebit,
-        bank,
+        bank: bankName,
     }, {
         optimisticData: [{
             onyxMethod: 'merge',
-            key: ONYXKEYS.PLAID_BANK_ACCOUNTS,
+            key: ONYXKEYS.PLAID_DATA,
             value: {
                 loading: true,
                 error: '',
+                bankName,
             },
         }],
         successData: [{
             onyxMethod: 'merge',
-            key: ONYXKEYS.PLAID_BANK_ACCOUNTS,
+            key: ONYXKEYS.PLAID_DATA,
             value: {
                 loading: false,
                 error: '',
@@ -61,7 +52,7 @@ function openPlaidBankAccountSelector(publicToken, bank, allowDebit) {
         }],
         failureData: [{
             onyxMethod: 'merge',
-            key: ONYXKEYS.PLAID_BANK_ACCOUNTS,
+            key: ONYXKEYS.PLAID_DATA,
             value: {
                 loading: false,
                 error: Localize.translateLocal('bankAccount.error.noBankAccountAvailable'),
@@ -70,16 +61,8 @@ function openPlaidBankAccountSelector(publicToken, bank, allowDebit) {
     });
 }
 
-/**
- * @returns {String}
- */
-function getBankName() {
-    return bankName;
-}
-
 export {
-    clearPlaidBankAccountsAndToken,
+    clearOnyxObject,
     openPlaidBankAccountSelector,
     openPlaidBankLogin,
-    getBankName,
 };

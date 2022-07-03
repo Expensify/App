@@ -12,10 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import CONST from '../../CONST';
 import FormScrollView from '../../components/FormScrollView';
-import Button from '../../components/Button';
-import Navigation from '../../libs/Navigation/Navigation';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Text from '../../components/Text';
 
 const propTypes = {
     /** Data for the bank account actively being set up */
@@ -37,24 +34,6 @@ class ReimbursementAccountForm extends React.Component {
     }
 
     render() {
-        const successRoute = lodashGet(this.props, 'reimbursementAccount.successRoute');
-        if (successRoute) {
-            return (
-                <>
-                    <Text style={[styles.formSuccess, styles.mh5]}>
-                        {this.props.translate('paymentsPage.addBankAccountSuccess')}
-                    </Text>
-                    <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
-                        <Button
-                            success
-                            text={this.props.translate('common.continue')}
-                            onPress={() => Navigation.navigate(successRoute)}
-                        />
-                    </View>
-                </>
-            );
-        }
-
         const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
             || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
 

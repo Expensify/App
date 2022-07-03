@@ -10,6 +10,7 @@ export {goToWithdrawalAccountSetupStep} from './navigation';
 export {
     showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
+    setFormValidationErrorFields,
     resetReimbursementAccount,
     showBankAccountFormValidationError,
 } from './errors';
