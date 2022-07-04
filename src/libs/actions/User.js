@@ -422,7 +422,16 @@ function subscribeToExpensifyCardUpdates() {
  * @param {String} skinTone
  */
 function setPreferredSkinTone(skinTone) {
-    NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            value: skinTone,
+        },
+    ];
+    API.write('SetPreferredEmojiSkinTone', {
+        value: skinTone,
+    }, {optimisticData});
 }
 
 /**
@@ -430,7 +439,50 @@ function setPreferredSkinTone(skinTone) {
  * @param {Object[]} frequentlyUsedEmojis
  */
 function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
-    NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+            value: frequentlyUsedEmojis,
+        },
+    ];
+    API.write('SetFrequentlyUsedEmojis', {
+        value: frequentlyUsedEmojis,
+    }, {optimisticData});
+}
+
+/**
+ * Sync preferred timezone with Onyx and Server
+ * @param {String} timezone
+ */
+ function setPreferredTimezone(timezone) {
+    API.write('SetTimezone', {
+        value: timezone,
+    }, {});
+}
+
+/**
+ * Sync user first time flag to false with Onyx and Server
+ */
+ function setFirstTimeToFalse() {
+    NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
+}
+
+/**
+ * Sync user chat priority mode with Onyx and Server
+ * @param {String} mode
+ */
+ function setChatPriorityMode(mode) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+            value: mode,
+        },
+    ];
+    API.write('SetChatPriorityMode', {
+        value: mode,
+    }, {optimisticData});
 }
 
 /**
@@ -503,4 +555,7 @@ export {
     generateStatementPDF,
     deletePaypalMeAddress,
     addPaypalMeAddress,
+    setChatPriorityMode,
+    setFirstTimeToFalse,
+    setPreferredTimezone,
 };
