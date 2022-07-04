@@ -10,7 +10,6 @@ import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
-import * as PolicyUtils from './PolicyUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -371,12 +370,13 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    sortByLastMessageTimestamp = false,
+    sortByLastMessageTimestamp = true,
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
+    sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
     prioritizeIOUDebts = false,
     prioritizeReportsWithDraftComments = false,
@@ -440,14 +440,8 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
-        // For everyone else, one must be on the beta to see a default room.
-        const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(policies);
-        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(betas)) {
-            if (ReportUtils.isDomainRoom(report)) {
-                return;
-            }
-        } else if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
             return;
         }
 
@@ -472,12 +466,17 @@ function getOptions(reports, personalDetails, activeReportID, {
         }));
     });
 
-    const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
+    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         })
     ));
+
+    if (sortPersonalDetailsByAlphaAsc) {
+        // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+    }
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
@@ -650,7 +649,6 @@ function getSearchOptions(
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: false,
         forcePolicyNamePreview: true,
         prioritizeIOUDebts: false,
     });
@@ -720,6 +718,31 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the options for the Workspace Member Invite view
+ *
+ * @param {Object} personalDetails
+ * @param {Array<String>} betas
+ * @param {String} searchValue
+ * @param {Array} excludeLogins
+ * @returns {Object}
+ */
+function getMemberInviteOptions(
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    excludeLogins = [],
+) {
+    return getOptions([], personalDetails, 0, {
+        betas,
+        searchValue: searchValue.trim(),
+        excludeDefaultRooms: true,
+        includePersonalDetails: true,
+        excludeLogins,
+        sortPersonalDetailsByAlphaAsc: false,
+    });
+}
+
+/**
  * Build the options for the Sidebar a.k.a. LHN
  *
  * @param {Object} reports
@@ -752,7 +775,6 @@ function getSidebarOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
         prioritizePinnedReports: true,
         ...sideBarOptions,
@@ -812,6 +834,7 @@ export {
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
+    getMemberInviteOptions,
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,

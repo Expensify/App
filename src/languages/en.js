@@ -220,7 +220,6 @@ export default {
     iou: {
         amount: 'Amount',
         participants: 'Participants',
-        confirm: 'Confirm',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
