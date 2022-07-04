@@ -75,7 +75,7 @@ Additionally if you want to discuss an idea with the community without having a 
 #### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.
-* In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
+* In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/docs/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
 
 #### Check GitHub for existing proposals from other users
 
