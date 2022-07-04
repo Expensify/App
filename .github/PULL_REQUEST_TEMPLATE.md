@@ -42,7 +42,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I added steps for Staging and/or Production testing in the `QA steps` section
     - [ ] I added steps to cover failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
-- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/docs/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests on **all platforms** & verified they passed on:
     - [ ] iOS / native
     - [ ] Android / native
@@ -91,7 +91,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I verified the steps for Staging and/or Production testing are in the `QA steps` section
     - [ ] I verified the steps cover any possible failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
-- [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/docs/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
     - [ ] iOS / native
     - [ ] Android / native
