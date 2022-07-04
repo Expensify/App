@@ -63,7 +63,6 @@ class BankAccountStep extends React.Component {
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.state = {
             selectedPlaidBankAccount: undefined,
-            plaidAccessToken: '',
             hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
             accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
@@ -154,7 +153,7 @@ class BankAccountStep extends React.Component {
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
             // Params passed via the Plaid callback when an account is selected
-            plaidAccessToken: this.state.plaidAccessToken,
+            plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
             accountNumber: selectedPlaidBankAccount.accountNumber,
             routingNumber: selectedPlaidBankAccount.routingNumber,
             plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
@@ -275,7 +274,6 @@ class BankAccountStep extends React.Component {
                                 onSelect={(params) => {
                                     this.setState({
                                         selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                        plaidAccessToken: params.plaidAccessToken,
                                     });
                                 }}
                                 onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}

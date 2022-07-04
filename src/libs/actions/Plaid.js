@@ -1,16 +1,7 @@
-import Onyx from 'react-native-onyx';
 import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as Localize from '../Localize';
-
-/**
- * We clear these out of storage once we are done with them so the user must re-enter Plaid credentials upon returning.
- * @param {String} onyxKey
- */
-function clearOnyxObject(onyxKey) {
-    Onyx.set(onyxKey, {});
-}
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -62,7 +53,6 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
 }
 
 export {
-    clearOnyxObject,
     openPlaidBankAccountSelector,
     openPlaidBankLogin,
 };
