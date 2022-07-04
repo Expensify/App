@@ -294,7 +294,14 @@ class OptionsSelector extends Component {
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+
         let adjustedSectionIndex = sectionIndex;
+
+        // Ensure the adjusted section index is never larger the the number of sections we have available
+        if (_.isUndefined(this.props.sections[adjustedSectionIndex])) {
+            adjustedSectionIndex = this.props.sections.length - 1;
+        }
+
         for (let i = 0; i < sectionIndex; i++) {
             if (_.isEmpty(lodashGet(this.props.sections, `[${i}].data`))) {
                 adjustedSectionIndex--;
