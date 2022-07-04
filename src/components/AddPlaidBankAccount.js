@@ -50,6 +50,8 @@ const propTypes = {
 const defaultProps = {
     plaidData: {
         plaidLinkToken: '',
+        bankName: '',
+        plaidAccessToken: '',
         loading: false,
         error: '',
     },
@@ -116,10 +118,8 @@ class AddPlaidBankAccount extends React.Component {
         this.setState({selectedIndex: Number(index)}, () => {
             const selectedPlaidBankAccount = this.getPlaidBankAccounts()[this.state.selectedIndex];
             selectedPlaidBankAccount.bankName = this.props.plaidData.bankName;
-            this.props.onSelect({
-                selectedPlaidBankAccount,
-                plaidAccessToken: lodashGet(this.props, 'plaidData.plaidAccessToken'),
-            });
+            selectedPlaidBankAccount.plaidAccessToken = this.props.plaidData.plaidAccessToken;
+            this.props.onSelect({selectedPlaidBankAccount});
         });
     }
 

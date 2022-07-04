@@ -4,22 +4,21 @@ import ONYXKEYS from '../../../ONYXKEYS';
 /**
  * Show error modal and optionally a specific error message
  *
- * @param {String} error The error message to be displayed in the form.
- * @param {Boolean} isErrorHtml if @errorModalMessage is in html format or not
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ * @param {Boolean} isErrorModalMessageHtml if @errorModalMessage is in html format or not
  */
-function showBankAccountErrorModal(error = null, isErrorHtml = false) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error, isErrorHtml});
+function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessageHtml = false) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorModalMessage, isErrorModalMessageHtml});
 }
 
 /**
  * Set the current fields with errors.
- * @param {string} onyxKey
  * @param {Object} errorFields
  */
-function setFormValidationErrorFields(onyxKey, errorFields) {
+function setPersonalBankAccountFormValidationErrorFields(errorFields) {
     // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
-    Onyx.merge(onyxKey, {errorFields: null});
-    Onyx.merge(onyxKey, {errorFields});
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields: null});
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields});
 }
 
 /**
@@ -28,7 +27,9 @@ function setFormValidationErrorFields(onyxKey, errorFields) {
  * @param {String} errors
  */
 function setBankAccountFormValidationErrors(errors) {
-    setFormValidationErrorFields(ONYXKEYS.REIMBURSEMENT_ACCOUNT, errors);
+    // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
 }
 
 /**
@@ -51,7 +52,7 @@ function showBankAccountFormValidationError(error) {
 export {
     showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
-    setFormValidationErrorFields,
+    setPersonalBankAccountFormValidationErrorFields,
     showBankAccountFormValidationError,
     resetReimbursementAccount,
 };

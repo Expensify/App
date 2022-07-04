@@ -32,8 +32,8 @@ export default PropTypes.shape({
 
         /** last 4 digits of the account number */
         mask: PropTypes.string,
-    })),
 
-    /** Plaid access token, used to then retrieve Assets and Balances */
-    plaidAccessToken: PropTypes.string,
+        /** Plaid access token, used to then retrieve Assets and Balances */
+        plaidAccessToken: PropTypes.string,
+    })),
 });

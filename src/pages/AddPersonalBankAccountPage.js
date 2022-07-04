@@ -53,13 +53,12 @@ class AddPersonalBankAccountPage extends React.Component {
 
         this.state = {
             selectedPlaidBankAccount: undefined,
-            plaidAccessToken: '',
             password: '',
         };
 
         this.formHelper = new FormHelper({
             errorPath: 'personalBankAccount.errorFields',
-            setErrors: errorFields => ReimbursementAccount.setFormValidationErrorFields(ONYXKEYS.PERSONAL_BANK_ACCOUNT, errorFields),
+            setErrors: errorFields => ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errorFields),
         });
     }
 
@@ -107,7 +106,7 @@ class AddPersonalBankAccountPage extends React.Component {
             errors.password = true;
         }
 
-        ReimbursementAccount.setFormValidationErrorFields(ONYXKEYS.PERSONAL_BANK_ACCOUNT, errors);
+        ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errors);
         return _.size(errors) === 0;
     }
 
@@ -116,7 +115,7 @@ class AddPersonalBankAccountPage extends React.Component {
             return;
         }
 
-        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, this.state.password, this.state.plaidAccessToken);
+        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, this.state.password);
     }
 
     render() {
@@ -153,7 +152,6 @@ class AddPersonalBankAccountPage extends React.Component {
                                     onSelect={(params) => {
                                         this.setState({
                                             selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                            plaidAccessToken: params.plaidAccessToken,
                                         });
                                     }}
                                     onExitPlaid={Navigation.goBack}

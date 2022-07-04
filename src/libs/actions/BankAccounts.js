@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
@@ -27,7 +28,6 @@ export {
 } from './ReimbursementAccount';
 export {
     openPlaidBankAccountSelector,
-    clearOnyxObject,
     openPlaidBankLogin,
 } from './Plaid';
 export {
@@ -37,13 +37,20 @@ export {
 } from './Wallet';
 
 /**
+ * We clear these out of storage once we are done with them so the user must re-enter Plaid credentials upon returning.
+ * @param {String} onyxKey
+ */
+function clearOnyxObject(onyxKey) {
+    Onyx.set(onyxKey, {});
+}
+
+/**
  * Adds a bank account via Plaid
  *
  * @param {Object} account
  * @param {String} password
- * @param {String} plaidAccessToken
  */
-function addPersonalBankAccount(account, password, plaidAccessToken) {
+function addPersonalBankAccount(account, password) {
     const commandName = 'AddPersonalBankAccount';
 
     const parameters = {
@@ -54,7 +61,7 @@ function addPersonalBankAccount(account, password, plaidAccessToken) {
         setupType: 'plaid',
         bank: account.bankName,
         plaidAccountID: account.plaidAccountID,
-        plaidAccessToken,
+        plaidAccessToken: account.plaidAccessToken,
         password,
     };
 
@@ -125,4 +132,5 @@ function deleteBankAccount(bankAccountID) {
 export {
     addPersonalBankAccount,
     deleteBankAccount,
+    clearOnyxObject,
 };
