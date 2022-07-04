@@ -21,9 +21,9 @@
 #### Additional Reading
 * [API Details](docs/API.md)
 * [Offline First](./docs/OFFLINE_UX.md)
-* [Contributing to Expensify](./CONTRIBUTING.md)
-* [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](./CLA.md)
+* [Contributing to Expensify](./docs/CONTRIBUTING.md)
+* [Expensify Code of Conduct](./docs/CODE_OF_CONDUCT.md)
+* [Contributor License Agreement](./docs/CLA.md)
 
 ----
 
