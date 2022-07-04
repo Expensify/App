@@ -17,7 +17,6 @@ import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 
 const MENU_ITEM = 'menuItem';
-const BUTTON = 'button';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -191,21 +190,6 @@ class PaymentMethodList extends Component {
                 />
             );
         }
-        if (item.type === BUTTON) {
-            return (
-                <Button
-                    text={item.text}
-                    icon={item.icon}
-                    onPress={item.onPress}
-                    isDisabled={item.isDisabled}
-                    style={item.style}
-                    iconStyles={item.iconStyles}
-                    success={item.success}
-                    shouldShowRightIcon={item.shouldShowRightIcon}
-                    extraLarge
-                />
-            );
-        }
 
         return (
             <Text
@@ -235,7 +219,7 @@ class PaymentMethodList extends Component {
                             isDisabled={this.props.isLoadingPayments}
                             style={[styles.mb4, styles.mh4]}
                             success
-                            shouldShowRightIco
+                            shouldShowRightIcon
                             extraLarge
                         />
                     )
