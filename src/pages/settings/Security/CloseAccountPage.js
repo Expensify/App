@@ -153,7 +153,7 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         closeAccountData: {
-            key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+            key: ONYXKEYS.CLOSE_ACCOUNT,
             initWithStoredValues: {error: '', isLoading: false},
         },
         session: {

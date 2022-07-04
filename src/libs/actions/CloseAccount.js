@@ -3,7 +3,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 let isCloseAccountErrorModalOpen;
 Onyx.connect({
-    key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+    key: ONYXKEYS.CLOSE_ACCOUNT,
     callback: data => isCloseAccountErrorModalOpen = Boolean(data && data.error),
 });
 
@@ -14,7 +14,7 @@ function hideCloseAccountErrorModal() {
     if (!isCloseAccountErrorModalOpen) {
         return;
     }
-    Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT_DATA, {error: ''});
+    Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT, {error: ''});
 }
 
 export {

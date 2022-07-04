@@ -84,21 +84,21 @@ function closeAccount(message) {
         optimisticData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+                key: ONYXKEYS.CLOSE_ACCOUNT,
                 value: {isLoading: true},
             },
         ],
         successData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+                key: ONYXKEYS.CLOSE_ACCOUNT,
                 value: {error: '', isLoading: false},
             },
         ],
         failureData: [
             {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.CLOSE_ACCOUNT_DATA,
+                key: ONYXKEYS.CLOSE_ACCOUNT,
                 value: {isLoading: false},
             },
         ],

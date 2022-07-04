@@ -180,8 +180,8 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
-    // Data from when user attempts to close their account (loading status and error message)
-    CLOSE_ACCOUNT_DATA: 'closeAccountData',
+    // Data related to user closing their account (loading status and error message)
+    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
