@@ -27,12 +27,16 @@ import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
+import plaidDataPropTypes from './plaidDataPropTypes';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
+    /** Contains plaid data */
+    plaidData: plaidDataPropTypes,
+
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
@@ -60,6 +64,10 @@ const propTypes = {
 const defaultProps = {
     reimbursementAccount: {
         loading: true,
+    },
+    plaidData: {
+        isPlaidDisabled: false,
+        plaidLinkToken: '',
     },
     route: {
         params: {

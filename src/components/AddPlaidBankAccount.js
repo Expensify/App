@@ -16,6 +16,7 @@ import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Picker from './Picker';
+import plaidDataPropTypes from '../pages/ReimbursementAccount/plaidDataPropTypes';
 import Text from './Text';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
@@ -23,40 +24,7 @@ import FullPageOfflineBlockingView from './FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Contains plaid data */
-    plaidData: PropTypes.shape({
-        /** Plaid SDK token to use to initialize the widget */
-        plaidLinkToken: PropTypes.string,
-
-        /** Whether we are fetching the bank accounts from the API */
-        loading: PropTypes.bool,
-
-        /** Error message */
-        error: PropTypes.string,
-
-        /** List of plaid bank accounts */
-        bankAccounts: PropTypes.arrayOf(PropTypes.shape({
-            /** Masked account number */
-            accountNumber: PropTypes.string,
-
-            /** Name of account */
-            addressName: PropTypes.string,
-
-            /** Is the account a savings account? */
-            isSavings: PropTypes.bool,
-
-            /** Unique identifier for this account in Plaid */
-            plaidAccountID: PropTypes.string,
-
-            /** Routing number for the account */
-            routingNumber: PropTypes.string,
-
-            /** last 4 digits of the account number */
-            mask: PropTypes.string,
-        })),
-
-        /** Plaid access token, used to then retrieve Assets and Balances */
-        plaidAccessToken: PropTypes.string,
-    }),
+    plaidData: plaidDataPropTypes,
 
     /** Fired when the user exits the Plaid flow */
     onExitPlaid: PropTypes.func,
