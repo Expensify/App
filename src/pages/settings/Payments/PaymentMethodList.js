@@ -23,7 +23,6 @@ import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
 
 const MENU_ITEM = 'menuItem';
-const BUTTON = 'button';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -210,25 +209,6 @@ class PaymentMethodList extends Component {
                 </OfflineWithFeedback>
             );
         }
-        if (item.type === BUTTON) {
-            return (
-                <FormAlertWrapper>
-                    {isOffline => (
-                        <Button
-                            text={item.text}
-                            icon={item.icon}
-                            onPress={item.onPress}
-                            isDisabled={item.isDisabled || isOffline}
-                            style={item.style}
-                            iconStyles={item.iconStyles}
-                            success={item.success}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            large
-                        />
-                    )}
-                </FormAlertWrapper>
-            );
-        }
 
         return (
             <Text
@@ -258,7 +238,7 @@ class PaymentMethodList extends Component {
                             isDisabled={this.props.isLoadingPayments}
                             style={[styles.mb4, styles.mh4]}
                             success
-                            shouldShowRightIco
+                            shouldShowRightIcon
                             extraLarge
                         />
                     )

@@ -50,7 +50,7 @@ class BasePaymentsPage extends React.Component {
             },
             anchorPositionTop: 0,
             anchorPositionBottom: 0,
-            anchorPositionRigth: 0,
+            anchorPositionRight: 0,
             addPaymentMethodButton: null,
         };
 
@@ -117,7 +117,7 @@ class BasePaymentsPage extends React.Component {
             anchorPositionTop: position.top + position.height,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionRigth: (window.innerWidth - position.right) + 13,
+            anchorPositionRight: (window.innerWidth - position.right) + 13,
         });
     }
 
@@ -131,7 +131,7 @@ class BasePaymentsPage extends React.Component {
             anchorPositionBottom: window.innerHeight - position.top,
 
             // We want the position to be 5px to the right of the left border
-            anchorPositionRigth: (window.innerWidth - position.right) + 5,
+            anchorPositionRight: (window.innerWidth - position.right) + 5,
         });
     }
 
@@ -339,7 +339,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hideAddPaymentMenu}
                         anchorPosition={{
                             bottom: this.state.anchorPositionBottom,
-                            right: this.state.anchorPositionRigth,
+                            right: this.state.anchorPositionRight,
                         }}
                         onItemSelected={method => this.addPaymentMethodTypePressed(method)}
                     />
@@ -348,7 +348,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hideDefaultDeleteMenu}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
-                            right: this.state.anchorPositionRigth,
+                            right: this.state.anchorPositionRight,
                         }}
                     >
                         <View
@@ -490,7 +490,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hidePasswordPrompt}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
-                            right: this.state.anchorPositionRigth,
+                            right: this.state.anchorPositionRight,
                         }}
                         onSubmit={(password) => {
                             this.hidePasswordPrompt();
@@ -508,7 +508,7 @@ class BasePaymentsPage extends React.Component {
                         cancelText={this.props.translate('common.cancel')}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
-                            right: this.state.anchorPositionRigth,
+                            right: this.state.anchorPositionRight,
                         }}
                         onConfirm={() => {
                             this.setState({
