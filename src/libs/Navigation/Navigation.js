@@ -14,6 +14,7 @@ let resolveNavigationIsReadyPromise;
 let navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
+let isSmallScreenWidth;
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -74,10 +75,11 @@ function closeDrawer() {
 }
 
 /**
- * @param {Boolean} isSmallScreenWidth
+ * @param {Boolean} isSmallScreen
  * @returns {String}
  */
-function getDefaultDrawerState(isSmallScreenWidth) {
+function getDefaultDrawerState(isSmallScreen) {
+    isSmallScreenWidth = isSmallScreen;
     if (didTapNotificationBeforeReady) {
         return 'closed';
     }
@@ -140,7 +142,7 @@ function navigate(route = ROUTES.HOME) {
     }
 
     if (isDrawerRoute(route)) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(route));
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(route, isSmallScreenWidth));
         return;
     }
 
