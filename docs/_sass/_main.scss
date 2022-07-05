@@ -165,7 +165,7 @@ textarea {
   }
 
   .lhn-content {
-    padding-top: 24px;
+    padding-top: 36px;
     margin-left: 32px;
   }
 
@@ -186,18 +186,18 @@ textarea {
 
   ul,
   li {
-    margin-bottom: 12px;
+    margin-bottom: 20px;
 
     /* Apply recursive style to add a margin to the nested items */
     ul,
     li {
-      margin-top: 12px;
+      margin-top: 20px;
       cursor: pointer;
     }
   }
 
   .caret-icon {
-    left: 48px;
+    left: 52px;
     padding-top: 1px;
     position: absolute;
     color: $color-gray3;
@@ -205,7 +205,7 @@ textarea {
   }
 
   .caret-icon-down {
-    left: 44px;
+    left: 48px;
   }
 
   .selected-hub {
@@ -221,6 +221,8 @@ textarea {
       text-decoration: underline;
     }
   }
+
+  padding-left: 0;
 }
 
 .cards-row {
