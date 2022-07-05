@@ -109,10 +109,6 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
     GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
 
-    if (shouldSyncVBA) {
-        BankAccounts.fetchFreePlanVerifiedBankAccount();
-    }
-
     if (shouldSyncPolicyList) {
         Policy.getPolicyList();
     }
