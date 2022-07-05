@@ -101,7 +101,7 @@ class ReportActionsList extends React.Component {
     fadeIn() {
         Animated.timing(this.state.fadeInAnimation, {
             toValue: 1,
-            duration: 1000,
+            duration: 300,
             useNativeDriver: true,
         }).start();
     }
