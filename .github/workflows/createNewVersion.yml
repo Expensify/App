@@ -55,11 +55,13 @@ jobs:
           git push origin ${{ env.VERSION_BRANCH }}
 
       - name: Update main branch
-        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "main", "SOURCE_BRANCH": "${{ env.VERSION_BRANCH }}" }'
+          TARGET_BRANCH: main
+          SOURCE_BRANCH: ${{ env.VERSION_BRANCH }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
