@@ -179,15 +179,15 @@ class ProfilePage extends Component {
             this.setState({isAvatarChanged: false});
         }
 
-        PersonalDetails.setPersonalDetails({
-            firstName: this.state.firstName.trim(),
-            lastName: this.state.lastName.trim(),
-            pronouns: this.state.pronouns.trim(),
-            timezone: {
+        PersonalDetails.updateProfile(
+            this.state.firstName.trim(),
+            this.state.lastName.trim(),
+            this.state.pronouns.trim(),
+            {
                 automatic: this.state.isAutomaticTimezone,
                 selected: this.state.selectedTimezone,
             },
-        }, true);
+        );
     }
 
     validateInputs() {
