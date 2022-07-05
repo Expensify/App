@@ -227,10 +227,10 @@ textarea {
   display: grid;
   grid-template-columns: auto;
   row-gap: 12px;
-  column-gap: 40px;
+  column-gap: 4%;
 
   @media screen and (min-width: 800px) {
-    grid-template-columns: auto auto;
+    grid-template-columns: 48% 48%;
   }
 }
 
