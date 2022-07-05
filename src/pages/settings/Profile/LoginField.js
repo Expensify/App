@@ -77,9 +77,8 @@ class LoginField extends Component {
     render() {
         let note;
         if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
-
             // Has unvalidated phone number
-            if (!this.props.login.validatedDate) {
+            if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
                 note = this.props.translate('loginField.numberHasNotBeenValidated');
             }
 
