@@ -6,6 +6,10 @@ These are best practices related to the current API used for App. This does not 
 - There should be no client-side handling that is unique to any API call.
 - Data is pushed to the client and put straight into Onyx by low-level libraries.
 - Clients should be kept up-to-date with many small incremental changes to data.
+- Creating data needs to be optimistic on every connection (offline, slow 3G, etc), eg. `RequestMoney` or `SplitBill` should work without waiting for a server response.
+- For new objects created from the client (reports, reportActions, policies) we're going to generate a random string ID immediately on the client, rather than needing to wait for the server to give us an ID for the created object.
+  - This client-generated ID will become the primary key for that record in the database. This will provide more offline functionality than was previously possible.
+
 ## Response Handling
 When the web server responds to an API call the response is sent to the server in one of two ways.
 1. **HTTPS Response** - Data that is returned with the HTTPS response is only sent to the client that initiated the request.
@@ -38,6 +42,19 @@ The data will automatically be sent to the user via Pusher.
 
 #### WRITE Response Errors
 When there is an error on a WRITE response (`jsonCode!==200`), the error must come back to the client on the HTTPS response. The error is only relevant to the client that made the request and it wouldn't make sense to send it out to all connected clients.
+
+Error messages should be returned and stored as a String under the `error` property. If absolutely needed, additional error properties can be stored under other, more specific fields that sit at the same level as `error`:
+```php
+[
+    'onyxMethod' => Onyx::METHOD_MERGE,
+    'key' => OnyxKeys::WALLET_ADDITIONAL_DETAILS,
+    'value' => [
+        'error' => 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
+        'errorCode' => 'ssnError'
+    ],
+]
+```
+
 ### Hybrid READ/WRITE Responses
 There are some commands which might technically be a READ and a WRITE.
 
@@ -50,4 +67,18 @@ For example: Accessing the data for a chat report will return the data if the re
 - Verbs should be unique and indicate the user's action (as perceived by the user). eg. `Request`, `Open`, `Accept`, `Pay`
   - If a unique verb cannot be used, then use only the standard verbs: `Update`, `Add`, `Delete`
 - Names must NOT include names of parameters eg. Bad: `SignInWithPasswordOr2FA` Good: `SignIn`
+- Names must NOT include the word Page or View, eg. Bad: `OpenReportPage` Good: `OpenReport`
 - Names must NOT reveal backend implementation details that the user does not know about eg. `AddVBBA` (users don't know what a VBBA is - verified business bank account) Good: `AddBankAccount`
+- For deep links like `StartAppWhileSignedInAndOpenWorkspace`, create separate commands for each specific scenario like `StartAppWhileSignedIn` and `OpenWorkspace`, where both requests will be triggered in parallel.
+
+## FAQ
+
+### How should error messages be persisted to Onyx?
+
+- The API layer Pusher onyxData should set specific error messages.
+- In cases where the API does not set an error, a generic error message can be set in the API.write parameter `onyxData.failureData`.
+- Previous errors should be cleared in the `onyxData.optimisticData` when a new request is made.
+
+### How should we remove local data from the store if the data no longer exist in the server? eg. local policy data for policies the user is no longer a member of.
+
+Use `Onyx.set(key, null)` for each data (eg. policy) not found in the server.
