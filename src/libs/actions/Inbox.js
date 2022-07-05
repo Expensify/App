@@ -1,10 +1,21 @@
+import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
+/**
+ * Requests a call from Guides
+ *
+ * @param {Object} params
+ * @param {String} params.taskID
+ * @param {String} params.policyID
+ * @param {String} params.firstName
+ * @param {String} params.lastName
+ * @param {String} params.phoneNumber
+ * @param {String} params.phoneNumberExtension
+ */
 function requestCall({
     taskID, policyID, firstName, lastName, phoneNumber, phoneNumberExtension,
 }) {
-    // Set loading spinner as we wait for the request to complete
     const optimisticData = [{
         onyxMethod: 'merge',
         key: ONYXKEYS.REQUEST_CALL_FORM,
@@ -13,25 +24,18 @@ function requestCall({
         },
     }];
 
-    // Upon success, stop the loading spinner and show the screen confirming we have successfully requested a call
     const successData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                success: true,
-            },
-        },
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.REQUEST_CALL_FORM,
             value: {
                 loading: false,
+                error: '',
+                didRequestCallSucceed: true,
             },
         },
     ];
 
-    // Stop the loading spinner upon failure as well
     const failureData = [{
         onyxMethod: 'merge',
         key: ONYXKEYS.REQUEST_CALL_FORM,
@@ -66,7 +70,12 @@ function openRequestCallPage() {
     API.read('OpenRequestCallPage', {}, {optimisticData});
 }
 
+function clearDidRequestCallSucceed() {
+    Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {didRequestCallSucceed: false});
+}
+
 export {
     openRequestCallPage,
     requestCall,
+    clearDidRequestCallSucceed,
 };

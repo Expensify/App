@@ -9,25 +9,27 @@ import _ from 'underscore';
 function SaveResponseInOnyx(response, request) {
     return response
         .then((responseData) => {
-            const data = [];
+            const onyxUpdates = [];
 
-            // Make sure we have a response (i.e. this isn't a promise being passed down to us by a failed retry request and responseData is undefined)
-            if (responseData) {
-                // Handle the request's success/failure data (client-side data)
-                if (responseData.jsonCode === 200 && request.successData) {
-                    data.push(...request.successData);
-                } else if (request.failureData) {
-                    data.push(...request.failureData);
-                }
+            // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and responseData undefined)
+            if (!responseData) {
+                return;
+            }
 
-                // Add any onyx updates that are being sent back from the API
-                if (responseData.onyxData) {
-                    data.push(...responseData.onyxData);
-                }
+            // Handle the request's success/failure data (client-side data)
+            if (responseData.jsonCode === 200 && request.successData) {
+                onyxUpdates.push(...request.successData);
+            } else if (responseData.jsonCode !== 200 && request.failureData) {
+                onyxUpdates.push(...request.failureData);
+            }
 
-                if (!_.isEmpty(data)) {
-                    Onyx.update(data);
-                }
+            // Add any onyx updates that are being sent back from the API
+            if (responseData.onyxData) {
+                onyxUpdates.push(...responseData.onyxData);
+            }
+
+            if (!_.isEmpty(onyxUpdates)) {
+                Onyx.update(onyxUpdates);
             }
 
             return responseData;

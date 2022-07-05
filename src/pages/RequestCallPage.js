@@ -33,7 +33,6 @@ import * as User from '../libs/actions/User';
 import FormElement from '../components/FormElement';
 import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
-import * as Session from '../libs/actions/Session';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 
@@ -73,6 +72,9 @@ const propTypes = {
 
         /** Error message to display from Server */
         error: PropTypes.string,
+
+        /** If true, we will show a confirmation screen to the user */
+        didRequestCallSucceed: PropTypes.bool,
     }),
 
     /** The number of minutes the user has to wait for an inbox call */
@@ -89,12 +91,6 @@ const propTypes = {
 
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
-
-    /** Holds information about the users account that is requesting the call */
-    account: PropTypes.shape({
-        /** Success state to show confirmation of requesting a call */
-        success: PropTypes.boolean,
-    }).isRequired,
 };
 
 const defaultProps = {
@@ -131,7 +127,7 @@ class RequestCallPage extends Component {
         this.validatePhoneInput = this.validatePhoneInput.bind(this);
         this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
 
-        Session.clearAccountMessages();
+        Inbox.clearDidRequestCallSucceed();
     }
 
     componentDidMount() {
@@ -147,7 +143,7 @@ class RequestCallPage extends Component {
     }
 
     componentWillUnmount() {
-        Session.clearAccountMessages();
+        Inbox.clearDidRequestCallSucceed();
     }
 
     onSubmit() {
@@ -297,7 +293,7 @@ class RequestCallPage extends Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    {this.props.account.success
+                    {this.props.requestCallForm.didRequestCallSucceed
                         ? (
                             <RequestCallConfirmationScreen />
                         ) : (
@@ -404,9 +400,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        account: {
-            key: ONYXKEYS.ACCOUNT,
         },
     }),
 )(RequestCallPage);
