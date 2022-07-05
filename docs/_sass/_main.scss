@@ -7,6 +7,7 @@
 
 * {
   margin: 0;
+  padding: 0;
   border: 0;
   font: inherit;
   font-size: 100%;
@@ -184,6 +185,10 @@ textarea {
 
 .main-navigation-tree {
 
+  ul {
+    padding-left: 30px;
+  }
+
   ul,
   li {
     margin-bottom: 20px;
@@ -221,8 +226,6 @@ textarea {
       text-decoration: underline;
     }
   }
-
-  padding-left: 0;
 }
 
 .cards-row {
