@@ -224,14 +224,13 @@ textarea {
 }
 
 .cards-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto;
   row-gap: 12px;
-  column-gap: 48px;
+  column-gap: 40px;
 
   @media screen and (min-width: 800px) {
-    flex-wrap: nowrap;
+    grid-template-columns: auto auto;
   }
 }
 
@@ -239,7 +238,6 @@ textarea {
 .card {
   display: flex;
   flex-wrap: nowrap;
-  flex: 50%;
   border-radius: 15px;
   border: 1px solid lightgray;
   padding: 20px;
