@@ -74,7 +74,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)
     - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
     - [ ] All JSX used for rendering exists in the render method
-    - [ ] The component has the minimum amount of code necessary for its purpose and it is
+    - [ ] The component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
     - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
@@ -123,7 +123,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)
     - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
     - [ ] All JSX used for rendering exists in the render method
-    - [ ] The component has the minimum amount of code necessary for its purpose and it is broken down into smaller components in order to separate concerns and functions
+    - [ ] The component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
     - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
