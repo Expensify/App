@@ -19,10 +19,10 @@ import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
+import * as App from '../../libs/actions/App';
 
 const propTypes = {
     /* Onyx Props */
@@ -86,10 +86,7 @@ const defaultMenuItems = [
     {
         translationKey: 'common.profile',
         icon: Expensicons.Profile,
-        action: () => {
-            DateUtils.updateTimezone();
-            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-        },
+        action: () => { App.openProfilePage(); },
     },
     {
         translationKey: 'common.preferences',
