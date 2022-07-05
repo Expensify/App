@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -17,12 +18,15 @@ import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
+import * as API from '../API';
 
 let currentUserAccountID;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -43,6 +47,12 @@ Onyx.connect({
 
         allPolicies[key] = {...allPolicies[key], ...val};
     },
+});
+
+let myPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => myPersonalDetails = _.findWhere(val, {isCurrentUser: true}),
 });
 
 /**
@@ -210,6 +220,41 @@ function setUpPoliciesAndNavigate(session) {
         });
 }
 
+function openProfilePage() {
+    const oldTimezoneData = {
+        ...(myPersonalDetails.timezone || {})
+    };
+    const newTimezoneData = {
+        ...oldTimezoneData,
+        selected: moment.tz.guess(true),
+    };
+
+    API.write('OpenProfilePage', {
+        timezone: { ...newTimezoneData },
+    }, {
+        optimisticData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone: { ...newTimezoneData },
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone: { ...oldTimezoneData },
+                },
+            },
+        }],
+    });
+
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
 // When the app reconnects from being offline, fetch all initialization data
 NetworkConnection.onReconnect(() => {
     getAppData();
@@ -223,5 +268,5 @@ export {
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
-    openApp,
+    openProfilePage,
 };
