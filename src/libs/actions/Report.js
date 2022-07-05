@@ -1307,6 +1307,11 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
+/**
+ * @param {String} reportID
+ * @param {String} previousValue
+ * @param {String} newValue
+ */
 function updateNotificationPreference(reportID, previousValue, newValue) {
     const optimisticData = [
         {
