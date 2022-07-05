@@ -102,14 +102,12 @@ h5,
 h6 {
   color: colors.$dark;
   font-family: "GTAmericaExp-Regular";
-  font-weight: 400;
+  font-weight: bold;
   margin-bottom: 12px;
-  line-height: 1.33;
 }
 
 h1 {
   font-size: 36px;
-  line-height: 1.2;
 }
 
 h2 {
@@ -152,7 +150,7 @@ textarea {
 
 .lhn {
   height: 100%;
-  width: 375px;
+  width: 420px;
   position: fixed;
   background-color: colors.$gray1;
   padding: 44px;
@@ -178,8 +176,8 @@ textarea {
 
 .content-area {
   /* Same as the width of the lhn */
-  margin-left: 375px;
-  padding: 48px;
+  margin-left: 420px;
+  padding: 52px 68px;
   box-sizing: border-box;
 }
 
