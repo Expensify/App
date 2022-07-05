@@ -153,6 +153,7 @@ class BasePDFViewNative extends Component {
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
                         onSubmit={this.attemptPdfLoadWithPassword}
+                        onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
                         onAvoidKeyboard={this.props.onAvoidKeyboard}

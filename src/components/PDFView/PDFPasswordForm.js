@@ -27,6 +27,12 @@ const propTypes = {
     /** Notify parent that the UI should be updated to avoid keyboard */
     onAvoidKeyboard: PropTypes.func,
 
+    /** Notify parent that the password form has been submitted */
+    onSubmit: PropTypes.func,
+
+    /** Notify parent that the password has been updated/edited */
+    onPasswordUpdated: PropTypes.func,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -36,6 +42,8 @@ const defaultProps = {
     shouldAutofocusPasswordField: false,
     shouldShowLoadingIndicator: false,
     onAvoidKeyboard: () => {},
+    onSubmit: () => {},
+    onPasswordUpdated: () => {},
 };
 
 class PDFPasswordForm extends Component {
@@ -44,7 +52,6 @@ class PDFPasswordForm extends Component {
         this.state = {
             password: '',
             validationErrorText: '',
-            isEditingInProgress: true,
             shouldShowForm: false,
         };
         this.submitPassword = this.submitPassword.bind(this);
@@ -57,16 +64,16 @@ class PDFPasswordForm extends Component {
     submitPassword() {
         this.validate();
         if (!_.isEmpty(this.state.password)) {
-            this.setState({isEditingInProgress: false});
             this.props.onSubmit(this.state.password);
         }
     }
 
     updatePassword(password) {
+        this.props.onPasswordUpdated(password);
         if (!_.isEmpty(password)) {
             this.setState({validationErrorText: ''});
         }
-        this.setState({password, isEditingInProgress: true});
+        this.setState({password});
     }
 
     validateOnBlur() {
@@ -116,7 +123,7 @@ class PDFPasswordForm extends Component {
                             autoFocus={this.props.shouldAutofocusPasswordField}
                             secureTextEntry
                         />
-                        {!this.state.isEditingInProgress && this.props.isPasswordInvalid && (
+                        {this.props.isPasswordInvalid && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
                                 <Icon src={Expensicons.Exclamation} fill={colors.red} />
                                 <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
