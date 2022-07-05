@@ -83,7 +83,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 
 
 <details>
-<summary><h4>PR Reviewer Checklist</h4></summary>
+<summary><h4>PR Reviewer Checklist to copy/paste into a new comment after the author checklist is completed, and to be completed by a Contributor+</h4></summary>
 
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
