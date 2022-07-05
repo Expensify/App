@@ -389,14 +389,35 @@ function setAvatar(file) {
 
 /**
  * Replaces the user's avatar image with a default avatar
- *
- * @param {String} defaultAvatarURL
  */
-function deleteAvatar(defaultAvatarURL) {
+function deleteAvatar() {
+    const defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)
+
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: defaultAvatarURL});
+    // DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    // mergeLocalPersonalDetails({avatar: defaultAvatarURL});
+
+    API.write('DeleteUserAvatar', {}, {
+        optimisticData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: defaultAvatar,
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
+                },
+            },
+        }],
+    });
 }
 
 export {
