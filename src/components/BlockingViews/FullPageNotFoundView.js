@@ -28,8 +28,8 @@ const FullPageNotFoundView = (props) => {
             <BlockingView
                 icon={Expensicons.QuestionMark}
                 iconColor={themeColors.offline}
-                title={props.translate('common.notFound')}
-                subtitle={props.translate('common.cantFindWhatYoureLookingFor')}
+                title={props.translate('notFound.notHere')}
+                subtitle={props.translate('notFound.pageNotFound')}
             />
         );
     }
