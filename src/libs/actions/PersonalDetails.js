@@ -13,6 +13,7 @@ import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Timing from './Timing';
+import * as API from '../API';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -262,6 +263,34 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+function updateProfile(firstName, lastName, pronouns, timezone) {
+    const myPersonalDetails = personalDetails[currentUserEmail];
+    API.write('UpdateProfile', {
+        details: {firstName, lastName, pronouns},
+        timezone,
+    }, {
+        optimisticData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {firstName, lastName, pronouns, timezone},
+            },
+        }],
+        failureData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName: myPersonalDetails.firstName,
+                    lastName: myPersonalDetails.lastName,
+                    pronouns: myPersonalDetails.pronouns,
+                    timezone: myPersonalDetails.timeZone,
+                },
+            },
+        }],
+    });
+}
+
 /**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
@@ -315,4 +344,5 @@ export {
     openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
+    updateProfile,
 };
