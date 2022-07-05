@@ -153,15 +153,15 @@ textarea {
   height: 100%;
   width: 375px;
   position: fixed;
-  background-color: $color-gray1;
-  padding: 36px;
+  background-color: colors.$gray1;
+  padding: 44px;
   box-sizing: border-box;
   border-right-color: $color-gray2;
   border-right-width: 1px;
   border-style: solid;
 
   .logo {
-    width: 150px;
+    width: 210px;
   }
 
   .lhn-content {
