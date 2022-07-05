@@ -164,7 +164,7 @@ function getSimplifiedReportObject(report) {
     }
 
     // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '').toString();
 
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily');
@@ -749,6 +749,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
             // Merge report into Onyx
             const simplifiedReportObject = getSimplifiedReportObject(data);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, simplifiedReportObject);
+
+            // Fetch the personal details if there are any
+            PersonalDetails.getFromReportParticipants([simplifiedReportObject]);
 
             if (shouldNavigate) {
                 // Redirect the logged in person to the new report

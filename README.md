@@ -20,10 +20,10 @@
 
 #### Additional Reading
 * [API Details](docs/API.md)
-* [Offline First](./OfflineUX.md)
-* [Contributing to Expensify](./CONTRIBUTING.md)
-* [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](./CLA.md)
+* [Offline First](./docs/OFFLINE_UX.md)
+* [Contributing to Expensify](./docs/CONTRIBUTING.md)
+* [Expensify Code of Conduct](./docs/CODE_OF_CONDUCT.md)
+* [Contributor License Agreement](./docs/CLA.md)
 
 ----
 
@@ -86,7 +86,7 @@ variables referenced here get updated since your local `.env` file is ignored.
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
-   see [PERFORMANCE.md](PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
+   see [PERFORMANCE.md](./docs/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 
@@ -286,9 +286,9 @@ This application is built with the following principles.
     4. Brain pushes data into UI inputs (Device input -> React component).
     5. UI inputs push data to the server (React component -> Action -> XHR to server).
     6. Go to 1
-    ![New Expensify Data Flow Chart](/web/data_flow.png)
+    ![New Expensify Data Flow Chart](/docs/data_flow.png)
 1. **Offline first**
-    - Be sure to read [OfflineFirst.md](./OfflineUX.md)!
+    - Be sure to read [OFFLINE_UX.md](./docs/OFFLINE_UX.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
