@@ -153,7 +153,12 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)} : avatar, isAvatarChanged: true});
+        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
+
+    }
+
+    removeAvatar() {
+        PersonalDetails.deleteAvatar();
     }
 
     /**
@@ -165,17 +170,18 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has modified their avatar
-        if ((this.props.currentUserPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
-            // If the user removed their profile photo, replace it accordingly with the default avatar
-            if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
-                PersonalDetails.deleteAvatar(this.state.avatar.uri);
-            } else {
-                PersonalDetails.setAvatar(this.state.avatar);
-            }
+        // TODO: remove this since it'll be auto-updated instead of waiting for save button??
+        // if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+        //     // If the user removed their profile photo, replace it accordingly with the default avatar
+        //     if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
+        //         PersonalDetails.deleteAvatar(this.state.avatar.uri);
+        //     } else {
+        //         PersonalDetails.setAvatar(this.state.avatar);
+        //     }
 
-            // Reset the changed state
-            this.setState({isAvatarChanged: false});
-        }
+        //     // Reset the changed state
+        //     this.setState({isAvatarChanged: false});
+        // }
 
         PersonalDetails.updateProfile(
             this.state.firstName.trim(),
@@ -232,7 +238,7 @@ class ProfilePage extends Component {
                             isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.state.avatar.uri}
                             onImageSelected={this.updateAvatar}
-                            onImageRemoved={this.updateAvatar}
+                            onImageRemoved={this.removeAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
