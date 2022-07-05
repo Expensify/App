@@ -50,7 +50,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] Android / Chrome
     - [ ] MacOS / Chrome
     - [ ] MacOS / Desktop
-- [ ] I verified there are no console errors (if there’s a console error not related to the PR, report it or open an issue for it to be fixed)
+- [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/docs/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
     - [ ] I verified that comments were added to code that is not self explanatory
@@ -76,8 +76,8 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] All JSX used for rendering exists in the render method
     - [ ] The component has the minimum amount of code necessary for its purpose and it is
 - [ ] If a new CSS style is added I verified that:
-    - [ ] A similar style doesn’t already exist
-    - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+    - [ ] A similar style doesn't already exist
+    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 
@@ -99,7 +99,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] Android / Chrome
     - [ ] MacOS / Chrome
     - [ ] MacOS / Desktop
-- [ ] I verified there are no console errors (if there’s a console error not related to the PR, report it or open an issue for it to be fixed)
+- [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/docs/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`).
     - [ ] I verified that comments were added to code that is not self explanatory
@@ -124,8 +124,8 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] All JSX used for rendering exists in the render method
     - [ ] The component has the minimum amount of code necessary for its purpose and it is broken down into smaller components in order to separate concerns and functions
 - [ ] If a new CSS style is added I verified that:
-    - [ ] A similar style doesn’t already exist
-    - [ ] The style can’t be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+    - [ ] A similar style doesn't already exist
+    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 
