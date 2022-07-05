@@ -2,8 +2,9 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Log from '../../libs/Log';
+import CONST from '../../CONST';
 import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
@@ -31,11 +32,14 @@ class BaseOptionsList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.renderSectionHeader = this.renderSectionHeader.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
+        this.buildFlatSectionArray = this.buildFlatSectionArray.bind(this);
         this.extractKey = this.extractKey.bind(this);
-        this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
+
+        this.flattenedData = this.buildFlatSectionArray();
     }
 
     shouldComponentUpdate(nextProps) {
@@ -58,6 +62,14 @@ class BaseOptionsList extends Component {
         return false;
     }
 
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(this.props.sections, prevProps.sections)) {
+            return;
+        }
+
+        this.flattenedData = this.buildFlatSectionArray();
+    }
+
     onViewableItemsChanged() {
         if (this.didLayout || !this.props.onLayout) {
             return;
@@ -68,13 +80,68 @@ class BaseOptionsList extends Component {
     }
 
     /**
-     * We must implement this method in order to use the ref.scrollToLocation() method.
-     * See: https://reactnative.dev/docs/sectionlist#scrolltolocation
+     * This function is used to compute the layout of any given item in our list.
+     * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
-     * @param {Object} info
+     * @param {Array} data - This is the same as the data we pass into the component
+     * @param {Number} flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
+     *
+     *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
+     *     2. Each section includes a header, even if we don't provide/render one.
+     *
+     *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
+     *
+     *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
+     *
+     * @returns {Object}
      */
-    onScrollToIndexFailed(info) {
-        Log.hmmm('[OptionsList] scrollToIndex failed', info);
+    getItemLayout(data, flatDataArrayIndex) {
+        if (!_.has(this.flattenedData, flatDataArrayIndex)) {
+            this.flattenedData = this.buildFlatSectionArray();
+        }
+
+        const targetItem = this.flattenedData[flatDataArrayIndex];
+        return {
+            length: targetItem.length,
+            offset: targetItem.offset,
+            index: flatDataArrayIndex,
+        };
+    }
+
+    /**
+     * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
+     *
+     * @returns {Array<Object>}
+     */
+    buildFlatSectionArray() {
+        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+        let offset = 0;
+
+        // Start with just an empty list header
+        const flatArray = [{length: 0, offset}];
+
+        // Build the flat array
+        for (let sectionIndex = 0; sectionIndex < this.props.sections.length; sectionIndex++) {
+            const section = this.props.sections[sectionIndex];
+
+            // Add the section header
+            const sectionHeaderHeight = section.title && !this.props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+            flatArray.push({length: sectionHeaderHeight, offset});
+            offset += sectionHeaderHeight;
+
+            // Add section items
+            for (let i = 0; i < section.data.length; i++) {
+                flatArray.push({length: optionHeight, offset});
+                offset += optionHeight;
+            }
+
+            // Add the section footer
+            flatArray.push({length: 0, offset});
+        }
+
+        // Then add the list footer
+        flatArray.push({length: 0, offset});
+        return flatArray;
     }
 
     /**
@@ -129,7 +196,12 @@ class BaseOptionsList extends Component {
     renderSectionHeader({section: {title, shouldShow}}) {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
-                <View>
+
+                // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
+                // We do this so that we can reference the height in `getItemLayout` –
+                // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
+                // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
+                <View style={styles.optionsListSectionHeader}>
                     <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
                         {title}
                     </Text>
@@ -158,11 +230,11 @@ class BaseOptionsList extends Component {
                     onScrollBeginDrag={this.props.onScrollBeginDrag}
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
-                    sections={_.filter(this.props.sections, section => section.data.length !== 0)}
+                    sections={this.props.sections}
                     keyExtractor={this.extractKey}
-                    onScrollToIndexFailed={this.onScrollToIndexFailed}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
+                    getItemLayout={this.getItemLayout}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
                     initialNumToRender={5}

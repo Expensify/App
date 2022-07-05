@@ -5,44 +5,25 @@ on:
     branches: [main]
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    uses: ./.github/workflows/test.yml
+
   confirmPassingBuild:
     runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: ${{ always() }}
 
     steps:
-      - name: Run lint
-        id: lint
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+      - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
-          WORKFLOW: lint.yml
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-      - name: Run tests
-        id: tests
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          WORKFLOW: test.yml
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
-        with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+      - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        run: exit 1
 
   chooseDeployActions:
     runs-on: ubuntu-latest
@@ -68,7 +49,7 @@ jobs:
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/isStagingDeployLocked@main
+        uses: Expensify/App/.github/actions/javascript/isStagingDeployLocked@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -113,7 +94,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
@@ -127,7 +108,7 @@ jobs:
 
       - name: Update staging branch from main
         if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
@@ -138,7 +119,7 @@ jobs:
 
       - name: Cherry pick to staging
         if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: cherryPick.yml
@@ -155,7 +136,7 @@ jobs:
           git tag ${{ env.NEW_VERSION }}
 
       - name: Update StagingDeployCash
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ env.NEW_VERSION }}
@@ -173,7 +154,7 @@ jobs:
 
       - name: Wait for staging deploys to finish
         if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/awaitStagingDeploys@main
+        uses: Expensify/App/.github/actions/javascript/awaitStagingDeploys@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           TAG: ${{ env.NEW_VERSION }}
@@ -187,26 +168,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   # Check if actor is member of Expensify organization by looking for Expensify/expensify team
   isExpensifyEmployee:
@@ -261,7 +226,7 @@ jobs:
           body: |
             @${{ steps.getMergedPullRequest.outputs.author }}, Great job getting your first Expensify/App pull request over the finish line! :tada:
 
-            I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md), so here are some points to take note of :memo::
+            I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/docs/CONTRIBUTING.md), so here are some points to take note of :memo::
 
             1. Now that your first PR has been merged, you can be hired for another issue. Once you've completed a few issues, you may be eligible to work on more than one job at a time.
             2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn't work as expected or causes a regression, you'll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.
