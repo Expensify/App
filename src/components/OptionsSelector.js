@@ -190,12 +190,17 @@ class OptionsSelector extends Component {
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
             () => {
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!this.canSelectMultipleOptions && !focusedOption) {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection();
                     return;
                 }
 
-                this.props.onConfirmSelection(focusedOption);
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
             },
             CTRLEnterConfig.descriptionKey,
             CTRLEnterConfig.modifiers,
