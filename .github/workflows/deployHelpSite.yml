@@ -20,7 +20,7 @@ jobs:
         run: cd help && bundle exec jekyll build
 
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@97637bffb09a6ef46a66b47207df5a18e3e7afc0
+        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305
         with:
           github_token: ${{ github.token }}
           publish_dir: ./help/_site
