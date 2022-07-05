@@ -24,3 +24,8 @@ jobs:
         with:
           github_token: ${{ github.token }}
           publish_dir: ./help/_site
+
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
