@@ -134,6 +134,7 @@ class PDFView extends Component {
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
                         onSubmit={this.attemptPdfLoad}
+                        onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
                         onAvoidKeyboard={this.avoidKeyboard}
