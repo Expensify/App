@@ -424,7 +424,7 @@ function subscribeToExpensifyCardUpdates() {
 function setPreferredSkinTone(skinTone) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: 'set',
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             value: skinTone,
         },
@@ -447,7 +447,7 @@ function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
         },
     ];
     API.write('SetFrequentlyUsedEmojis', {
-        value: frequentlyUsedEmojis,
+        value: JSON.stringify(frequentlyUsedEmojis),
     }, {optimisticData});
 }
 
@@ -455,7 +455,7 @@ function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
  * Sync preferred timezone with Onyx and Server
  * @param {String} timezone
  */
- function setPreferredTimezone(timezone) {
+function setPreferredTimezone(timezone) {
     API.write('SetTimezone', {
         value: timezone,
     }, {});
@@ -464,7 +464,7 @@ function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 /**
  * Sync user first time flag to false with Onyx and Server
  */
- function setFirstTimeToFalse() {
+function setFirstTimeToFalse() {
     NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
 }
 
@@ -472,7 +472,7 @@ function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
  * Sync user chat priority mode with Onyx and Server
  * @param {String} mode
  */
- function setChatPriorityMode(mode) {
+function setChatPriorityMode(mode) {
     const optimisticData = [
         {
             onyxMethod: 'merge',

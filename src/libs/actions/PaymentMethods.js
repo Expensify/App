@@ -36,7 +36,6 @@ function deleteDebitCard(fundID) {
 }
 
 function deletePayPalMe() {
-
     User.deletePaypalMeAddress();
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
