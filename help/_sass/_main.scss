@@ -1,15 +1,10 @@
 @use 'colors';
 @use 'fonts';
 
-:root {
-  --spacing-default: 24px;
-}
-
 * {
   margin: 0;
   padding: 0;
   border: 0;
-  font: inherit;
   font-size: 100%;
   vertical-align: baseline;
   -webkit-font-smoothing: antialiased;
@@ -111,7 +106,7 @@ h1 {
 }
 
 h2 {
-  font-size: 26px;
+  font-size: 20px;
 }
 
 h3 {
@@ -133,7 +128,7 @@ h6 {
 }
 
 p {
-  margin: 0 0 var(--spacing-default);
+  margin-bottom: 44px;
 }
 
 body,
@@ -231,6 +226,7 @@ textarea {
   grid-template-columns: auto;
   row-gap: 12px;
   column-gap: 4%;
+  margin-bottom: 40px;
 
   @media screen and (min-width: 800px) {
     grid-template-columns: 48% 48%;
@@ -243,7 +239,8 @@ textarea {
   flex-wrap: nowrap;
   border-radius: 15px;
   border: 1px solid lightgray;
-  padding: 20px;
+  padding: 28px;
+  font-weight: bold;
 
   .left-icon {
     display: flex;
