@@ -6,10 +6,12 @@ import * as Localize from '../Localize';
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  * @param {Boolean} allowDebit
+ * @param {Number} bankAccountID
  */
-function openPlaidBankLogin(allowDebit) {
+function openPlaidBankLogin(allowDebit, bankAccountID) {
     const params = getPlaidLinkTokenParameters();
     params.allowDebit = allowDebit;
+    params.bankAccountID = bankAccountID;
     API.read('OpenPlaidBankLogin', params);
 }
 

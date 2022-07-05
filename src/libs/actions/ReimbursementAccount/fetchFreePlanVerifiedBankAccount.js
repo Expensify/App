@@ -46,7 +46,7 @@ function fetchNameValuePairsAndBankAccount() {
                     failedValidationAttemptsName,
                     CONST.NVP.KYC_MIGRATION,
                     CONST.NVP.ACH_DATA_THROTTLED,
-                    CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
+                    CONST.NVP.PLAID_THROTTLED,
                 ].join(),
             });
         })
@@ -61,7 +61,7 @@ function fetchNameValuePairsAndBankAccount() {
                 account.bankAccountID === bankAccountID
             ));
             const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
-            const throttledHistoryCount = lodashGet(nameValuePairs, CONST.NVP.BANK_ACCOUNT_GET_THROTTLED, 0);
+            const throttledHistoryCount = lodashGet(nameValuePairs, CONST.NVP.PLAID_THROTTLED, 0);
             const isPlaidDisabled = throttledHistoryCount > CONST.BANK_ACCOUNT.PLAID.ALLOWED_THROTTLED_COUNT;
 
             return {
