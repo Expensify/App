@@ -164,6 +164,8 @@ export default {
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
+        collapse: 'Collapse',
+        expand: 'Expand',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -218,7 +220,6 @@ export default {
     iou: {
         amount: 'Amount',
         participants: 'Participants',
-        confirm: 'Confirm',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
