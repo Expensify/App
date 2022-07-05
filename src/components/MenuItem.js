@@ -49,6 +49,10 @@ const MenuItem = props => (
                 return;
             }
 
+            if (e && e.type === 'click') {
+                e.currentTarget.blur();
+            }
+
             props.onPress(e);
         }}
         style={({hovered, pressed}) => ([
