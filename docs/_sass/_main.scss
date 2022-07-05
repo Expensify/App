@@ -153,6 +153,13 @@ textarea {
   border-right-color: $color-gray2;
   border-right-width: 1px;
   border-style: solid;
+  overflow-y:scroll;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .logo {
     width: 210px;
@@ -221,7 +228,7 @@ textarea {
   }
 }
 
-.cards-row {
+.cards-grid {
   display: grid;
   grid-template-columns: auto;
   row-gap: 12px;
