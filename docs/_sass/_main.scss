@@ -157,8 +157,9 @@ textarea {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 
-  &::-webkit-scrollbar {
-    display: none;
+  ul,
+  li {
+    list-style: none;
   }
 
   .logo {
@@ -170,9 +171,12 @@ textarea {
     margin-left: 32px;
   }
 
-  ul,
-  li {
-    list-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media screen and (max-width: 1024px) {
+    width: 320px;
   }
 }
 
@@ -181,6 +185,10 @@ textarea {
   margin-left: 420px;
   padding: 52px 68px;
   box-sizing: border-box;
+
+  @media screen and (max-width: 1024px) {
+    margin-left: 320px;
+  }
 }
 
 .main-navigation-tree {
