@@ -17,6 +17,10 @@ const propTypes = {
     show: PropTypes.bool,
 };
 
+const defaultProps = {
+    show: false,
+};
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 const FullPageNotFoundView = (props) => {
     if (props.show) {
@@ -34,6 +38,7 @@ const FullPageNotFoundView = (props) => {
 };
 
 FullPageNotFoundView.propTypes = propTypes;
+FullPageNotFoundView.defaultProps = defaultProps;
 FullPageNotFoundView.displayName = 'FullPageNotFoundView';
 
 export default withLocalize(FullPageNotFoundView);
