@@ -47,11 +47,11 @@ const defaultProps = {
 };
 
 const FormAlertWithSubmitButton = (props) => {
-    console.log(props);
     return (
         <FormAlertWrapper
             containerStyles={props.containerStyles}
             isAlertVisible={props.isAlertVisible}
+            isMessageHtml={props.isMessageHtml}
             onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
         >
             {isOffline => (isOffline ? (
