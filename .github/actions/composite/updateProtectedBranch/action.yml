@@ -15,15 +15,12 @@ inputs:
   GPG_PASSPHRASE:
     description: Passphrase used to decrypt GPG key for OSBotify
     required: true
-  SLACK_WEBHOOK:
-    description: URL of the slack webhook
-    required: true
 
 runs:
   using: composite
   steps:
     - name: Validate target branch
-      if: ${{ !contains(fromJSON('["main", "staging", "production"]'), github.event.inputs.TARGET_BRANCH) }}
+      if: ${{ !contains(fromJSON('["main", "staging", "production"]'), inputs.TARGET_BRANCH) }}
       shell: bash
       run: |
         echo "Target branch must be one of ['main', 'staging', 'production]"
@@ -31,7 +28,7 @@ runs:
 
     # If updating main, SOURCE_BRANCH must not be empty
     - name: Validate source branch
-      if: github.event.inputs.TARGET_BRANCH == 'main' && github.event.inputs.SOURCE_BRANCH == ''
+      if: inputs.TARGET_BRANCH == 'main' && inputs.SOURCE_BRANCH == ''
       shell: bash
       run: |
         echo "Cannot update main branch without specifying a source branch"
@@ -42,12 +39,12 @@ runs:
     - name: Set source branch
       shell: bash
       run: |
-        if [[ ${{ github.event.inputs.TARGET_BRANCH }} == 'staging' ]]; then
+        if [[ ${{ inputs.TARGET_BRANCH }} == 'staging' ]]; then
           echo "SOURCE_BRANCH=main" >> "$GITHUB_ENV"
-        elif [[ ${{ github.event.inputs.TARGET_BRANCH }} == 'production' ]]; then
+        elif [[ ${{ inputs.TARGET_BRANCH }} == 'production' ]]; then
           echo "SOURCE_BRANCH=staging" >> "$GITHUB_ENV"
         else
-          echo "SOURCE_BRANCH=${{ github.event.inputs.SOURCE_BRANCH }}" >> "$GITHUB_ENV"
+          echo "SOURCE_BRANCH=${{ inputs.SOURCE_BRANCH }}" >> "$GITHUB_ENV"
         fi
 
     - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
@@ -63,11 +60,11 @@ runs:
       run: echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
     - name: Create temporary branch to resolve conflicts
-      if: ${{ contains(fromJSON('["staging", "production"]'), github.event.inputs.TARGET_BRANCH) }}
+      if: ${{ contains(fromJSON('["staging", "production"]'), inputs.TARGET_BRANCH) }}
       shell: bash
       run: |
-        git checkout ${{ github.event.inputs.TARGET_BRANCH }}
-        BRANCH_NAME=update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
+        git checkout ${{ inputs.TARGET_BRANCH }}
+        BRANCH_NAME=update-${{ inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
         git checkout -b "$BRANCH_NAME"
         git merge -Xtheirs ${{ env.SOURCE_BRANCH }}
         git push --set-upstream origin "$BRANCH_NAME"
@@ -77,17 +74,17 @@ runs:
       shell: bash
       run: |
         gh pr create \
-          --title "Update version to ${{ env.NEW_VERSION }} on ${{ github.event.inputs.TARGET_BRANCH }}" \
+          --title "Update version to ${{ env.NEW_VERSION }} on ${{ inputs.TARGET_BRANCH }}" \
           --body "Update version to ${{ env.NEW_VERSION }}" \
           --label "automerge" \
-          --base ${{ github.event.inputs.TARGET_BRANCH }}
+          --base ${{ inputs.TARGET_BRANCH }}
         sleep 5
         echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
       env:
         GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
 
     - name: Check changed files
-      if: ${{ github.event.inputs.TARGET_BRANCH == 'main' }}
+      if: ${{ inputs.TARGET_BRANCH == 'main' }}
       id: changedFiles
       # Version: 3.3.0
       uses: umani/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
@@ -96,7 +93,7 @@ runs:
         pr-number: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
 
     - name: Validate changed files
-      if: ${{ github.event.inputs.TARGET_BRANCH == 'main' && (steps.changedFiles.outputs.files_updated != 'android/app/build.gradle ios/NewExpensify/Info.plist ios/NewExpensifyTests/Info.plist package-lock.json package.json' || steps.changedFiles.outputs.files_created != '' || steps.changedFiles.outputs.files_deleted != '') }}
+      if: ${{ inputs.TARGET_BRANCH == 'main' && (steps.changedFiles.outputs.files_updated != 'android/app/build.gradle ios/NewExpensify/Info.plist ios/NewExpensifyTests/Info.plist package-lock.json package.json' || steps.changedFiles.outputs.files_created != '' || steps.changedFiles.outputs.files_deleted != '') }}
       shell: bash
       run: exit 1
 
@@ -133,8 +130,3 @@ runs:
       run: gh pr merge ${{ steps.createPullRequest.outputs.PR_NUMBER }} --merge --delete-branch
       env:
         GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
-
-    - if: ${{ failure() }}
-      uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
-      with:
-        SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK }}
