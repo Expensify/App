@@ -67,7 +67,6 @@ jobs:
           TARGET_BRANCH: production
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
@@ -101,7 +100,6 @@ jobs:
           TARGET_BRANCH: staging
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Pull staging to get the new version
         run: |

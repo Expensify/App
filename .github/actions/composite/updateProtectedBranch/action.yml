@@ -15,9 +15,6 @@ inputs:
   GPG_PASSPHRASE:
     description: Passphrase used to decrypt GPG key for OSBotify
     required: true
-  SLACK_WEBHOOK:
-    description: URL of the slack webhook
-    required: true
 
 runs:
   using: composite

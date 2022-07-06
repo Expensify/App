@@ -61,7 +61,6 @@ jobs:
           SOURCE_BRANCH: ${{ env.VERSION_BRANCH }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
