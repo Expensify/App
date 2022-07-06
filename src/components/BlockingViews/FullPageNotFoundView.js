@@ -3,7 +3,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import BlockingView from './BlockingView';
 import * as Expensicons from '../Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
@@ -27,7 +26,6 @@ const FullPageNotFoundView = (props) => {
         return (
             <BlockingView
                 icon={Expensicons.QuestionMark}
-                iconColor={themeColors.offline}
                 title={props.translate('notFound.notHere')}
                 subtitle={props.translate('notFound.pageNotFound')}
             />
