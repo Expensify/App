@@ -1858,6 +1858,10 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportActionSystemMessageContainer: {
+        marginLeft: 42,
+    },
+
     reportDetailsTitleContainer: {
         ...flex.dFlex,
         ...flex.flexColumn,
@@ -2582,7 +2586,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
-        marginLeft: 4,
+        marginLeft: 6,
     },
 };
 
