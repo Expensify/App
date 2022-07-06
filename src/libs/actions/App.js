@@ -77,14 +77,7 @@ AppState.addEventListener('change', (nextAppState) => {
  * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
  * @returns {Promise}
  */
-<<<<<<< HEAD
-function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
-=======
 function getAppData(shouldSyncPolicyList = true) {
-    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-    getLocale();
->>>>>>> main
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
