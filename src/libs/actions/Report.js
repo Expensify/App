@@ -1312,7 +1312,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
 }
 
 /**
- * @param {String} reportID
+ * @param {Number} reportID
  * @param {String} previousValue
  * @param {String} newValue
  */
