@@ -1095,12 +1095,13 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
 }
 
 /**
- * Gets all the report actions and updates the last read message
+ * Gets the latest page of report actions and updates the last read message
  *
  * @param {Number} reportID
  */
 function openReport(reportID) {
     const sequenceNumber = reportMaxSequenceNumbers[reportID];
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
     API.write('OpenReport',
         {
             reportID,
@@ -1115,8 +1116,6 @@ function openReport(reportID) {
                     unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                 },
             }],
-            successData: [],
-            failureData: [],
         });
 }
 
@@ -1127,6 +1126,7 @@ function openReport(reportID) {
  */
 function readNewestAction(reportID) {
     const sequenceNumber = reportMaxSequenceNumbers[reportID];
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
     API.write('ReadNewestAction',
         {
             reportID,
@@ -1141,8 +1141,6 @@ function readNewestAction(reportID) {
                     unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                 },
             }],
-            successData: [],
-            failureData: [],
         });
 }
 
@@ -1153,6 +1151,7 @@ function readNewestAction(reportID) {
  * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
     API.write('MarkCommentAsUnread',
         {
             reportID,
@@ -1163,12 +1162,10 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 onyxMethod: 'merge',
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastVisitedTimestamp: Date.now(),
+                    lastVisitedTimestamp: Math.round(Date.now() / 1000),
                     unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                 },
             }],
-            successData: [],
-            failureData: [],
         });
 }
 
