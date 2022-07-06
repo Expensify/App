@@ -133,8 +133,3 @@ runs:
       run: gh pr merge ${{ steps.createPullRequest.outputs.PR_NUMBER }} --merge --delete-branch
       env:
         GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
-
-    - if: ${{ failure() }}
-      uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
-      with:
-        SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK }}
