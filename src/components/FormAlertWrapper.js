@@ -47,12 +47,10 @@ const defaultProps = {
     onFixTheErrorsLinkPressed: () => {},
 };
 
-/**
- * The FormAlertWrapper offers a standardized way of showing error messages and offline functionality.
- *
- * This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
- * and passes it a (bool) isOffline parameter. Child components can then use that isOffline to determine offline behavior.
- */
+// The FormAlertWrapper offers a standardized way of showing error messages and offline functionality.
+//
+// This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
+// and passes it a (bool) isOffline parameter. Child components can then use that isOffline to determine offline behavior.
 const FormAlertWrapper = (props) => {
     function getAlertPrompt() {
         let error = '';
