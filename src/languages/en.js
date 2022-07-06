@@ -507,6 +507,8 @@ export default {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
+        notHere: "Hmm... it's not here",
+        pageNotFound: 'That page is nowhere to be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
