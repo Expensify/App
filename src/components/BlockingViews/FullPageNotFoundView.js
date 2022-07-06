@@ -13,16 +13,16 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** If true, child components are replaced with a blocking "not found" view */
-    show: PropTypes.bool,
+    shouldShow: PropTypes.bool,
 };
 
 const defaultProps = {
-    show: false,
+    shouldShow: false,
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const FullPageNotFoundView = (props) => {
-    if (props.show) {
+    if (props.shouldShow) {
         return (
             <BlockingView
                 icon={Expensicons.QuestionMark}
