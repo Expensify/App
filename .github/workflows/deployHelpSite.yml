@@ -11,6 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
 
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
+        with:
+          github_token: ${{ github.token }}
+
       - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
         with:
           ruby-version: 3.0
@@ -19,11 +25,14 @@ jobs:
       - name: Build
         run: cd help && bundle exec jekyll build
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305
+      - name: Update production branch
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          github_token: ${{ github.token }}
-          publish_dir: ./help/_site
+          TARGET_BRANCH: gh-pages
+          PR_TITLE: 'Deploy help site PR #${{ steps.getMergedPullRequest.outputs.number }}'
+          PR_BODY: 'Deploy help site PR #${{ steps.getMergedPullRequest.outputs.number }}'
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
