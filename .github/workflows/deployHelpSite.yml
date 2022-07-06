@@ -1,0 +1,31 @@
+name: Deploy Help Site
+on:
+  push:
+    branches: [main]
+
+jobs:
+  buildAndDeploy:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/help/Gemfile
+    steps:
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+        with:
+          ruby-version: 3.0
+          bundler-cache: true
+
+      - name: Build
+        run: cd help && bundle exec jekyll build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: ./help/_site
+
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

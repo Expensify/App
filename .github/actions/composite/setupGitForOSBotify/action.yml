@@ -1,0 +1,26 @@
+name: 'Setup Git for OSBotify'
+description: 'Setup Git for OSBotify'
+
+inputs:
+  GPG_PASSPHRASE:
+    description: 'Passphrase used to decrypt GPG key'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Decrypt OSBotify GPG key
+      run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase=${{ inputs.GPG_PASSPHRASE }} --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
+      shell: bash
+
+    - name: Import OSBotify GPG Key
+      shell: bash
+      run: cd .github/workflows && gpg --import OSBotify-private-key.asc
+
+    - name: Set up git for OSBotify
+      shell: bash
+      run: |
+        git config user.signingkey 367811D53E34168C
+        git config commit.gpgsign true
+        git config user.name OSBotify
+        git config user.email infra+osbotify@expensify.com
