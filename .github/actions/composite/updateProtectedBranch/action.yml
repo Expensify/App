@@ -9,6 +9,12 @@ inputs:
     description: If updating main, you must also provide a head branch to update main with.
     required: false
     default: ''
+  PR_TITLE:
+    description: Optional title for the PR used to update the protected branch
+    required: false
+  PR_BODY:
+    description: Optional body for the PR used to update the protected branch
+    required: false
   OS_BOTIFY_TOKEN:
     description: GitHub token for OSBotify
     required: true
