@@ -40,6 +40,10 @@ const ChangeExpensifyLoginLink = props => (
         <TouchableOpacity
             style={[styles.link]}
             onPress={Session.clearSignInData}
+            onKeyDownCapture={(e) => {
+                e.stopPropagation();
+                Session.clearSignInData();
+            }}
             underlayColor={themeColors.componentBG}
         >
             <Text style={[styles.link]}>

@@ -103,8 +103,9 @@ function bindHandlerToKeydownEvent(event) {
 }
 
 // Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
-document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
+const rootNode = document.getElementById('root');
+rootNode.removeEventListener('keydown', bindHandlerToKeydownEvent);
+rootNode.addEventListener('keydown', bindHandlerToKeydownEvent);
 
 /**
  * Unsubscribes a keyboard event handler.
