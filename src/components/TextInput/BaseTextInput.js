@@ -63,21 +63,21 @@ class BaseTextInput extends Component {
 
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
-        // Only update when value prop is provided
-        if (_.isUndefined(this.props.value) || this.state.value === this.props.value) {
+        const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
+        if (_.isUndefined(inputValue) || this.state.value === inputValue) {
             return;
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: this.props.value});
-        this.input.setNativeProps({text: this.props.value});
+        this.setState({value: inputValue});
+        this.input.setNativeProps({text: inputValue});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
-        if (this.props.value === '') {
+        if (inputValue === '') {
             this.input.clear();
         }
 
-        if (this.props.value) {
+        if (inputValue) {
             this.activateLabel();
         } else if (!this.state.isFocused) {
             this.deactivateLabel();
@@ -302,9 +302,11 @@ class BaseTextInput extends Component {
                     This Text component is intentionally positioned out of the screen.
                 */}
                 {this.props.autoGrow && (
+
+                    // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
                         style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
-                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
+                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2})}
                     >
                         {this.state.value || this.props.placeholder}
                     </Text>

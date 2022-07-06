@@ -12,6 +12,7 @@ import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDet
 import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import * as ContextMenuUtils from './ContextMenuUtils';
+import * as Environment from '../../../../libs/Environment/Environment';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -51,6 +52,9 @@ export default [
             let {sourceURL} = attachmentDetails;
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
             fileDownload(sourceURL, originalFileName);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
         },
         getDescription: () => {},
     },
@@ -117,8 +121,15 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: () => false,
-        onPress: () => {},
+        shouldShow: () => true,
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Environment.getEnvironmentURL()
+                .then((environmentURL) => {
+                    const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
+                    Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
+                });
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
         getDescription: () => {},
     },
 

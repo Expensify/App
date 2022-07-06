@@ -6,6 +6,7 @@ import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONS
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
@@ -20,6 +21,8 @@ import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
+import * as SequentialQueue from '../Network/SequentialQueue';
+import PusherUtils from '../PusherUtils';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -44,25 +47,34 @@ Onyx.connect({
  *
  * @param {String} oldPassword
  * @param {String} password
- * @returns {Promise}
  */
-function changePasswordAndNavigate(oldPassword, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
-
-    return DeprecatedAPI.ChangePassword({oldPassword, password})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-                return;
-            }
-
-            const success = lodashGet(response, 'message', 'Password changed successfully.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
+function updatePassword(oldPassword, password) {
+    API.write('UpdatePassword', {
+        oldPassword,
+        password,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+    });
 }
 
 /**
@@ -300,12 +312,19 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+
+    // Receive any relevant Onyx updates from the server
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
+        SequentialQueue.getCurrentRequest().then(() => {
+            Onyx.update(pushJSON);
+        });
+    });
 
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -320,7 +339,7 @@ function subscribeToUserEvents() {
     // Subscribe to screen share requests sent by GuidesPlus agents
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
         Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -341,7 +360,7 @@ function subscribeToExpensifyCardUpdates() {
         return;
     }
 
-    const pusherChannelName = `private-encrypted-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Handle Expensify Card approval flow updates
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
@@ -351,7 +370,7 @@ function subscribeToExpensifyCardUpdates() {
         } else {
             Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
         }
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -429,7 +448,7 @@ function generateStatementPDF(period) {
 }
 
 export {
-    changePasswordAndNavigate,
+    updatePassword,
     closeAccount,
     getBetas,
     getUserDetails,

@@ -11,6 +11,7 @@ import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import NameValuePair from './NameValuePair';
+import * as store from './ReimbursementAccount/store';
 
 /**
  * Deletes a debit card
@@ -60,6 +61,19 @@ function continueSetup() {
 }
 
 /**
+ * Clears local reimbursement account if it doesn't exist in bankAccounts
+ * @param {Object[]} bankAccounts
+ */
+function cleanLocalReimbursementData(bankAccounts) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
+    // We check if the bank account list doesn't have the reimbursementAccount
+    if (!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
+    }
+}
+
+/**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
  *
  * @returns {Promise}
@@ -77,6 +91,7 @@ function getPaymentMethods() {
             // Convert bank accounts/cards from an array of objects, to a map with the bankAccountID as the key
             const bankAccounts = _.object(_.map(lodashGet(response, 'bankAccountList', []), bankAccount => [bankAccount.bankAccountID, bankAccount]));
             const debitCards = _.object(_.map(lodashGet(response, 'fundList', []), fund => [fund.fundID, fund]));
+            cleanLocalReimbursementData(bankAccounts);
             Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
@@ -140,7 +155,6 @@ function addBillingCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
     DeprecatedAPI.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
@@ -152,7 +166,7 @@ function addBillingCard(params) {
         isP2PDebitCard: true,
         password: params.password,
     }).then(((response) => {
-        let errorMessage = '';
+        let serverErrorMessage = '';
         if (response.jsonCode === 200) {
             const cardObject = {
                 additionalData: {
@@ -173,12 +187,12 @@ function addBillingCard(params) {
             Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             continueSetup();
         } else {
-            errorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
+            serverErrorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
 
-        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
-            submitting: false,
-            error: errorMessage,
+        Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+            isSubmitting: false,
+            serverErrorMessage,
         });
     }));
 }
@@ -187,9 +201,9 @@ function addBillingCard(params) {
  * Resets the values for the add debit card form back to their initial states
  */
 function clearDebitCardFormErrorAndSubmit() {
-    Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
-        submitting: false,
-        error: '',
+    Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+        isSubmitting: false,
+        serverErrorMessage: null,
     });
 }
 
@@ -274,4 +288,5 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     dismissWalletConfirmModal,
+    cleanLocalReimbursementData,
 };

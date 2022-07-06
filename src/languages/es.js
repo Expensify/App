@@ -37,7 +37,6 @@ export default {
         privacy: 'Privacidad',
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
-        deleted: 'eliminado',
         archived: 'archivado',
         contacts: 'Contactos',
         recents: 'Recientes',
@@ -105,6 +104,9 @@ export default {
         leaveRoom: 'Salir de la sala de chat',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
+        youAppearToBeOffline: 'Parece que estás desconectado.',
+        thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -158,11 +160,12 @@ export default {
         writeSomething: 'Escribe algo...',
         sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
-        youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -217,7 +220,6 @@ export default {
     iou: {
         amount: 'Importe',
         participants: 'Participantes',
-        confirm: 'Confirmar',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
@@ -235,7 +237,6 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
-        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -506,6 +507,8 @@ export default {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
+        notHere: 'Hmm… no está aquí',
+        pageNotFound: 'La página que buscas no existe.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -581,7 +584,6 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
-        maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',

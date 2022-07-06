@@ -370,19 +370,6 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {String} parameters.notificationPreference
- * @returns {Promise}
- *
- */
-function Report_UpdateNotificationPreference(parameters) {
-    const commandName = 'Report_UpdateNotificationPreference';
-    requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -844,15 +831,6 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
- * Get the current wait time in minutes for an inbox call
- * @returns {Promise}
- */
-function Inbox_CallUser_WaitTime() {
-    const commandName = 'Inbox_CallUser_WaitTime';
-    return Network.post(commandName);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.reportIDList
  * @returns {Promise}
@@ -952,7 +930,6 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
-    Inbox_CallUser_WaitTime,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
@@ -966,7 +943,6 @@ export {
     Report_TogglePinned,
     Report_EditComment,
     Report_UpdateLastRead,
-    Report_UpdateNotificationPreference,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,

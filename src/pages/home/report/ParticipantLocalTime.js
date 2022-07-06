@@ -82,5 +82,4 @@ class ParticipantLocalTime extends PureComponent {
 }
 
 ParticipantLocalTime.propTypes = propTypes;
-
 export default withLocalize(ParticipantLocalTime);
