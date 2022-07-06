@@ -26,10 +26,10 @@ runs:
   using: composite
   steps:
     - name: Validate target branch
-      if: ${{ !contains(fromJSON('["main", "staging", "production"]'), inputs.TARGET_BRANCH) }}
+      if: ${{ !contains(fromJSON('["main", "staging", "production", "gh-pages"]'), inputs.TARGET_BRANCH) }}
       shell: bash
       run: |
-        echo "Target branch must be one of ['main', 'staging', 'production]"
+        echo "Target branch must be one of ['main', 'staging', 'production', 'gh-pages']"
         exit 1
 
     # If updating main, SOURCE_BRANCH must not be empty
@@ -40,12 +40,12 @@ runs:
         echo "Cannot update main branch without specifying a source branch"
         exit 1
 
-    # If updating staging, the source branch will always be main
+    # If updating staging or gh-pages, the source branch will always be main
     # If updating production, the source branch will always be staging
     - name: Set source branch
       shell: bash
       run: |
-        if [[ ${{ inputs.TARGET_BRANCH }} == 'staging' ]]; then
+        if [[ ${{ inputs.TARGET_BRANCH }} == 'staging' || ${{ inputs.TARGET_BRANCH }} == 'gh-pages' ]]; then
           echo "SOURCE_BRANCH=main" >> "$GITHUB_ENV"
         elif [[ ${{ inputs.TARGET_BRANCH }} == 'production' ]]; then
           echo "SOURCE_BRANCH=staging" >> "$GITHUB_ENV"
@@ -61,12 +61,8 @@ runs:
       shell: bash
       run: git checkout ${{ env.SOURCE_BRANCH }}
 
-    - name: Set New Version
-      shell: bash
-      run: echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
     - name: Create temporary branch to resolve conflicts
-      if: ${{ contains(fromJSON('["staging", "production"]'), inputs.TARGET_BRANCH) }}
+      if: ${{ inputs.TARGET_BRANCH != 'main' }}
       shell: bash
       run: |
         git checkout ${{ inputs.TARGET_BRANCH }}
@@ -79,9 +75,18 @@ runs:
       id: createPullRequest
       shell: bash
       run: |
+        PR_TITLE="${{ inputs.PR_TITLE }}"
+        PR_BODY="${{ inputs.PR_BODY }}"
+
+        if [[ -z "$PR_TITLE" || -z "$PR_BODY" ]]; then
+          NEW_VERSION="$(npm run print-version --silent)"
+          PR_TITLE="Update version to $NEW_VERSION on ${{ inputs.TARGET_BRANCH }}"
+          PR_BODY="Update version to $NEW_VERSION"
+        fi
+
         gh pr create \
-          --title "Update version to ${{ env.NEW_VERSION }} on ${{ inputs.TARGET_BRANCH }}" \
-          --body "Update version to ${{ env.NEW_VERSION }}" \
+          --title "$PR_TITLE" \
+          --body "$PR_BODY" \
           --label "automerge" \
           --base ${{ inputs.TARGET_BRANCH }}
         sleep 5
