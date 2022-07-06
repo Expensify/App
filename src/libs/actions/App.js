@@ -95,10 +95,9 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  *
  * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
- * @param {Boolean} shouldSyncVBA Set to false if we are calling on reconnect.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
+function getAppData(shouldSyncPolicyList = true) {
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
     getLocale();
@@ -108,10 +107,6 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
     PersonalDetails.fetchLocalCurrency();
     GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
-
-    if (shouldSyncVBA) {
-        BankAccounts.fetchFreePlanVerifiedBankAccount();
-    }
 
     if (shouldSyncPolicyList) {
         Policy.getPolicyList();
@@ -193,7 +188,7 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => getAppData(true, false));
+NetworkConnection.onReconnect(() => getAppData(true));
 
 export {
     setCurrentURL,

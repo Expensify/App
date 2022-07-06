@@ -239,6 +239,10 @@ class Composer extends React.Component {
         try {
             document.execCommand('insertText', false, markdownText);
             this.updateNumberOfLines();
+
+            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
+            this.textInput.blur();
+            this.textInput.focus();
         // eslint-disable-next-line no-empty
         } catch (e) {}
     }

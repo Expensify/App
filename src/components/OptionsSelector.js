@@ -95,12 +95,6 @@ const propTypes = {
     /** Text to show in the confirm button (only visible if multiple options are selected) */
     confirmButtonText: PropTypes.string,
 
-    /** True if the maximum number of options have been selected, false otherwise. */
-    maxParticipantsReached: PropTypes.bool,
-
-    /** Text to show if the maximum number of participants are reached */
-    maxParticipantsReachedMessage: PropTypes.string,
-
     /** Function to execute if the confirm button is pressed */
     onConfirmSelection: PropTypes.func,
 
@@ -138,8 +132,6 @@ const defaultProps = {
     autoFocus: true,
     shouldShowConfirmButton: false,
     confirmButtonText: undefined,
-    maxParticipantsReached: false,
-    maxParticipantsReachedMessage: undefined,
     onConfirmSelection: () => {},
     shouldTextInputAppearBelowOptions: false,
     shouldShowOfflineMessage: false,
@@ -177,16 +169,6 @@ class OptionsSelector extends Component {
                 }
 
                 this.selectRow(focusedOption);
-
-                if (!this.props.canSelectMultipleOptions) {
-                    return;
-                }
-
-                // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
-                this.scrollToIndex(0);
-                this.setState({
-                    focusedIndex: this.props.selectedOptions.length,
-                });
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
@@ -198,12 +180,17 @@ class OptionsSelector extends Component {
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
             () => {
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!this.canSelectMultipleOptions && !focusedOption) {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection();
                     return;
                 }
 
-                this.props.onConfirmSelection(focusedOption);
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
             },
             CTRLEnterConfig.descriptionKey,
             CTRLEnterConfig.modifiers,
@@ -232,12 +219,12 @@ class OptionsSelector extends Component {
         this.setState({
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
+        }, () => {
+            if (this.state.allOptions.length <= this.state.focusedIndex) {
+                return;
+            }
+            this.scrollToIndex(this.state.focusedIndex);
         });
-
-        if (newOptions.length <= newFocusedIndex) {
-            return;
-        }
-        this.scrollToIndex(newFocusedIndex);
     }
 
     componentWillUnmount() {
@@ -323,6 +310,16 @@ class OptionsSelector extends Component {
             this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
+
+        if (!this.props.canSelectMultipleOptions) {
+            return;
+        }
+
+        // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
+        this.scrollToIndex(0);
+        this.setState({
+            focusedIndex: this.props.selectedOptions.length,
+        });
     }
 
     render() {
@@ -332,10 +329,6 @@ class OptionsSelector extends Component {
             ? this.props.translate('common.confirm')
             : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
-        const defaultMaxParticipantsReachedMessage = _.isUndefined(this.props.maxParticipantsReachedMessage)
-            ? this.props.translate('common.maxParticipantsReached', {count: this.props.selectedOptions.length})
-            : this.props.maxParticipantsReachedMessage;
-        const shouldShowMaxParticipantsMessage = this.props.maxParticipantsReached && defaultMaxParticipantsReachedMessage;
         const textInput = (
             <TextInput
                 ref={el => this.textInput = el}
@@ -355,6 +348,7 @@ class OptionsSelector extends Component {
                     this.relatedTarget = e.relatedTarget;
                 }}
                 selectTextOnFocus
+                blurOnSubmit={Boolean(this.state.allOptions.length)}
             />
         );
         const optionsList = this.props.shouldShowOptions ? (
@@ -404,12 +398,7 @@ class OptionsSelector extends Component {
                 </View>
                 {shouldShowFooter && (
                     <FixedFooter>
-                        {shouldShowMaxParticipantsMessage && (
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
-                                {defaultMaxParticipantsReachedMessage}
-                            </Text>
-                        )}
-                        {!shouldShowMaxParticipantsMessage && this.props.shouldShowOfflineMessage && this.props.network.isOffline && (
+                        {this.props.shouldShowOfflineMessage && this.props.network.isOffline && (
                             <Text style={[styles.formError, styles.pb2]}>
                                 {this.props.translate('session.offlineMessage')}
                             </Text>
