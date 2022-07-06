@@ -129,9 +129,15 @@ jobs:
         if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
+<<<<<<< HEAD
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
           INPUTS: '{ "TARGET_BRANCH": "staging" }'
+=======
+          TARGET_BRANCH: staging
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+>>>>>>> b7479ad53 (Merge pull request #9729 from Expensify/Rory-FixUpdateProtectedBranch)
 
       - name: Determine if this pull request will be cherry-picked
         run: echo "DO_CHERRY_PICK=${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}" >> "$GITHUB_ENV"
