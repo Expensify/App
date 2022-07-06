@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: cd help && bundle exec jekyll build
 
-      - name: Update production branch
+      - name: Update gh-pages branch
         uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
           TARGET_BRANCH: gh-pages
