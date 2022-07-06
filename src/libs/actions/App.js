@@ -77,7 +77,7 @@ AppState.addEventListener('change', (nextAppState) => {
  * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
+function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
