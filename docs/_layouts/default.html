@@ -15,7 +15,12 @@
 
 <body>
 
-    <div class="lhn">
+    <div id="lhn">
+
+        <div class="header-button" onclick="toggleHeaderMenu()">
+            <i id="angle-up-icon" class="fa-solid fa-angle-up caret-icon caret-icon-vertical hide"></i>
+            <i id="bars-icon" class="fa-solid fa-bars caret-icon caret-icon-vertical"></i>
+        </div>
         <img src="/assets/images/expensify-help.svg" class="logo" />
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
@@ -45,7 +50,7 @@
         </div>
     </div>
 
-    <div class="content-area">
+    <div id="content-area">
 
         <!-- Article title (only shown in article pages) -->
         {% if page.lhn_content == nil %}
