@@ -72,7 +72,7 @@ const ReportActionItemSingle = (props) => {
             >
                 <Tooltip text={props.action.actorEmail}>
                     <Avatar
-                        imageStyles={[styles.actionAvatar]}
+                        containerStyles={[styles.actionAvatar]}
                         source={avatarUrl}
                     />
                 </Tooltip>
@@ -92,7 +92,7 @@ const ReportActionItemSingle = (props) => {
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.loading}
+                                    isLoading={props.action.isLoading}
                                     isSingleLine
                                 />
                             ))}

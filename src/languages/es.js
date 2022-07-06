@@ -164,6 +164,8 @@ export default {
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -218,7 +220,6 @@ export default {
     iou: {
         amount: 'Importe',
         participants: 'Participantes',
-        confirm: 'Confirmar',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
@@ -506,6 +507,8 @@ export default {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
+        notHere: 'Hmm… no está aquí',
+        pageNotFound: 'La página que buscas no existe.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',

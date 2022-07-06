@@ -23,7 +23,7 @@ const propTypes = {
 };
 
 const ReportActionItemMessage = (props) => {
-    const isUnsent = props.network.isOffline && props.action.loading;
+    const isUnsent = props.network.isOffline && props.action.isLoading;
 
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
@@ -33,8 +33,8 @@ const ReportActionItemMessage = (props) => {
                     fragment={fragment}
                     isAttachment={props.action.isAttachment}
                     attachmentInfo={props.action.attachmentInfo}
-                    loading={props.action.loading}
                     source={lodashGet(props.action, 'originalMessage.source')}
+                    loading={props.action.isLoading}
                 />
             ))}
         </View>
