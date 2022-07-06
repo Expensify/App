@@ -34,6 +34,9 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
+    /** Callback fired when the "fix the errors" link is pressed */
+    onFixTheErrorsLinkPressed: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -41,6 +44,7 @@ const defaultProps = {
     containerStyles: [],
     isMessageHtml: false,
     message: '',
+    onFixTheErrorsLinkPressed: () => {},
 };
 
 const FormAlertWrapper = (props) => {
