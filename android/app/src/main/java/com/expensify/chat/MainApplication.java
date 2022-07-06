@@ -14,6 +14,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
@@ -55,14 +56,25 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         }
       };
 
+  // TODO: Use this to enable new architecture.
+  // private final ReactNativeHost mNewArchitectureNativeHost =
+  //       new MainApplicationReactNativeHost(this);
+  private final ReactNativeHost mNewArchitectureNativeHost = null;
+
   @Override
   public ReactNativeHost getReactNativeHost() {
-    return mReactNativeHost;
+    if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
+      return mNewArchitectureNativeHost;
+    } else {
+      return mReactNativeHost;
+    }
   }
 
   @Override
   public void onCreate() {
       super.onCreate();
+      // If you opted-in for the New Architecture, we enable the TurboModule system
+      ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
       SoLoader.init(this, /* native exopackage */ false);
       initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
       if (BuildConfig.DEBUG) {

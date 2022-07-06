@@ -1,5 +1,5 @@
 import RNImageManipulator from '@oguzhnatly/react-native-image-manipulator';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-blob-util';
 
 /**
  * Crops and rotates the image on ios/android

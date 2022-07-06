@@ -1,6 +1,7 @@
 import '../wdyr';
 import React from 'react';
 import {LogBox} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -16,26 +17,27 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
-
-    // Caused by rn-fetch-blob. Can safely ignore as it has no impact on features.
-    'Require cycle: node_modules/rn-fetch-blob',
 ]);
 
+const fill = {flex: 1};
+
 const App = () => (
-    <ComposeProviders
-        components={[
-            OnyxProvider,
-            SafeAreaProvider,
-            SafeArea,
-            LocaleContextProvider,
-            HTMLEngineProvider,
-        ]}
-    >
-        <CustomStatusBar />
-        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-            <Expensify />
-        </ErrorBoundary>
-    </ComposeProviders>
+    <GestureHandlerRootView style={fill}>
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                SafeAreaProvider,
+                SafeArea,
+                LocaleContextProvider,
+                HTMLEngineProvider,
+            ]}
+        >
+            <CustomStatusBar />
+            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                <Expensify />
+            </ErrorBoundary>
+        </ComposeProviders>
+    </GestureHandlerRootView>
 );
 
 App.displayName = 'App';

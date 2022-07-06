@@ -29,8 +29,8 @@
       <activity
         android:name=".bootsplash.BootSplashActivity"
         android:theme="@style/BootTheme"
-        android:launchMode="singleTask"
-        android:exported="true">
+        android:exported="false"
+        android:launchMode="singleTask">
 
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
