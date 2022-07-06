@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 
@@ -30,7 +30,7 @@ function clearPlaidBankAccountsAndToken() {
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
 function fetchPlaidLinkToken() {
-    API.Plaid_GetLinkToken()
+    DeprecatedAPI.Plaid_GetLinkToken()
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;
@@ -48,7 +48,7 @@ function fetchPlaidBankAccounts(publicToken, bank) {
     bankName = bank;
 
     Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {loading: true});
-    API.BankAccount_Get({
+    DeprecatedAPI.BankAccount_Get({
         publicToken,
         allowDebit: false,
         bank,
