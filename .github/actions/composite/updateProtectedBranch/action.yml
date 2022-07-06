@@ -71,6 +71,18 @@ runs:
         git merge -Xtheirs ${{ env.SOURCE_BRANCH }}
         git push --set-upstream origin "$BRANCH_NAME"
 
+    - name: Overwrite root directory with static site
+      if: ${{ inputs.TARGET_BRANCH == 'gh-pages' }}
+      shell: bash
+      run: |
+        cd Expensify/App
+        find . -delete -mindepth 1 -not -regex "^\.\/(\.git|help/_site)(\/.*)?" -regextype posix-extended
+        mv -v help/_site/* .  
+        rm -rf help/_site
+        touch ./.nojekyll
+        git add -A
+        git commit -m "Overwrite root directory with static site"
+
     - name: Create Pull Request
       id: createPullRequest
       shell: bash
