@@ -142,7 +142,6 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerAndMarkReadOnce();
         }
 
-        Report.openReport(this.props.reportID);
         this.fetchData();
     }
 
@@ -248,7 +247,7 @@ class ReportActionsView extends React.Component {
         // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
         if (shouldRecordMaxAction && reportBecomeVisible) {
             this.updateNewMarkerPosition(this.props.report.unreadActionCount);
-            Report.readNewestAction(this.props.reportID);
+            Report.openReport(this.props.reportID);
         }
     }
 
