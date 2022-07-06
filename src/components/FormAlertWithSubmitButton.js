@@ -45,34 +45,34 @@ const defaultProps = {
     onFixTheErrorsLinkPressed: () => {},
 };
 
-const FormAlertWithSubmitButton = (props) => (
-        <FormAlertWrapper
-            containerStyles={props.containerStyles}
-            isAlertVisible={props.isAlertVisible}
-            isMessageHtml={props.isMessageHtml}
-            message={props.message}
-            onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
-        >
-            {isOffline => (isOffline ? (
-                <Button
-                    success
-                    isDisabled
-                    text={props.buttonText}
-                    style={[styles.mb3]}
-                />
-            ) : (
-                <Button
-                    success
-                    pressOnEnter
-                    text={props.buttonText}
-                    onPress={props.onSubmit}
-                    isDisabled={props.isDisabled}
-                    isLoading={props.isLoading}
-                />
-            )
-            )}
-        </FormAlertWrapper>
-    );
+const FormAlertWithSubmitButton = props => (
+    <FormAlertWrapper
+        containerStyles={props.containerStyles}
+        isAlertVisible={props.isAlertVisible}
+        isMessageHtml={props.isMessageHtml}
+        message={props.message}
+        onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
+    >
+        {isOffline => (isOffline ? (
+            <Button
+                success
+                isDisabled
+                text={props.buttonText}
+                style={[styles.mb3]}
+            />
+        ) : (
+            <Button
+                success
+                pressOnEnter
+                text={props.buttonText}
+                onPress={props.onSubmit}
+                isDisabled={props.isDisabled}
+                isLoading={props.isLoading}
+            />
+        )
+        )}
+    </FormAlertWrapper>
+);
 
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
