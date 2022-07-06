@@ -204,7 +204,7 @@ class BaseTextInput extends Component {
 
         return (
             <>
-                <View onLayout={event => this.setState({height: event.nativeEvent.layout.height})}>
+                <View>
                     <View
                         style={[
                             !this.props.multiline && styles.componentHeightLarge,
@@ -213,6 +213,7 @@ class BaseTextInput extends Component {
                     >
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                             <View
+                                onLayout={event => this.setState({height: event.nativeEvent.layout.height})}
                                 style={[
                                     textInputContainerStyles,
 
