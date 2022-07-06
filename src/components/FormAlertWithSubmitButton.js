@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import OfflineIndicator from './OfflineIndicator';
 import FormAlertWrapper from './FormAlertWrapper';
 
 const propTypes = {
@@ -46,12 +45,12 @@ const defaultProps = {
     onFixTheErrorsLinkPressed: () => {},
 };
 
-const FormAlertWithSubmitButton = (props) => {
-    return (
+const FormAlertWithSubmitButton = (props) => (
         <FormAlertWrapper
             containerStyles={props.containerStyles}
             isAlertVisible={props.isAlertVisible}
             isMessageHtml={props.isMessageHtml}
+            message={props.message}
             onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
         >
             {isOffline => (isOffline ? (
@@ -74,7 +73,6 @@ const FormAlertWithSubmitButton = (props) => {
             )}
         </FormAlertWrapper>
     );
-};
 
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
