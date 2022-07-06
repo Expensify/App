@@ -735,6 +735,12 @@ const CONST = {
         OPEN: 'open',
         CLOSED: 'closed',
     },
+
+    ONYX: {
+        METHOD: {
+            MERGE: 'merge',
+        },
+    },
 };
 
 export default CONST;
