@@ -171,6 +171,7 @@ class ReportSettingsPage extends Component {
                                 onInputChange={(notificationPreference) => {
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
+                                        this.props.report.notificationPreference,
                                         notificationPreference,
                                     );
                                 }}
