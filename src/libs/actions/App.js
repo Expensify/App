@@ -18,6 +18,7 @@ import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import * as SessionUtils from '../SessionUtils';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -94,10 +95,9 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  *
  * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
- * @param {Boolean} shouldSyncVBA Set to false if we are calling on reconnect.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
+function getAppData(shouldSyncPolicyList = true) {
     NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
     NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
     getLocale();
@@ -107,10 +107,6 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
     PersonalDetails.fetchLocalCurrency();
     GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
-
-    if (shouldSyncVBA) {
-        BankAccounts.fetchFreePlanVerifiedBankAccount();
-    }
 
     if (shouldSyncPolicyList) {
         Policy.getPolicyList();
@@ -171,8 +167,7 @@ function setUpPoliciesAndNavigate(session) {
             const path = new URL(url).pathname;
             const params = new URLSearchParams(url);
             const exitTo = params.get('exitTo');
-            const email = params.get('email');
-            const isLoggingInAsNewUser = session.email !== email;
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(url, session.email);
             const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
@@ -193,7 +188,7 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => getAppData(true, false));
+NetworkConnection.onReconnect(() => getAppData(true));
 
 export {
     setCurrentURL,

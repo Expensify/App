@@ -65,6 +65,15 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** The policies which the user has access to */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+    })).isRequired,
 };
 
 const defaultProps = {
@@ -136,7 +145,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        Report.addAction(getReportID(this.props.route), text);
+        Report.addComment(getReportID(this.props.route), text);
     }
 
     /**
@@ -185,7 +194,10 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        if (!Permissions.canUseDefaultRooms(this.props.betas) && ReportUtils.isDefaultRoom(this.props.report)) {
+        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        if (!Permissions.canUseDefaultRooms(this.props.betas)
+            && ReportUtils.isDefaultRoom(this.props.report)
+            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
             return null;
         }
 
@@ -275,5 +287,8 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(ReportScreen);

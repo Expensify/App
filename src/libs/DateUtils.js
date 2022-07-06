@@ -115,21 +115,38 @@ function startCurrentDateUpdater() {
     });
 }
 
+/**
+ * @returns {Object}
+ */
+function getCurrentTimezone() {
+    const currentTimezone = moment.tz.guess(true);
+    if (timezone.automatic && timezone.selected !== currentTimezone) {
+        return {...timezone, selected: currentTimezone};
+    }
+    return timezone;
+}
+
 /*
  * Updates user's timezone, if their timezone is set to automatic and
  * is different from current timezone
  */
 function updateTimezone() {
-    const currentTimezone = moment.tz.guess(true);
-    if (timezone.automatic && timezone.selected !== currentTimezone) {
-        PersonalDetails.setPersonalDetails({timezone: {...timezone, selected: currentTimezone}});
-    }
+    PersonalDetails.setPersonalDetails({timezone: getCurrentTimezone()});
 }
 
-/*
- * Returns a version of updateTimezone function throttled by 5 minutes
+// Used to throttle updates to the timezone when necessary
+let lastUpdatedTimezoneTime = moment();
+
+/**
+ * @returns {Boolean}
  */
-const throttledUpdateTimezone = _.throttle(() => updateTimezone(), 1000 * 60 * 5);
+function canUpdateTimezone() {
+    return lastUpdatedTimezoneTime.isBefore(moment().subtract(5, 'minutes'));
+}
+
+function setTimezoneUpdated() {
+    lastUpdatedTimezoneTime = moment();
+}
 
 /**
  * @namespace DateUtils
@@ -139,8 +156,10 @@ const DateUtils = {
     timestampToDateTime,
     startCurrentDateUpdater,
     updateTimezone,
-    throttledUpdateTimezone,
     getLocalMomentFromTimestamp,
+    getCurrentTimezone,
+    canUpdateTimezone,
+    setTimezoneUpdated,
 };
 
 export default DateUtils;
