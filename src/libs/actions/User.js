@@ -462,13 +462,6 @@ function setPreferredTimezone(timezone) {
 }
 
 /**
- * Sync user first time flag to false with Onyx and Server
- */
-function setFirstTimeToFalse() {
-    NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-}
-
-/**
  * Sync user chat priority mode with Onyx and Server
  * @param {String} mode
  */
@@ -556,6 +549,5 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     setChatPriorityMode,
-    setFirstTimeToFalse,
     setPreferredTimezone,
 };
