@@ -1,21 +1,8 @@
 import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
 import * as Pusher from './Pusher/pusher';
 import * as Session from './actions/Session';
 import Log from './Log';
 import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-
-let authorizerCallback;
-Onyx.connect({
-    key: ONYXKEYS.PUSHER_AUTHORIZATION,
-    callback: (authorizationData) => {
-        if (!authorizerCallback) {
-            return;
-        }
-        authorizerCallback(authorizationData.error, authorizationData.token);
-    },
-});
 
 function init() {
     /**
@@ -26,8 +13,7 @@ function init() {
      */
     Pusher.registerCustomAuthorizer(channel => ({
         authorize: (socketID, callback) => {
-            authorizerCallback = callback;
-            Session.authenticatePusher(socketID, channel.name);
+            Session.authenticatePusher(socketID, channel.name, callback);
         },
     }));
 
