@@ -143,7 +143,7 @@ textarea {
   color: colors.$dark;
 }
 
-.lhn {
+#lhn {
   height: 100%;
   width: 420px;
   position: fixed;
@@ -162,13 +162,53 @@ textarea {
     list-style: none;
   }
 
+  .header-button {
+    display: none;
+
+    @media screen and (max-width: 800px) {
+      display: block;
+    }
+  }
+
   .logo {
     width: 210px;
+
+    @media screen and (max-width: 800px) {
+      width: 160px;
+      align-content: center;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 
   .lhn-content {
     padding-top: 36px;
     margin-left: 32px;
+  }
+
+  .caret-icon {
+    left: 52px;
+    padding-top: 1px;
+    position: absolute;
+    color: colors.$gray3;
+    font-size: larger;
+
+    @media screen and (max-width: 800px) {
+      left: 32px;
+    }
+  }
+
+  .caret-icon-vertical {
+    left: 48px;
+
+    @media screen and (max-width: 800px) {
+      left: 28px;
+    }
+  }
+
+  .hide {
+    display: none;
   }
 
   &::-webkit-scrollbar {
@@ -178,9 +218,18 @@ textarea {
   @media screen and (max-width: 1024px) {
     width: 320px;
   }
+  @media screen and (max-width: 800px) {
+    width: 100%;
+    padding: 24px;
+    height: 76px;
+
+    &.expanded {
+      height: auto;
+    }
+  }
 }
 
-.content-area {
+#content-area {
   /* Same as the width of the lhn */
   margin-left: 420px;
   padding: 52px 68px;
@@ -188,6 +237,13 @@ textarea {
 
   @media screen and (max-width: 1024px) {
     margin-left: 320px;
+  }
+  @media screen and (max-width: 800px) {
+    margin-left: 0;
+    padding-top: 80px;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
   }
 }
 
@@ -207,18 +263,6 @@ textarea {
       margin-top: 20px;
       cursor: pointer;
     }
-  }
-
-  .caret-icon {
-    left: 52px;
-    padding-top: 1px;
-    position: absolute;
-    color: colors.$gray3;
-    font-size: larger;
-  }
-
-  .caret-icon-down {
-    left: 48px;
   }
 
   .selected-hub {
