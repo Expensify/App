@@ -13,7 +13,6 @@ import * as PersonalDetails from './PersonalDetails';
 import * as User from './User';
 import * as Report from './Report';
 import * as GeoLocation from './GeoLocation';
-import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
