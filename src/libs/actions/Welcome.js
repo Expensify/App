@@ -6,7 +6,8 @@ import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
 import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as User from './User';
+import NameValuePair from './NameValuePair';
+import CONST from '../../CONST';
 import SCREENS from '../../SCREENS';
 
 let resolveIsReadyPromise;
@@ -111,7 +112,7 @@ function show({routes, showCreateMenu}) {
         }
 
         // Set the NVP back to false so we don't automatically run welcome actions again
-        User.setFirstTimeToFalse();
+        NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
 
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
