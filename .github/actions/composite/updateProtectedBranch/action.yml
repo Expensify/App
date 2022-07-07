@@ -53,7 +53,9 @@ runs:
 
     - name: Checkout source branch
       shell: bash
-      run: git checkout ${{ env.SOURCE_BRANCH }}
+      run: |
+        git fetch
+        git checkout ${{ env.SOURCE_BRANCH }}
 
     - name: Set New Version
       shell: bash
@@ -66,7 +68,10 @@ runs:
         git checkout ${{ inputs.TARGET_BRANCH }}
         BRANCH_NAME=update-${{ inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
         git checkout -b "$BRANCH_NAME"
-        git merge -Xtheirs ${{ env.SOURCE_BRANCH }}
+        git merge -Xtheirs ${{ env.SOURCE_BRANCH }} || {
+          git diff --name-only --diff-filter=U | xargs git rm;
+          git merge --continue;
+        }
         git push --set-upstream origin "$BRANCH_NAME"
 
     - name: Create Pull Request
