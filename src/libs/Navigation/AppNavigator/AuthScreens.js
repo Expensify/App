@@ -131,7 +131,7 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetchPersonalDetails();
-            User.getBetas();
+            User.getUserDetails();
         }, 1000 * 60 * 30));
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
