@@ -23,7 +23,7 @@ const propTypes = {
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether to show the alert text */
-    isAlertVisible: PropTypes.bool.isRequired,
+    isAlertVisible: PropTypes.bool,
 
     /** Whether message is in html format */
     isMessageHtml: PropTypes.bool,
@@ -42,6 +42,7 @@ const propTypes = {
 
 const defaultProps = {
     containerStyles: [],
+    isAlertVisible: false,
     isMessageHtml: false,
     message: '',
     onFixTheErrorsPressed: () => {},
@@ -51,59 +52,39 @@ const defaultProps = {
 //
 // This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
-const FormAlertWrapper = (props) => {
-    function getAlertPrompt() {
-        let error = '';
+const FormAlertWrapper = props => (
+    <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
+        {props.isAlertVisible && (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                    {!_.isEmpty(props.message) && props.isMessageHtml && <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />}
 
-        if (!_.isEmpty(props.message)) {
-            if (props.isMessageHtml) {
-                error = (
-                    <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />
-                );
-            } else {
-                error = (
-                    <Text style={styles.mutedTextLabel}>{props.message}</Text>
-                );
-            }
-        } else {
-            error = (
-                <>
-                    <Text style={styles.mutedTextLabel}>
-                        {`${props.translate('common.please')} `}
-                    </Text>
-                    <TextLink
-                        style={styles.label}
-                        onPress={props.onFixTheErrorsPressed}
-                    >
-                        {props.translate('common.fixTheErrors')}
-                    </TextLink>
-                    <Text style={styles.mutedTextLabel}>
-                        {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
-                    </Text>
-                </>
-            );
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                {error}
-            </View>
-        );
-    }
-
-    return (
-        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
-            {props.isAlertVisible && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                    <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                    {getAlertPrompt()}
+                    {!_.isEmpty(props.message) && !props.isMessageHtml
+                        ? <Text style={styles.mutedTextLabel}>{props.message}</Text>
+                        : (
+                            <>
+                                <Text style={styles.mutedTextLabel}>
+                                    {`${props.translate('common.please')} `}
+                                </Text>
+                                <TextLink
+                                    style={styles.label}
+                                    onPress={props.onFixTheErrorsPressed}
+                                >
+                                    {props.translate('common.fixTheErrors')}
+                                </TextLink>
+                                <Text style={styles.mutedTextLabel}>
+                                    {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
+                                </Text>
+                            </>
+                        )}
                 </View>
-            )}
-            {props.children(props.network.isOffline)}
-            {props.network.isOffline && <OfflineIndicator />}
-        </View>
-    );
-};
+            </View>
+        )}
+        {props.children(props.network.isOffline)}
+        {props.network.isOffline && <OfflineIndicator />}
+    </View>
+);
 
 FormAlertWrapper.propTypes = propTypes;
 FormAlertWrapper.defaultProps = defaultProps;
