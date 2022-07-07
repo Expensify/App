@@ -99,13 +99,6 @@ h6 {
     font-family: "GTAmericaExp-Regular";
     font-weight: bold;
     padding-bottom: 12px;
-}
-
-h2,
-h3,
-h4,
-h5,
-h6 {
     margin-top: 20px;
 }
 
@@ -226,7 +219,6 @@ textarea {
 }
 
 #content-area {
-
     ul,
     ol {
         margin-left: 24px;
@@ -258,7 +250,22 @@ textarea {
 }
 
 .main-navigation-tree {
+    .link {
+        color: $color-blue;
+        cursor: pointer;
 
+        &:hover {
+            color: $color-blueHover;
+            text-decoration: underline;
+        }
+    }
+
+    margin-left: 32px;
+    margin-bottom: 40px;
+}
+
+.lhn-items {
+    ol,
     ul {
         padding-left: 30px;
     }
@@ -277,20 +284,12 @@ textarea {
 
     .selected-hub {
         font-weight: bold;
+        color: $color-dark;
     }
+}
 
-    .link {
-        color: $color-blue;
-        cursor: pointer;
-
-        &:hover {
-            color: $color-blueHover;
-            text-decoration: underline;
-        }
-    }
-
-    margin-left: 32px;
-    margin-bottom: 40px;
+.article-toc {
+    margin-top: 20px;
 }
 
 .cards-grid {
