@@ -113,7 +113,7 @@ class WorkspaceReimburseView extends React.Component {
 
     updateRateValue(value) {
         const numValue = parseFloat(value.replace(this.props.fromLocaleDigit('.'), '.'));
-        
+
         if (_.isNaN(numValue)) {
             return;
         }
