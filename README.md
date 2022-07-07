@@ -22,7 +22,7 @@
 * [API Details](contributingGuides/API.md)
 * [Offline First](contributingGuides/OFFLINE_UX.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
-* [Expensify Code of Conduct](contributingGuides/CODE_OF_CONDUCT.md)
+* [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](contributingGuides/CLA.md)
 
 ----
