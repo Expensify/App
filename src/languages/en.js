@@ -509,6 +509,8 @@ export default {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
+        notHere: "Hmm... it's not here",
+        pageNotFound: 'That page is nowhere to be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -903,8 +905,8 @@ export default {
     },
     requestCallPage: {
         title: 'Request a call',
-        subtitle: 'Have questions, or need help?',
-        description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
+        subtitle: 'Need help?',
+        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
         extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
@@ -923,6 +925,11 @@ export default {
         error: {
             phoneExtension: 'Please enter a valid phone extension number',
         },
+    },
+    requestCallConfirmationScreen: {
+        callRequested: 'Call successfully requested!',
+        allSet: 'You’re all set. You will be receiving a call from us soon.',
+        gotIt: 'Got it',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',

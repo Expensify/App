@@ -126,7 +126,7 @@
     "@octokit/rest": "^18.3.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "@storybook/addon-a11y": "^6.4.12",
-    "@storybook/addon-essentials": "^6.4.12",
+    "@storybook/addon-essentials": "^6.5.9",
     "@storybook/addon-react-native-web": "0.0.18",
     "@storybook/addons": "^6.4.12",
     "@storybook/react": "^6.4.12",
