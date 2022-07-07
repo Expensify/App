@@ -392,17 +392,6 @@ function SetWalletLinkedAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.subscribed
- * @returns {Promise}
- */
-function UpdateAccount(parameters) {
-    const commandName = 'UpdateAccount';
-    requireParameters(['subscribed'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.message
  * @returns {Promise}
  */
@@ -907,7 +896,6 @@ export {
     SetNameValuePair,
     SetPassword,
     SetWalletLinkedAccount,
-    UpdateAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
