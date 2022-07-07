@@ -64,7 +64,7 @@ There are 3 main components in the hub page: 1. Stage title, 2. Row of Card butt
 </h2>
 
 <!-- 2. Row of Card buttons -->
-<div class="cards-row">
+<div class="cards-grid">
 
     <!-- 3. Card buttons -->
 
@@ -107,7 +107,7 @@ Where `id` is an arbitrary value that will help us to anchor this title to the L
 If it's required, you can add a new row of Card buttons with the following HTML block:
 
 ```html
-<div class="cards-row">
+<div class="cards-grid">
     <!-- Add Cards components here -->
 </div>
 ```
