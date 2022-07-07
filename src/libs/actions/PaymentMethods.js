@@ -221,6 +221,7 @@ function transferWalletBalance(transferAmount, paymentMethod) {
         : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
     const parameters = {
         [paymentMethodIDKey]: paymentMethod.methodID,
+        shouldReturnOnyxData: true,
     };
 
     API.write('TransferWalletBalance', parameters, {
