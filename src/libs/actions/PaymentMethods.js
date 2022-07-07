@@ -103,6 +103,20 @@ function getPaymentMethods() {
         });
 }
 
+function openPaymentsPage() {
+    console.log('hello');
+    const onyxData = {
+        optimisticData: {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+            value: true,
+        },
+    };
+    console.log(onyxData);
+
+    // return API.read('OpenPaymentsPage', {}, onyxData);
+}
+
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
@@ -277,6 +291,7 @@ export {
     deleteDebitCard,
     deletePayPalMe,
     getPaymentMethods,
+    openPaymentsPage,
     setWalletLinkedAccount,
     addBillingCard,
     kycWallRef,
