@@ -204,7 +204,6 @@ class PaymentMethodList extends Component {
         return (
             <>
                 <FlatList
-                    bounces={false}
                     data={this.createPaymentMethodList()}
                     renderItem={this.renderItem}
                     keyExtractor={item => item.key}
