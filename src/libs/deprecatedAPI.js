@@ -280,19 +280,6 @@ function PreferredLocale_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.socket_id
- * @param {String} parameters.channel_name
- * @returns {Promise}
- */
-function Push_Authenticate(parameters) {
-    const commandName = 'Push_Authenticate';
-    requireParameters(['socket_id', 'channel_name'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.transactionID
  * @returns {Promise}
@@ -949,7 +936,6 @@ export {
     PersonalDetails_Update,
     Plaid_GetLinkToken,
     Policy_Employees_Merge,
-    Push_Authenticate,
     RejectTransaction,
     Report_AddComment,
     Report_GetHistory,

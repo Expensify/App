@@ -435,7 +435,7 @@ function validateEmail(accountID, validateCode) {
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
 const reauthenticatePusher = _.throttle(() => {
     Log.info('[Pusher] Re-authenticating and then reconnecting');
-    Authentication.reauthenticate('Push_Authenticate')
+    Authentication.reauthenticate('AuthenticatePusher')
         .then(Pusher.reconnect)
         .catch(() => {
             console.debug(
@@ -484,7 +484,7 @@ function authenticatePusher(socketID, channelName, callback) {
         callback(null, response);
     }).catch((error) => {
         Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
-        callback(new Error('Push_Authenticate request failed'), {auth: ''});
+        callback(new Error('AuthenticatePusher request failed'), {auth: ''});
     });
 }
 
