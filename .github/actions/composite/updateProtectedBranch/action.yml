@@ -53,7 +53,9 @@ runs:
 
     - name: Checkout source branch
       shell: bash
-      run: git checkout ${{ env.SOURCE_BRANCH }}
+      run: |
+        git fetch
+        git checkout ${{ env.SOURCE_BRANCH }}
 
     - name: Set New Version
       shell: bash
