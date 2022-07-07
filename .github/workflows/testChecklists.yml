@@ -1,0 +1,16 @@
+name: "Contributor Checklist"
+
+on:
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: contributorChecklist.js
+        uses: Andrew-Test-Org/Public-Test-Repo/.github/actions/javascript/contributorChecklist@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
