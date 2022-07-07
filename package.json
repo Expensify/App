@@ -123,7 +123,7 @@
     "@babel/runtime": "^7.11.2",
     "@octokit/core": "^3.3.1",
     "@octokit/plugin-throttling": "^3.4.1",
-    "@octokit/rest": "^18.3.5",
+    "@octokit/rest": "^18.12.0",
     "@react-native-community/eslint-config": "^2.0.0",
     "@storybook/addon-a11y": "^6.4.12",
     "@storybook/addon-essentials": "^6.4.12",
