@@ -320,19 +320,6 @@ function Report_GetHistory(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {Boolean} parameters.pinnedValue
- * @returns {Promise}
- */
-function Report_TogglePinned(parameters) {
-    const commandName = 'Report_TogglePinned';
-    requireParameters(['reportID', 'pinnedValue'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
  * @param {Number} parameters.reportActionID
  * @param {String} parameters.reportComment
  * @returns {Promise}
@@ -914,7 +901,6 @@ export {
     RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
-    Report_TogglePinned,
     Report_EditComment,
     ResendValidateCode,
     ResetPassword,
