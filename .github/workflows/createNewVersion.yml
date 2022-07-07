@@ -25,28 +25,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Decrypt GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import the GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git
-        run: |
-          git fetch
-          git checkout main
-          git config user.signingkey 367811D53E34168C
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Create new branch
         run: |
-          git checkout -b version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          git push --set-upstream origin version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}" >> "$GITHUB_ENV"
+          BRANCH_NAME="version-${{ github.event.inputs.SEMVER_LEVEL }}-$(uuidgen)"
+          git checkout -b "$BRANCH_NAME"
+          git push --set-upstream origin "$BRANCH_NAME"
+          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
 
       - name: Generate version
         id: bumpVersion
