@@ -35,7 +35,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsLinkPressed: PropTypes.func,
+    onFixTheErrorsPressed: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
@@ -44,13 +44,13 @@ const defaultProps = {
     containerStyles: [],
     isMessageHtml: false,
     message: '',
-    onFixTheErrorsLinkPressed: () => {},
+    onFixTheErrorsPressed: () => {},
 };
 
 // The FormAlertWrapper offers a standardized way of showing error messages and offline functionality.
 //
 // This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
-// and passes it a (bool) isOffline parameter. Child components can then use that isOffline to determine offline behavior.
+// and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
 const FormAlertWrapper = (props) => {
     function getAlertPrompt() {
         let error = '';
@@ -73,7 +73,7 @@ const FormAlertWrapper = (props) => {
                     </Text>
                     <TextLink
                         style={styles.label}
-                        onPress={props.onFixTheErrorsLinkPressed}
+                        onPress={props.onFixTheErrorsPressed}
                     >
                         {props.translate('common.fixTheErrors')}
                     </TextLink>
@@ -100,7 +100,7 @@ const FormAlertWrapper = (props) => {
                 </View>
             )}
             {props.children(props.network.isOffline)}
-            {props.network.isOffline && (<OfflineIndicator />)}
+            {props.network.isOffline && <OfflineIndicator />}
         </View>
     );
 };
