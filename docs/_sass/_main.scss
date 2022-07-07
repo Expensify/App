@@ -137,7 +137,7 @@ textarea {
   height: 100%;
   width: 420px;
   position: fixed;
-  background-color: colors.$gray1;
+  background-color: $color-gray1;
   padding: 44px;
   box-sizing: border-box;
   border-right-color: $color-gray2;
@@ -185,7 +185,7 @@ textarea {
     left: 52px;
     padding-top: 1px;
     position: absolute;
-    color: colors.$gray3;
+    color: $color-gray3;
     font-size: larger;
 
     @media screen and (max-width: 800px) {
