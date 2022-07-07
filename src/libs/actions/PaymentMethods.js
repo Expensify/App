@@ -215,7 +215,7 @@ function clearDebitCardFormErrorAndSubmit() {
  * @param {*} paymentMethod.methodID
  * @param {String} paymentMethod.accountType
  */
-function transferBalance(transferAmount, paymentMethod) {
+function transferWalletBalance(transferAmount, paymentMethod) {
     const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
         ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT
         : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
@@ -303,7 +303,7 @@ export {
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
-    transferBalance,
+    transferWalletBalance,
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
