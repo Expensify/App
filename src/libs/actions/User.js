@@ -23,13 +23,11 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 
 let sessionAuthToken = '';
-let sessionEmail = '';
 let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionAuthToken = lodashGet(val, 'authToken', '');
-        sessionEmail = lodashGet(val, 'email', '');
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
 });
