@@ -34,7 +34,7 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         const actionsArray = _.toArray(actions);
         reportActions[reportID] = actionsArray;
-        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.loading);
+        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.isLoading);
         const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
         if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
             return;
@@ -121,25 +121,25 @@ function getLastVisibleMessageText(reportID) {
  * @param {Number} sequenceNumber
  * @param {Object} message
  */
-function updateReportActionMessage(reportID, sequenceNumber, message) {
-    const actionToMerge = {};
-    actionToMerge[sequenceNumber] = {message: [message]};
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-        // If the message is deleted, update the last read message and the unread counter
-        // if (!message.html) {
-        //     setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
-        // }
+// function updateReportActionMessage(reportID, sequenceNumber, message) {
+//     const actionToMerge = {};
+//     actionToMerge[sequenceNumber] = {message: [message]};
+//     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
+//         // If the message is deleted, update the last read message and the unread counter
+//         // if (!message.html) {
+//         //     setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
+//         // }
 
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: getLastVisibleMessageText(reportID),
-        });
-    });
-}
+//         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+//             lastMessageText: getLastVisibleMessageText(reportID),
+//         });
+//     });
+// }
 
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
-    updateReportActionMessage,
+    // updateReportActionMessage,
 };
