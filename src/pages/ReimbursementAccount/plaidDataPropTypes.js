@@ -1,9 +1,6 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
-    /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken: PropTypes.string,
-
     /** Whether we are fetching the bank accounts from the API */
     loading: PropTypes.bool,
 
