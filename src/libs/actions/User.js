@@ -159,7 +159,7 @@ function resendValidateCode(login) {
  *
  * @param {Boolean} isSubscribed
  */
-function setExpensifyNewsStatus(isSubscribed) {
+function updateNewsletterSubscriptionStatus(isSubscribed) {
     API.write('UpdateNewsletterSubscriptionStatus', {
         isSubscribed,
     }, {
@@ -458,7 +458,7 @@ export {
     getBetas,
     getUserDetails,
     resendValidateCode,
-    setExpensifyNewsStatus,
+    updateNewsletterSubscriptionStatus,
     setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
