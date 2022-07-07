@@ -98,37 +98,27 @@ h6 {
   color: colors.$dark;
   font-family: "GTAmericaExp-Regular";
   font-weight: bold;
-  margin-bottom: 12px;
+  padding-bottom: 12px;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 20px;
 }
 
 h1 {
-  font-size: 36px;
+  font-size: larger;
 }
 
 h2 {
-  font-size: 20px;
-}
-
-h3 {
-  font-size: 20px;
-}
-
-h5 {
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-  color: colors.$blue;
-  margin-bottom: 6px;
-}
-
-h6 {
-  font-size: 11px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+  font-size: large;
 }
 
 p {
-  margin-bottom: 44px;
+  padding-bottom: 20px;
 }
 
 body,
@@ -234,6 +224,18 @@ textarea {
 }
 
 #content-area {
+  ul,
+  ol {
+    margin-left: 24px;
+    padding-bottom: 20px;
+  }
+
+  h1 {
+    &.title {
+      font-size: 2.25em;
+    }
+  }
+
   /* Same as the width of the lhn */
   margin-left: 420px;
   padding: 52px 68px;
@@ -289,7 +291,7 @@ textarea {
   grid-template-columns: auto;
   row-gap: 12px;
   column-gap: 4%;
-  margin-bottom: 40px;
+  padding-bottom: 20px;
 
   @media screen and (min-width: 800px) {
     grid-template-columns: 48% 48%;
