@@ -2,13 +2,13 @@ import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import NameValuePair from './NameValuePair';
 import * as PersonalDetails from './PersonalDetails';
 import * as User from './User';
 import * as Report from './Report';
@@ -35,12 +35,6 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
-});
-
 /**
  * @param {String} url
  */
@@ -56,20 +50,6 @@ function setLocale(locale) {
         DeprecatedAPI.PreferredLocale_Update({name: 'preferredLocale', value: locale});
     }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
-}
-
-function getLocale() {
-    DeprecatedAPI.Get({
-        returnValueList: 'nameValuePairs',
-        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    }).then((response) => {
-        const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-        if (preferredLocale === currentPreferredLocale) {
-            return;
-        }
-
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-    });
 }
 
 function setSidebarLoaded() {
@@ -98,9 +78,6 @@ AppState.addEventListener('change', (nextAppState) => {
  * @returns {Promise}
  */
 function getAppData(shouldSyncPolicyList = true) {
-    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-    getLocale();
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
@@ -117,6 +94,20 @@ function getAppData(shouldSyncPolicyList = true) {
         PersonalDetails.fetchPersonalDetails(),
         Report.fetchAllReports(true, true),
     ]);
+}
+
+/**
+ * Fetches data needed for app initialization
+ */
+function openApp() {
+    API.read('OpenApp');
+}
+
+/**
+ * Refreshes data when the app reconnects
+ */
+function reconnectApp() {
+    API.read('ReconnectApp');
 }
 
 /**
@@ -188,14 +179,17 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => getAppData(true));
+NetworkConnection.onReconnect(() => {
+    getAppData(true);
+    reconnectApp();
+});
 
 export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
-    getLocale,
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
+    openApp,
 };
