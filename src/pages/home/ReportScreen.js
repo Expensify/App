@@ -232,7 +232,7 @@ class ReportScreen extends React.Component {
                         {!this.shouldShowLoader() && (
                             <ReportActionsView
                                 reportID={reportID}
-                                reportActionID={this.props.route.params.reportActionID}
+                                reportActionID={Permissions.canUseCommentLinking(this.props.betas) ? this.props.route.params.reportActionID : ''}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
