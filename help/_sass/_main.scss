@@ -1,5 +1,5 @@
-@use 'colors';
-@use 'fonts';
+@import 'colors';
+@import 'fonts';
 
 :root {
   --spacing-default: 24px;
@@ -62,11 +62,11 @@ html,
 body {
   height: 100%;
   min-height: 100%;
-  background: colors.$white;
+  background: $color-white;
 }
 
 hr {
-  background: colors.$blue;
+  background: $color-blue;
   border: none;
   display: inline-block;
   width: 24px;
@@ -84,11 +84,11 @@ em {
 }
 
 a {
-  color: colors.$blue;
+  color: $color-blue;
   text-decoration: none;
 
   &:hover {
-    color: colors.$blueHover;
+    color: $color-blueHover;
     text-decoration: underline;
   }
 }
@@ -99,7 +99,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: colors.$dark;
+  color: $color-dark;
   font-family: "GTAmericaExp-Regular";
   font-weight: 400;
   margin-bottom: 12px;
@@ -123,7 +123,7 @@ h5 {
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
-  color: colors.$blue;
+  color: $color-blue;
   margin-bottom: 6px;
 }
 
@@ -146,17 +146,17 @@ textarea {
   font-weight: 400;
   font-family: "GTAmericaExp-Regular", "Helvetica Neue", "Helvetica", Arial, sans-serif;
   font-size: 16px;
-  color: colors.$dark;
+  color: $color-dark;
 }
 
 .lhn {
   height: 100%;
   width: 375px;
   position: fixed;
-  background-color: colors.$gray1;
+  background-color: $color-gray1;
   padding: 36px;
   box-sizing: border-box;
-  border-right-color: colors.$gray2;
+  border-right-color: $color-gray2;
   border-right-width: 1px;
   border-style: solid;
 
@@ -200,7 +200,7 @@ textarea {
     left: 48px;
     padding-top: 1px;
     position: absolute;
-    color: colors.$gray3;
+    color: $color-gray3;
     font-size: larger;
   }
 
@@ -213,11 +213,11 @@ textarea {
   }
 
   .link {
-    color: colors.$blue;
+    color: $color-blue;
     cursor: pointer;
 
     &:hover {
-      color: colors.$blueHover;
+      color: $color-blueHover;
       text-decoration: underline;
     }
   }
