@@ -211,9 +211,7 @@ class PaymentMethodList extends Component {
         }
         if (item.type === BUTTON) {
             return (
-                <FormAlertWrapper
-                    isAlertVisible={false}
-                >
+                <FormAlertWrapper>
                     {isOffline => (
                         <Button
                             text={item.text}
