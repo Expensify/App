@@ -63,7 +63,7 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     componentDidMount() {
-        BankAccounts.clearOnyxObject(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+        BankAccounts.clearPersonalBankAccount();
     }
 
     /**

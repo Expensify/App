@@ -89,8 +89,11 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
-    // Plaid data (tokens, bank accounts ...)
+    // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
+
+    // Token needed to initialize Plaid link
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
 
     // Collection Keys
     COLLECTION: {

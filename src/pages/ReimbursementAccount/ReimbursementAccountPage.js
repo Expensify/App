@@ -37,6 +37,9 @@ const propTypes = {
     /** Contains plaid data */
     plaidData: plaidDataPropTypes,
 
+    /** Plaid SDK token to use to initialize the widget */
+    plaidLinkToken: PropTypes.string,
+
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
@@ -65,9 +68,9 @@ const defaultProps = {
     reimbursementAccount: {
         loading: true,
     },
+    plaidLinkToken: '',
     plaidData: {
         isPlaidDisabled: false,
-        plaidLinkToken: '',
     },
     route: {
         params: {
@@ -222,7 +225,7 @@ class ReimbursementAccountPage extends React.Component {
                             achData={achData}
                             isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
                             receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                            plaidLinkOAuthToken={this.props.plaidData.plaidLinkToken}
+                            plaidLinkOAuthToken={this.props.plaidLinkToken}
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
@@ -263,6 +266,9 @@ export default compose(
         },
         plaidData: {
             key: ONYXKEYS.PLAID_DATA,
+        },
+        plaidLinkToken: {
+            key: ONYXKEYS.PLAID_LINK_TOKEN,
         },
     }),
     withLocalize,

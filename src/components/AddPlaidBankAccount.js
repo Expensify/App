@@ -26,6 +26,9 @@ const propTypes = {
     /** Contains plaid data */
     plaidData: plaidDataPropTypes,
 
+    /** Plaid SDK token to use to initialize the widget */
+    plaidLinkToken: PropTypes.string,
+
     /** Fired when the user exits the Plaid flow */
     onExitPlaid: PropTypes.func,
 
@@ -52,12 +55,13 @@ const propTypes = {
 
 const defaultProps = {
     plaidData: {
-        plaidLinkToken: '',
         bankName: '',
         plaidAccessToken: '',
+        bankAccounts: [],
         loading: false,
         error: '',
     },
+    plaidLinkToken: '',
     onExitPlaid: () => {},
     onSelect: () => {},
     text: '',
@@ -87,7 +91,7 @@ class AddPlaidBankAccount extends React.Component {
             return;
         }
 
-        BankAccounts.clearOnyxObject(ONYXKEYS.PLAID_DATA);
+        BankAccounts.clearPlaid();
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
     }
 
@@ -104,7 +108,7 @@ class AddPlaidBankAccount extends React.Component {
      * @returns {String}
      */
     getPlaidLinkToken() {
-        const plaidLinkToken = lodashGet(this.props, 'plaidData.plaidLinkToken');
+        const plaidLinkToken = this.props.plaidLinkToken;
         if (plaidLinkToken) {
             return plaidLinkToken;
         }
@@ -211,6 +215,9 @@ export default compose(
     withOnyx({
         plaidData: {
             key: ONYXKEYS.PLAID_DATA,
+        },
+        plaidLinkToken: {
+            key: ONYXKEYS.PLAID_LINK_TOKEN,
         },
     }),
 )(AddPlaidBankAccount);

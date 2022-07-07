@@ -36,12 +36,13 @@ export {
     fetchUserWallet,
 } from './Wallet';
 
-/**
- * We clear these out of storage once we are done with them so the user must re-enter Plaid credentials upon returning.
- * @param {String} onyxKey
- */
-function clearOnyxObject(onyxKey) {
-    Onyx.set(onyxKey, {});
+function clearPersonalBankAccount() {
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+}
+
+function clearPlaid() {
+    Onyx.set(ONYXKEYS.PLAID_DATA, {});
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
 /**
@@ -49,6 +50,7 @@ function clearOnyxObject(onyxKey) {
  *
  * @param {Object} account
  * @param {String} password
+ * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(account, password) {
     const commandName = 'AddPersonalBankAccount';
@@ -132,5 +134,6 @@ function deleteBankAccount(bankAccountID) {
 export {
     addPersonalBankAccount,
     deleteBankAccount,
-    clearOnyxObject,
+    clearPersonalBankAccount,
+    clearPlaid,
 };
