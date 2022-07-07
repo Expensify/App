@@ -459,11 +459,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
     let formattedName;
-    if (isDefaultRoom(report)) {
-        formattedName = `#${report.reportName}`;
-    }
-
-    if (isUserCreatedPolicyRoom(report)) {
+    if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
