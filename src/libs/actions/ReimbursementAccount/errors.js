@@ -16,7 +16,7 @@ function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessage
  * @param {Object} errorFields
  */
 function setPersonalBankAccountFormValidationErrorFields(errorFields) {
-    // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
+    // We set 'errorFields' to null first because we don't have a way yet to replace a specific property without merging it
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields: null});
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields});
 }
