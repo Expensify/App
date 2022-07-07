@@ -302,7 +302,6 @@ class ReportActionsView extends React.Component {
      */
     scrollToBottomAndUpdateLastRead() {
         ReportScrollManager.scrollToBottom();
-        Report.readNewestAction(this.props.reportID);
     }
 
     /**
@@ -354,7 +353,7 @@ class ReportActionsView extends React.Component {
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
-            Report.readNewestAction(this.props.reportID);
+            Report.openReport(this.props.reportID);
         }
     }
 
