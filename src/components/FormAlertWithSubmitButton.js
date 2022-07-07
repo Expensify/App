@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Button from './Button';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import FormAlertWrapper from './FormAlertWrapper';
 
 const propTypes = {
@@ -28,12 +27,10 @@ const propTypes = {
     message: PropTypes.string,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsLinkPressed: PropTypes.func,
+    onFixTheErrorsPressed: PropTypes.func,
 
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -42,7 +39,7 @@ const defaultProps = {
     isMessageHtml: false,
     containerStyles: [],
     isLoading: false,
-    onFixTheErrorsLinkPressed: () => {},
+    onFixTheErrorsPressed: () => {},
 };
 
 const FormAlertWithSubmitButton = props => (
@@ -51,7 +48,7 @@ const FormAlertWithSubmitButton = props => (
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
-        onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
+        onFixTheErrorsPressed={props.onFixTheErrorsPressed}
     >
         {isOffline => (isOffline ? (
             <Button
@@ -69,8 +66,7 @@ const FormAlertWithSubmitButton = props => (
                 isDisabled={props.isDisabled}
                 isLoading={props.isLoading}
             />
-        )
-        )}
+        ))}
     </FormAlertWrapper>
 );
 
@@ -78,4 +74,4 @@ FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
 FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
 
-export default withLocalize(FormAlertWithSubmitButton);
+export default FormAlertWithSubmitButton;
