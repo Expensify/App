@@ -159,7 +159,7 @@ function buildIdologyError(idologyErrors) {
  * Possible steps:
  *
  *     - AdditionalDetailsStep - Validates a user's provided details against a series of checks
- *     - OnfidoStep - Creates an identity check by calling Onfido's API (via Web-Secure) with data returned from the SDK
+ *     - OnfidoStep - Creates an identity check by calling Onfido's API with data returned from the SDK
  *     - TermsStep - Ensures that a user has agreed to all of the terms and conditions
  *
  * The API will always return the updated userWallet in the response as a convenience so we can avoid calling
