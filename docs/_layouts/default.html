@@ -17,11 +17,13 @@
 
     <div id="lhn">
 
-        <div class="header-button" onclick="toggleHeaderMenu()">
-            <i id="angle-up-icon" class="fa-solid fa-angle-up caret-icon caret-icon-vertical hide"></i>
-            <i id="bars-icon" class="fa-solid fa-bars caret-icon caret-icon-vertical"></i>
+        <div class="lhn-header">
+            <div class="header-button" onclick="toggleHeaderMenu()">
+                <i id="angle-up-icon" class="fa-solid fa-angle-up caret-icon caret-icon-vertical hide"></i>
+                <i id="bars-icon" class="fa-solid fa-bars caret-icon caret-icon-vertical"></i>
+            </div>
+            <img src="/assets/images/expensify-help.svg" class="logo" />
         </div>
-        <img src="/assets/images/expensify-help.svg" class="logo" />
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div class="lhn-content">
@@ -35,7 +37,7 @@
             {% else %}
                 <div onclick="history.back()" class="main-navigation-tree">
                     <div class="link">
-                        <i class="fa-solid fa-angle-left caret-icon"></i>Back
+                        <i class="fa-solid fa-angle-left caret-icon caret-icon-vertical"></i>Back
                     </div>
                 </div>
                 <span>In this article</span>
@@ -54,7 +56,7 @@
 
         <!-- Article title (only shown in article pages) -->
         {% if page.lhn_content == nil %}
-            <h1>
+            <h1 class="title">
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
         {% endif %}
