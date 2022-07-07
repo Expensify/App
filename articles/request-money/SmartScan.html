@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Expensify Help</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+    <link rel="icon" type="image/png" href="https://d2k5nsl2zxldvw.cloudfront.net/images/expensify-favicon.png">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.1.1/tocbot.css">
+    <script src="https://kit.fontawesome.com/263e5e8608.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.1.1/tocbot.min.js"></script>
+    <script defer src="/assets/js/main.js"></script>
+</head>
+
+<body>
+
+    <div class="lhn">
+        <img src="/assets/images/expensify-help.svg" class="logo" />
+
+        <!-- LHN content (Main navigation tree or Article TOC) -->
+        <div class="lhn-content">
+            
+                <div onclick="history.back()" class="main-navigation-tree">
+                    <div class="link">
+                        <i class="fa-solid fa-angle-left caret-icon"></i>Back
+                    </div>
+                </div>
+                <span>In this article</span>
+                <div class="article-toc"></div>
+            
+        </div>
+
+
+        <!-- Concierge button anchored at the bottom of the LHN-->
+        <div class="floating-concierge-button">
+            <!-- Floating button content -->
+        </div>
+    </div>
+
+    <div class="content-area">
+
+        <!-- Article title (only shown in article pages) -->
+        
+            <h1>
+                SmartScan
+            </h1>
+        
+
+        <div class="article-toc-content">
+
+            <!-- The lines above are required by Jekyll to process the .md file -->
+<h1 id="about">About</h1>
+<p>SmartScan is the time-saving tool that every Expensify user needs. Using SmartScan, you can quickly upload receipts and walk away to take care of more important things. Behind the scenes, SmartScan will process the expense data from your receipt and create an expense or automatically attach the receipt to a matching imported credit card expense.</p>
+
+<h2 id="what-is-smartscan">What is SmartScan?</h2>
+
+<p>SmartScan is simple on the outside and complex on the inside. When you SmartScan a receipt, we’ll read the <strong>Merchant</strong>, <strong>Date</strong> and <strong>Amount</strong> of the transaction, create an expense, and add it to your Expensify account automatically. If you have a credit card connected and you upload a receipt that matches a card expense, the SmartScanned receipt will automatically merge with the imported expense instead!</p>
+<ul>
+  <li>Expensify accounts come with 25 free SmartScans per month. If you’re an individual user and you need access to unlimited SmartScans, check out the <strong><a href="https://community.expensify.com/discussion/5535/deep-dive-the-monthly-subscription-is-it-right-for-me">Monthly Subscription</a></strong>!</li>
+  <li>If your organization is already using Expensify and you belong to a company policy, you’ll have access to unlimited SmartScans by default.</li>
+</ul>
+
+<h3 id="how-smartscan-works">How SmartScan Works:</h3>
+
+<p>While you’re enjoying your coffee, thinking about what to pack or waiting for your package, we’ll scan the information from the receipt without any more input necessary from you.</p>
+
+<ol>
+  <li>First it uses <strong>“optical character recognition” (OCR)</strong> on receipt images to extract the text from the image.</li>
+  <li>Then it analyzes that text to determine what portions correspond to the <strong>merchant name</strong>, <strong>amount</strong>, <strong><a href="https://community.expensify.com/discussion/5743/deep-dive-currency-in-expensify-overview/">currency</a></strong>, and <strong>date</strong> of the purchase. If it can’t detect a specific currency symbol, it will default to the currency based on your current location. You can also write one in by hand if it’s not noted!</li>
+  <li>Finally, SmartScan consults your list of existing expenses to see if the newly processed receipt image corresponds to a purchase that has already been imported via a credit card connection or CSV spreadsheet. We will then merge these transactions. <strong>Different currencies?</strong> No problem. We’ll still match ‘em.</li>
+</ol>
+
+<p>If our OCR technology can’t read the receipt, we will make sure it’s flagged for human review by one of our secure technicians. At the end of the day, nothing beats the human eye for ultimate quality.</p>
+
+<h1 id="how-to">How-to</h1>
+
+<h2 id="use-smartscan-to-create-expenses">Use Smartscan to create expenses</h2>
+
+<p>You can SmartScan receipts from a variety of sources to quickly and easily create expenses.</p>
+
+<h3 id="smartscan-physical-receipts-with-the-expensify-mobile-app">SmartScan physical receipts with the Expensify mobile app</h3>
+<ul>
+  <li>Open Expensify app and use the big green camera button to snap a photo. Use 3D touch to make it even faster!</li>
+  <li>Tap “Add details” to add a description if you want to, or select a custom category or tag.</li>
+  <li>Put your phone back in your pocket and forget about the receipt entirely.</li>
+  <li>Toss your receipt in the trash… Or burn it! We’ll take over from here!</li>
+</ul>
+
+<h3 id="smartscan-digital-or-emailed-receipts-by-emailing-them-to-receiptsexpensifycom">SmartScan digital or emailed receipts by emailing them to receipts@expensify.com</h3>
+
+<h3 id="smartscan-a-web-receipt-with-the-expensify-chrome-extension">SmartScan a web receipt with the <a href="https://community.expensify.com/discussion/4680/how-to-download-and-use-the-chrome-extension">Expensify Chrome Extension</a></h3>
+
+<p>SmartScan runs in the background, so there’s no need to keep the app open. Most SmartScans complete within one hour, but it can take a bit longer—so don’t worry! If we need more information from you, you’ll get a message from Concierge letting you know!</p>
+
+<h2 id="email-receipts-to-expensify">Email Receipts to Expensify</h2>
+
+<p>All receipts in your email inbox, such as airline, rental car, hotel confirmations, online purchases, etc… can be added to your Expensify account simply by forwarding them to receipts@expensify.com. These email receipts will be SmartScanned and an expense will be created for you automatically in Expensify.</p>
+
+<h3 id="how-to-create-an-expense-from-a-receipt-email-in-your-expensify-account">How to create an expense from a receipt email in your Expensify account:</h3>
+
+<ul>
+  <li>Directly forward the email to receipts@expensify.com from the email address associated with your Expensify account.</li>
+  <li>Expensify will immediately SmartScan the receipt email.</li>
+  <li>You can then find the expense on the Expenses page, either listed under the date of the receipt (if the SmartScan has completed) or under the date that you forwarded the receipt (if the SmartScan has not completed extracting information from the receipt yet).</li>
+</ul>
+
+<h3 id="how-to-create-an-expense-in-expensify-with-a-receipt-email-from-an-email-address-that-is-different-from-your-expensify-login">How to create an expense in Expensify with a receipt email from an email address that is different from your Expensify login:</h3>
+
+<ul>
+  <li>You’ll want to add this email address as a secondary login to your Expensify account. This way we associate any email receipts sent from this email to receipts@expensify.com and add them to the correct Expensify account.</li>
+  <li>Once the email address has been added as a secondary login, simply follow the steps above and forward these receipt emails to receipts@expensify.com.</li>
+</ul>
+
+<p>Pro tip: Expensify offer receipt integrations with popular apps such as Uber and Lyft where receipts are automatically imported into your account.</p>
+
+<h2 id="how-to-email-receipts-as-a-copilot">How-to: Email Receipts as a Copilot</h2>
+
+<p>Because emailing receipts to receipts@expensify.com sends the receipts directly to the account tied to the senders email, there is an additional step you need to take when sending receipts as a copilot.</p>
+
+<ol>
+  <li>Click forward on the email and address it to receipts@expensify.com</li>
+  <li>Add the email address of the user whose account you want the receipts to go to in the subject line</li>
+  <li>Click Send</li>
+</ol>
+
+<p>As long as you are a Copilot for this user, the receipts will be placed in their account and can be found on the Expenses page.</p>
+
+<h3 id="can-the-copilots-secondary-logins-be-used-to-forward-receipts">Can the Copilot’s Secondary Logins be used to forward receipts?</h3>
+<p>Yes! A Copilot can use any of the email addresses tied to their account to forward receipts into the account of the person they’re assisting.</p>
+
+<h1 id="faq">FAQ</h1>
+
+<h2 id="how-do-i-get-unlimited-smartscans">How do I get unlimited SmartScans?</h2>
+
+<p>If you belong to your company’s policy, you have unlimited SmartScans automatically. However, if you’re an individual user, purchase the Monthly Subscription to gain access to limitless SmartScans.</p>
+
+<h2 id="how-can-i-smartscan-multiple-receipts-as-quickly-as-possible">How can I SmartScan multiple receipts as quickly as possible?</h2>
+
+<p>You can enable Rapid Fire of receipts by tapping the camera icon in the bottom right-hand corner of the screen when taking a picture of your receipts. With Rapid Fire enabled, you can snap away without ever being taken out of the camera to code your receipts.</p>
+
+<h2 id="smartscanned-receipts-and-credit-cards-currency-are-different-will-they-still-match">SmartScanned receipts and credit card’s currency are different. Will they still match?</h2>
+
+<p>Yep! As long as the currency is clear, SmartScan is smart enough to convert to the proper currency (indicated by your policy or your account settings) and merge with the incoming credit card transaction.</p>
+
+<h2 id="will-an-ereceipt-merge-with-a-smartscan-or-emailed-receipt">Will an eReceipt merge with a SmartScan or emailed receipt?</h2>
+
+<p>Yes! SmartScanned receipts will still merge with and override their eReceipt counterparts.</p>
+
+<h2 id="will-duplicate-detection-flag-the-same-receipt-even-if-i-accidentally-smartscan-it-much-later">Will Duplicate Detection flag the same receipt even if I accidentally SmartScan it much later?</h2>
+
+<p><a href="https://community.expensify.com/discussion/5644/deep-dive-duplicate-detection-what-is-it-and-how-it-works/p1?new=1">Duplicate Detection</a> will look at all expenses in a single user’s Expensify account regardless of the date it is uploaded. As long as the date and amount match, then we will show a duplicate.</p>
+
+<h2 id="why-did-concierge-reach-out-about-my-smartscan">Why did Concierge reach out about my SmartScan?</h2>
+
+<p>When Concierge reaches out it means that your receipt was most likely missing one or more of these: merchant name, purchase date, or total amount. SmartScan requires these three data points to be present because it’s the only way to ensure it’s a traceable, legitimate receipt.</p>
+
+<p>Want to know more about Concierge? Meet our friendly AI bot <a href="https://community.expensify.com/discussion/5515/deep-dive-meet-concierge/p1?new=1">here</a>!</p>
+
+<h2 id="can-i-disable-smartscan">Can I disable SmartScan?</h2>
+
+<p>For users on Track, Submit and Collect policies, you can disable SmartScan in your account settings.</p>
+
+<ol>
+  <li>Disabling SmartScan</li>
+  <li>Log into your account using your preferred web browser,</li>
+  <li>Head to your Settings &gt; Your Account &gt; Preferences &gt; SmartScanning page,</li>
+  <li>Click the green toggle to disable the feature.</li>
+</ol>
+
+<p>Please note: SmartScan is enabled for all Control plan policies to facilitate the Concierge Receipt Audit feature. You cannot disable SmartScan when defaulted to a Control policy.</p>
+
+        </div>
+
+        <!-- Concierge button at the bottom of the page -->
+        <div class="footer-concierge-button">
+            <!-- Footer button content -->
+        </div>
+    </div>
+</body>
+
+</html>
