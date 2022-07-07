@@ -59,24 +59,6 @@ const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
 
-/**
- * Map of the most recent sequenceNumber for a reports_* key in Onyx by reportID.
- *
- * There are several sources that can set the most recent reportAction's sequenceNumber for a report:
- *
- *     - Fetching the report object
- *     - Fetching the report history
- *     - Optimistically creating a report action
- *     - Handling a report action via Pusher
- *
- * Those values are stored in reportMaxSequenceNumbers and treated as the main source of truth for each report's max
- * sequenceNumber.
- */
-const reportMaxSequenceNumbers = {};
-
-// Keeps track of the last read for each report
-const lastReadSequenceNumbers = {};
-
 // Map of optimistic report action IDs. These should be cleared when replaced by a recent fetch of report history
 // since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
 const optimisticReportActionIDs = {};
@@ -89,32 +71,25 @@ Onyx.connect({
 });
 
 /**
- * Checks the report to see if there are any unread action items
- *
- * @param {Object} report
+ * @param {Number} reportID
+ * @param {Number} lastReadSequenceNumber
+ * @param {Number} maxSequenceNumber
  * @returns {Boolean}
  */
-function getUnreadActionCount(report) {
-    const lastReadSequenceNumber = lodashGet(report, [
-        'reportNameValuePairs',
-        `lastRead_${currentUserAccountID}`,
-        'sequenceNumber',
-    ]);
-
-    // Save the lastReadActionID locally so we can access this later
-    lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
-
-    if (report.reportActionCount === 0) {
+function getUnreadActionCount(
+    reportID,
+    lastReadSequenceNumber,
+    maxSequenceNumber,
+) {
+    if (maxSequenceNumber === 0) {
         return 0;
     }
 
     if (!lastReadSequenceNumber) {
-        return report.reportActionCount;
+        return maxSequenceNumber;
     }
 
-    // There are unread items if the last one the user has read is less
-    // than the highest sequence number we have
-    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(report.reportID, lastReadSequenceNumber);
+    const unreadActionCount = maxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumber);
     return Math.max(0, unreadActionCount);
 }
 
@@ -171,6 +146,11 @@ function getSimplifiedReportObject(report) {
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
+    const lastReadSequenceNumber = lodashGet(report, [
+        'reportNameValuePairs',
+        `lastRead_${currentUserAccountID}`,
+        'sequenceNumber',
+    ]);
 
     return {
         reportID: report.reportID,
@@ -178,7 +158,7 @@ function getSimplifiedReportObject(report) {
         chatType,
         ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
-        unreadActionCount: getUnreadActionCount(report),
+        unreadActionCount: getUnreadActionCount(report.reportID, lastReadSequenceNumber, report.reportActionCount),
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
@@ -187,6 +167,7 @@ function getSimplifiedReportObject(report) {
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
+        lastReadSequenceNumber,
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
@@ -402,27 +383,6 @@ function setLocalIOUReportData(iouReportObject) {
 }
 
 /**
- * Update the lastRead actionID and timestamp in local memory and Onyx
- *
- * @param {Number} reportID
- * @param {Number} lastReadSequenceNumber
- */
-function setLocalLastRead(reportID, lastReadSequenceNumber) {
-    lastReadSequenceNumbers[reportID] = lastReadSequenceNumber;
-    const reportMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-
-    // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
-    // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
-    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumber), 0);
-
-    // Update the report optimistically.
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount,
-        lastVisitedTimestamp: Date.now(),
-    });
-}
-
-/**
  * Remove all optimistic actions from report actions and reset the optimisticReportActionsIDs array. We do this
  * to clear any stuck optimistic actions that have not be updated for whatever reason.
  *
@@ -511,28 +471,6 @@ function setNewMarkerPosition(reportID, sequenceNumber) {
 }
 
 /**
- * Updates a report action's message to be a new value.
- *
- * @param {Number} reportID
- * @param {Number} sequenceNumber
- * @param {Object} message
- */
-function updateReportActionMessage(reportID, sequenceNumber, message) {
-    const actionToMerge = {};
-    actionToMerge[sequenceNumber] = {message: [message]};
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-        // If the message is deleted, update the last read message and the unread counter
-        if (!message.html) {
-            setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
-        }
-
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: ReportActions.getLastVisibleMessageText(reportID),
-        });
-    });
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -559,7 +497,25 @@ function subscribeToUserEvents() {
     // Live-update a report's actions when an 'edit comment' event is received.
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
         currentUserAccountID,
-        pushJSON => updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message));
+        ({reportID, sequenceNumber, message}) => {
+            const actionsToMerge = {};
+            actionsToMerge[sequenceNumber] = {message: [message]};
+
+            // If someone besides the current user deleted an action and the sequenceNumber is greater than our last read we will decrement the unread count
+            const lastReadSequenceNumber = lodashGet(allReports, [reportID, 'lastReadSequenceNumber']);
+            const isFromCurrentUser = ReportActions.isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge);
+            if (!message.html && !isFromCurrentUser && sequenceNumber > lastReadSequenceNumber) {
+                const currentUnreadActionCount = lodashGet(allReports, [reportID, 'unreadActionCount']);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                    unreadActionCount: Math.max(currentUnreadActionCount - 1, 0),
+                });
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                lastMessageText: ReportActions.getLastVisibleMessageText(reportID, actionsToMerge),
+            });
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionsToMerge);
+        });
 }
 
 /**
@@ -809,7 +765,7 @@ function fetchAllReports(
                 // data processing by Onyx.
                 const reportIDsWithMissingActions = _.chain(returnedReports)
                     .map(report => report.reportID)
-                    .filter(reportID => ReportActions.isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .filter(reportID => ReportActions.isReportMissingActions(reportID, lodashGet(allReports, [reportID, 'maxSequenceNumber'])))
                     .value();
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
@@ -858,7 +814,7 @@ function addComment(reportID, text, file) {
     const attachmentInfo = isAttachment ? file : {};
 
     // The new sequence number will be one higher than the highest
-    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
+    const highestSequenceNumber = lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
     const newSequenceNumber = highestSequenceNumber + 1;
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
@@ -987,15 +943,6 @@ function addAttachment(reportID, file) {
 }
 
 /**
- * Get the last read sequence number for a report
- * @param {String|Number} reportID
- * @return {Number}
- */
-function getLastReadSequenceNumber(reportID) {
-    return lastReadSequenceNumbers[reportID];
-}
-
-/**
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {Number} reportID
@@ -1017,8 +964,17 @@ function deleteReportComment(reportID, reportAction) {
         ],
     };
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-        setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+    // If the comment we are deleting is more recent than our last read comment we will update the unread count
+    if (sequenceNumber > lodashGet(allReports, [reportID, 'lastReadSequenceNumber'])) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            unreadActionCount: Math.max(lodashGet(allReports, [reportID, 'unreadActionCount'], 0) - 1, 0),
+        });
+    }
+
+    // Optimistically update the report and reportActions
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
     });
 
     // Try to delete the comment by calling the API
@@ -1038,9 +994,18 @@ function deleteReportComment(reportID, reportAction) {
                 ...reportAction,
                 message: oldMessage,
             };
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-                setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+
+            if (sequenceNumber > lodashGet(allReports, [reportID, 'lastReadSequenceNumber'])) {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                    unreadActionCount: lodashGet(allReports, [reportID, 'unreadActionCount'], 0) + 1,
+                });
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
             });
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
         });
 }
 
@@ -1063,18 +1028,19 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
     // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
     // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
     // the side of caution and do nothing in this case.
-    if (_.isUndefined(sequenceNumber)
-        && (!reportMaxSequenceNumbers[reportID] && reportMaxSequenceNumbers[reportID] !== 0)) {
+    const reportMaxSequenceNumber = lodashGet(allReports, [reportID, 'maxSequenceNumber']);
+    if (_.isUndefined(sequenceNumber) && (!reportMaxSequenceNumber && reportMaxSequenceNumber !== 0)) {
         return;
     }
 
-    // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot (the last read
-    // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
-    // Note: sequenceNumber can be 1 for the first message, so we can't use
-    // (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID] because the first expression results in 0 which is falsy.
-    const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumbers[reportID];
-
-    setLocalLastRead(reportID, lastReadSequenceNumber);
+    // When we are manually marking a report as unread we need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot.
+    // If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action).
+    const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumber;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        unreadActionCount: getUnreadActionCount(reportID, lastReadSequenceNumber, reportMaxSequenceNumber),
+        lastVisitedTimestamp: DateUtils.getCurrentTimestamp(),
+        lastReadSequenceNumber,
+    });
 
     // Mark the report as not having any unread items
     DeprecatedAPI.Report_UpdateLastRead({
@@ -1165,9 +1131,6 @@ function handleReportChanged(report) {
     if (report.reportID && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
-
-    // Store the max sequence number for each report
-    reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 
     // Store optimistic actions IDs for each report
     optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
@@ -1401,21 +1364,22 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
-    const newMaxSequenceNumber = action.sequenceNumber;
+    const incomingSequenceNumber = action.sequenceNumber;
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+    const lastReadSequenceNumber = lodashGet(allReports, [reportID, 'lastReadSequenceNumber'], 0);
+    const updatedReportObject = {};
 
-    // When handling an action from the current users we can assume that their
-    // last read actionID has been updated in the server but not necessarily reflected
-    // locally so we must first update it and then calculate the unread (which should be 0)
+    // When handling an action from the current user we can assume that their last read actionID has been updated in the server, but not necessarily reflected
+    // locally (e.g. could be from a different session) so we set their unreadActionCount to zero. If the action is from another user we will only update the
+    // unreadActionCount if the incoming sequenceNumber is higher than the last read for the user.
     if (isFromCurrentUser) {
-        setLocalLastRead(reportID, newMaxSequenceNumber);
+        updatedReportObject.unreadActionCount = 0;
+        updatedReportObject.lastVisitedTimestamp = DateUtils.getCurrentTimestamp();
+        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
+    } else if (incomingSequenceNumber > lastReadSequenceNumber) {
+        const currentUnreadActionCount = lodashGet(allReports, [reportID, 'unreadActionCount'], 0);
+        updatedReportObject.unreadActionCount = currentUnreadActionCount + 1;
     }
-
-    const updatedReportObject = {
-        // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
-        // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
-    };
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
@@ -1463,8 +1427,7 @@ function viewNewReportAction(reportID, action) {
     // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the marker above the incoming message.
     const report = lodashGet(allReports, 'reportID', {});
     if (lodashGet(report, 'newMarkerSequenceNumber', 0) === 0 && report.unreadActionCount > 0) {
-        const oldestUnreadSeq = (report.maxSequenceNumber - report.unreadActionCount) + 1;
-        setNewMarkerPosition(reportID, oldestUnreadSeq);
+        setNewMarkerPosition(reportID, report.lastReadSequenceNumber + 1);
     }
 
     Log.info('[LOCAL_NOTIFICATION] Creating notification');
@@ -1533,6 +1496,5 @@ export {
     fetchActionsWithLoadingState,
     createPolicyRoom,
     renameReport,
-    getLastReadSequenceNumber,
     setIsComposerFullSize,
 };
