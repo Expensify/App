@@ -70,7 +70,7 @@ runs:
         git checkout -b "$BRANCH_NAME"
         git merge -Xtheirs ${{ env.SOURCE_BRANCH }} || {
           git diff --name-only --diff-filter=U | xargs git rm;
-          git merge --continue;
+          git -c core.editor=true merge --continue;
         }
         git push --set-upstream origin "$BRANCH_NAME"
 
