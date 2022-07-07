@@ -157,22 +157,27 @@ function resendValidateCode(login) {
 /**
  * Sets whether or not the user is subscribed to Expensify news
  *
- * @param {Boolean} subscribed
+ * @param {Boolean} isSubscribed
  */
-function setExpensifyNewsStatus(subscribed) {
-    Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
-
-    DeprecatedAPI.UpdateAccount({subscribed})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
-        })
-        .catch(() => {
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
-        });
+function setExpensifyNewsStatus(isSubscribed) {
+    API.write('UpdateNewsletterSubscriptionStatus', {
+        isSubscribed,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER,
+                value: {isSubscribedToNewsletter: isSubscribed},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER,
+                value: {isSubscribedToNewsletter: !isSubscribed},
+            },
+        ],
+    });
 }
 
 /**
