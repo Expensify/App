@@ -6,7 +6,6 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -59,12 +58,11 @@ class IOUAmountPage extends React.Component {
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
-        this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
 
         this.state = {
-            amount: props.selectedAmount,
+            amount: props.selectedAmount.replace('.', this.props.fromLocaleDigit('.')),
         };
     }
 
@@ -119,18 +117,9 @@ class IOUAmountPage extends React.Component {
      * @returns {Boolean}
      */
     validateAmount(amount) {
-        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
+        const decimalSeparator = this.props.fromLocaleDigit('.');
+        const decimalNumberRegex = RegExp(String.raw`^\d+([${decimalSeparator}]\d{0,2})?$`, 'i');
         return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
-    }
-
-    /**
-     * Strip comma from the amount
-     *
-     * @param {String} amount
-     * @returns {String}
-     */
-    stripCommaFromAmount(amount) {
-        return amount.replace(/,/g, '');
     }
 
     /**
@@ -152,7 +141,7 @@ class IOUAmountPage extends React.Component {
 
         this.setState((prevState) => {
             const amount = `${prevState.amount}${key}`;
-            return this.validateAmount(amount) ? {amount: this.stripCommaFromAmount(amount)} : prevState;
+            return this.validateAmount(amount) ? {amount} : prevState;
         });
     }
 
@@ -163,33 +152,7 @@ class IOUAmountPage extends React.Component {
      * @param {String} text - Changed text from user input
      */
     updateAmount(text) {
-        this.setState((prevState) => {
-            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
-            return this.validateAmount(amount)
-                ? {amount: this.stripCommaFromAmount(amount)}
-                : prevState;
-        });
-    }
-
-    /**
-     * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
-     * the original character will be preserved.
-     *
-     * @param {String} text
-     * @param {Function} convertFn - `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
-     * @returns {String}
-     */
-    replaceAllDigits(text, convertFn) {
-        return _.chain([...text])
-            .map((char) => {
-                try {
-                    return convertFn(char);
-                } catch {
-                    return char;
-                }
-            })
-            .join('')
-            .value();
+        this.setState(prevState => (this.validateAmount(text) ? {amount: text} : prevState));
     }
 
     navigateToCurrencySelectionPage() {
@@ -203,8 +166,6 @@ class IOUAmountPage extends React.Component {
     }
 
     render() {
-        const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
-
         return (
             <>
                 <View style={[
@@ -216,7 +177,7 @@ class IOUAmountPage extends React.Component {
                 ]}
                 >
                     <TextInputWithCurrencySymbol
-                        formattedAmount={formattedAmount}
+                        formattedAmount={this.state.amount}
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
@@ -236,7 +197,7 @@ class IOUAmountPage extends React.Component {
                     <Button
                         success
                         style={[styles.w100, styles.mt5]}
-                        onPress={() => this.props.onStepComplete(this.state.amount)}
+                        onPress={() => this.props.onStepComplete(this.state.amount.replace(this.props.fromLocaleDigit('.'), '.'))}
                         pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                         text={this.props.translate('common.next')}
