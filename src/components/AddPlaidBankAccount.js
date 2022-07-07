@@ -41,7 +41,7 @@ const propTypes = {
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
-    /** If we're updated an existing bank account, what's its bank account ID? */
+    /** If we're updating an existing bank account, what's its bank account ID? */
     bankAccountID: PropTypes.number,
 
     /** Are we adding a withdrawal account? */
