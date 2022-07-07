@@ -643,7 +643,7 @@ test('Sequential queue will succeed if triggered while reauthentication via main
     })
         .then(() => {
             // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
-            Network.post('Push_Authenticate', {content: 'value1'});
+            Network.post('AuthenticatePusher', {content: 'value1'});
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
             expect(NetworkStore.isOffline()).toBe(false);
             expect(NetworkStore.isAuthenticating()).toBe(false);
@@ -678,9 +678,9 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             // We are not offline anymore
             expect(NetworkStore.isOffline()).toBe(false);
 
-            // First call to xhr is the Push_Authenticate request that could not call Authenticate because we went offline
+            // First call to xhr is the AuthenticatePusher request that could not call Authenticate because we went offline
             const [firstCommand] = xhr.mock.calls[0];
-            expect(firstCommand).toBe('Push_Authenticate');
+            expect(firstCommand).toBe('AuthenticatePusher');
 
             // Second call to xhr is the MockCommand that also failed with a 407
             const [secondCommand] = xhr.mock.calls[1];

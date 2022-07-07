@@ -95,7 +95,7 @@ class AuthScreens extends React.Component {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
             Report.subscribeToUserEvents();
             User.subscribeToUserEvents();

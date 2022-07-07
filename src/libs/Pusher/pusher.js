@@ -55,7 +55,7 @@ function init(args, params) {
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
         // (https://pusher.com/docs/channels/using_channels/connection#channels-options-parameter).
-        // Any param mentioned here will show up in $_REQUEST when we call "Push_Authenticate". Params passed here need
+        // Any param mentioned here will show up in $_REQUEST when we call "AuthenticatePusher". Params passed here need
         // to pass our inputRules to show up in the request.
         if (params) {
             socket.config.auth = {};
