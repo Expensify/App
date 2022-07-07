@@ -79,7 +79,7 @@ const PreferencesPage = (props) => {
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
                                 isOn={lodashGet(props.user, 'expensifyNewsStatus', true)}
-                                onToggle={User.setExpensifyNewsStatus}
+                                onToggle={User.updateNewsletterSubscriptionStatus}
                             />
                         </View>
                     </View>
