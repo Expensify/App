@@ -110,6 +110,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        COMMENT_LINKING: 'commentLinking',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
