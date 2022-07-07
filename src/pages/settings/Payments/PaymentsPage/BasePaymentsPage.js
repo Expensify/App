@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
+    View, TouchableOpacity, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PaymentMethodList from '../PaymentMethodList';
@@ -63,24 +63,17 @@ class BasePaymentsPage extends React.Component {
 
     componentDidMount() {
         this.fetchData();
-        if (this.props.shouldListenForResize) {
-            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
-        }
     }
 
     componentDidUpdate(prevProps) {
+        if (this.shouldListenForResize) {
+            this.setMenuPosition();
+        }
+
         if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
-
         this.fetchData();
-    }
-
-    componentWillUnmount() {
-        if (!this.props.shouldListenForResize || !this.dimensionsSubscription) {
-            return;
-        }
-        this.dimensionsSubscription.remove();
     }
 
     setMenuPosition() {
@@ -111,23 +104,10 @@ class BasePaymentsPage extends React.Component {
     setPositionAddPaymentMenu(position) {
         this.setState({
             anchorPositionTop: position.top + position.height,
+            anchorPositionBottom: this.props.windowHeight - position.top,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionRight: (window.innerWidth - position.right) + 13,
-        });
-    }
-
-    /**
-     * Set position of the payment method menu
-     *
-     * @param {Object} position
-     */
-    setPositionAddPaymentMethod(position) {
-        this.setState({
-            anchorPositionBottom: window.innerHeight - position.top,
-
-            // We want the position to be 5px to the right of the left border
-            anchorPositionRight: (window.innerWidth - position.right) + 5,
+            anchorPositionRight: (this.props.windowWidth - position.right) + 13,
         });
     }
 
@@ -184,8 +164,7 @@ class BasePaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: true,
         });
 
-        // Add payment method menu
-        this.setPositionAddPaymentMethod(position);
+        this.setPositionAddPaymentMenu(position);
     }
 
     /**
@@ -325,7 +304,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hideAddPaymentMenu}
                         anchorPosition={{
                             bottom: this.state.anchorPositionBottom,
-                            right: this.state.anchorPositionRight,
+                            right: this.state.anchorPositionRight - 10,
                         }}
                         onItemSelected={method => this.addPaymentMethodTypePressed(method)}
                     />
