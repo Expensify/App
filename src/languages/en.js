@@ -405,7 +405,7 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
-        transferSuccess: 'Transfer Successful!',
+        transferSuccess: 'Transfer successful!',
         transferDetail: 'Your money should arrive in the next 1-3 business days.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
