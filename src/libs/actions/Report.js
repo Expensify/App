@@ -524,7 +524,7 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
         currentUserAccountID,
         ({reportID, sequenceNumber, message}) => {
-            // We only want the active client to process these events once
+            // We only want the active client to process these events once otherwise multiple tabs would decrement the 'unreadActionCount'
             if (!ActiveClientManager.isClientTheLeader()) {
                 return;
             }
