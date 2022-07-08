@@ -5,16 +5,19 @@ function openArticle(path) { // eslint-disable-line no-unused-vars
 
 function toggleHeaderMenu() { // eslint-disable-line no-unused-vars
     const lhn = document.getElementById('lhn');
+    const lhnContent = document.getElementById('lhn-content');
     const anguleUpIcon = document.getElementById('angle-up-icon');
     const barsIcon = document.getElementById('bars-icon');
-    if (lhn.className === 'expanded') {
+    if (lhnContent.className === 'expanded') {
         // Collapse the LHN in mobile
         lhn.className = '';
+        lhnContent.className = '';
         barsIcon.classList.remove('hide');
         anguleUpIcon.classList.add('hide');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
+        lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
         anguleUpIcon.classList.remove('hide');
     }

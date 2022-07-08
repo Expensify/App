@@ -13,6 +13,11 @@
 
 html {
     line-height: 1;
+    overflow: hidden;
+}
+
+body {
+    overflow: auto;
 }
 
 table {
@@ -127,8 +132,6 @@ textarea {
 }
 
 #lhn {
-    height: 100%;
-    width: 420px;
     position: fixed;
     background-color: $color-gray1;
     padding: 44px;
@@ -136,11 +139,16 @@ textarea {
     border-right-color: $color-gray2;
     border-right-width: 1px;
     border-style: solid;
+    width: 420px;
+    height: 100%;
     overflow-y: scroll;
     -ms-overflow-style: none;
     /* IE and Edge */
     scrollbar-width: none;
     /* Firefox */
+    &::-webkit-scrollbar {
+        display: none;
+    }
 
     ul,
     li {
@@ -149,30 +157,48 @@ textarea {
 
     .lhn-header {
         padding-top: 4px;
-    }
 
-    .header-button {
-        display: none;
+        .header-button {
+            display: none;
 
-        @media screen and (max-width: 800px) {
-            display: block;
+            @media screen and (max-width: 800px) {
+                display: block;
+            }
+        }
+
+        .logo {
+            width: 210px;
+
+            @media screen and (max-width: 800px) {
+                width: 160px;
+                align-content: center;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
         }
     }
 
-    .logo {
-        width: 210px;
-
-        @media screen and (max-width: 800px) {
-            width: 160px;
-            align-content: center;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-    }
-
-    .lhn-content {
+    #lhn-content {
+        height: 100%;
         padding-top: 36px;
+        height: 100%;
+        overflow-y: scroll;
+        -ms-overflow-style: none;
+        /* IE and Edge */
+        scrollbar-width: none;
+        /* Firefox */
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        @media screen and (max-width: 800px) {
+            display: none;
+
+            &.expanded {
+                display: block;
+            }
+        }
     }
 
     .caret-icon {
@@ -197,10 +223,7 @@ textarea {
 
     .hide {
         display: none;
-    }
-
-    &::-webkit-scrollbar {
-        display: none;
+        position: fixed;
     }
 
     @media screen and (max-width: 1024px) {
@@ -210,7 +233,8 @@ textarea {
     @media screen and (max-width: 800px) {
         width: 100%;
         padding: 24px;
-        height: 76px;
+        height: auto;
+        overflow-y: unset;
 
         &.expanded {
             height: 100%;
@@ -219,6 +243,12 @@ textarea {
 }
 
 #content-area {
+
+    /* Same as the width of the lhn */
+    margin-left: 420px;
+    padding: 52px 68px;
+    box-sizing: border-box;
+
     ul,
     ol {
         margin-left: 24px;
@@ -230,11 +260,6 @@ textarea {
             font-size: 2.25em;
         }
     }
-
-    /* Same as the width of the lhn */
-    margin-left: 420px;
-    padding: 52px 68px;
-    box-sizing: border-box;
 
     @media screen and (max-width: 1024px) {
         margin-left: 320px;
@@ -250,6 +275,9 @@ textarea {
 }
 
 .main-navigation-tree {
+    margin-left: 32px;
+    margin-bottom: 40px;
+
     .link {
         color: $color-blue;
         cursor: pointer;
@@ -259,12 +287,10 @@ textarea {
             text-decoration: underline;
         }
     }
-
-    margin-left: 32px;
-    margin-bottom: 40px;
 }
 
 .lhn-items {
+
     ol,
     ul {
         padding-left: 30px;
