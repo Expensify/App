@@ -139,8 +139,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.sequenceNumber);
-            Report.setNewMarkerPosition(reportID, reportAction.sequenceNumber);
+            Report.updateLastReadActionID(reportID, reportAction.sequenceNumber, true);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
