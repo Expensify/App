@@ -76,7 +76,7 @@ Note: This doesn't apply to the multiline fields. To keep the browser behavior c
 
 ### Modifying User Input on Change
 
-User input that may include optional characters (e.g. (, ), - in a phone number) should never be restricted on input, nor be modified or formatted on blur. This type of input jacking is disconcerting and makes things feel broken. 
+User input that may include optional characters (e.g. (, ), - in a phone number) should never be restricted on input, nor be modified or formatted on blur. This type of input jacking is disconcerting and makes things feel broken.
 
 Instead we will format and clean the user input internally before using the value (e.g. making an API request where the user will never see this transformation happen). Additionally, users should always be able to copy/paste whatever characters they want into fields.
 

@@ -108,11 +108,11 @@ jobs:
 
       - name: Update staging branch from main
         if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
-        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "staging" }'
+          TARGET_BRANCH: staging
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Determine if this pull request will be cherry-picked
         run: echo "DO_CHERRY_PICK=${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}" >> "$GITHUB_ENV"
@@ -226,7 +226,7 @@ jobs:
           body: |
             @${{ steps.getMergedPullRequest.outputs.author }}, Great job getting your first Expensify/App pull request over the finish line! :tada:
 
-            I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md), so here are some points to take note of :memo::
+            I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/docs/CONTRIBUTING.md), so here are some points to take note of :memo::
 
             1. Now that your first PR has been merged, you can be hired for another issue. Once you've completed a few issues, you may be eligible to work on more than one job at a time.
             2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn't work as expected or causes a regression, you'll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.
