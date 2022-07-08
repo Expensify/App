@@ -1,8 +1,8 @@
 const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
-const ActionUtils = require('../../../libs/ActionUtils');
-const GitUtils = require('../../../libs/GitUtils');
+const ActionUtils = require('../../libs/ActionUtils');
+const GitUtils = require('../../libs/GitUtils');
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const inputTag = core.getInput('TAG', {required: true});
