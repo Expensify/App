@@ -379,22 +379,22 @@ describe('GithubUtils', () => {
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}`
-                + `${lineBreakDouble}${closedCheckbox}${basePRList[2]}`
-                + `${lineBreakDouble}${closedCheckbox}${basePRList[0]}`
-                + `${lineBreakDouble}${closedCheckbox}${basePRList[1]}`
-                + `${lineBreakDouble}${closedCheckbox}${basePRList[5]}`
-                + `${lineBreakDouble}${closedCheckbox}${basePRList[6]}`;
+                + `${lineBreak}${closedCheckbox}${basePRList[2]}`
+                + `${lineBreak}${closedCheckbox}${basePRList[0]}`
+                + `${lineBreak}${closedCheckbox}${basePRList[1]}`
+                + `${lineBreak}${closedCheckbox}${basePRList[5]}`
+                + `${lineBreak}${closedCheckbox}${basePRList[6]}`;
 
         test('Test no verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[2]}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[0]}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[1]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[5]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[6]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[0]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
@@ -408,11 +408,11 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[2]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[0]}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[1]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[5]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[6]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[0]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
@@ -471,12 +471,12 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[2]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[0]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[1]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[5]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[2]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[0]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[1]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
+                        + `${lineBreak}${deployBlockerHeader}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[1]}`
                         + `${lineBreak}${deployerVerificationsHeader}`
@@ -492,12 +492,12 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[2]}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[0]}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[1]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[5]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreakDouble}${internalQAHeader}`
+                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[0]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
+                        + `${lineBreak}${internalQAHeader}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
                         + `${lineBreak}${deployerVerificationsHeader}`
@@ -513,12 +513,12 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[2]}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[0]}`
-                        + `${lineBreakDouble}${openCheckbox}${basePRList[1]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[5]}`
-                        + `${lineBreakDouble}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreakDouble}${internalQAHeader}`
+                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[0]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
+                        + `${lineBreak}${internalQAHeader}`
                         + `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
                         + `${lineBreak}${deployerVerificationsHeader}`
