@@ -149,10 +149,10 @@ class IOUAmountPage extends React.Component {
      * Update amount on amount change
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
      *
-     * @param {String} text - Changed text from user input
+     * @param {String} amount - Changed amount from user input
      */
-    updateAmount(text) {
-        this.setState(prevState => (this.validateAmount(text) ? {amount: text} : prevState));
+    updateAmount(amount) {
+        this.setState(prevState => (this.validateAmount(amount) ? {amount} : prevState));
     }
 
     navigateToCurrencySelectionPage() {
