@@ -107,6 +107,8 @@ describe('actions/Report', () => {
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
+                const actionWithoutLoading = {...resultAction};
+                delete actionWithoutLoading.isLoading;
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
                         onyxMethod: 'merge',
@@ -125,7 +127,7 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             [clientID]: null,
-                            [ACTION_ID]: _.without(resultAction, 'loading'),
+                            [ACTION_ID]: actionWithoutLoading,
                         },
                     },
                 ]);
@@ -215,36 +217,52 @@ describe('actions/Report', () => {
     });
 
     it('should be marked as unread when a new comment is added', () => {
+        const REPORT_ID = 1;
+
         let report;
         Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${1}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
         });
 
+        let reportActions;
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+            callback: val => reportActions = val,
+        });
+
+        const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
         const USER_2_LOGIN = 'different-user@test.com';
-        const REPORT_ID = 1;
         const ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: 2,
             actorEmail: USER_2_LOGIN,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
+            message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
             sequenceNumber: 1,
             shouldShow: true,
-            timestamp: moment.unix(),
+            timestamp: moment().unix(),
         };
 
-        return TestHelper.signInWithTestUser(1, 'test@test.com')
+        return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
+            .then(() => TestHelper.signInWithTestUser(1, 'test@test.com'))
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
+            .then(() => TestHelper.fetchPersonalDetailsForTestUser(1, 'test@test.com', {
+                'test@test.com': {
+                    accountID: 1,
+                    email: 'test@test.com',
+                    firstName: 'Test',
+                    lastName: 'User',
+                },
+            }))
             .then(() => {
                 // When a Pusher event is handled for a new report comment
-                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -256,6 +274,8 @@ describe('actions/Report', () => {
                             lastMessageTimestamp: 0,
                             lastMessageText: 'Comment 1',
                             lastActorEmail: USER_2_LOGIN,
+                            newMarkerSequenceNumber: 0,
+                            lastReadSequenceNumber: 0,
                         },
                     },
                     {
@@ -287,12 +307,132 @@ describe('actions/Report', () => {
             .then(() => {
                 // The unreadActionCount will increase and the new marker will be set correctly
                 expect(report.unreadActionCount).toBe(1);
+                expect(report.newMarkerSequenceNumber).toBe(1);
 
-                console.log(report);
+                // When a new comment is added by the current user
+                Report.addComment(REPORT_ID, 'Current User Comment 1');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // The unreadActionCount should be 0 and the lastReadSequenceNumber incremented
+                expect(report.unreadActionCount).toBe(0);
+                expect(report.lastReadSequenceNumber).toBe(2);
+                expect(report.lastMessageText).toBe('Current User Comment 1');
 
-                // If the user deletes a comment that is before the last read no change in unreadActionCount will occur
-                // If the user deletes a comment that is after the last read the unreadActionCount will decrease
-                // If the last message on the report is deleted. The lastMessageText will reflect the new last comment.
+                // When another comment is added by the current user
+                Report.addComment(REPORT_ID, 'Current User Comment 2');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // The unreadActionCount should be 0 and the lastReadSequenceNumber incremented
+                expect(report.unreadActionCount).toBe(0);
+                expect(report.lastReadSequenceNumber).toBe(3);
+                expect(report.lastMessageText).toBe('Current User Comment 2');
+
+                // When another comment is added by the current user
+                Report.addComment(REPORT_ID, 'Current User Comment 3');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // The unreadActionCount should be 0 and the lastReadSequenceNumber incremented
+                expect(report.unreadActionCount).toBe(0);
+                expect(report.lastReadSequenceNumber).toBe(4);
+                expect(report.lastMessageText).toBe('Current User Comment 3');
+
+                // When we emit the events for these pending created actions to update them to not pending
+                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
+                        value: {
+                            reportID: REPORT_ID,
+                            maxSequenceNumber: 4,
+                            notificationPreference: 'always',
+                            lastMessageTimestamp: 0,
+                            lastMessageText: 'Current User Comment 3',
+                            lastActorEmail: 'test@test.com',
+                            lastReadSequenceNumber: 4,
+                        },
+                    },
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            [_.toArray(reportActions)[1].clientID]: null,
+                            [_.toArray(reportActions)[2].clientID]: null,
+                            [_.toArray(reportActions)[3].clientID]: null,
+                            2: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actorAccountID: 1,
+                                actorEmail: 'test@test.com',
+                                automatic: false,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
+                                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                                sequenceNumber: 2,
+                                shouldShow: true,
+                                timestamp: moment().unix(),
+                                reportActionID: 'derp',
+                            },
+                            3: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actorAccountID: 1,
+                                actorEmail: 'test@test.com',
+                                automatic: false,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
+                                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                                sequenceNumber: 3,
+                                shouldShow: true,
+                                timestamp: moment().unix(),
+                                reportActionID: 'derp',
+                            },
+                            4: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actorAccountID: 1,
+                                actorEmail: 'test@test.com',
+                                automatic: false,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
+                                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                                sequenceNumber: 4,
+                                shouldShow: true,
+                                timestamp: moment().unix(),
+                                reportActionID: 'derp',
+                            },
+                        },
+                    },
+                ]);
+
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // If the user deletes a comment that is before the last read
+                Report.deleteReportComment(REPORT_ID, reportActions[2]);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then no change will occur
+                expect(report.lastReadSequenceNumber).toBe(4);
+                expect(report.unreadActionCount).toBe(0);
+
+                // When the user manually marks a message as "unread"
+                Report.updateLastReadActionID(REPORT_ID, 3, true);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then we should expect the unreadActionCount to be updated
+                expect(report.unreadActionCount).toBe(2);
+                expect(report.lastReadSequenceNumber).toBe(2);
+                expect(report.newMarkerSequenceNumber).toBe(3);
+
+                // If the user deletes the last comment after the last read the unreadActionCount will decrease and the lastMessageText will reflect the new last comment
+                Report.deleteReportComment(REPORT_ID, reportActions[4]);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                expect(report.unreadActionCount).toBe(1);
+                expect(report.lastMessageText).toBe('Current User Comment 2');
             });
     });
 });
