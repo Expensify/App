@@ -220,6 +220,13 @@ class OptionsSelector extends Component {
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
         }, () => {
+            // If we just selected a new options on a multiple-selection page, scroll to the top
+            if (this.props.selectedOptions.length > prevProps.selectedOptions.length) {
+                this.scrollToIndex(0);
+                return;
+            }
+
+            // Otherwise, scroll to the focused index (as long as it's in range)
             if (this.state.allOptions.length <= this.state.focusedIndex) {
                 return;
             }
@@ -315,8 +322,7 @@ class OptionsSelector extends Component {
             return;
         }
 
-        // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
-        this.scrollToIndex(0);
+        // Focus the first unselected item from the list (i.e: the best result according to the current search term)
         this.setState({
             focusedIndex: this.props.selectedOptions.length,
         });
