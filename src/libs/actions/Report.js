@@ -532,6 +532,7 @@ function subscribeToUserEvents() {
             actionsToMerge[sequenceNumber] = {message: [message]};
 
             // If someone besides the current user deleted an action and the sequenceNumber is greater than our last read we will decrement the unread count
+            // we skip this for the current user because we should already have decremented the count optimistically when they deleted the comment.
             const isFromCurrentUser = ReportActions.isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge);
             if (!message.html && !isFromCurrentUser && sequenceNumber > getLastReadSequenceNumber(reportID)) {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
