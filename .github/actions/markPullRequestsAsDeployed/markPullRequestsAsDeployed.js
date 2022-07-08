@@ -2,8 +2,8 @@ const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
-const ActionUtils = require('../../../libs/ActionUtils');
-const GithubUtils = require('../../../libs/GithubUtils');
+const ActionUtils = require('../../libs/ActionUtils');
+const GithubUtils = require('../../libs/GithubUtils');
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
