@@ -167,7 +167,7 @@ function getSimplifiedReportObject(report) {
     const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '').toString();
 
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily');
+    const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY);
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
@@ -694,6 +694,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
             // Merge report into Onyx
             const simplifiedReportObject = getSimplifiedReportObject(data);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, simplifiedReportObject);
+
+            // Fetch the personal details if there are any
+            PersonalDetails.getFromReportParticipants([simplifiedReportObject]);
 
             if (shouldNavigate) {
                 // Redirect the logged in person to the new report
@@ -1281,14 +1284,26 @@ function syncChatAndIOUReports(chatReport, iouReport) {
 }
 
 /**
- * Updates a user's notification preferences for a chat room
- *
  * @param {Number} reportID
- * @param {String} notificationPreference
+ * @param {String} previousValue
+ * @param {String} newValue
  */
-function updateNotificationPreference(reportID, notificationPreference) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
-    DeprecatedAPI.Report_UpdateNotificationPreference({reportID, notificationPreference});
+function updateNotificationPreference(reportID, previousValue, newValue) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: previousValue},
+        },
+    ];
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
 }
 
 /**
