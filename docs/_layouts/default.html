@@ -35,9 +35,10 @@
             {% when "send-money" %}
                 {% include send-money-navigation-tree.html %}
             {% else %}
-                <div onclick="history.back()" class="main-navigation-tree">
+                <div onclick="history.back()" class="back-button">
+                    <i class="fa-solid fa-angle-left caret-icon caret-icon-vertical"></i>
                     <div class="link">
-                        <i class="fa-solid fa-angle-left caret-icon caret-icon-vertical"></i>Back
+                        Back
                     </div>
                 </div>
                 <span>In this article</span>
@@ -62,7 +63,6 @@
         {% endif %}
 
         <div class="article-toc-content">
-
             {{ content }}
         </div>
 
