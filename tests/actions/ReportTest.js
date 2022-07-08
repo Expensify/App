@@ -15,6 +15,7 @@ import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
+import moment from 'moment';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -47,7 +48,7 @@ describe('actions/Report', () => {
         Pusher.unsubscribe(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
     });
 
-    it('should store a new report action in Onyx when reportComment event is handled via Pusher', () => {
+    it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
@@ -210,6 +211,88 @@ describe('actions/Report', () => {
                 const URL_ARGUMENT_INDEX = 0;
                 const addCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
+            });
+    });
+
+    it('should be marked as unread when a new comment is added', () => {
+        let report;
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${1}`,
+            callback: val => report = val,
+        });
+
+        const USER_2_LOGIN = 'different-user@test.com';
+        const REPORT_ID = 1;
+        const ACTION = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actorAccountID: 2,
+            actorEmail: USER_2_LOGIN,
+            automatic: false,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+            sequenceNumber: 1,
+            shouldShow: true,
+            timestamp: moment.unix(),
+        };
+
+        return TestHelper.signInWithTestUser(1, 'test@test.com')
+            .then(() => {
+                // Given a test user that is subscribed to Pusher events
+                User.subscribeToUserEvents();
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // When a Pusher event is handled for a new report comment
+                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
+                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
+                        value: {
+                            reportID: REPORT_ID,
+                            maxSequenceNumber: 1,
+                            notificationPreference: 'always',
+                            lastMessageTimestamp: 0,
+                            lastMessageText: 'Comment 1',
+                            lastActorEmail: USER_2_LOGIN,
+                        },
+                    },
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            1: ACTION,
+                        },
+                    },
+                ]);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then the report will have an unreadActionCount
+                expect(report.unreadActionCount).toBe(1);
+
+                // When the user visits the report
+                Report.updateLastReadActionID(REPORT_ID);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // The unreadActionCount will return to 0
+                expect(report.unreadActionCount).toBe(0);
+
+                // When the user manually marks a message as "unread"
+                Report.updateLastReadActionID(REPORT_ID, 1, true);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // The unreadActionCount will increase and the new marker will be set correctly
+                expect(report.unreadActionCount).toBe(1);
+
+                console.log(report);
+
+                // If the user deletes a comment that is before the last read no change in unreadActionCount will occur
+                // If the user deletes a comment that is after the last read the unreadActionCount will decrease
+                // If the last message on the report is deleted. The lastMessageText will reflect the new last comment.
             });
     });
 });
