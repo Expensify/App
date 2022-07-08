@@ -84,6 +84,5 @@ jobs:
         with:
           tag_name: ${{ env.PRODUCTION_VERSION }}
           body: ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
-
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
