@@ -149,15 +149,6 @@ function setTimezoneUpdated() {
 }
 
 /**
- * Returns a timestamp since epoch in seconds
- *
- * @returns {Number}
- */
-function getCurrentTimestamp() {
-    return Date.now() / 1000;
-}
-
-/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -169,7 +160,6 @@ const DateUtils = {
     getCurrentTimezone,
     canUpdateTimezone,
     setTimezoneUpdated,
-    getCurrentTimestamp,
 };
 
 export default DateUtils;
