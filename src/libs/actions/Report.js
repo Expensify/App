@@ -27,6 +27,7 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -855,6 +856,8 @@ function addComment(reportID, text, file) {
         lastMessageTimestamp: moment().unix(),
         lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
         lastActorEmail: currentUserEmail,
+        unreadActionCount: 0,
+        lastReadSequenceNumber: newSequenceNumber,
     };
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
@@ -1068,6 +1071,10 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
         lastVisitedTimestamp: moment().unix(),
         lastReadSequenceNumber,
     });
+
+    if (manuallyMarked) {
+        setNewMarkerPosition(reportID, sequenceNumber);
+    }
 
     // Mark the report as not having any unread items
     DeprecatedAPI.Report_UpdateLastRead({
@@ -1466,6 +1473,8 @@ function viewNewReportAction(reportID, action) {
     });
 }
 
+// We are using this map to ensure actions are only handled once
+const handledReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     initWithStoredValues: false,
@@ -1477,6 +1486,18 @@ Onyx.connect({
         }
 
         _.each(actions, (action) => {
+            if (lodashGet(handledReportActions, [reportID, action.sequenceNumber])) {
+                return;
+            }
+
+            if (ReportActionsUtils.isDeletedAction(action)) {
+                return;
+            }
+
+            if (action.isLoading) {
+                return;
+            }
+
             if (!action.timestamp) {
                 return;
             }
@@ -1487,6 +1508,8 @@ Onyx.connect({
             }
 
             viewNewReportAction(reportID, action);
+            handledReportActions[reportID] = handledReportActions[reportID] || {};
+            handledReportActions[reportID][action.sequenceNumber] = true;
         });
     },
 });
