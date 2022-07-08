@@ -1,6 +1,6 @@
 const core = require('@actions/core');
 const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/isPullRequestMergeable/isPullRequestMergeable');
+const run = require('../../.github/actions/javascript/isPullRequestMergeable/isPullRequestMergeable');
 
 // Static mock function for core.getInput
 const mockGetInput = jest.fn().mockImplementation((arg) => {
