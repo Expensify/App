@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import moment from 'moment';
 import {
     beforeEach, beforeAll, afterEach, jest, describe, it, expect,
 } from '@jest/globals';
@@ -15,7 +16,6 @@ import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
-import moment from 'moment';
 
 describe('actions/Report', () => {
     beforeAll(() => {
