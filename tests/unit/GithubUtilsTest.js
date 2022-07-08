@@ -421,24 +421,6 @@ describe('GithubUtils', () => {
                 })
         ));
 
-        test('Test some accessibility verified PRs', () => (
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]], [basePRList[1]])
-                .then((issueBody) => {
-                    expect(issueBody).toBe(
-                        `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[2]}`
-                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[0]}`
-                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[1]}`
-                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
-                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
-                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
-                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
-                        + `${lineBreakDouble}${ccApplauseLeads}`,
-                    );
-                })
-        ));
-
         test('Test all verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList)
                 .then((issueBody) => {
