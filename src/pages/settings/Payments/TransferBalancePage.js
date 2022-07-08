@@ -12,6 +12,9 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import Icon from '../../../components/Icon';
+import defaultTheme from '../../../styles/themes/default';
 import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
@@ -173,12 +176,18 @@ class TransferBalancePage extends React.Component {
                 <ScreenWrapper>
                     <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
                         <HeaderWithCloseButton
-                            title={this.props.translate('paymentsPage.allSet')}
+                            title={this.props.translate('common.transferBalance')}
                             onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
                         />
-                        <View style={[styles.flex1]}>
+                        <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Illustrations.TadaYellow}
+                                height={100}
+                                width={100}
+                                fill={defaultTheme.iconSuccessFill}
+                            />
                             <View style={[styles.ph5]}>
-                                <Text style={styles.mb3}>
+                                <Text style={[styles.mt5, styles.mb3]}>
                                     {this.props.translate('paymentsPage.transferConfirmText', {
                                         amount: this.props.numberFormat(
                                             this.props.walletTransfer.transferAmount / 100,
@@ -190,7 +199,7 @@ class TransferBalancePage extends React.Component {
                         </View>
                         <FixedFooter>
                             <Button
-                                text={this.props.translate('paymentsPage.gotIt')}
+                                text={this.props.translate('common.done')}
                                 onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
                                 style={[styles.mt4]}
                                 iconStyles={[styles.mr5]}
