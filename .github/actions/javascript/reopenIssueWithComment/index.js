@@ -214,7 +214,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body.match(/pull requests:\*\*(?:\r?\n)*((?:.*\r?\n(?:\s+-\s.*\r?\n)+\r?\n)+)/) || [];
+        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:.*\r?\n)+)\r?\n/) || [];
         if (PRListSection.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
@@ -222,12 +222,11 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const PRList = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[([ x])] QA\\s+- \\[([ x])] Accessibility`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
                 url: match[1],
                 number: Number.parseInt(match[2], 10),
-                isVerified: match[3] === 'x',
-                isAccessible: match[4] === 'x',
+                isVerified: match[0] === 'x',
             }),
         );
         return _.sortBy(PRList, 'number');
@@ -264,7 +263,7 @@ class GithubUtils {
      * @private
      *
      * @param {Object} issue
-     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     static getStagingDeployCashInternalQA(issue) {
         let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) || [];
@@ -278,7 +277,6 @@ class GithubUtils {
                 url: match[2].split('-')[0].trim(),
                 number: Number.parseInt(match[3], 10),
                 isResolved: match[1] === 'x',
-                isAccessible: false,
             }),
         );
         return _.sortBy(internalQAPRs, 'number');
@@ -290,7 +288,6 @@ class GithubUtils {
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
      * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
-     * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
      * @param {Array} [resolvedInternalQAPRs] - The list of Internal QA PR URLs which have been resolved.
@@ -302,7 +299,6 @@ class GithubUtils {
         tag,
         PRList,
         verifiedPRList = [],
-        accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
         resolvedInternalQAPRs = [],
@@ -339,7 +335,6 @@ class GithubUtils {
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
-                const accessibleOrNoQAPRs = _.union(accessiblePRList, noQAPRs);
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
@@ -360,9 +355,8 @@ class GithubUtils {
                 if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**';
                     _.each(sortedPRList, (URL) => {
-                        issueBody += `\r\n\r\n- ${URL}`;
-                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
-                        issueBody += _.contains(accessibleOrNoQAPRs, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
+                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x]' : '\r\n  - [ ]';
+                        issueBody += ` ${URL}`;
                     });
                 }
 
@@ -14616,7 +14610,7 @@ module.exports = require("zlib");;
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -14629,7 +14623,7 @@ module.exports = require("zlib");;
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
@@ -14638,14 +14632,14 @@ module.exports = require("zlib");;
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
-/******/ 	
+/******/
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
