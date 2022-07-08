@@ -146,7 +146,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        Report.addAction(getReportID(this.props.route), text);
+        Report.addComment(getReportID(this.props.route), text);
     }
 
     /**
