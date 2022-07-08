@@ -9,10 +9,12 @@ module.exports =
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
-const GitHubUtils = __nccwpck_require__(7999);
 const github = __nccwpck_require__(5438);
-const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
+const _ = __nccwpck_require__(3571);
+const GitHubUtils = __nccwpck_require__(7999);
 
+const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
+/* eslint-disable max-len */
 const contributorChecklist = `#### Contributor (PR Author) Checklist
     - [x] I linked the correct issue in the \`### Fixed Issues\` section above
     - [x] I wrote clear testing steps that cover the changes made in this PR
@@ -109,28 +111,28 @@ GitHubUtils.octokit.rest.issues.listComments({
     issue_number: issue,
     per_page: 100,
 }).then(({data}) => {
-    let comments = data.map(comment => comment.body).toString();
-    let trimmedComment = comments.replace(/(\s|\r\n|\n|\r)/gm, "");
-    let trimmedContributorChecklist = contributorChecklist.replace(/(\s|\r\n|\n|\r)/gm, "")
-    let contributorChecklistComplete = trimmedComment.includes(trimmedContributorChecklist);
+    const comments = _.map(data, comment => comment.body).toString();
+    const trimmedComment = comments.replace(/(\s|\r\n|\n|\r)/gm, '');
+    const trimmedContributorChecklist = contributorChecklist.replace(/(\s|\r\n|\n|\r)/gm, '');
+    const contributorChecklistComplete = trimmedComment.includes(trimmedContributorChecklist);
 
     if (!contributorChecklistComplete) {
-        console.error(`Contributor checklist is not completely filled out. Please check every box to verify you've thought about the item.`);
-        core.setFailed(`Contributor checklist is not completely filled out. Please check every box to verify you've thought about the item.`);
-        return
+        console.error('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        return;
     }
 
-    let trimmedContributorPlusChecklist = contributorPlusChecklist.replace(/(\s|\r\n|\n|\r)/gm, "")
-    let contributorPlusChecklistComplete = trimmedComment.includes(trimmedContributorPlusChecklist);
+    const trimmedContributorPlusChecklist = contributorPlusChecklist.replace(/(\s|\r\n|\n|\r)/gm, '');
+    const contributorPlusChecklistComplete = trimmedComment.includes(trimmedContributorPlusChecklist);
 
     if (!contributorPlusChecklistComplete) {
-        console.error(`Contributor plus checklist is not completely filled out. Please check every box to verify you've thought about the item.`);
-        core.setFailed(`Contributor plus checklist is not completely filled out. Please check every box to verify you've thought about the item.`);
-        return
+        console.error('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        return;
     }
 
-    console.log(`All checklist are complete 🎉`);
-})
+    console.log('All checklist are complete 🎉');
+});
 
 
 /***/ }),
