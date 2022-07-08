@@ -96,7 +96,6 @@ function getAppData(shouldSyncPolicyList = true) {
     User.getBetas();
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
-    GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
 
     if (shouldSyncPolicyList) {
