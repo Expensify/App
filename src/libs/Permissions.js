@@ -91,7 +91,7 @@ function canUsePolicyExpenseChat(betas) {
  * @returns {Boolean}
  */
 function canUseCommentLinking(betas) {
-    return _.contains(betas, CONST.BETAS.COMMENT_LINKING);
+    return _.contains(betas, CONST.BETAS.COMMENT_LINKING) || canUseAllBetas(betas);
 }
 
 export default {
