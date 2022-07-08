@@ -187,13 +187,11 @@ class TransferBalancePage extends React.Component {
                                 fill={defaultTheme.iconSuccessFill}
                             />
                             <View style={[styles.ph5]}>
-                                <Text style={[styles.mt5, styles.mb3]}>
-                                    {this.props.translate('paymentsPage.transferConfirmText', {
-                                        amount: this.props.numberFormat(
-                                            this.props.walletTransfer.transferAmount / 100,
-                                            {style: 'currency', currency: 'USD'},
-                                        ),
-                                    })}
+                                <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
+                                    {this.props.translate('transferAmountPage.transferSuccess')}
+                                </Text>
+                                <Text style={[styles.mt3, styles.textAlignCenter]}>
+                                    {this.props.translate('transferAmountPage.transferDetail')}
                                 </Text>
                             </View>
                         </View>

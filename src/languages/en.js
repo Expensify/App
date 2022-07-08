@@ -391,7 +391,6 @@ export default {
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
         allSet: 'All Set!',
-        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
         gotIt: 'Got it, Thanks!',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
@@ -408,6 +407,8 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
+        transferSuccess: 'Transfer Successful!',
+        transferDetail: 'Your money should arrive in the next 1-3 business days.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {

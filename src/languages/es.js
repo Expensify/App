@@ -387,7 +387,6 @@ export default {
         deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
         deletePayPalSuccess: 'PayPal.me eliminada correctamente',
         allSet: 'Todo listo!',
-        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
         gotIt: 'Gracias!',
         error: {
             notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como tu método de pago predeterminado.',
@@ -404,6 +403,8 @@ export default {
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
+        transferSuccess: '',
+        transferDetail: '',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
