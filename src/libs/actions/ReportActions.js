@@ -107,7 +107,7 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const parser = new ExpensiMark();
-    const existingReportActions = _.reduce(reportActions[reportID], (prev, curr) => ({...prev, [curr.sequenceNumber]: curr}), {});
+    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
     const actions = _.toArray(lodashMerge({}, existingReportActions, actionsToMerge));
     const lastMessageIndex = _.findLastIndex(actions, action => (
         !ReportActionsUtils.isDeletedAction(action)
@@ -125,7 +125,8 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
  * @returns {Boolean}
  */
 function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge = {}) {
-    const action = lodashMerge({}, reportActions[reportID], actionsToMerge)[sequenceNumber];
+    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
+    const action = lodashMerge({}, existingReportActions, actionsToMerge)[sequenceNumber];
     return action.actorAccountID === currentUserAccountID;
 }
 
