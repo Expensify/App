@@ -221,6 +221,14 @@ textarea {
                 padding-left: 0;
                 padding-top: 20px;
             }
+
+            i {
+                padding-right: 12px;
+            }
+        }
+
+        .home-link {
+            padding-left: 38px;
         }
     }
 
@@ -228,11 +236,6 @@ textarea {
         color: $color-gray3;
         font-size: larger;
         display: inline;
-        padding-right: 12px;
-
-        @media screen and (max-width: 800px) {
-            // left: 32px;
-        }
     }
 
     .hide {
@@ -288,7 +291,7 @@ textarea {
 
     ol,
     ul {
-        padding-left: 30px;
+        padding-left: 32px;
     }
 
     ul,
@@ -301,6 +304,19 @@ textarea {
             margin-top: 20px;
             cursor: pointer;
         }
+    }
+
+    i {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .nested-treeview {
+        margin-left: 40px;
+    }
+
+    .caret-icon-vertical {
+        padding-left: 8px;
     }
 
     .selected-hub {
