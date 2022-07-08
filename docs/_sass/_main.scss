@@ -141,6 +141,19 @@ textarea {
     border-right-width: 1px;
     border-style: solid;
 
+    @media screen and (max-width: 1024px) {
+        width: 320px;
+    }
+
+    @media screen and (max-width: 800px) {
+        width: 100%;
+        height: auto;
+
+        &.expanded {
+            height: 100%;
+        }
+    }
+
     ul,
     li {
         list-style: none;
@@ -149,7 +162,12 @@ textarea {
     .lhn-header {
         padding: 44px;
 
+        @media screen and (max-width: 800px) {
+            padding: 24px;
+        }
+
         .header-button {
+            position: absolute;
             display: none;
 
             @media screen and (max-width: 800px) {
@@ -184,15 +202,24 @@ textarea {
             display: none;
         }
 
-        .back-button {
-            margin-bottom: 44px;
-        }
-
         @media screen and (max-width: 800px) {
+            padding-right: 24px;
+            padding-bottom: 24px;
+            padding-left: 24px;
             display: none;
 
             &.expanded {
                 display: block;
+            }
+        }
+
+        .back-button {
+            margin-bottom: 44px;
+            padding-left: 8px;
+
+            @media screen and (max-width: 800px) {
+                padding-left: 0;
+                padding-top: 20px;
             }
         }
     }
@@ -201,7 +228,6 @@ textarea {
         color: $color-gray3;
         font-size: larger;
         display: inline;
-        padding-left: 8px;
         padding-right: 12px;
 
         @media screen and (max-width: 800px) {
@@ -209,21 +235,9 @@ textarea {
         }
     }
 
-    .caret-icon-vertical {
-        left: -28px;
-    }
-
     .hide {
         display: none;
         position: fixed;
-    }
-
-    @media screen and (max-width: 1024px) {
-        width: 320px;
-    }
-
-    @media screen and (max-width: 800px) {
-        width: 100%;
     }
 }
 
@@ -233,18 +247,6 @@ textarea {
     margin-left: 420px;
     padding: 52px 68px;
     box-sizing: border-box;
-
-    ul,
-    ol {
-        margin-left: 24px;
-        padding-bottom: 20px;
-    }
-
-    h1 {
-        &.title {
-            font-size: 2.25em;
-        }
-    }
 
     @media screen and (max-width: 1024px) {
         margin-left: 320px;
@@ -256,6 +258,18 @@ textarea {
         padding-left: 24px;
         padding-right: 24px;
         padding-bottom: 24px;
+    }
+
+    ul,
+    ol {
+        margin-left: 24px;
+        padding-bottom: 20px;
+    }
+
+    h1 {
+        &.title {
+            font-size: 2.25em;
+        }
     }
 }
 
