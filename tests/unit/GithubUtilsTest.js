@@ -51,7 +51,7 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- https://github.com/Expensify/App/pull/21\r\n  - [ ] QA\r\n  - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/22\r\n  - [x] QA\r\n  - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/23\r\n  - [ ] QA\r\n  - [ ] Accessibility\r\n\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/21\r\n- [x] https://github.com/Expensify/App/pull/22\r\n- [ ]https://github.com/Expensify/App/pull/23',
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
@@ -414,22 +414,22 @@ describe('GithubUtils', () => {
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}`
-                + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`;
+                + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[2]}`
+                + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[0]}`
+                + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[1]}`
+                + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
+                + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`;
 
         test('Test no verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[0]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
@@ -443,11 +443,11 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[0]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
@@ -461,11 +461,11 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[0]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
@@ -524,11 +524,11 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[2]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[0]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[1]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[1]}`
@@ -545,11 +545,11 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[0]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreakDouble}${internalQAHeader}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
@@ -566,11 +566,11 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[2]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[0]}`
+                        + `${lineBreakDouble}${listStart}${openCheckbox}${basePRList[1]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[5]}`
+                        + `${lineBreakDouble}${listStart}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreakDouble}${internalQAHeader}`
                         + `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
