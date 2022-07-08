@@ -11,6 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: contributorChecklist.js
-        uses: Expensify/App/.github/actions/javascript/contributorChecklist
+        uses: Expensify/App/.github/actions/javascript/contributorChecklist@andrew-checklist
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
