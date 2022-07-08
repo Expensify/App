@@ -132,23 +132,14 @@ textarea {
 }
 
 #lhn {
+    width: 420px;
+    height: 100%;
     position: fixed;
     background-color: $color-gray1;
-    padding: 44px;
     box-sizing: border-box;
     border-right-color: $color-gray2;
     border-right-width: 1px;
     border-style: solid;
-    width: 420px;
-    height: 100%;
-    overflow-y: scroll;
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-    &::-webkit-scrollbar {
-        display: none;
-    }
 
     ul,
     li {
@@ -156,7 +147,7 @@ textarea {
     }
 
     .lhn-header {
-        padding-top: 4px;
+        padding: 44px;
 
         .header-button {
             display: none;
@@ -180,10 +171,9 @@ textarea {
     }
 
     #lhn-content {
-        height: 100%;
-        padding-top: 36px;
-        height: 100%;
-        overflow-y: scroll;
+        height: 80%;
+        padding: 44px;
+        overflow: auto;
         -ms-overflow-style: none;
         /* IE and Edge */
         scrollbar-width: none;
@@ -202,9 +192,9 @@ textarea {
     }
 
     .caret-icon {
-        left: 52px;
+        left: -24px;
         padding-top: 1px;
-        position: absolute;
+        position: relative;
         color: $color-gray3;
         font-size: larger;
 
@@ -214,11 +204,7 @@ textarea {
     }
 
     .caret-icon-vertical {
-        left: 48px;
-
-        @media screen and (max-width: 800px) {
-            left: 28px;
-        }
+        left: -28px;
     }
 
     .hide {
@@ -232,13 +218,6 @@ textarea {
 
     @media screen and (max-width: 800px) {
         width: 100%;
-        padding: 24px;
-        height: auto;
-        overflow-y: unset;
-
-        &.expanded {
-            height: 100%;
-        }
     }
 }
 
