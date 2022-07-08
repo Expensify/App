@@ -405,8 +405,8 @@ export default {
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
-        transferSuccess: '',
-        transferDetail: '',
+        transferSuccess: '¡Transferencia exitosa!',
+        transferDetail: 'Tu dinero debería llegar en 1-3 días laborables.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
