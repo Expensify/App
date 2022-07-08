@@ -39,6 +39,12 @@ Onyx.connect({
     callback: val => currentlyViewedReportID = val || '',
 });
 
+let preferredLocale = '';
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || '',
+});
+
 /**
  * Changes a password for a given account
  *
@@ -90,9 +96,12 @@ function closeAccount(message) {
         ],
         successData: [
             {
+                onyxMethod: 'clear',
+            },
+            {
                 onyxMethod: 'merge',
-                key: ONYXKEYS.CLOSE_ACCOUNT,
-                value: {error: '', isLoading: false},
+                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+                value: preferredLocale,
             },
         ],
         failureData: [
