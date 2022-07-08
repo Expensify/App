@@ -94,7 +94,7 @@ AppState.addEventListener('change', (nextAppState) => {
 function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
     User.getDomainInfo();
-    GeoLocation.fetchCountryCodeByRequestIP();
+    PersonalDetails.fetchLocalCurrency();
     BankAccounts.fetchUserWallet();
 
     if (shouldSyncPolicyList) {
