@@ -216,7 +216,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it('should be marked as unread when a new comment is added', () => {
+    it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         const REPORT_ID = 1;
 
         let report;
@@ -232,31 +232,22 @@ describe('actions/Report', () => {
         });
 
         const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
+        const USER_1_LOGIN = 'user@test.com';
+        const USER_1_ACCOUNT_ID = 1;
         const USER_2_LOGIN = 'different-user@test.com';
-        const ACTION = {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-            actorAccountID: 2,
-            actorEmail: USER_2_LOGIN,
-            automatic: false,
-            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-            person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-            sequenceNumber: 1,
-            shouldShow: true,
-            timestamp: moment().unix(),
-        };
+        const USER_2_ACCOUNT_ID = 2;
 
         return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
-            .then(() => TestHelper.signInWithTestUser(1, 'test@test.com'))
+            .then(() => TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN))
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(1, 'test@test.com', {
-                'test@test.com': {
-                    accountID: 1,
-                    email: 'test@test.com',
+            .then(() => TestHelper.fetchPersonalDetailsForTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN, {
+                [USER_1_LOGIN]: {
+                    accountID: USER_1_ACCOUNT_ID,
+                    email: USER_1_LOGIN,
                     firstName: 'Test',
                     lastName: 'User',
                 },
@@ -282,7 +273,18 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            1: ACTION,
+                            1: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actorAccountID: USER_2_ACCOUNT_ID,
+                                actorEmail: USER_2_LOGIN,
+                                automatic: false,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
+                                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                                sequenceNumber: 1,
+                                shouldShow: true,
+                                timestamp: moment().unix(),
+                            },
                         },
                     },
                 ]);
@@ -339,6 +341,18 @@ describe('actions/Report', () => {
                 expect(report.lastReadSequenceNumber).toBe(4);
                 expect(report.lastMessageText).toBe('Current User Comment 3');
 
+                const USER_1_BASE_ACTION = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    actorAccountID: USER_1_ACCOUNT_ID,
+                    actorEmail: USER_1_LOGIN,
+                    automatic: false,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                    shouldShow: true,
+                    timestamp: moment().unix(),
+                    reportActionID: 'derp',
+                };
+
                 // When we emit the events for these pending created actions to update them to not pending
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
@@ -362,43 +376,19 @@ describe('actions/Report', () => {
                             [_.toArray(reportActions)[2].clientID]: null,
                             [_.toArray(reportActions)[3].clientID]: null,
                             2: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                                actorAccountID: 1,
-                                actorEmail: 'test@test.com',
-                                automatic: false,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
-                                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 2,
-                                shouldShow: true,
-                                timestamp: moment().unix(),
-                                reportActionID: 'derp',
                             },
                             3: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                                actorAccountID: 1,
-                                actorEmail: 'test@test.com',
-                                automatic: false,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
-                                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 3,
-                                shouldShow: true,
-                                timestamp: moment().unix(),
-                                reportActionID: 'derp',
                             },
                             4: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                                actorAccountID: 1,
-                                actorEmail: 'test@test.com',
-                                automatic: false,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
-                                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 4,
-                                shouldShow: true,
-                                timestamp: moment().unix(),
-                                reportActionID: 'derp',
                             },
                         },
                     },
