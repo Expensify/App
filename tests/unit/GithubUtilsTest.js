@@ -37,19 +37,16 @@ describe('GithubUtils', () => {
                     url: 'https://github.com/Expensify/App/pull/21',
                     number: 21,
                     isVerified: false,
-                    isAccessible: false,
                 },
                 {
                     url: 'https://github.com/Expensify/App/pull/22',
                     number: 22,
                     isVerified: true,
-                    isAccessible: false,
                 },
                 {
                     url: 'https://github.com/Expensify/App/pull/23',
                     number: 23,
                     isVerified: false,
-                    isAccessible: false,
                 },
             ],
             labels: [
@@ -368,14 +365,11 @@ describe('GithubUtils', () => {
         const openCheckbox = '- [ ] ';
         const closedCheckbox = '- [x] ';
         const listStart = '- ';
-        const QA = 'QA';
-        const accessibility = 'Accessibility';
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
         const deployBlockerHeader = '\r\n**Deploy Blockers:**';
         const internalQAHeader = '\r\n**Internal QA:**';
         const lineBreak = '\r\n';
         const lineBreakDouble = '\r\n\r\n';
-        const indent = '  ';
         const assignOctocatHubot = ' - @octocat @hubot';
         const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
         // eslint-disable-next-line max-len
