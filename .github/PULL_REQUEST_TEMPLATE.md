@@ -83,7 +83,10 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.
 
 <details>
-<summary><h4>PR Reviewer Checklist to copy/paste into a new comment after the author checklist is completed, and to be completed by a Contributor+</h4></summary>
+<summary><h4>PR Reviewer Checklist</h4>
+
+The Contributor+ will copy/paste it into a new comment and complete it after the author checklist is completed
+</summary>
 
 - [ ] I have verified the author checklist is complete (all boxes are checked off).
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
