@@ -6,10 +6,10 @@ on:
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: Expensify/App/.github/workflows/lint.yml@main
 
   test:
-    uses: ./.github/workflows/test.yml
+    uses: Expensify/App/.github/workflows/test.yml@main
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
