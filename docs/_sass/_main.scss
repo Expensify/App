@@ -175,7 +175,7 @@ textarea {
         }
 
         @media screen and (max-width: 800px) {
-            height: 100%;
+            height: calc(100% - 100px);
             padding-right: 24px;
             padding-bottom: 24px;
             padding-left: 24px;
