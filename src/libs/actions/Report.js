@@ -1069,7 +1069,7 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
     const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumber;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: calculateUnreadActionCount(reportID, lastReadSequenceNumber, reportMaxSequenceNumber),
-        lastVisitedTimestamp: moment().unix(),
+        lastVisitedTimestamp: moment().valueOf(),
         lastReadSequenceNumber,
     });
 
@@ -1409,7 +1409,7 @@ function viewNewReportAction(reportID, action) {
     // unreadActionCount if the incoming sequenceNumber is higher than the last read for the user.
     if (isFromCurrentUser) {
         updatedReportObject.unreadActionCount = 0;
-        updatedReportObject.lastVisitedTimestamp = moment().unix();
+        updatedReportObject.lastVisitedTimestamp = moment().valueOf();
         updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
     } else if (incomingSequenceNumber > lastReadSequenceNumber) {
         updatedReportObject.unreadActionCount = getUnreadActionCount(reportID) + 1;
