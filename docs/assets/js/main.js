@@ -45,9 +45,10 @@ if (window.tocbot) {
         // the link corresponding to the top most heading on the page.
         activeLinkClass: 'selected-hub',
 
-        // Only takes affect when `tocSelector` is scrolling,
-        // keep the toc scroll position in sync with the content.
-        disableTocScrollSync: true,
+        // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
+        headingsOffset: 80,
+        scrollSmoothOffset: -80,
+        scrollSmooth: true,
 
         // onclick function to apply to all links in toc. will be called with
         // the event as the first parameter, and this can be used to stop,
