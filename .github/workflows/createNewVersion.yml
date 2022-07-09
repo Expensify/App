@@ -13,13 +13,7 @@ on:
         description: The new version string
         value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
 
-    secrets:
-      GPG_PASSPHRASE:
-        required: true
-      OS_BOTIFY_TOKEN:
-        required: true
-      SLACK_WEBHOOK:
-        required: true
+    secrets: inherit
 
 jobs:
   createNewVersion:
@@ -37,7 +31,7 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Create new branch
         run: |
@@ -76,7 +70,7 @@ jobs:
           TARGET_BRANCH: main
           SOURCE_BRANCH: ${{ env.VERSION_BRANCH }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main

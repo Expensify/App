@@ -30,10 +30,6 @@ jobs:
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     with:
       SEMVER_LEVEL: BUILD
-    secrets:
-      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   cherryPick:
     needs: [validateActor, createNewVersion]
