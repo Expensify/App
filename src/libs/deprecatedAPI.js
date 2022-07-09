@@ -358,18 +358,6 @@ function Report_EditComment(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Number} parameters.sequenceNumber
- * @returns {Promise}
- */
-function Report_UpdateLastRead(parameters) {
-    const commandName = 'Report_UpdateLastRead';
-    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -942,7 +930,6 @@ export {
     Report_GetHistory,
     Report_TogglePinned,
     Report_EditComment,
-    Report_UpdateLastRead,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
