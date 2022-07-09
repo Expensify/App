@@ -125,7 +125,7 @@ class ReportActionsView extends React.Component {
                 return;
             }
 
-            Report.updateLastReadActionID(this.props.reportID);
+            Report.openReport(this.props.reportID);
         });
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
@@ -201,6 +201,9 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            if (this.isReportFullyVisible()) {
+                Report.openReport(this.props.reportID);
+            }
             this.fetchData();
         }
 
@@ -240,14 +243,14 @@ class ReportActionsView extends React.Component {
             // When the last action changes, record the max action
             // This will make the NEW marker line go away if you receive comments in the same chat you're looking at
             if (isReportFullyVisible) {
-                Report.updateLastReadActionID(this.props.reportID);
+                Report.readNewestAction(this.props.reportID);
             }
         }
 
         // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
         if (isReportFullyVisible && reportBecomeVisible) {
             this.updateNewMarkerPosition(this.props.report.unreadActionCount);
-            Report.updateLastReadActionID(this.props.reportID);
+            Report.openReport(this.props.reportID);
         }
     }
 
@@ -302,7 +305,7 @@ class ReportActionsView extends React.Component {
 
     scrollToBottomAndMarkReportAsRead() {
         ReportScrollManager.scrollToBottom();
-        Report.updateLastReadActionID(this.props.reportID);
+        Report.readNewestAction(this.props.reportID);
         Report.setNewMarkerPosition(this.props.reportID, 0);
     }
 
@@ -355,7 +358,7 @@ class ReportActionsView extends React.Component {
 
         // Only mark as read if the report is fully visible
         if (this.getIsReportFullyVisible()) {
-            Report.updateLastReadActionID(this.props.reportID);
+            Report.openReport(this.props.reportID);
         }
     }
 

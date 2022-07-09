@@ -64,13 +64,6 @@ const typingWatchTimers = {};
 // since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
 const optimisticReportActionIDs = {};
 
-// Boolean to indicate if report data is loading from the API or not.
-let isReportDataLoading = true;
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    callback: val => isReportDataLoading = val,
-});
-
 /**
  * @param {Number} reportID
  * @param {Number} lastReadSequenceNumber
@@ -1041,48 +1034,80 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
- * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
- * network layer handle the delayed write.
+ * Gets the latest page of report actions and updates the last read message
  *
  * @param {Number} reportID
- * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
- * @param {Boolean} [manuallyMarked] If the user manually marked this as unread, we need to tell the API
- *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
- *  is last read (meaning that the entire report history has been read)
  */
-function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false) {
-    // If report data is loading, we can't update the last read sequence number because it is obsolete
-    if (isReportDataLoading) {
-        return;
-    }
+function openReport(reportID) {
+    const sequenceNumber = getMaxSequenceNumber(reportID);
+    API.write('OpenReport',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastReadSequenceNumber: sequenceNumber,
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: 0,
+                },
+            }],
+        });
+}
 
-    // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
-    // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
-    // the side of caution and do nothing in this case.
-    const reportMaxSequenceNumber = lodashGet(allReports, [reportID, 'maxSequenceNumber']);
-    if (_.isUndefined(sequenceNumber) && (!reportMaxSequenceNumber && reportMaxSequenceNumber !== 0)) {
-        return;
-    }
+/**
+ * Marks the new report actions as read
+ *
+ * @param {Number} reportID
+ */
+function readNewestAction(reportID) {
+    const sequenceNumber = getMaxSequenceNumber(reportID);
+    API.write('ReadNewestAction',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastReadSequenceNumber: sequenceNumber,
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: 0,
+                },
+            }],
+        });
+}
 
-    // When we are manually marking a report as unread we need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot.
-    // If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action).
-    const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumber;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: calculateUnreadActionCount(reportID, lastReadSequenceNumber, reportMaxSequenceNumber),
-        lastVisitedTimestamp: moment().valueOf(),
-        lastReadSequenceNumber,
-    });
-
-    if (manuallyMarked) {
-        setNewMarkerPosition(reportID, sequenceNumber);
-    }
-
-    // Mark the report as not having any unread items
-    DeprecatedAPI.Report_UpdateLastRead({
-        reportID,
-        sequenceNumber: lastReadSequenceNumber,
-        markAsUnread: manuallyMarked,
-    });
+/**
+ * Sets the last read comment on a report
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function markCommentAsUnread(reportID, sequenceNumber) {
+    const maxSequenceNumber = getMaxSequenceNumber(reportID);
+    API.write('MarkCommentAsUnread',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    newMarkerSequenceNumber: sequenceNumber,
+                    lastReadSequenceNumber: sequenceNumber,
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: calculateUnreadActionCount(reportID, sequenceNumber, maxSequenceNumber),
+                },
+            }],
+        });
 }
 
 /**
@@ -1409,7 +1434,7 @@ function viewNewReportAction(reportID, action) {
     // unreadActionCount if the incoming sequenceNumber is higher than the last read for the user.
     if (isFromCurrentUser) {
         updatedReportObject.unreadActionCount = 0;
-        updatedReportObject.lastVisitedTimestamp = moment().valueOf();
+        updatedReportObject.lastVisitedTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
     } else if (incomingSequenceNumber > lastReadSequenceNumber) {
         updatedReportObject.unreadActionCount = getUnreadActionCount(reportID) + 1;
@@ -1524,7 +1549,6 @@ export {
     fetchIOUReportByIDAndUpdateChatReport,
     addComment,
     addAttachment,
-    updateLastReadActionID,
     updateNotificationPreference,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
@@ -1547,4 +1571,7 @@ export {
     createPolicyRoom,
     renameReport,
     setIsComposerFullSize,
+    markCommentAsUnread,
+    readNewestAction,
+    openReport,
 };

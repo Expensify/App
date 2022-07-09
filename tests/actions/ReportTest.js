@@ -294,7 +294,7 @@ describe('actions/Report', () => {
                 expect(report.unreadActionCount).toBe(1);
 
                 // When the user visits the report
-                Report.updateLastReadActionID(REPORT_ID);
+                Report.openReport(REPORT_ID);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -302,7 +302,7 @@ describe('actions/Report', () => {
                 expect(report.unreadActionCount).toBe(0);
 
                 // When the user manually marks a message as "unread"
-                Report.updateLastReadActionID(REPORT_ID, 1, true);
+                Report.markCommentAsUnread(REPORT_ID, 1);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -406,7 +406,7 @@ describe('actions/Report', () => {
                 expect(report.unreadActionCount).toBe(0);
 
                 // When the user manually marks a message as "unread"
-                Report.updateLastReadActionID(REPORT_ID, 3, true);
+                Report.markCommentAsUnread(REPORT_ID, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
