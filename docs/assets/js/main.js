@@ -23,6 +23,11 @@ function toggleHeaderMenu() { // eslint-disable-line no-unused-vars
     }
 }
 
+function navigateBack() { // eslint-disable-line no-unused-vars
+    window.history.back();
+    toggleHeaderMenu();
+}
+
 if (window.tocbot) {
     window.tocbot.init({
         // Where to render the table of contents.
