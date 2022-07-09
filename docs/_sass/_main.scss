@@ -13,11 +13,6 @@
 
 html {
     line-height: 1;
-    overflow: hidden;
-}
-
-body {
-    overflow: auto;
 }
 
 table {
@@ -134,7 +129,7 @@ textarea {
 #lhn {
     width: 420px;
     height: 100%;
-    position: absolute;
+    position: fixed;
     background-color: $color-gray1;
     box-sizing: border-box;
     border-right-color: $color-gray2;
