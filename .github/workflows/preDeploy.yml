@@ -57,7 +57,7 @@ jobs:
 
       - name: Check if merged pull request should trigger a deploy
         id: shouldDeploy
-        run: echo "::set-output name=SHOULD_DEPLOY::${{ fromJSON(needs.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}"
+        run: echo "::set-output name=SHOULD_DEPLOY::${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}"
 
   skipDeploy:
     runs-on: ubuntu-latest
