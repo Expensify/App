@@ -1047,7 +1047,7 @@ function openReport(reportID) {
         },
         {
             optimisticData: [{
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: sequenceNumber,
@@ -1091,6 +1091,7 @@ function readNewestAction(reportID) {
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
     const maxSequenceNumber = getMaxSequenceNumber(reportID);
+    const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkCommentAsUnread',
         {
             reportID,
@@ -1098,13 +1099,13 @@ function markCommentAsUnread(reportID, sequenceNumber) {
         },
         {
             optimisticData: [{
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     newMarkerSequenceNumber: sequenceNumber,
-                    lastReadSequenceNumber: sequenceNumber,
+                    lastReadSequenceNumber: newLastReadSequenceNumber,
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: calculateUnreadActionCount(reportID, sequenceNumber, maxSequenceNumber),
+                    unreadActionCount: calculateUnreadActionCount(reportID, newLastReadSequenceNumber, maxSequenceNumber),
                 },
             }],
         });
@@ -1121,7 +1122,7 @@ function togglePinnedState(report) {
     // Optimistically pin/unpin the report before we send out the command
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {isPinned: pinnedValue},
         },
