@@ -22,7 +22,7 @@ on:
 jobs:
   createNewVersion:
     if: github.actor == 'OSBotify'
-    runs-on: macos-11
+    runs-on: macos-latest
 
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
