@@ -18,6 +18,8 @@ on:
         required: true
       OS_BOTIFY_TOKEN:
         required: true
+      SLACK_WEBHOOK:
+        required: true
 
 jobs:
   createNewVersion:
