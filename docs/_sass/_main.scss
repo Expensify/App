@@ -219,15 +219,19 @@ textarea {
         }
     }
 
-    .hub-link {
+    .icon-with-link {
         display: grid;
         grid-template-columns: 40px auto;
     }
 
-    .caret-icon {
+    .icon {
         color: $color-gray3;
         font-size: larger;
         display: inline;
+
+        &.fa-angle-right {
+            padding-left: 4px;
+        }
     }
 
     .hide {
@@ -298,17 +302,8 @@ textarea {
         }
     }
 
-    i {
-        padding-right: 12px;
-        padding-left: 12px;
-    }
-
     .nested-treeview {
         margin-left: 40px;
-    }
-
-    .caret-icon-vertical {
-        padding-left: 8px;
     }
 
     .selected-hub {
