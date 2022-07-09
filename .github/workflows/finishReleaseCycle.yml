@@ -68,6 +68,7 @@ jobs:
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    secrets: inherit
     with:
       SEMVER_LEVEL: PATCH
 
