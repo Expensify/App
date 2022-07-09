@@ -26,36 +26,13 @@ jobs:
 
   createNewVersion:
     needs: validateActor
-    runs-on: ubuntu-latest
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.inputs.NEW_VERSION == '' }}
-    outputs:
-      NEW_VERSION: ${{ steps.getNewVersion.outputs.NEW_VERSION }}
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new BUILD version
-        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
-
-      - name: Pull main to get the new version
-        id: getNewVersion
-        run: |
-          git pull origin main
-          echo "New version is $(npm run print-version --silent)"
-          echo "::set-output name=NEW_VERSION::$(npm run print-version --silent)"
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    with:
+      SEMVER_LEVEL: BUILD
+    secrets:
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   cherryPick:
     needs: [validateActor, createNewVersion]
