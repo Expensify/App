@@ -15,10 +15,13 @@ on:
 
     secrets:
       GPG_PASSPHRASE:
+        description: Passphrase used to decrypt GPG key
         required: true
       OS_BOTIFY_TOKEN:
+        description: Token for the OSBotify user
         required: true
       SLACK_WEBHOOK:
+        description: Webhook used to comment in slack
         required: true
 
 jobs:
