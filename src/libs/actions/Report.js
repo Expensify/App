@@ -1146,7 +1146,7 @@ function readNewestAction(reportID) {
 function markCommentAsUnread(reportID, sequenceNumber) {
     const maxSequenceNumber = getMaxSequenceNumber(reportID);
     const newLastReadSequenceNumber = sequenceNumber - 1;
-    API.write('MarkCommentAsUnread',
+    API.write('MarkAsUnread',
         {
             reportID,
             sequenceNumber,
