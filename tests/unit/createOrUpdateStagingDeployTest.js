@@ -101,7 +101,6 @@ const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const listStart = '- ';
 const QA = 'QA';
-const accessibility = 'Accessibility';
 const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
 // eslint-disable-next-line max-len
 const timingDashboardVerification = 'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
@@ -285,11 +284,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
                     body: `${baseExpectedOutput('1.0.2-2')}`
-                        + `${lineBreak}${openCheckbox}${basePRList[5]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreak}${closedCheckbox}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
-                        + `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreak}${openCheckbox}${basePRList[8]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
-                        + `${lineBreak}${openCheckbox}${basePRList[9]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[7]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[8]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[9]}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${openCheckbox}${basePRList[5]}`
                         + `${lineBreak}${openCheckbox}${basePRList[8]}`
