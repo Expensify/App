@@ -30,11 +30,11 @@
         <div id="lhn-content">
             {% case page.lhn_content %}
             {% when "homepage" %}
-                {% include home-navigation-tree.html %}
+                {% include home-lhn.html %}
             {% when "request-money" %}
-                {% include request-money-navigation-tree.html %}
+                {% include request-money-lhn.html %}
             {% when "send-money" %}
-                {% include send-money-navigation-tree.html %}
+                {% include send-money-lhn.html %}
             {% else %}
                 <div onclick="navigateBack()" class="back-button">
                     <i class="fa-solid fa-angle-left caret-icon"></i>

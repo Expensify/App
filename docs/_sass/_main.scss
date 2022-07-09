@@ -225,6 +225,10 @@ textarea {
         .home-link {
             padding-left: 38px;
         }
+
+        .article-toc {
+            margin-top: 20px;
+        }
     }
 
     .caret-icon {
@@ -318,10 +322,6 @@ textarea {
         font-weight: bold;
         color: $color-dark;
     }
-}
-
-.article-toc {
-    margin-top: 20px;
 }
 
 .cards-grid {
