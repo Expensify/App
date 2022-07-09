@@ -114,7 +114,6 @@ jobs:
       # Version: 3.0.2
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
         with:
-          fetch-depth: 0
           ref: staging
 
       # Create a local git tag on staging so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
