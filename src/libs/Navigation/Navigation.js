@@ -83,10 +83,22 @@ function getDefaultDrawerState(isSmallScreenWidth) {
         return CONST.DRAWER_STATUS.CLOSED;
     }
 
-    // When the user opens the app via Report url, close the drawer else open the drawer.
     const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1);
+    const {name, params} = navigationRef.current.getCurrentRoute();
+
+    // Details and IOU screens (with reportID) are open from report screen.
+    // For that we want to correctly order the stack of screens.
     // eslint-disable-next-line no-use-before-define
-    return path === ROUTES.HOME || !isDrawerRoute(path) ? CONST.DRAWER_STATUS.OPEN : CONST.DRAWER_STATUS.CLOSED;
+    if (isDrawerRoute(path)
+      || name === 'Details_Root'
+      || (name === 'IOU_Request_Root' && params.reportID)
+      || (name === 'IOU_Send_Root' && params.reportID)
+      || (name === 'IOU_Bill_Root' && params.reportID)
+    ) {
+        return CONST.DRAWER_STATUS.CLOSED;
+    }
+
+    return CONST.DRAWER_STATUS.OPEN;
 }
 
 /**
