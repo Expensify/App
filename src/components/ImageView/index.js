@@ -140,7 +140,7 @@ class ImageView extends PureComponent {
      * @param {Number} imageHeight
      */
     setScale(containerWidth, containerHeight, imageWidth, imageHeight) {
-        if (!containerWidth || !imageWidth) {
+        if (!containerWidth || !imageWidth || !containerHeight || !imageHeight) {
             return;
         }
         const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
