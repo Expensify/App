@@ -608,6 +608,7 @@ export default {
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
         selectAnswer: 'Selecciona una respuesta.',
+        ssnFull9Error: 'Por favor escribe los 9 dígitos de un SSN válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
         weCouldNotVerify: 'No pudimos verificar',
         pleaseFixIt: 'Corrije esta información antes de continuar.',

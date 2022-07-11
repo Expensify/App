@@ -329,6 +329,7 @@ jobs:
 
       - name: Build docs
         run: npm run storybook-build
+        continue-on-error: true
 
       - name: Deploy production to S3
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

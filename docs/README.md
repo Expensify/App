@@ -1,8 +1,14 @@
 # Welcome to the Expensify Help site
 
-Expensify Help is mainly composed of static HTML (`.html`) and Markdown (`.md`) files. We use [Jekyll](https://jekyllrb.com/) to generate a static site from those HTML and Markdown files.
+[Expensify Help](https://help.expensify.com/) is mainly composed of static HTML (`.html`) and Markdown (`.md`) files. We use [Jekyll](https://jekyllrb.com/) to generate a static site from those HTML and Markdown files.
 
-# Test locally
+### Table of Contents
+* [Testing Locally](#testing-locally)
+* [How the project is structured](#how-the-project-is-structured)
+* [How to add a new Article](#how-to-add-a-new-article)
+* [How the site is deployed](#how-the-site-is-deployed)
+
+# Testing Locally
 
 ## Pre-requisites
 
@@ -168,3 +174,6 @@ Add the next HTML block inside of the corresponding Stage title anchor:
 ```
 
 Where `./request-money/SmartScan` will be the relative path of the file name (exactly the same as in the `Add a Card button` example above).
+
+# How the site is deployed
+This site is hosted on GitHub Pages. GitHub Pages has a built-in Jekyll integration, and we have it configured such that whenever code is merged to main, GitHub will automatically build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/
