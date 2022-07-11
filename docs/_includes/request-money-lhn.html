@@ -3,15 +3,15 @@
         <a href="/index.html">Home</a>
     </li>
     <li>
-        <div class="icon-with-link">
+        <div onclick="navigateTo('/hubs/send-money')" class="icon-with-link">
             <i class="fa-solid fa-angle-right icon"></i>
-            <a href="/hubs/send-money">Send money</a>
+            <span class="link">Send money</span>
         </div>
     </li>
     <li>
-        <div class="icon-with-link">
+        <div class="icon-with-link selected">
             <i class="fa-solid fa-angle-down icon"></i>
-            <span class="selected-hub">Request money</span>
+            <span>Request money</span>
         </div>
         <ul class="nested-treeview">
 
@@ -23,7 +23,7 @@
             <li><a href="#request-money">Request money</a>
                 <ul>
                     <!-- Article links -->
-                    <li onclick="openArticle('/articles/request-money/SmartScan')"><a>SmartScan</a></li>
+                    <li onclick="navigateTo('/articles/request-money/SmartScan')"><a>SmartScan</a></li>
                     <!-- More Article links here (if required)... -->
                 </ul>
             </li>

@@ -62,7 +62,7 @@ There are 3 main components in the hub page: 1. Stage title, 2. Row of Card butt
 
     <!-- 3. Card buttons -->
 
-    <div class="card" onclick="openArticle('./request-money/SmartScan')">
+    <div class="card" onclick="navigateTo('./request-money/SmartScan')">
         <div class="body">
             <div class="title">SmartScan</div>
         </div>
@@ -71,7 +71,7 @@ There are 3 main components in the hub page: 1. Stage title, 2. Row of Card butt
         </div>
     </div>
 
-    <div class="card" onclick="openArticle('./request-money/AnotherArticle')">
+    <div class="card" onclick="navigateTo('./request-money/AnotherArticle')">
         <div class="body">
             <div class="title">Another Article</div>
         </div>
@@ -113,7 +113,7 @@ A card button is the box that contains the article title and the caret right ico
 In order to add a new Card button in the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/main/docs/hubs/send-money.html) or [request-money/index.html](https://github.com/Expensify/App/blob/main/docs/hubs/request-money.html)) just copy and pase the following Card element:
 
 ```html
-<div class="card" onclick="openArticle('./request-money/SmartScan')">
+<div class="card" onclick="navigateTo('./request-money/SmartScan')">
     <div class="body">
         <div class="title">SmartScan</div>
     </div>
