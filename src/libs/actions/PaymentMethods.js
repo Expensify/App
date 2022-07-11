@@ -107,21 +107,19 @@ function getPaymentMethods() {
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  * @param {String} password
- * @param {Number} bankAccountID
- * @param {Number} fundID
+ * @param {Number} selectedPaymentMethodID
+ * @param {String} selectedPaymentMethodType
  *
- * @returns {Promise}
  */
-function makeDefaultPaymentMethod(password, bankAccountID, fundID) {
-
+function makeDefaultPaymentMethod(password, selectedPaymentMethodID, selectedPaymentMethodType) {
     // Optimistically set the bank account or debit card as the default payment method
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.USER_WALLET,
             value: {
-                walletLinkedAccountID: bankAccountID || fundID,
-                walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                walletLinkedAccountID: selectedPaymentMethodID,
+                walletLinkedAccountType: selectedPaymentMethodType,
             },
         }
     ];
@@ -132,8 +130,8 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID) {
             onyxMethod: 'merge',
             key: ONYXKEYS.USER_WALLET,
             value: {
-                walletLinkedAccountID: previousDefaultBankAccountID || previousDefaultFundID,
-                walletLinkedAccountType: previousDefaultBankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                walletLinkedAccountID: previousPaymentMethodID,
+                walletLinkedAccountType: previousPaymentMethodType,
             }
         },
     ];

@@ -222,11 +222,8 @@ class BasePaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password) {
-        if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null);
-        } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID);
-        }
+        const selectedPaymentMethodID = this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? this.state.selectedPaymentMethod.bankAccountID : this.state.selectedPaymentMethod.fundID;
+        PaymentMethods.makeDefaultPaymentMethod(password, selectedPaymentMethodID, this.state.selectedPaymentMethodType);
     }
 
     deletePaymentMethod() {
