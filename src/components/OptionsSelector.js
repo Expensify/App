@@ -220,7 +220,7 @@ class OptionsSelector extends Component {
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
         }, () => {
-            // If we just selected a new options on a multiple-selection page, scroll to the top
+            // If we just selected a new option on a multiple-selection page, scroll to the top
             if (this.props.selectedOptions.length > prevProps.selectedOptions.length) {
                 this.scrollToIndex(0);
                 return;
