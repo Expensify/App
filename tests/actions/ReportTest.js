@@ -14,6 +14,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import * as User from '../../src/libs/actions/User';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -76,7 +77,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                Report.subscribeToUserEvents();
+                User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
             .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
@@ -90,7 +91,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addAction(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -98,19 +99,35 @@ describe('actions/Report', () => {
 
                 // Store the generated clientID so that we can send it with our mock Pusher update
                 clientID = resultAction.sequenceNumber;
-
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction.loading).toEqual(true);
-            })
-            .then(() => {
+                expect(resultAction.isLoading).toEqual(true);
+
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.REPORT_COMMENT, {
-                    reportID: REPORT_ID,
-                    reportAction: {...REPORT_ACTION, clientID},
-                });
+                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                    {
+                        onyxMethod: 'merge',
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
+                        value: {
+                            reportID: REPORT_ID,
+                            maxSequenceNumber: 1,
+                            notificationPreference: 'always',
+                            lastMessageTimestamp: 0,
+                            lastMessageText: 'Testing a comment',
+                            lastActorEmail: TEST_USER_LOGIN,
+                        },
+                    },
+                    {
+                        onyxMethod: 'merge',
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            [clientID]: null,
+                            [ACTION_ID]: _.without(resultAction, 'loading'),
+                        },
+                    },
+                ]);
 
                 // Once a reportComment event is emitted to the Pusher channel we should see the comment get processed
                 // by the Pusher callback and added to the storage so we must wait for promises to resolve again and
@@ -124,7 +141,7 @@ describe('actions/Report', () => {
                 const resultAction = reportActions[ACTION_ID];
 
                 // Verify that our action is no longer in the loading state
-                expect(resultAction.loading).toEqual(false);
+                expect(resultAction.isLoading).not.toBeDefined();
             });
     });
 
@@ -180,7 +197,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addAction(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, 'Testing a comment');
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -189,10 +206,10 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // THEN only ONE call to Report_AddComment will happen
+                // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const reportAddCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('Report_AddComment'));
-                expect(reportAddCommentCalls.length).toBe(1);
+                const addCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
+                expect(addCommentCalls.length).toBe(1);
             });
     });
 });

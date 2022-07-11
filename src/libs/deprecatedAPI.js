@@ -357,19 +357,6 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {String} parameters.notificationPreference
- * @returns {Promise}
- *
- */
-function Report_UpdateNotificationPreference(parameters) {
-    const commandName = 'Report_UpdateNotificationPreference';
-    requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -942,7 +929,6 @@ export {
     Report_TogglePinned,
     Report_EditComment,
     Report_UpdateLastRead,
-    Report_UpdateNotificationPreference,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
