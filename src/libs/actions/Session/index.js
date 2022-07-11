@@ -441,7 +441,7 @@ function validateEmail(accountID, validateCode) {
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
 const reauthenticatePusher = _.throttle(() => {
     Log.info('[Pusher] Re-authenticating and then reconnecting');
-    Authentication.reauthenticate('Push_Authenticate')
+    Authentication.reauthenticate('AuthenticatePusher')
         .then(Pusher.reconnect)
         .catch(() => {
             console.debug(
@@ -459,39 +459,39 @@ const reauthenticatePusher = _.throttle(() => {
 function authenticatePusher(socketID, channelName, callback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
-    DeprecatedAPI.Push_Authenticate({
+    // We use makeRequestWithSideEffects here because we need to authorize to Pusher (an external service) each time a user connects to any channel.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('AuthenticatePusher', {
         socket_id: socketID,
         channel_name: channelName,
         shouldRetry: false,
         forceNetworkRequest: true,
-    })
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
-                callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
+    }).then((response) => {
+        if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+            Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
+            callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
 
-                // Attempt to refresh the authToken then reconnect to Pusher
-                reauthenticatePusher();
-                return;
-            }
+            // Attempt to refresh the authToken then reconnect to Pusher
+            reauthenticatePusher();
+            return;
+        }
 
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
-                callback(new Error(`Pusher failed to authenticate because code: ${response.jsonCode} message: ${response.message}`), {auth: ''});
-                return;
-            }
+        if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
+            callback(new Error(`Pusher failed to authenticate because code: ${response.jsonCode} message: ${response.message}`), {auth: ''});
+            return;
+        }
 
-            Log.info(
-                '[PusherAuthorizer] Pusher authenticated successfully',
-                false,
-                {channelName},
-            );
-            callback(null, response);
-        })
-        .catch((error) => {
-            Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
-            callback(new Error('Push_Authenticate request failed'), {auth: ''});
-        });
+        Log.info(
+            '[PusherAuthorizer] Pusher authenticated successfully',
+            false,
+            {channelName},
+        );
+        callback(null, response);
+    }).catch((error) => {
+        Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
+        callback(new Error('AuthenticatePusher request failed'), {auth: ''});
+    });
 }
 
 /**

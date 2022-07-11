@@ -119,6 +119,21 @@ function getUnreadActionCount(report) {
 }
 
 /**
+ * Returns the number of unread actions for a reportID
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ * @returns {Number}
+ */
+function getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber) {
+    const reportMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+
+    // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
+    // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
+    return Math.max(reportMaxSequenceNumber - sequenceNumber - ReportActions.getDeletedCommentsCount(reportID, sequenceNumber), 0);
+}
+
+/**
  * @param {Object} report
  * @return {String[]}
  */
@@ -409,15 +424,10 @@ function setLocalIOUReportData(iouReportObject) {
  */
 function setLocalLastRead(reportID, lastReadSequenceNumber) {
     lastReadSequenceNumbers[reportID] = lastReadSequenceNumber;
-    const reportMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-
-    // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
-    // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
-    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumber), 0);
 
     // Update the report optimistically.
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount,
+        unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, lastReadSequenceNumber),
         lastVisitedTimestamp: Date.now(),
     });
 }
@@ -1096,6 +1106,81 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
 }
 
 /**
+ * Gets the latest page of report actions and updates the last read message
+ *
+ * @param {Number} reportID
+ */
+function openReport(reportID) {
+    const sequenceNumber = reportMaxSequenceNumbers[reportID];
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
+    API.write('OpenReport',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                },
+            }],
+        });
+}
+
+/**
+ * Marks the new report actions as read
+ *
+ * @param {Number} reportID
+ */
+function readNewestAction(reportID) {
+    const sequenceNumber = reportMaxSequenceNumbers[reportID];
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
+    API.write('ReadNewestAction',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastVisitedTimestamp: Date.now(),
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                },
+            }],
+        });
+}
+
+/**
+ * Sets the last read comment on a report
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function markCommentAsUnread(reportID, sequenceNumber) {
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
+    API.write('MarkCommentAsUnread',
+        {
+            reportID,
+            sequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastVisitedTimestamp: Math.round(Date.now() / 1000),
+                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
+                },
+            }],
+        });
+}
+
+/**
  * Toggles the pinned state of the report.
  *
  * @param {Object} report
@@ -1546,4 +1631,7 @@ export {
     renameReport,
     getLastReadSequenceNumber,
     setIsComposerFullSize,
+    markCommentAsUnread,
+    readNewestAction,
+    openReport,
 };
