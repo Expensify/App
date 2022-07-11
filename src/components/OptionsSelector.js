@@ -169,16 +169,6 @@ class OptionsSelector extends Component {
                 }
 
                 this.selectRow(focusedOption);
-
-                if (!this.props.canSelectMultipleOptions) {
-                    return;
-                }
-
-                // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
-                this.scrollToIndex(0);
-                this.setState({
-                    focusedIndex: this.props.selectedOptions.length,
-                });
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
@@ -190,12 +180,17 @@ class OptionsSelector extends Component {
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
             () => {
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!this.canSelectMultipleOptions && !focusedOption) {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection();
                     return;
                 }
 
-                this.props.onConfirmSelection(focusedOption);
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
             },
             CTRLEnterConfig.descriptionKey,
             CTRLEnterConfig.modifiers,
@@ -224,12 +219,12 @@ class OptionsSelector extends Component {
         this.setState({
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
+        }, () => {
+            if (this.state.allOptions.length <= this.state.focusedIndex) {
+                return;
+            }
+            this.scrollToIndex(this.state.focusedIndex);
         });
-
-        if (newOptions.length <= newFocusedIndex) {
-            return;
-        }
-        this.scrollToIndex(newFocusedIndex);
     }
 
     componentWillUnmount() {
@@ -315,6 +310,16 @@ class OptionsSelector extends Component {
             this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
+
+        if (!this.props.canSelectMultipleOptions) {
+            return;
+        }
+
+        // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
+        this.scrollToIndex(0);
+        this.setState({
+            focusedIndex: this.props.selectedOptions.length,
+        });
     }
 
     render() {
@@ -343,6 +348,7 @@ class OptionsSelector extends Component {
                     this.relatedTarget = e.relatedTarget;
                 }}
                 selectTextOnFocus
+                blurOnSubmit={Boolean(this.state.allOptions.length)}
             />
         );
         const optionsList = this.props.shouldShowOptions ? (
