@@ -1782,16 +1782,8 @@ const styles = {
     },
 
     pdfPasswordForm: {
-        nativeNarrowContainer: {
-            ...sizing.w100,
-        },
         wideScreen: {
             width: 350,
-        },
-        narrowScreen: {
-            ...spacing.p5,
-            ...sizing.w100,
-            ...sizing.h100,
         },
     },
 

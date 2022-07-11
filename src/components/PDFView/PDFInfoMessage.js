@@ -20,9 +20,8 @@ const propTypes = {
 };
 
 const PDFInfoMessage = (props) => {
-    // Use container styles appropriate for screen size.
     const containerStyles = props.isSmallScreenWidth
-        ? [styles.pdfPasswordForm.narrowScreen]
+        ? [styles.p5, styles.w100, styles.h100]
         : [styles.pdfPasswordForm.wideScreen, styles.alignItemsCenter];
 
     return (
