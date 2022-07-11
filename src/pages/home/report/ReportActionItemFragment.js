@@ -113,6 +113,23 @@ const ReportActionItemFragment = (props) => {
                             ? `<email-comment>${htmlContent}</email-comment>`
                             : `<comment>${htmlContent}</comment>`}
                     />
+                ) : (
+                    <View style={[styles.flexRow, styles.alignItemsBaseline]}>
+                        <Text
+                            selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                            style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined}
+                        >
+                            {Str.htmlDecode(props.fragment.text)}
+                        </Text>
+                        {props.fragment.isEdited && (
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                        >
+                            {` ${props.translate('reportActionCompose.edited')}`}
+                        </Text>
+                        )}
+                    </View>
                 );
             }
             return (
