@@ -318,7 +318,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hideAddPaymentMenu}
                         anchorPosition={{
                             bottom: this.state.anchorPositionBottom,
-                            right: this.state.anchorPositionRight - 10,
+                            right: this.state.anchorPositionRight-30,
                         }}
                         onItemSelected={method => this.addPaymentMethodTypePressed(method)}
                     />
