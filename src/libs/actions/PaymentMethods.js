@@ -112,7 +112,7 @@ function getPaymentMethods() {
  *
  * @returns {Promise}
  */
-function setWalletLinkedAccount(password, bankAccountID, fundID) {
+function makeDefaultPaymentMethod(password, bankAccountID, fundID) {
     return DeprecatedAPI.SetWalletLinkedAccount({
         password,
         bankAccountID,
@@ -277,7 +277,7 @@ export {
     deleteDebitCard,
     deletePayPalMe,
     getPaymentMethods,
-    setWalletLinkedAccount,
+    makeDefaultPaymentMethod,
     addBillingCard,
     kycWallRef,
     continueSetup,
