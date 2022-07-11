@@ -1,5 +1,5 @@
 
-function openArticle(path) { // eslint-disable-line no-unused-vars
+function navigateTo(path) { // eslint-disable-line no-unused-vars
     window.location.href = path;
 }
 

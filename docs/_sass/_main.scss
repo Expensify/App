@@ -223,6 +223,16 @@ textarea {
     .icon-with-link {
         display: grid;
         grid-template-columns: 40px auto;
+        cursor: pointer;
+
+        &.selected {
+            cursor: auto;
+
+            span {
+                font-weight: bold;
+                color: $color-dark;
+            }
+        }
     }
 
     .icon {
@@ -305,11 +315,6 @@ textarea {
 
     .nested-treeview {
         margin-left: 40px;
-    }
-
-    .selected-hub {
-        font-weight: bold;
-        color: $color-dark;
     }
 
     .home-link {
