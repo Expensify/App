@@ -234,6 +234,11 @@ textarea {
             }
         }
     }
+
+    .hide {
+        display: none;
+        position: fixed;
+    }
 }
 
 #content-area {
@@ -365,9 +370,4 @@ textarea {
     &.fa-angle-right {
         padding-left: 4px;
     }
-}
-
-.hide {
-    display: none;
-    position: fixed;
 }
