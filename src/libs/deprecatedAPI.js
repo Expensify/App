@@ -364,14 +364,12 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String|null} parameters.bankAccountID
- * @param {String|null} parameters.fundID
+ * @param {String} parameters.subscribed
  * @returns {Promise}
  */
-function SetWalletLinkedAccount(parameters) {
-    const commandName = 'SetWalletLinkedAccount';
-    requireParameters(['password'], parameters, commandName);
+function UpdateAccount(parameters) {
+    const commandName = 'UpdateAccount';
+    requireParameters(['subscribed'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -842,7 +840,7 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
-    SetWalletLinkedAccount,
+    UpdateAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
