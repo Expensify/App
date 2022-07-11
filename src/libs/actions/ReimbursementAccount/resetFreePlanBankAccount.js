@@ -4,7 +4,7 @@ import CONST from '../../../CONST';
 import * as store from './store';
 import Navigation from '../../Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import API from '../../API';
+import * as API from '../../API';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
@@ -26,7 +26,7 @@ function resetFreePlanBankAccount() {
         currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
     };
 
-    API.write('RestartBankAccountSetup', 
+    API.write('RestartBankAccountSetup',
         {
             bankAccountID,
             ownerEmail: store.getCredentials().login,
