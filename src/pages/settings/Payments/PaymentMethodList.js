@@ -212,16 +212,23 @@ class PaymentMethodList extends Component {
                 {
                     this.props.shouldShowAddPaymentMethodButton
                     && (
-                        <Button
-                            text={this.props.translate('paymentMethodList.addPaymentMethod')}
-                            icon={Expensicons.CreditCard}
-                            onPress={e => this.props.onPress(e)}
-                            isDisabled={this.props.isLoadingPayments}
-                            style={[styles.mb4, styles.mh4]}
-                            success
-                            shouldShowRightIcon
-                            extraLarge
-                        />
+                        <FormAlertWrapper>
+                            {
+                                isOffline => (
+                                    <Button
+                                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                                        icon={Expensicons.CreditCard}
+                                        onPress={e => this.props.onPress(e)}
+                                        isDisabled={this.props.isLoadingPayments || isOffline}
+                                        style={[styles.mh4]}
+                                        iconStyles={[styles.mr4]}
+                                        success
+                                        shouldShowRightIcon
+                                        extraLarge
+                                    />
+                                )
+                            }
+                        </FormAlertWrapper>
                     )
                 }
             </>
