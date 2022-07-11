@@ -71,7 +71,7 @@ function getDisplayName(login, personalDetail) {
  * @returns {String}
  */
 function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.PROFILE_INPUTS_CHARACTER_LIMIT}) : '';
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
 }
 
 /**

@@ -169,7 +169,7 @@ class ProfilePage extends Component {
         const errors = {};
 
         const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(
-            CONST.PROFILE_INPUTS_CHARACTER_LIMIT,
+            CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName, values.pronouns],
         );
 
@@ -180,15 +180,15 @@ class ProfilePage extends Component {
         });
 
         if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.PROFILE_INPUTS_CHARACTER_LIMIT});
+            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
 
         if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.PROFILE_INPUTS_CHARACTER_LIMIT});
+            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
 
         if (hasPronounError) {
-            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.PROFILE_INPUTS_CHARACTER_LIMIT});
+            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
 
         return errors;
