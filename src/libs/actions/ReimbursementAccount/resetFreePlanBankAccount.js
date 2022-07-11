@@ -35,7 +35,7 @@ function resetFreePlanBankAccount() {
             optimisticData: [{
                 onyxMethod: 'merge',
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {achData: achData, shouldShowResetModal: false},
+                value: {achData, shouldShowResetModal: false},
             },
             {
                 onyxMethod: 'set',
