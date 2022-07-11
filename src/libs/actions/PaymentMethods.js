@@ -12,6 +12,8 @@ import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import NameValuePair from './NameValuePair';
 import * as store from './ReimbursementAccount/store';
+import * as API from '../API';
+
 
 /**
  * Deletes a debit card
@@ -112,9 +114,8 @@ function openPaymentsPage() {
             value: true,
         },
     };
-    console.log(onyxData);
 
-    // return API.read('OpenPaymentsPage', {}, onyxData);
+    return API.read('OpenPaymentsPage', {}, onyxData);
 }
 
 /**
