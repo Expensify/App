@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONST from '../../CONST';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -12,6 +13,7 @@ import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import NameValuePair from './NameValuePair';
 import * as store from './ReimbursementAccount/store';
+import * as PaymentUtils from '../PaymentUtils';
 
 /**
  * Deletes a debit card
@@ -121,54 +123,24 @@ function makeDefaultPaymentMethod(password, selectedPaymentMethodID, selectedPay
                 walletLinkedAccountID: selectedPaymentMethodID,
                 walletLinkedAccountType: selectedPaymentMethodType,
             },
-        }
+        },
     ];
 
     // If this is unsuccessful, set the previous default payment method as the current default
+    const previousPaymentMethod = PaymentUtils.getDefaultPaymentAccount();
+    const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'bankAccountID') ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD;
     const failureData = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.USER_WALLET,
             value: {
-                walletLinkedAccountID: previousPaymentMethodID,
+                walletLinkedAccountID: lodashGet(previousPaymentMethod, 'bankAccountID') || lodashGet(previousPaymentMethod, 'fundID'),
                 walletLinkedAccountType: previousPaymentMethodType,
-            }
+            },
         },
     ];
 
     API.write('MakeDefaultPaymentMethod', {password, bankAccountID, fundID}, {optimisticData, failureData});
-
-    return DeprecatedAPI.SetWalletLinkedAccount({
-        password,
-        bankAccountID,
-        fundID,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.USER_WALLET, {
-                    walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                });
-                Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
-                return;
-            }
-
-            // Make sure to show user more specific errors which will help support identify the problem faster.
-            switch (response.message) {
-                case CONST.WALLET.ERROR.INVALID_WALLET:
-                case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
-                case CONST.WALLET.ERROR.INVALID_FUND:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfFund')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.invalidBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                default:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
-            }
-        });
 }
 
 /**
