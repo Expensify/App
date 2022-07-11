@@ -5,7 +5,8 @@ on:
     inputs:
       SEMVER_LEVEL:
         description: One of {BUILD, PATCH, MINOR, MAJOR}
-        required: true
+        required: false
+        default: BUILD
         type: string
 
     outputs:
