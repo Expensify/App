@@ -234,21 +234,6 @@ textarea {
             }
         }
     }
-
-    .icon {
-        color: $color-gray3;
-        font-size: larger;
-        display: inline;
-
-        &.fa-angle-right {
-            padding-left: 4px;
-        }
-    }
-
-    .hide {
-        display: none;
-        position: fixed;
-    }
 }
 
 #content-area {
@@ -317,6 +302,11 @@ textarea {
         margin-left: 40px;
     }
 
+    .selected-article {
+        font-weight: bold;
+        color: $color-dark;
+    }
+
     .home-link {
         padding-left: 40px;
     }
@@ -338,7 +328,7 @@ textarea {
     display: flex;
     flex-wrap: nowrap;
     border-radius: 15px;
-    border: 1px solid lightgray;
+    border: 1px solid $color-gray2;
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
@@ -365,4 +355,19 @@ textarea {
     .description {
         margin-top: 15px;
     }
+}
+
+.icon {
+    color: $color-gray3;
+    font-size: larger;
+    display: inline;
+
+    &.fa-angle-right {
+        padding-left: 4px;
+    }
+}
+
+.hide {
+    display: none;
+    position: fixed;
 }

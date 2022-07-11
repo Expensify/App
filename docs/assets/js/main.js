@@ -54,7 +54,7 @@ if (window.tocbot) {
 
         // Class to add to active links,
         // the link corresponding to the top most heading on the page.
-        activeLinkClass: 'selected-hub',
+        activeLinkClass: 'selected-article',
 
         // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
         headingsOffset: 80,
