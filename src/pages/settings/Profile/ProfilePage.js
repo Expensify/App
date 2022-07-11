@@ -129,7 +129,7 @@ class ProfilePage extends Component {
     updateAvatar(avatar) {
         this.avatar = _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar;
 
-        this.setState({isAvatarChanged: !_.isUndefined(avatar)});
+        this.setState({isAvatarChanged: true});
     }
 
     /**
