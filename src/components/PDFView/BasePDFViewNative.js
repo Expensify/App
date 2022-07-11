@@ -134,7 +134,7 @@ class BasePDFViewNative extends Component {
         // For small screens force the container view to take up the full width when
         // displaying the password form.
         const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
-            ? styles.pdfPasswordForm.nativeNarrowContainer : {};
+            ? styles.w100 : {};
 
         return (
             <View style={containerStyles}>
