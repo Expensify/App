@@ -1,3 +1,4 @@
+import {getStateFromPath} from '@react-navigation/native';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
@@ -223,5 +224,12 @@ export default {
                 },
             },
         },
+    },
+    getStateFromPath: (path, options) => {
+        let newPath = path.startsWith('/') ? path.substring(1) : path;
+        if (newPath.startsWith('r/') && newPath.split('/').length === 3) { /* r/:reportID/:reportActionID */
+            newPath = newPath.substring(0, newPath.lastIndexOf('/'));
+        }
+        return getStateFromPath(newPath, options);
     },
 };
