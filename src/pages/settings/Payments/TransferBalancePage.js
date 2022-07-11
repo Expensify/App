@@ -181,7 +181,7 @@ class TransferBalancePage extends React.Component {
                         />
                         <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
-                                src={Illustrations.TadaYellow}
+                                src={Illustrations.TadaBlue}
                                 height={100}
                                 width={100}
                                 fill={defaultTheme.iconSuccessFill}
