@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 
-const personalDetailsPropTypes = {
+const personalDetailsPropTypes = PropTypes.shape({
     // First name of the current user from their personal details
     firstName: PropTypes.string,
 
@@ -27,7 +27,7 @@ const personalDetailsPropTypes = {
     timezone: PropTypes.shape({
         selected: PropTypes.string,
     }),
-};
+});
 
 export default function (WrappedComponent) {
     const WithPersonalDetails = (props) => {
@@ -42,7 +42,7 @@ export default function (WrappedComponent) {
                 currentUserPersonalDetails={props.personalDetails[currentUserEmail]}
             />
         );
-    }
+    };
 
     WithPersonalDetails.displayName = `WithPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
     WithPersonalDetails.propTypes = {
@@ -56,12 +56,18 @@ export default function (WrappedComponent) {
 
         /** Personal details of the current user */
         currentUserPersonalDetails: personalDetailsPropTypes,
+        session: PropTypes.shape({
+            email: PropTypes.string,
+        }),
     };
 
-    WithToggleVisibilityView.defaultProps = {
+    WithPersonalDetails.defaultProps = {
         forwardedRef: undefined,
         personalDetails: {},
         currentUserPersonalDetails: {},
+        session: {
+            email: '',
+        },
     };
 
     const withPersonalDetails = React.forwardRef((props, ref) => (
