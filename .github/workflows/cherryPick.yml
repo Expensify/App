@@ -29,8 +29,6 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.inputs.NEW_VERSION == '' }}
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
-    with:
-      SEMVER_LEVEL: BUILD
 
   cherryPick:
     needs: [validateActor, createNewVersion]

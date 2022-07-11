@@ -77,8 +77,6 @@ jobs:
     if: ${{ fromJSON(needs.chooseDeployActions.outputs.shouldDeploy) }}
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
-    with:
-      SEMVER_LEVEL: BUILD
 
   updateStaging:
     needs: [chooseDeployActions, createNewVersion]
