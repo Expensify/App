@@ -211,6 +211,15 @@ class ProfilePage extends Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
+                    <AvatarWithImagePicker
+                        isUploading={this.props.myPersonalDetails.avatarUploading}
+                        isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
+                        avatarURL={this.avatar.uri}
+                        onImageSelected={this.updateAvatar}
+                        onImageRemoved={this.updateAvatar}
+                        anchorPosition={styles.createMenuPositionProfile}
+                        size={CONST.AVATAR_SIZE.LARGE}
+                    />
                     <Form
                         style={[styles.flexGrow1, styles.p5]}
                         formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
@@ -218,18 +227,6 @@ class ProfilePage extends Component {
                         onSubmit={this.updatePersonalDetails}
                         submitButtonText={this.props.translate('common.save')}
                     >
-                        <AvatarWithImagePicker
-                            inputID="avatar"
-                            isUploading={this.props.myPersonalDetails.avatarUploading}
-                            isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
-                            avatarURL={this.avatar.uri}
-                            defaultValue={this.avatar.uri}
-                            onImageSelected={this.updateAvatar}
-                            onImageRemoved={this.updateAvatar}
-                            anchorPosition={styles.createMenuPositionProfile}
-                            size={CONST.AVATAR_SIZE.LARGE}
-                            shouldSaveDraft
-                        />
                         <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
                         </Text>
