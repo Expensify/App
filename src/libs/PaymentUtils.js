@@ -94,6 +94,20 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
 }
 
 /**
+ * Get the selected/default payment method account for wallet transfer
+ * @returns {Object|undefined}
+ */
+function getDefaultPaymentAccount() {
+    const paymentMethods = PaymentUtils.formatPaymentMethods(
+        this.props.bankAccountList,
+        this.props.cardList,
+        '',
+        this.props.userWallet,
+    );
+    return _.find(paymentMethods, method => method.isDefault);
+}
+
+/**
  * @param {Number} currentBalance, in cents
  * @param {String} methodType
  * @returns {Number} the fee, in cents
@@ -109,5 +123,6 @@ function calculateWalletTransferBalanceFee(currentBalance, methodType) {
 export {
     hasExpensifyPaymentMethod,
     formatPaymentMethods,
+    getDefaultPaymentAccount,
     calculateWalletTransferBalanceFee,
 };
