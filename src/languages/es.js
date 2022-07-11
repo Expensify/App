@@ -571,13 +571,13 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
-        passwordRequired: 'Por favor, introduzca una contraseña',
-        passwordIncorrect: 'Contraseña incorrecta. Por favor inténtalo de nuevo.',
+        passwordRequired: 'Por favor introduce tu contraseña',
+        passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
         pdfPasswordForm: {
-            title: 'PDF protegido por contraseña',
-            infoText: 'Este PDF está protegido por contraseña.',
+            title: 'PDF protegido con contraseña',
+            infoText: 'Este PDF esta protegido con contraseña.',
             beforeLinkText: 'Por favor',
-            linkText: 'introduzca la contraseña',
+            linkText: 'introduce la contraseña',
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
