@@ -98,7 +98,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
  * @returns {Object|undefined}
  */
 function getDefaultPaymentAccount() {
-    const paymentMethods = PaymentUtils.formatPaymentMethods(
+    const paymentMethods = formatPaymentMethods(
         this.props.bankAccountList,
         this.props.cardList,
         '',
