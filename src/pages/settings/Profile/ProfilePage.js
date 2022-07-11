@@ -228,6 +228,7 @@ class ProfilePage extends Component {
                             onImageRemoved={this.updateAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
+                            shouldSaveDraft
                         />
                         <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
@@ -241,6 +242,7 @@ class ProfilePage extends Component {
                                     label={this.props.translate('common.firstName')}
                                     defaultValue={this.props.myPersonalDetails.firstName}
                                     placeholder={this.props.translate('profilePage.john')}
+                                    shouldSaveDraft
                                 />
                             </View>
                             <View style={[styles.flex1, styles.ml2]}>
@@ -250,6 +252,7 @@ class ProfilePage extends Component {
                                     label={this.props.translate('common.lastName')}
                                     defaultValue={this.props.myPersonalDetails.lastName}
                                     placeholder={this.props.translate('profilePage.doe')}
+                                    shouldSaveDraft
                                 />
                             </View>
                         </View>
@@ -271,6 +274,7 @@ class ProfilePage extends Component {
                                         inputID="selfSelectedPronoun"
                                         defaultValue={this.pronouns}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                        shouldSaveDraft
                                     />
                                 </View>
                             )}
