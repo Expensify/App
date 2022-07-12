@@ -79,6 +79,9 @@ fi
 
 info 'Linting workflows...'
 ./actionlint -color || EXIT_CODE=1
+if [[ "$EXIT_CODE" == 0 ]]; then
+  success 'Workflows passed actionlint!'
+fi
 
 # Cleanup after ourselves and delete actionlint
 rm -rf ./actionlint
