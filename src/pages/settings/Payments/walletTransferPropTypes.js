@@ -6,9 +6,6 @@ const walletTransferPropTypes = PropTypes.shape({
     /** Selected accountID for transfer */
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
-    /** Amount being transferred */
-    transferAmount: PropTypes.number,
-
     /** Type to filter the payment Method list */
     filterPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
