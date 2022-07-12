@@ -1251,8 +1251,8 @@ function readNewestAction(reportID) {
  * @param {Number} reportID
  * @param {Number} offset
  */
-function readOldestAction(reportID, offset=0) {
-    const isNotLoadingData = {
+function readOldestAction(reportID, offset = 0) {
+    const hasFinishedLoadingData = {
         onyxMethod: 'merge',
         key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
         value: {
@@ -1270,10 +1270,10 @@ function readOldestAction(reportID, offset=0) {
         {
             optimisticData: [],
             successData: [
-                isNotLoadingData,
+                hasFinishedLoadingData,
             ],
             failureData: [
-                isNotLoadingData,
+                hasFinishedLoadingData,
             ],
         });
 }
