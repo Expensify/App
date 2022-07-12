@@ -92,7 +92,10 @@ AppState.addEventListener('change', (nextAppState) => {
  */
 function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
-    PersonalDetails.fetchLocalCurrency();
+    User.getBetas();
+    User.getDomainInfo();
+    PersonalDetails.openIOUModalPage();
+    GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
 
     if (shouldSyncPolicyList) {

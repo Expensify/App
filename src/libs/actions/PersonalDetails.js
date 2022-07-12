@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
@@ -283,28 +284,23 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 /**
- * Fetches the local currency based on location and sets currency code/symbol to local storage
+ * Sets the onyx with the currency list from the network
+ * @returns {Object}
  */
-function fetchLocalCurrency() {
-    const coords = {};
-    let currency = '';
-
-    Onyx.merge(ONYXKEYS.IOU, {
-        isRetrievingCurrency: true,
-    });
-
-    DeprecatedAPI.GetLocalCurrency({...coords})
+function getCurrencyList() {
+    return DeprecatedAPI.GetCurrencyList()
         .then((data) => {
-            currency = data.currency;
-        })
-        .then(() => {
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: {localCurrencyCode: currency}});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                isRetrievingCurrency: false,
-            });
+            const currencyListObject = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
+            return currencyListObject;
         });
+}
+
+/**
+ * Fetches the local currency based on location and sets currency code/symbol to Onyx
+ */
+ function openIOUModalPage() {
+    API.read('OpenIOUModalPage');
 }
 
 /**
@@ -351,7 +347,8 @@ export {
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    fetchLocalCurrency,
+    openIOUModalPage,
+    getCurrencyList,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
 };
