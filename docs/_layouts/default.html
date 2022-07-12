@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Expensify Help</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+    <link rel="icon" type="image/png" href="https://d2k5nsl2zxldvw.cloudfront.net/images/expensify-favicon.png">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.1.1/tocbot.css">
+    <script src="https://kit.fontawesome.com/263e5e8608.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.1.1/tocbot.min.js"></script>
+    <script defer src="/assets/js/main.js"></script>
+</head>
+
+<body>
+
+    <div class="lhn">
+        <img src="/assets/images/expensify-help.svg" class="logo" />
+
+        <!-- LHN content (Main navigation tree or Article TOC) -->
+        <div class="lhn-content">
+            {% case page.lhn_content %}
+            {% when "homepage" %}
+                {% include home-navigation-tree.html %}
+            {% when "request-money" %}
+                {% include request-money-navigation-tree.html %}
+            {% when "send-money" %}
+                {% include send-money-navigation-tree.html %}
+            {% else %}
+                <div onclick="history.back()" class="main-navigation-tree">
+                    <div class="link">
+                        <i class="fa-solid fa-angle-left caret-icon"></i>Back
+                    </div>
+                </div>
+                <span>In this article</span>
+                <div class="article-toc"></div>
+            {% endcase %}
+        </div>
+
+
+        <!-- Concierge button anchored at the bottom of the LHN-->
+        <div class="floating-concierge-button">
+            <!-- Floating button content -->
+        </div>
+    </div>
+
+    <div class="content-area">
+
+        <!-- Article title (only shown in article pages) -->
+        {% if page.lhn_content == nil %}
+            <h1>
+                {{ page.name | remove: '.md' | split: "-" |  join: " " }}
+            </h1>
+        {% endif %}
+
+        <div class="article-toc-content">
+
+            {{ content }}
+        </div>
+
+        <!-- Concierge button at the bottom of the page -->
+        <div class="footer-concierge-button">
+            <!-- Footer button content -->
+        </div>
+    </div>
+</body>
+
+</html>
