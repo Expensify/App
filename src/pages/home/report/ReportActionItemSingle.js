@@ -72,7 +72,7 @@ const ReportActionItemSingle = (props) => {
             >
                 <Tooltip text={props.action.actorEmail}>
                     <Avatar
-                        imageStyles={[styles.actionAvatar]}
+                        containerStyles={[styles.actionAvatar]}
                         source={avatarUrl}
                     />
                 </Tooltip>

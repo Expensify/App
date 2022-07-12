@@ -43,12 +43,12 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.canUseTouchScreen) {
-            return;
-        }
         Image.getSize(this.props.url, (width, height) => {
             this.setImageRegion(width, height);
         });
+        if (this.canUseTouchScreen) {
+            return;
+        }
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
 
@@ -65,13 +65,10 @@ class ImageView extends PureComponent {
      */
     onContainerLayoutChanged(e) {
         const {width, height} = e.nativeEvent.layout;
-        const imageWidth = this.state.imgWidth;
-        const imageHeight = this.state.imgHeight;
-        const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
+        this.setScale(width, height, this.state.imgWidth, this.state.imgHeight);
         this.setState({
             containerHeight: height,
             containerWidth: width,
-            zoomScale: scale,
         });
     }
 
@@ -120,7 +117,7 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * When open image, set image width, height and zoomScale.
+     * When open image, set image width, height.
      * @param {Number} imageWidth
      * @param {Number} imageHeight
      */
@@ -128,17 +125,26 @@ class ImageView extends PureComponent {
         if (imageHeight <= 0) {
             return;
         }
-        const containerHeight = this.state.containerHeight;
-        const containerWidth = this.state.containerWidth;
-        const width = imageWidth;
-        const height = imageHeight;
-        const newZoomScale = Math.min(containerWidth / width, containerHeight / height);
 
+        this.setScale(this.state.containerWidth, this.state.containerHeight, imageWidth, imageHeight);
         this.setState({
-            imgWidth: width,
-            imgHeight: height,
-            zoomScale: newZoomScale,
+            imgWidth: imageWidth,
+            imgHeight: imageHeight,
         });
+    }
+
+    /**
+     * @param {Number} containerWidth
+     * @param {Number} containerHeight
+     * @param {Number} imageWidth
+     * @param {Number} imageHeight
+     */
+    setScale(containerWidth, containerHeight, imageWidth, imageHeight) {
+        if (!containerWidth || !imageWidth || !containerHeight || !imageHeight) {
+            return;
+        }
+        const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
+        this.setState({zoomScale: newZoomScale});
     }
 
     /**
@@ -197,14 +203,18 @@ class ImageView extends PureComponent {
             return (
                 <View
                     style={[styles.imageViewContainer, styles.overflowHidden]}
+                    onLayout={this.onContainerLayoutChanged}
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={[
+                        style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
                             styles.h100,
-                        ]}
-                        resizeMode="contain"
+                        ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
+
+                        // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
+                        // Both `center` and `contain` keeps the image centered on both x and y axis.
+                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
@@ -240,10 +250,10 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={[
+                        style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
-                        ]}
+                        ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
                         resizeMode="contain"
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}

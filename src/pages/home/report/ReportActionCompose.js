@@ -394,8 +394,6 @@ class ReportActionCompose extends React.Component {
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
-
-        this.textInput.scrollTop = this.textInput.scrollHeight;
     }
 
     /**

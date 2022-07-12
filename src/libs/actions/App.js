@@ -2,13 +2,13 @@ import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import NameValuePair from './NameValuePair';
 import * as PersonalDetails from './PersonalDetails';
 import * as User from './User';
 import * as Report from './Report';
@@ -18,6 +18,7 @@ import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import * as SessionUtils from '../SessionUtils';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -34,12 +35,6 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
-});
-
 /**
  * @param {String} url
  */
@@ -51,24 +46,24 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    if (currentUserAccountID) {
-        DeprecatedAPI.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    // If user is not signed in, change just locally.
+    if (!currentUserAccountID) {
+        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+        return;
     }
-    Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
-}
 
-function getLocale() {
-    DeprecatedAPI.Get({
-        returnValueList: 'nameValuePairs',
-        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    }).then((response) => {
-        const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-        if (preferredLocale === currentPreferredLocale) {
-            return;
-        }
+    // Optimistically change preferred locale
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            value: locale,
+        },
+    ];
 
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-    });
+    API.write('UpdatePreferredLocale', {
+        value: locale,
+    }, {optimisticData});
 }
 
 function setSidebarLoaded() {
@@ -94,23 +89,15 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  *
  * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
- * @param {Boolean} shouldSyncVBA Set to false if we are calling on reconnect.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
-    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-    getLocale();
+function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
     GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
-
-    if (shouldSyncVBA) {
-        BankAccounts.fetchFreePlanVerifiedBankAccount();
-    }
 
     if (shouldSyncPolicyList) {
         Policy.getPolicyList();
@@ -121,6 +108,20 @@ function getAppData(shouldSyncPolicyList = true, shouldSyncVBA = true) {
         PersonalDetails.fetchPersonalDetails(),
         Report.fetchAllReports(true, true),
     ]);
+}
+
+/**
+ * Fetches data needed for app initialization
+ */
+function openApp() {
+    API.read('OpenApp');
+}
+
+/**
+ * Refreshes data when the app reconnects
+ */
+function reconnectApp() {
+    API.read('ReconnectApp');
 }
 
 /**
@@ -171,8 +172,7 @@ function setUpPoliciesAndNavigate(session) {
             const path = new URL(url).pathname;
             const params = new URLSearchParams(url);
             const exitTo = params.get('exitTo');
-            const email = params.get('email');
-            const isLoggingInAsNewUser = session.email !== email;
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(url, session.email);
             const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
@@ -193,14 +193,17 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => getAppData(true, false));
+NetworkConnection.onReconnect(() => {
+    getAppData(true);
+    reconnectApp();
+});
 
 export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
-    getLocale,
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
+    openApp,
 };
