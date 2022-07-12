@@ -3,6 +3,7 @@ import {
     View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
@@ -227,7 +228,6 @@ class BasePaymentsPage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
-            ''
         );
         const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
         const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'bankAccountID') ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD;
