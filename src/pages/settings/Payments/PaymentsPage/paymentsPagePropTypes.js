@@ -32,7 +32,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    walletTransfer: {},
+    walletTransfer: {
+        shouldShowSuccess: false,
+    },
     betas: [],
     isLoadingPaymentMethods: true,
     shouldListenForResize: false,

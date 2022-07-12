@@ -242,7 +242,7 @@ function transferWalletBalance(transferAmount, paymentMethod) {
                 key: ONYXKEYS.WALLET_TRANSFER,
                 value: {
                     loading: false,
-                    shouldShowTransferSuccess: true,
+                    shouldShowSuccess: true,
                 },
             },
         ],
@@ -252,7 +252,7 @@ function transferWalletBalance(transferAmount, paymentMethod) {
                 key: ONYXKEYS.WALLET_TRANSFER,
                 value: {
                     loading: false,
-                    shouldShowTransferSuccess: false,
+                    shouldShowSuccess: false,
                 },
             },
         ],
@@ -265,7 +265,7 @@ function resetWalletTransferData() {
         selectedAccountID: null,
         filterPaymentMethodType: null,
         loading: false,
-        shouldShowTransferSuccess: false,
+        shouldShowSuccess: false,
     });
 }
 
@@ -286,7 +286,7 @@ function saveWalletTransferMethodType(filterPaymentMethodType) {
 }
 
 function dismissSuccessfulTransferBalancePage() {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowTransferSuccess: false});
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
