@@ -280,19 +280,6 @@ function PreferredLocale_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.socket_id
- * @param {String} parameters.channel_name
- * @returns {Promise}
- */
-function Push_Authenticate(parameters) {
-    const commandName = 'Push_Authenticate';
-    requireParameters(['socket_id', 'channel_name'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.transactionID
  * @returns {Promise}
@@ -365,19 +352,6 @@ function Report_EditComment(parameters) {
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
     requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {String} parameters.notificationPreference
- * @returns {Promise}
- *
- */
-function Report_UpdateNotificationPreference(parameters) {
-    const commandName = 'Report_UpdateNotificationPreference';
-    requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -949,14 +923,12 @@ export {
     PersonalDetails_Update,
     Plaid_GetLinkToken,
     Policy_Employees_Merge,
-    Push_Authenticate,
     RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
     Report_EditComment,
     Report_UpdateLastRead,
-    Report_UpdateNotificationPreference,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,

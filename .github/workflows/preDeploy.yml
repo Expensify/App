@@ -113,7 +113,6 @@ jobs:
           TARGET_BRANCH: staging
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Determine if this pull request will be cherry-picked
         run: echo "DO_CHERRY_PICK=${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}" >> "$GITHUB_ENV"
