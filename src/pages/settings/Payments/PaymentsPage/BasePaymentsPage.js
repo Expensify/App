@@ -224,9 +224,9 @@ class BasePaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password) {
-        const paymentMethods = formatPaymentMethods(
+        const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
-            [],
+            this.props.cardList,
             ''
         );
         const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
