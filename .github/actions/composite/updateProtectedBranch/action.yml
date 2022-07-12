@@ -51,11 +51,14 @@ runs:
       with:
         GPG_PASSPHRASE: ${{ inputs.GPG_PASSPHRASE }}
 
-    - name: Checkout source branch
+    - name: Update target and source branches
       shell: bash
       run: |
-        git fetch
+        git fetch --all
+        git checkout ${{ env.TARGET_BRANCH }}
+        git pull
         git checkout ${{ env.SOURCE_BRANCH }}
+        git pull
 
     - name: Set New Version
       shell: bash
