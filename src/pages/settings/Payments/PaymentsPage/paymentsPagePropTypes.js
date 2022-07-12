@@ -3,6 +3,7 @@ import walletTransferPropTypes from '../walletTransferPropTypes';
 import {withLocalizePropTypes} from '../../../../components/withLocalize';
 import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import networkPropTypes from '../../../../components/networkPropTypes';
+import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -29,6 +30,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 };
 
 const defaultProps = {

@@ -3,6 +3,7 @@ import {
     View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -30,6 +31,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
+import * as PaymentUtils from '../../../../libs/PaymentUtils';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -223,10 +225,17 @@ class BasePaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password) {
+        const paymentMethods = formatPaymentMethods(
+            this.props.bankAccountList,
+            [],
+            ''
+        );
+        const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
+        const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'bankAccountID') ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD;
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null);
+            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, previousPaymentMethodType);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, previousPaymentMethodType);
         }
     }
 

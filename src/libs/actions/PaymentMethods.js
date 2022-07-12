@@ -12,7 +12,6 @@ import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import NameValuePair from './NameValuePair';
 import * as store from './ReimbursementAccount/store';
-import * as PaymentUtils from '../PaymentUtils';
 
 /**
  * Deletes a debit card
@@ -110,9 +109,11 @@ function getPaymentMethods() {
  * @param {String} password
  * @param {Number} bankAccountID
  * @param {Number} fundID
+ * @param {Number} previousPaymentMethod
+ * @param {String} previousPaymentMethodType
  *
  */
-function makeDefaultPaymentMethod(password, bankAccountID, fundID) {
+function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, previousPaymentMethodType) {
     // Optimistically set the bank account or debit card as the default payment method
     const optimisticData = [
         {
@@ -126,8 +127,6 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID) {
     ];
 
     // If this is unsuccessful, set the previous default payment method as the current default
-    const previousPaymentMethod = PaymentUtils.getDefaultPaymentAccount();
-    const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'bankAccountID') ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD;
     const failureData = [
         {
             onyxMethod: 'merge',
