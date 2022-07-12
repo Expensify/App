@@ -272,7 +272,7 @@ class ReportActionsView extends React.Component {
     }
 
     fetchData() {
-        Report.fetchActions(this.props.reportID);
+        Report.readOldestAction(this.props.reportID);
     }
 
     /**
