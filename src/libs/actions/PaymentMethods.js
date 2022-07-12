@@ -285,10 +285,6 @@ function saveWalletTransferMethodType(filterPaymentMethodType) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {filterPaymentMethodType});
 }
 
-function dismissWalletConfirmModal() {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
-}
-
 function dismissSuccessfulTransferBalancePage() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowTransferSuccess: false});
     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
@@ -308,6 +304,5 @@ export {
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
-    dismissWalletConfirmModal,
     cleanLocalReimbursementData,
 };
