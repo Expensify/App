@@ -164,6 +164,8 @@ export default {
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -218,7 +220,6 @@ export default {
     iou: {
         amount: 'Importe',
         participants: 'Participantes',
-        confirm: 'Confirmar',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
@@ -227,7 +228,6 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        settleVenmo: 'Pagar con Venmo',
         request: ({amount}) => `Solicitar ${amount}`,
         youowe: ({owner}) => `Le debes a ${owner}`,
         youpaid: ({owner}) => `Le pagaste a ${owner}`,
@@ -248,9 +248,7 @@ export default {
         mute: 'Nunca',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
-        useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
     avatarWithImagePicker: {
@@ -506,6 +504,8 @@ export default {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
+        notHere: 'Hmm… no está aquí',
+        pageNotFound: 'La página que buscas no existe.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -606,6 +606,7 @@ export default {
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
         selectAnswer: 'Selecciona una respuesta.',
+        ssnFull9Error: 'Por favor escribe los 9 dígitos de un SSN válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
         weCouldNotVerify: 'No pudimos verificar',
         pleaseFixIt: 'Corrije esta información antes de continuar.',
@@ -902,8 +903,8 @@ export default {
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
-        subtitle: '¿Tienes preguntas o necesitas ayuda?',
-        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        subtitle: '¿Necesitas ayuda?',
+        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
         extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
@@ -922,6 +923,11 @@ export default {
         error: {
             phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
         },
+    },
+    requestCallConfirmationScreen: {
+        callRequested: '¡Llamada solicitada con éxito!',
+        allSet: 'Todo listo! Pronto recibirás una llamada nuestra.',
+        gotIt: 'Entendido',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
