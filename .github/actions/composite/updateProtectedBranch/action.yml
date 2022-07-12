@@ -56,9 +56,9 @@ runs:
       run: |
         git fetch --all
         git checkout ${{ env.TARGET_BRANCH }}
-        git pull
+        git merge origin/${{ env.TARGET_BRANCH }}
         git checkout ${{ env.SOURCE_BRANCH }}
-        git pull
+        git merge origin/${{ env.SOURCE_BRANCH }}
 
     - name: Set New Version
       shell: bash
