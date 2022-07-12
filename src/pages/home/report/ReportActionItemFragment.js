@@ -104,22 +104,20 @@ const ReportActionItemFragment = (props) => {
                         html={`<comment>${props.fragment.html + (props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
                     />
                 ) : (
-                    <View style={[styles.flexRow, styles.alignItemsBaseline]}>
-                        <Text
-                            selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                            style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined}
-                        >
-                            {Str.htmlDecode(props.fragment.text)}
-                        </Text>
+                    <Text
+                        selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                        style={[EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined, {writingDirection: 'ltr'}]}
+                    >
+                        {`\u2066${Str.htmlDecode(props.fragment.text)}`}
                         {props.fragment.isEdited && (
-                        <Text
-                            fontSize={variables.fontSizeSmall}
-                            color={themeColors.textSupporting}
-                        >
-                            {` ${props.translate('reportActionCompose.edited')}`}
-                        </Text>
+                            <Text
+                                fontSize={variables.fontSizeSmall}
+                                color={themeColors.textSupporting}
+                            >
+                                {` ${props.translate('reportActionCompose.edited')}`}
+                            </Text>
                         )}
-                    </View>
+                    </Text>
                 );
         }
         case 'TEXT':
