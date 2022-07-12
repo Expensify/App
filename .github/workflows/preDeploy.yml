@@ -74,7 +74,7 @@ jobs:
 
   createNewVersion:
     needs: chooseDeployActions
-    if: needs.chooseDeployActions.outputs.SHOULD_DEPLOY
+    if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY == 'true' }}
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
 
