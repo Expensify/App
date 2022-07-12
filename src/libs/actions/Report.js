@@ -1606,5 +1606,6 @@ export {
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
+    readOldestAction,
     openReport,
 };
