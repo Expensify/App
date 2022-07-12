@@ -274,7 +274,7 @@ function isBlockedFromConcierge(blockedFromConcierge) {
 function addPaypalMeAddress(address) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: address,
         },
@@ -291,7 +291,7 @@ function addPaypalMeAddress(address) {
 function deletePaypalMeAddress() {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: '',
         },
