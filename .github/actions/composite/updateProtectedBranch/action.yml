@@ -55,8 +55,8 @@ runs:
       shell: bash
       run: |
         git fetch
-        git checkout ${{ env.TARGET_BRANCH }}
-        git merge origin/${{ env.TARGET_BRANCH }}
+        git checkout ${{ inputs.TARGET_BRANCH }}
+        git merge origin/${{ inputs.TARGET_BRANCH }}
         git checkout ${{ env.SOURCE_BRANCH }}
         git merge origin/${{ env.SOURCE_BRANCH }}
 
