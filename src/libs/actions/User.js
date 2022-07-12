@@ -423,7 +423,7 @@ function subscribeToExpensifyCardUpdates() {
 function setPreferredSkinTone(skinTone) {
     const optimisticData = [
         {
-            onyxMethod: 'set',
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             value: skinTone,
         },
@@ -440,7 +440,7 @@ function setPreferredSkinTone(skinTone) {
 function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
     const optimisticData = [
         {
-            onyxMethod: 'set',
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
             value: frequentlyUsedEmojis,
         },
@@ -467,7 +467,7 @@ function setPreferredTimezone(timezone) {
 function setChatPriorityMode(mode) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIORITY_MODE,
             value: mode,
         },
