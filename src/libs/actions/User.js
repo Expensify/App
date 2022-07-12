@@ -13,7 +13,6 @@ import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
-import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
@@ -442,7 +441,7 @@ function setPreferredSkinTone(skinTone) {
 function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: 'set',
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
             value: frequentlyUsedEmojis,
         },
@@ -458,7 +457,7 @@ function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
  */
 function setPreferredTimezone(timezone) {
     API.write('SetTimezone', {
-        value: timezone,
+        value: JSON.stringify(timezone),
     }, {});
 }
 
