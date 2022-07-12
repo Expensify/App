@@ -22,6 +22,7 @@ class PDFView extends Component {
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPdfLoad = this.attemptPdfLoad.bind(this);
+        this.avoidKeyboardOnSmallScreens = this.avoidKeyboardOnSmallScreens.bind(this);
     }
 
     /**
@@ -73,6 +74,19 @@ class PDFView extends Component {
         this.onPasswordCallback(password);
     }
 
+    /**
+     * On small screens notify parent that the UI should be updated to
+     * accommodate the keyboard.
+     *
+     * @param {Boolean} shouldAvoid If true update UI to accommodate keyboard
+     */
+    avoidKeyboardOnSmallScreens(shouldAvoid) {
+        if (!this.props.isSmallScreenWidth) {
+            return;
+        }
+        this.props.onAvoidKeyboard(shouldAvoid);
+    }
+
     render() {
         const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
@@ -122,7 +136,7 @@ class PDFView extends Component {
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
-                        onAvoidKeyboard={this.props.onAvoidKeyboard}
+                        onAvoidKeyboard={this.avoidKeyboardOnSmallScreens}
                     />
                 )}
             </View>
