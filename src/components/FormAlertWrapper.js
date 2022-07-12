@@ -17,7 +17,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Wrapped child components */
-    children: PropTypes.node.isRequired,
+    children: PropTypes.func.isRequired,
 
     /** Styles for container element */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
