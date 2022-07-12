@@ -300,7 +300,7 @@ class ReportActionsView extends React.Component {
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
         const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.fetchActionsWithLoadingState(this.props.reportID, offset);
+        Report.readOldestAction(this.props.reportID, offset);
     }
 
     scrollToBottomAndMarkReportAsRead() {

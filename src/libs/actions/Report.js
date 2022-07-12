@@ -1085,10 +1085,10 @@ function readNewestAction(reportID) {
 /**
  * Gets the actions from the oldest unread action.
  *
- * @param {String} reportID
+ * @param {Number} reportID
+ * @param {Number} offset
  */
-function readOldestAction(reportID) {
-    const maxSequenceNumber = getMaxSequenceNumber(reportID);
+function readOldestAction(reportID, offset=0) {
     const isNotLoadingData = {
         onyxMethod: 'merge',
         key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
@@ -1102,7 +1102,7 @@ function readOldestAction(reportID) {
     API.write('ReadOldestAction',
         {
             reportID,
-            maxSequenceNumber,
+            offset,
         },
         {
             optimisticData: [],
