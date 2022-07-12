@@ -42,7 +42,9 @@ class BasePaymentsPage extends React.Component {
             shouldShowConfirmPopover: false,
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
-            formattedSelectedPaymentMethod: {},
+            formattedSelectedPaymentMethod: {
+                title: '',
+            },
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
             addPaymentMethodButton: null,
