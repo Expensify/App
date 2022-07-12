@@ -168,7 +168,7 @@ class ProfilePage extends Component {
     validate(values) {
         const errors = {};
 
-        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName, values.pronouns],
         );
