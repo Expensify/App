@@ -136,14 +136,6 @@ class TransferBalancePage extends React.Component {
     }
 
     /**
-     * @param {Number} transferAmount
-     * @param {Object} selectedAccount
-     */
-    saveTransferAmountAndStartTransfer(transferAmount, selectedAccount) {
-        PaymentMethods.transferWalletBalance(transferAmount, selectedAccount);
-    }
-
-    /**
      * @param {String} filterPaymentMethodType
      */
     navigateToChooseTransferAccount(filterPaymentMethodType) {
@@ -297,7 +289,7 @@ class TransferBalancePage extends React.Component {
                             pressOnEnter
                             isLoading={this.props.walletTransfer.loading}
                             isDisabled={isButtonDisabled}
-                            onPress={() => this.saveTransferAmountAndStartTransfer(transferAmount, selectedAccount)}
+                            onPress={() => PaymentMethods.transferWalletBalance(transferAmount, selectedAccount)}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {
