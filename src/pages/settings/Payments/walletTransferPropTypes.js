@@ -8,9 +8,6 @@ const walletTransferPropTypes = PropTypes.shape({
 
     /** Type to filter the payment Method list */
     filterPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
-
-    /** Whether the confirmModal is shown to user. */
-    shouldShowConfirmModal: PropTypes.bool,
 });
 
 export default walletTransferPropTypes;
