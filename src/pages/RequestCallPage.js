@@ -286,7 +286,9 @@ class RequestCallPage extends Component {
 
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
+                <KeyboardAvoidingView
+                behavior="position"
+                >
                     <HeaderWithCloseButton
                         title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
