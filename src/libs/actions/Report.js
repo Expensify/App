@@ -777,46 +777,30 @@ function fetchAllReports(
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
 
-            // Delay fetching report history as it significantly increases sign in to interactive time.
-            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
-            // cancel the timer we'll make unnecessary API requests from the sign in page.
-            Timers.register(setTimeout(() => {
-                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
-                // content and improve chat switching experience by only downloading content we don't have yet.
-                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
-                // data processing by Onyx.
-                const reportIDsWithMissingActions = _.chain(returnedReports)
-                    .map(report => report.reportID)
-                    .filter(reportID => ReportActions.isReportMissingActions(reportID, lodashGet(allReports, [reportID, 'maxSequenceNumber'])))
-                    .value();
+            // Let's get all the oldest possible actions from the top 10 reports and update them enough for the user
+            // to have to scroll to see/load more actions
 
-                // Once we have the reports that are missing actions we will find the intersection between the most
-                // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
-                // set to avoid making too many network requests at once.
-                const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
-                    .map(report => report.reportID)
-                    .reverse()
-                    .intersection(reportIDsWithMissingActions)
-                    .slice(0, 10)
-                    .value();
+            // NOTE: At the moment I'm not doing the reportIDsWithMissingActions as I'm not sure if it's needed.
+            const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
+                .map(report => report.reportID)
+                .reverse()
+                .slice(0, 10)
+                .value();
 
-                if (_.isEmpty(reportIDsToFetchActions)) {
-                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
-                    return;
-                }
+            if (_.isEmpty(reportIDsToFetchActions)) {
+                Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
+                return;
+            }
 
-                Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
-                    reportIDs: reportIDsToFetchActions,
-                });
-                _.each(reportIDsToFetchActions, (reportID) => {
-                    const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
-                    fetchActions(reportID, offset);
-                });
+            Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
+                reportIDs: reportIDsToFetchActions,
+            });
 
-                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
-                // more requests and operations. Startup delay is longer since there is a lot more work done to build
-                // up the UI when the app first initializes.
-            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
+            _.each(reportIDsToFetchActions, (reportID) => {
+                const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                readOldestAction(reportID, offset);
+            });
+
         });
 }
 
