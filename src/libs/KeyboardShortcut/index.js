@@ -106,6 +106,8 @@ function bindHandlerToKeydownEvent(event) {
 const rootNode = document.getElementById('root');
 rootNode.removeEventListener('keydown', bindHandlerToKeydownEvent);
 rootNode.addEventListener('keydown', bindHandlerToKeydownEvent);
+window.removeEventListener('keydown', bindHandlerToKeydownEvent);
+window.addEventListener('keydown', bindHandlerToKeydownEvent);
 
 /**
  * Unsubscribes a keyboard event handler.
