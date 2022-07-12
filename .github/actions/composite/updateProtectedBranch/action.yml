@@ -54,7 +54,7 @@ runs:
     - name: Update target and source branches
       shell: bash
       run: |
-        git fetch --all
+        git fetch
         git checkout ${{ env.TARGET_BRANCH }}
         git merge origin/${{ env.TARGET_BRANCH }}
         git checkout ${{ env.SOURCE_BRANCH }}
