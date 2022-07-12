@@ -1768,6 +1768,7 @@ export {
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
+    readOldestAction,
     openReport,
     openPaymentDetailsPage,
     createOptimisticReport,
