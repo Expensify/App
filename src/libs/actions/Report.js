@@ -1613,7 +1613,6 @@ export {
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
-    fetchIOUReportByIDAndUpdateChatReport,
     addComment,
     addAttachment,
     updateLastReadActionID,
