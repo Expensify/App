@@ -163,7 +163,7 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
-        if (this.props.walletTransfer.shouldShowTransferSuccess) {
+        if (this.props.walletTransfer.shouldShowSuccess && !this.props.walletTransfer.loading) {
             return (
                 <ScreenWrapper>
                     <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
