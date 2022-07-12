@@ -320,19 +320,6 @@ function Report_GetHistory(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {Boolean} parameters.pinnedValue
- * @returns {Promise}
- */
-function Report_TogglePinned(parameters) {
-    const commandName = 'Report_TogglePinned';
-    requireParameters(['reportID', 'pinnedValue'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
  * @param {Number} parameters.reportActionID
  * @param {String} parameters.reportComment
  * @returns {Promise}
@@ -400,17 +387,6 @@ function SetPassword(parameters) {
 function SetWalletLinkedAccount(parameters) {
     const commandName = 'SetWalletLinkedAccount';
     requireParameters(['password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.subscribed
- * @returns {Promise}
- */
-function UpdateAccount(parameters) {
-    const commandName = 'UpdateAccount';
-    requireParameters(['subscribed'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -914,14 +890,12 @@ export {
     RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
-    Report_TogglePinned,
     Report_EditComment,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
     SetPassword,
     SetWalletLinkedAccount,
-    UpdateAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
