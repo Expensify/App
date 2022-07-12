@@ -47,6 +47,8 @@ const defaultProps = {
     isLoadingPaymentMethods: true,
     shouldListenForResize: false,
     userWallet: {},
+    bankAccountList: {},
+    cardList: {},
 };
 
 export {propTypes, defaultProps};

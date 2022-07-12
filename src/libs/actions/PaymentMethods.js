@@ -133,7 +133,7 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
             onyxMethod: 'merge',
             key: ONYXKEYS.USER_WALLET,
             value: {
-                walletLinkedAccountID: lodashGet(previousPaymentMethod, 'bankAccountID') || lodashGet(previousPaymentMethod, 'fundID'),
+                walletLinkedAccountID: lodashGet(previousPaymentMethod, 'methodID'),
                 walletLinkedAccountType: previousPaymentMethodType,
             },
         },
