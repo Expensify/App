@@ -312,7 +312,7 @@ function getCurrencyList() {
 /**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
- function openIOUModalPage() {
+function openIOUModalPage() {
     API.read('OpenIOUModalPage');
 }
 
