@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashMerge from 'lodash/merge';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
@@ -101,45 +102,38 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
 /**
  * Get the message text for the last action that was not deleted
  * @param {Number} reportID
+ * @param {Object} [actionsToMerge]
  * @return {String}
  */
-function getLastVisibleMessageText(reportID) {
+function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const parser = new ExpensiMark();
-    const lastMessageIndex = _.findLastIndex(reportActions[reportID], action => (
+    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
+    const actions = _.toArray(lodashMerge({}, existingReportActions, actionsToMerge));
+    const lastMessageIndex = _.findLastIndex(actions, action => (
         !ReportActionsUtils.isDeletedAction(action)
     ));
-    const htmlText = lodashGet(reportActions, [reportID, lastMessageIndex, 'message', 0, 'html'], '');
+    const htmlText = lodashGet(actions, [lastMessageIndex, 'message', 0, 'html'], '');
     const messageText = parser.htmlToText(htmlText);
-
     return ReportUtils.formatReportLastMessageText(messageText);
 }
 
 /**
- * Updates a report action's message to be a new value.
- *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
- * @param {Object} message
+ * @param {Number} currentUserAccountID
+ * @param {Object} [actionsToMerge]
+ * @returns {Boolean}
  */
-// function updateReportActionMessage(reportID, sequenceNumber, message) {
-//     const actionToMerge = {};
-//     actionToMerge[sequenceNumber] = {message: [message]};
-//     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge).then(() => {
-//         // If the message is deleted, update the last read message and the unread counter
-//         // if (!message.html) {
-//         //     setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
-//         // }
-
-//         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-//             lastMessageText: getLastVisibleMessageText(reportID),
-//         });
-//     });
-// }
+function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge = {}) {
+    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
+    const action = lodashMerge({}, existingReportActions, actionsToMerge)[sequenceNumber];
+    return action.actorAccountID === currentUserAccountID;
+}
 
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
-    // updateReportActionMessage,
+    isFromCurrentUser,
 };
