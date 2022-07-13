@@ -86,7 +86,7 @@ const PreferencesPage = (props) => {
                         <Picker
                             label={props.translate('preferencesPage.priorityMode')}
                             onInputChange={
-                                mode => User.setChatPriorityMode(mode)
+                                mode => User.updateChatPriorityMode(mode)
                             }
                             items={_.values(priorityModes)}
                             value={props.priorityMode}

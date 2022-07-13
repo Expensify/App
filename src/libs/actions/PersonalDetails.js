@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
-import * as User from './User';
+import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
@@ -266,7 +266,7 @@ function setPersonalDetails(details, shouldGrowl) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 if (details.timezone) {
-                    User.setPreferredTimezone(details.timezone);
+                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
                 }
                 mergeLocalPersonalDetails(details);
 
