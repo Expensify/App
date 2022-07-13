@@ -110,11 +110,11 @@ function getPaymentMethods() {
  * @param {String} password
  * @param {Number} bankAccountID
  * @param {Number} fundID
- * @param {Number} previousPaymentMethod
+ * @param {Number} previousPaymentMethodID
  * @param {String} previousPaymentMethodType
  *
  */
-function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, previousPaymentMethodType) {
+function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethodID, previousPaymentMethodType) {
     // Optimistically set the bank account or debit card as the default payment method
     const optimisticData = [
         {
@@ -133,7 +133,7 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
             onyxMethod: 'merge',
             key: ONYXKEYS.USER_WALLET,
             value: {
-                walletLinkedAccountID: lodashGet(previousPaymentMethod, 'methodID'),
+                walletLinkedAccountID: previousPaymentMethodID,
                 walletLinkedAccountType: previousPaymentMethodType,
             },
         },
