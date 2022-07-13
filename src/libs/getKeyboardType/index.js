@@ -1,12 +1,12 @@
 /**
- * Return keyboardType prop provided by parent component on Web/Desktop
+ * Return keyboardType prop provided by parent component on Web/Desktop/iOS
  * @param {Boolean} secureTextEntry
  * @param {Boolean} passwordHidden
  * @param {String} keyboardType
  * @return {String}
  */
-function getKeyboardType(secureTextEntry, passwordHidden, keyboardType) {
+function getSecureEntryKeyboardType(secureTextEntry, passwordHidden, keyboardType) {
     return keyboardType;
 }
 
-export default getKeyboardType;
+export default getSecureEntryKeyboardType;
