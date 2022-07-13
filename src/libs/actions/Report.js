@@ -21,7 +21,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
-import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
