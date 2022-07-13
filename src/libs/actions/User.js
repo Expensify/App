@@ -301,11 +301,6 @@ function deletePaypalMeAddress() {
 }
 
 /**
- * Fetch the public domain info for the current user.
- *
- * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
- * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
- * If that happens, this function will automatically retry itself in 10 minutes.
  * Fetch whether the user has the Expensify card enabled.
  */
 function getDomainInfo() {
