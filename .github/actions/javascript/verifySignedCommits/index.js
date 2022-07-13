@@ -15,7 +15,7 @@ const GitHubUtils = __nccwpck_require__(7999);
 
 const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request.number;
 
-GithubUtils.octokit.rest.pulls.listCommits({
+GitHubUtils.octokit.rest.pulls.listCommits({
     owner: GitHubUtils.GITHUB_OWNER,
     repo: GitHubUtils.APP_REPO,
     pull_number: PR_NUMBER,
