@@ -66,6 +66,7 @@ jobs:
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
     runs-on: ubuntu-latest
+    needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     steps:
       # Version: 3.0.2
