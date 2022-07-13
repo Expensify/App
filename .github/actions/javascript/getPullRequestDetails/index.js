@@ -83,7 +83,7 @@ function handleUnknownError(err) {
 }
 
 if (pullRequestNumber) {
-    GithubUtils.octokit.pulls.get({
+    GithubUtils.octokit.rest.pulls.get({
         ...DEFAULT_PAYLOAD,
         pull_number: pullRequestNumber,
     })
@@ -93,7 +93,7 @@ if (pullRequestNumber) {
         })
         .catch(handleUnknownError);
 } else {
-    GithubUtils.octokit.pulls.list({
+    GithubUtils.octokit.rest.pulls.list({
         ...DEFAULT_PAYLOAD,
         state: 'all',
     })

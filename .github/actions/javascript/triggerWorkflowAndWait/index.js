@@ -63,7 +63,7 @@ const run = function () {
             previousWorkflowRunID = lastWorkflowRunID;
 
             console.log(`Dispatching workflow: ${workflow}`);
-            return GithubUtils.octokit.actions.createWorkflowDispatch({
+            return GithubUtils.octokit.rest.actions.createWorkflowDispatch({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
                 workflow_id: workflow,
@@ -125,7 +125,7 @@ const run = function () {
                 _.throttle(
                     () => {
                         console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`);
-                        return GithubUtils.octokit.actions.getWorkflowRun({
+                        return GithubUtils.octokit.rest.actions.getWorkflowRun({
                             owner: GithubUtils.GITHUB_OWNER,
                             repo: GithubUtils.APP_REPO,
                             run_id: newWorkflowRunID,

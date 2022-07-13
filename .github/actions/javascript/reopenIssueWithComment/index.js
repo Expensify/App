@@ -16,7 +16,7 @@ const comment = core.getInput('COMMENT', {required: true});
 
 function reopenIssueWithComment() {
     console.log(`Reopening issue #${issueNumber}`);
-    return GithubUtils.octokit.issues.update({
+    return GithubUtils.octokit.rest.issues.update({
         owner: GithubUtils.GITHUB_OWNER,
         repo: GithubUtils.APP_REPO,
         issue_number: issueNumber,
@@ -24,7 +24,7 @@ function reopenIssueWithComment() {
     })
         .then(() => {
             console.log(`Commenting on issue #${issueNumber}`);
-            return GithubUtils.octokit.issues.createComment({
+            return GithubUtils.octokit.rest.issues.createComment({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
                 issue_number: issueNumber,

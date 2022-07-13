@@ -86,7 +86,7 @@ function commentPR(PR, message) {
 const run = function () {
     if (isProd) {
         // First find the deployer (who closed the last deploy checklist)?
-        return GithubUtils.octokit.issues.listForRepo({
+        return GithubUtils.octokit.rest.issues.listForRepo({
             owner: GithubUtils.GITHUB_OWNER,
             repo: GithubUtils.APP_REPO,
             labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
@@ -102,14 +102,14 @@ const run = function () {
     }
 
     // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokit.repos.listTags({
+    return GithubUtils.octokit.rest.repos.listTags({
         owner: GithubUtils.GITHUB_OWNER,
         repo: GithubUtils.APP_REPO,
         per_page: 100,
     })
         .then(({data}) => {
             const tagSHA = _.find(data, tag => tag.name === version).commit.sha;
-            return GithubUtils.octokit.git.getCommit({
+            return GithubUtils.octokit.rest.git.getCommit({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
                 commit_sha: tagSHA,
@@ -120,7 +120,7 @@ const run = function () {
             _.reduce(prList, (promise, PR) => promise
 
                 // Then, for each PR, find out who merged it and determine the deployer
-                .then(() => GithubUtils.octokit.pulls.get({
+                .then(() => GithubUtils.octokit.rest.pulls.get({
                     owner: GithubUtils.GITHUB_OWNER,
                     repo: GithubUtils.APP_REPO,
                     pull_number: PR,

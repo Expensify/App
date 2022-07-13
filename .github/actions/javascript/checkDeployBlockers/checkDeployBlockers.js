@@ -7,7 +7,7 @@ const run = function () {
 
     console.log(`Fetching issue number ${issueNumber}`);
 
-    return GithubUtils.octokit.issues.get({
+    return GithubUtils.octokit.rest.issues.get({
         owner: GithubUtils.GITHUB_OWNER,
         repo: GithubUtils.APP_REPO,
         issue_number: issueNumber,
@@ -23,7 +23,7 @@ const run = function () {
                 return;
             }
 
-            return GithubUtils.octokit.issues.listComments({
+            return GithubUtils.octokit.rest.issues.listComments({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
                 issue_number: issueNumber,
