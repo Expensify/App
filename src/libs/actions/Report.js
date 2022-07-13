@@ -776,31 +776,6 @@ function fetchAllReports(
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
-
-            // Let's get all the oldest possible actions from the top 10 reports and update them enough for the user
-            // to have to scroll to see/load more actions
-
-            // NOTE: At the moment I'm not doing the reportIDsWithMissingActions as I'm not sure if it's needed.
-            const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
-                .map(report => report.reportID)
-                .reverse()
-                .slice(0, 10)
-                .value();
-
-            if (_.isEmpty(reportIDsToFetchActions)) {
-                Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
-                return;
-            }
-
-            Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
-                reportIDs: reportIDsToFetchActions,
-            });
-
-            _.each(reportIDsToFetchActions, (reportID) => {
-                const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
-                readOldestAction(reportID, offset);
-            });
-
         });
 }
 
