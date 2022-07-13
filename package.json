@@ -123,7 +123,7 @@
     "@octokit/core": "^4.0.4",
     "@octokit/plugin-throttling": "^4.0.1",
     "@octokit/rest": "^18.3.5",
-    "@react-native-community/eslint-config": "^3.0.3",
+    "@react-native-community/eslint-config": "^3.0.0",
     "@storybook/addon-a11y": "^6.5.9",
     "@storybook/addon-essentials": "^6.5.9",
     "@storybook/addon-react-native-web": "0.0.18",
