@@ -226,6 +226,7 @@ class BasePaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password) {
+        // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
@@ -233,11 +234,12 @@ class BasePaymentsPage extends React.Component {
             this.props.userWallet,
         );
         const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
-        const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'bankAccountID') ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD;
+        const previousPaymentMethodID = lodashGet(previousPaymentMethod, 'methodID');
+        const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'accountType');
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, previousPaymentMethodType);
+            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethodID, previousPaymentMethodType);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, previousPaymentMethodType);
+            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethodID, previousPaymentMethodType);
         }
     }
 
