@@ -1399,6 +1399,10 @@ const styles = {
         maxHeight: '100%',
     },
 
+    editInputComposeSpacing: {
+        marginVertical: 6,
+    },
+
     textInputComposeSpacing: {
         paddingVertical: 6,
         ...flex.flexRow,
