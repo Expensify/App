@@ -1,9 +1,12 @@
 module.exports = {
     extends: ['expensify', 'plugin:storybook/recommended'],
     parser: 'babel-eslint',
-    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js'],
+    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'node_modules/.bin/**', '.git/**'],
     env: {
         jest: true,
+    },
+    rules: {
+        'react/forbid-prop-types': ['off'],
     },
     settings: {
         'import/resolver': {
