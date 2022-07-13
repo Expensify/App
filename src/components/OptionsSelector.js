@@ -169,16 +169,6 @@ class OptionsSelector extends Component {
                 }
 
                 this.selectRow(focusedOption);
-
-                if (!this.props.canSelectMultipleOptions) {
-                    return;
-                }
-
-                // Scroll back to the top and focus the first unselected item from the list (i.e: the best result according to the current search term)
-                this.scrollToIndex(0);
-                this.setState({
-                    focusedIndex: this.props.selectedOptions.length,
-                });
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
@@ -229,12 +219,19 @@ class OptionsSelector extends Component {
         this.setState({
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
-        });
+        }, () => {
+            // If we just selected a new option on a multiple-selection page, scroll to the top
+            if (this.props.selectedOptions.length > prevProps.selectedOptions.length) {
+                this.scrollToIndex(0);
+                return;
+            }
 
-        if (newOptions.length <= newFocusedIndex) {
-            return;
-        }
-        this.scrollToIndex(newFocusedIndex);
+            // Otherwise, scroll to the focused index (as long as it's in range)
+            if (this.state.allOptions.length <= this.state.focusedIndex) {
+                return;
+            }
+            this.scrollToIndex(this.state.focusedIndex);
+        });
     }
 
     componentWillUnmount() {
@@ -320,6 +317,15 @@ class OptionsSelector extends Component {
             this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
+
+        if (!this.props.canSelectMultipleOptions) {
+            return;
+        }
+
+        // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+        this.setState({
+            focusedIndex: this.props.selectedOptions.length,
+        });
     }
 
     render() {
