@@ -2,7 +2,7 @@ import _ from 'underscore';
 import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
 
 // This file can get outdated. In that case, you can follow these steps to update it:
-// - open your browser concole and navigate to the Network tab
+// - open your browser console and navigate to the Network tab
 // - refresh the App
 // - click on the OpenApp request and in the preview tab locate the key `currencyList`
 // - copy the value and format it to valid json using some external tool
