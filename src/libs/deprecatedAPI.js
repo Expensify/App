@@ -364,17 +364,6 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.subscribed
- * @returns {Promise}
- */
-function UpdateAccount(parameters) {
-    const commandName = 'UpdateAccount';
-    requireParameters(['subscribed'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.message
  * @returns {Promise}
  */
@@ -840,7 +829,6 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
-    UpdateAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
