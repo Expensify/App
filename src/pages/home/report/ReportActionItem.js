@@ -96,7 +96,7 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
+     * @param {Object} [selection] - Copied content.
      */
     showPopover(event, selection) {
         // Block menu on the message being Edited

@@ -20,7 +20,6 @@ class PopoverReportActionContextMenu extends React.Component {
         this.state = {
             reportID: 0,
             reportAction: {},
-            selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
             isDeleteCommentConfirmModalVisible: false,
@@ -103,7 +102,7 @@ class PopoverReportActionContextMenu extends React.Component {
      *
      * @param {string} type - context menu type [EMAIL, LINK, REPORT_ACTION]
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
+     * @param {Object} [selection] - Copied content.
      * @param {Element} contextMenuAnchor - popoverAnchor
      * @param {Number} reportID - Active Report Id
      * @param {Object} reportAction - ReportAction for ContextMenu
@@ -203,7 +202,6 @@ class PopoverReportActionContextMenu extends React.Component {
         this.setState({
             reportID: 0,
             reportAction: {},
-            selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
         });

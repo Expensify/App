@@ -31,7 +31,16 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
-contextMenu();
+// Add the Paste and Match Style command to the context menu
+contextMenu({
+    append: () => [
+        {
+            label: 'Paste and Match Style',
+            role: 'pasteAndMatchStyle',
+            accelerator: 'Cmd+Shift+V',
+        },
+    ],
+});
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify/main.log
 // See https://www.npmjs.com/package/electron-log
@@ -200,6 +209,14 @@ const mainWindow = (() => {
                     accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                     click: () => { browserWindow.webContents.goForward(); },
                 }],
+            }));
+
+            // Register the Paste and Match Style command.
+            const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
+            editMenu.submenu.insert(2, new MenuItem({
+                label: 'Paste and Match Style',
+                role: 'pasteAndMatchStyle',
+                accelerator: 'Cmd+Shift+V',
             }));
 
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');

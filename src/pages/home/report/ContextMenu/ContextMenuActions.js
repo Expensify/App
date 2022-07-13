@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
@@ -13,6 +12,7 @@ import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
+import SelectionScraper from '../../../../libs/SelectionScraper';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -65,7 +65,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection);
+            Clipboard.setString(_.get(selection, 'text', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: ContextMenuUtils.getPopoverDescription,
@@ -77,7 +77,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection.replace('mailto:', ''));
+            Clipboard.setString(_.get(selection, 'text', '').replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
@@ -96,20 +96,15 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const html = lodashGet(message, 'html', '');
-
-            const parser = new ExpensiMark();
-            const reportMarkdown = parser.htmlToMarkdown(html);
-
-            const text = selection || reportMarkdown;
+            const messageHtml = lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
-                Clipboard.setString(text);
+                Clipboard.writeTypes(selection || SelectionScraper.getCustomAsTypes(messageHtml));
             } else {
-                Clipboard.setString(html);
+                Clipboard.setString(messageHtml);
             }
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);

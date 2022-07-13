@@ -1,9 +1,9 @@
-/**
- * This is a no-op component for native devices because they wouldn't be able to support Selection API like
- * a website.
- */
+import BaseSelectionScraper from './base';
+
 const SelectionParser = {
-    getAsMarkdown: () => '',
+    // This is a no-op function for native devices because they wouldn't be able to support Selection API like a website.
+    getAsTypes: () => {},
+    getCustomAsTypes: BaseSelectionScraper.getCustomAsTypes,
 };
 
 export default SelectionParser;
