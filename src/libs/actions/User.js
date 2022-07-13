@@ -399,7 +399,7 @@ function subscribeToExpensifyCardUpdates() {
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
-function setPreferredSkinTone(skinTone) {
+function updatePreferredSkinTone(skinTone) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -407,7 +407,7 @@ function setPreferredSkinTone(skinTone) {
             value: skinTone,
         },
     ];
-    API.write('SetPreferredEmojiSkinTone', {
+    API.write('UpdatePreferredEmojiSkinTone', {
         value: skinTone,
     }, {optimisticData});
 }
@@ -416,7 +416,7 @@ function setPreferredSkinTone(skinTone) {
  * Sync frequentlyUsedEmojis with Onyx and Server
  * @param {Object[]} frequentlyUsedEmojis
  */
-function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
+function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -424,26 +424,16 @@ function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
             value: frequentlyUsedEmojis,
         },
     ];
-    API.write('SetFrequentlyUsedEmojis', {
+    API.write('UpdateFrequentlyUsedEmojis', {
         value: JSON.stringify(frequentlyUsedEmojis),
     }, {optimisticData});
-}
-
-/**
- * Sync preferred timezone with Onyx and Server
- * @param {String} timezone
- */
-function setPreferredTimezone(timezone) {
-    API.write('SetTimezone', {
-        value: JSON.stringify(timezone),
-    }, {});
 }
 
 /**
  * Sync user chat priority mode with Onyx and Server
  * @param {String} mode
  */
-function setChatPriorityMode(mode) {
+function updateChatPriorityMode(mode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -451,7 +441,7 @@ function setChatPriorityMode(mode) {
             value: mode,
         },
     ];
-    API.write('SetChatPriorityMode', {
+    API.write('UpdateChatPriorityMode', {
         value: mode,
     }, {optimisticData});
 }
@@ -516,16 +506,15 @@ export {
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
-    setPreferredSkinTone,
+    updatePreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
-    setFrequentlyUsedEmojis,
+    updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
     deletePaypalMeAddress,
     addPaypalMeAddress,
-    setChatPriorityMode,
-    setPreferredTimezone,
+    updateChatPriorityMode,
 };
