@@ -142,13 +142,13 @@ class ReportActionItem extends Component {
                 ? <ReportActionItemMessage action={this.props.action} />
                 : (
                     <ReportActionItemMessageEdit
-                            action={this.props.action}
-                            draftMessage={this.props.draftMessage}
-                            reportID={this.props.reportID}
-                            index={this.props.index}
-                            ref={el => this.textInput = el}
-                            report={this.props.report}
-                            blockedFromConcierge={this.props.blockedFromConcierge}
+                        action={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        reportID={this.props.reportID}
+                        index={this.props.index}
+                        ref={el => this.textInput = el}
+                        report={this.props.report}
+                        blockedFromConcierge={this.props.blockedFromConcierge}
                     />
                 );
         }
