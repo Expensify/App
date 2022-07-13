@@ -71,6 +71,8 @@ jobs:
     steps:
       # Version: 3.0.2
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        with:
+          fetch-depth: 0
 
       - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
         with:
@@ -94,7 +96,7 @@ jobs:
 
       - name: Pull staging to get the new version
         run: |
-          git checkout -b staging
+          git checkout staging
           git pull origin staging
           echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
           echo "New version is ${{ env.NEW_VERSION }}"
