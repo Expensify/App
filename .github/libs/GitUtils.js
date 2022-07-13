@@ -15,7 +15,7 @@ function getMergeLogsAsJSON(fromRef, toRef) {
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const spawnedProcess = spawn('git log', ['--format=\'{"commit": "%H", "subject": "%s"},', `${fromRef}...${toRef}`]);
+        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "subject": "%s"},', `${fromRef}...${toRef}`]);
         spawnedProcess.on('message', console.log);
         spawnedProcess.stdout.on('data', (chunk) => {
             console.log(chunk.toString());
@@ -36,7 +36,10 @@ function getMergeLogsAsJSON(fromRef, toRef) {
     })
         .then((stdout) => {
             // Remove any double-quotes from commit subjects
-            const sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
+            let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
+
+            // Also remove any newlines
+            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '');
 
             // Then format as JSON and convert to a proper JS object
             const json = `[${sanitizedOutput}]`.replace('},]', '}]');
