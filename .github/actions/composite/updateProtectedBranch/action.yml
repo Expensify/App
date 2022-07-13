@@ -51,9 +51,14 @@ runs:
       with:
         GPG_PASSPHRASE: ${{ inputs.GPG_PASSPHRASE }}
 
-    - name: Checkout source branch
+    - name: Update target and source branches
       shell: bash
-      run: git checkout ${{ env.SOURCE_BRANCH }}
+      run: |
+        git fetch
+        git checkout ${{ inputs.TARGET_BRANCH }}
+        git merge origin/${{ inputs.TARGET_BRANCH }}
+        git checkout ${{ env.SOURCE_BRANCH }}
+        git merge origin/${{ env.SOURCE_BRANCH }}
 
     - name: Set New Version
       shell: bash
@@ -66,7 +71,10 @@ runs:
         git checkout ${{ inputs.TARGET_BRANCH }}
         BRANCH_NAME=update-${{ inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
         git checkout -b "$BRANCH_NAME"
-        git merge -Xtheirs ${{ env.SOURCE_BRANCH }}
+        git merge -Xtheirs ${{ env.SOURCE_BRANCH }} || {
+          git diff --name-only --diff-filter=U | xargs git rm;
+          git -c core.editor=true merge --continue;
+        }
         git push --set-upstream origin "$BRANCH_NAME"
 
     - name: Create Pull Request

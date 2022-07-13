@@ -15,6 +15,7 @@ import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -210,17 +211,21 @@ class PaymentMethodList extends Component {
         }
         if (item.type === BUTTON) {
             return (
-                <Button
-                    text={item.text}
-                    icon={item.icon}
-                    onPress={item.onPress}
-                    isDisabled={item.isDisabled}
-                    style={item.style}
-                    iconStyles={item.iconStyles}
-                    success={item.success}
-                    shouldShowRightIcon={item.shouldShowRightIcon}
-                    extraLarge
-                />
+                <FormAlertWrapper>
+                    {isOffline => (
+                        <Button
+                            text={item.text}
+                            icon={item.icon}
+                            onPress={item.onPress}
+                            isDisabled={item.isDisabled || isOffline}
+                            style={item.style}
+                            iconStyles={item.iconStyles}
+                            success={item.success}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            extraLarge
+                        />
+                    )}
+                </FormAlertWrapper>
             );
         }
 
