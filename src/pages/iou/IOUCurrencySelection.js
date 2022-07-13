@@ -57,7 +57,6 @@ class IOUCurrencySelection extends Component {
     /**
      * Returns the sections needed for the OptionsSelector
      *
-     * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
     getSections() {
