@@ -292,21 +292,6 @@ function RejectTransaction(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.reportComment
- * @param {Number} parameters.reportID
- * @param {String} parameters.clientID
- * @param {File|Object} [parameters.file]
- * @returns {Promise}
- */
-function Report_AddComment(parameters) {
-    const commandName = 'Report_AddComment';
-    requireParameters(['reportComment', 'reportID', 'clientID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @returns {Promise}
  */
@@ -851,7 +836,6 @@ export {
     Plaid_GetLinkToken,
     Policy_Employees_Merge,
     RejectTransaction,
-    Report_AddComment,
     Report_GetHistory,
     Report_EditComment,
     ResendValidateCode,
