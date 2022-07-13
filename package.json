@@ -121,6 +121,7 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
     "@octokit/core": "^4.0.4",
+    "@octokit/plugin-paginate-rest": "^3.0.0",
     "@octokit/plugin-throttling": "^4.0.1",
     "@octokit/rest": "^18.3.5",
     "@react-native-community/eslint-config": "^3.0.0",

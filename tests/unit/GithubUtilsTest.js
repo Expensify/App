@@ -329,11 +329,15 @@ describe('GithubUtils', () => {
         ];
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
-                repos: {
-                    listTags: jest.fn().mockResolvedValue({data: mockTags}),
-                },
-                pulls: {
-                    list: jest.fn().mockResolvedValue({data: mockPRs}),
+                rest: {
+                    repos: {
+                        listTags: jest.fn()
+                            .mockResolvedValue({data: mockTags}),
+                    },
+                    pulls: {
+                        list: jest.fn()
+                            .mockResolvedValue({data: mockPRs}),
+                    },
                 },
                 paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
             }),

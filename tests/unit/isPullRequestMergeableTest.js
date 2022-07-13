@@ -28,11 +28,13 @@ beforeAll(() => {
 
     // Mock octokit module
     const mocktokit = {
-        pulls: {
-            get: mockGetPullRequest,
-        },
-        checks: {
-            listForRef: mockListChecks,
+        rest: {
+            pulls: {
+                get: mockGetPullRequest,
+            },
+            checks: {
+                listForRef: mockListChecks,
+            },
         },
     };
     GithubUtils.octokitInternal = mocktokit;

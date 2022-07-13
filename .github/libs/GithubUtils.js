@@ -69,7 +69,7 @@ class GithubUtils {
      * @returns {Promise}
      */
     static getStagingDeployCash() {
-        return this.octokit.issues.listForRepo({
+        return this.octokit.rest.issues.listForRepo({
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             labels: STAGING_DEPLOY_CASH_LABEL,
@@ -316,7 +316,7 @@ class GithubUtils {
      */
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
-        return this.octokit.paginate(this.octokit.pulls.list, {
+        return this.octokit.paginate(this.octokit.rest.pulls.list, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             state: 'all',
@@ -343,7 +343,7 @@ class GithubUtils {
      */
     static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
-        return this.octokit.issues.createComment({
+        return this.octokit.rest.issues.createComment({
             owner: GITHUB_OWNER,
             repo,
             issue_number: number,
@@ -359,7 +359,7 @@ class GithubUtils {
      */
     static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
-        return this.octokit.actions.listWorkflowRuns({
+        return this.octokit.rest.actions.listWorkflowRuns({
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             workflow_id: workflow,
@@ -452,7 +452,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.octokit.paginate(this.octokit.issues.listEvents, {
+        return this.octokit.paginate(this.octokit.rest.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,

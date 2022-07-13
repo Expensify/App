@@ -44,8 +44,10 @@ beforeAll(() => {
 
     // Mock octokit module
     const mocktokit = {
-        actions: {
-            listWorkflowRuns: mockListWorkflowRuns,
+        rest: {
+            actions: {
+                listWorkflowRuns: mockListWorkflowRuns,
+            },
         },
     };
     GitHubUtils.octokitInternal = mocktokit;

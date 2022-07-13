@@ -17,27 +17,34 @@ beforeAll(() => {
 
     // Mock octokit module
     const mocktokit = {
-        issues: {
-            create: jest.fn().mockImplementation(arg => Promise.resolve({
-                data: {
-                    ...arg,
-                    html_url: 'https://github.com/Expensify/App/issues/29',
-                },
-            })),
-            update: jest.fn().mockImplementation(arg => Promise.resolve({
-                data: {
-                    ...arg,
-                    html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
-                },
-            })),
-            listForRepo: mockListIssues,
+        rest: {
+            issues: {
+                create: jest.fn()
+                    .mockImplementation(arg => Promise.resolve({
+                        data: {
+                            ...arg,
+                            html_url: 'https://github.com/Expensify/App/issues/29',
+                        },
+                    })),
+                update: jest.fn()
+                    .mockImplementation(arg => Promise.resolve({
+                        data: {
+                            ...arg,
+                            html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
+                        },
+                    })),
+                listForRepo: mockListIssues,
+            },
+            pulls: {
+                // Static mock for pulls.list (only used to filter out automated PRs, and that functionality is covered
+                // in the test for GithubUtils.generateStagingDeployCashBody
+                list: jest.fn()
+                    .mockResolvedValue([]),
+            },
         },
-        pulls: {
-            // Static mock for pulls.list (only used to filter out automated PRs, and that functionality is covered
-            // in the test for GithubUtils.generateStagingDeployCashBody
-            list: jest.fn().mockResolvedValue([]),
-        },
-        paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
+        paginate: jest.fn()
+            .mockImplementation(objectMethod => objectMethod()
+                .then(({data}) => data)),
     };
     GithubUtils.octokitInternal = mocktokit;
 
