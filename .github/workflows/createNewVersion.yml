@@ -1,37 +1,16 @@
 name: Create new version
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       SEMVER_LEVEL:
         description: One of {BUILD, PATCH, MINOR, MAJOR}
-        required: false
-        default: BUILD
-        type: string
-
-    outputs:
-      NEW_VERSION:
-        description: The new version string
-        value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
-
-    secrets:
-      LARGE_SECRET_PASSPHRASE:
-        description: Passphrase used to decrypt GPG key
-        required: true
-      OS_BOTIFY_TOKEN:
-        description: Token for the OSBotify user
-        required: true
-      SLACK_WEBHOOK:
-        description: Webhook used to comment in slack
         required: true
 
 jobs:
   createNewVersion:
     if: github.actor == 'OSBotify'
     runs-on: macos-latest
-
-    outputs:
-      NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
     steps:
       # Version: 3.0.2
