@@ -59,6 +59,18 @@ jobs:
         id: shouldDeploy
         run: echo "::set-output name=SHOULD_DEPLOY::${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}"
 
+  debugChooseDeployActions:
+    runs-on: ubuntu-latest
+    needs: chooseDeployActions
+    steps:
+      - if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
+        run: echo 'This proves that the expected output is true and this is a GitHub bug'
+
+      - if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
+        run: echo 'This is weird'
+
+      - run: echo '${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}'
+
   skipDeploy:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
@@ -74,7 +86,7 @@ jobs:
 
   createNewVersion:
     needs: chooseDeployActions
-    if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY == 'true' }}
+    if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
 
