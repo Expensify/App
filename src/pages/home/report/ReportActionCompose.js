@@ -5,7 +5,6 @@ import {
     TouchableOpacity,
     InteractionManager,
 } from 'react-native';
-import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -44,6 +43,7 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** Beta features list */
