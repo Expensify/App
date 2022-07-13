@@ -29,7 +29,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      HAS_WRITE_ACCESS: ${{ contains(fromJSON(["write", "admin"]), steps.getUserPermissions.outputs.PERMISSION) }}
+      HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
     steps:
       - name: Get user permissions
         id: getUserPermissions
