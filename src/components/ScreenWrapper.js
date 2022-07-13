@@ -15,6 +15,8 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import withNavigation from './withNavigation';
+import withWindowDimensions from './withWindowDimensions';
+import OfflineIndicator from './OfflineIndicator';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -34,6 +36,9 @@ const propTypes = {
 
     // Called when navigated Screen's transition is finished.
     onTransitionEnd: PropTypes.func,
+
+    /** Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 
     // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
@@ -126,6 +131,7 @@ class ScreenWrapper extends React.Component {
                                     : this.props.children
                             }
                             <KeyboardShortcutsModal />
+                            {this.props.isSmallScreenWidth && <OfflineIndicator />}
                         </View>
                     );
                 }}
@@ -139,6 +145,7 @@ ScreenWrapper.defaultProps = defaultProps;
 
 export default compose(
     withNavigation,
+    withWindowDimensions,
     withOnyx({
         modal: {
             key: ONYXKEYS.MODAL,
