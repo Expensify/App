@@ -429,23 +429,16 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Add a new comment to this chat
-     *
-     * @param {SyntheticEvent} [e]
+     * @returns {String}
      */
-    submitForm(e) {
-        if (e) {
-            e.preventDefault();
-        }
-
+    prepareCommentAndResetComposer() {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
         if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
-            return;
+            return '';
         }
 
-        this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
         if (this.props.isComposerFullSize) {
@@ -455,6 +448,25 @@ class ReportActionCompose extends React.Component {
 
         // Important to reset the selection on Submit action
         this.textInput.setNativeProps({selection: {start: 0, end: 0}});
+        return trimmedComment;
+    }
+
+    /**
+     * Add a new comment to this chat
+     *
+     * @param {SyntheticEvent} [e]
+     */
+    submitForm(e) {
+        if (e) {
+            e.preventDefault();
+        }
+
+        const comment = this.prepareCommentAndResetComposer();
+        if (!comment) {
+            return;
+        }
+
+        this.props.onSubmit(comment);
     }
 
     render() {
@@ -492,8 +504,8 @@ class ReportActionCompose extends React.Component {
                     <AttachmentModal
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={(file) => {
-                            this.submitForm();
-                            Report.addAttachment(this.props.reportID, file);
+                            const comment = this.prepareCommentAndResetComposer();
+                            Report.addAttachment(this.props.reportID, file, comment);
                             this.setTextInputShouldClear(false);
                         }}
                     >
