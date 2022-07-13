@@ -94,8 +94,8 @@ jobs:
 
       - name: Pull staging to get the new version
         run: |
-          git fetch
-          git switch staging
+          git checkout -b staging
+          git pull origin staging
           echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
           echo "New version is ${{ env.NEW_VERSION }}"
 
