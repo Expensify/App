@@ -289,7 +289,7 @@ class TransferBalancePage extends React.Component {
                             pressOnEnter
                             isLoading={this.props.walletTransfer.loading}
                             isDisabled={isButtonDisabled}
-                            onPress={() => PaymentMethods.transferWalletBalance(transferAmount, selectedAccount)}
+                            onPress={() => PaymentMethods.transferWalletBalance(selectedAccount)}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
                                 {

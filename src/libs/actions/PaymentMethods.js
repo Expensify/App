@@ -210,12 +210,11 @@ function clearDebitCardFormErrorAndSubmit() {
 
 /**
  * Call the API to transfer wallet balance.
- * @param {Number} transferAmount
  * @param {Object} paymentMethod
  * @param {*} paymentMethod.methodID
  * @param {String} paymentMethod.accountType
  */
-function transferWalletBalance(transferAmount, paymentMethod) {
+function transferWalletBalance(paymentMethod) {
     const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
         ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT
         : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
@@ -230,7 +229,6 @@ function transferWalletBalance(transferAmount, paymentMethod) {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.WALLET_TRANSFER,
                 value: {
-                    transferAmount,
                     loading: true,
                     error: null,
                 },
