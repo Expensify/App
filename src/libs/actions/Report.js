@@ -961,7 +961,7 @@ function addActions(reportID, text = '', file) {
         reportID,
         reportComment: reportCommentText,
         clientID: lastAction.clientID,
-        commentClientID: reportCommentAction.clientID,
+        commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
         file,
     };
 
