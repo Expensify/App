@@ -2,6 +2,7 @@ import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -109,9 +110,14 @@ function getAppData(shouldSyncPolicyList = true) {
 
 /**
  * Fetches data needed for app initialization
+ * @param {Array} policies
  */
-function openApp() {
-    API.read('OpenApp');
+function openApp(policies) {
+    const policyIDs = _.chain(policies)
+        .map(policy => policy.id)
+        .join(',');
+
+    API.read('OpenApp', {policyIDs});
 }
 
 /**
