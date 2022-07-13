@@ -280,19 +280,6 @@ function PreferredLocale_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.socket_id
- * @param {String} parameters.channel_name
- * @returns {Promise}
- */
-function Push_Authenticate(parameters) {
-    const commandName = 'Push_Authenticate';
-    requireParameters(['socket_id', 'channel_name'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.transactionID
  * @returns {Promise}
@@ -333,19 +320,6 @@ function Report_GetHistory(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {Boolean} parameters.pinnedValue
- * @returns {Promise}
- */
-function Report_TogglePinned(parameters) {
-    const commandName = 'Report_TogglePinned';
-    requireParameters(['reportID', 'pinnedValue'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
  * @param {Number} parameters.reportActionID
  * @param {String} parameters.reportComment
  * @returns {Promise}
@@ -353,18 +327,6 @@ function Report_TogglePinned(parameters) {
 function Report_EditComment(parameters) {
     const commandName = 'Report_EditComment';
     requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Number} parameters.sequenceNumber
- * @returns {Promise}
- */
-function Report_UpdateLastRead(parameters) {
-    const commandName = 'Report_UpdateLastRead';
-    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -423,7 +385,6 @@ function SetPassword(parameters) {
 function UpdateAccount(parameters) {
     const commandName = 'UpdateAccount';
     requireParameters(['subscribed'], parameters, commandName);
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -441,21 +402,6 @@ function User_Delete(parameters) {
  */
 function User_GetBetas() {
     return Network.post('User_GetBetas');
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} [parameters.requireCertainty]
- * @returns {Promise}
- */
-function User_IsFromPublicDomain(parameters) {
-    const commandName = 'User_IsFromPublicDomain';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, {
-        ...{requireCertainty: true},
-        ...parameters,
-    });
 }
 
 /**
@@ -923,13 +869,10 @@ export {
     PersonalDetails_Update,
     Plaid_GetLinkToken,
     Policy_Employees_Merge,
-    Push_Authenticate,
     RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
-    Report_TogglePinned,
     Report_EditComment,
-    Report_UpdateLastRead,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
@@ -939,7 +882,6 @@ export {
     User_SignUp,
     User_Delete,
     User_GetBetas,
-    User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
