@@ -35,6 +35,18 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
+const allPolicies = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (val, key) => {
+        if (!val || !key) {
+            return;
+        }
+
+        allPolicies[key] = {...allPolicies[key], ...val};
+    },
+});
+
 /**
  * @param {String} url
  */
@@ -124,7 +136,11 @@ function openApp(policies) {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp');
+    const policyIDs = _.chain(allPolicies)
+        .map(policy => policy.id)
+        .join(',');
+
+    API.read('ReconnectApp', {policyIDs});
 }
 
 /**
