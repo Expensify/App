@@ -1379,7 +1379,7 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusSmall,
+        borderRadius: 0,
         height: 'auto',
         lineHeight: 20,
         ...overflowXHidden,
