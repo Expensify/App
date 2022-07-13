@@ -3,8 +3,10 @@ import {
     CommonActions, StackActions, DrawerActions, getStateFromPath,
 } from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import {Dimensions} from 'react-native';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import variables from '../../styles/variables';
 
 /**
  * @returns {Object}
@@ -57,6 +59,11 @@ function getScreenNameFromState(state) {
     return getRouteFromState(state).name || '';
 }
 
+let isSmallScreenWidth;
+Dimensions.addEventListener('change', ({window}) => {
+    isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
+});
+
 /**
  * Special accomodation must be made for navigating to a screen inside a DrawerNavigator (e.g. our ReportScreen). The web/mWeb default behavior when
  * calling "navigate()" does not give us the browser history we would expect for a typical web paradigm (e.g. that navigating from one screen another
@@ -65,10 +72,9 @@ function getScreenNameFromState(state) {
  * More context here: https://github.com/react-navigation/react-navigation/issues/9744
  *
  * @param {String} route
- * @param {String} isSmallScreenWidth
  * @returns {Function}
  */
-function pushDrawerRoute(route, isSmallScreenWidth) {
+function pushDrawerRoute(route) {
     return (currentState) => {
         // Parse the state, name, and params from the new route we want to navigate to.
         const newStateFromRoute = getStateFromPath(route, linkingConfig.config);
