@@ -108,15 +108,14 @@ jobs:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
         with:
           ref: staging
+          fetch-depth: 0
 
       # Create a local git tag on staging so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
       # list of pull requests that were merged between this version tag and another.
       # NOTE: This tag is only used locally and shouldn't be pushed to the remote.
       # If it was pushed, that would trigger the staging deploy which is handled in a separate workflow (deploy.yml)
       - name: Tag staging
-        run: |
-          git fetch --tags
-          git tag ${{ needs.createNewVersion.outputs.NEW_VERSION }}
+        run: git tag ${{ needs.createNewVersion.outputs.NEW_VERSION }}
 
       - name: Update StagingDeployCash
         uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
