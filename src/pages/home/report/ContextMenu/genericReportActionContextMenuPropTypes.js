@@ -15,8 +15,12 @@ const propTypes = {
     /** Controls the visibility of this component. */
     isVisible: PropTypes.bool,
 
-    /** The copy selection of text. */
-    selection: PropTypes.string,
+    /** The copy selection. */
+    selection: PropTypes.shape({
+        html: PropTypes.string,
+        text: PropTypes.string,
+        markdown: PropTypes.string,
+    }),
 
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
@@ -25,7 +29,6 @@ const propTypes = {
 const defaultProps = {
     isMini: false,
     isVisible: false,
-    selection: '',
     draftMessage: '',
 };
 
