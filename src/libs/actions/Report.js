@@ -1046,29 +1046,31 @@ function readNewestAction(reportID) {
  * @param {Number} reportID
  * @param {Number} offset
  */
-function readOldestAction(reportID, offset = 0) {
-    const hasFinishedLoadingData = {
-        onyxMethod: 'merge',
+function readOldestAction(reportID, oldestActionSequenceNumber = 0) {
+    const finishedLoadingData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
         value: {
             isLoading: false,
         },
     };
 
-    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
-
     API.write('ReadOldestAction',
         {
             reportID,
-            offset,
+            reportActionsOffset: oldestActionSequenceNumber,
         },
         {
-            optimisticData: [],
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                value: {isLoading: true},
+            }],
             successData: [
-                hasFinishedLoadingData,
+                finishedLoadingData,
             ],
             failureData: [
-                hasFinishedLoadingData,
+                finishedLoadingData,
             ],
         });
 }
