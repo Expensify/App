@@ -34,6 +34,8 @@ jobs:
       - name: Get user permissions
         id: getUserPermissions
         run: echo "::set-output name=PERMISSION::$(gh api /repos/Expensify/App/collaborators/roryabraham/permission | jq -r '.permission')"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   createNewVersion:
     runs-on: macos-latest
