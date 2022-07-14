@@ -106,6 +106,7 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
+        IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions_'
     },
 
     // Indicates which locale should be used

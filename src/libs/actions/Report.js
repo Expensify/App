@@ -1017,6 +1017,41 @@ function openReport(reportID) {
 }
 
 /**
+ * Gets the actions from the oldest unread action.
+ *
+ * @param {Number} reportID
+ * @param {Number} offset
+ */
+function readOldestAction(reportID, oldestActionSequenceNumber) {
+    const completionData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+        value: {
+            isLoading: false,
+        },
+    };
+
+    API.read('ReadOldestAction',
+        {
+            reportID,
+            reportActionsOffset: oldestActionSequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                value: {isLoading: true},
+            }],
+            successData: [
+                completionData,
+            ],
+            failureData: [
+                completionData,
+            ],
+        });
+}
+
+/**
  * Marks the new report actions as read
  *
  * @param {Number} reportID
@@ -1037,41 +1072,6 @@ function readNewestAction(reportID) {
                     unreadActionCount: 0,
                 },
             }],
-        });
-}
-
-/**
- * Gets the actions from the oldest unread action.
- *
- * @param {Number} reportID
- * @param {Number} offset
- */
-function readOldestAction(reportID, oldestActionSequenceNumber = 0) {
-    const finishedLoadingData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
-        value: {
-            isLoading: false,
-        },
-    };
-
-    API.write('ReadOldestAction',
-        {
-            reportID,
-            reportActionsOffset: oldestActionSequenceNumber,
-        },
-        {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.IS_LOADING_REPORT_ACTIONS}${reportID}`,
-                value: {isLoading: true},
-            }],
-            successData: [
-                finishedLoadingData,
-            ],
-            failureData: [
-                finishedLoadingData,
-            ],
         });
 }
 
