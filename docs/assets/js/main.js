@@ -25,9 +25,9 @@ function toggleHeaderMenu() { // eslint-disable-line no-unused-vars
 
 function navigateBack() { // eslint-disable-line no-unused-vars
     if (window.location.pathname.includes('/request-money/')) {
-        window.location.href = '/hubs/request-money/';
+        window.location.href = '/hubs/request-money';
     } else {
-        window.location.href = '/hubs/send-money/';
+        window.location.href = '/hubs/send-money';
     }
 
     // Add a little delay to avoid showing the previous content in a fraction of a time
