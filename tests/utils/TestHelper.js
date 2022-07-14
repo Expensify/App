@@ -1,5 +1,4 @@
 import * as Session from '../../src/libs/actions/Session';
-import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
 
@@ -52,32 +51,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 }
 
 /**
- * Fetch and set personal details with provided personalDetailsList
- *
- * @param {Number} accountID
- * @param {String} email
- * @param {Object} personalDetailsList
- * @returns {Promise}
- */
-function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) {
-    const originalXHR = HttpUtils.xhr;
-    HttpUtils.xhr = jest.fn();
-
-    HttpUtils.xhr
-        .mockImplementationOnce(() => Promise.resolve({
-            accountID,
-            email,
-            personalDetailsList,
-        }));
-
-    PersonalDetails.fetchPersonalDetails();
-    return waitForPromisesToResolve()
-        .then(() => {
-            HttpUtils.xhr = originalXHR;
-        });
-}
-
-/**
  * Use for situations where fetch() is required.
  *
  * @example
@@ -101,5 +74,4 @@ function getGlobalFetchMock() {
 export {
     getGlobalFetchMock,
     signInWithTestUser,
-    fetchPersonalDetailsForTestUser,
 };

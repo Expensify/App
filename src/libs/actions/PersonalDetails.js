@@ -117,38 +117,6 @@ function formatPersonalDetails(personalDetailsList) {
 }
 
 /**
- * Get the personal details for our organization
- * @returns {Promise}
- */
-function fetchPersonalDetails() {
-    return DeprecatedAPI.Get({
-        returnValueList: 'personalDetailsList',
-    })
-        .then((data) => {
-            let myPersonalDetails = {};
-
-            // If personalDetailsList does not have the current user ensure we initialize their details with an empty
-            // object at least
-            const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
-            if (!personalDetailsList[currentUserEmail]) {
-                personalDetailsList[currentUserEmail] = {};
-            }
-
-            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-
-            myPersonalDetails = allPersonalDetails[currentUserEmail];
-
-            // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
-            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
-            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
-
-            // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-        });
-}
-
-/**
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
@@ -371,7 +339,6 @@ function deleteAvatar(defaultAvatarURL) {
 }
 
 export {
-    fetchPersonalDetails,
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,

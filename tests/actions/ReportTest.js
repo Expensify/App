@@ -16,6 +16,7 @@ import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
+import * as ReportUtils from '../../src/libs/ReportUtils';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -81,14 +82,27 @@ describe('actions/Report', () => {
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
-                [TEST_USER_LOGIN]: {
+            .then(() => {
+                const avatar = ReportUtils.getDefaultAvatar(TEST_USER_LOGIN);
+                const details = {
                     accountID: TEST_USER_ACCOUNT_ID,
-                    email: TEST_USER_LOGIN,
+                    login: TEST_USER_LOGIN,
+                    avatar,
+                    displayName: 'Test User',
                     firstName: 'Test',
                     lastName: 'User',
-                },
-            }))
+                    pronouns: '',
+                    timezone: CONST.DEFAULT_TIME_ZONE,
+                    payPalMeAddress: '',
+                    phoneNumber: '',
+                    avatarHighResolution: avatar,
+                };
+                Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+                    [TEST_USER_LOGIN]: details,
+                });
+                return waitForPromisesToResolve();
+            })
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
@@ -183,14 +197,27 @@ describe('actions/Report', () => {
 
         // GIVEN a test user with initial data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
-                [TEST_USER_LOGIN]: {
+            .then(() => {
+                const avatar = ReportUtils.getDefaultAvatar(TEST_USER_LOGIN);
+                const details = {
                     accountID: TEST_USER_ACCOUNT_ID,
-                    email: TEST_USER_LOGIN,
+                    login: TEST_USER_LOGIN,
+                    avatar,
+                    displayName: TEST_USER_LOGIN,
                     firstName: 'Test',
                     lastName: 'User',
-                },
-            }))
+                    pronouns: '',
+                    timezone: CONST.DEFAULT_TIME_ZONE,
+                    payPalMeAddress: '',
+                    phoneNumber: '',
+                    avatarHighResolution: avatar,
+                };
+                Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+                    [TEST_USER_LOGIN]: details,
+                });
+                return waitForPromisesToResolve();
+            })
             .then(() => {
                 global.fetch = TestHelper.getGlobalFetchMock();
 
@@ -243,14 +270,26 @@ describe('actions/Report', () => {
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN, {
-                [USER_1_LOGIN]: {
+            .then(() => {
+                const avatar = ReportUtils.getDefaultAvatar(USER_1_LOGIN);
+                const details = {
                     accountID: USER_1_ACCOUNT_ID,
-                    email: USER_1_LOGIN,
+                    login: USER_1_LOGIN,
+                    avatar,
+                    displayName: USER_1_LOGIN,
                     firstName: 'Test',
                     lastName: 'User',
-                },
-            }))
+                    pronouns: '',
+                    timezone: CONST.DEFAULT_TIME_ZONE,
+                    payPalMeAddress: '',
+                    phoneNumber: '',
+                    avatarHighResolution: avatar,
+                };
+                Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+                    [USER_1_LOGIN]: details,
+                });
+            })
             .then(() => {
                 // When a Pusher event is handled for a new report comment
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
