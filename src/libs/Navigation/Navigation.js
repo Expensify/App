@@ -22,6 +22,12 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
+let modal = {};
+Onyx.connect({
+    key: ONYXKEYS.MODAL,
+    callback: val => modal = val,
+});
+
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
 // If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens)
 // so it doesn't cover the report we're trying to link to.
@@ -84,21 +90,14 @@ function getDefaultDrawerState(isSmallScreenWidth) {
     }
 
     const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1);
-    const {name, params} = navigationRef.current.getCurrentRoute();
 
-    // Details and IOU screens (with reportID) are open from report screen.
-    // For that we want to correctly order the stack of screens.
-    // eslint-disable-next-line no-use-before-define
-    if (isDrawerRoute(path)
-      || name === 'Details_Root'
-      || (name === 'IOU_Request_Root' && params.reportID)
-      || (name === 'IOU_Send_Root' && params.reportID)
-      || (name === 'IOU_Bill_Root' && params.reportID)
-    ) {
-        return CONST.DRAWER_STATUS.CLOSED;
+    // Open the drawer when RHN modals are directly opened
+    // and app directly open from root path.
+    if (path === ROUTES.HOME || modal.isVisible === true) {
+        return CONST.DRAWER_STATUS.OPEN;
     }
 
-    return CONST.DRAWER_STATUS.OPEN;
+    return CONST.DRAWER_STATUS.CLOSED;
 }
 
 /**
