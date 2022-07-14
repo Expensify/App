@@ -91,8 +91,8 @@ function getDefaultDrawerState(isSmallScreenWidth) {
 
     const path = getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1);
 
-    // Open the drawer when RHN modals are directly opened
-    // and app directly open from root path.
+    // Open the drawer when app directly open from root path
+    // and RHN modals are directly opened.
     if (path === ROUTES.HOME || modal.isVisible === true) {
         return CONST.DRAWER_STATUS.OPEN;
     }
