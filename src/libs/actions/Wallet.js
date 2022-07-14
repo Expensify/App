@@ -408,4 +408,5 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    updatePersonalDetails,
 };

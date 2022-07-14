@@ -214,13 +214,11 @@ class AdditionalDetailsStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-
-        BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-            personalDetails: {
+        const personalDetails = {
                 ...this.props.walletAdditionalDetailsDraft,
                 phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
-            },
-        });
+            };
+        Wallet.updatePersonalDetails(personalDetails);
     }
 
     /**
