@@ -7,6 +7,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
+import * as API from '../API';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -151,6 +152,52 @@ function buildIdologyError(idologyErrors) {
     const errorStart = Localize.translateLocal('additionalDetailsStep.weCouldNotVerify');
     const errorEnd = Localize.translateLocal('additionalDetailsStep.pleaseFixIt');
     return `${errorStart} ${Localize.arrayToString(errorsTranslated)}. ${errorEnd}`;
+}
+
+function updatePersonalDetails(personalDetails, idologyAnswers) {
+    if (!personalDetails && !idologyAnswers) {
+        return;
+    }
+    let personalDetailsString = personalDetails ? JSON.stringify(personalDetails) : '';
+    let idologyAnswersString = idologyAnswers ? JSON.stringify(idologyAnswers) : '';
+
+    API.write('UpdatePersonalDetailsForWallet', {
+        personalDetailsString,
+        idologyAnswersString,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                    error: '',
+                },
+
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                    error: '',
+                },
+
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+
+            },
+        ],
+    });
 }
 
 /**
