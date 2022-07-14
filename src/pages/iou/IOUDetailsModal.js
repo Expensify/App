@@ -92,8 +92,7 @@ class IOUDetailsModal extends Component {
     }
 
     fetchData() {
-        Report.fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, true);
-        API.read('OpenRequestCallPage');
+        Report.openPaymentDetailsPage(this.props.route.params.chatReportID, this.props.route.params.iouReportID);
     }
 
     /**
