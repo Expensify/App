@@ -14,7 +14,6 @@ import NameValuePair from './NameValuePair';
 import * as store from './ReimbursementAccount/store';
 import * as API from '../API';
 
-
 /**
  * Deletes a debit card
  *
