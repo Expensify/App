@@ -113,7 +113,7 @@ class IOUAmountPage extends React.Component {
      * @returns {Boolean}
      */
     validateAmount(amount) {
-        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
+        const decimalNumberRegex = new RegExp(/^(\.\d{0,2})|\d+(,\d+)*(\.\d{0,2})?$/, 'i');
         return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
     }
 
