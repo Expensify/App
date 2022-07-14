@@ -115,31 +115,35 @@ function getPaymentMethods() {
  *
  */
 function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethodID, previousPaymentMethodType) {
-    // Optimistically set the bank account or debit card as the default payment method
-    const optimisticData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.USER_WALLET,
-            value: {
-                walletLinkedAccountID: bankAccountID || fundID,
-                walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+    API.write('MakeDefaultPaymentMethod', {
+        password,
+        bankAccountID,
+        fundID,
+    }, {
+        // Optimistically set the bank account or debit card as the default payment method
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: bankAccountID || fundID,
+                    walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                },
             },
-        },
-    ];
+        ],
 
-    // If this is unsuccessful, set the previous default payment method as the current default
-    const failureData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.USER_WALLET,
-            value: {
-                walletLinkedAccountID: previousPaymentMethodID,
-                walletLinkedAccountType: previousPaymentMethodType,
+        // If this is unsuccessful, set the previous default payment method as the current default
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: previousPaymentMethodID,
+                    walletLinkedAccountType: previousPaymentMethodType,
+                },
             },
-        },
-    ];
-
-    API.write('MakeDefaultPaymentMethod', {password, bankAccountID, fundID}, {optimisticData, failureData});
+        ],
+    });
 }
 
 /**
