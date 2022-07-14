@@ -1041,73 +1041,6 @@ function addComment(reportID, text) {
 }
 
 /**
- * Deletes a comment from the report, basically sets it as empty string
- *
- * @param {Number} reportID
- * @param {Object} reportAction
- */
-function deleteReportComment(reportID, reportAction) {
-    // Optimistic Response
-    const sequenceNumber = reportAction.sequenceNumber;
-    const reportActionsToMerge = {};
-    const oldMessage = {...reportAction.message};
-    reportActionsToMerge[sequenceNumber] = {
-        ...reportAction,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: '',
-                text: '',
-            },
-        ],
-    };
-
-    // If the comment we are deleting is more recent than our last read comment we will update the unread count
-    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            unreadActionCount: Math.max(getUnreadActionCount(reportID) - 1, 0),
-        });
-    }
-
-    // Optimistically update the report and reportActions
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
-    });
-
-    // Try to delete the comment by calling the API
-    DeprecatedAPI.Report_EditComment({
-        reportID,
-        reportActionID: reportAction.reportActionID,
-        reportComment: '',
-        sequenceNumber,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                return;
-            }
-
-            // Reverse Optimistic Response
-            reportActionsToMerge[sequenceNumber] = {
-                ...reportAction,
-                message: oldMessage,
-            };
-
-            if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                    unreadActionCount: getUnreadActionCount(reportID) + 1,
-                });
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
-            });
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
-        });
-}
-
-/**
  * Gets the latest page of report actions and updates the last read message
  *
  * @param {Number} reportID
@@ -1283,13 +1216,6 @@ Onyx.connect({
     callback: handleReportChanged,
 });
 
-// Onyx.connect({
-//     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-//     callback: (report) => {
-//         console.log(report);
-//     },
-// });
-
 /**
  * Deletes a comment from the report, basically sets it as empty string
  *
@@ -1297,67 +1223,65 @@ Onyx.connect({
  * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
-    // Optimistic Response
     const sequenceNumber = reportAction.sequenceNumber;
-    const reportActionsToMerge = {};
+    const oldMessage = {...reportAction.message};
 
-    // const oldMessage = {...reportAction.message};
-    reportActionsToMerge[sequenceNumber] = {
-        ...reportAction,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    const optimisticReportActions = {
+        [sequenceNumber]: {
+            isPending: true,
+            message: [{
                 html: '',
                 text: '',
-            },
-        ],
+            }],
+        },
+    };
+    const optimisticReport = {
+        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
     };
 
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-    //     setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
-    // });
+    // If the deleted comment is more recent than our last read comment, update the unread count
+    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
+        optimisticReport.unreadActionCount =  Math.max(getUnreadActionCount(reportID) - 1, 0);
+    }
 
-    // Optimistically update the report action with the new message
+    // List of optmistic data to change
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                reportID,
-                reportActionID: reportAction.reportActionID,
-                sequenceNumber,
-            },
+            value: optimisticReportActions,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
         },
     ];
 
-    // Persist the updated report comment
-    API.write('DeleteComment', {
+    const parameters = {
         reportID,
-        reportActionID: reportAction.reportActionID,
         sequenceNumber,
-    }, {optimisticData});
+        reportActionID: originalReportAction.reportActionID,
+    };
+    API.write('DeleteComment', parameters, {optimisticData});
 
-    // Try to delete the comment by calling the API
-    // DeprecatedAPI.Report_EditComment({
-    //     reportID,
-    //     reportActionID: reportAction.reportActionID,
-    //     reportComment: '',
-    //     sequenceNumber,
-    // })
-    //     .then((response) => {
-    //         if (response.jsonCode === 200) {
-    //             return;
-    //         }
+    // If all fails Reverse Optimistic Response:
+    // reportActionsToMerge[sequenceNumber] = {
+    //     ...reportAction,
+    //     message: oldMessage,
+    // };
 
-    //         // Reverse Optimistic Response
-    //         reportActionsToMerge[sequenceNumber] = {
-    //             ...reportAction,
-    //             message: oldMessage,
-    //         };
-    //         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-    //             setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
-    //         });
+    // if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
+    //     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    //         unreadActionCount: getUnreadActionCount(reportID) + 1,
     //     });
+    // }
+
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    //     lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
+    // });
+
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 }
 
 /**
@@ -1386,10 +1310,8 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         return;
     }
 
+    // Optimistically update the reportAction with the new message
     const sequenceNumber = originalReportAction.sequenceNumber;
-    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
-
-    // Optimistically update the report action with the new message
     const optimisticReportActions = {
         [sequenceNumber]: {
             isPending: true,
@@ -1401,23 +1323,24 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         },
     };
 
-    // Optimistically update the report itself if the user edited the lastest message
+    // Optimistically update the report's last message if the user edited it
+    const highestSequenceNumber = getMaxSequenceNumber(reportID);
     const optimisticReport = {};
     if (sequenceNumber === highestSequenceNumber) {
         optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForEditedComment);
     }
 
-    // Group all Optmistic data changes
+    // List of optmistic data to change
     const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReport,
-        },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
         },
     ];
 
@@ -1427,25 +1350,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportComment: htmlForEditedComment,
         reportActionID: originalReportAction.reportActionID,
     };
-
-    // Persist the updated report comment
     API.write('UpdateComment', parameters, {optimisticData});
-
-    // DeprecatedAPI.Report_EditComment({
-    //     reportID,
-    //     reportActionID: originalReportAction.reportActionID,
-    //     reportComment: htmlForNewComment,
-    //     sequenceNumber,
-    // })
-    //     .then((response) => {
-    //         if (response.jsonCode === 200) {
-    //             return;
-    //         }
-
-    //         // If it fails, reset Onyx
-    //         actionToMerge[sequenceNumber] = originalReportAction;
-    //         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
-    //     });
 }
 
 /**
