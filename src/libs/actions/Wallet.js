@@ -154,6 +154,12 @@ function buildIdologyError(idologyErrors) {
     return `${errorStart} ${Localize.arrayToString(errorsTranslated)}. ${errorEnd}`;
 }
 
+/**
+ * Validates a user's provided details against a series of checks
+ *
+ * @param {Object} [personalDetails]
+ * @param {Object} [idologyAnswers]
+ */
 function updatePersonalDetails(personalDetails, idologyAnswers) {
     if (!personalDetails && !idologyAnswers) {
         return;
