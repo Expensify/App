@@ -10,7 +10,7 @@ import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {combineStyles} from '../styles/StyleUtils';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** The type of action that's pending  */
@@ -56,16 +56,12 @@ class OfflineWithFeedback extends React.Component {
                 return child;
             }
 
+            const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
             if (child.props.children) {
-                return React.cloneElement(child, {
-                    style: combineStyles(child.props.style, styles.offlineFeedback.deleted),
-                    children: this.applyStrikeThrough(child.props.children),
-                });
+                props.children = this.applyStrikeThrough(child.props.children);
             }
 
-            return React.cloneElement(child, {
-                style: combineStyles(child.props.style, styles.offlineFeedback.deleted),
-            });
+            return React.cloneElement(child, props);
         });
     }
 
