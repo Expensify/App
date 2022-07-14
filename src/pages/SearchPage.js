@@ -177,7 +177,7 @@ class SearchPage extends Component {
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector
-                                shouldDelayFocus={true}
+                                shouldDelayFocus
                                 sections={sections}
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
