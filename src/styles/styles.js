@@ -2335,6 +2335,9 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+
+    peopleRowOfflineFeedback: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
@@ -2354,6 +2357,44 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    offlineFeedback: {
+        deleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        pending: {
+            opacity: 0.5,
+        },
+        error: {
+            flexDirection: 'row',
+            justifyContent: 'center',
+        },
+        container: {
+            ...spacing.pv2,
+        },
+        text: {
+            color: themeColors.textSupporting,
+            flex: 1,
+            textAlign: 'center',
+            textAlignVertical: 'center',
+        },
+        close: {
+            marginTop: 'auto',
+            marginBottom: 'auto',
+        },
+        errorDot: {
+            borderColor: themeColors.textError,
+            borderRadius: 6,
+            borderWidth: 2,
+            height: 12,
+            width: 12,
+            marginTop: 'auto',
+            marginBottom: 'auto',
+            marginRight: 8,
+            backgroundColor: themeColors.textError,
+        },
     },
 
     sidebarPopover: {

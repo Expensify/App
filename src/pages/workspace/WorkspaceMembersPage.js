@@ -27,6 +27,7 @@ import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -203,35 +204,36 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
-                <TouchableOpacity
-                    style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
-                    onPress={() => this.toggleUser(item.login)}
-                    activeOpacity={0.7}
-                >
-                    <CheckboxWithTooltip
-                        style={[styles.peopleRowCell]}
-                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                        disabled={!canBeRemoved}
+            <OfflineWithFeedback error="This is an error" style={styles.peopleRowOfflineFeedback} pendingAction="add">
+                <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
+                    <TouchableOpacity
+                        style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
                         onPress={() => this.toggleUser(item.login)}
-                        toggleTooltip={this.state.showTooltipForLogin === item.login}
-                        text={this.props.translate('workspace.people.error.cannotRemove')}
-                    />
-                    <View style={styles.flex1}>
-                        <OptionRow
-                            onSelectRow={() => this.toggleUser(item.login)}
-                            forceTextUnreadStyle
-                            isDisabled={!canBeRemoved}
-                            option={{
-                                text: Str.removeSMSDomain(item.displayName),
-                                alternateText: Str.removeSMSDomain(item.login),
-                                participantsList: [item],
-                                icons: [item.avatar],
-                                keyForList: item.login,
-                            }}
+                        activeOpacity={0.7}
+                    >
+                        <CheckboxWithTooltip
+                            style={[styles.peopleRowCell]}
+                            isChecked={_.contains(this.state.selectedEmployees, item.login)}
+                            disabled={!canBeRemoved}
+                            onPress={() => this.toggleUser(item.login)}
+                            toggleTooltip={this.state.showTooltipForLogin === item.login}
+                            text={this.props.translate('workspace.people.error.cannotRemove')}
                         />
-                    </View>
-                    {this.props.session.email === item.login && (
+                        <View style={styles.flex1}>
+                            <OptionRow
+                                onSelectRow={() => this.toggleUser(item.login)}
+                                forceTextUnreadStyle
+                                isDisabled={!canBeRemoved}
+                                option={{
+                                    text: Str.removeSMSDomain(item.displayName),
+                                    alternateText: Str.removeSMSDomain(item.login),
+                                    participantsList: [item],
+                                    icons: [item.avatar],
+                                    keyForList: item.login,
+                                }}
+                            />
+                        </View>
+                        {this.props.session.email === item.login && (
                         <View style={styles.peopleRowCell}>
                             <View style={[styles.badge, styles.peopleBadge]}>
                                 <Text style={[styles.peopleBadgeText]}>
@@ -239,9 +241,10 @@ class WorkspaceMembersPage extends React.Component {
                                 </Text>
                             </View>
                         </View>
-                    )}
-                </TouchableOpacity>
-            </Hoverable>
+                        )}
+                    </TouchableOpacity>
+                </Hoverable>
+            </OfflineWithFeedback>
         );
     }
 
