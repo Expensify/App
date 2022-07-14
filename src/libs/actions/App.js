@@ -125,10 +125,10 @@ function getAppData(shouldSyncPolicyList = true) {
  * @param {Array} policies
  */
 function openApp(policies) {
+    // TODO: improve null policy logic
     const policyIDs = _.chain(policies)
-        .map(policy => policy.id)
+        .map(policy => policy ? policy.id : null)
         .join(',');
-
     API.read('OpenApp', {policyIDs});
 }
 
@@ -137,7 +137,7 @@ function openApp(policies) {
  */
 function reconnectApp() {
     const policyIDs = _.chain(allPolicies)
-        .map(policy => policy.id)
+        .map(policy => policy => policy ? policy.id : null)
         .join(',');
 
     API.read('ReconnectApp', {policyIDs});
