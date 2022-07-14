@@ -118,7 +118,7 @@ class AuthScreens extends React.Component {
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
         App.getAppData(false);
-        App.openApp(this.props.policies);
+        App.openApp(this.props.allPolicies);
 
         App.fixAccountAndReloadData();
         App.setUpPoliciesAndNavigate(this.props.session);
@@ -338,7 +338,7 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        policies: {
+        allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),

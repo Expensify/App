@@ -121,26 +121,35 @@ function getAppData(shouldSyncPolicyList = true) {
 }
 
 /**
+ * Gets a comma separated list of locally stored policy ids
+ *
+ * @param {Array} policies
+ * @return {String}
+ */
+function getPolicyIDList(policies) {
+    return _.chain(policies)
+        .filter(Boolean)
+        .map(policy => policy.id)
+        .join(',');
+}
+
+/**
  * Fetches data needed for app initialization
  * @param {Array} policies
  */
 function openApp(policies) {
-    // TODO: improve null policy logic
-    const policyIDs = _.chain(policies)
-        .map(policy => policy ? policy.id : null)
-        .join(',');
-    API.read('OpenApp', {policyIDs});
+    API.read('OpenApp', {
+        policyIDList: getPolicyIDList(policies),
+    });
 }
 
 /**
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    const policyIDs = _.chain(allPolicies)
-        .map(policy => policy => policy ? policy.id : null)
-        .join(',');
-
-    API.read('ReconnectApp', {policyIDs});
+    API.read('ReconnectApp', {
+        policyIDList: getPolicyIDList(allPolicies),
+    });
 }
 
 /**
