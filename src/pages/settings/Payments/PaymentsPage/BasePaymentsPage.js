@@ -273,10 +273,11 @@ class BasePaymentsPage extends React.Component {
                                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                         popoverPlacement="bottom"
                                     >
-                                        {triggerKYCFlow => (
+                                        {(triggerKYCFlow, isOffline) => (
                                             <MenuItem
                                                 title={this.props.translate('common.transferBalance')}
                                                 icon={Expensicons.Transfer}
+                                                disabled={isOffline}
                                                 onPress={triggerKYCFlow}
                                                 shouldShowRightIcon
                                             />

@@ -110,7 +110,6 @@ function openPaymentsPage() {
         key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         value: true,
     }];
-    console.log({optimisticData});
 
     // return API.read('OpenPaymentsPage', {}, onyxData);
     return API.read('OpenPaymentsPage', {}, {optimisticData});

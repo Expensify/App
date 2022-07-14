@@ -33,7 +33,6 @@ class KYCWall extends React.Component {
     }
 
     componentDidMount() {
-        PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);

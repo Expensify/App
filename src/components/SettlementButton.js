@@ -129,9 +129,9 @@ class SettlementButton extends React.Component {
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
             >
-                {triggerKYCFlow => (
+                {(triggerKYCFlow, isOffline) => (
                     <ButtonWithMenu
-                        isDisabled={this.props.isDisabled}
+                        isDisabled={this.props.isDisabled || isOffline}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
                             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
