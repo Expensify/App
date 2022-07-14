@@ -4,7 +4,7 @@ import {withLocalizePropTypes} from '../../../../components/withLocalize';
 import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import networkPropTypes from '../../../../components/networkPropTypes';
 import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
-import cardListPropTypes from '../../../../components/cardListPropTypes';
+import cardPropTypes from '../../../../components/cardPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -32,7 +32,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardListPropTypes),
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     ...withLocalizePropTypes,
 

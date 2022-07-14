@@ -25,7 +25,7 @@ import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import walletTransferPropTypes from './walletTransferPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
-import cardListPropTypes from '../../../components/cardListPropTypes';
+import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
@@ -50,7 +50,7 @@ const propTypes = {
     })),
 
     /** List of card objects */
-    cardList: PropTypes.objectOf(cardListPropTypes),
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Wallet balance transfer props */
     walletTransfer: walletTransferPropTypes,
