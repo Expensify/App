@@ -1,6 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, Dimensions} from 'react-native';
+import {withNetwork} from '../OnyxProvider';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -8,6 +9,7 @@ import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
 import getClickedElementLocation from '../../libs/getClickedElementLocation';
 import * as PaymentUtils from '../../libs/PaymentUtils';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
+import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
 import {propTypes, defaultProps} from './kycWallPropTypes';
@@ -140,9 +142,9 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.isLoadingPaymentMethods
+                {this.props.isLoadingPaymentMethods && !this.props.network.isOffline
                     ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
-                    : this.props.children(this.continue)}
+                    : this.props.children(this.continue, this.props.network.isOffline)}
             </>
         );
     }
@@ -151,18 +153,21 @@ class KYCWall extends React.Component {
 KYCWall.propTypes = propTypes;
 KYCWall.defaultProps = defaultProps;
 
-export default withOnyx({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    isLoadingPaymentMethods: {
-        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-        initWithStoredValues: false,
-    },
-})(KYCWall);
+export default compose(
+    withNetwork(),
+    withOnyx({
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+            initWithStoredValues: false,
+        },
+    }),
+)(KYCWall);

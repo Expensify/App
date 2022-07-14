@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
+import networkPropTypes from '../networkPropTypes';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -10,6 +11,9 @@ const propTypes = {
 
     /** Route for the KYC enable payments screen for a given navigation stack */
     enablePaymentsRoute: PropTypes.string.isRequired,
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 
     /** Where to place the popover */
     popoverPlacement: PropTypes.string,
