@@ -12,7 +12,6 @@ import Timing from './Timing';
 import * as PersonalDetails from './PersonalDetails';
 import * as User from './User';
 import * as Report from './Report';
-import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
@@ -46,10 +45,24 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    if (currentUserAccountID) {
-        DeprecatedAPI.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    // If user is not signed in, change just locally.
+    if (!currentUserAccountID) {
+        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+        return;
     }
-    Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+
+    // Optimistically change preferred locale
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            value: locale,
+        },
+    ];
+
+    API.write('UpdatePreferredLocale', {
+        value: locale,
+    }, {optimisticData});
 }
 
 function setSidebarLoaded() {
@@ -79,10 +92,8 @@ AppState.addEventListener('change', (nextAppState) => {
  */
 function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
-    User.getBetas();
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
-    GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
 
     if (shouldSyncPolicyList) {

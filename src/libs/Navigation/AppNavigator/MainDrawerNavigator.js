@@ -30,12 +30,13 @@ const propTypes = {
 
         /** The type of the policy */
         type: PropTypes.string,
-    })).isRequired,
+    })),
 };
 
 const defaultProps = {
     reports: {},
     betas: [],
+    policies: {},
 };
 
 /**
