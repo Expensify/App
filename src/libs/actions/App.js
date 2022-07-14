@@ -99,19 +99,13 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- *
- * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true) {
+function getAppData() {
     User.getUserDetails();
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
     BankAccounts.fetchUserWallet();
-
-    if (shouldSyncPolicyList) {
-        Policy.getPolicyList();
-    }
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
     return Promise.all([
@@ -163,7 +157,7 @@ function fixAccountAndReloadData() {
                 return;
             }
             Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-            getAppData(false);
+            getAppData();
         });
 }
 
@@ -194,7 +188,6 @@ function setUpPoliciesAndNavigate(session) {
     Linking.getInitialURL()
         .then((url) => {
             if (!url) {
-                Policy.getPolicyList();
                 return;
             }
             const path = new URL(url).pathname;
@@ -208,7 +201,6 @@ function setUpPoliciesAndNavigate(session) {
                 Policy.createAndGetPolicyList();
                 return;
             }
-            Policy.getPolicyList();
             if (!isLoggingInAsNewUser && exitTo) {
                 Navigation.isNavigationReady()
                     .then(() => {
@@ -222,7 +214,7 @@ function setUpPoliciesAndNavigate(session) {
 
 // When the app reconnects from being offline, fetch all initialization data
 NetworkConnection.onReconnect(() => {
-    getAppData(true);
+    getAppData();
     reconnectApp();
 });
 
