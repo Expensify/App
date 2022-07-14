@@ -71,7 +71,7 @@ class OfflineWithFeedback extends React.Component {
         const isAddError = this.props.error && this.props.pendingAction === 'add';
         const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
         const needsStrikeThrough = this.props.network.isOffline && this.props.pendingAction === 'delete';
-        const hideChildren = !this.props.network.isOffline && this.props.pendingAction === 'delete';
+        const hideChildren = !this.props.network.isOffline && this.props.pendingAction === 'delete' && !this.props.error;
         let children = this.props.children;
 
         // Apply strikethrough to children if needed, but skip it if we are not going to render them
@@ -89,7 +89,7 @@ class OfflineWithFeedback extends React.Component {
                     <View style={styles.offlineFeedback.error}>
                         <View style={styles.offlineFeedback.errorDot} />
                         <Text style={styles.offlineFeedback.text}>{this.props.error}</Text>
-                        <Tooltip text={this.props.translate('common.close')} containerStyles={styles.offlineFeedback.close}>
+                        <Tooltip text={this.props.translate('common.close')}>
                             <Pressable
                                 onPress={this.props.onClose}
                                 style={[styles.touchableButtonImage, styles.mr0]}

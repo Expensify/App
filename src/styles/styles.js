@@ -2379,7 +2379,6 @@ const styles = {
         },
         error: {
             flexDirection: 'row',
-            justifyContent: 'center',
             alignItems: 'center',
         },
         container: {
@@ -2389,10 +2388,6 @@ const styles = {
             color: themeColors.textSupporting,
             flex: 1,
             textAlignVertical: 'center',
-        },
-        close: {
-            marginTop: 'auto',
-            marginBottom: 'auto',
         },
         errorDot: {
             borderColor: themeColors.textError,
