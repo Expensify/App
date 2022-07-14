@@ -4,6 +4,11 @@ function navigateTo(path) {
     window.location.href = path;
 }
 
+function navigateToHome() {
+    // TODO: Change to '/index' when the site is live
+    navigateTo('/main');
+}
+
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
