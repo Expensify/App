@@ -1,5 +1,5 @@
 
-/* eslint-disable no-use-before-define */
+/* eslint-disable no-unused-vars */
 function navigateTo(path) {
     window.location.href = path;
 }
