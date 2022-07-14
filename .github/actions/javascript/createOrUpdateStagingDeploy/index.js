@@ -19,7 +19,10 @@ const run = function () {
     console.log('New version found from action input:', newVersion);
 
     let shouldCreateNewStagingDeployCash = false;
-    let currentStagingDeployCashIssueNumber = null;
+    let newTag = newVersion;
+    let newDeployBlockers = [];
+    let previousStagingDeployCashData = {};
+    let currentStagingDeployCashData = null;
 
     // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
     return Promise.all([
@@ -47,6 +50,12 @@ const run = function () {
                 console.log('Failed fetching DeployBlockerCash issues from Github, continuing...');
             }
 
+            newDeployBlockers = _.map(deployBlockerResponse.data, ({html_url}) => ({
+                url: html_url,
+                number: GithubUtils.getIssueOrPullRequestNumberFromURL(html_url),
+                isResolved: false,
+            }));
+
             // Look at the state of the most recent StagingDeployCash,
             // if it is open then we'll update the existing one, otherwise, we'll create a new one.
             shouldCreateNewStagingDeployCash = Boolean(stagingDeployResponse.data[0].state !== 'open');
@@ -62,45 +71,36 @@ const run = function () {
 
             // Parse the data from the previous StagingDeployCash
             // (newest if there are none open, otherwise second-newest)
-            const previousStagingDeployCashData = shouldCreateNewStagingDeployCash
+            previousStagingDeployCashData = shouldCreateNewStagingDeployCash
                 ? GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0])
                 : GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[1]);
 
             console.log('Found tag of previous StagingDeployCash:', previousStagingDeployCashData.tag);
 
+            // Find the list of PRs merged between the last StagingDeployCash and the new version
             if (shouldCreateNewStagingDeployCash) {
-                // Find the list of PRs merged between the last StagingDeployCash and the new version
-                const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newVersion);
-                // eslint-disable-next-line max-len
-                console.log(`The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${newVersion}):`, mergedPRs);
+                return GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newTag);
+            }
 
-                // TODO: if there are open DeployBlockers and we are opening a new checklist,
-                //  then we should close / remove the DeployBlockerCash label from those
+            currentStagingDeployCashData = GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0]);
+            console.log('Parsed the following data from the current StagingDeployCash:', currentStagingDeployCashData);
+
+            // If we aren't sent a tag, then use the existing tag
+            newTag = newTag || currentStagingDeployCashData.tag;
+
+            return GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newTag);
+        })
+        .then((mergedPRs) => {
+            console.log(`The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${newVersion}):`, mergedPRs);
+
+            if (shouldCreateNewStagingDeployCash) {
                 return GithubUtils.generateStagingDeployCashBody(
-                    newVersion,
+                    newTag,
                     _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber),
                 );
             }
 
-            // There is an open StagingDeployCash, so we'll be updating it, not creating a new one
-            const currentStagingDeployCashData = GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0]);
-            console.log('Parsed the following data from the current StagingDeployCash:', currentStagingDeployCashData);
-            currentStagingDeployCashIssueNumber = currentStagingDeployCashData.number;
-
-            const newDeployBlockers = _.map(deployBlockerResponse.data, ({html_url}) => ({
-                url: html_url,
-                number: GithubUtils.getIssueOrPullRequestNumberFromURL(html_url),
-                isResolved: false,
-            }));
-
-            // If we aren't sent a tag, then use the existing tag
-            const tag = newVersion || currentStagingDeployCashData.tag;
             const didVersionChange = newVersion ? newVersion !== currentStagingDeployCashData.tag : false;
-
-            // Find the list of PRs merged between the last StagingDeployCash and the new version
-            const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, tag);
-            // eslint-disable-next-line max-len
-            console.log(`The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${tag}):`, mergedPRs);
 
             // Generate the PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.sortBy(
@@ -133,7 +133,7 @@ const run = function () {
             );
 
             return GithubUtils.generateStagingDeployCashBody(
-                tag,
+                newTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
                 _.pluck(_.where(PRList, {isAccessible: true}), 'url'),
@@ -161,7 +161,7 @@ const run = function () {
 
             return GithubUtils.octokit.issues.update({
                 ...defaultPayload,
-                issue_number: currentStagingDeployCashIssueNumber,
+                issue_number: currentStagingDeployCashData.number,
             });
         })
         .then(({data}) => {
@@ -188,28 +188,52 @@ module.exports = run;
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(3571);
-const {execSync} = __nccwpck_require__(3129);
+const {spawn} = __nccwpck_require__(3129);
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
  *
  * @param {String} fromRef
  * @param {String} toRef
- * @returns {Object<{commit: String, subject: String}>}
+ * @returns {Promise<Object<{commit: String, subject: String}>>}
  */
 function getMergeLogsAsJSON(fromRef, toRef) {
     const command = `git log --format='{"commit": "%H", "subject": "%s"},' ${fromRef}...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
-    const result = execSync(command).toString().trim();
+    return new Promise((resolve, reject) => {
+        let stdout = '';
+        let stderr = '';
+        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "subject": "%s"},', `${fromRef}...${toRef}`]);
+        spawnedProcess.on('message', console.log);
+        spawnedProcess.stdout.on('data', (chunk) => {
+            console.log(chunk.toString());
+            stdout += chunk.toString();
+        });
+        spawnedProcess.stderr.on('data', (chunk) => {
+            console.error(chunk.toString());
+            stderr += chunk.toString();
+        });
+        spawnedProcess.on('close', (code) => {
+            if (code !== 0) {
+                return reject(new Error(`${stderr}`));
+            }
 
-    // Remove any double-quotes from commit subjects
-    const sanitizedOutput = result
-        .replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
+            resolve(stdout);
+        });
+        spawnedProcess.on('error', err => reject(err));
+    })
+        .then((stdout) => {
+            // Remove any double-quotes from commit subjects
+            let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
 
-    // Then format as JSON and convert to a proper JS object
-    const json = `[${sanitizedOutput}]`.replace('},]', '}]');
-    return JSON.parse(json);
+            // Also remove any newlines
+            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '');
+
+            // Then format as JSON and convert to a proper JS object
+            const json = `[${sanitizedOutput}]`.replace('},]', '}]');
+            return JSON.parse(json);
+        });
 }
 
 /**
@@ -238,33 +262,38 @@ function getValidMergedPRs(commitMessages) {
  *
  * @param {String} fromRef
  * @param {String} toRef
- * @returns {Array<String>} – Pull request numbers
+ * @returns {Promise<Array<String>>} – Pull request numbers
  */
 function getPullRequestsMergedBetween(fromRef, toRef) {
-    const targetMergeList = getMergeLogsAsJSON(fromRef, toRef);
-    console.log(`Commits made between ${fromRef} and ${toRef}:`, targetMergeList);
+    let targetMergeList;
+    return getMergeLogsAsJSON(fromRef, toRef)
+        .then((mergeList) => {
+            console.log(`Commits made between ${fromRef} and ${toRef}:`, mergeList);
+            targetMergeList = mergeList;
 
-    // Get the full history on this branch, inclusive of the oldest commit from our target comparison
-    const oldestCommit = _.last(targetMergeList).commit;
-    const fullMergeList = getMergeLogsAsJSON(oldestCommit, 'HEAD');
+            // Get the full history on this branch, inclusive of the oldest commit from our target comparison
+            const oldestCommit = _.last(mergeList).commit;
+            return getMergeLogsAsJSON(oldestCommit, 'HEAD');
+        })
+        .then((fullMergeList) => {
+            // Remove from the final merge list any commits whose message appears in the full merge list more than once.
+            // This indicates that the PR should not be included in our list because it is a duplicate, and thus has already been processed by our CI
+            // See https://github.com/Expensify/App/issues/4977 for details
+            const duplicateMergeList = _.chain(fullMergeList)
+                .groupBy('subject')
+                .values()
+                .filter(i => i.length > 1)
+                .flatten()
+                .pluck('commit')
+                .value();
+            const finalMergeList = _.filter(targetMergeList, i => !_.contains(duplicateMergeList, i.commit));
+            console.log('Filtered out the following commits which were duplicated in the full git log:', _.difference(targetMergeList, finalMergeList));
 
-    // Remove from the final merge list any commits whose message appears in the full merge list more than once.
-    // This indicates that the PR should not be included in our list because it is a duplicate, and thus has already been processed by our CI
-    // See https://github.com/Expensify/App/issues/4977 for details
-    const duplicateMergeList = _.chain(fullMergeList)
-        .groupBy('subject')
-        .values()
-        .filter(i => i.length > 1)
-        .flatten()
-        .pluck('commit')
-        .value();
-    const finalMergeList = _.filter(targetMergeList, i => !_.contains(duplicateMergeList, i.commit));
-    console.log('Filtered out the following commits which were duplicated in the full git log:', _.difference(targetMergeList, finalMergeList));
-
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(_.pluck(finalMergeList, 'subject'));
-    console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
-    return pullRequestNumbers;
+            // Find which commit messages correspond to merged PR's
+            const pullRequestNumbers = getValidMergedPRs(_.pluck(finalMergeList, 'subject'));
+            console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
+            return pullRequestNumbers;
+        });
 }
 
 module.exports = {
