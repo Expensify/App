@@ -120,7 +120,6 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
         bankAccountID,
         fundID,
     }, {
-        // Optimistically set the bank account or debit card as the default payment method
         optimisticData: [
             {
                 onyxMethod: 'merge',
@@ -131,8 +130,6 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
                 },
             },
         ],
-
-        // If this is unsuccessful, set the previous default payment method as the current default
         failureData: [
             {
                 onyxMethod: 'merge',

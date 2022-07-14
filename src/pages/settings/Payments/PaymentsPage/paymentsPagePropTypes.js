@@ -28,15 +28,15 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
-
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
     cardList: PropTypes.objectOf(cardListPropTypes),
+
+    ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
