@@ -944,51 +944,6 @@ function addComment(reportID, text) {
 }
 
 /**
- * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
- * network layer handle the delayed write.
- *
- * @param {Number} reportID
- * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
- * @param {Boolean} [manuallyMarked] If the user manually marked this as unread, we need to tell the API
- *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
- *  is last read (meaning that the entire report history has been read)
- */
-function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false) {
-    // If report data is loading, we can't update the last read sequence number because it is obsolete
-    if (isReportDataLoading) {
-        return;
-    }
-
-    // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
-    // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
-    // the side of caution and do nothing in this case.
-    const reportMaxSequenceNumber = lodashGet(allReports, [reportID, 'maxSequenceNumber']);
-    if (_.isUndefined(sequenceNumber) && (!reportMaxSequenceNumber && reportMaxSequenceNumber !== 0)) {
-        return;
-    }
-
-    // When we are manually marking a report as unread we need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot.
-    // If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action).
-    const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumber;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: calculateUnreadActionCount(reportID, lastReadSequenceNumber, reportMaxSequenceNumber),
-        lastVisitedTimestamp: moment().valueOf(),
-        lastReadSequenceNumber,
-    });
-
-    if (manuallyMarked) {
-        setNewMarkerPosition(reportID, sequenceNumber);
-    }
-
-    // Mark the report as not having any unread items
-    DeprecatedAPI.Report_UpdateLastRead({
-        reportID,
-        sequenceNumber: lastReadSequenceNumber,
-        markAsUnread: manuallyMarked,
-    });
-}
-
-/**
  * Gets the latest page of report actions and updates the last read message
  *
  * @param {Number} reportID
@@ -1241,13 +1196,6 @@ Onyx.connect({
     callback: handleReportChanged,
 });
 
-// Onyx.connect({
-//     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-//     callback: (report) => {
-//         console.log(report);
-//     },
-// });
-
 /**
  * Deletes a comment from the report, basically sets it as empty string
  *
@@ -1255,67 +1203,65 @@ Onyx.connect({
  * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
-    // Optimistic Response
     const sequenceNumber = reportAction.sequenceNumber;
-    const reportActionsToMerge = {};
+    const oldMessage = {...reportAction.message};
 
-    // const oldMessage = {...reportAction.message};
-    reportActionsToMerge[sequenceNumber] = {
-        ...reportAction,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    const optimisticReportActions = {
+        [sequenceNumber]: {
+            isPending: true,
+            message: [{
                 html: '',
                 text: '',
-            },
-        ],
+            }],
+        },
+    };
+    const optimisticReport = {
+        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
     };
 
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-    //     setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
-    // });
+    // If the deleted comment is more recent than our last read comment, update the unread count
+    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
+        optimisticReport.unreadActionCount =  Math.max(getUnreadActionCount(reportID) - 1, 0);
+    }
 
-    // Optimistically update the report action with the new message
+    // List of optmistic data to change
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                reportID,
-                reportActionID: reportAction.reportActionID,
-                sequenceNumber,
-            },
+            value: optimisticReportActions,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
         },
     ];
 
-    // Persist the updated report comment
-    API.write('DeleteComment', {
+    const parameters = {
         reportID,
-        reportActionID: reportAction.reportActionID,
         sequenceNumber,
-    }, {optimisticData});
+        reportActionID: originalReportAction.reportActionID,
+    };
+    API.write('DeleteComment', parameters, {optimisticData});
 
-    // Try to delete the comment by calling the API
-    // DeprecatedAPI.Report_EditComment({
-    //     reportID,
-    //     reportActionID: reportAction.reportActionID,
-    //     reportComment: '',
-    //     sequenceNumber,
-    // })
-    //     .then((response) => {
-    //         if (response.jsonCode === 200) {
-    //             return;
-    //         }
+    // If all fails Reverse Optimistic Response:
+    // reportActionsToMerge[sequenceNumber] = {
+    //     ...reportAction,
+    //     message: oldMessage,
+    // };
 
-    //         // Reverse Optimistic Response
-    //         reportActionsToMerge[sequenceNumber] = {
-    //             ...reportAction,
-    //             message: oldMessage,
-    //         };
-    //         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
-    //             setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
-    //         });
+    // if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
+    //     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    //         unreadActionCount: getUnreadActionCount(reportID) + 1,
     //     });
+    // }
+
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    //     lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
+    // });
+
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 }
 
 /**
@@ -1344,10 +1290,8 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         return;
     }
 
+    // Optimistically update the reportAction with the new message
     const sequenceNumber = originalReportAction.sequenceNumber;
-    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
-
-    // Optimistically update the report action with the new message
     const optimisticReportActions = {
         [sequenceNumber]: {
             isPending: true,
@@ -1359,23 +1303,24 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         },
     };
 
-    // Optimistically update the report itself if the user edited the lastest message
+    // Optimistically update the report's last message if the user edited it
+    const highestSequenceNumber = getMaxSequenceNumber(reportID);
     const optimisticReport = {};
     if (sequenceNumber === highestSequenceNumber) {
         optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForEditedComment);
     }
 
-    // Group all Optmistic data changes
+    // List of optmistic data to change
     const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReport,
-        },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
         },
     ];
 
@@ -1385,25 +1330,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportComment: htmlForEditedComment,
         reportActionID: originalReportAction.reportActionID,
     };
-
-    // Persist the updated report comment
     API.write('UpdateComment', parameters, {optimisticData});
-
-    // DeprecatedAPI.Report_EditComment({
-    //     reportID,
-    //     reportActionID: originalReportAction.reportActionID,
-    //     reportComment: htmlForNewComment,
-    //     sequenceNumber,
-    // })
-    //     .then((response) => {
-    //         if (response.jsonCode === 200) {
-    //             return;
-    //         }
-
-    //         // If it fails, reset Onyx
-    //         actionToMerge[sequenceNumber] = originalReportAction;
-    //         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
-    //     });
 }
 
 /**
