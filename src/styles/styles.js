@@ -2370,6 +2370,7 @@ const styles = {
         error: {
             flexDirection: 'row',
             justifyContent: 'center',
+            alignItems: 'center',
         },
         container: {
             ...spacing.pv2,
@@ -2377,7 +2378,6 @@ const styles = {
         text: {
             color: themeColors.textSupporting,
             flex: 1,
-            textAlign: 'center',
             textAlignVertical: 'center',
         },
         close: {
@@ -2390,8 +2390,6 @@ const styles = {
             borderWidth: 2,
             height: 12,
             width: 12,
-            marginTop: 'auto',
-            marginBottom: 'auto',
             marginRight: 8,
             backgroundColor: themeColors.textError,
         },
