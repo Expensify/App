@@ -69,11 +69,11 @@ class ProfilePage extends Component {
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
         this.selectedTimezone = lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
-        this.isAutomaticTimezone = lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic);
         this.logins = this.getLogins(props.loginList);
         this.avatar = {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login))};
         this.pronouns = props.myPersonalDetails.pronouns;
         this.state = {
+            isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             isAvatarChanged: false,
         };
@@ -177,6 +177,7 @@ class ProfilePage extends Component {
         this.pronouns = hasSelfSelectedPronouns ? '' : values.pronouns;
         this.setState({
             hasSelfSelectedPronouns,
+            isAutomaticTimezone: values.isAutomaticTimezone,
         });
 
         if (hasFirstNameError) {
@@ -293,7 +294,7 @@ class ProfilePage extends Component {
                                 inputID="timezone"
                                 label={this.props.translate('profilePage.timezone')}
                                 items={timezones}
-                                isDisabled={this.isAutomaticTimezone}
+                                isDisabled={this.state.isAutomaticTimezone}
                                 defaultValue={this.selectedTimezone}
                                 shouldSaveDraft
                             />
@@ -301,7 +302,7 @@ class ProfilePage extends Component {
                         <CheckboxWithLabel
                             inputID="isAutomaticTimezone"
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                            defaultValue={this.isAutomaticTimezone}
+                            defaultValue={this.state.isAutomaticTimezone}
                             shouldSaveDraft
                         />
                     </Form>
