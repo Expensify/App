@@ -40,7 +40,6 @@ export default function () {
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
-    I18nManager.swapLeftAndRightInRTL(false);
 
     // Perform any other platform-specific setup
     platformSetup();
