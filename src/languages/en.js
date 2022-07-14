@@ -228,7 +228,6 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         youowe: ({owner}) => `You owe ${owner}`,
         youpaid: ({owner}) => `You paid ${owner}`,
@@ -249,9 +248,7 @@ export default {
         mute: 'Mute',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
-        useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
     avatarWithImagePicker: {

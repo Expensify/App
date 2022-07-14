@@ -140,7 +140,6 @@ export default [
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.markCommentAsUnread(reportID, reportAction.sequenceNumber);
-            Report.setNewMarkerPosition(reportID, reportAction.sequenceNumber);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
