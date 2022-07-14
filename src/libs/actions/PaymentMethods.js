@@ -111,7 +111,6 @@ function openPaymentsPage() {
         value: true,
     }];
 
-    // return API.read('OpenPaymentsPage', {}, onyxData);
     return API.read('OpenPaymentsPage', {}, {optimisticData});
 }
 
