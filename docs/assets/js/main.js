@@ -1,9 +1,10 @@
 
-function navigateTo(path) { // eslint-disable-line no-unused-vars
+/* eslint-disable no-use-before-define */
+function navigateTo(path) {
     window.location.href = path;
 }
 
-function toggleHeaderMenu() { // eslint-disable-line no-unused-vars
+function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
     const anguleUpIcon = document.getElementById('angle-up-icon');
@@ -23,7 +24,7 @@ function toggleHeaderMenu() { // eslint-disable-line no-unused-vars
     }
 }
 
-function navigateBack() { // eslint-disable-line no-unused-vars
+function navigateBack() {
     if (window.location.pathname.includes('/request-money/')) {
         window.location.href = '/hubs/request-money';
     } else {
