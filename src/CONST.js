@@ -749,6 +749,7 @@ const CONST = {
 
     ONYX: {
         METHOD: {
+            CLEAR: 'clear',
             MERGE: 'merge',
             SET: 'set',
         },
