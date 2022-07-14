@@ -20,7 +20,7 @@ import plaidDataPropTypes from '../pages/ReimbursementAccount/plaidDataPropTypes
 import Text from './Text';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
-import FullPageOfflineBlockingView from './FullPageOfflineBlockingView';
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Contains plaid data */
@@ -108,9 +108,8 @@ class AddPlaidBankAccount extends React.Component {
      * @returns {String}
      */
     getPlaidLinkToken() {
-        const plaidLinkToken = this.props.plaidLinkToken;
-        if (plaidLinkToken) {
-            return plaidLinkToken;
+        if (this.props.plaidLinkToken) {
+            return this.props.plaidLinkToken;
         }
 
         if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {

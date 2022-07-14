@@ -107,7 +107,7 @@ class AddPersonalBankAccountPage extends React.Component {
         }
 
         ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errors);
-        return _.size(errors) === 0;
+        return _.isEmpty(errors);
     }
 
     submit() {
