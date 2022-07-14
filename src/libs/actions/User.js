@@ -85,24 +85,24 @@ function closeAccount(message) {
     API.write('CloseAccount', {message}, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.CLOSE_ACCOUNT,
                 value: {isLoading: true},
             },
         ],
         successData: [
             {
-                onyxMethod: 'clear',
+                onyxMethod: CONST.ONYX.METHOD.CLEAR,
             },
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
                 value: preferredLocale,
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.CLOSE_ACCOUNT,
                 value: {isLoading: false},
             },
