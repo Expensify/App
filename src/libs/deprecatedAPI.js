@@ -292,40 +292,12 @@ function RejectTransaction(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.reportComment
- * @param {Number} parameters.reportID
- * @param {String} parameters.clientID
- * @param {File|Object} [parameters.file]
- * @returns {Promise}
- */
-function Report_AddComment(parameters) {
-    const commandName = 'Report_AddComment';
-    requireParameters(['reportComment', 'reportID', 'clientID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @returns {Promise}
  */
 function Report_GetHistory(parameters) {
     const commandName = 'Report_GetHistory';
     requireParameters(['reportID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Boolean} parameters.pinnedValue
- * @returns {Promise}
- */
-function Report_TogglePinned(parameters) {
-    const commandName = 'Report_TogglePinned';
-    requireParameters(['reportID', 'pinnedValue'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -340,18 +312,6 @@ function Report_TogglePinned(parameters) {
 function Report_EditComment(parameters) {
     const commandName = 'Report_EditComment';
     requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Number} parameters.sequenceNumber
- * @returns {Promise}
- */
-function Report_UpdateLastRead(parameters) {
-    const commandName = 'Report_UpdateLastRead';
-    requireParameters(['reportID', 'sequenceNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -417,17 +377,6 @@ function SetWalletLinkedAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.subscribed
- * @returns {Promise}
- */
-function UpdateAccount(parameters) {
-    const commandName = 'UpdateAccount';
-    requireParameters(['subscribed'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.message
  * @returns {Promise}
  */
@@ -441,21 +390,6 @@ function User_Delete(parameters) {
  */
 function User_GetBetas() {
     return Network.post('User_GetBetas');
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} [parameters.requireCertainty]
- * @returns {Promise}
- */
-function User_IsFromPublicDomain(parameters) {
-    const commandName = 'User_IsFromPublicDomain';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, {
-        ...{requireCertainty: true},
-        ...parameters,
-    });
 }
 
 /**
@@ -924,22 +858,17 @@ export {
     Plaid_GetLinkToken,
     Policy_Employees_Merge,
     RejectTransaction,
-    Report_AddComment,
     Report_GetHistory,
-    Report_TogglePinned,
     Report_EditComment,
-    Report_UpdateLastRead,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
     SetPassword,
     SetWalletLinkedAccount,
-    UpdateAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
     User_GetBetas,
-    User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
