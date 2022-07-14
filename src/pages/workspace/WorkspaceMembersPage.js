@@ -204,7 +204,7 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <OfflineWithFeedback error="This is an error" style={styles.peopleRowOfflineFeedback} pendingAction="add">
+            <OfflineWithFeedback error="This is an errors This is an errors This is an errors This is an errors This is an errors This is an errors " style={styles.peopleRowOfflineFeedback} pendingAction="delete">
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
                         style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}

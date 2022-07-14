@@ -438,6 +438,19 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Receives any number of object or array style objects and returns them all as an array
+ * @param {Object|Object[]} allStyles
+ * @return {Object[]}
+ */
+function combineStyles(...allStyles) {
+    let finalStyles = [];
+    _.each(allStyles, (style) => {
+        finalStyles = finalStyles.concat(parseStyleAsArray(style));
+    });
+    return finalStyles;
+}
+
+/**
  * Get variable padding-left as style
  * @param {Number} paddingLeft
  * @returns {Object}
@@ -474,5 +487,6 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    combineStyles,
     getPaddingLeft,
 };
