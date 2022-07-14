@@ -1,11 +1,10 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
@@ -24,13 +23,11 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 
 let sessionAuthToken = '';
-let sessionEmail = '';
 let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionAuthToken = lodashGet(val, 'authToken', '');
-        sessionEmail = lodashGet(val, 'email', '');
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
 });
@@ -46,25 +43,34 @@ Onyx.connect({
  *
  * @param {String} oldPassword
  * @param {String} password
- * @returns {Promise}
  */
-function changePasswordAndNavigate(oldPassword, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
-
-    return DeprecatedAPI.ChangePassword({oldPassword, password})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-                return;
-            }
-
-            const success = lodashGet(response, 'message', 'Password changed successfully.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
+function updatePassword(oldPassword, password) {
+    API.write('UpdatePassword', {
+        oldPassword,
+        password,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+    });
 }
 
 /**
@@ -113,9 +119,9 @@ function getUserDetails() {
         .then((response) => {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
+            const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
@@ -147,22 +153,27 @@ function resendValidateCode(login) {
 /**
  * Sets whether or not the user is subscribed to Expensify news
  *
- * @param {Boolean} subscribed
+ * @param {Boolean} isSubscribed
  */
-function setExpensifyNewsStatus(subscribed) {
-    Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
-
-    DeprecatedAPI.UpdateAccount({subscribed})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
-        })
-        .catch(() => {
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
-        });
+function updateNewsletterSubscription(isSubscribed) {
+    API.write('UpdateNewsletterSubscription', {
+        isSubscribed,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER,
+                value: {isSubscribedToNewsletter: isSubscribed},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER,
+                value: {isSubscribedToNewsletter: !isSubscribed},
+            },
+        ],
+    });
 }
 
 /**
@@ -257,39 +268,12 @@ function isBlockedFromConcierge(blockedFromConcierge) {
 }
 
 /**
- * Fetch the public domain info for the current user.
- *
- * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
- * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
- * If that happens, this function will automatically retry itself in 10 minutes.
+ * Fetch whether the user has the Expensify card enabled.
  */
 function getDomainInfo() {
-    // If this command fails, we'll retry again in 10 minutes,
-    // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
-    const RETRY_TIMEOUT = 600000;
-
-    // First check list of common public domains
-    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
-        Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
-        return;
-    }
-
-    // If it is not a common public domain, check the API
-    DeprecatedAPI.User_IsFromPublicDomain({email: sessionEmail})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                const {isFromPublicDomain} = response;
-                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
-
-                DeprecatedAPI.User_IsUsingExpensifyCard()
-                    .then(({isUsingExpensifyCard}) => {
-                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                    });
-            } else {
-                // eslint-disable-next-line max-len
-                Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(getDomainInfo, RETRY_TIMEOUT);
-            }
+    DeprecatedAPI.User_IsUsingExpensifyCard()
+        .then(({isUsingExpensifyCard}) => {
+            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
         });
 }
 
@@ -438,12 +422,12 @@ function generateStatementPDF(period) {
 }
 
 export {
-    changePasswordAndNavigate,
+    updatePassword,
     closeAccount,
     getBetas,
     getUserDetails,
     resendValidateCode,
-    setExpensifyNewsStatus,
+    updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
