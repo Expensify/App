@@ -94,7 +94,6 @@ function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
-    PersonalDetails.openIOUModalPage();
     GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
 
