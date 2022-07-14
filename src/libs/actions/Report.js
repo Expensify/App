@@ -1058,6 +1058,13 @@ function openReport(reportID) {
         });
 }
 
+function openPaymentDetailsPage(chatReportID, iouReportID) {
+    API.read('OpenPaymentDetailsPage', {
+        reportID: chatReportID,
+        iouReportID,
+    });
+}
+
 /**
  * Marks the new report actions as read
  *
@@ -1575,4 +1582,5 @@ export {
     markCommentAsUnread,
     readNewestAction,
     openReport,
+    openPaymentDetailsPage,
 };
