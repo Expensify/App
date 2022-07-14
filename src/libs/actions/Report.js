@@ -1058,6 +1058,12 @@ function openReport(reportID) {
         });
 }
 
+/**
+ * Gets the IOUReport and the associated report actions.
+ *
+ * @param {Number} chatReportID
+ * @param {Number} iouReportID
+ */
 function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
