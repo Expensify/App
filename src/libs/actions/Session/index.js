@@ -302,11 +302,42 @@ function signInWithShortLivedToken(email, shortLivedToken) {
  * User forgot the password so let's send them the link to reset their password
  */
 function resetPassword() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
-    DeprecatedAPI.ResetPassword({email: credentials.login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validateCodeExpired: false});
-        });
+    API.write('RequestPasswordReset', {
+        email: credentials.login
+    },
+    {
+        optimisticData: [
+            {
+                onyxMethod:'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: true,
+                    forgotPassword: true
+                }
+            },
+         ],
+         successData: [
+            {
+                onyxMethod:'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    validateCodeExpired: false,
+                    forgotPassword: false
+                }
+            },
+         ],
+         failureData: [
+            {
+                onyxMethod:'merge',
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    validateCodeExpired: false
+                }
+            },
+         ],
+    });
 }
 
 /**
