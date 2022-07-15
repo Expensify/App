@@ -59,11 +59,6 @@ function getScreenNameFromState(state) {
     return getRouteFromState(state).name || '';
 }
 
-let isSmallScreenWidth;
-Dimensions.addEventListener('change', ({window}) => {
-    isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
-});
-
 /**
  * Special accomodation must be made for navigating to a screen inside a DrawerNavigator (e.g. our ReportScreen). The web/mWeb default behavior when
  * calling "navigate()" does not give us the browser history we would expect for a typical web paradigm (e.g. that navigating from one screen another
@@ -76,6 +71,9 @@ Dimensions.addEventListener('change', ({window}) => {
  */
 function pushDrawerRoute(route) {
     return (currentState) => {
+        const initialDimensions = Dimensions.get('window');
+        const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+
         // Parse the state, name, and params from the new route we want to navigate to.
         const newStateFromRoute = getStateFromPath(route, linkingConfig.config);
         const newScreenName = getScreenNameFromState(newStateFromRoute);
