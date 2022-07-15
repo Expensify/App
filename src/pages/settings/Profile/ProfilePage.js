@@ -66,8 +66,6 @@ class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-
         this.state = {
             firstName: this.props.currentUserPersonalDetails.firstName,
             hasFirstNameError: false,
@@ -153,10 +151,12 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
-
+        this.setState({avatar, isAvatarChanged: true});
     }
 
+    /**
+     * Replaces the user's current avatar image with a default avatar.
+     */
     removeAvatar() {
         PersonalDetails.deleteAvatar();
     }
@@ -170,18 +170,12 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has modified their avatar
-        // TODO: remove this since it'll be auto-updated instead of waiting for save button??
-        // if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
-        //     // If the user removed their profile photo, replace it accordingly with the default avatar
-        //     if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
-        //         PersonalDetails.deleteAvatar(this.state.avatar.uri);
-        //     } else {
-        //         PersonalDetails.setAvatar(this.state.avatar);
-        //     }
+        if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+            PersonalDetails.setAvatar(this.state.avatar);
 
-        //     // Reset the changed state
-        //     this.setState({isAvatarChanged: false});
-        // }
+            // Reset the changed state
+            this.setState({isAvatarChanged: false});
+        }
 
         PersonalDetails.updateProfile(
             this.state.firstName.trim(),
