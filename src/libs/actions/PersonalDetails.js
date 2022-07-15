@@ -306,7 +306,12 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
             onyxMethod: 'merge',
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
-                [currentUserEmail]: {firstName, lastName, pronouns, timezone},
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    pronouns,
+                    timezone,
+                },
             },
         }],
         failureData: [{
@@ -391,7 +396,7 @@ function setAvatar(file) {
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
-    const defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)
+    const defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{

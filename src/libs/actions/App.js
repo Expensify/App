@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import _ from 'underscore';
 import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -19,7 +20,6 @@ import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
-import * as API from '../API';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -36,12 +36,6 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: val => isSidebarLoaded = val,
     initWithStoredValues: false,
-});
-
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 let myPersonalDetails;
@@ -206,23 +200,21 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 function openProfile() {
-    const oldTimezoneData = {
-        ...(myPersonalDetails.timezone || {})
-    };
+    const oldTimezoneData = myPersonalDetails.timezone || {};
     const newTimezoneData = {
         ...oldTimezoneData,
         selected: moment.tz.guess(true),
     };
 
     API.write('OpenProfile', {
-        timezone: { ...newTimezoneData },
+        timezone: newTimezoneData,
     }, {
         optimisticData: [{
             onyxMethod: 'merge',
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
-                    timezone: { ...newTimezoneData },
+                    timezone: newTimezoneData,
                 },
             },
         }],
@@ -231,7 +223,7 @@ function openProfile() {
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
-                    timezone: { ...oldTimezoneData },
+                    timezone: oldTimezoneData,
                 },
             },
         }],
