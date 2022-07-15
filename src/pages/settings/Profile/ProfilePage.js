@@ -26,15 +26,12 @@ import Picker from '../../../components/Picker';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import personalDetailsPropType from '../../personalDetailsPropType';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** Personal details of all the users, including current user */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.arrayOf(PropTypes.shape({
@@ -49,11 +46,12 @@ const propTypes = {
         validatedDate: PropTypes.string,
     })),
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    personalDetails: {},
     loginList: [],
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const timezones = _.chain(moment.tz.names())
@@ -68,21 +66,20 @@ class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
-        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
-        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.myPersonalDetails.login);
+        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
 
         this.state = {
-            firstName: this.myPersonalDetails.firstName,
+            firstName: this.props.currentUserPersonalDetails.firstName,
             hasFirstNameError: false,
-            lastName: this.myPersonalDetails.lastName,
+            lastName: this.props.currentUserPersonalDetails.lastName,
             hasLastNameError: false,
-            pronouns: this.myPersonalDetails.pronouns,
+            pronouns: this.props.currentUserPersonalDetails.pronouns,
             hasPronounError: false,
-            hasSelfSelectedPronouns: !_.isEmpty(this.myPersonalDetails.pronouns) && !this.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(this.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(this.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            hasSelfSelectedPronouns: !_.isEmpty(this.props.currentUserPersonalDetails.pronouns) && !this.props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            selectedTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
-            avatar: {uri: lodashGet(this.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.myPersonalDetails.login))},
+            avatar: {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))},
             isAvatarChanged: false,
         };
 
@@ -133,7 +130,7 @@ class ProfilePage extends Component {
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
             // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== this.myPersonalDetails.login) && !_.isEmpty(logins[type])
+            if ((login !== this.props.currentUserPersonalDetails.login) && !_.isEmpty(logins[type])
                 && (logins[type].validatedDate || !currentLogin.validatedDate)) {
                 return logins;
             }
@@ -156,7 +153,7 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
+        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)} : avatar, isAvatarChanged: true});
     }
 
     /**
@@ -168,7 +165,7 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has modified their avatar
-        if ((this.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+        if ((this.props.currentUserPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
             // If the user removed their profile photo, replace it accordingly with the default avatar
             if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
                 PersonalDetails.deleteAvatar(this.state.avatar.uri);
@@ -211,12 +208,12 @@ class ProfilePage extends Component {
         }));
 
         // Disables button if none of the form values have changed
-        const isButtonDisabled = (this.myPersonalDetails.firstName === this.state.firstName.trim())
-            && (this.myPersonalDetails.lastName === this.state.lastName.trim())
-            && (this.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
-            && (this.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && (this.myPersonalDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged || this.myPersonalDetails.avatarUploading);
+        const isButtonDisabled = (this.props.currentUserPersonalDetails.firstName === this.state.firstName.trim())
+            && (this.props.currentUserPersonalDetails.lastName === this.state.lastName.trim())
+            && (this.props.currentUserPersonalDetails.timezone.selected === this.state.selectedTimezone)
+            && (this.props.currentUserPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
+            && (this.props.currentUserPersonalDetails.pronouns === this.state.pronouns.trim())
+            && (!this.state.isAvatarChanged || this.props.currentUserPersonalDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -231,7 +228,7 @@ class ProfilePage extends Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
-                            isUploading={this.myPersonalDetails.avatarUploading}
+                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
                             isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.state.avatar.uri}
                             onImageSelected={this.updateAvatar}
@@ -326,10 +323,8 @@ ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },
