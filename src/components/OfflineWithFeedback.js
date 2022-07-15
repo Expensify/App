@@ -42,69 +42,58 @@ const defaultProps = {
     style: [],
 };
 
-class OfflineWithFeedback extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-        };
-    }
-
-    applyStrikeThrough(children) {
-        return React.Children.map(children, (child) => {
-            if (!React.isValidElement(child)) {
-                return child;
-            }
-
-            const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
-            if (child.props.children) {
-                props.children = this.applyStrikeThrough(child.props.children);
-            }
-
-            return React.cloneElement(child, props);
-        });
-    }
-
-    render() {
-        const isOfflinePendingAction = this.props.network.isOffline && this.props.pendingAction;
-        const isUpdateOrDeleteError = this.props.error && (this.props.pendingAction === 'delete' || this.props.pendingAction === 'update');
-        const isAddError = this.props.error && this.props.pendingAction === 'add';
-        const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
-        const needsStrikeThrough = this.props.network.isOffline && this.props.pendingAction === 'delete';
-        const hideChildren = !this.props.network.isOffline && this.props.pendingAction === 'delete' && !this.props.error;
-        let children = this.props.children;
-
-        // Apply strikethrough to children if needed, but skip it if we are not going to render them
-        if (needsStrikeThrough && !hideChildren) {
-            children = this.applyStrikeThrough(children);
+function applyStrikeThrough(children) {
+    return React.Children.map(children, (child) => {
+        if (!React.isValidElement(child)) {
+            return child;
         }
-        return (
-            <View style={this.props.style}>
-                {!hideChildren && (
-                    <View style={needsOpacity ? styles.offlineFeedback.pending : {}}>
-                        {children}
-                    </View>
-                )}
-                {this.props.error && (
-                    <View style={styles.offlineFeedback.error}>
-                        <View style={styles.offlineFeedback.errorDot} />
-                        <Text style={styles.offlineFeedback.text}>{this.props.error}</Text>
-                        <Tooltip text={this.props.translate('common.close')}>
-                            <Pressable
-                                onPress={this.props.onClose}
-                                style={[styles.touchableButtonImage, styles.mr0]}
-                                accessibilityRole="button"
-                                accessibilityLabel={this.props.translate('common.close')}
-                            >
-                                <Icon src={Expensicons.Close} />
-                            </Pressable>
-                        </Tooltip>
-                    </View>
-                )}
-            </View>
-        );
-    }
+        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
+        if (child.props.children) {
+            props.children = applyStrikeThrough(child.props.children);
+        }
+        return React.cloneElement(child, props);
+    });
 }
+
+const OfflineWithFeedback = (props) => {
+    const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
+    const isUpdateOrDeleteError = props.error && (props.pendingAction === 'delete' || props.pendingAction === 'update');
+    const isAddError = props.error && props.pendingAction === 'add';
+    const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
+    const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
+    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !props.error;
+    let children = props.children;
+
+    // Apply strikethrough to children if needed, but skip it if we are not going to render them
+    if (needsStrikeThrough && !hideChildren) {
+        children = applyStrikeThrough(children);
+    }
+    return (
+        <View style={props.style}>
+            {!hideChildren && (
+                <View style={needsOpacity ? styles.offlineFeedback.pending : {}}>
+                    {children}
+                </View>
+            )}
+            {props.error && (
+                <View style={styles.offlineFeedback.error}>
+                    <View style={styles.offlineFeedback.errorDot} />
+                    <Text style={styles.offlineFeedback.text}>{props.error}</Text>
+                    <Tooltip text={props.translate('common.close')}>
+                        <Pressable
+                            onPress={props.onClose}
+                            style={[styles.touchableButtonImage, styles.mr0]}
+                            accessibilityRole="button"
+                            accessibilityLabel={props.translate('common.close')}
+                        >
+                            <Icon src={Expensicons.Close} />
+                        </Pressable>
+                    </Tooltip>
+                </View>
+            )}
+        </View>
+    );
+};
 
 OfflineWithFeedback.propTypes = propTypes;
 OfflineWithFeedback.defaultProps = defaultProps;
