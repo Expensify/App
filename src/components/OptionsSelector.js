@@ -1,17 +1,26 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, findNodeHandle} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import Button from './Button';
+import FixedFooter from './FixedFooter';
 import OptionsList from './OptionsList';
+import Text from './Text';
+import compose from '../libs/compose';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
+import ArrowKeyFocusManager from './ArrowKeyFocusManager';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
+import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 const propTypes = {
-    /** Wether we should wait before focusing the TextInput, useful when using transitions  */
+    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus: PropTypes.bool,
 
     /** Callback to fire when a row is tapped */
@@ -30,6 +39,9 @@ const propTypes = {
 
         /** Whether this section should show or not */
         shouldShow: PropTypes.bool,
+
+        /** Whether this section items disabled for selection */
+        isDisabled: PropTypes.bool,
     })).isRequired,
 
     /** Value in the search input field */
@@ -37,6 +49,9 @@ const propTypes = {
 
     /** Callback fired when text changes */
     onChangeText: PropTypes.func.isRequired,
+
+    /** Label to display for the text input */
+    textInputLabel: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -56,6 +71,9 @@ const propTypes = {
     /** Whether to allow arrow key actions on the list */
     disableArrowKeysActions: PropTypes.bool,
 
+    /** Whether to disable interactivity of option rows */
+    isDisabled: PropTypes.bool,
+
     /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
@@ -71,6 +89,27 @@ const propTypes = {
     /** Whether to autofocus the search input on mount */
     autoFocus: PropTypes.bool,
 
+    /** Should a button be shown if a selection is made (only relevant if canSelectMultipleOptions is true) */
+    shouldShowConfirmButton: PropTypes.bool,
+
+    /** Text to show in the confirm button (only visible if multiple options are selected) */
+    confirmButtonText: PropTypes.string,
+
+    /** Function to execute if the confirm button is pressed */
+    onConfirmSelection: PropTypes.func,
+
+    /** If true, the text input will be below the options in the selector, not above. */
+    shouldTextInputAppearBelowOptions: PropTypes.bool,
+
+    /** If true, a message will display in the footer if the app is offline. */
+    shouldShowOfflineMessage: PropTypes.bool,
+
+    /** Custom content to display in the footer instead of the default button. */
+    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Hover style for options in the OptionsList */
+    optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
 
@@ -80,35 +119,84 @@ const propTypes = {
 const defaultProps = {
     shouldDelayFocus: false,
     onSelectRow: () => {},
+    textInputLabel: '',
     placeholderText: '',
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    disableArrowKeysActions: false,
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
     autoFocus: true,
+    shouldShowConfirmButton: false,
+    confirmButtonText: undefined,
+    onConfirmSelection: () => {},
+    shouldTextInputAppearBelowOptions: false,
+    shouldShowOfflineMessage: false,
+    footerContent: undefined,
+    optionHoveredStyle: styles.hoveredComponentBG,
     shouldShowOptions: true,
+    disableArrowKeysActions: false,
+    isDisabled: false,
 };
 
 class OptionsSelector extends Component {
     constructor(props) {
         super(props);
 
-        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
+        this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.viewableItems = [];
         this.relatedTarget = null;
 
+        const allOptions = this.flattenSections();
         this.state = {
-            focusedIndex: 0,
+            allOptions,
+            focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
         };
     }
 
     componentDidMount() {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnter = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            () => {
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
+            },
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !this.state.allOptions[this.state.focusedIndex],
+        );
+
+        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
+        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
+            CTRLEnterConfig.shortcutKey,
+            () => {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection();
+                    return;
+                }
+
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
+            },
+            CTRLEnterConfig.descriptionKey,
+            CTRLEnterConfig.modifiers,
+            true,
+        );
+
         if (!this.props.autoFocus) {
             return;
         }
@@ -120,92 +208,101 @@ class OptionsSelector extends Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(this.props.sections, prevProps.sections)) {
+            return;
+        }
+
+        const newOptions = this.flattenSections();
+        const newFocusedIndex = this.props.selectedOptions.length;
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+            allOptions: newOptions,
+            focusedIndex: newFocusedIndex,
+        }, () => {
+            // If we just selected a new option on a multiple-selection page, scroll to the top
+            if (this.props.selectedOptions.length > prevProps.selectedOptions.length) {
+                this.scrollToIndex(0);
+                return;
+            }
+
+            // Otherwise, scroll to the focused index (as long as it's in range)
+            if (this.state.allOptions.length <= this.state.focusedIndex) {
+                return;
+            }
+            this.scrollToIndex(this.state.focusedIndex);
+        });
+    }
+
+    componentWillUnmount() {
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
+        }
+
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
+    }
+
+    /**
+     * Flattens the sections into a single array of options.
+     * Each object in this array is enhanced to have:
+     *
+     *   1. A `sectionIndex`, which represents the index of the section it came from
+     *   2. An `index`, which represents the index of the option within the section it came from.
+     *
+     * @returns {Array<Object>}
+     */
+    flattenSections() {
+        const allOptions = [];
+        _.each(this.props.sections, (section, sectionIndex) => {
+            _.each(section.data, (option, optionIndex) => {
+                allOptions.push({
+                    ...option,
+                    sectionIndex,
+                    index: optionIndex,
+                });
+            });
+        });
+        return allOptions;
+    }
+
+    /**
+     * @param {Number} index
+     */
+    updateFocusedIndex(index) {
+        this.setState({focusedIndex: index}, () => this.scrollToIndex(index));
+    }
+
     /**
      * Scrolls to the focused index within the SectionList
      *
-     * @param {Number} sectionIndex
-     * @param {Number} itemIndex
+     * @param {Number} index
      */
-    scrollToFocusedIndex(sectionIndex, itemIndex) {
-        this.list.scrollToLocation({sectionIndex, itemIndex});
+    scrollToIndex(index) {
+        const option = this.state.allOptions[index];
+        if (!this.list || !option) {
+            return;
+        }
+
+        const itemIndex = option.index;
+        const sectionIndex = option.sectionIndex;
+
+        // Note: react-native's SectionList automatically strips out any empty sections.
+        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+        let adjustedSectionIndex = sectionIndex;
+        for (let i = 0; i < sectionIndex; i++) {
+            if (_.isEmpty(lodashGet(this.props.sections, `[${i}].data`))) {
+                adjustedSectionIndex--;
+            }
+        }
+
+        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
     }
 
     /**
-     * Delegate key presses to specific callbacks
-     *
-     * @param {SyntheticEvent} e
-     */
-    handleKeyPress(e) {
-        if (!this.list) {
-            return;
-        }
-
-        // We are mapping over all the options to combine them into a single array and also saving the section index
-        // index within that section so we can navigate
-        const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
-            [...options, ..._.map(section.data, (option, index) => ({
-                ...option,
-                index,
-                sectionIndex,
-            }))]
-        ), []);
-
-        if (allOptions.length === 0) {
-            return;
-        }
-
-        if (this.props.disableArrowKeysActions && e.nativeEvent.key.startsWith('Arrow')) {
-            return;
-        }
-
-        switch (e.nativeEvent.key) {
-            case 'Enter': {
-                this.selectRow(allOptions[this.state.focusedIndex]);
-                e.preventDefault();
-                break;
-            }
-
-            case 'ArrowDown': {
-                this.setState((prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex + 1;
-
-                    // Wrap around to the top of the list
-                    if (newFocusedIndex > allOptions.length - 1) {
-                        newFocusedIndex = 0;
-                    }
-
-                    const {index, sectionIndex} = allOptions[newFocusedIndex];
-                    this.scrollToFocusedIndex(sectionIndex, index);
-                    return {focusedIndex: newFocusedIndex};
-                });
-
-                e.preventDefault();
-                break;
-            }
-
-            case 'ArrowUp': {
-                this.setState((prevState) => {
-                    let newFocusedIndex = prevState.focusedIndex - 1;
-
-                    // Wrap around to the bottom of the list
-                    if (newFocusedIndex < 0) {
-                        newFocusedIndex = allOptions.length - 1;
-                    }
-
-                    const {index, sectionIndex} = allOptions[newFocusedIndex];
-                    this.scrollToFocusedIndex(sectionIndex, index);
-                    return {focusedIndex: newFocusedIndex};
-                });
-                e.preventDefault();
-                break;
-            }
-
-            default:
-        }
-    }
-
-    /**
-     * Completes the follow up actions after a row is selected
+     * Completes the follow-up actions after a row is selected
      *
      * @param {Object} option
      * @param {Object} ref
@@ -220,57 +317,123 @@ class OptionsSelector extends Component {
             this.relatedTarget = null;
         }
         this.props.onSelectRow(option);
+
+        if (!this.props.canSelectMultipleOptions) {
+            return;
+        }
+
+        // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+        this.setState({
+            focusedIndex: this.props.selectedOptions.length,
+        });
     }
 
     render() {
+        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent)
+            && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
+        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
+            ? this.props.translate('common.confirm')
+            : this.props.confirmButtonText;
+        const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
+        const textInput = (
+            <TextInput
+                ref={el => this.textInput = el}
+                value={this.props.value}
+                label={this.props.textInputLabel}
+                onChangeText={(text) => {
+                    if (this.props.shouldFocusOnSelectRow) {
+                        this.textInput.setNativeProps({selection: null});
+                    }
+                    this.props.onChangeText(text);
+                }}
+                placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                onBlur={(e) => {
+                    if (!this.props.shouldFocusOnSelectRow) {
+                        return;
+                    }
+                    this.relatedTarget = e.relatedTarget;
+                }}
+                selectTextOnFocus
+                blurOnSubmit={Boolean(this.state.allOptions.length)}
+            />
+        );
+        const optionsList = this.props.shouldShowOptions ? (
+            <OptionsList
+                ref={el => this.list = el}
+                optionHoveredStyle={this.props.optionHoveredStyle}
+                onSelectRow={this.selectRow}
+                sections={this.props.sections}
+                focusedIndex={this.state.focusedIndex}
+                selectedOptions={this.props.selectedOptions}
+                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                hideSectionHeaders={this.props.hideSectionHeaders}
+                headerMessage={this.props.headerMessage}
+                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                showTitleTooltip={this.props.showTitleTooltip}
+                isDisabled={this.props.isDisabled}
+            />
+        ) : <FullScreenLoadingIndicator />;
         return (
-            <View style={[styles.flex1]}>
-                <View style={[styles.ph5, styles.pv3]}>
-                    <TextInput
-                        ref={el => this.textInput = el}
-                        value={this.props.value}
-                        onChangeText={(text) => {
-                            if (this.props.shouldFocusOnSelectRow) {
-                                this.textInput.setNativeProps({selection: null});
-                            }
-                            this.props.onChangeText(text);
-                        }}
-                        onKeyPress={this.handleKeyPress}
-                        placeholder={this.props.placeholderText
-                            || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        onBlur={(e) => {
-                            if (!this.props.shouldFocusOnSelectRow) {
-                                return;
-                            }
-                            this.relatedTarget = e.relatedTarget;
-                        }}
-                        selectTextOnFocus
-                    />
+            <ArrowKeyFocusManager
+                focusedIndex={this.state.focusedIndex}
+                maxIndex={this.props.canSelectMultipleOptions ? this.state.allOptions.length : this.state.allOptions.length - 1}
+                onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
+            >
+                <View style={[styles.flex1]}>
+                    {
+                        this.props.shouldTextInputAppearBelowOptions
+                            ? (
+                                <>
+                                    <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
+                                        {optionsList}
+                                    </View>
+                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
+                                        {textInput}
+                                    </View>
+                                </>
+                            ) : (
+                                <>
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        {textInput}
+                                    </View>
+                                    {optionsList}
+                                </>
+                            )
+                    }
                 </View>
-                {this.props.shouldShowOptions
-                    ? (
-                        <OptionsList
-                            ref={el => this.list = el}
-                            optionHoveredStyle={styles.hoveredComponentBG}
-                            onSelectRow={this.selectRow}
-                            sections={this.props.sections}
-                            focusedIndex={this.state.focusedIndex}
-                            selectedOptions={this.props.selectedOptions}
-                            canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                            hideSectionHeaders={this.props.hideSectionHeaders}
-                            headerMessage={this.props.headerMessage}
-                            disableFocusOptions={this.props.disableArrowKeysActions}
-                            hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                            forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                            showTitleTooltip={this.props.showTitleTooltip}
-                        />
-                    )
-                    : <FullScreenLoadingIndicator />}
-            </View>
+                {shouldShowFooter && (
+                    <FixedFooter>
+                        {this.props.shouldShowOfflineMessage && this.props.network.isOffline && (
+                            <Text style={[styles.formError, styles.pb2]}>
+                                {this.props.translate('session.offlineMessage')}
+                            </Text>
+                        )}
+                        {shouldShowDefaultConfirmButton && (
+                            <Button
+                                success
+                                style={[styles.w100]}
+                                text={defaultConfirmButtonText}
+                                onPress={this.props.onConfirmSelection}
+                                pressOnEnter
+                                enterKeyEventListenerPriority={1}
+                            />
+                        )}
+                        {this.props.footerContent}
+                    </FixedFooter>
+                )}
+            </ArrowKeyFocusManager>
         );
     }
 }
 
 OptionsSelector.defaultProps = defaultProps;
 OptionsSelector.propTypes = propTypes;
-export default withLocalize(OptionsSelector);
+export default compose(
+    withLocalize,
+    withOnyx({
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
+    }),
+)(OptionsSelector);

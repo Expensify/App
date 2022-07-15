@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {ActivityIndicator, ImageBackground, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
@@ -44,6 +44,9 @@ const propTypes = {
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
+    /** The reportAction's source */
+    source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']),
+
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
 
@@ -64,61 +67,70 @@ const defaultProps = {
     loading: false,
     isSingleLine: false,
     tooltipText: '',
+    source: '',
 };
 
 const ReportActionItemFragment = (props) => {
     switch (props.fragment.type) {
-        case 'COMMENT':
+        case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
                 return (
-                    <View style={[styles.chatItemAttachmentPlaceholder]}>
-                        {Str.isImage(props.attachmentInfo.name)
-                            ? (
-                                <ImageBackground
-                                    source={{uri: props.attachmentInfo.source}}
-                                    resizeMode="cover"
-                                    imageStyle={[styles.borderBottomRounded, styles.borderTopRounded]}
-                                    style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
-                                >
-                                    <ActivityIndicator
-                                        size="large"
-                                        color={themeColors.uploadPreviewActivityIndicator}
-                                    />
-                                </ImageBackground>
-                            ) : (
+                    Str.isImage(props.attachmentInfo.name)
+                        ? (
+                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
+                        ) : (
+                            <View style={[styles.chatItemAttachmentPlaceholder]}>
                                 <ActivityIndicator
                                     size="large"
                                     color={themeColors.textSupporting}
                                     style={[styles.flex1]}
                                 />
-                            )}
-                    </View>
+                            </View>
+                        )
                 );
+            }
+            let {html, text} = props.fragment;
+
+            // If the only difference between fragment.text and fragment.html is <br /> tags
+            // we replace them with line breaks and render it as text, not as html.
+            // This is done to render emojis with line breaks between them as text.
+            const differByLineBreaksOnly = Str.replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
+            if (differByLineBreaksOnly) {
+                const textWithLineBreaks = Str.replaceAll(props.fragment.html, '<br />', '\n');
+                html = textWithLineBreaks;
+                text = textWithLineBreaks;
             }
 
             // Only render HTML if we have html in the fragment
-            return props.fragment.html !== props.fragment.text
-                ? (
+            if (html !== text) {
+                const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
+                const htmlContent = html + editedTag;
+                return (
                     <RenderHTML
-                        html={`<comment>${props.fragment.html + (props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
+                        html={props.source === 'email'
+                            ? `<email-comment>${htmlContent}</email-comment>`
+                            : `<comment>${htmlContent}</comment>`}
                     />
-                ) : (
-                    <Text
-                        selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={EmojiUtils.isSingleEmoji(props.fragment.text) ? styles.singleEmojiText : undefined}
-                    >
-                        {Str.htmlDecode(props.fragment.text)}
-                        {props.fragment.isEdited && (
-                            <Text
-                                fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
-                            >
-                                {` ${props.translate('reportActionCompose.edited')}`}
-                            </Text>
-                        )}
-                    </Text>
                 );
+            }
+            return (
+                <Text
+                    selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                    style={EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined}
+                >
+                    {Str.htmlDecode(text)}
+                    {props.fragment.isEdited && (
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                        >
+                            {` ${props.translate('reportActionCompose.edited')}`}
+                        </Text>
+                    )}
+                </Text>
+            );
+        }
         case 'TEXT':
             return (
                 <Tooltip text={props.tooltipText}>

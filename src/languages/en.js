@@ -37,7 +37,6 @@ export default {
         privacy: 'Privacy',
         privacyPolicy: 'Privacy policy',
         delete: 'Delete',
-        deleted: 'deleted',
         archived: 'archived',
         contacts: 'Contacts',
         recents: 'Recents',
@@ -105,6 +104,9 @@ export default {
         leaveRoom: 'Leave room',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
+        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
+        youAppearToBeOffline: 'You appear to be offline.',
+        thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -158,11 +160,12 @@ export default {
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
-        youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
+        collapse: 'Collapse',
+        expand: 'Expand',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -217,7 +220,6 @@ export default {
     iou: {
         amount: 'Amount',
         participants: 'Participants',
-        confirm: 'Confirm',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
@@ -226,7 +228,6 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         youowe: ({owner}) => `You owe ${owner}`,
         youpaid: ({owner}) => `You paid ${owner}`,
@@ -235,7 +236,6 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
-        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -248,9 +248,7 @@ export default {
         mute: 'Mute',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
-        useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
     avatarWithImagePicker: {
@@ -506,6 +504,8 @@ export default {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
+        notHere: "Hmm... it's not here",
+        pageNotFound: 'That page is nowhere to be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -535,6 +535,7 @@ export default {
         buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
+            noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid Tax ID Number',
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
@@ -581,7 +582,6 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
-        maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -607,6 +607,7 @@ export default {
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
         selectAnswer: 'You need to select a response to proceed.',
+        ssnFull9Error: 'Please enter a valid 9 digit SSN',
         needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
         weCouldNotVerify: 'We could not verify',
         pleaseFixIt: 'Please fix this information before continuing.',
@@ -901,8 +902,8 @@ export default {
     },
     requestCallPage: {
         title: 'Request a call',
-        subtitle: 'Have questions, or need help?',
-        description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
+        subtitle: 'Need help?',
+        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
         extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
@@ -921,6 +922,11 @@ export default {
         error: {
             phoneExtension: 'Please enter a valid phone extension number',
         },
+    },
+    requestCallConfirmationScreen: {
+        callRequested: 'Call successfully requested!',
+        allSet: 'You’re all set. You will be receiving a call from us soon.',
+        gotIt: 'Got it',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',

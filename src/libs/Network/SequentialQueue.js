@@ -5,13 +5,18 @@ import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
-import createOnReadyTask from '../createOnReadyTask';
 
-// Create a deferred task to hook into and immediately set it as ready
-const queueProcessTask = createOnReadyTask();
-queueProcessTask.setIsReady();
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
+
+// Resolve the isReadyPromise immediately so that the queue starts working as soon as the page loads
+resolveIsReadyPromise();
 
 let isSequentialQueueRunning = false;
+
+let currentRequest = null;
 
 /**
  * This method will get any persisted requests and fire them off in sequence to retry them.
@@ -26,7 +31,10 @@ function process() {
         return Promise.resolve();
     }
 
-    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => Request.processWithMiddleware(request, true)), Promise.resolve());
+    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
+        currentRequest = Request.processWithMiddleware(request, true);
+        return currentRequest;
+    }), Promise.resolve());
 
     // Do a recursive call in case the queue is not empty after processing the current batch
     return task.then(process);
@@ -44,7 +52,11 @@ function flush() {
     }
 
     isSequentialQueueRunning = true;
-    queueProcessTask.reset();
+
+    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
@@ -54,7 +66,8 @@ function flush() {
             process()
                 .finally(() => {
                     isSequentialQueueRunning = false;
-                    queueProcessTask.setIsReady();
+                    resolveIsReadyPromise();
+                    currentRequest = null;
                 });
         },
     });
@@ -68,7 +81,7 @@ function isRunning() {
 }
 
 // Flush the queue when the connection resumes
-NetworkStore.onConnectivityResumed(flush);
+NetworkStore.onReconnection(flush);
 
 /**
  * @param {Object} request
@@ -84,15 +97,26 @@ function push(request) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        queueProcessTask.isReady().then(flush);
+        isReadyPromise.then(flush);
         return;
     }
 
     flush();
 }
 
+/**
+ * @returns {Promise}
+ */
+function getCurrentRequest() {
+    if (currentRequest === null) {
+        return Promise.resolve();
+    }
+    return currentRequest;
+}
+
 export {
     flush,
+    getCurrentRequest,
     isRunning,
     push,
 };
