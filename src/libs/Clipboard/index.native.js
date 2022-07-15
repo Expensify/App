@@ -1,15 +1,18 @@
 import Clipboard from '@react-native-community/clipboard';
 
 /**
- * Writes the content as text on native.
- * @param {Object} content Types to write.
- * @param {String} content.markdown MD representation of the content.
+ * Writes the content as a string on native.
+ * @param {Object} content Platfrom-specific content to write
+ * @param {String} content.text Text representation of the content for native
  */
-const writeTypes = (content) => {
-    Clipboard.setString(content.markdown);
+const setContent = (content) => {
+    if (!content) {
+        return;
+    }
+    Clipboard.setString(content.text);
 };
 
 export default {
     ...Clipboard,
-    writeTypes,
+    setContent,
 };

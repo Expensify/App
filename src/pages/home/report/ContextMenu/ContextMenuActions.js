@@ -65,7 +65,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(_.get(selection, 'text', ''));
+            Clipboard.setString(selection.text);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: ContextMenuUtils.getPopoverDescription,
@@ -77,7 +77,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(_.get(selection, 'text', '').replace('mailto:', ''));
+            Clipboard.setString(selection.text.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
@@ -102,7 +102,7 @@ export default [
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
-                Clipboard.writeTypes(selection || SelectionScraper.getCustomAsTypes(messageHtml));
+                Clipboard.setContent(selection || SelectionScraper.getCustomSelection(messageHtml));
             } else {
                 Clipboard.setString(messageHtml);
             }

@@ -54,7 +54,7 @@ class PressableWithSecondaryInteraction extends Component {
      * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
      */
     executeSecondaryInteractionOnContextMenu(e) {
-        const selection = SelectionScraper.getAsTypes();
+        const selection = SelectionScraper.getCurrentSelection();
         e.stopPropagation();
         if (this.props.preventDefaultContentMenu) {
             e.preventDefault();

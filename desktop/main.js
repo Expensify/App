@@ -33,12 +33,13 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 // See https://github.com/sindresorhus/electron-context-menu
 // Add the Paste and Match Style command to the context menu
 contextMenu({
-    append: () => [
-        {
+    append: (defaultActions, parameters) => [
+        new MenuItem({
+            visible: parameters.isEditable,
             label: 'Paste and Match Style',
             role: 'pasteAndMatchStyle',
             accelerator: 'Cmd+Shift+V',
-        },
+        }),
     ],
 });
 

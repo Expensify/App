@@ -3,30 +3,36 @@ import _ from 'lodash';
 import {Clipboard} from 'react-native-web';
 
 /**
- * Writes the content as types if available, otherwise as text.
- * @param {Object} content Types to write.
- * @param {String} content.text Plain text representation of the content.
- * @param {String} content.html HTML representation of the content.
- * @param {String} content.markdown MD representation of the content.
+ * Writes the content as rich types if provided and the web client supports it, otherwise as a string.
+ * @param {Object} content Platfrom-specific content to write
+ * @param {String} content.text Text representation of the content for web
+ * @param {String} [content.html] Html representation of the content for web
  */
-const writeTypes = (content) => {
+const setContent = (content) => {
     if (!content) {
         return;
     }
-    if (!_.get(navigator, 'clipboard.write')) {
-        Clipboard.setString(content.markdown);
-        return;
+
+    // If HTML is present, try to write rich types.
+    if (content.html) {
+        if (!_.get(navigator, 'clipboard.write')) {
+            Clipboard.setString(content.text);
+            throw new Error('Rich types are not supported on this platform');
+        }
+
+        navigator.clipboard.write([
+            // eslint-disable-next-line no-undef
+            new ClipboardItem({
+                'text/html': new Blob([content.html], {type: 'text/html'}),
+                'text/plain': new Blob([content.text], {type: 'text/plain'}),
+            }),
+        ]);
+    } else {
+        Clipboard.setString(content.text);
     }
-    navigator.clipboard.write([
-        // eslint-disable-next-line no-undef
-        new ClipboardItem({
-            'text/html': new Blob([content.html], {type: 'text/html'}),
-            'text/plain': new Blob([content.text], {type: 'text/plain'}),
-        }),
-    ]);
 };
 
 export default {
     ...Clipboard,
-    writeTypes,
+    setContent,
 };
