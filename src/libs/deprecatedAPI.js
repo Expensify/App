@@ -639,8 +639,8 @@ function GetLocalCurrency(parameters) {
 /**
  * @returns {Promise}
  */
-function User_IsUsingExpensifyCard() {
-    return Network.post('User_IsUsingExpensifyCard', {});
+function GetCurrencyList() {
+    return Mobile_GetConstants({data: ['currencyList']});
 }
 
 /**
@@ -833,7 +833,6 @@ export {
     User_SignUp,
     User_Delete,
     User_GetBetas,
-    User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
