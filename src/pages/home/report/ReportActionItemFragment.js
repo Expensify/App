@@ -114,13 +114,11 @@ const ReportActionItemFragment = (props) => {
                             : `<comment>${htmlContent}</comment>`}
                     />
                 ) : (
-                    <View style={[styles.flexRow, styles.alignItemsBaseline]}>
-                        <Text
-                            selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                            style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined}
-                        >
-                            {Str.htmlDecode(props.fragment.text)}
-                        </Text>
+                    <Text
+                        selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                        style={[EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined, styles.ltr]}
+                    >
+                        {`\u2066${Str.htmlDecode(props.fragment.text)}`}
                         {props.fragment.isEdited && (
                         <Text
                             fontSize={variables.fontSizeSmall}
