@@ -13,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';

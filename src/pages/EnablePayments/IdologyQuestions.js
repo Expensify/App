@@ -103,8 +103,8 @@ class IdologyQuestions extends React.Component {
                 }
 
                 const idologyAnswers = {
-                        answers,
-                        idNumber: this.props.idNumber,
+                    answers,
+                    idNumber: this.props.idNumber,
                 };
                 Wallet.updatePersonalDetails(null, idologyAnswers);
                 return {answers, isLoading: true};
