@@ -41,7 +41,7 @@ Onyx.connect({
 let myPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = _.findWhere(val, {isCurrentUser: true}),
+    callback: val => myPersonalDetails = _.findWhere(val, {login: currentUserEmail}),
 });
 
 /**
@@ -64,7 +64,7 @@ function setLocale(locale) {
     // Optimistically change preferred locale
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             value: locale,
         },
@@ -202,15 +202,15 @@ function setUpPoliciesAndNavigate(session) {
 function openProfile() {
     const oldTimezoneData = myPersonalDetails.timezone || {};
     const newTimezoneData = {
-        ...oldTimezoneData,
+        automatic: oldTimezoneData.automatic || true,
         selected: moment.tz.guess(true),
     };
 
     API.write('OpenProfile', {
-        timezone: newTimezoneData,
+        timezone: JSON.stringify(newTimezoneData),
     }, {
         optimisticData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -219,7 +219,7 @@ function openProfile() {
             },
         }],
         failureData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {

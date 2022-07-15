@@ -303,7 +303,7 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
         timezone,
     }, {
         optimisticData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -315,7 +315,7 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
             },
         }],
         failureData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -400,7 +400,7 @@ function deleteAvatar() {
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -409,7 +409,7 @@ function deleteAvatar() {
             },
         }],
         failureData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
