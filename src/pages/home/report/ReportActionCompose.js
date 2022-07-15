@@ -36,6 +36,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import DateUtils from '../../../libs/DateUtils';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
@@ -98,6 +99,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -107,6 +109,7 @@ const defaultProps = {
     reportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class ReportActionCompose extends React.Component {
@@ -128,7 +131,6 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
-        this.myPersonalDetails = _.findWhere(props.personalDetails, {isCurrentUser: true});
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -257,7 +259,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Array<object>}
      */
     getIOUOptions(reportParticipants) {
-        const participants = _.filter(reportParticipants, email => this.myPersonalDetails.login !== email);
+        const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
         const iouOptions = [];
@@ -677,6 +679,7 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withPersonalDetails(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
