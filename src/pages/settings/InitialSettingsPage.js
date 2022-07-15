@@ -86,7 +86,7 @@ const defaultMenuItems = [
     {
         translationKey: 'common.profile',
         icon: Expensicons.Profile,
-        action: () => { App.openProfilePage(); },
+        action: () => { App.openProfile(); },
     },
     {
         translationKey: 'common.preferences',
