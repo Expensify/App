@@ -92,7 +92,6 @@ AppState.addEventListener('change', (nextAppState) => {
  */
 function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
-    User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
     BankAccounts.fetchUserWallet();
 

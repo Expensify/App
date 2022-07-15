@@ -672,13 +672,6 @@ function GetCurrencyList() {
 }
 
 /**
- * @returns {Promise}
- */
-function User_IsUsingExpensifyCard() {
-    return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
  * @param {Object} parameters
  * @param {String} [parameters.type]
  * @param {String} [parameters.policyName]
@@ -869,7 +862,6 @@ export {
     User_SignUp,
     User_Delete,
     User_GetBetas,
-    User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
