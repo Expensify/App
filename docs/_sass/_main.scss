@@ -370,3 +370,49 @@ textarea {
         padding-left: 4px;
     }
 }
+
+.coming-soon {
+    overflow: hidden;
+
+    strong {
+        font-size: 20px;
+    }
+
+    #logo {
+        width: 240px;
+        padding: 80px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        align-content: center;
+    }
+
+    #icon {
+        width: 76px;
+        padding: 28px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #centered-content {
+        width: 500px;
+        height: 250px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        align-content: center;
+        text-align: center;
+        padding-top: 22.5vh;
+        font-size: larger;
+
+        @media screen and (max-width: 800px) {
+            width: 380px;
+            padding-top: 15vh;
+        }
+
+        div {
+            margin-top: 8px;
+        }
+    }
+}
