@@ -403,7 +403,8 @@ export default {
         whichAccount: 'Which Account?',
         fee: 'Fee',
         transferSuccess: 'Transfer successful!',
-        transferDetail: 'Your money should arrive in the next 1-3 business days.',
+        transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
+        transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
