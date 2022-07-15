@@ -735,12 +735,10 @@ function fetchActionsWithLoadingState(reportID, offset) {
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
- * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  * @returns {Promise}
  */
 function fetchAllReports(
     shouldRecordHomePageTiming = false,
-    shouldDelayActionsFetch = false,
 ) {
     Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
     return DeprecatedAPI.Get({
