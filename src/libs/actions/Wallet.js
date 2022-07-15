@@ -164,12 +164,12 @@ function updatePersonalDetails(personalDetails, idologyAnswers) {
     if (!personalDetails && !idologyAnswers) {
         return;
     }
-    let personalDetailsString = personalDetails ? JSON.stringify(personalDetails) : '';
-    let idologyAnswersString = idologyAnswers ? JSON.stringify(idologyAnswers) : '';
+    const personalDetailsString = personalDetails ? JSON.stringify(personalDetails) : '';
+    const idologyAnswersString = idologyAnswers ? JSON.stringify(idologyAnswers) : '';
 
     API.write('UpdatePersonalDetailsForWallet', {
-        personalDetailsString,
-        idologyAnswersString,
+        personalDetails: personalDetailsString,
+        idologyAnswers: idologyAnswersString,
     }, {
         optimisticData: [
             {
