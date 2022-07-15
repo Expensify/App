@@ -241,6 +241,7 @@ function transferWalletBalance(paymentMethod) {
                 value: {
                     loading: false,
                     shouldShowSuccess: true,
+                    paymentMethodType: paymentMethod.accountType,
                 },
             },
         ],
