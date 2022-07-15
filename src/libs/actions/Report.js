@@ -1224,7 +1224,6 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
-    const oldMessage = {...reportAction.message};
 
     const optimisticReportActions = {
         [sequenceNumber]: {
@@ -1235,13 +1234,18 @@ function deleteReportComment(reportID, reportAction) {
             }],
         },
     };
+
     const optimisticReport = {
-        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
+        lastMessageText: ReportActions.getLastVisibleMessageTextz(reportID, {
+            [sequenceNumber]: {
+                ...reportAction,
+            },
+        }),
     };
 
     // If the deleted comment is more recent than our last read comment, update the unread count
     if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-        optimisticReport.unreadActionCount =  Math.max(getUnreadActionCount(reportID) - 1, 0);
+        optimisticReport.unreadActionCount = Math.max(getUnreadActionCount(reportID) - 1, 0);
     }
 
     // List of optmistic data to change
@@ -1261,7 +1265,7 @@ function deleteReportComment(reportID, reportAction) {
     const parameters = {
         reportID,
         sequenceNumber,
-        reportActionID: originalReportAction.reportActionID,
+        reportActionID: reportAction.reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData});
 
