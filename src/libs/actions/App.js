@@ -220,7 +220,7 @@ function setUpPoliciesAndNavigate(session) {
         });
 }
 
-function openProfilePage() {
+function openProfile() {
     const oldTimezoneData = {
         ...(myPersonalDetails.timezone || {})
     };
@@ -229,7 +229,7 @@ function openProfilePage() {
         selected: moment.tz.guess(true),
     };
 
-    API.write('OpenProfilePage', {
+    API.write('OpenProfile', {
         timezone: { ...newTimezoneData },
     }, {
         optimisticData: [{
@@ -268,5 +268,6 @@ export {
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
-    openProfilePage,
+    openProfile,
+    openApp,
 };
