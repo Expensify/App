@@ -82,22 +82,14 @@ function updatePassword(oldPassword, password) {
  * @param {String} message optional reason for closing account
  */
 function closeAccount(message) {
+    // Note: successData does not need to set isLoading to false because if the CloseAccount
+    // command succeeds, a Pusher response will clear all Onyx data.
     API.write('CloseAccount', {message}, {
         optimisticData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.CLOSE_ACCOUNT,
                 value: {isLoading: true},
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.CLEAR,
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-                value: preferredLocale,
             },
         ],
         failureData: [
