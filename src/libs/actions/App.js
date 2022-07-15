@@ -107,7 +107,8 @@ function getAppData() {
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
     return Promise.all([
-        Report.fetchAllReports(true, true),
+        PersonalDetails.fetchPersonalDetails(),
+        Report.fetchAllReports(true),
     ]);
 }
 
