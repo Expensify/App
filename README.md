@@ -45,6 +45,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11580) for installing cocoapods.
 
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install && cd ..`
+* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -52,6 +53,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
 * Go through the instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
+* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
