@@ -52,7 +52,7 @@ Onyx.connect({
 let myPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = _.findWhere(val, {isCurrentUser: true}),
+    callback: val => myPersonalDetails = val[currentUserEmail],
 });
 
 const allReports = {};
