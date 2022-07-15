@@ -105,6 +105,20 @@ class AdditionalDetailsStep extends React.Component {
             'ssn',
         ];
 
+        this.errorTranslationKeys = {
+            legalFirstName: 'bankAccount.error.firstName',
+            legalLastName: 'bankAccount.error.lastName',
+            addressStreet: 'bankAccount.error.addressStreet',
+            addressCity: 'bankAccount.error.addressCity',
+            addressState: 'bankAccount.error.addressState',
+            addressZip: 'bankAccount.error.zipCode',
+            phoneNumber: 'bankAccount.error.phoneNumber',
+            dob: 'bankAccount.error.dob',
+            age: 'bankAccount.error.age',
+            ssn: 'bankAccount.error.ssnLast4',
+            ssnFull9: 'additionalDetailsStep.ssnFull9Error',
+        };
+
         this.fieldNameTranslationKeys = {
             legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
             legalLastName: 'additionalDetailsStep.legalLastNameLabel',
@@ -140,7 +154,7 @@ class AdditionalDetailsStep extends React.Component {
             return '';
         }
 
-        return `${this.props.translate(this.fieldNameTranslationKeys[fieldName])} ${this.props.translate('common.isRequiredField')}.`;
+        return this.props.translate(this.errorTranslationKeys[fieldName]);
     }
 
     /**
@@ -163,6 +177,10 @@ class AdditionalDetailsStep extends React.Component {
             errors.dob = true;
         }
 
+        if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
+            errors.age = true;
+        }
+
         if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
             errors.addressStreet = true;
         }
@@ -171,7 +189,11 @@ class AdditionalDetailsStep extends React.Component {
             errors.phoneNumber = true;
         }
 
-        if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn) && !ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+        if (this.props.walletAdditionalDetails.shouldAskForFullSSN) {
+            if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+                errors.ssnFull9 = true;
+            }
+        } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
             errors.ssn = true;
         }
 
@@ -198,6 +220,26 @@ class AdditionalDetailsStep extends React.Component {
                 phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
             },
         });
+    }
+
+    /**
+     * Clear both errors associated with dob, and set the new value.
+     *
+     * @param {String} value
+     */
+    clearDateErrorsAndSetValue(value) {
+        this.formHelper.clearErrors(this.props, ['dob', 'age']);
+        Wallet.updateAdditionalDetailsDraft({dob: value});
+    }
+
+    /**
+     * Clear ssn and ssnFull9 error and set the new value
+     *
+     * @param {String} value
+     */
+    clearSSNErrorAndSetValue(value) {
+        this.formHelper.clearErrors(this.props, ['ssn', 'ssnFull9']);
+        Wallet.updateAdditionalDetailsDraft({ssn: value});
     }
 
     /**
@@ -326,18 +368,18 @@ class AdditionalDetailsStep extends React.Component {
                                 <DatePicker
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                    onInputChange={val => this.clearErrorAndSetValue('dob', val)}
+                                    onInputChange={val => this.clearDateErrorsAndSetValue(val)}
                                     defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                     placeholder={this.props.translate('common.dob')}
-                                    errorText={this.getErrorText('dob')}
+                                    errorText={this.getErrorText('dob') || this.getErrorText('age')}
                                     maximumDate={new Date()}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                    onChangeText={val => this.clearErrorAndSetValue('ssn', val)}
+                                    onChangeText={val => this.clearSSNErrorAndSetValue(val)}
                                     value={this.props.walletAdditionalDetailsDraft.ssn || ''}
-                                    errorText={this.getErrorText('ssn')}
+                                    errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                     maxLength={shouldAskForFullSSN ? 9 : 4}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 />
