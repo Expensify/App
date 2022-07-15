@@ -10,13 +10,15 @@ import Text from './Text';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withWindowDimensions from './withWindowDimensions';
+import PropTypes from 'prop-types';
 
 const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Styles for container element */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    /** Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -32,7 +34,7 @@ const OfflineIndicator = (props) => {
 
     return (
         <View style={[
-            ...props.containerStyles,
+            props.isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator,
             styles.flexRow,
             styles.alignItemsCenter]}
         >
@@ -53,6 +55,7 @@ OfflineIndicator.defaultProps = defaultProps;
 OfflineIndicator.displayName = 'OfflineIndicator';
 
 export default compose(
+    withWindowDimensions,
     withLocalize,
     withNetwork(),
 )(OfflineIndicator);
