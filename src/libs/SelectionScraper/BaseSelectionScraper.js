@@ -1,5 +1,4 @@
 import render from 'dom-serializer';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {parseDocument} from 'htmlparser2';
 import {Element} from 'domhandler';
 import _ from 'underscore';
@@ -127,35 +126,27 @@ const replaceNodes = (dom) => {
 };
 
 /**
- * Reads the provided html and converts it to the return types.
+ * Resolves the selection to values and produces clean HTML.
  * @param {Object} selectedHtml html to parse
- * @returns {Object} converted text, html, and markdown
+ * @returns {String} resolved HTML
  */
-const getCustomAsTypes = (selectedHtml) => {
+const getCustomSelectionAsHtml = (selectedHtml) => {
     if (!selectedHtml) {
         return null;
     }
     const domRepresentation = parseDocument(selectedHtml);
-    domRepresentation.children = _.map(domRepresentation.children, c => replaceNodes(c));
+    domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
 
-    const newHtml = render(domRepresentation);
-
-    const parser = new ExpensiMark();
-
-    const text = parser.htmlToText(newHtml);
-    const markdown = parser.htmlToMarkdown(newHtml);
-    return {html: `<html><body>${newHtml}</body></html>`, text, markdown};
+    return render(domRepresentation);
 };
 
 /**
- * Reads the selected html and converts it to the return types.
- * @returns {Object} selection as text, html, and markdown
+ * Resolves the selection to values and produces clean HTML.
+ * @returns {String} resolved HTML
  */
-const getAsTypes = () => getCustomAsTypes(getHTMLOfSelection());
+const getCurrentSelectionAsHtml = () => getCustomSelectionAsHtml(getHTMLOfSelection());
 
-const SelectionScraper = {
-    getAsTypes,
-    getCustomAsTypes,
+export default {
+    getCustomSelectionAsHtml,
+    getCurrentSelectionAsHtml,
 };
-
-export default SelectionScraper;

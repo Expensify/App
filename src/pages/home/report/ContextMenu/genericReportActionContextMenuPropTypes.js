@@ -17,9 +17,8 @@ const propTypes = {
 
     /** The copy selection. */
     selection: PropTypes.shape({
+        text: PropTypes.string.isRequired,
         html: PropTypes.string,
-        text: PropTypes.string,
-        markdown: PropTypes.string,
     }),
 
     /** Draft message - if this is set the comment is in 'edit' mode */

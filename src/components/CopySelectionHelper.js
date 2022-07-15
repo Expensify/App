@@ -25,11 +25,11 @@ class CopySelectionHelper extends React.Component {
     }
 
     copySelectionToClipboard() {
-        const selection = SelectionScraper.getAsTypes();
+        const selection = SelectionScraper.getCurrentSelection();
         if (!selection) {
             return;
         }
-        Clipboard.writeTypes(selection);
+        Clipboard.setContent(selection);
     }
 
     render() {
