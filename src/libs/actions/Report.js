@@ -1018,7 +1018,7 @@ function openReport(reportID) {
  * Gets the actions from the oldest unread action.
  *
  * @param {Number} reportID
- * @param {Number} offset
+ * @param {Number} oldestActionSequenceNumber
  */
 function readOldestAction(reportID, oldestActionSequenceNumber) {
     const completionData = {
