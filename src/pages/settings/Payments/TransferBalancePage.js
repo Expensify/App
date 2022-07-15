@@ -183,7 +183,9 @@ class TransferBalancePage extends React.Component {
                                     {this.props.translate('transferAmountPage.transferSuccess')}
                                 </Text>
                                 <Text style={[styles.mt3, styles.textAlignCenter]}>
-                                    {this.props.translate('transferAmountPage.transferDetail')}
+                                    {this.props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT 
+                                    ? this.props.translate('transferAmountPage.transferDetailBankAccount') 
+                                    : this.props.translate('transferAmountPage.transferDetailDebitCard')}
                                 </Text>
                             </View>
                         </View>
