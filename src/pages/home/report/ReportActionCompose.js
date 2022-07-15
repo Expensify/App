@@ -464,7 +464,7 @@ class ReportActionCompose extends React.Component {
         }
 
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.myPersonalDetails.login);
-        const participantsWithoutExpensifyEmails = ReportUtils.removeExpensifyEmails(reportParticipants);
+        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)

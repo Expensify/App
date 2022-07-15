@@ -311,15 +311,6 @@ function hasExpensifyEmails(emails) {
 }
 
 /**
- * Returns an array after removing expensify emails
- * @param {Array} emails
- * @returns {Array}
- */
-function removeExpensifyEmails(emails) {
-    return _.difference(emails, CONST.EXPENSIFY_EMAILS);
-}
-
-/**
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
  * @param {Object} report
@@ -327,7 +318,7 @@ function removeExpensifyEmails(emails) {
  */
 function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const participantsWithoutExpensifyEmails = removeExpensifyEmails(reportParticipants);
+    const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
     const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
@@ -541,7 +532,6 @@ export {
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
-    removeExpensifyEmails,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
