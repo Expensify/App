@@ -299,8 +299,8 @@ function setPersonalDetails(details, shouldGrowl) {
 function updateProfile(firstName, lastName, pronouns, timezone) {
     const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
-        details: {firstName, lastName, pronouns},
-        timezone,
+        details: JSON.stringify({firstName, lastName, pronouns}),
+        timezone: JSON.stringify(timezone),
     }, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -396,7 +396,7 @@ function setAvatar(file) {
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
-    const defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
+    const defaultAvatar = ReportUtils.getDefaultAvatar(currentUserEmail);
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{
