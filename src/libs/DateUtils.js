@@ -29,8 +29,7 @@ let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        const currentUser = val[currentUserEmail];
-        timezone = lodashGet(currentUser, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        timezone = lodashGet(val, currentUserEmail, 'timezone', CONST.DEFAULT_TIME_ZONE);
     },
 });
 
