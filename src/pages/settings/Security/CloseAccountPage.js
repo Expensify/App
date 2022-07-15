@@ -25,7 +25,7 @@ const propTypes = {
     /** Onyx Props */
 
     /** Data from when user attempts to close their account */
-    closeAccountData: PropTypes.shape({
+    closeAccount: PropTypes.shape({
         /** Error message if previous attempt to close account was unsuccessful */
         error: PropTypes.string,
 
@@ -44,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    closeAccountData: {error: '', isLoading: false},
+    closeAccount: {error: '', isLoading: false},
 };
 
 class CloseAccountPage extends Component {
@@ -111,7 +111,7 @@ class CloseAccountPage extends Component {
                         <Button
                             danger
                             text={this.props.translate('closeAccountPage.closeAccount')}
-                            isLoading={this.props.closeAccountData.isLoading}
+                            isLoading={this.props.closeAccount.isLoading}
                             onPress={() => User.closeAccount(this.state.reasonForLeaving)}
                             isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase()}
                         />
@@ -135,7 +135,7 @@ class CloseAccountPage extends Component {
                             </Text>
                         )}
                         onConfirm={CloseAccountActions.hideCloseAccountErrorModal}
-                        isVisible={Boolean(this.props.closeAccountData.error)}
+                        isVisible={Boolean(this.props.closeAccount.error)}
                         shouldShowCancelButton={false}
                     />
                 </KeyboardAvoidingView>
@@ -152,7 +152,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
-        closeAccountData: {
+        closeAccount: {
             key: ONYXKEYS.CLOSE_ACCOUNT,
             initWithStoredValues: {error: '', isLoading: false},
         },
