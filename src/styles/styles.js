@@ -668,7 +668,7 @@ const styles = {
     },
 
     offlineIndicatorMobile: {
-        marginLeft: 20,
+        marginLeft: 25,
     },
 
     // Actions
