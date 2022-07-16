@@ -109,6 +109,7 @@ class GithubUtils {
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
+                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
                 isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
                 isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
                 tag,
@@ -218,6 +219,7 @@ class GithubUtils {
         accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
+        resolvedInternalQAPRs = [],
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
     ) {
@@ -277,7 +279,7 @@ class GithubUtils {
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `\r\n${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` -${assigneeMentions}`;
                     });

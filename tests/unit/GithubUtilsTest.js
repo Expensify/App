@@ -533,7 +533,7 @@ describe('GithubUtils', () => {
         ));
 
         test('Test some verified internalQA PRs', () => (
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [internalQAPRList[0]])
+            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [], [internalQAPRList[0]])
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
