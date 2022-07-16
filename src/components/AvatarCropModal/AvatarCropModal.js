@@ -214,22 +214,6 @@ const AvatarCropModal = (props) => {
         },
     }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize]);
 
-    // A memoized by reanimated style, which updates when image size or scale changes
-    const imageStyle = useAnimatedStyle(() => {
-        const height = originalImageHeight.value;
-        const width = originalImageWidth.value;
-        const aspectRatio = height > width ? height / width : width / height;
-        const rotate = interpolate(rotation.value, [0, 360], [0, 360]);
-        return {
-            transform: [
-                {translateX: translateX.value},
-                {translateY: translateY.value},
-                {scale: scale.value * aspectRatio},
-                {rotate: `${rotate}deg`},
-            ],
-        };
-    }, [originalImageHeight.value, originalImageWidth.value, clamp]);
-
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
     const rotateImage = useCallback(() => {
@@ -292,7 +276,6 @@ const AvatarCropModal = (props) => {
                         <>
                             <ImageCropView
                                     imageUri={props.imageUri}
-                                    imageStyle={[imageStyle, styles.h100, styles.w100]}
                                     containerSize={imageContainerSize}
                                     panGestureEventHandler={panGestureEventHandler}
                                     originalImageHeight={originalImageHeight}

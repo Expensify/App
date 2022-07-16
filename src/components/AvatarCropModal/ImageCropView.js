@@ -49,7 +49,7 @@ const defaultProps = {
 const ImageCropView = (props) => {
     const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
 
-    // A memoized by reanimated style, which updates when image size or scale changes
+    // A reanimated memoized style, which updates when the image's size or scale changes.
     const imageStyle = useAnimatedStyle(() => {
         const height = props.originalImageHeight.value;
         const width = props.originalImageWidth.value;
