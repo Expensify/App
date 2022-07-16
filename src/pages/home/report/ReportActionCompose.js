@@ -35,6 +35,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -95,14 +96,9 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Primary login of the user */
-        login: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -112,7 +108,7 @@ const defaultProps = {
     reportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
-    myPersonalDetails: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class ReportActionCompose extends React.Component {
@@ -262,7 +258,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Array<object>}
      */
     getIOUOptions(reportParticipants) {
-        const participants = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email);
+        const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
         const iouOptions = [];
@@ -690,6 +686,7 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withPersonalDetails(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -702,9 +699,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionCompose);
