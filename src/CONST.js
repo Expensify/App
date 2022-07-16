@@ -172,10 +172,25 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
         },
+        CTRL_ENTER: {
+            descriptionKey: null,
+            shortcutKey: 'Enter',
+            modifiers: ['CTRL'],
+        },
         COPY: {
             descriptionKey: 'copy',
             shortcutKey: 'C',
             modifiers: ['CTRL'],
+        },
+        ARROW_UP: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowUp',
+            modifiers: [],
+        },
+        ARROW_DOWN: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowDown',
+            modifiers: [],
         },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
@@ -596,7 +611,6 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
-            VENMO: 'Venmo',
         },
         IOU_TYPE: {
             SEND: 'send',
@@ -719,6 +733,7 @@ const CONST = {
 
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
+
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -729,6 +744,12 @@ const CONST = {
         // This const defines the initial container size, before layout measurement.
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
+    },
+
+    ONYX: {
+        METHOD: {
+            MERGE: 'merge',
+        },
     },
 };
 

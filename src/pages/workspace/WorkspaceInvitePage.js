@@ -283,8 +283,8 @@ class WorkspaceInvitePage extends React.Component {
                                             personalDetails,
                                         });
                                     }}
+                                    onConfirmSelection={this.inviteUser}
                                     headerMessage={headerMessage}
-                                    disableArrowKeysActions
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
