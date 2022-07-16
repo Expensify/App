@@ -116,7 +116,7 @@ const AvatarCropModal = (props) => {
 
             // Because the reanimated library has some internal optimizations,
             // sometimes when the modal is hidden styles of the image and slider might not be updated.
-            // To trigger the update we need to change the slights value of the following values:
+            // To trigger the update we need to slightly change the following values:
             translateSlider.value += 0.01;
             rotation.value += 360;
         });
