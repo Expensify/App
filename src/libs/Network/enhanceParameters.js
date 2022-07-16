@@ -19,7 +19,6 @@ function isAuthTokenRequired(command) {
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
-        'ResetPassword',
         'User_ReopenAccount',
         'ValidateEmail',
     ], command);
