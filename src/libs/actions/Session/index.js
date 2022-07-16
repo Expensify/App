@@ -303,40 +303,40 @@ function signInWithShortLivedToken(email, shortLivedToken) {
  */
 function resetPassword() {
     API.write('RequestPasswordReset', {
-        email: credentials.login
+        email: credentials.login,
     },
     {
         optimisticData: [
             {
-                onyxMethod:'merge',
+                onyxMethod: 'merge',
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
-                    forgotPassword: true
-                }
+                    forgotPassword: true,
+                },
             },
-         ],
-         successData: [
+        ],
+        successData: [
             {
-                onyxMethod:'merge',
+                onyxMethod: 'merge',
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
                     validateCodeExpired: false,
-                    forgotPassword: false
-                }
+                    forgotPassword: false,
+                },
             },
-         ],
-         failureData: [
+        ],
+        failureData: [
             {
-                onyxMethod:'merge',
+                onyxMethod: 'merge',
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    validateCodeExpired: false
-                }
+                    validateCodeExpired: false,
+                },
             },
-         ],
+        ],
     });
 }
 
