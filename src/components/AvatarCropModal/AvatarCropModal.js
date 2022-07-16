@@ -9,7 +9,6 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
     interpolate,
     useAnimatedGestureHandler,
-    useAnimatedStyle,
     useSharedValue,
     useWorkletCallback,
 } from 'react-native-reanimated';
@@ -94,13 +93,6 @@ const AvatarCropModal = (props) => {
         setIsImageContainerInitialized(false);
         setIsImageInitialized(false);
     }, []);
-
-    // Closes the modal and cleans up the animation state
-    // for the proper display  on the next modal invocation
-    const closeModal = useCallback(() => {
-        props.onClose();
-        setTimeout(resetState, 500);
-    });
 
     // In order to calculate proper image position/size/animation, we have to know its size.
     // And we have to update image size if image url changes.
@@ -249,22 +241,23 @@ const AvatarCropModal = (props) => {
 
         imageManipulator(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1})
             .then((newImage) => {
-                closeModal();
+                props.onClose();
                 props.onSave(newImage);
             });
     }, [props.imageUri, imageContainerSize]);
 
     return (
         <Modal
-            onClose={closeModal}
+            onClose={props.onClose}
             isVisible={props.isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             containerStyle={styles.avatarCropModalContainer}
+            onModalHide={resetState}
         >
             {props.isSmallScreenWidth && <HeaderGap />}
             <HeaderWithCloseButton
                 title={props.translate('avatarCropModal.title')}
-                onCloseButtonPress={closeModal}
+                onCloseButtonPress={props.onClose}
             />
             <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
             <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1]}>
