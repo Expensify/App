@@ -94,7 +94,7 @@ function convertCanvasToFile(canvas) {
 /**
  * Loads image from specified url
  *
- * @param {Number} uri
+ * @param {String} uri
  * @returns {Promise<Object>}
  */
 function loadImageAsync(uri) {
