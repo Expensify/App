@@ -148,15 +148,6 @@ function GetAccountStatus(parameters) {
 }
 
 /**
- * Returns a short lived authToken for this account
- * @returns {Promise}
- */
-function GetShortLivedAuthToken() {
-    const commandName = 'GetShortLivedAuthToken';
-    return Network.post(commandName);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
@@ -842,7 +833,6 @@ export {
     DeleteBankAccount,
     Get,
     GetAccountStatus,
-    GetShortLivedAuthToken,
     GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,

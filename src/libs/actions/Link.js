@@ -52,7 +52,6 @@ function openOldDotLink(url) {
     API.makeRequestWithSideEffects(
         'OpenOldDotLink', {}, {},
     ).then((response) => {
-        debugger;
         if (response.jsonCode === 200) {
             Linking.openURL(buildOldDotURL(response.shortLivedAuthToken));
         } else {
