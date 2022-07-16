@@ -275,6 +275,7 @@ class GithubUtils {
                     });
                 }
 
+                // Internal QA PR list
                 if (!_.isEmpty(internalQAPRMap)) {
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
                     _.each(internalQAPRMap, (assignees, URL) => {
