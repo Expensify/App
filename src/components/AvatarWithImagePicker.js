@@ -188,6 +188,13 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
+     *  Hide the avatar crop modal
+     */
+    hideAvatarCropModal() {
+        this.setState({isAvatarCropModalOpen: false});
+    }
+
+    /**
      * Create menu items list for avatar menu
      *
      * @param {Function} openPicker
@@ -306,7 +313,7 @@ class AvatarWithImagePicker extends React.Component {
                     shouldShowCancelButton={false}
                 />
                 <AvatarCropModal
-                    onClose={() => this.setState({isAvatarCropModalOpen: false})}
+                    onClose={this.hideAvatarCropModal}
                     isVisible={this.state.isAvatarCropModalOpen}
                     onSave={this.updateAvatarImage}
                     imageUri={lodashGet(this.state.image, 'uri')}
