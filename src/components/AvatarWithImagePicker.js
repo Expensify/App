@@ -156,12 +156,12 @@ class AvatarWithImagePicker extends React.Component {
 
     /**
      * Check if the attachment resolution is bigger than required.
-     * @param {Object} image
+     * @param {String} imageUri
      * @returns {Promise}
      */
-    isValidResolution(image) {
+    isValidResolution(imageUri) {
         return new Promise((resolve) => {
-            Image.getSize(image.uri, (width, height) => {
+            Image.getSize(imageUri, (width, height) => {
                 resolve(height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX);
             });
         });
@@ -171,7 +171,7 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      */
     openAvatarCropModal(image) {
-        this.isValidResolution(image)
+        this.isValidResolution(image.uri)
             .then((isValidResolution) => {
                 if (isValidResolution) {
                     this.setState({isAvatarCropModalOpen: true, image});
