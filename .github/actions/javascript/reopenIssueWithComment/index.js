@@ -259,6 +259,7 @@ class GithubUtils {
      * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
+     * @param {Array} [resolvedInternalQAPRs] - The list of Internal QA PR URLs which have been resolved.
      * @param {Boolean} [isTimingDashboardChecked]
      * @param {Boolean} [isFirebaseChecked]
      * @returns {Promise}
