@@ -68,6 +68,7 @@ describe('GithubUtils', () => {
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,
             deployBlockers: [],
+            internalQAPRList: [],
             isTimingDashboardChecked: false,
             isFirebaseChecked: false,
         };
