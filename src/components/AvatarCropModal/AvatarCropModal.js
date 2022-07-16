@@ -16,6 +16,7 @@ import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import Button from '../Button';
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Icon from '../Icon';
@@ -264,7 +265,7 @@ const AvatarCropModal = (props) => {
 
                 {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                 {(!isImageInitialized || !isImageContainerInitialized)
-                    ? <ActivityIndicator style={[styles.flex1]} size="large" />
+                    ? <ActivityIndicator color={themeColors.spinner} style={[styles.flex1]} size="large" />
                     : (
                         <>
                             <ImageCropView
