@@ -162,7 +162,7 @@ class AvatarWithImagePicker extends React.Component {
     isValidResolution(image) {
         return new Promise((resolve) => {
             Image.getSize(image.uri, (width, height) => {
-                resolve(height > CONST.AVATAR_MIN_HEIGHT_PX && width > CONST.AVATAR_MIN_WIDTH_PX);
+                resolve(height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX);
             });
         });
     }
