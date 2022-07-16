@@ -80,7 +80,7 @@ class AvatarWithImagePicker extends React.Component {
         this.showErrorModal = this.showErrorModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
         this.updateAvatarImage = this.updateAvatarImage.bind(this);
-        this.openAvatarCropModal = this.openAvatarCropModal.bind(this);
+        this.openAvatarCropModal = this.showAvatarCropModal.bind(this);
         this.state = {
             isMenuVisible: false,
             isErrorModalVisible: false,
@@ -170,7 +170,7 @@ class AvatarWithImagePicker extends React.Component {
     /** Validates if an image has a valid resolution and opens an avatar crop modal
      * @param {Object} image
      */
-    openAvatarCropModal(image) {
+    showAvatarCropModal(image) {
         this.isValidResolution(image.uri)
             .then((isValidResolution) => {
                 if (isValidResolution) {
@@ -200,7 +200,7 @@ class AvatarWithImagePicker extends React.Component {
                 text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
-                        onPicked: this.openAvatarCropModal,
+                        onPicked: this.showAvatarCropModal,
                     });
                 },
             },
