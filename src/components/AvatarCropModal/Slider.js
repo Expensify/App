@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const propTypes = {
-
     /** React-native-reanimated lib handler which executes when the user is panning slider */
     onGestureEventHandler: gestureHandlerPropTypes,
 
