@@ -283,19 +283,6 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 /**
- * Sets the onyx with the currency list from the network
- * @returns {Object}
- */
-function getCurrencyList() {
-    return DeprecatedAPI.GetCurrencyList()
-        .then((data) => {
-            const currencyListObject = JSON.parse(data.currencyList);
-            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
-            return currencyListObject;
-        });
-}
-
-/**
  * Fetches the local currency based on location and sets currency code/symbol to local storage
  */
 function fetchLocalCurrency() {
@@ -310,7 +297,6 @@ function fetchLocalCurrency() {
         .then((data) => {
             currency = data.currency;
         })
-        .then(getCurrencyList)
         .then(() => {
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: {localCurrencyCode: currency}});
         })
@@ -366,7 +352,6 @@ export {
     setAvatar,
     deleteAvatar,
     fetchLocalCurrency,
-    getCurrencyList,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
 };
