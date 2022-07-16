@@ -723,7 +723,7 @@ const CONST = {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
         // Notice: that values less than 1 mean that the image won't cover the container fully.
-        MAX_SCALE: 3, // 3x scale is used in different apps (f.e. LinkedIn), and in my opinion, is enough.
+        MAX_SCALE: 3, // 3x scale is used commonly in different apps.
         MIN_SCALE: 1, // 1x min scale means that the image covers the container completely
 
         // This const defines the initial container size, before layout measurement.
