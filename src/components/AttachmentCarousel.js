@@ -8,6 +8,7 @@ import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
+import canUseTouchScreen from '../libs/canUseTouchscreen';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -70,10 +71,16 @@ class AttachmentCarousel extends React.Component {
     }
 
     componentDidMount() {
+        if(canUseTouchScreen) {
+            return
+        }
         document.addEventListener('keydown', this.handleArrowPress);
     }
 
     componentWillUnmount() {
+        if(canUseTouchScreen()) {
+            return
+        }
         document.removeEventListener('keydown', this.handleArrowPress);
     }
 

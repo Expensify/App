@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'lodash';
@@ -220,8 +220,9 @@ class AttachmentModal extends PureComponent {
                             />
                         ) : ''}
                     />
-                    <View
+                    <Pressable
                         style={attachmentViewStyles}
+                        onPress={() => this.onShowArrow(!this.state.showArrows)} 
                         onMouseEnter={() => this.onShowArrow(true)}
                         onMouseLeave={() => this.onShowArrow(false)}
                     >
@@ -236,7 +237,7 @@ class AttachmentModal extends PureComponent {
                                 />
                             )}
                         </>
-                    </View>
+                    </Pressable>
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
