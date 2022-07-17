@@ -12,5 +12,4 @@ function getShouldShowPage(props, nextPage, defaultPage) {
     }
 }
 
-    
-export { getShouldShowPage };
+export {getShouldShowPage};
