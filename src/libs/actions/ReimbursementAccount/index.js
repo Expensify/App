@@ -6,7 +6,7 @@ import fetchFreePlanVerifiedBankAccount from './fetchFreePlanVerifiedBankAccount
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
 
-export {goToWithdrawalAccountSetupStep} from './navigation';
+export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {
     showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
