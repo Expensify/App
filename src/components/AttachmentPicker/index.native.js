@@ -7,6 +7,7 @@ import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'rn-fetch-blob';
+import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
@@ -100,7 +101,7 @@ class AttachmentPicker extends Component {
             {
                 icon: Expensicons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => this.showImagePicker(launchCamera),
+                pickAttachment: () => this.showImagePicker(launchCamera, true),
             },
             {
                 icon: Expensicons.Gallery,
@@ -179,28 +180,33 @@ class AttachmentPicker extends Component {
       * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
       * @returns {Promise<ImagePickerResponse>}
       */
-    showImagePicker(imagePickerFunc) {
+    showImagePicker(imagePickerFunc, isCamera = false) {
         return new Promise((resolve, reject) => {
-            imagePickerFunc(getImagePickerOptions(this.props.type), (response) => {
-                if (response.didCancel) {
-                    // When the user cancelled resolve with no attachment
-                    return resolve();
-                }
-                if (response.errorCode) {
-                    switch (response.errorCode) {
-                        case 'permission':
-                            this.showPermissionsAlert();
-                            break;
-                        default:
-                            this.showGeneralAlert();
-                            break;
-                    }
+            if(!isCamera) {
+                this.openImagePicker(imagePickerFunc, resolve, reject);
+            } else {
+                checkCameraPermission().then((isValid) => {
+                    isValid ? this.openImagePicker(imagePickerFunc, resolve, reject) : this.showPermissionsAlert();
+                });
+            }
+        });
+    }
 
-                    return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
+    openImagePicker(imagePickerFunc, resolve, reject) {
+        imagePickerFunc(getImagePickerOptions(this.props.type), (response) => {
+            if (response.didCancel) {
+                // When the user cancelled resolve with no attachment
+                return resolve();
+            }
+            if (response.errorCode) {
+                if(response.errorCode === 'permission') {
+                    this.showPermissionsAlert();
+                } else {
+                    this.showGeneralAlert();
                 }
-
-                return resolve(response.assets);
-            });
+                return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
+            }
+          return resolve(response.assets);
         });
     }
 
