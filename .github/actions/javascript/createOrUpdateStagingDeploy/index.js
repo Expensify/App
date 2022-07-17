@@ -594,6 +594,7 @@ class GithubUtils {
 
                 // Internal QA PR list
                 if (!_.isEmpty(internalQAPRMap)) {
+                    console.log('The already resolved internalQA PRs found are:', resolvedInternalQAPRs);
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
