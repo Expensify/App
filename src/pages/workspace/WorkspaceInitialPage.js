@@ -20,6 +20,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import * as PolicyActions from '../../libs/actions/Policy';
 import CONST from '../../CONST';
+import * as WorkSpaceUtils from './WorkSpaceUtils';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -109,7 +110,7 @@ class WorkspaceInitialPage extends React.Component {
             {
                 translationKey: 'workspace.common.bankAccount',
                 icon: Expensicons.Bank,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
+                action: () => WorkSpaceUtils.getShouldShowPage(this.props, ROUTES.getWorkspaceBankAccountRoute(policy.id), ROUTES.getBankAccountRoute()),
             },
         ];
 

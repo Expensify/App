@@ -11,6 +11,7 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import Section from '../../../components/Section';
 import Button from '../../../components/Button';
+import * as WorkSpaceUtils from './../WorkSpaceUtils';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -38,7 +39,9 @@ const WorkspaceCardNoVBAView = props => (
         />
         <Button
             text={props.translate('workspace.common.bankAccount')}
-            onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID))}
+            onPress={() => {
+                WorkSpaceUtils.getShouldShowPage(props, ROUTES.getWorkspaceBankAccountRoute(props.policyID), ROUTES.getBankAccountRoute());
+            }}
             icon={Expensicons.Bank}
             style={[styles.mt6]}
             iconStyles={[styles.mr5]}

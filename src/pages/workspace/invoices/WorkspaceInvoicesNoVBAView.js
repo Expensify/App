@@ -11,6 +11,10 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
 import Button from '../../../components/Button';
+import {withOnyx} from 'react-native-onyx';
+import compose from '../../../libs/compose';
+import ONYXKEYS from '../../../ONYXKEYS';
+import * as WorkSpaceUtils from './../WorkSpaceUtils';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -32,7 +36,9 @@ const WorkspaceInvoicesNoVBAView = props => (
             </View>
             <Button
                 text={props.translate('workspace.common.bankAccount')}
-                onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID))}
+                onPress={() => {
+                    WorkSpaceUtils.getShouldShowPage(this.props, ROUTES.getWorkspaceBankAccountRoute(props.policyID), ROUTES.getBankAccountRoute());
+                }}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
                 iconStyles={[styles.mr5]}
@@ -47,4 +53,11 @@ const WorkspaceInvoicesNoVBAView = props => (
 WorkspaceInvoicesNoVBAView.propTypes = propTypes;
 WorkspaceInvoicesNoVBAView.displayName = 'WorkspaceInvoicesNoVBAView';
 
-export default withLocalize(WorkspaceInvoicesNoVBAView);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    }),
+)(WorkspaceInvoicesNoVBAView);
