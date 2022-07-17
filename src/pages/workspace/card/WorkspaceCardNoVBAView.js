@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -11,7 +10,7 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import Section from '../../../components/Section';
 import Button from '../../../components/Button';
-import * as WorkSpaceUtils from './../WorkSpaceUtils';
+import * as WorkSpaceUtils from '../WorkSpaceUtils';
 
 const propTypes = {
     /** The policy ID currently being configured */

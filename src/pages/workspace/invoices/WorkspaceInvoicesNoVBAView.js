@@ -1,20 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
-import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
 import Button from '../../../components/Button';
-import {withOnyx} from 'react-native-onyx';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as WorkSpaceUtils from './../WorkSpaceUtils';
+import * as WorkSpaceUtils from '../WorkSpaceUtils';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -37,7 +36,7 @@ const WorkspaceInvoicesNoVBAView = props => (
             <Button
                 text={props.translate('workspace.common.bankAccount')}
                 onPress={() => {
-                    WorkSpaceUtils.getShouldShowPage(this.props, ROUTES.getWorkspaceBankAccountRoute(props.policyID), ROUTES.getBankAccountRoute());
+                    WorkSpaceUtils.getShouldShowPage(props, ROUTES.getWorkspaceBankAccountRoute(props.policyID), ROUTES.getBankAccountRoute());
                 }}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
