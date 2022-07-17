@@ -607,7 +607,6 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
-            VENMO: 'Venmo',
         },
         IOU_TYPE: {
             SEND: 'send',
@@ -732,6 +731,11 @@ const CONST = {
     MAX_COMMENT_LENGTH: 60000,
 
     FORM_CHARACTER_LIMIT: 50,
+    ONYX: {
+        METHOD: {
+            MERGE: 'merge',
+        },
+    },
 };
 
 export default CONST;

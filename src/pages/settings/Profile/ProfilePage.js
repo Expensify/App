@@ -24,16 +24,13 @@ import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import Form from '../../../components/Form';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.arrayOf(PropTypes.shape({
@@ -48,11 +45,12 @@ const propTypes = {
         validatedDate: PropTypes.string,
     })),
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    myPersonalDetails: {},
     loginList: [],
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const timezones = _.chain(moment.tz.names())
@@ -104,7 +102,7 @@ class ProfilePage extends Component {
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
             // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== this.props.myPersonalDetails.login) && !_.isEmpty(logins[type])
+            if ((login !== this.props.currentUserPersonalDetails.login) && !_.isEmpty(logins[type])
                 && (logins[type].validatedDate || !currentLogin.validatedDate)) {
                 return logins;
             }
@@ -318,10 +316,8 @@ ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },
