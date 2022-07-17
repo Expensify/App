@@ -357,7 +357,7 @@ class RequestCallPage extends Component {
                                     <FormAlertWithSubmitButton
                                         buttonText={this.props.translate('requestCallPage.callMe')}
                                         onSubmit={this.onSubmit}
-                                        containerStyles={[styles.w100, styles.mb2, styles.mh0]}
+                                        containerStyles={[styles.w100, styles.mb2, styles.mh0, styles.flexReset]}
                                         isLoading={this.props.requestCallForm.loading}
                                         isDisabled={isBlockedFromConcierge}
                                     />
