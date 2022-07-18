@@ -7,7 +7,6 @@ import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'rn-fetch-blob';
-import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
@@ -18,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import launchCamera from './launchCamera';
 import CONST from '../../CONST';
+import checkCameraPermission from './checkCameraPermission';
 
 const propTypes = {
     ...basePropTypes,
@@ -178,11 +178,12 @@ class AttachmentPicker extends Component {
       * Common image picker handling
       *
       * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
+      * @param {Boolean} isCamera
       * @returns {Promise<ImagePickerResponse>}
       */
     showImagePicker(imagePickerFunc, isCamera = false) {
         return new Promise((resolve, reject) => {
-            if(!isCamera) {
+            if (!isCamera) {
                 this.openImagePicker(imagePickerFunc, resolve, reject);
             } else {
                 checkCameraPermission().then((isValid) => {
@@ -199,7 +200,7 @@ class AttachmentPicker extends Component {
                 return resolve();
             }
             if (response.errorCode) {
-                if(response.errorCode === 'permission') {
+                if (response.errorCode === 'permission') {
                     this.showPermissionsAlert();
                 } else {
                     this.showGeneralAlert();
