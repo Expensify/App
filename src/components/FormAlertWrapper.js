@@ -82,7 +82,7 @@ const FormAlertWrapper = props => (
             </View>
         )}
         {props.children(props.network.isOffline)}
-        {props.network.isOffline && <OfflineIndicator />}
+        <OfflineIndicator style={[styles.chatItemComposeSecondaryRowOffset]} />
     </View>
 );
 

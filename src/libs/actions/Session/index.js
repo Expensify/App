@@ -323,7 +323,6 @@ function resetPassword() {
                 value: {
                     isLoading: false,
                     validateCodeExpired: false,
-                    forgotPassword: false,
                 },
             },
         ],
