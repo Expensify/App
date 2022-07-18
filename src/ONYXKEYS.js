@@ -46,9 +46,6 @@ export default {
     // Keeps track if there is modal currently visible or not
     MODAL: 'modal',
 
-    // Contains the personalDetails of the user as well as their timezone
-    MY_PERSONAL_DETAILS: 'myPersonalDetails',
-
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 

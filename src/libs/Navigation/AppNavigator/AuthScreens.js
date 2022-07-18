@@ -40,14 +40,27 @@ import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
 import networkPropTypes from '../../../components/networkPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 
+let currentUserEmail;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
         if (!val) {
             return;
         }
 
-        const timezone = lodashGet(val, 'timezone', {});
+        const timezone = lodashGet(val, currentUserEmail, 'timezone', {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -118,7 +131,6 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetchPersonalDetails();
-            User.getUserDetails();
             User.getBetas();
         }, 1000 * 60 * 30));
 
