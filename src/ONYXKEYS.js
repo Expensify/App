@@ -25,7 +25,8 @@ export default {
     // Boolean flag set when workspace is being created
     IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
 
-    NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
+    // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
+    PERSISTED_REQUESTS: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
@@ -44,9 +45,6 @@ export default {
 
     // Keeps track if there is modal currently visible or not
     MODAL: 'modal',
-
-    // Contains the personalDetails of the user as well as their timezone
-    MY_PERSONAL_DETAILS: 'myPersonalDetails',
 
     // Has information about the network status (offline/online)
     NETWORK: 'network',
@@ -70,6 +68,9 @@ export default {
 
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
+
+    // Contains metadata (partner, login, validation date) for all of the user's logins
+    LOGIN_LIST: 'loginList',
 
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
@@ -101,6 +102,7 @@ export default {
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
+        REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
     },
 
     // Indicates which locale should be used
@@ -130,6 +132,9 @@ export default {
     // The user's credit cards
     CARD_LIST: 'cardList',
 
+    // Stores information about the user's saved statements
+    WALLET_STATEMENT: 'walletStatement',
+
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
@@ -148,9 +153,6 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // Stores values for the add debit card form
-    ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-
     // Stores values for the request call form
     REQUEST_CALL_FORM: 'requestCallForm',
 
@@ -162,6 +164,9 @@ export default {
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // Is policy data loading?
+    IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
 
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
@@ -183,4 +188,9 @@ export default {
 
     // Validating Email?
     USER_SIGN_UP: 'userSignUp',
+
+    // List of Form ids
+    FORMS: {
+        ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+    },
 };

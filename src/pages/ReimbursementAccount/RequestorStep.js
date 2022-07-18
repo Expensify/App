@@ -1,6 +1,6 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import moment from 'moment';
@@ -155,24 +155,26 @@ class RequestorStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
-                    <Onfido
-                        sdkToken={this.props.achData.sdkToken}
-                        onUserExit={() => {
+                    <ScrollView contentContainerStyle={styles.flex1}>
+                        <Onfido
+                            sdkToken={this.props.achData.sdkToken}
+                            onUserExit={() => {
                             // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                        }}
-                        onError={() => {
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            }}
+                            onError={() => {
                             // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
-                            Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                        }}
-                        onSuccess={(onfidoData) => {
-                            this.setState({
-                                onfidoData,
-                                isOnfidoSetupComplete: true,
-                            }, this.submit);
-                        }}
-                    />
+                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            }}
+                            onSuccess={(onfidoData) => {
+                                this.setState({
+                                    onfidoData,
+                                    isOnfidoSetupComplete: true,
+                                }, this.submit);
+                            }}
+                        />
+                    </ScrollView>
                 ) : (
                     <ReimbursementAccountForm
                         onSubmit={this.submit}
@@ -211,7 +213,7 @@ class RequestorStep extends React.Component {
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.isControllingOfficer}
-                            onPress={() => {
+                            onInputChange={() => {
                                 this.setState((prevState) => {
                                     const newState = {isControllingOfficer: !prevState.isControllingOfficer};
                                     BankAccounts.updateReimbursementAccountDraft(newState);
@@ -236,7 +238,7 @@ class RequestorStep extends React.Component {
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
-                                {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
+                                {`${this.props.translate('onfidoStep.facialScan')}`}
                             </Text>
                             {', '}
                             <Text

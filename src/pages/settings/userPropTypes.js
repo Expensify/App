@@ -9,17 +9,4 @@ export default PropTypes.shape({
 
     /** Whether the form is being submitted */
     loading: PropTypes.bool,
-
-    /** The list of logins that exist for this users account */
-    loginList: PropTypes.arrayOf(PropTypes.shape({
-
-        /** Value of partner name */
-        partnerName: PropTypes.string,
-
-        /** Phone/Email associated with user */
-        partnerUserID: PropTypes.string,
-
-        /** Date of when login was validated */
-        validatedDate: PropTypes.string,
-    })),
 });

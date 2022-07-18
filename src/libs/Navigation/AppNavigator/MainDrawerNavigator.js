@@ -12,7 +12,7 @@ import Permissions from '../../Permissions';
 import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
-import * as ReportUtils from '../../reportUtils';
+import * as ReportUtils from '../../ReportUtils';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -22,11 +22,21 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** The policies which the user has access to */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+    })),
 };
 
 const defaultProps = {
     reports: {},
     betas: [],
+    policies: {},
 };
 
 /**
@@ -34,10 +44,11 @@ const defaultProps = {
  *
  * @param {Object} reports
  * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Object} policies
  * @returns {Object}
  */
-const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
-    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms);
+const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => {
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -45,11 +56,11 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
 };
 
 const MainDrawerNavigator = (props) => {
-    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas));
+    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
 
     // Wait until reports are fetched and there is a reportID in initialParams
     if (!initialParams.reportID) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams}} />;
     }
 
     // After the app initializes and reports are available the home navigation is mounted
@@ -80,6 +91,9 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(MainDrawerNavigator);
 export {getInitialReportScreenParams};

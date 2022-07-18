@@ -5,7 +5,6 @@ import CONST from '../../CONST';
 export default {
     prefixes: [
         'new-expensify://',
-        'expensify-cash://', // DEPRECATED
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
@@ -28,7 +27,7 @@ export default {
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
-            [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
+            [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
 
             // Modal Screens
             Settings: {

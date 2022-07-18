@@ -1,3 +1,5 @@
+import CONST from '../CONST';
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -28,13 +30,14 @@ export default {
         lastName: 'Apellido',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
+        phoneNumberPlaceholder: '(prefijo) + (número)',
         email: 'Email',
         and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
-        deleted: 'eliminado',
+        archived: 'archivado',
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
@@ -101,6 +104,9 @@ export default {
         leaveRoom: 'Salir de la sala de chat',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
+        youAppearToBeOffline: 'Parece que estás desconectado.',
+        thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -154,40 +160,52 @@ export default {
         writeSomething: 'Escribe algo...',
         sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
-        youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
-        roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
         copied: '¡Copiado!',
         copyLink: 'Copiar enlace',
         copyURLToClipboard: 'Copiar URL al portapapeles',
+        copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar commentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
+        begginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
+        begginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
+        beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
+        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
+        beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
+        beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
+        beginningOfChatHistoryUserRoomPartTwo: '.',
         beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
-        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada ',
-        beginningOfChatHistoryRestrictedPartOne: 'Este es el principio de ',
-        beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
-        beginningOfChatHistoryRestrictedPartTwo: ', invita a otros @mencionándolos.',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
     },
-    reportActionsViewMarkerBadge: {
-        newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
-    },
+    newMessageCount: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
         multipleUsers: 'Varios usuarios',
+    },
+    reportArchiveReasons: {
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha cerrado su cuenta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `Este chat de espacio de trabajo esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     sidebarScreen: {
         fabAction: 'Nuevo chat',
@@ -202,7 +220,6 @@ export default {
     iou: {
         amount: 'Importe',
         participants: 'Participantes',
-        confirm: 'Confirmar',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
@@ -211,7 +228,6 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        settleVenmo: 'Pagar con Venmo',
         request: ({amount}) => `Solicitar ${amount}`,
         youowe: ({owner}) => `Le debes a ${owner}`,
         youpaid: ({owner}) => `Le pagaste a ${owner}`,
@@ -220,7 +236,6 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
-        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -233,9 +248,7 @@ export default {
         mute: 'Nunca',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
-        useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
     avatarWithImagePicker: {
@@ -310,9 +323,10 @@ export default {
         closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
-        enterDefaultContact: 'Introduce tu método de contacto predeterminado',
+        enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         okayGotIt: 'Ok, entendido',
+        closeAccountError: 'No se pudo cerrar tu cuenta',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -325,6 +339,11 @@ export default {
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
+    },
+    passwordConfirmationScreen: {
+        passwordUpdated: 'Contraseña actualizada!',
+        allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
+        gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
@@ -386,7 +405,7 @@ export default {
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
-        failedTransfer: 'No se pudo transferir el saldo',
+        failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
@@ -445,6 +464,7 @@ export default {
         error: {
             incorrectPassword: 'Contraseña incorrecta. Por favor inténtalo de nuevo.',
             incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
+            incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
             unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
@@ -484,6 +504,8 @@ export default {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
+        notHere: 'Hmm… no está aquí',
+        pageNotFound: 'La página que buscas no existe.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -513,6 +535,7 @@ export default {
         buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
+            noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Ingresa un número de identificación fiscal válido',
             website: 'Ingresa un sitio web válido',
             zipCode: 'Ingresa un código postal válido',
@@ -558,7 +581,6 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
-        maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -568,6 +590,12 @@ export default {
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
         cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
+        originalDocumentNeeded: 'Por favor, sube una imagen original de tu identificación en lugar de una captura de pantalla o imagen escaneada.',
+        documentNeedsBetterQuality: 'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
+        imageNeedsBetterQuality: 'Hay un problema con la calidad de la imagen de tu identificación. Por favor, sube una nueva imagen donde el identificación se vea con claridad.',
+        selfieIssue: 'Hay un problema con tu selfie/video. Por favor, sube un nuevo selfie/video grabado en el momento',
+        selfieNotMatching: 'Tu selfie/video no concuerda con tu identificación. Por favor, sube un nuevo selfie/video donde se vea tu cara con claridad.',
+        selfieNotLive: 'Tu selfie/video no parece ser un selfie/video en vivo. Por favor, sube un selfie/video a tiempo real.',
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
@@ -578,6 +606,7 @@ export default {
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
         selectAnswer: 'Selecciona una respuesta.',
+        ssnFull9Error: 'Por favor escribe los 9 dígitos de un SSN válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
         weCouldNotVerify: 'No pudimos verificar',
         pleaseFixIt: 'Corrije esta información antes de continuar.',
@@ -667,7 +696,7 @@ export default {
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
-        taxIDNumberPlaceholder: '9 dígitos, sin guiones',
+        taxIDNumberPlaceholder: '9 dígitos',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
         incorporationState: 'Estado de incorporación',
@@ -675,7 +704,6 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
-        companyPhonePlaceholder: '(prefijo) + (número)',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
@@ -691,7 +719,6 @@ export default {
         learnMore: 'Más información',
         isMyDataSafe: '¿Están seguros mis datos?',
         onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',
-        onFidoFacialScan: 'Onfido’s Facial Scan Policy and Release',
         isControllingOfficer: 'Estoy autorizado a utilizar la cuenta bancaria de mi compañía para gastos de empresa',
         isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
     },
@@ -832,13 +859,14 @@ export default {
             pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
         },
         editor: {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
             currencyInputLabel: 'Moneda por defecto',
-            currencyInputHelpText: 'Todas los gastos en este epecio de trabajo serán convertidos a esta moneda.',
+            currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
@@ -862,6 +890,7 @@ export default {
             disconnectYour: 'Desconecta tu cuenta bancaria de ',
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
+            areYouSure: '¿Estás seguro?',
         },
     },
     getAssistancePage: {
@@ -874,8 +903,8 @@ export default {
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
-        subtitle: '¿Tienes preguntas o necesitas ayuda?',
-        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        subtitle: '¿Necesitas ayuda?',
+        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
         extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
@@ -894,6 +923,11 @@ export default {
         error: {
             phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
         },
+    },
+    requestCallConfirmationScreen: {
+        callRequested: '¡Llamada solicitada con éxito!',
+        allSet: 'Todo listo! Pronto recibirás una llamada nuestra.',
+        gotIt: 'Entendido',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
@@ -954,5 +988,19 @@ export default {
             helpTextConcierge: 'Si el problema persiste, comuníquese con',
         },
         refresh: 'Refresh',
+    },
+    fileDownload: {
+        success: {
+            title: 'Descargado!',
+            message: 'Archivo descargado correctamente',
+        },
+        generalError: {
+            title: 'Error en la descarga',
+            message: 'No se puede descargar el archivo adjunto',
+        },
+        permissionError: {
+            title: 'Se necesita acceso',
+            message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
+        },
     },
 };

@@ -1,10 +1,11 @@
 import Onyx from 'react-native-onyx';
 import {beforeEach, jest, test} from '@jest/globals';
-import * as API from '../../src/libs/API';
+import * as DeprecatedAPI from '../../src/libs/deprecatedAPI';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
+import CONST from '../../src/CONST';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
@@ -55,21 +56,21 @@ test('Authenticate is called with saved credentials when a session expires', () 
             // data.
             HttpUtils.xhr
 
-                // This will make the call to API.Get() below return with an expired session code
+                // This will make the call to DeprecatedAPI.Get() below return with an expired session code
                 .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 407,
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }))
 
                 // The next call should be Authenticate since we are reauthenticating
                 .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 200,
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
                     accountID: TEST_USER_ACCOUNT_ID,
                     authToken: TEST_REFRESHED_AUTH_TOKEN,
                     email: TEST_USER_LOGIN,
                 }));
 
             // When we attempt to fetch the chatList via the API
-            API.Get({returnValueList: 'chatList'});
+            DeprecatedAPI.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve();
         })
         .then(() => {

@@ -3,24 +3,30 @@ import PropTypes from 'prop-types';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 export default {
-    // Name of the action e.g. ADDCOMMENT
+    /** Name of the action e.g. ADDCOMMENT */
     actionName: PropTypes.string,
 
-    // Person who created the action
+    /** Person who created the action */
     person: PropTypes.arrayOf(reportActionFragmentPropTypes),
 
-    // ID of the report action
+    /** ID of the report action */
     sequenceNumber: PropTypes.number,
 
-    // Unix timestamp
+    /** Unix timestamp */
     timestamp: PropTypes.number,
 
-    // report action message
+    /** report action message */
     message: PropTypes.arrayOf(reportActionFragmentPropTypes),
 
-    // Original message associated with this action
+    /** Original message associated with this action */
     originalMessage: PropTypes.shape({
         // The ID of the iou transaction
         IOUTransactionID: PropTypes.string,
     }),
+
+    /** Whether we have received a response back from the server */
+    isLoading: PropTypes.bool,
+
+    /** Error message that's come back from the server. */
+    error: PropTypes.string,
 };

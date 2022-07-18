@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
+import {withNetwork} from '../../components/OnyxProvider';
 import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -20,6 +21,7 @@ import CONST from '../../CONST';
 import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** URL Route params */
@@ -65,6 +67,9 @@ const propTypes = {
         email: PropTypes.string,
     }).isRequired,
 
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -75,14 +80,19 @@ const defaultProps = {
 
 class IOUDetailsModal extends Component {
     componentDidMount() {
-        Report.fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, true);
+        this.fetchData();
     }
 
-    /**
-     * @returns {String}
-     */
-    getSubmitterPhoneNumber() {
-        return _.first(lodashGet(this.props, 'iouReport.submitterPhoneNumbers', [])) || '';
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
+    }
+
+    fetchData() {
+        Report.openPaymentDetailsPage(this.props.route.params.chatReportID, this.props.route.params.iouReportID);
     }
 
     /**
@@ -96,7 +106,6 @@ class IOUDetailsModal extends Component {
             amount: this.props.iouReport.total,
             currency: this.props.iouReport.currency,
             requestorPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-            requestorPhoneNumber: this.getSubmitterPhoneNumber(),
         });
     }
 
@@ -131,7 +140,6 @@ class IOUDetailsModal extends Component {
                                 <SettlementButton
                                     isLoading={this.props.iou.loading}
                                     onPress={paymentMethodType => this.performIOUPayment(paymentMethodType)}
-                                    recipientPhoneNumber={this.getSubmitterPhoneNumber()}
                                     shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                     currency={lodashGet(this.props, 'iouReport.currency')}
                                     enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
@@ -152,6 +160,7 @@ IOUDetailsModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         iou: {
             key: ONYXKEYS.IOU,

@@ -68,12 +68,10 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            [],
+        } = OptionsListUtils.getMemberInviteOptions(
             props.personalDetails,
             props.betas,
             '',
-            [],
             this.getExcludedUsers(),
         );
         this.state = {
@@ -192,12 +190,10 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = OptionsListUtils.getNewChatOptions(
-                [],
+            } = OptionsListUtils.getMemberInviteOptions(
                 this.props.personalDetails,
                 this.props.betas,
                 prevState.searchValue,
-                [],
                 this.getExcludedUsers(),
             );
 
@@ -262,7 +258,7 @@ class WorkspaceInvitePage extends React.Component {
                             onBackButtonPress={() => Navigation.goBack()}
                         />
                         <View style={[styles.flex1]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
                                     autoFocus={false}
@@ -275,12 +271,10 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = OptionsListUtils.getNewChatOptions(
-                                            [],
+                                        } = OptionsListUtils.getMemberInviteOptions(
                                             this.props.personalDetails,
                                             this.props.betas,
                                             searchValue,
-                                            [],
                                             this.getExcludedUsers(),
                                         );
                                         this.setState({
@@ -289,8 +283,8 @@ class WorkspaceInvitePage extends React.Component {
                                             personalDetails,
                                         });
                                     }}
+                                    onConfirmSelection={this.inviteUser}
                                     headerMessage={headerMessage}
-                                    disableArrowKeysActions
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle

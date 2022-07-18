@@ -1,11 +1,10 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {Linking} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import CONST from '../../CONST';
-import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONFIG from '../../CONFIG';
 import asyncOpenURL from '../asyncOpenURL';
 
@@ -40,10 +39,14 @@ function openOldDotLink(url) {
     }
 
     function buildOldDotURL({shortLivedAuthToken}) {
-        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+        const hasHashParams = url.indexOf('#') !== -1;
+        const hasURLParams = url.indexOf('?') !== -1;
+
+        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
+        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${hasHashParams || hasURLParams ? '&' : '?'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
     }
 
-    asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
+    asyncOpenURL(DeprecatedAPI.GetShortLivedAuthToken(), buildOldDotURL);
 }
 
 /**
@@ -54,7 +57,7 @@ function openExternalLink(url) {
         return;
     }
 
-    Linking.openURL(url);
+    asyncOpenURL(Promise.resolve(), url);
 }
 
 export {

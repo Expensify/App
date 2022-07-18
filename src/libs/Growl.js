@@ -2,6 +2,14 @@ import React from 'react';
 import CONST from '../CONST';
 
 const growlRef = React.createRef();
+let resolveIsReadyPromise;
+const isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
+
+function setIsReady() {
+    resolveIsReadyPromise();
+}
 
 /**
  * Show the growl notification
@@ -11,7 +19,7 @@ const growlRef = React.createRef();
  * @param {Number} [duration]
 */
 function show(bodyText, type, duration = CONST.GROWL.DURATION) {
-    growlRef.current.show(bodyText, type, duration);
+    isReadyPromise.then(() => growlRef.current.show(bodyText, type, duration));
 }
 
 /**
@@ -42,4 +50,5 @@ export default {
 
 export {
     growlRef,
+    setIsReady,
 };

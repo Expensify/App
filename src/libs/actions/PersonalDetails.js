@@ -5,11 +5,11 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
-import * as ReportUtils from '../reportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
+import * as LoginUtils from '../LoginUtils';
+import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Timing from './Timing';
@@ -38,7 +38,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatarThumbnail;
     }
 
-    return OptionsListUtils.getDefaultAvatar(login);
+    return ReportUtils.getDefaultAvatar(login);
 }
 
 /**
@@ -87,20 +87,21 @@ function formatPersonalDetails(personalDetailsList) {
 
     // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
     // eslint-disable-next-line rulesdir/prefer-underscore-method
-    Object.keys(personalDetailsList).forEach((login) => {
-        const personalDetailsResponse = personalDetailsList[login];
+    Object.entries(personalDetailsList).forEach(([login, details]) => {
+        const sanitizedLogin = LoginUtils.getEmailWithoutMergedAccountPrefix(login);
 
         // Form the details into something that has all the data in an easy to use format.
-        const avatar = getAvatar(personalDetailsResponse, login);
-        const displayName = getDisplayName(login, personalDetailsResponse);
-        const pronouns = personalDetailsResponse.pronouns || '';
-        const timezone = personalDetailsResponse.timeZone || CONST.DEFAULT_TIME_ZONE;
-        const firstName = personalDetailsResponse.firstName || '';
-        const lastName = personalDetailsResponse.lastName || '';
-        const payPalMeAddress = personalDetailsResponse.expensify_payPalMeAddress || '';
-        const phoneNumber = personalDetailsResponse.phoneNumber || '';
-        formattedResult[login] = {
-            login,
+        const avatar = getAvatar(details, sanitizedLogin);
+        const displayName = getDisplayName(sanitizedLogin, details);
+        const pronouns = details.pronouns || '';
+        const timezone = details.timeZone || CONST.DEFAULT_TIME_ZONE;
+        const firstName = details.firstName || '';
+        const lastName = details.lastName || '';
+        const payPalMeAddress = details.expensify_payPalMeAddress || '';
+        const phoneNumber = details.phoneNumber || '';
+        const avatarHighResolution = details.avatar || details.avatarThumbnail;
+        formattedResult[sanitizedLogin] = {
+            login: sanitizedLogin,
             avatar,
             displayName,
             firstName,
@@ -109,6 +110,7 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
+            avatarHighResolution,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
@@ -120,12 +122,10 @@ function formatPersonalDetails(personalDetailsList) {
  * @returns {Promise}
  */
 function fetchPersonalDetails() {
-    return API.Get({
+    return DeprecatedAPI.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
-            let myPersonalDetails = {};
-
             // If personalDetailsList does not have the current user ensure we initialize their details with an empty
             // object at least
             const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
@@ -135,16 +135,44 @@ function fetchPersonalDetails() {
 
             const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-
-            myPersonalDetails = allPersonalDetails[currentUserEmail];
-
-            // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
-            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
-            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
-
-            // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
         });
+}
+
+/**
+ * Gets the first and last name from the user's personal details.
+ * If the login is the same as the displayName, then they don't exist,
+ * so we return empty strings instead.
+ * @param {Object} personalDetail
+ * @param {String} personalDetail.login
+ * @param {String} personalDetail.displayName
+ * @param {String} personalDetail.firstName
+ * @param {String} personalDetail.lastName
+ *
+ * @returns {Object}
+ */
+function extractFirstAndLastNameFromAvailableDetails({
+    login,
+    displayName,
+    firstName,
+    lastName,
+}) {
+    if (firstName || lastName) {
+        return {firstName: firstName || '', lastName: lastName || ''};
+    }
+    if (Str.removeSMSDomain(login) === displayName) {
+        return {firstName: '', lastName: ''};
+    }
+
+    const firstSpaceIndex = displayName.indexOf(' ');
+    const lastSpaceIndex = displayName.lastIndexOf(' ');
+    if (firstSpaceIndex === -1) {
+        return {firstName: displayName, lastName: ''};
+    }
+
+    return {
+        firstName: displayName.substring(0, firstSpaceIndex).trim(),
+        lastName: displayName.substring(lastSpaceIndex).trim(),
+    };
 }
 
 /**
@@ -163,7 +191,7 @@ function getFromReportParticipants(reports) {
         return;
     }
 
-    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
+    DeprecatedAPI.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const existingDetails = _.pick(data, participantEmails);
 
@@ -188,7 +216,6 @@ function getFromReportParticipants(reports) {
                     return;
                 }
 
-                const avatars = OptionsListUtils.getReportIcons(report, details);
                 const reportName = (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report))
                     ? report.reportName
                     : _.chain(report.participants)
@@ -201,7 +228,7 @@ function getFromReportParticipants(reports) {
                         .value()
                         .join(', ');
 
-                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
+                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {reportName};
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
@@ -225,8 +252,6 @@ function mergeLocalPersonalDetails(details) {
     // displayName is a generated field so we'll use the firstName and lastName + login to update it.
     mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
 
-    // Update the associated Onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
 }
 
@@ -237,7 +262,7 @@ function mergeLocalPersonalDetails(details) {
  * @param {boolean} shouldGrowl
  */
 function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)})
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
         .then((response) => {
             if (response.jsonCode === 200) {
                 if (details.timezone) {
@@ -252,49 +277,17 @@ function setPersonalDetails(details, shouldGrowl) {
                 Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
             } else if (response.jsonCode === 401) {
                 Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
+            } else {
+                console.debug('Error while setting personal details', response);
             }
-        }).catch((error) => {
-            console.debug('Error while setting personal details', error);
         });
 }
 
 /**
- * Sets the onyx with the currency list from the network
- * @returns {Object}
+ * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
-function getCurrencyList() {
-    return API.GetCurrencyList()
-        .then((data) => {
-            const currencyListObject = JSON.parse(data.currencyList);
-            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
-            return currencyListObject;
-        });
-}
-
-/**
- * Fetches the local currency based on location and sets currency code/symbol to local storage
- */
-function fetchLocalCurrency() {
-    const coords = {};
-    let currency = '';
-
-    Onyx.merge(ONYXKEYS.IOU, {
-        isRetrievingCurrency: true,
-    });
-
-    API.GetLocalCurrency({...coords})
-        .then((data) => {
-            currency = data.currency;
-        })
-        .then(getCurrencyList)
-        .then(() => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                isRetrievingCurrency: false,
-            });
-        });
+function openIOUModalPage() {
+    API.read('OpenIOUModalPage');
 }
 
 /**
@@ -304,23 +297,20 @@ function fetchLocalCurrency() {
  */
 function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
-    API.User_UploadAvatar({file})
+    DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
-                const error = new Error();
-                error.jsonCode = response.jsonCode;
-                throw error;
+                setPersonalDetails({avatarUploading: false});
+                if (response.jsonCode === 405 || response.jsonCode === 502) {
+                    Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+                } else {
+                    Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+                }
+                return;
             }
+
             setPersonalDetails({avatar: response.s3url, avatarUploading: false});
-        })
-        .catch((error) => {
-            setPersonalDetails({avatarUploading: false});
-            if (error.jsonCode === 405 || error.jsonCode === 502) {
-                Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
-            } else {
-                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
-            }
         });
 }
 
@@ -332,12 +322,9 @@ function setAvatar(file) {
 function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
-    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
-
-// When the app reconnects from being offline, fetch all of the personal details
-NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
     fetchPersonalDetails,
@@ -347,7 +334,7 @@ export {
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    fetchLocalCurrency,
-    getCurrencyList,
+    openIOUModalPage,
     getMaxCharacterError,
+    extractFirstAndLastNameFromAvailableDetails,
 };

@@ -57,7 +57,12 @@ class NavigationRoot extends Component {
     render() {
         return (
             <NavigationContainer
-                fallback={<FullScreenLoadingIndicator style={styles.navigatorFullScreenLoading} />}
+                fallback={(
+                    <FullScreenLoadingIndicator
+                        logDetail={{name: 'Navigation Fallback Loader', authenticated: this.props.authenticated}}
+                        style={styles.navigatorFullScreenLoading}
+                    />
+                )}
                 onStateChange={this.parseAndStoreRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}

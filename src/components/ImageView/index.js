@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -22,8 +23,10 @@ class ImageView extends PureComponent {
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
-        this.onContainerPressOut = this.onContainerPressOut.bind(this);
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.state = {
+            isLoading: false,
             containerHeight: 0,
             containerWidth: 0,
             isZoomed: false,
@@ -36,20 +39,16 @@ class ImageView extends PureComponent {
             imgWidth: 0,
             imgHeight: 0,
             zoomScale: 0,
-            imageLeft: 0,
-            imageTop: 0,
-            imageRight: 0,
-            imageBottom: 0,
         };
     }
 
     componentDidMount() {
-        if (this.canUseTouchScreen) {
-            return;
-        }
         Image.getSize(this.props.url, (width, height) => {
             this.setImageRegion(width, height);
         });
+        if (this.canUseTouchScreen) {
+            return;
+        }
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
 
@@ -66,13 +65,10 @@ class ImageView extends PureComponent {
      */
     onContainerLayoutChanged(e) {
         const {width, height} = e.nativeEvent.layout;
-        const imageWidth = this.state.imgWidth;
-        const imageHeight = this.state.imgHeight;
-        const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
+        this.setScale(width, height, this.state.imgWidth, this.state.imgHeight);
         this.setState({
             containerHeight: height,
             containerWidth: width,
-            zoomScale: scale,
         });
     }
 
@@ -94,86 +90,61 @@ class ImageView extends PureComponent {
      * @param {SyntheticEvent} e
      */
     onContainerPress(e) {
-        if (this.state.isZoomed && !this.state.isDragging) {
+        let scrollX;
+        let scrollY;
+        if (!this.state.isZoomed && !this.state.isDragging) {
             const {offsetX, offsetY} = e.nativeEvent;
-            const delta = this.getScrollOffset(offsetX, offsetY);
-            const sX = delta.offsetX;
-            const sY = delta.offsetY;
-            this.scrollableRef.scrollTop = sY * this.state.zoomScale;
-            this.scrollableRef.scrollLeft = sX * this.state.zoomScale;
+
+            // Dividing clicked positions by the zoom scale to get coordinates
+            // so that once we zoom we will scroll to the clicked location.
+            const delta = this.getScrollOffset(offsetX / this.state.zoomScale, offsetY / this.state.zoomScale);
+            scrollX = delta.offsetX;
+            scrollY = delta.offsetY;
         }
 
         if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
             this.setState({isDragging: false, isMouseDown: false});
+        } else {
+            // We first zoom and once its done then we scroll to the location the user clicked.
+            this.setState(prevState => ({
+                isZoomed: !prevState.isZoomed,
+                isMouseDown: false,
+            }), () => {
+                this.scrollableRef.scrollTop = scrollY;
+                this.scrollableRef.scrollLeft = scrollX;
+            });
         }
-    }
-
-    onContainerPressOut() {
-        if (this.state.isDragging) {
-            return;
-        }
-
-        this.setState(prevState => ({
-            isZoomed: !prevState.isZoomed,
-            isMouseDown: false,
-        }));
     }
 
     /**
-     * When open image, set image left/right/top/bottom point and width, height
+     * When open image, set image width, height.
      * @param {Number} imageWidth
      * @param {Number} imageHeight
      */
     setImageRegion(imageWidth, imageHeight) {
-        let width = imageWidth;
-        let height = imageHeight;
-        const containerHeight = this.state.containerHeight;
-        const containerWidth = this.state.containerWidth;
-
-        // return if image not loaded yet
-        if (imageHeight <= 0 || containerHeight <= 0) {
+        if (imageHeight <= 0) {
             return;
         }
 
-        // Fit the image to container size if image small than container.
-        const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
-        if (aspectRatio > 1) {
-            width *= (aspectRatio);
-            height *= (aspectRatio);
-        }
-        let imgLeft = (this.props.windowWidth - width) / 2;
-        let imgRight = ((this.props.windowWidth - width) / 2) + width;
-        let imgTop = (this.props.windowHeight - height) / 2;
-        let imgBottom = ((this.props.windowHeight - height) / 2) + height;
-        const isScreenWiderThanImage = (this.props.windowWidth / width) > 1;
-        const isScreenTallerThanImage = (this.props.windowHeight / height) > 1;
-        const aspect = width / height;
-        if (aspect > 1 && !isScreenWiderThanImage) {
-            // In case Width fit Screen width and Height not fit the Screen height
-            const fitRate = this.props.windowWidth / width;
-            imgLeft = 0;
-            imgRight = this.props.windowWidth;
-            imgTop = (this.props.windowHeight - (fitRate * height)) / 2;
-            imgBottom = imgTop + (fitRate * height);
-        } else if (aspect <= 1 && !isScreenTallerThanImage) {
-            // In case Height fit Screen height and Width not fit the Screen width
-            const fitRate = this.props.windowHeight / height;
-            imgTop = 0;
-            imgBottom = this.props.windowHeight;
-            imgLeft = (this.props.windowWidth - (fitRate * width)) / 2;
-            imgRight = imgLeft + (fitRate * width);
-        }
-
-        const newZoomScale = Math.min(containerWidth / width, containerHeight / height);
+        this.setScale(this.state.containerWidth, this.state.containerHeight, imageWidth, imageHeight);
         this.setState({
-            imgWidth: width,
-            zoomScale: newZoomScale,
-            imgHeight: height,
-            imageLeft: imgLeft,
-            imageTop: imgTop,
-            imageRight: imgRight,
-            imageBottom: imgBottom,
+            imgWidth: imageWidth,
+            imgHeight: imageHeight,
         });
+    }
+
+    /**
+     * @param {Number} containerWidth
+     * @param {Number} containerHeight
+     * @param {Number} imageWidth
+     * @param {Number} imageHeight
+     */
+    setScale(containerWidth, containerHeight, imageWidth, imageHeight) {
+        if (!containerWidth || !imageWidth || !containerHeight || !imageHeight) {
+            return;
+        }
+        const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
+        this.setState({zoomScale: newZoomScale});
     }
 
     /**
@@ -183,31 +154,23 @@ class ImageView extends PureComponent {
      * @returns {Object} converted touch point
      */
     getScrollOffset(x, y) {
-        let fitRatio = 1;
-        if (this.state.imageTop === 0) {
-            // Fit Height
-            fitRatio = this.props.windowHeight / this.state.imgHeight;
-        } else if (this.state.imageLeft === 0) {
-            // Fit Width
-            fitRatio = this.props.windowWidth / this.state.imgWidth;
-        }
-        let sx = (x - this.state.imageLeft) / fitRatio;
-        let sy = (y - this.state.imageTop) / fitRatio;
+        let offsetX;
+        let offsetY;
 
-        // White blank touch
-        if (x < this.state.imageLeft) {
-            sx = 0;
+        // Container size bigger than clicked position offset
+        if (x <= this.state.containerWidth / 2) {
+            offsetX = 0;
+        } else if (x > this.state.containerWidth / 2) {
+            // Minus half of container size because we want to be center clicked position
+            offsetX = x - (this.state.containerWidth / 2);
         }
-        if (x > this.state.imageRight) {
-            sx = this.state.imgWidth;
+        if (y <= this.state.containerHeight / 2) {
+            offsetY = 0;
+        } else if (y > this.state.containerHeight / 2) {
+            // Minus half of container size because we want to be center clicked position
+            offsetY = y - (this.state.containerHeight / 2);
         }
-        if (y < this.state.imageTop) {
-            sy = 0;
-        }
-        if (y > this.state.imageBottom) {
-            sy = this.state.imgHeight;
-        }
-        return {offsetX: sx, offsetY: sy};
+        return {offsetX, offsetY};
     }
 
     trackMovement(e) {
@@ -227,20 +190,39 @@ class ImageView extends PureComponent {
         this.setState(prevState => ({isDragging: prevState.isMouseDown}));
     }
 
+    imageLoadingStart() {
+        this.setState({isLoading: true});
+    }
+
+    imageLoadingEnd() {
+        this.setState({isLoading: false});
+    }
+
     render() {
         if (this.canUseTouchScreen) {
             return (
                 <View
                     style={[styles.imageViewContainer, styles.overflowHidden]}
+                    onLayout={this.onContainerLayoutChanged}
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={[
+                        style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
                             styles.h100,
-                        ]}
-                        resizeMode="contain"
+                        ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
+
+                        // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
+                        // Both `center` and `contain` keeps the image centered on both x and y axis.
+                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'}
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
+                    {this.state.isLoading && (
+                        <FullscreenLoadingIndicator
+                            style={[styles.opacity1, styles.bgTransparent]}
+                        />
+                    )}
                 </View>
             );
         }
@@ -265,17 +247,24 @@ class ImageView extends PureComponent {
                     }}
                     onPressIn={this.onContainerPressIn}
                     onPress={this.onContainerPress}
-                    onPressOut={this.onContainerPressOut}
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={[
+                        style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
-                        ]}
+                        ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
                         resizeMode="contain"
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
                 </Pressable>
+
+                {this.state.isLoading && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                )}
             </View>
         );
     }

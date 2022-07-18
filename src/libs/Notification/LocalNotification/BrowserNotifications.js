@@ -2,8 +2,8 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import focusApp from './focusApp';
+import * as AppUpdate from '../../actions/AppUpdate';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
-import * as App from '../../actions/App';
 
 const DEFAULT_DELAY = 4000;
 
@@ -112,7 +112,7 @@ export default {
         const plainTextMessage = Str.htmlDecode((_.find(message, f => f.type === 'COMMENT') || {}).text);
 
         push({
-            title: `New message from ${plainTextPerson}`,
+            title: plainTextPerson,
             body: plainTextMessage,
             delay: 0,
             onClick,
@@ -128,7 +128,7 @@ export default {
             body: 'A new version of this app is available!',
             delay: 0,
             onClick: () => {
-                App.triggerUpdateAvailable();
+                AppUpdate.triggerUpdateAvailable();
             },
         });
     },
