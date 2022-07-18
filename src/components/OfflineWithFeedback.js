@@ -11,6 +11,7 @@ import Tooltip from './Tooltip';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
+import colors from '../styles/colors';
 
 const propTypes = {
     /** The type of action that's pending  */
@@ -77,7 +78,9 @@ const OfflineWithFeedback = (props) => {
             )}
             {props.error && (
                 <View style={styles.offlineFeedback.error}>
-                    <View style={styles.offlineFeedback.errorDot} />
+                    <View style={styles.offlineFeedback.errorDot}>
+                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={16} width={16} />
+                    </View>
                     <Text style={styles.offlineFeedback.text}>{props.error}</Text>
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable

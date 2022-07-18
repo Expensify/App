@@ -19,6 +19,7 @@ import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
+import DotIndicator from '../../../assets/images/dot-indicator.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -110,6 +111,7 @@ export {
     CreditCard,
     DeletedRoomAvatar,
     DomainRoomAvatar,
+    DotIndicator,
     DownArrow,
     Download,
     Emoji,
