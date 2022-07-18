@@ -9,8 +9,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import * as StyleUtils from '../../styles/StyleUtils';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
-const AnimatedImage = Animated.createAnimatedComponent(Image);
-
 const propTypes = {
     /** Link to image for cropping   */
     imageUri: PropTypes.string,
@@ -67,12 +65,10 @@ const ImageCropView = (props) => {
 
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
-            <Animated.View>
-                <View style={[containerStyle, styles.imageCropContainer]}>
-                    <AnimatedImage style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
-                    <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
-                        <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
-                    </View>
+            <Animated.View style={[containerStyle, styles.imageCropContainer]}>
+                <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
+                <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
+                    <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
                 </View>
             </Animated.View>
         </PanGestureHandler>
