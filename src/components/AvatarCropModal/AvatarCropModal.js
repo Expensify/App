@@ -285,12 +285,7 @@ const AvatarCropModal = (props) => {
                                 <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
                                     <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} />
                                 </View>
-                                <Pressable
-                                    onPress={rotateImage}
-                                    style={[styles.imageCropRotateButton]}
-                                >
-                                    <Icon src={Expensicons.Rotate} fill={colors.black} />
-                                </Pressable>
+                                <Button medium icon={Expensicons.Rotate} iconFill={colors.black} iconStyles={[styles.mr0]} style={[styles.imageCropRotateButton]} onPress={rotateImage} />
                             </View>
                         </>
                     )}
