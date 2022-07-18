@@ -101,7 +101,7 @@ const PreferencesPage = (props) => {
                     </View>
 
                     {/* If we are in the staging environment then we enable additional test features */}
-                    {props.environment === CONST.ENVIRONMENT.STAGING && <TestToolMenu />}
+                    {_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment) && <TestToolMenu />}
                 </View>
             </ScrollView>
         </ScreenWrapper>
