@@ -26,88 +26,13 @@ const defaultProps = {
 };
 
 class BasePopoverMenu extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.state = {
-            activeMenuIndex: -1,
-        };
-        this.onModalHide = this.onModalHide.bind(this);
-    }
-
-    componentDidMount() {
-        if (!this.props.allowKeyboardNavigation) {
-            return;
-        }
-        this.setupEventHandlers();
-    }
-
-    componentWillUnmount() {
-        if (!this.props.allowKeyboardNavigation) {
-            return;
-        }
-        this.cleanupEventHandlers();
-    }
-
-    onModalHide() {
-        this.setState({activeMenuIndex: -1});
-        this.props.onMenuHide();
-    }
-
-    setupEventHandlers() {
-        if (!document) {
-            return;
-        }
-        this.keyDownHandler = (keyBoardEvent) => {
-            if (keyBoardEvent.key.startsWith('Arrow')) {
-                this.highlightActiveMenu(keyBoardEvent.key);
-                return;
-            }
-
-            if (keyBoardEvent.key === 'Enter' && this.state.activeMenuIndex !== -1) {
-                this.props.onItemSelected(this.props.menuItems[this.state.activeMenuIndex]);
-            }
-        };
-        document.addEventListener('keydown', this.keyDownHandler, true);
-    }
-
-    highlightActiveMenu(arrowKey) {
-        let activeMenuIndex = this.state.activeMenuIndex;
-        if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowUp') {
-            return;
-        }
-
-        if (arrowKey === 'ArrowDown') {
-            if (activeMenuIndex === -1 || activeMenuIndex === this.props.menuItems.length - 1) {
-                activeMenuIndex = 0;
-            } else {
-                activeMenuIndex += 1;
-            }
-        }
-
-        if (arrowKey === 'ArrowUp') {
-            if (activeMenuIndex === -1 || activeMenuIndex === 0) {
-                activeMenuIndex = this.props.menuItems.length - 1;
-            } else {
-                activeMenuIndex -= 1;
-            }
-        }
-        this.setState(() => ({activeMenuIndex}));
-    }
-
-    cleanupEventHandlers() {
-        if (!document) {
-            return;
-        }
-        document.removeEventListener('keydown', this.keyDownHandler, true);
-    }
-
     render() {
         return (
             <Popover
                 anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={this.onModalHide}
+                onModalHide={this.props.onMenuHide}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
                 disableAnimation={this.props.disableAnimation}
@@ -123,7 +48,7 @@ class BasePopoverMenu extends PureComponent {
                             </Text>
                         </View>
                     )}
-                    {_.map(this.props.menuItems, (item, index) => (
+                    {_.map(this.props.menuItems, item => (
                         <MenuItem
                             key={item.text}
                             icon={item.icon}
@@ -132,9 +57,6 @@ class BasePopoverMenu extends PureComponent {
                             title={item.text}
                             description={item.description}
                             onPress={() => this.props.onItemSelected(item)}
-                            focused={index === this.state.activeMenuIndex}
-                            onFocus={() => this.setState({activeMenuIndex: index})}
-                            wrapperStyle={[styles.unfocusedPopoverMenuItem, index === this.state.activeMenuIndex ? styles.focusedPopoverMenuItem : {}]}
                         />
                     ))}
                 </View>
