@@ -9,7 +9,6 @@ import * as Network from '../libs/actions/Network';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from './Button';
-import * as NetworkStore from '../libs/Network/NetworkStore';
 import TestToolRow from './TestToolRow';
 import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
@@ -60,7 +59,7 @@ const TestToolMenu = props => (
             <Button
                 small
                 text="Invalidate"
-                onPress={() => NetworkStore.setAuthToken('pizza')}
+                onPress={() => Session.invalidateAuthToken()}
             />
         </TestToolRow>
 
