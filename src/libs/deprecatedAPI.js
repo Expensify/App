@@ -292,21 +292,6 @@ function RejectTransaction(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.reportComment
- * @param {Number} parameters.reportID
- * @param {String} parameters.clientID
- * @param {File|Object} [parameters.file]
- * @returns {Promise}
- */
-function Report_AddComment(parameters) {
-    const commandName = 'Report_AddComment';
-    requireParameters(['reportComment', 'reportID', 'clientID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @returns {Promise}
  */
@@ -374,19 +359,6 @@ function ResetPassword(parameters) {
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
     requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String|null} parameters.bankAccountID
- * @param {String|null} parameters.fundID
- * @returns {Promise}
- */
-function SetWalletLinkedAccount(parameters) {
-    const commandName = 'SetWalletLinkedAccount';
-    requireParameters(['password'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -655,21 +627,6 @@ function DeleteBankAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // Stringify the parameters object as we cannot send an object via FormData
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -677,13 +634,6 @@ function Mobile_GetConstants(parameters) {
 function GetLocalCurrency(parameters) {
     const commandName = 'GetLocalCurrency';
     return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function GetCurrencyList() {
-    return Mobile_GetConstants({data: ['currencyList']});
 }
 
 /**
@@ -873,14 +823,12 @@ export {
     Plaid_GetLinkToken,
     Policy_Employees_Merge,
     RejectTransaction,
-    Report_AddComment,
     Report_GetHistory,
     Report_EditComment,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
     SetPassword,
-    SetWalletLinkedAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
@@ -897,7 +845,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    GetCurrencyList,
     Policy_Create,
     Policy_CustomUnit_Update,
     Policy_CustomUnitRate_Update,

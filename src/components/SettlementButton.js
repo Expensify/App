@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {withNavigation} from '@react-navigation/compat';
 import ButtonWithMenu from './ButtonWithMenu';
 import * as Expensicons from './Icon/Expensicons';
 import Permissions from '../libs/Permissions';
@@ -10,6 +9,7 @@ import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import KYCWall from './KYCWall';
+import withNavigation from './withNavigation';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
