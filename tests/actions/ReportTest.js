@@ -97,7 +97,6 @@ describe('actions/Report', () => {
                     phoneNumber: '',
                     avatarHighResolution: avatar,
                 };
-                Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                     [TEST_USER_LOGIN]: details,
                 });
@@ -230,7 +229,6 @@ describe('actions/Report', () => {
                     phoneNumber: '',
                     avatarHighResolution: avatar,
                 };
-                Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                     [TEST_USER_LOGIN]: details,
                 });
@@ -303,7 +301,6 @@ describe('actions/Report', () => {
                     phoneNumber: '',
                     avatarHighResolution: avatar,
                 };
-                Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                     [USER_1_LOGIN]: details,
                 });
