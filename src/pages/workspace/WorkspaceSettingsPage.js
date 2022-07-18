@@ -1,13 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
-import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -19,24 +15,19 @@ import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Picker from '../../components/Picker';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import TextInput from '../../components/TextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
-    /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...fullPolicyPropTypes,
-
     ...withLocalizePropTypes,
 };
-const defaultProps = {
-    betas: [],
 
+const defaultProps = {
     ...fullPolicyDefaultProps,
 };
 
@@ -55,10 +46,6 @@ class WorkspaceSettingsPage extends React.Component {
         this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.validate = this.validate.bind(this);
-    }
-
-    componentDidMount() {
-        PersonalDetails.getCurrencyList();
     }
 
     /**
@@ -109,11 +96,6 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseFreePlan(this.props.betas)) {
-            Log.info('Not showing workspace editor page because user is not on free plan beta');
-            return <Navigation.DismissModal />;
-        }
-
         if (_.isEmpty(this.props.policy)) {
             return <FullScreenLoadingIndicator />;
         }
@@ -149,6 +131,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     fill={defaultTheme.iconSuccessFill}
                                 />
                             )}
+                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[styles.mb3]}
                             anchorPosition={{top: 172, right: 18}}
                             isUsingDefaultAvatar={!this.state.previewAvatarURL}
@@ -168,7 +151,7 @@ class WorkspaceSettingsPage extends React.Component {
                         <View style={[styles.mt4]}>
                             <Picker
                                 label={this.props.translate('workspace.editor.currencyInputLabel')}
-                                onChange={currency => this.setState({currency})}
+                                onInputChange={currency => this.setState({currency})}
                                 items={this.getCurrencyItems()}
                                 value={this.state.currency}
                                 isDisabled={hasVBA}
@@ -190,10 +173,8 @@ WorkspaceSettingsPage.defaultProps = defaultProps;
 export default compose(
     withFullPolicy,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,
+    withNetwork(),
 )(WorkspaceSettingsPage);

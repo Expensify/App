@@ -19,9 +19,11 @@
 * [Deploying](#deploying)
 
 #### Additional Reading
-* [Contributing to Expensify](./CONTRIBUTING.md)
-* [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](./CLA.md)
+* [API Details](contributingGuides/API.md)
+* [Offline First](contributingGuides/OFFLINE_UX.md)
+* [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
+* [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
+* [Contributor License Agreement](contributingGuides/CLA.md)
 
 ----
 
@@ -49,7 +51,8 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
-* Go through the instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
+* Go through the instructions on [this SO post](https://stackoverflow.com/c/expensify/questions/13283/13284#13284) to start running the app on android.
+* For more information, go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -84,7 +87,7 @@ variables referenced here get updated since your local `.env` file is ignored.
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
-   see [PERFORMANCE.md](PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
+   see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 
@@ -128,7 +131,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 - Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `OptionRow.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
 - Onyx allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Onyx data needs to:
-    1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
+    1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > IndexedDB > OnyxDB > keyvaluepairs)
     2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Onyx.connect()`.
     3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 - Subscribing to Onyx keys is done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
@@ -160,7 +163,7 @@ That action will then call `Onyx.merge()` to [set default data and a loading sta
 ```js
 function signIn(password, twoFactorAuthCode) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    API.Authenticate({
+    Authentication.Authenticate({
         ...defaultParams,
         password,
         twoFactorAuthCode,
@@ -213,6 +216,9 @@ created to house a collection of items in plural form and using camelCase (eg: p
 - pages: These are components that define pages in the app. The component that defines the page itself should be named
 `<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
 - styles: These files define styles used among components/pages
+- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo.
+
+**Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
 
 ## File naming/structure
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
@@ -284,8 +290,9 @@ This application is built with the following principles.
     4. Brain pushes data into UI inputs (Device input -> React component).
     5. UI inputs push data to the server (React component -> Action -> XHR to server).
     6. Go to 1
-    ![New Expensify Data Flow Chart](/web/data_flow.png)
+    ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
 1. **Offline first**
+    - Be sure to read [OFFLINE_UX.md](contributingGuides/OFFLINE_UX.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**

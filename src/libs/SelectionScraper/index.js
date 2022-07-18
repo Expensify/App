@@ -3,6 +3,8 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {parseDocument} from 'htmlparser2';
 import {Element} from 'domhandler';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
+import {isCommentTag} from '../../components/HTMLEngineProvider/htmlEngineUtils';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -87,6 +89,12 @@ const replaceNodes = (dom) => {
     let domName = dom.name;
     let domChildren;
     const domAttribs = {};
+    let data;
+
+    // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
+    if (dom.type === 'text') {
+        data = Str.htmlEncode(dom.data);
+    }
 
     // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
     // has no meaning for us.
@@ -96,7 +104,7 @@ const replaceNodes = (dom) => {
         }
 
         // Adding a new line after each comment here, because adding after each range is not working for chrome.
-        if (dom.attribs[tagAttribute] === 'comment') {
+        if (isCommentTag(dom.attribs[tagAttribute])) {
             dom.children.push(new Element('br', {}));
         }
     }
@@ -112,6 +120,7 @@ const replaceNodes = (dom) => {
 
     return {
         ...dom,
+        data,
         name: domName,
         attribs: domAttribs,
         children: domChildren,

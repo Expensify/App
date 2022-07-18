@@ -1,12 +1,6 @@
 import _ from 'underscore';
-import React from 'react';
 import {Keyboard} from 'react-native';
-import {
-    StackActions,
-    DrawerActions,
-    getPathFromState,
-} from '@react-navigation/native';
-import PropTypes from 'prop-types';
+import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import linkTo from './linkTo';
@@ -15,6 +9,11 @@ import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+
+let resolveNavigationIsReadyPromise;
+let navigationIsReadyPromise = new Promise((resolve) => {
+    resolveNavigationIsReadyPromise = resolve;
+});
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -169,6 +168,16 @@ function dismissModal(shouldOpenDrawer = false) {
 }
 
 /**
+ * Returns the current active route
+ * @returns {String}
+ */
+function getActiveRoute() {
+    return navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
+        : '';
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -179,49 +188,39 @@ function dismissModal(shouldOpenDrawer = false) {
  */
 function isActiveRoute(routePath) {
     // We remove First forward slash from the URL before matching
-    const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1)
-        : '';
-    return path === routePath;
+    return getActiveRoute().substring(1) === routePath;
 }
 
 /**
- * Alternative to the `Navigation.dismissModal()` function that we can use inside
- * the render function of other components to avoid breaking React rules about side-effects.
- *
- * Example:
- * ```jsx
- * if (!Permissions.canUseFreePlan(this.props.betas)) {
- *     return <Navigation.DismissModal />;
- * }
- * ```
+ * @returns {Promise}
  */
-class DismissModal extends React.Component {
-    componentDidMount() {
-        dismissModal(this.props.shouldOpenDrawer);
-    }
-
-    render() {
-        return null;
-    }
+function isNavigationReady() {
+    return navigationIsReadyPromise;
 }
 
-DismissModal.propTypes = {
-    shouldOpenDrawer: PropTypes.bool,
-};
-DismissModal.defaultProps = {
-    shouldOpenDrawer: false,
-};
+function setIsNavigationReady() {
+    resolveNavigationIsReadyPromise();
+}
+
+function resetIsNavigationReady() {
+    navigationIsReadyPromise = new Promise((resolve) => {
+        resolveNavigationIsReadyPromise = resolve;
+    });
+}
 
 export default {
+    canNavigate,
     navigate,
     dismissModal,
     isActiveRoute,
+    getActiveRoute,
     goBack,
-    DismissModal,
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+    isNavigationReady,
+    setIsNavigationReady,
+    resetIsNavigationReady,
 };
 
 export {

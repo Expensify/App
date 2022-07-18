@@ -33,10 +33,15 @@ const customHTMLElementModels = {
     }),
     comment: defaultHTMLElementModels.div.extend({
         tagName: 'comment',
+        mixedUAStyles: {whiteSpace: 'pre'},
+    }),
+    'email-comment': defaultHTMLElementModels.div.extend({
+        tagName: 'email-comment',
+        mixedUAStyles: {whiteSpace: 'normal'},
     }),
 };
 
-const defaultViewProps = {style: {alignItems: 'flex-start'}};
+const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
@@ -53,7 +58,6 @@ const BaseHTMLEngineProvider = (props) => {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            dangerouslyDisableWhitespaceCollapsing
             systemFonts={_.values(fontFamily)}
         >
             <RenderHTMLConfigProvider

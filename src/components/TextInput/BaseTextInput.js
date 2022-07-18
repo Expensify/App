@@ -11,10 +11,10 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import InlineErrorText from '../InlineErrorText';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -30,6 +30,8 @@ class BaseTextInput extends Component {
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
+
+            // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
         };
 
@@ -62,21 +64,21 @@ class BaseTextInput extends Component {
 
     componentDidUpdate() {
         // Activate or deactivate the label when value is changed programmatically from outside
-        // Only update when value prop is provided
-        if (this.props.value === undefined || this.state.value === this.props.value) {
+        const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
+        if (_.isUndefined(inputValue) || this.state.value === inputValue) {
             return;
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: this.props.value});
-        this.input.setNativeProps({text: this.props.value});
+        this.setState({value: inputValue});
+        this.input.setNativeProps({text: inputValue});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
-        if (this.props.value === '') {
+        if (inputValue === '') {
             this.input.clear();
         }
 
-        if (this.props.value) {
+        if (inputValue) {
             this.activateLabel();
         } else if (!this.state.isFocused) {
             this.deactivateLabel();
@@ -188,6 +190,8 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
+        const inputHelpText = this.props.errorText || this.props.hint;
+        const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
@@ -259,7 +263,7 @@ class BaseTextInput extends Component {
                                             this.props.inputStyle,
                                             !hasLabel && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
-                                            this.props.secureTextEntry && styles.pr2,
+                                            this.props.secureTextEntry && styles.secureInput,
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -269,11 +273,12 @@ class BaseTextInput extends Component {
                                         secureTextEntry={this.state.passwordHidden}
                                         onPressOut={this.props.onPress}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
+                                        keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable
                                             accessibilityRole="button"
-                                            style={styles.secureInputEyeButton}
+                                            style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
                                         >
                                             <Icon
@@ -286,9 +291,11 @@ class BaseTextInput extends Component {
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
-                    <InlineErrorText styles={[styles.ph3]}>
-                        {this.props.errorText}
-                    </InlineErrorText>
+                    {!_.isEmpty(inputHelpText) && (
+                        <Text style={[formHelpStyles, styles.mt1, styles.ph3]}>
+                            {inputHelpText}
+                        </Text>
+                    )}
                 </View>
                 {/*
                     Text input component doesn't support auto grow by default.
@@ -297,9 +304,11 @@ class BaseTextInput extends Component {
                     This Text component is intentionally positioned out of the screen.
                 */}
                 {this.props.autoGrow && (
+
+                    // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
                         style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
-                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
+                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2})}
                     >
                         {this.state.value || this.props.placeholder}
                     </Text>

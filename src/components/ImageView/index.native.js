@@ -1,14 +1,16 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, PanResponder} from 'react-native';
+import {
+    View, InteractionManager, PanResponder,
+} from 'react-native';
 import Image from 'react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
 import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -25,11 +27,11 @@ class ImageView extends PureComponent {
         super(props);
 
         this.state = {
-            thumbnailWidth: 100,
-            thumbnailHeight: 100,
+            isLoading: false,
             imageWidth: undefined,
             imageHeight: undefined,
             interactionPromise: undefined,
+            containerHeight: undefined,
         };
 
         // Use the default double click interval from the ImageZoom library
@@ -43,6 +45,9 @@ class ImageView extends PureComponent {
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
+
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
     }
 
     componentDidMount() {
@@ -64,22 +69,21 @@ class ImageView extends PureComponent {
         ImageSize.getSize(this.props.url).then(({width, height}) => {
             let imageWidth = width;
             let imageHeight = height;
-            const aspectRatio = (imageHeight / imageWidth);
+            const containerWidth = Math.round(this.props.windowWidth);
+            const containerHeight = Math.round(this.state.containerHeight);
 
-            // Fit the image to windowWidth
-            imageWidth = Math.round(this.props.windowWidth);
-            imageHeight = Math.round(imageWidth * aspectRatio);
+            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
+
+            if (imageHeight > imageWidth) {
+                imageHeight *= aspectRatio;
+            } else {
+                imageWidth *= aspectRatio;
+            }
 
             // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
             const maxDimensionsScale = 11;
             imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
-
-            // reduce the imageHeight to windowHeight if imageHeight is greater than the windowHeight
-            if (imageHeight > (this.props.windowHeight - variables.contentHeaderHeight)) {
-                imageHeight = Math.round(this.props.windowHeight - variables.contentHeaderHeight);
-                imageWidth = Math.round((1 / aspectRatio) * imageHeight);
-            }
-
+            imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
             this.setState({imageHeight, imageWidth});
         });
     }
@@ -100,6 +104,14 @@ class ImageView extends PureComponent {
         return false;
     }
 
+    imageLoadingStart() {
+        this.setState({isLoading: true});
+    }
+
+    imageLoadingEnd() {
+        this.setState({isLoading: false});
+    }
+
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
@@ -116,11 +128,15 @@ class ImageView extends PureComponent {
                         styles.overflowHidden,
                         styles.errorOutline,
                     ]}
+                    onLayout={(event) => {
+                        const layout = event.nativeEvent.layout;
+                        this.setState({
+                            containerHeight: layout.height,
+                        });
+                    }}
                 >
-                    <Image
-                        source={{uri: this.props.url}}
-                        style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
-                        resizeMode={Image.resizeMode.contain}
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
                     />
                 </View>
             );
@@ -177,7 +193,9 @@ class ImageView extends PureComponent {
                             this.props.style,
                         ]}
                         source={{uri: this.props.url}}
-                        resizeMode={Image.resizeMode.contain}
+                        resizeMode="contain"
+                        onLoadStart={this.imageLoadingStart}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
                     {/**
                      Create an invisible view on top of the image so we can capture and set the amount of touches before
@@ -194,6 +212,11 @@ class ImageView extends PureComponent {
                         ]}
                     />
                 </ImageZoom>
+                {this.state.isLoading && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                )}
             </View>
         );
     }

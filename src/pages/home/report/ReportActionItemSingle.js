@@ -16,6 +16,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import Tooltip from '../../../components/Tooltip';
+import ControlSelection from '../../../libs/ControlSelection';
 
 const propTypes = {
     /** All the data of the action */
@@ -63,10 +64,15 @@ const ReportActionItemSingle = (props) => {
 
     return (
         <View style={props.wrapperStyles}>
-            <Pressable style={styles.alignSelfStart} onPress={() => showUserDetails(props.action.actorEmail)}>
+            <Pressable
+                style={styles.alignSelfStart}
+                onPressIn={ControlSelection.block}
+                onPressOut={ControlSelection.unblock}
+                onPress={() => showUserDetails(props.action.actorEmail)}
+            >
                 <Tooltip text={props.action.actorEmail}>
                     <Avatar
-                        imageStyles={[styles.actionAvatar]}
+                        containerStyles={[styles.actionAvatar]}
                         source={avatarUrl}
                     />
                 </Tooltip>
@@ -74,14 +80,19 @@ const ReportActionItemSingle = (props) => {
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
-                        <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(props.action.actorEmail)}>
+                        <Pressable
+                            style={[styles.flexShrink1]}
+                            onPressIn={ControlSelection.block}
+                            onPressOut={ControlSelection.unblock}
+                            onPress={() => showUserDetails(props.action.actorEmail)}
+                        >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.sequenceNumber}-${index}`}
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.loading}
+                                    isLoading={props.action.isLoading}
                                     isSingleLine
                                 />
                             ))}

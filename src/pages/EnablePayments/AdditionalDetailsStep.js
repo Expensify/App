@@ -23,13 +23,17 @@ import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as LoginUtils from '../../libs/LoginUtils';
 import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
 import FormHelper from '../../libs/FormHelper';
-import FailedKYC from './FailedKYC';
+import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Stores additional information about the additional details step e.g. loading state and errors with fields */
     walletAdditionalDetails: PropTypes.shape({
@@ -52,25 +56,12 @@ const propTypes = {
         /** ExpectID ID number related to those questions */
         idNumber: PropTypes.string,
 
-        /** If we should show the FailedKYC view after the user submitted the form with a non fixable error */
-        shouldShowFailedKYC: PropTypes.bool,
-
         /** If we should ask for the full SSN (when LexisNexis failed retrieving the first 5 from the last 4) */
         shouldAskForFullSSN: PropTypes.bool,
     }),
 
     /** Stores the personal details typed by the user */
-    walletAdditionalDetailsDraft: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-        addressStreet: PropTypes.string,
-        addressCity: PropTypes.string,
-        addressState: PropTypes.string,
-        addressZip: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        dob: PropTypes.string,
-        ssn: PropTypes.string,
-    }),
+    walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes,
 };
 
 const defaultProps = {
@@ -80,7 +71,6 @@ const defaultProps = {
         additionalErrorMessage: '',
         questions: [],
         idNumber: '',
-        shouldShowFailedKYC: false,
         shouldAskForFullSSN: false,
     },
     walletAdditionalDetailsDraft: {
@@ -94,6 +84,7 @@ const defaultProps = {
         dob: '',
         ssn: '',
     },
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class AdditionalDetailsStep extends React.Component {
@@ -113,6 +104,20 @@ class AdditionalDetailsStep extends React.Component {
             'dob',
             'ssn',
         ];
+
+        this.errorTranslationKeys = {
+            legalFirstName: 'bankAccount.error.firstName',
+            legalLastName: 'bankAccount.error.lastName',
+            addressStreet: 'bankAccount.error.addressStreet',
+            addressCity: 'bankAccount.error.addressCity',
+            addressState: 'bankAccount.error.addressState',
+            addressZip: 'bankAccount.error.zipCode',
+            phoneNumber: 'bankAccount.error.phoneNumber',
+            dob: 'bankAccount.error.dob',
+            age: 'bankAccount.error.age',
+            ssn: 'bankAccount.error.ssnLast4',
+            ssnFull9: 'additionalDetailsStep.ssnFull9Error',
+        };
 
         this.fieldNameTranslationKeys = {
             legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
@@ -149,7 +154,7 @@ class AdditionalDetailsStep extends React.Component {
             return '';
         }
 
-        return `${this.props.translate(this.fieldNameTranslationKeys[fieldName])} ${this.props.translate('common.isRequiredField')}.`;
+        return this.props.translate(this.errorTranslationKeys[fieldName]);
     }
 
     /**
@@ -172,11 +177,23 @@ class AdditionalDetailsStep extends React.Component {
             errors.dob = true;
         }
 
+        if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
+            errors.age = true;
+        }
+
         if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
             errors.addressStreet = true;
         }
 
-        if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn) && !ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+        if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
+            errors.phoneNumber = true;
+        }
+
+        if (this.props.walletAdditionalDetails.shouldAskForFullSSN) {
+            if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+                errors.ssnFull9 = true;
+            }
+        } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
             errors.ssn = true;
         }
 
@@ -198,8 +215,31 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-            personalDetails: this.props.walletAdditionalDetailsDraft,
+            personalDetails: {
+                ...this.props.walletAdditionalDetailsDraft,
+                phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
+            },
         });
+    }
+
+    /**
+     * Clear both errors associated with dob, and set the new value.
+     *
+     * @param {String} value
+     */
+    clearDateErrorsAndSetValue(value) {
+        this.formHelper.clearErrors(this.props, ['dob', 'age']);
+        Wallet.updateAdditionalDetailsDraft({dob: value});
+    }
+
+    /**
+     * Clear ssn and ssnFull9 error and set the new value
+     *
+     * @param {String} value
+     */
+    clearSSNErrorAndSetValue(value) {
+        this.formHelper.clearErrors(this.props, ['ssn', 'ssnFull9']);
+        Wallet.updateAdditionalDetailsDraft({ssn: value});
     }
 
     /**
@@ -212,20 +252,6 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     render() {
-        if (this.props.walletAdditionalDetails.shouldShowFailedKYC) {
-            return (
-                <ScreenWrapper>
-                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
-                        <HeaderWithCloseButton
-                            title={this.props.translate('additionalDetailsStep.headerTitle')}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                        />
-                        <FailedKYC />
-                    </KeyboardAvoidingView>
-                </ScreenWrapper>
-            );
-        }
-
         if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
             return (
                 <ScreenWrapper>
@@ -248,6 +274,7 @@ class AdditionalDetailsStep extends React.Component {
         const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
             <ScreenWrapper>
@@ -273,21 +300,21 @@ class AdditionalDetailsStep extends React.Component {
                                         containerStyles={[styles.mt4]}
                                         label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
                                         onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
-                                        value={this.props.walletAdditionalDetailsDraft.legalFirstName || ''}
+                                        value={this.props.walletAdditionalDetailsDraft.legalFirstName || firstName}
                                         errorText={this.getErrorText('legalFirstName')}
                                     />
                                     <TextInput
                                         containerStyles={[styles.mt4]}
                                         label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                         onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
-                                        value={this.props.walletAdditionalDetailsDraft.legalLastName || ''}
+                                        value={this.props.walletAdditionalDetailsDraft.legalLastName || lastName}
                                         errorText={this.getErrorText('legalLastName')}
                                     />
                                     <AddressSearch
                                         label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
                                         value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
                                         containerStyles={[styles.mt4]}
-                                        onChange={(values) => {
+                                        onInputChange={(values) => {
                                             const renamedFields = {
                                                 street: 'addressStreet',
                                                 state: 'addressState',
@@ -300,10 +327,8 @@ class AdditionalDetailsStep extends React.Component {
                                             });
                                         }}
                                         errorText={this.getErrorText('addressStreet')}
+                                        hint={this.props.translate('common.noPO')}
                                     />
-                                    <Text style={[styles.mutedTextLabel, styles.mt1]}>
-                                        {this.props.translate('common.noPO')}
-                                    </Text>
                                     {this.props.walletAdditionalDetailsDraft.addressStreet ? (
                                         <>
                                             {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
@@ -337,23 +362,24 @@ class AdditionalDetailsStep extends React.Component {
                                     label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                     onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
                                     value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
+                                    placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                                     errorText={this.getErrorText('phoneNumber')}
                                 />
                                 <DatePicker
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                    onChange={val => this.clearErrorAndSetValue('dob', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.dob || ''}
+                                    onInputChange={val => this.clearDateErrorsAndSetValue(val)}
+                                    defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                     placeholder={this.props.translate('common.dob')}
-                                    errorText={this.getErrorText('dob')}
+                                    errorText={this.getErrorText('dob') || this.getErrorText('age')}
                                     maximumDate={new Date()}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                    onChangeText={val => this.clearErrorAndSetValue('ssn', val)}
+                                    onChangeText={val => this.clearSSNErrorAndSetValue(val)}
                                     value={this.props.walletAdditionalDetailsDraft.ssn || ''}
-                                    errorText={this.getErrorText('ssn')}
+                                    errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                     maxLength={shouldAskForFullSSN ? 9 : 4}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 />
@@ -380,13 +406,11 @@ AdditionalDetailsStep.propTypes = propTypes;
 AdditionalDetailsStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
             initWithStoredValues: false,
-        },
-        walletAdditionalDetailsDraft: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
         },
     }),
 )(AdditionalDetailsStep);

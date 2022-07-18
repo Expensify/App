@@ -101,6 +101,7 @@ class AvatarWithIndicator extends PureComponent {
                     <Avatar
                         imageStyles={[this.props.size === 'large' ? styles.avatarLarge : null]}
                         source={this.props.source}
+                        size={this.props.size}
                     />
                 </Tooltip>
                 <Tooltip text={this.userStatus()} absolute>

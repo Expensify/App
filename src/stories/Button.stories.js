@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import Button from '../components/Button';
 
 /**
@@ -18,6 +18,23 @@ const Template = args => <Button {...args} />;
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 const Loading = Template.bind({});
+const PressOnEnter = (props) => {
+    const [text, setText] = useState('');
+    const onPress = useCallback(() => {
+        setText('Button Pressed!');
+        setTimeout(() => setText(''), 500);
+    });
+    return (
+        <Button
+        // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        // eslint-disable-next-line react/prop-types
+            text={text || props.text}
+            onPress={onPress}
+        />
+    );
+};
+
 Default.args = {
     text: 'Save & Continue',
     success: true,
@@ -28,8 +45,15 @@ Loading.args = {
     success: true,
 };
 
+PressOnEnter.args = {
+    text: 'Press Enter',
+    pressOnEnter: true,
+    success: true,
+};
+
 export default story;
 export {
     Default,
     Loading,
+    PressOnEnter,
 };

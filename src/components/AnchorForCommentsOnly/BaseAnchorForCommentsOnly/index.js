@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import Text from '../../Text';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
@@ -9,6 +10,9 @@ import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
+import Tooltip from '../../Tooltip';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import styles from '../../../styles/styles';
 
 /*
  * This is a default anchor component for regular links.
@@ -37,6 +41,8 @@ class BaseAnchorForCommentsOnly extends React.Component {
     render() {
         let linkRef;
         const rest = _.omit(this.props, _.keys(propTypes));
+        const defaultTextStyle = canUseTouchScreen() || this.props.isSmallScreenWidth ? {} : styles.userSelectText;
+
         return (
             this.props.isAttachment
                 ? (
@@ -44,12 +50,12 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         if (this.state.isDownloading) {
                             return;
                         }
-                        this.processDownload(this.props.href, this.props.fileName);
+                        this.processDownload(this.props.href, this.props.displayName);
                     }}
                     >
                         <AttachmentView
                             sourceURL={this.props.href}
-                            file={{name: this.props.fileName}}
+                            file={{name: this.props.displayName}}
                             shouldShowDownloadIcon
                             shouldShowLoadingSpinnerIcon={this.state.isDownloading}
                         />
@@ -61,7 +67,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         onSecondaryInteraction={
                         (event) => {
                             ReportActionContextMenu.showContextMenu(
-                                ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                 event,
                                 this.props.href,
                                 lodashGet(linkRef, 'current'),
@@ -69,20 +75,22 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         }
                     }
                     >
-                        <Text
-                            ref={el => linkRef = el}
-                            style={StyleSheet.flatten(this.props.style)}
-                            accessibilityRole="link"
-                            href={this.props.href}
-                            hrefAttrs={{
-                                rel: this.props.rel,
-                                target: this.props.target,
-                            }}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...rest}
-                        >
-                            {this.props.children}
-                        </Text>
+                        <Tooltip text={Str.isValidEmail(this.props.displayName) ? '' : this.props.href}>
+                            <Text
+                                ref={el => linkRef = el}
+                                style={StyleSheet.flatten([this.props.style, defaultTextStyle])}
+                                accessibilityRole="link"
+                                href={this.props.href}
+                                hrefAttrs={{
+                                    rel: this.props.rel,
+                                    target: this.props.target,
+                                }}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...rest}
+                            >
+                                {this.props.children}
+                            </Text>
+                        </Tooltip>
                     </PressableWithSecondaryInteraction>
                 )
         );

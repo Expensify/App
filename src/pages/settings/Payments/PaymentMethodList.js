@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
+import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -13,19 +14,16 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
 const MENU_ITEM = 'menuItem';
+const BUTTON = 'button';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
-
-    /** Are we loading payments from the server? */
-    isLoadingPayments: PropTypes.bool,
-
-    /** Is the payment options menu open / active? */
-    isAddPaymentMenuActive: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
@@ -34,16 +32,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc */
-        cardName: PropTypes.string,
-
-        /** The masked credit card number */
-        cardNumber: PropTypes.string,
-
-        /** The ID of the card in the cards DB */
-        cardID: PropTypes.number,
-    })),
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
@@ -80,8 +69,6 @@ const defaultProps = {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
-    isLoadingPayments: false,
-    isAddPaymentMenuActive: false,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
@@ -121,7 +108,10 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     getFilteredPaymentMethods() {
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername, this.props.userWallet);
+        // Hide the billing card from the payments menu for now because you can't make it your default method, or delete it
+        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
+
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -130,7 +120,7 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData),
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
@@ -159,14 +149,16 @@ class PaymentMethodList extends Component {
         }
 
         combinedPaymentMethods.push({
-            type: MENU_ITEM,
-            title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Expensicons.Plus,
+            type: BUTTON,
+            text: this.props.translate('paymentMethodList.addPaymentMethod'),
+            icon: Expensicons.CreditCard,
+            style: [styles.mh4],
+            iconStyles: [styles.mr4],
             onPress: e => this.props.onPress(e),
+            isDisabled: this.props.isLoadingPayments,
+            shouldShowRightIcon: true,
+            success: true,
             key: 'addPaymentMethodButton',
-            disabled: this.props.isLoadingPayments,
-            iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;
@@ -207,6 +199,25 @@ class PaymentMethodList extends Component {
                     shouldShowSelectedState={this.props.shouldShowSelectedState}
                     isSelected={this.props.selectedMethodID === item.methodID}
                 />
+            );
+        }
+        if (item.type === BUTTON) {
+            return (
+                <FormAlertWrapper>
+                    {isOffline => (
+                        <Button
+                            text={item.text}
+                            icon={item.icon}
+                            onPress={item.onPress}
+                            isDisabled={item.isDisabled || isOffline}
+                            style={item.style}
+                            iconStyles={item.iconStyles}
+                            success={item.success}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            extraLarge
+                        />
+                    )}
+                </FormAlertWrapper>
             );
         }
 

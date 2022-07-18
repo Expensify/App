@@ -8,7 +8,6 @@ import moment from 'moment-timezone';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
@@ -27,64 +26,60 @@ import Picker from '../../../components/Picker';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.arrayOf(PropTypes.shape({
 
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
+        /** Value of partner name */
+        partnerName: PropTypes.string,
 
-            /** Value of partner name */
-            partnerName: PropTypes.string,
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
 
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-
-            /** Date of when login was validated */
-            validatedDate: PropTypes.string,
-        })),
-    }),
-
+        /** Date of when login was validated */
+        validatedDate: PropTypes.string,
+    })),
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    myPersonalDetails: {},
-    user: {
-        loginList: [],
-    },
+    loginList: [],
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const timezones = _.map(moment.tz.names(), timezone => ({
-    value: timezone,
-    label: timezone,
-}));
+const timezones = _.chain(moment.tz.names())
+    .filter(timezone => !timezone.startsWith('Etc/GMT'))
+    .map(timezone => ({
+        value: timezone,
+        label: timezone,
+    }))
+    .value();
 
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultAvatar = OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
+        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
 
         this.state = {
-            firstName: props.myPersonalDetails.firstName,
+            firstName: this.props.currentUserPersonalDetails.firstName,
             hasFirstNameError: false,
-            lastName: props.myPersonalDetails.lastName,
+            lastName: this.props.currentUserPersonalDetails.lastName,
             hasLastNameError: false,
-            pronouns: props.myPersonalDetails.pronouns,
+            pronouns: this.props.currentUserPersonalDetails.pronouns,
             hasPronounError: false,
-            hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            logins: this.getLogins(props.user.loginList),
-            avatar: {uri: lodashGet(this.props.myPersonalDetails, 'avatar', OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login))},
+            hasSelfSelectedPronouns: !_.isEmpty(this.props.currentUserPersonalDetails.pronouns) && !this.props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            selectedTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            logins: this.getLogins(props.loginList),
+            avatar: {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))},
             isAvatarChanged: false,
         };
 
@@ -99,8 +94,8 @@ class ProfilePage extends Component {
         let stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
-        if (this.props.user.loginList !== prevProps.user.loginList) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.user.loginList)};
+        if (this.props.loginList !== prevProps.loginList) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -135,7 +130,7 @@ class ProfilePage extends Component {
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
             // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== this.props.myPersonalDetails.login) && !_.isEmpty(logins[type])
+            if ((login !== this.props.currentUserPersonalDetails.login) && !_.isEmpty(logins[type])
                 && (logins[type].validatedDate || !currentLogin.validatedDate)) {
                 return logins;
             }
@@ -158,7 +153,7 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.setState({avatar: _.isUndefined(avatar) ? {uri: OptionsListUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar, isAvatarChanged: true});
+        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)} : avatar, isAvatarChanged: true});
     }
 
     /**
@@ -170,7 +165,7 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has modified their avatar
-        if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+        if ((this.props.currentUserPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
             // If the user removed their profile photo, replace it accordingly with the default avatar
             if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
                 PersonalDetails.deleteAvatar(this.state.avatar.uri);
@@ -213,12 +208,12 @@ class ProfilePage extends Component {
         }));
 
         // Disables button if none of the form values have changed
-        const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
-            && (this.props.myPersonalDetails.lastName === this.state.lastName.trim())
-            && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
-            && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && (this.props.myPersonalDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged || this.props.myPersonalDetails.avatarUploading);
+        const isButtonDisabled = (this.props.currentUserPersonalDetails.firstName === this.state.firstName.trim())
+            && (this.props.currentUserPersonalDetails.lastName === this.state.lastName.trim())
+            && (this.props.currentUserPersonalDetails.timezone.selected === this.state.selectedTimezone)
+            && (this.props.currentUserPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
+            && (this.props.currentUserPersonalDetails.pronouns === this.state.pronouns.trim())
+            && (!this.state.isAvatarChanged || this.props.currentUserPersonalDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -233,8 +228,8 @@ class ProfilePage extends Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
-                            isUploading={this.props.myPersonalDetails.avatarUploading}
-                            isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
+                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
+                            isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.state.avatar.uri}
                             onImageSelected={this.updateAvatar}
                             onImageRemoved={this.updateAvatar}
@@ -256,7 +251,7 @@ class ProfilePage extends Component {
                         <View style={styles.mb6}>
                             <Picker
                                 label={this.props.translate('profilePage.preferredPronouns')}
-                                onChange={(pronouns) => {
+                                onInputChange={(pronouns) => {
                                     const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
                                     this.setState({
                                         pronouns: hasSelfSelectedPronouns ? '' : pronouns,
@@ -294,7 +289,7 @@ class ProfilePage extends Component {
                         <View style={styles.mb3}>
                             <Picker
                                 label={this.props.translate('profilePage.timezone')}
-                                onChange={selectedTimezone => this.setState({selectedTimezone})}
+                                onInputChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
@@ -303,7 +298,7 @@ class ProfilePage extends Component {
                         <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
-                            onPress={this.setAutomaticTimezone}
+                            onInputChange={this.setAutomaticTimezone}
                         />
                     </ScrollView>
                     <FixedFooter>
@@ -328,12 +323,10 @@ ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        user: {
-            key: ONYXKEYS.USER,
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
 )(ProfilePage);

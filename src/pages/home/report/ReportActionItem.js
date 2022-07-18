@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -23,8 +24,10 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import InlineSystemMessage from '../../../components/InlineSystemMessage';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -144,6 +147,8 @@ class ReportActionItem extends Component {
                             reportID={this.props.reportID}
                             index={this.props.index}
                             ref={el => this.textInput = el}
+                            report={this.props.report}
+                            blockedFromConcierge={this.props.blockedFromConcierge}
                     />
                 );
         }
@@ -154,7 +159,10 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-
+                onKeyDown={(event) => {
+                    // Blur the input after a key is pressed to keep the blue focus border from appearing
+                    event.target.blur();
+                }}
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
@@ -167,6 +175,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
+                                    (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
                                 {!this.props.displayAsGroup
@@ -195,6 +204,9 @@ class ReportActionItem extends Component {
                         </View>
                     )}
                 </Hoverable>
+                <View style={styles.reportActionSystemMessageContainer}>
+                    <InlineSystemMessage message={this.props.action.error} />
+                </View>
             </PressableWithSecondaryInteraction>
         );
     }
@@ -204,11 +216,20 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withNetwork(),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(ReportActionItem);

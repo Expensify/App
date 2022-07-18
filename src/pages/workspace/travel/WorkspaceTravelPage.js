@@ -27,9 +27,10 @@ const WorkspaceTravelPage = props => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA ? (
+                {!hasVBA && (
                     <WorkspaceTravelNoVBAView policyID={policyID} />
-                ) : (
+                )}
+                {hasVBA && (
                     <WorkspaceTravelVBAView />
                 )}
             </>

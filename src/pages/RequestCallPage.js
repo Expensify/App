@@ -14,39 +14,38 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
-import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import Icon from '../components/Icon';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
-import personalDetailsPropType from './personalDetailsPropType';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
 import TextInput from '../components/TextInput';
 import Text from '../components/Text';
 import Section from '../components/Section';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Expensicons from '../components/Icon/Expensicons';
-import LoginUtil from '../libs/LoginUtil';
+import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
+import FormElement from '../components/FormElement';
+import {withNetwork} from '../components/OnyxProvider';
+import networkPropTypes from '../components/networkPropTypes';
+import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
+import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: personalDetailsPropType.isRequired,
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.arrayOf(PropTypes.shape({
 
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
-
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-        })),
-    }).isRequired,
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+    })),
 
     /** The policies which the user has access to */
     policies: PropTypes.shape({
@@ -68,6 +67,12 @@ const propTypes = {
     /** Used to track state for the request call form */
     requestCallForm: PropTypes.shape({
         loading: PropTypes.bool,
+
+        /** Error message to display from Server */
+        error: PropTypes.string,
+
+        /** If true, we will show a confirmation screen to the user */
+        didRequestCallSucceed: PropTypes.bool,
     }),
 
     /** The number of minutes the user has to wait for an inbox call */
@@ -81,6 +86,9 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
+
+    /** Information about the network from Onyx */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -90,17 +98,19 @@ const defaultProps = {
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
     blockedFromConcierge: {},
+    loginList: [],
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
         this.state = {
             firstName,
             hasFirstNameError: false,
             lastName,
-            phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
+            phoneNumber: this.getPhoneNumber(props.loginList) || '',
             phoneExtension: '',
             phoneExtensionError: '',
             hasLastNameError: false,
@@ -112,21 +122,27 @@ class RequestCallPage extends Component {
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
         this.getPhoneExtensionError = this.getPhoneExtensionError.bind(this);
-        this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
         this.validatePhoneInput = this.validatePhoneInput.bind(this);
         this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
+
+        Inbox.clearDidRequestCallSucceed();
     }
 
     componentDidMount() {
-        // If it is the weekend don't check the wait time
-        if (moment().day() === 0 || moment().day() === 6) {
-            this.setState({
-                onTheWeekend: true,
-            });
+        this.fetchData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
-        Inbox.getInboxCallWaitTime();
+
+        this.fetchData();
+    }
+
+    componentWillUnmount() {
+        Inbox.clearDidRequestCallSucceed();
     }
 
     onSubmit() {
@@ -146,12 +162,12 @@ class RequestCallPage extends Component {
             return policy.type === CONST.POLICY.TYPE.PERSONAL;
         });
 
-        Inbox.requestInboxCall({
+        Inbox.requestCall({
             taskID: this.props.route.params.taskID,
             policyID: policyForCall.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             phoneNumberExtension: this.state.phoneExtension,
         });
     }
@@ -173,9 +189,9 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
-            return this.props.translate('messages.errorMessageInvalidPhone');
+            return this.props.translate('common.error.phoneNumber');
         }
         return '';
     }
@@ -192,42 +208,6 @@ class RequestCallPage extends Component {
             return this.props.translate('requestCallPage.error.phoneExtension');
         }
         return '';
-    }
-
-    /**
-     * Gets the first and last name from the user's personal details.
-     * If the login is the same as the displayName, then they don't exist,
-     * so we return empty strings instead.
-     * @param {String} login
-     * @param {String} displayName
-     * @param {String} firstName
-     * @param {String} lastName
-     *
-     * @returns {Object}
-     */
-    getFirstAndLastName({
-        login,
-        displayName,
-        firstName,
-        lastName,
-    }) {
-        if (firstName || lastName) {
-            return {firstName: firstName || '', lastName: lastName || ''};
-        }
-        if (Str.removeSMSDomain(login) === displayName) {
-            return {firstName: '', lastName: ''};
-        }
-
-        const firstSpaceIndex = displayName.indexOf(' ');
-        const lastSpaceIndex = displayName.lastIndexOf(' ');
-        if (firstSpaceIndex === -1) {
-            return {firstName: displayName, lastName: ''};
-        }
-
-        return {
-            firstName: displayName.substring(0, firstSpaceIndex).trim(),
-            lastName: displayName.substring(lastSpaceIndex).trim(),
-        };
     }
 
     getWaitTimeMessageKey(minutes) {
@@ -255,6 +235,18 @@ class RequestCallPage extends Component {
             waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
         }
         return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
+    }
+
+    fetchData() {
+        // If it is the weekend don't check the wait time
+        if (moment().day() === 0 || moment().day() === 6) {
+            this.setState({
+                onTheWeekend: true,
+            });
+            return;
+        }
+
+        Inbox.openRequestCallPage();
     }
 
     validatePhoneInput() {
@@ -300,63 +292,78 @@ class RequestCallPage extends Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1}>
-                        <Section
-                            title={this.props.translate('requestCallPage.subtitle')}
-                            icon={Illustrations.ConciergeExclamation}
-                        >
-                            <Text style={styles.mb4}>
-                                {this.props.translate('requestCallPage.description')}
-                            </Text>
-                            <FullNameInputRow
-                                firstName={this.state.firstName}
-                                firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
-                                lastName={this.state.lastName}
-                                lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
-                                onChangeFirstName={firstName => this.setState({firstName})}
-                                onChangeLastName={lastName => this.setState({lastName})}
-                                style={[styles.mv4]}
-                            />
-                            <TextInput
-                                label={this.props.translate('common.phoneNumber')}
-                                name="phone"
-                                autoCorrect={false}
-                                value={this.state.phoneNumber}
-                                placeholder="2109400803"
-                                errorText={this.state.phoneNumberError}
-                                onBlur={this.validatePhoneInput}
-                                onChangeText={phoneNumber => this.setState({phoneNumber})}
-                            />
-                            <TextInput
-                                label={this.props.translate('requestCallPage.extension')}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                value={this.state.phoneExtension}
-                                placeholder="100"
-                                errorText={this.state.phoneExtensionError}
-                                onBlur={this.validatePhoneExtensionInput}
-                                onChangeText={phoneExtension => this.setState({phoneExtension})}
-                                containerStyles={[styles.mt4]}
-                            />
-                            <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
-                        </Section>
-                    </ScrollView>
-                    <FixedFooter>
-                        {isBlockedFromConcierge && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                                <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
-                                <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
-                            </View>
+                    {this.props.requestCallForm.didRequestCallSucceed
+                        ? (
+                            <RequestCallConfirmationScreen />
+                        ) : (
+                            <>
+                                <ScrollView style={styles.flex1}>
+                                    <FormElement>
+                                        <Section
+                                            title={this.props.translate('requestCallPage.subtitle')}
+                                            icon={Illustrations.ConciergeExclamation}
+                                        >
+                                            <Text style={styles.mb4}>
+                                                {this.props.translate('requestCallPage.description')}
+                                            </Text>
+                                            <FullNameInputRow
+                                                firstName={this.state.firstName}
+                                                firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
+                                                lastName={this.state.lastName}
+                                                lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
+                                                onChangeFirstName={firstName => this.setState({firstName})}
+                                                onChangeLastName={lastName => this.setState({lastName})}
+                                                style={[styles.mv4]}
+                                            />
+                                            <TextInput
+                                                label={this.props.translate('common.phoneNumber')}
+                                                name="phone"
+                                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                                autoCorrect={false}
+                                                value={this.state.phoneNumber}
+                                                placeholder="2109400803"
+                                                errorText={this.state.phoneNumberError}
+                                                onBlur={this.validatePhoneInput}
+                                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                            />
+                                            <TextInput
+                                                label={this.props.translate('requestCallPage.extension')}
+                                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                                autoCompleteType="off"
+                                                autoCorrect={false}
+                                                value={this.state.phoneExtension}
+                                                placeholder="100"
+                                                errorText={this.state.phoneExtensionError}
+                                                onBlur={this.validatePhoneExtensionInput}
+                                                onChangeText={phoneExtension => this.setState({phoneExtension})}
+                                                containerStyles={[styles.mt4]}
+                                            />
+                                            <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
+                                        </Section>
+                                    </FormElement>
+                                </ScrollView>
+                                <FixedFooter>
+                                    {isBlockedFromConcierge && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                                            <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
+                                            <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
+                                        </View>
+                                    )}
+                                    {!_.isEmpty(this.props.requestCallForm.error) && (
+                                        <Text style={styles.formError}>
+                                            {this.props.requestCallForm.error}
+                                        </Text>
+                                    )}
+                                    <FormAlertWithSubmitButton
+                                        buttonText={this.props.translate('requestCallPage.callMe')}
+                                        onSubmit={this.onSubmit}
+                                        containerStyles={[styles.w100, styles.mb2, styles.mh0, styles.flexReset]}
+                                        isLoading={this.props.requestCallForm.loading}
+                                        isDisabled={isBlockedFromConcierge}
+                                    />
+                                </FixedFooter>
+                            </>
                         )}
-                        <Button
-                            success
-                            onPress={this.onSubmit}
-                            style={[styles.w100]}
-                            text={this.props.translate('requestCallPage.callMe')}
-                            isLoading={this.props.requestCallForm.loading}
-                            isDisabled={isBlockedFromConcierge}
-                        />
-                    </FixedFooter>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
@@ -368,12 +375,11 @@ RequestCallPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        user: {
-            key: ONYXKEYS.USER,
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

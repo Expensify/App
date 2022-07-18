@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {withNavigation} from '@react-navigation/compat';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../styles/styles';
@@ -15,6 +14,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import withNavigation from './withNavigation';
 
 const propTypes = {
     /** Array of additional styles to add */

@@ -1,10 +1,13 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashMerge from 'lodash/merge';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
-import * as ReportUtils from '../reportUtils';
+import * as ReportUtils from '../ReportUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
  * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
@@ -32,7 +35,7 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         const actionsArray = _.toArray(actions);
         reportActions[reportID] = actionsArray;
-        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.loading);
+        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.isLoading);
         const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
         if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
             return;
@@ -99,16 +102,32 @@ function getDeletedCommentsCount(reportID, sequenceNumber) {
 /**
  * Get the message text for the last action that was not deleted
  * @param {Number} reportID
+ * @param {Object} [actionsToMerge]
  * @return {String}
  */
-function getLastVisibleMessageText(reportID) {
-    const lastMessageIndex = _.findLastIndex(reportActions[reportID], action => (
-        !ReportUtils.isDeletedAction(action)
+function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
+    const parser = new ExpensiMark();
+    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
+    const actions = _.toArray(lodashMerge({}, existingReportActions, actionsToMerge));
+    const lastMessageIndex = _.findLastIndex(actions, action => (
+        !ReportActionsUtils.isDeletedAction(action)
     ));
+    const htmlText = lodashGet(actions, [lastMessageIndex, 'message', 0, 'html'], '');
+    const messageText = parser.htmlToText(htmlText);
+    return ReportUtils.formatReportLastMessageText(messageText);
+}
 
-    return ReportUtils.formatReportLastMessageText(
-        lodashGet(reportActions, [reportID, lastMessageIndex, 'message', 0, 'text'], ''),
-    );
+/**
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ * @param {Number} currentUserAccountID
+ * @param {Object} [actionsToMerge]
+ * @returns {Boolean}
+ */
+function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge = {}) {
+    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
+    const action = lodashMerge({}, existingReportActions, actionsToMerge)[sequenceNumber];
+    return action.actorAccountID === currentUserAccountID;
 }
 
 export {
@@ -116,4 +135,5 @@ export {
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
+    isFromCurrentUser,
 };

@@ -8,13 +8,18 @@ const clientID = Str.guid();
 const maxClients = 20;
 
 let activeClients;
-let isInitialized;
 
-// Keeps track of the ActiveClientManager's readiness in one place
-// so that multiple calls of isReady resolve the same promise
-const isInitializedPromise = new Promise((resolve) => {
-    isInitialized = resolve;
+let resolveIsReadyPromise;
+const isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
 });
+
+/**
+ * @returns {Promise}
+ */
+function isReady() {
+    return isReadyPromise;
+}
 
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -32,11 +37,7 @@ Onyx.connect({
  */
 function init() {
     ActiveClients.addClient(clientID)
-        .then(isInitialized);
-}
-
-function isReady() {
-    return isInitializedPromise;
+        .then(resolveIsReadyPromise);
 }
 
 /**
