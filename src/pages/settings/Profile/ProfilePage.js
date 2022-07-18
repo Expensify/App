@@ -67,11 +67,11 @@ class ProfilePage extends Component {
         super(props);
 
         this.state = {
-            firstName: this.props.currentUserPersonalDetails.firstName,
+            firstName: this.props.currentUserPersonalDetails.firstName || '',
             hasFirstNameError: false,
-            lastName: this.props.currentUserPersonalDetails.lastName,
+            lastName: this.props.currentUserPersonalDetails.lastName || '',
             hasLastNameError: false,
-            pronouns: this.props.currentUserPersonalDetails.pronouns,
+            pronouns: this.props.currentUserPersonalDetails.pronouns || '',
             hasPronounError: false,
             hasSelfSelectedPronouns: !_.isEmpty(this.props.currentUserPersonalDetails.pronouns) && !this.props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
@@ -94,6 +94,12 @@ class ProfilePage extends Component {
         // Recalculate logins if loginList has changed
         if (this.props.loginList !== prevProps.loginList) {
             stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
+        }
+
+        // Update avatar in state if changed in props
+        const newAvatar = lodashGet(this.props.currentUserPersonalDetails, 'avatar');
+        if (newAvatar !== lodashGet(prevProps.currentUserPersonalDetails, 'avatar')) {
+            stateToUpdate = {...stateToUpdate, avatar: {uri: newAvatar}};
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -170,7 +176,7 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has modified their avatar
-        if ((this.props.myPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+        if ((this.props.currentUserPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
             PersonalDetails.setAvatar(this.state.avatar);
 
             // Reset the changed state
