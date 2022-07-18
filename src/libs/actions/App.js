@@ -11,7 +11,6 @@ import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
 import * as PersonalDetails from './PersonalDetails';
-import * as User from './User';
 import * as Report from './Report';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
@@ -102,9 +101,6 @@ AppState.addEventListener('change', (nextAppState) => {
  * @returns {Promise}
  */
 function getAppData() {
-    User.getUserDetails();
-    User.getDomainInfo();
-    PersonalDetails.fetchLocalCurrency();
     BankAccounts.fetchUserWallet();
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
