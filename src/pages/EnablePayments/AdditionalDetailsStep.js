@@ -42,7 +42,7 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.bool),
 
         /** Any additional error message to show */
-        additionalErrorMessage: PropTypes.string,
+        error: PropTypes.string,
 
         /** Questions returned by Idology */
         questions: PropTypes.arrayOf(PropTypes.shape({
@@ -55,7 +55,7 @@ const propTypes = {
         idNumber: PropTypes.string,
 
         /** If we should ask for the full SSN (when LexisNexis failed retrieving the first 5 from the last 4) */
-        shouldAskForFullSSN: PropTypes.bool,
+        errorCode: PropTypes.string,
     }),
 
     /** Stores the personal details typed by the user */
@@ -69,10 +69,10 @@ const defaultProps = {
     walletAdditionalDetails: {
         errorFields: {},
         loading: false,
-        additionalErrorMessage: '',
+        error: '',
         questions: [],
         idNumber: '',
-        shouldAskForFullSSN: false,
+        errorCode: '',
     },
     walletAdditionalDetailsDraft: {
         legalFirstName: '',
@@ -189,7 +189,7 @@ class AdditionalDetailsStep extends React.Component {
             errors.phoneNumber = true;
         }
 
-        if (this.props.walletAdditionalDetails.shouldAskForFullSSN) {
+        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
                 errors.ssnFull9 = true;
             }
@@ -270,8 +270,8 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         const isErrorVisible = _.size(this.getErrors()) > 0
-            || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
-        const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
+            || lodashGet(this.props, 'walletAdditionalDetails.error', '').length > 0;
+        const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.myPersonalDetails);
 
         return (
@@ -388,7 +388,7 @@ class AdditionalDetailsStep extends React.Component {
                                 onFixTheErrorsLinkPressed={() => {
                                     this.form.scrollTo({y: 0, animated: true});
                                 }}
-                                message={this.props.walletAdditionalDetails.additionalErrorMessage}
+                                message={this.props.walletAdditionalDetails.error}
                                 isLoading={this.props.walletAdditionalDetails.loading}
                                 buttonText={this.props.translate('common.saveAndContinue')}
                             />
