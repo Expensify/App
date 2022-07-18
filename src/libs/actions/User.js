@@ -301,16 +301,6 @@ function deletePaypalMeAddress() {
 }
 
 /**
- * Fetch whether the user has the Expensify card enabled.
- */
-function getDomainInfo() {
-    DeprecatedAPI.User_IsUsingExpensifyCard()
-        .then(({isUsingExpensifyCard}) => {
-            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-        });
-}
-
-/**
  * Initialize our pusher subscription to listen for user changes
  */
 function subscribeToUserEvents() {
