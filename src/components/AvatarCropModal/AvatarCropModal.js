@@ -270,15 +270,15 @@ const AvatarCropModal = (props) => {
                     : (
                         <>
                             <ImageCropView
-                                    imageUri={props.imageUri}
-                                    containerSize={imageContainerSize}
-                                    panGestureEventHandler={panGestureEventHandler}
-                                    originalImageHeight={originalImageHeight}
-                                    originalImageWidth={originalImageWidth}
-                                    scale={scale}
-                                    translateY={translateY}
-                                    translateX={translateX}
-                                    rotation={rotation}
+                                imageUri={props.imageUri}
+                                containerSize={imageContainerSize}
+                                panGestureEventHandler={panGestureEventHandler}
+                                originalImageHeight={originalImageHeight}
+                                originalImageWidth={originalImageWidth}
+                                scale={scale}
+                                translateY={translateY}
+                                translateX={translateX}
+                                rotation={rotation}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
                                 <Icon src={Expensicons.Zoom} fill={colors.gray3} />
