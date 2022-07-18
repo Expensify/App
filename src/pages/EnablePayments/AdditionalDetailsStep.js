@@ -27,11 +27,12 @@ import AddressSearch from '../../components/AddressSearch';
 import DatePicker from '../../components/DatePicker';
 import FormHelper from '../../libs/FormHelper';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
-import personalDetailsPropType from '../personalDetailsPropType';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Stores additional information about the additional details step e.g. loading state and errors with fields */
     walletAdditionalDetails: PropTypes.shape({
@@ -60,9 +61,6 @@ const propTypes = {
 
     /** Stores the personal details typed by the user */
     walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes,
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: personalDetailsPropType.isRequired,
 };
 
 const defaultProps = {
@@ -85,6 +83,7 @@ const defaultProps = {
         dob: '',
         ssn: '',
     },
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class AdditionalDetailsStep extends React.Component {
@@ -272,7 +271,7 @@ class AdditionalDetailsStep extends React.Component {
         const isErrorVisible = _.size(this.getErrors()) > 0
             || lodashGet(this.props, 'walletAdditionalDetails.error', '').length > 0;
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
-        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.myPersonalDetails);
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
             <ScreenWrapper>
@@ -404,13 +403,11 @@ AdditionalDetailsStep.propTypes = propTypes;
 AdditionalDetailsStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
             initWithStoredValues: false,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(AdditionalDetailsStep);
