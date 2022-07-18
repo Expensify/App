@@ -35,12 +35,6 @@ Onyx.connect({
     callback: val => currentlyViewedReportID = val || '',
 });
 
-let preferredLocale = '';
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || '',
-});
-
 /**
  * Changes a password for a given account
  *
