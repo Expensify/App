@@ -254,6 +254,7 @@ const AvatarCropModal = (props) => {
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             containerStyle={styles.avatarCropModalContainer}
             onModalHide={resetState}
+            statusBarTranslucent={false}
         >
             {props.isSmallScreenWidth && <HeaderGap />}
             <HeaderWithCloseButton
