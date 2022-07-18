@@ -2591,11 +2591,6 @@ const styles = {
 
     imageCropRotateButton: {
         height: 40,
-        width: 40,
-        borderRadius: variables.componentBorderRadiusNormal,
-        backgroundColor: themeColors.border,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
 
     userSelectText: {
