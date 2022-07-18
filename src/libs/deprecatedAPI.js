@@ -364,19 +364,6 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String|null} parameters.bankAccountID
- * @param {String|null} parameters.fundID
- * @returns {Promise}
- */
-function SetWalletLinkedAccount(parameters) {
-    const commandName = 'SetWalletLinkedAccount';
-    requireParameters(['password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.message
  * @returns {Promise}
  */
@@ -842,7 +829,6 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
-    SetWalletLinkedAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
