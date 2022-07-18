@@ -125,20 +125,19 @@ function loadImageAsync(uri) {
  * @returns {Promise<Object>} Returns cropped and rotated image
  */
 function imageManipulator(uri, actions, options) {
-    return new Promise((resolve) => {
-        loadImageAsync(uri).then((originalCanvas) => {
+    return loadImageAsync(uri).then((originalCanvas) => {
             const resultCanvas = _.reduce(actions, (canvas, action) => {
                 if ('crop' in action) {
                     return cropCanvas(canvas, action.crop);
-                } if ('rotate' in action) {
+                } 
+                if ('rotate' in action) {
                     return rotateCanvas(canvas, action.rotate);
                 }
                 return canvas;
             }, originalCanvas);
 
-            convertCanvasToFile(resultCanvas, options).then(resolve);
+            return convertCanvasToFile(resultCanvas, options)
         });
-    });
 }
 
 export default imageManipulator;
