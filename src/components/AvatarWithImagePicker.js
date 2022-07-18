@@ -80,7 +80,8 @@ class AvatarWithImagePicker extends React.Component {
         this.showErrorModal = this.showErrorModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
         this.updateAvatarImage = this.updateAvatarImage.bind(this);
-        this.openAvatarCropModal = this.showAvatarCropModal.bind(this);
+        this.showAvatarCropModal = this.showAvatarCropModal.bind(this);
+        this.hideAvatarCropModal = this.hideAvatarCropModal.bind(this);
         this.state = {
             isMenuVisible: false,
             isErrorModalVisible: false,
