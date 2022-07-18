@@ -10,30 +10,23 @@ import Text from './Text';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions from './withWindowDimensions';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Optional styles for container element that will override the default styling for the offline indicator */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Is the window width narrow, like on a mobile device */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
+    /** Additional styles to add after local styles. Applied to Pressable portion of button */
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    containerStyles: [],
-};
-
-const setStyles = (containerStyles, isSmallScreenWidth) => {
-    if (containerStyles.length) {
-        return containerStyles;
-    }
-    return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
+    style: [],
 };
 
 const OfflineIndicator = (props) => {
@@ -43,9 +36,10 @@ const OfflineIndicator = (props) => {
 
     return (
         <View style={[
-            setStyles(props.containerStyles, props.isSmallScreenWidth),
             styles.flexRow,
-            styles.alignItemsCenter]}
+            styles.alignItemsCenter,
+            ...StyleUtils.parseStyleAsArray(props.style),
+        ]}
         >
             <Icon
                 src={Expensicons.OfflineCloud}
