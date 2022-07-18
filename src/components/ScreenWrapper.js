@@ -108,13 +108,8 @@ class ScreenWrapper extends React.Component {
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
-                    console.log(">>>> insets", insets);
                     const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
                     const paddingStyle = {};
-
-                    console.log(">>>> paddingStyle", paddingStyle);
-
-                    console.log(">>>> network", this.props.network);
 
                     if (this.props.includePaddingTop) {
                         paddingStyle.paddingTop = paddingTop;
