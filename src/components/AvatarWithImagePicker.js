@@ -62,10 +62,10 @@ const propTypes = {
 
 const defaultProps = {
     avatarURL: '',
-    onImageSelected: () => { },
-    onImageRemoved: () => { },
+    onImageSelected: () => {},
+    onImageRemoved: () => {},
     style: [],
-    DefaultAvatar: () => { },
+    DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
@@ -79,7 +79,6 @@ class AvatarWithImagePicker extends React.Component {
         this.hideErrorModal = this.hideErrorModal.bind(this);
         this.showErrorModal = this.showErrorModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
-        this.updateAvatarImage = this.updateAvatarImage.bind(this);
         this.showAvatarCropModal = this.showAvatarCropModal.bind(this);
         this.hideAvatarCropModal = this.hideAvatarCropModal.bind(this);
         this.state = {
