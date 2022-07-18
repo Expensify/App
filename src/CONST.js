@@ -434,6 +434,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
+        VISIBLE_PASSWORD: 'visible-password',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -607,7 +608,6 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
-            VENMO: 'Venmo',
         },
         IOU_TYPE: {
             SEND: 'send',
