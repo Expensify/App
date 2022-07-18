@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, SafeAreaView} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../styles/styles';
@@ -17,6 +17,8 @@ import CONST from '../CONST';
 import withNavigation from './withNavigation';
 import withWindowDimensions from './withWindowDimensions';
 import OfflineIndicator from './OfflineIndicator';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -51,6 +53,9 @@ const propTypes = {
         /** Indicates when an Alert modal is about to be visible */
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
 };
 
@@ -103,14 +108,20 @@ class ScreenWrapper extends React.Component {
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
+                    console.log(">>>> insets", insets);
                     const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
                     const paddingStyle = {};
+
+                    console.log(">>>> paddingStyle", paddingStyle);
+
+                    console.log(">>>> network", this.props.network);
 
                     if (this.props.includePaddingTop) {
                         paddingStyle.paddingTop = paddingTop;
                     }
 
-                    if (this.props.includePaddingBottom) {
+                    // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+                    if (this.props.includePaddingBottom || this.props.network.isOffline) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
 
@@ -151,4 +162,5 @@ export default compose(
             key: ONYXKEYS.MODAL,
         },
     }),
+    withNetwork(),
 )(ScreenWrapper);
