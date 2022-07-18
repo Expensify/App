@@ -144,7 +144,7 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        this.fetchData();
+        PersonalDetails.openIOUModalPage();
         IOU.setIOUSelectedCurrency(this.props.currentUserPersonalDetails.localCurrencyCode);
     }
 
@@ -223,10 +223,6 @@ class IOUModal extends Component {
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
-    }
-
-    fetchData() {
-        PersonalDetails.fetchLocalCurrency();
     }
 
     /**
