@@ -89,10 +89,6 @@ Onyx.connect({
     },
 });
 
-// We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
-// will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
-const defaultAvatarForUserToInvite = ReportUtils.getDefaultAvatar();
-
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  *
@@ -591,7 +587,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         userToInvite = createOption([login], personalDetails, null, {
             showChatPreviewLine,
         });
-        userToInvite.icons = [defaultAvatarForUserToInvite];
+        userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
