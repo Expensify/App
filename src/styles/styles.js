@@ -2388,15 +2388,10 @@ const styles = {
             color: themeColors.textSupporting,
             flex: 1,
             textAlignVertical: 'center',
+            fontSize: variables.fontSizeLabel,
         },
         errorDot: {
-            borderColor: themeColors.textError,
-            borderRadius: 6,
-            borderWidth: 2,
-            height: 12,
-            width: 12,
-            marginRight: 8,
-            backgroundColor: themeColors.textError,
+            marginRight: 12,
         },
     },
 

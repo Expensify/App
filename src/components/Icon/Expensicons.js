@@ -23,7 +23,7 @@ import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import Connect from '../../../assets/images/connect.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
-import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
+import DotIndicator from '../../../assets/images/dot-indicator.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -108,6 +108,7 @@ export {
     CreditCard,
     DeletedRoomAvatar,
     DomainRoomAvatar,
+    DotIndicator,
     DownArrow,
     Download,
     Emoji,
