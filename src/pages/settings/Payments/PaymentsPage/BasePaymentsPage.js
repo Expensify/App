@@ -279,6 +279,7 @@ class BasePaymentsPage extends React.Component {
                                                 icon={Expensicons.Transfer}
                                                 onPress={triggerKYCFlow}
                                                 shouldShowRightIcon
+                                                disabled={this.props.network.isOffline}
                                             />
                                         )}
                                     </KYCWall>
