@@ -16,7 +16,7 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Additional styles to add after local styles.
+    /** Additional styles to add after local styles. */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
