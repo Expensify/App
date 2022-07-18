@@ -301,39 +301,6 @@ function deletePaypalMeAddress() {
 }
 
 /**
- * Fetch whether the user has the Expensify card enabled.
- */
-function getDomainInfo() {
-    // If this command fails, we'll retry again in 10 minutes,
-    // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
-    const RETRY_TIMEOUT = 600000;
-
-    // First check list of common public domains
-    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
-        Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
-        return;
-    }
-
-    // If it is not a common public domain, check the API
-    DeprecatedAPI.User_IsFromPublicDomain({email: sessionEmail})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                const {isFromPublicDomain} = response;
-                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
-
-                DeprecatedAPI.User_IsUsingExpensifyCard()
-                    .then(({isUsingExpensifyCard}) => {
-                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                    });
-            } else {
-                // eslint-disable-next-line max-len
-                Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(getDomainInfo, RETRY_TIMEOUT);
-            }
-        });
-}
-
-/**
  * Initialize our pusher subscription to listen for user changes
  */
 function subscribeToUserEvents() {
