@@ -228,7 +228,6 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         youowe: ({owner}) => `You owe ${owner}`,
         youpaid: ({owner}) => `You paid ${owner}`,
@@ -249,9 +248,7 @@ export default {
         mute: 'Mute',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
-        useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
     avatarWithImagePicker: {
@@ -609,6 +606,7 @@ export default {
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
         selectAnswer: 'You need to select a response to proceed.',
+        ssnFull9Error: 'Please enter a valid 9 digit SSN',
         needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
         weCouldNotVerify: 'We could not verify',
         pleaseFixIt: 'Please fix this information before continuing.',

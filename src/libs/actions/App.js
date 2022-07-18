@@ -12,7 +12,6 @@ import Timing from './Timing';
 import * as PersonalDetails from './PersonalDetails';
 import * as User from './User';
 import * as Report from './Report';
-import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
@@ -93,10 +92,8 @@ AppState.addEventListener('change', (nextAppState) => {
  */
 function getAppData(shouldSyncPolicyList = true) {
     User.getUserDetails();
-    User.getBetas();
     User.getDomainInfo();
     PersonalDetails.fetchLocalCurrency();
-    GeoLocation.fetchCountryCodeByRequestIP();
     BankAccounts.fetchUserWallet();
 
     if (shouldSyncPolicyList) {
