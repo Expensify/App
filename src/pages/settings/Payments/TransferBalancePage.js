@@ -27,6 +27,7 @@ import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
 const propTypes = {
     /** User's wallet information */
@@ -286,23 +287,27 @@ class TransferBalancePage extends React.Component {
                         </View>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <Button
-                            success
-                            pressOnEnter
-                            isLoading={this.props.walletTransfer.loading}
-                            isDisabled={isButtonDisabled}
-                            onPress={() => PaymentMethods.transferWalletBalance(selectedAccount)}
-                            text={this.props.translate(
-                                'transferAmountPage.transfer',
-                                {
-                                    amount: isTransferable
-                                        ? this.props.numberFormat(
-                                            transferAmount / 100,
-                                            {style: 'currency', currency: 'USD'},
-                                        ) : '',
-                                },
+                        <FormAlertWrapper>
+                            {isOffline => (
+                                <Button
+                                    success
+                                    pressOnEnter
+                                    isLoading={this.props.walletTransfer.loading}
+                                    isDisabled={isButtonDisabled || isOffline}
+                                    onPress={() => PaymentMethods.transferWalletBalance(selectedAccount)}
+                                    text={this.props.translate(
+                                        'transferAmountPage.transfer',
+                                        {
+                                            amount: isTransferable
+                                                ? this.props.numberFormat(
+                                                    transferAmount / 100,
+                                                    {style: 'currency', currency: 'USD'},
+                                                ) : '',
+                                        },
+                                    )}
+                                />
                             )}
-                        />
+                        </FormAlertWrapper>
                     </FixedFooter>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
