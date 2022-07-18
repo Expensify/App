@@ -499,7 +499,6 @@ export {
     setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
-    getDomainInfo,
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseSecureStaging,

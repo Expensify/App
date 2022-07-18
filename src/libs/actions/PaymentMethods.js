@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONST from '../../CONST';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -108,41 +109,37 @@ function getPaymentMethods() {
  * @param {String} password
  * @param {Number} bankAccountID
  * @param {Number} fundID
+ * @param {Number} previousPaymentMethodID
+ * @param {String} previousPaymentMethodType
  *
- * @returns {Promise}
  */
-function setWalletLinkedAccount(password, bankAccountID, fundID) {
-    return DeprecatedAPI.SetWalletLinkedAccount({
+function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethodID, previousPaymentMethodType) {
+    API.write('MakeDefaultPaymentMethod', {
         password,
         bankAccountID,
         fundID,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.USER_WALLET, {
-                    walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                });
-                Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
-                return;
-            }
-
-            // Make sure to show user more specific errors which will help support identify the problem faster.
-            switch (response.message) {
-                case CONST.WALLET.ERROR.INVALID_WALLET:
-                case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
-                case CONST.WALLET.ERROR.INVALID_FUND:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfFund')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.invalidBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                default:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
-            }
-        });
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: bankAccountID || fundID,
+                    walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: previousPaymentMethodID,
+                    walletLinkedAccountType: previousPaymentMethodType,
+                },
+            },
+        ],
+    });
 }
 
 /**
@@ -276,7 +273,7 @@ export {
     deleteDebitCard,
     deletePayPalMe,
     getPaymentMethods,
-    setWalletLinkedAccount,
+    makeDefaultPaymentMethod,
     addBillingCard,
     kycWallRef,
     continueSetup,
