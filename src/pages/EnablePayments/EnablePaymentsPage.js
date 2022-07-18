@@ -56,7 +56,7 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (this.props.userWallet.shouldShowFailedKYC) {
+        if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
             return (
                 <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
                     <HeaderWithCloseButton
