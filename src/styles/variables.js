@@ -51,4 +51,6 @@ export default {
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: 54,
+    sliderBarHeight: 8,
+    sliderKnobSize: 26,
 };

@@ -28,7 +28,7 @@ const Slider = (props) => {
     }));
 
     return (
-        <View style={styles.sliderLine}>
+        <View style={styles.sliderBar}>
             <PanGestureHandler onGestureEvent={props.onGestureEventHandler}>
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]} />
             </PanGestureHandler>
