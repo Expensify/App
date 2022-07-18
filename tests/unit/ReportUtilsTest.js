@@ -121,7 +121,7 @@ describe('ReportUtils', () => {
         describe('Default Policy Room', () => {
             const baseAdminsRoom = {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                reportName: 'admins',
+                reportName: '#admins',
             };
 
             test('Active', () => {

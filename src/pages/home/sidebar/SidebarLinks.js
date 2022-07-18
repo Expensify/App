@@ -27,6 +27,7 @@ import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import networkPropTypes from '../../../components/networkPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -58,7 +59,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
+    currentUserPersonalDetails: PropTypes.shape({
         /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
@@ -91,7 +92,7 @@ const defaultProps = {
     reports: {},
     reportsWithDraft: {},
     personalDetails: {},
-    myPersonalDetails: {
+    currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
     currentlyViewedReportID: '',
@@ -172,6 +173,7 @@ class SidebarLinks extends React.Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             activeReport: {
                 reportID: props.currentlyViewedReportID,
@@ -287,7 +289,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatar}
+                            source={this.props.currentUserPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                             isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                             tooltipText={this.props.translate('common.settings')}
@@ -326,15 +328,13 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
