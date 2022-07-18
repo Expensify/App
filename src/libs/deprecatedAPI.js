@@ -364,19 +364,6 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String|null} parameters.bankAccountID
- * @param {String|null} parameters.fundID
- * @returns {Promise}
- */
-function SetWalletLinkedAccount(parameters) {
-    const commandName = 'SetWalletLinkedAccount';
-    requireParameters(['password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.message
  * @returns {Promise}
  */
@@ -640,21 +627,6 @@ function DeleteBankAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // Stringify the parameters object as we cannot send an object via FormData
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -662,13 +634,6 @@ function Mobile_GetConstants(parameters) {
 function GetLocalCurrency(parameters) {
     const commandName = 'GetLocalCurrency';
     return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function GetCurrencyList() {
-    return Mobile_GetConstants({data: ['currencyList']});
 }
 
 /**
@@ -864,7 +829,6 @@ export {
     ResetPassword,
     SetNameValuePair,
     SetPassword,
-    SetWalletLinkedAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
@@ -881,7 +845,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    GetCurrencyList,
     Policy_Create,
     Policy_CustomUnit_Update,
     Policy_CustomUnitRate_Update,
