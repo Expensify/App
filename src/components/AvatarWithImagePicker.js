@@ -14,7 +14,7 @@ import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import ConfirmModal from './ConfirmModal';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withLocalize, { withLocalizePropTypes } from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
@@ -62,10 +62,10 @@ const propTypes = {
 
 const defaultProps = {
     avatarURL: '',
-    onImageSelected: () => {},
-    onImageRemoved: () => {},
+    onImageSelected: () => { },
+    onImageRemoved: () => { },
     style: [],
-    DefaultAvatar: () => {},
+    DefaultAvatar: () => { },
     isUsingDefaultAvatar: false,
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
@@ -118,32 +118,14 @@ class AvatarWithImagePicker extends React.Component {
      * @param {String} prompt
      */
     showErrorModal(title, prompt) {
-        this.setState({isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt});
+        this.setState({ isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt });
     }
 
     /**
      *  Hide the error modal
      */
     hideErrorModal() {
-        this.setState({isErrorModalVisible: false});
-    }
-
-    /**
-     *  Checks if the image has the valid size and triggers the onImageSelected callback
-     * @param {Object} image
-     */
-    updateAvatarImage(image) {
-        if (this.isValidSize(image)) {
-            this.props.onImageSelected(image);
-            return;
-        }
-
-        // Since in react native we can't show two modals simultaneously
-        // we have to add delay before opening another one
-        setTimeout(() => this.showErrorModal(
-            this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-            this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
-        ), 500);
+        this.setState({ isErrorModalVisible: false });
     }
 
     /**
@@ -172,19 +154,26 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      */
     showAvatarCropModal(image) {
+        if (!this.isValidSize(image)) {
+            return this.showErrorModal(
+                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                this.props.translate('avatarWithImagePicker.sizeExceeded', { maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024) }),
+            )
+        }
+
         this.isValidResolution(image.uri)
             .then((isValidResolution) => {
-                if (isValidResolution) {
-                    this.setState({isAvatarCropModalOpen: true, image});
-                    return;
+                if (!isValidResolution) {
+                    return this.showErrorModal(
+                        this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                        this.props.translate('avatarWithImagePicker.tooSmallResolution', {
+                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                        }),
+                    );
                 }
-                this.showErrorModal(
-                    this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                    this.props.translate('avatarWithImagePicker.tooSmallResolution', {
-                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                    }),
-                );
+                
+                this.setState({ isAvatarCropModalOpen: true, image });
             });
     }
 
@@ -192,7 +181,7 @@ class AvatarWithImagePicker extends React.Component {
      *  Hide the avatar crop modal
      */
     hideAvatarCropModal() {
-        this.setState({isAvatarCropModalOpen: false});
+        this.setState({ isAvatarCropModalOpen: false });
     }
 
     /**
@@ -244,7 +233,7 @@ class AvatarWithImagePicker extends React.Component {
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <Pressable
-                    onPress={() => this.setState({isMenuVisible: true})}
+                    onPress={() => this.setState({ isMenuVisible: true })}
                     disabled={this.props.isUploading}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
@@ -262,7 +251,7 @@ class AvatarWithImagePicker extends React.Component {
                                 <DefaultAvatar />
                             )}
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                            {({openPicker}) => (
+                            {({ openPicker }) => (
                                 <>
                                     {
                                         this.props.isUploading
@@ -291,8 +280,8 @@ class AvatarWithImagePicker extends React.Component {
                                                     </Tooltip>
                                                     <PopoverMenu
                                                         isVisible={this.state.isMenuVisible}
-                                                        onClose={() => this.setState({isMenuVisible: false})}
-                                                        onItemSelected={() => this.setState({isMenuVisible: false})}
+                                                        onClose={() => this.setState({ isMenuVisible: false })}
+                                                        onItemSelected={() => this.setState({ isMenuVisible: false })}
                                                         menuItems={this.createMenuItems(openPicker)}
                                                         anchorPosition={this.props.anchorPosition}
                                                     />
@@ -316,7 +305,7 @@ class AvatarWithImagePicker extends React.Component {
                 <AvatarCropModal
                     onClose={this.hideAvatarCropModal}
                     isVisible={this.state.isAvatarCropModalOpen}
-                    onSave={this.updateAvatarImage}
+                    onSave={this.props.onImageSelected}
                     imageUri={lodashGet(this.state.image, 'uri')}
                 />
             </View>
