@@ -471,8 +471,9 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        const reportParticipants = lodashGet(this.props.report, 'participants', []);
-        const reportRecipient = this.props.personalDetails[reportParticipants[0]];
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.myPersonalDetails.login);
+        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
             && !this.props.isComposerFullSize;
