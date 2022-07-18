@@ -2575,17 +2575,17 @@ const styles = {
     sliderKnob: {
         backgroundColor: themeColors.badgeSuccessBG,
         position: 'absolute',
-        height: 26,
-        width: 26,
-        borderRadius: 13,
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
         top: -9,
         left: -13,
     },
 
-    sliderLine: {
+    sliderBar: {
         backgroundColor: themeColors.border,
-        height: 8,
-        borderRadius: 4,
+        height: variables.sliderBarHeight,
+        borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
     },
 
