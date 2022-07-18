@@ -1133,6 +1133,19 @@ function openReport(reportID) {
 }
 
 /**
+ * Gets the IOUReport and the associated report actions.
+ *
+ * @param {Number} chatReportID
+ * @param {Number} iouReportID
+ */
+function openPaymentDetailsPage(chatReportID, iouReportID) {
+    API.read('OpenPaymentDetailsPage', {
+        reportID: chatReportID,
+        iouReportID,
+    });
+}
+
+/**
  * Marks the new report actions as read
  *
  * @param {Number} reportID
@@ -1649,4 +1662,5 @@ export {
     markCommentAsUnread,
     readNewestAction,
     openReport,
+    openPaymentDetailsPage,
 };
