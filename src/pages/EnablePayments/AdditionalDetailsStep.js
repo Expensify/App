@@ -36,7 +36,7 @@ const propTypes = {
     /** Stores additional information about the additional details step e.g. loading state and errors with fields */
     walletAdditionalDetails: PropTypes.shape({
         /** Are we waiting for a response? */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
 
         /** Which field needs attention? */
         errorFields: PropTypes.objectOf(PropTypes.bool),
@@ -68,7 +68,7 @@ const propTypes = {
 const defaultProps = {
     walletAdditionalDetails: {
         errorFields: {},
-        loading: false,
+        isLoading: false,
         error: '',
         questions: [],
         idNumber: '',
@@ -389,7 +389,7 @@ class AdditionalDetailsStep extends React.Component {
                                     this.form.scrollTo({y: 0, animated: true});
                                 }}
                                 message={this.props.walletAdditionalDetails.error}
-                                isLoading={this.props.walletAdditionalDetails.loading}
+                                isLoading={this.props.walletAdditionalDetails.isLoading}
                                 buttonText={this.props.translate('common.saveAndContinue')}
                             />
                         </FormScrollView>
