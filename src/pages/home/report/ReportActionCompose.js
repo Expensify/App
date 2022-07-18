@@ -471,7 +471,7 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.myPersonalDetails.login);
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.personalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
