@@ -404,7 +404,7 @@ export default {
         fee: 'Tarifa',
         transferSuccess: '¡Transferencia exitosa!',
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
-        transferDetailDebitCard: '',
+        transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
