@@ -12,11 +12,24 @@ import * as Localize from './Localize';
 import * as PersonalDetails from './actions/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
+
 let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = lodashGet(val, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        timezone = lodashGet(val, currentUserEmail, 'timezone', CONST.DEFAULT_TIME_ZONE);
     },
 });
 
