@@ -2,13 +2,13 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
- * Unset CloseAccount error message to hide modal
+ * Clear CloseAccount error message to hide modal
  */
-function hideCloseAccountErrorModal() {
+function clearError() {
     Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT, {error: ''});
 }
 
 export {
     // eslint-disable-next-line import/prefer-default-export
-    hideCloseAccountErrorModal,
+    clearError,
 };
