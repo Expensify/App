@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
@@ -230,8 +231,6 @@ function mergeLocalPersonalDetails(details) {
     // displayName is a generated field so we'll use the firstName and lastName + login to update it.
     mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
 
-    // Update the associated Onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
 }
 
@@ -264,42 +263,10 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 /**
- * Sets the onyx with the currency list from the network
- * @returns {Object}
+ * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
-function getCurrencyList() {
-    return DeprecatedAPI.GetCurrencyList()
-        .then((data) => {
-            const currencyListObject = JSON.parse(data.currencyList);
-            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
-            return currencyListObject;
-        });
-}
-
-/**
- * Fetches the local currency based on location and sets currency code/symbol to local storage
- */
-function fetchLocalCurrency() {
-    const coords = {};
-    let currency = '';
-
-    Onyx.merge(ONYXKEYS.IOU, {
-        isRetrievingCurrency: true,
-    });
-
-    DeprecatedAPI.GetLocalCurrency({...coords})
-        .then((data) => {
-            currency = data.currency;
-        })
-        .then(getCurrencyList)
-        .then(() => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                isRetrievingCurrency: false,
-            });
-        });
+function openIOUModalPage() {
+    API.read('OpenIOUModalPage');
 }
 
 /**
@@ -345,8 +312,7 @@ export {
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    fetchLocalCurrency,
-    getCurrencyList,
+    openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
 };

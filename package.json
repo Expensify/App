@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.84-11",
+  "version": "1.1.84-12",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -68,7 +68,7 @@
     "localforage": "^1.10.0",
     "lodash": "4.17.21",
     "metro-config": "^0.64.0",
-    "moment": "^2.27.0",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",
     "onfido-sdk-ui": "^8.1.0",
     "prop-types": "^15.7.2",
@@ -179,7 +179,7 @@
     "webpack": "^4.44.1",
     "webpack-bundle-analyzer": "^4.4.0",
     "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.0",
+    "webpack-dev-server": "^3.11.3",
     "webpack-merge": "^5.1.1"
   },
   "jest": {
