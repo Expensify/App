@@ -11,7 +11,7 @@ function isBetaBuild() {
         fetch(CONST.PLAY_STORE_URL)
             .then(res => res.text())
             .then((text) => {
-                const productionVersionMatch = text.match(/\[\[\[\"\d+\.\d+\.\d+/);
+                const productionVersionMatch = text.match(/\[\[\["\d+\.\d+\.\d+/);
                 if (!productionVersionMatch) {
                     resolve(false);
                 }
