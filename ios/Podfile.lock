@@ -443,7 +443,7 @@ PODS:
     - React-Core
   - react-native-document-picker (8.0.0):
     - React-Core
-  - react-native-flipper (0.146.1):
+  - react-native-flipper (0.117.0):
     - React-Core
   - react-native-image-picker (4.7.3):
     - React-Core
@@ -938,7 +938,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 60ac50a5209777cbccfe8d7a62d0743a9da87060
   react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
   react-native-document-picker: 772d04a4bc5c35da9abe27b08ac271420ae3f9ef
-  react-native-flipper: 4bfe0a324e663f1ae2f76ad0da75673de6895efe
+  react-native-flipper: cd9eabd8917104c1bbdca2621717cdca3b2addef
   react-native-image-picker: ae1202414bd5c37c00b2a701daa5b6194a06b7d9
   react-native-netinfo: ebbcd8fbe1a0ce7035e43cd18c5a545dcb93dd08
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
@@ -985,4 +985,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 431123d7514c52fa4516724b89c20d02c87ad8c8
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.11.2
