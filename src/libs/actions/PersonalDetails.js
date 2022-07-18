@@ -335,7 +335,6 @@ export {
     setAvatar,
     deleteAvatar,
     openIOUModalPage,
-    getCurrencyList,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
 };
