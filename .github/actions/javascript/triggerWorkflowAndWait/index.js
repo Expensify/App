@@ -452,6 +452,9 @@ class GithubUtils {
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
+                // The format of this map is following:
+                // { 'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
+                //   'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ] }
                 const internalQAPRMap = _.reduce(
                     _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
                     (map, pr) => {
@@ -470,10 +473,11 @@ class GithubUtils {
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
                 const accessibleOrNoQAPRs = _.union(accessiblePRList, noQAPRs);
+                const internalQAPRsNumbers = _.map(_.keys(internalQAPRMap), this.getPullRequestNumberFromURL);
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
-                    .difference(_.keys(internalQAPRMap))
+                    .difference(internalQAPRsNumbers)
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
