@@ -10,9 +10,7 @@ const defaultProps = {
     children: null,
 };
 
-const KeyboardAvoidingView = props => {
-    return props.children;
-}
+const KeyboardAvoidingView = props => props.children;
 
 KeyboardAvoidingView.propTypes = propTypes;
 KeyboardAvoidingView.defaultProps = defaultProps;
