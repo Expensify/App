@@ -1160,14 +1160,6 @@ function openReport(reportID) {
  * @param {Number} oldestActionSequenceNumber
  */
 function readOldestAction(reportID, oldestActionSequenceNumber) {
-    const completionData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
-        value: {
-            isLoading: false,
-        },
-    };
-
     API.read('ReadOldestAction',
         {
             reportID,
@@ -1180,11 +1172,27 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
                 value: {isLoading: true},
             }],
             successData: [
-                completionData,
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                    value: {
+                        isLoading: false,
+                        error: '',
+                    },
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    value: {
+                        error: '',
+                    },
+                }
             ],
-            failureData: [
-                completionData,
-            ],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                value: {isLoading: false},
+            }],
         });
 }
 
