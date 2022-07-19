@@ -13,6 +13,12 @@ import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import colors from '../styles/colors';
 
+/**
+ * This component should be used when we are using the offline pattern B (offline with feedback).
+ * You should enclose any element that should have feedback that the action was taken offline and it will take
+ * care of adding the appropriate styles for pending actions and displaying the dismissible error.
+ */
+
 const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
@@ -43,6 +49,11 @@ const defaultProps = {
     style: [],
 };
 
+/**
+ * This method applies the strikethrough to all the children passed recursively
+ * @param {Array} children
+ * @return {Array}
+ */
 function applyStrikeThrough(children) {
     return React.Children.map(children, (child) => {
         if (!React.isValidElement(child)) {

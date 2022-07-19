@@ -204,47 +204,45 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <OfflineWithFeedback error="This is an errors This is an errors This is an errors This is an errors This is an errors This is an errors " style={styles.peopleRowOfflineFeedback} pendingAction="delete">
-                <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
-                    <TouchableOpacity
-                        style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
+            <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
+                <TouchableOpacity
+                    style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
+                    onPress={() => this.toggleUser(item.login)}
+                    activeOpacity={0.7}
+                >
+                    <CheckboxWithTooltip
+                        style={[styles.peopleRowCell]}
+                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
+                        disabled={!canBeRemoved}
                         onPress={() => this.toggleUser(item.login)}
-                        activeOpacity={0.7}
-                    >
-                        <CheckboxWithTooltip
-                            style={[styles.peopleRowCell]}
-                            isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                            disabled={!canBeRemoved}
-                            onPress={() => this.toggleUser(item.login)}
-                            toggleTooltip={this.state.showTooltipForLogin === item.login}
-                            text={this.props.translate('workspace.people.error.cannotRemove')}
+                        toggleTooltip={this.state.showTooltipForLogin === item.login}
+                        text={this.props.translate('workspace.people.error.cannotRemove')}
+                    />
+                    <View style={styles.flex1}>
+                        <OptionRow
+                            onSelectRow={() => this.toggleUser(item.login)}
+                            forceTextUnreadStyle
+                            isDisabled={!canBeRemoved}
+                            option={{
+                                text: Str.removeSMSDomain(item.displayName),
+                                alternateText: Str.removeSMSDomain(item.login),
+                                participantsList: [item],
+                                icons: [item.avatar],
+                                keyForList: item.login,
+                            }}
                         />
-                        <View style={styles.flex1}>
-                            <OptionRow
-                                onSelectRow={() => this.toggleUser(item.login)}
-                                forceTextUnreadStyle
-                                isDisabled={!canBeRemoved}
-                                option={{
-                                    text: Str.removeSMSDomain(item.displayName),
-                                    alternateText: Str.removeSMSDomain(item.login),
-                                    participantsList: [item],
-                                    icons: [item.avatar],
-                                    keyForList: item.login,
-                                }}
-                            />
+                    </View>
+                    {this.props.session.email === item.login && (
+                    <View style={styles.peopleRowCell}>
+                        <View style={[styles.badge, styles.peopleBadge]}>
+                            <Text style={[styles.peopleBadgeText]}>
+                                {this.props.translate('common.admin')}
+                            </Text>
                         </View>
-                        {this.props.session.email === item.login && (
-                        <View style={styles.peopleRowCell}>
-                            <View style={[styles.badge, styles.peopleBadge]}>
-                                <Text style={[styles.peopleBadgeText]}>
-                                    {this.props.translate('common.admin')}
-                                </Text>
-                            </View>
-                        </View>
-                        )}
-                    </TouchableOpacity>
-                </Hoverable>
-            </OfflineWithFeedback>
+                    </View>
+                    )}
+                </TouchableOpacity>
+            </Hoverable>
         );
     }
 
