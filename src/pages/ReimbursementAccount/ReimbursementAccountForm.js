@@ -4,7 +4,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
@@ -13,9 +12,10 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import CONST from '../../CONST';
 import FormScrollView from '../../components/FormScrollView';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 
 const propTypes = {
-    /** ACH data for the withdrawal account actively being set up */
+    /** Data for the bank account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Called when the form is submitted */
@@ -29,11 +29,12 @@ const defaultProps = {
 };
 
 class ReimbursementAccountForm extends React.Component {
+    componentWillUnmount() {
+        BankAccounts.resetReimbursementAccount();
+    }
+
     render() {
         const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
-            || lodashGet(this.props, 'reimbursementAccount.errorModalMessage', '').length > 0
-
-            // @TODO once all validation errors show in multiples we can remove this check
             || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
 
         const currentStep = lodashGet(
@@ -57,8 +58,8 @@ class ReimbursementAccountForm extends React.Component {
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
-                    message={this.props.reimbursementAccount.errorModalMessage}
-                    isMessageHtml={this.props.reimbursementAccount.isErrorModalMessageHtml}
+                    message={this.props.reimbursementAccount.error}
+                    isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
                     isLoading={this.props.reimbursementAccount.loading}
                 />
             </FormScrollView>
