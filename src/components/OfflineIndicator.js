@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import Icon from './Icon';
@@ -14,7 +15,14 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Styles for container element */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    containerStyles: [],
 };
 
 const OfflineIndicator = (props) => {
@@ -24,7 +32,7 @@ const OfflineIndicator = (props) => {
 
     return (
         <View style={[
-            styles.chatItemComposeSecondaryRowOffset,
+            ...props.containerStyles,
             styles.flexRow,
             styles.alignItemsCenter]}
         >
@@ -41,6 +49,7 @@ const OfflineIndicator = (props) => {
 };
 
 OfflineIndicator.propTypes = propTypes;
+OfflineIndicator.defaultProps = defaultProps;
 OfflineIndicator.displayName = 'OfflineIndicator';
 
 export default compose(
