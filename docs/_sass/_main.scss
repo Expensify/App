@@ -247,6 +247,13 @@ textarea {
     padding: 52px 68px;
     box-sizing: border-box;
 
+    @media screen and (min-width: 1600px) {
+        /* Center content area for bigger screens */
+        margin-left: calc(420px + (100vw - 1000px - 420px)/2);
+        padding: 52px 0;
+        max-width: 1000px;
+    }
+
     @media screen and (max-width: 1024px) {
         margin-left: 320px;
     }
