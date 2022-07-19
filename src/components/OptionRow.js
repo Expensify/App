@@ -62,6 +62,8 @@ const propTypes = {
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
 
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -77,6 +79,7 @@ const defaultProps = {
     onSelectRow: () => {},
     isDisabled: false,
     optionIsFocused: false,
+    style: null,
 };
 
 const OptionRow = (props) => {
@@ -86,12 +89,12 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = props.mode === CONST.OPTION_MODE.COMPACT
+    const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, ...textUnreadStyle];
-    const alternateTextStyle = props.mode === CONST.OPTION_MODE.COMPACT
+        : [styles.optionDisplayName, ...textUnreadStyle], props.style);
+    const alternateTextStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
     const contentContainerStyles = props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
