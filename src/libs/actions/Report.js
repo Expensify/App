@@ -1743,4 +1743,5 @@ export {
     readNewestAction,
     openReport,
     openPaymentDetailsPage,
+    createOptimisticReport,
 };
