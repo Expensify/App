@@ -13,7 +13,6 @@ import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import * as User from './User';
 import * as store from './ReimbursementAccount/store';
-import * as API from '../API';
 
 /**
  * Deletes a debit card
@@ -285,7 +284,6 @@ export {
     deletePayPalMe,
     getPaymentMethods,
     openPaymentsPage,
-    setWalletLinkedAccount,
     makeDefaultPaymentMethod,
     addBillingCard,
     kycWallRef,
