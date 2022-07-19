@@ -1,5 +1,4 @@
 import moment from 'moment-timezone';
-import _ from 'underscore';
 import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
