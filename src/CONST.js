@@ -386,7 +386,7 @@ const CONST = {
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
+        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
@@ -680,7 +680,6 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len

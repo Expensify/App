@@ -317,12 +317,12 @@ function hasExpensifyEmails(emails) {
  * @return {Boolean}
  */
 function canShowReportRecipientLocalTime(personalDetails, report) {
-    const reportParticipants = lodashGet(report, 'participants', []);
-    const hasMultipleParticipants = reportParticipants.length > 1;
-    const reportRecipient = personalDetails[reportParticipants[0]];
+    const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
+    const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+    const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
+    const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    return !hasExpensifyEmails(reportParticipants)
-        && !hasMultipleParticipants
+    return !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected;
