@@ -821,6 +821,38 @@ function fetchAllReports(
 }
 
 /**
+ * Creates an optimistic report with a randomly generated reportID and as much information as we currently have
+ *
+ * @param {Array} participantList
+ * @returns {Object}
+ */
+function createOptimisticReport(participantList) {
+    return {
+        chatType: "",
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat: false,
+        isPinned: false,
+        lastActorEmail: "",
+        lastMessageHtml: "",
+        lastMessageText: null,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: "",
+        oldPolicyName: "",
+        ownerEmail: "__FAKE__",
+        Participants: participantList,
+        policyID: "_FAKE_",
+        reportID: ReportUtils.generateRandomReportID(),
+        reportName: "Chat Report",
+        stateNum: 0,
+        statusNum: 0,
+        unreadActionCount: 0,
+        visibility: undefined,
+    }
+}
+
+/**
  * @param {Number} reportID
  * @param {String} [text]
  * @param {File} [file]
