@@ -135,7 +135,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        whiteSpace: 'pre',
     },
 };
 
@@ -727,7 +726,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {

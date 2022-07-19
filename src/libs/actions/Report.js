@@ -52,8 +52,8 @@ Onyx.connect({
 
 let myPersonalDetails;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val,
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => myPersonalDetails = val[currentUserEmail],
 });
 
 const allReports = {};
@@ -947,11 +947,6 @@ function addActions(reportID, text = '', file) {
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-            value: {timezone},
-        });
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {[currentUserEmail]: timezone},
         });
@@ -1093,6 +1088,19 @@ function openReport(reportID) {
                 },
             }],
         });
+}
+
+/**
+ * Gets the IOUReport and the associated report actions.
+ *
+ * @param {Number} chatReportID
+ * @param {Number} iouReportID
+ */
+function openPaymentDetailsPage(chatReportID, iouReportID) {
+    API.read('OpenPaymentDetailsPage', {
+        reportID: chatReportID,
+        iouReportID,
+    });
 }
 
 /**
@@ -1599,4 +1607,5 @@ export {
     markCommentAsUnread,
     readNewestAction,
     openReport,
+    openPaymentDetailsPage,
 };
