@@ -419,20 +419,30 @@ textarea {
 }
 
 .centered-content {
-    width: 380px;
+    width: 500px;
     height: 240px;
     text-align: center;
     font-size: larger;
     position: absolute;
     top: calc((100vh - 240px)/2);
-    right: calc((100vw - 380px)/2);
+    right: calc((100vw - 500px)/2);
 
-    @media screen and (min-width: 800px) {
-        width: 500px;
-        right: calc((100vw - 500px)/2);
+    &.with-lhn {
+        right: calc((100vw - 420px - 500px)/2);
+    }
+
+    @media screen and (max-width: 1024px) {
+        &.with-lhn {
+            right: calc((100vw - 320px - 500px)/2);
+        }
+    }
+
+    @media screen and (max-width: 800px) {
+        width: 380px;
+        right: calc((100vw - 380px)/2);
 
         &.with-lhn {
-            right: calc((100vw - 420px - 500px)/2);
+            right: calc((100vw - 380px)/2);
         }
     }
 
