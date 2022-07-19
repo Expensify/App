@@ -13,7 +13,6 @@ import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Timing from './Timing';
-import * as API from '../API';
 
 let currentUserEmail = '';
 Onyx.connect({
