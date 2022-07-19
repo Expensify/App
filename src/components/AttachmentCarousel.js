@@ -1,11 +1,13 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'lodash';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
+import AttachmentView from './AttachmentView';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import themeColors from '../styles/themes/default';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import canUseTouchScreen from '../libs/canUseTouchscreen';
@@ -22,16 +24,12 @@ const propTypes = {
 
     /** Callback to update the parent modal's state with a sourceUrl and name from the attachments array */
     onArrowPress: PropTypes.func,
-
-    /** Hides arrows if set to false */
-    showArrows: PropTypes.bool,
 };
 
 const defaultProps = {
     sourceURL: '',
-    reportActions: {},
     onArrowPress: () => {},
-    showArrows: true,
+    reportActions: {},
 };
 
 class AttachmentCarousel extends React.Component {
@@ -58,30 +56,56 @@ class AttachmentCarousel extends React.Component {
             }
             return attachmentsAccumulator;
         }, []);
-
+        const {sourceURL, file} = this.getAttachment(attachments[page]);
         this.state = {
             page,
             attachments,
+            sourceURL,
+            file,
+            showArrows: !canUseTouchScreen(),
             isBackDisabled: page === 0,
             isForwardDisabled: page === attachments.length - 1,
         };
 
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.handleArrowPress = this.handleArrowPress.bind(this);
+        this.onShowArrow = this.onShowArrow.bind(this);
     }
 
     componentDidMount() {
-        if(canUseTouchScreen) {
-            return
+        if (canUseTouchScreen()) {
+            return;
         }
         document.addEventListener('keydown', this.handleArrowPress);
     }
 
     componentWillUnmount() {
-        if(canUseTouchScreen()) {
-            return
+        if (canUseTouchScreen()) {
+            return;
         }
         document.removeEventListener('keydown', this.handleArrowPress);
+    }
+
+    /**
+     * Toggles the visibility of the arrows on mouse hover
+     * @param {Boolean} showArrows
+     */
+    onShowArrow(showArrows) {
+        this.setState({showArrows});
+    }
+
+    /**
+     * Helps to navigate between next/previous attachments
+     * @param {Object} attachmentItem
+     * @returns {Object}
+     */
+    getAttachment(attachmentItem) {
+        const sourceURL = _.get(attachmentItem, 'sourceURL', '');
+        const file = _.get(attachmentItem, 'file', {name: ''});
+        return {
+            sourceURL: addEncryptedAuthTokenToURL(sourceURL),
+            file,
+        };
     }
 
     /**
@@ -91,10 +115,12 @@ class AttachmentCarousel extends React.Component {
     cycleThroughAttachments(deltaSlide) {
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
-            this.props.onArrowPress(attachments[nextIndex]);
-
+            const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
+            this.props.onArrowPress({sourceURL, file});
             return {
                 page: nextIndex,
+                sourceURL,
+                file,
                 isBackDisabled: nextIndex === 0,
                 isForwardDisabled: nextIndex === attachments.length - 1,
             };
@@ -116,30 +142,38 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
-        const styling = [styles.attachmentModalArrowsContainer];
-        if (!this.props.showArrows) {
-            styling.push(styles.attachmentModalArrowsHidden);
-        }
-
         return (
-            <View style={styling}>
-                <Button
-                    medium
-                    icon={Expensicons.BackArrow}
-                    iconFill={themeColors.text}
-                    iconStyles={[styles.mr0]}
-                    onPress={() => this.cycleThroughAttachments(-1)}
-                    isDisabled={this.state.isBackDisabled}
-                />
-                <Button
-                    medium
-                    icon={Expensicons.ArrowRight}
-                    iconFill={themeColors.text}
-                    iconStyles={[styles.mr0]}
-                    onPress={() => this.cycleThroughAttachments(1)}
-                    isDisabled={this.state.isForwardDisabled}
-                />
-            </View>
+            <Pressable
+                style={[styles.attachmentModalArrowsContainer]}
+                onPress={() => canUseTouchScreen() && this.onShowArrow(!this.state.showArrows)}
+                onMouseEnter={() => this.onShowArrow(true)}
+                onMouseLeave={() => this.onShowArrow(false)}
+            >
+                {this.state.showArrows && (
+                    <>
+                        <Button
+                            medium
+                            style={[styles.leftAttachmentArrow]}
+                            icon={Expensicons.BackArrow}
+                            iconFill={themeColors.text}
+                            iconStyles={[styles.mr0, {PointerEvent: 'auto'}]}
+                            onPress={() => this.cycleThroughAttachments(-1)}
+                            isDisabled={this.state.isBackDisabled}
+                        />
+                        <Button
+                            medium
+                            style={[styles.rightAttachmentArrow]}
+                            icon={Expensicons.ArrowRight}
+                            iconFill={themeColors.text}
+                            iconStyles={[styles.mr0, {PointerEvent: 'auto'}]}
+                            onPress={() => this.cycleThroughAttachments(1)}
+                            isDisabled={this.state.isForwardDisabled}
+                        />
+                    </>
+                )}
+                <AttachmentView sourceURL={this.state.sourceURL} file={this.state.file} />
+            </Pressable>
+
         );
     }
 }

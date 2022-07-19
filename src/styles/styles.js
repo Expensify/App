@@ -2013,16 +2013,22 @@ const styles = {
     },
 
     attachmentModalArrowsContainer: {
-        width: '90%',
-        position: 'absolute',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexDirection: 'row',
-        opacity: 1,
+        display: 'flex',
+        justifyContent: 'center',
+        height: '100%',
+        width: '100%',
     },
 
-    attachmentModalArrowsHidden: {
-        opacity: 0,
+    leftAttachmentArrow: {
+        zIndex: 22,
+        position: 'absolute',
+        left: 32,
+    },
+
+    rightAttachmentArrow: {
+        zIndex: 22,
+        position: 'absolute',
+        right: 32,
     },
 
     detailsPageSectionVersion: {

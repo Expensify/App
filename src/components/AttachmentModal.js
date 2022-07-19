@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'lodash';
@@ -11,8 +11,8 @@ import AttachmentView from './AttachmentView';
 import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
@@ -85,7 +85,6 @@ class AttachmentModal extends PureComponent {
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
         this.onArrowPress = this.onArrowPress.bind(this);
-        this.onShowArrow = this.onShowArrow.bind(this);
     }
 
     // this prevents a bug in iOS that would show the last image before closing then opening on a new image
@@ -107,20 +106,10 @@ class AttachmentModal extends PureComponent {
 
     /**
      * Helps to navigate between next/previous attachments
-     * @param {Object} attachmentItem
+     * @param {Object} {sourceURL, file}
      */
-    onArrowPress(attachmentItem) {
-        const sourceURL = lodashGet(attachmentItem, 'sourceURL', '');
-        const file = lodashGet(attachmentItem, 'file', {name: ''});
+    onArrowPress({sourceURL, file}) {
         this.setState({sourceURL, file});
-    }
-
-    /**
-     * Toggles the visibility of the arrows on mouse hover
-     * @param {Boolean} showArrows
-     */
-    onShowArrow(showArrows) {
-        this.setState({showArrows});
     }
 
     /**
@@ -220,27 +209,21 @@ class AttachmentModal extends PureComponent {
                             />
                         ) : ''}
                     />
-                    <Pressable
-                        style={attachmentViewStyles}
-                        onPress={() => this.onShowArrow(!this.state.showArrows)} 
-                        onMouseEnter={() => this.onShowArrow(true)}
-                        onMouseLeave={() => this.onShowArrow(false)}
-                    >
-                        <>
-                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
-                            {this.state.reportId && (
-                                <AttachmentCarousel
-                                    showArrows={this.state.showArrows}
-                                    reportId={this.state.reportId}
-                                    onArrowPress={this.onArrowPress}
-                                    sourceURL={this.state.sourceURL}
-                                />
-                            )}
-                        </>
-                    </Pressable>
-
+                    <View style={attachmentViewStyles}>
+                        {this.state.reportId ? (
+                            <AttachmentCarousel
+                                showArrows={this.state.showArrows}
+                                reportId={this.state.reportId}
+                                onArrowPress={this.onArrowPress}
+                                sourceURL={this.state.sourceURL}
+                            />
+                        ) : (this.state.sourceURL
+                            && <AttachmentView sourceURL={this.state.sourceURL} file={this.state.file} />
+                        )}
+                    </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {this.props.onConfirm && (
+                    {this.props.onConfirm
+                        && (
                         <Button
                             success
                             style={[styles.buttonConfirm]}
@@ -249,7 +232,7 @@ class AttachmentModal extends PureComponent {
                             onPress={this.submitAndClose}
                             pressOnEnter
                         />
-                    )}
+                        )}
                 </Modal>
                 <ConfirmModal
                     title={this.props.translate('attachmentPicker.attachmentTooLarge')}
