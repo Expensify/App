@@ -460,8 +460,7 @@ class GithubUtils {
                 isAccessible: match[4] === 'x',
             }),
         );
-        const internalQAPRList = this.getStagingDeployCashInternalQA(issue);
-        return _.sortBy(_.union(PRList, internalQAPRList), 'number');
+        return _.sortBy(PRList, 'number');
     }
 
     /**
@@ -571,11 +570,10 @@ class GithubUtils {
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
                 const accessibleOrNoQAPRs = _.union(accessiblePRList, noQAPRs);
-                const internalQAPRsNumbers = _.map(_.keys(internalQAPRMap), this.getPullRequestNumberFromURL);
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
-                    .difference(internalQAPRsNumbers)
+                    .difference(_.keys(internalQAPRMap))
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
