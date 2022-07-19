@@ -42,8 +42,8 @@ const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    /** The styles to pass to the KeyboardAvoidingView i.e. height/padding */
-    keyboardAvoidingViewBehavior: PropTypes.string,
+    /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used */
+    keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
 
     // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
