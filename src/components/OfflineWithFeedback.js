@@ -43,18 +43,21 @@ const defaultProps = {
     style: [],
 };
 
-function applyStrikeThrough(children) {
-    return React.Children.map(children, (child) => {
-        if (!React.isValidElement(child)) {
-            return child;
-        }
-        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
-        if (child.props.children) {
-            props.children = applyStrikeThrough(child.props.children);
-        }
-        return React.cloneElement(child, props);
-    });
-}
+// Create the context
+export const StyleContext = React.createContext('stylesContext');
+
+// function applyStrikeThrough(children) {
+//     return React.Children.map(children, (child) => {
+//         if (!React.isValidElement(child)) {
+//             return child;
+//         }
+//         const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
+//         if (child.props.children) {
+//             props.children = applyStrikeThrough(child.props.children);
+//         }
+//         return React.cloneElement(child, props);
+//     });
+// }
 
 const OfflineWithFeedback = (props) => {
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
@@ -63,19 +66,21 @@ const OfflineWithFeedback = (props) => {
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !props.error;
-    let children = props.children;
+    // let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
-    if (needsStrikeThrough && !hideChildren) {
-        children = applyStrikeThrough(children);
-    }
+    // if (needsStrikeThrough && !hideChildren) {
+    //     children = applyStrikeThrough(children);
+    // }
     return (
         <View style={props.style}>
-            {!hideChildren && (
-                <View style={needsOpacity ? styles.offlineFeedback.pending : {}}>
-                    {children}
-                </View>
-            )}
+            <StyleContext.Provider value={needsStrikeThrough && !hideChildren ? styles.offlineFeedback.deleted : {}}>
+                {!hideChildren && (
+                    <View style={needsOpacity ? styles.offlineFeedback.pending : {}}>
+                        {props.children}
+                    </View>
+                )}
+            </StyleContext.Provider>
             {props.error && (
                 <View style={styles.offlineFeedback.error}>
                     <View style={styles.offlineFeedback.errorDot}>

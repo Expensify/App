@@ -6,6 +6,8 @@ import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
+import { StyleContext } from './OfflineWithFeedback';
+import { useContext } from 'react';
 
 const propTypes = {
     /** The color of the text */
@@ -45,6 +47,8 @@ const Text = React.forwardRef(({
     style,
     ...props
 }, ref) => {
+    const styleContext = useContext(StyleContext);
+
     // If the style prop is an array of styles, we need to mix them all together
     const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
         ...finalStyles,
@@ -56,6 +60,7 @@ const Text = React.forwardRef(({
         textAlign,
         fontFamily: fontFamily[family],
         ...mergedStyles,
+        ...(styleContext ?  styleContext : {}),
     };
 
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
