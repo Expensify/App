@@ -67,7 +67,7 @@ hr {
     display: inline-block;
     width: 24px;
     height: 2px;
-    margin: 0 0 15px;
+    margin: 0 0 16px;
 }
 
 strong {
@@ -331,22 +331,36 @@ textarea {
 .card {
     display: flex;
     flex-wrap: nowrap;
-    border-radius: 15px;
+    border-radius: 16px;
     border: 1px solid $color-gray2;
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
 
+    &.send-money {
+        border-color: $color-blue;
+        border-width: 1.5px;
+    }
+
+    &.request-money {
+        border-color: $color-green;
+        border-width: 1.5px;
+    }
+
     .left-icon {
         display: flex;
         align-items: center;
-        padding-right: 15px;
+        padding-right: 28px;
+
+        img {
+            width: 32px;
+        }
     }
 
     .right-icon {
         display: flex;
         align-items: center;
-        padding-left: 15px;
+        padding-left: 16px;
     }
 
     .body {
@@ -357,7 +371,8 @@ textarea {
     }
 
     .description {
-        margin-top: 15px;
+        margin-top: 16px;
+        font-weight: normal;
     }
 }
 
