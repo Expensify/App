@@ -201,7 +201,7 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            if (this.isReportFullyVisible()) {
+            if (this.getIsReportFullyVisible()) {
                 Report.openReport(this.props.reportID);
             }
             this.fetchData();

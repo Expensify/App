@@ -55,7 +55,9 @@ getTagsOrReleases(isProductionDeploy)
         console.log(`Given ${itemToFetch}: ${inputTag}`);
         console.log(`Prior ${itemToFetch}: ${priorTag}`);
 
-        const pullRequestList = GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
+        return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
+    })
+    .then((pullRequestList) => {
         console.log(`Found the pull request list: ${pullRequestList}`);
         return core.setOutput('PR_LIST', pullRequestList);
     })

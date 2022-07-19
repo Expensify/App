@@ -292,40 +292,12 @@ function RejectTransaction(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.reportComment
- * @param {Number} parameters.reportID
- * @param {String} parameters.clientID
- * @param {File|Object} [parameters.file]
- * @returns {Promise}
- */
-function Report_AddComment(parameters) {
-    const commandName = 'Report_AddComment';
-    requireParameters(['reportComment', 'reportID', 'clientID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @returns {Promise}
  */
 function Report_GetHistory(parameters) {
     const commandName = 'Report_GetHistory';
     requireParameters(['reportID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Boolean} parameters.pinnedValue
- * @returns {Promise}
- */
-function Report_TogglePinned(parameters) {
-    const commandName = 'Report_TogglePinned';
-    requireParameters(['reportID', 'pinnedValue'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -392,30 +364,6 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String|null} parameters.bankAccountID
- * @param {String|null} parameters.fundID
- * @returns {Promise}
- */
-function SetWalletLinkedAccount(parameters) {
-    const commandName = 'SetWalletLinkedAccount';
-    requireParameters(['password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.subscribed
- * @returns {Promise}
- */
-function UpdateAccount(parameters) {
-    const commandName = 'UpdateAccount';
-    requireParameters(['subscribed'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.message
  * @returns {Promise}
  */
@@ -429,21 +377,6 @@ function User_Delete(parameters) {
  */
 function User_GetBetas() {
     return Network.post('User_GetBetas');
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} [parameters.requireCertainty]
- * @returns {Promise}
- */
-function User_IsFromPublicDomain(parameters) {
-    const commandName = 'User_IsFromPublicDomain';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, {
-        ...{requireCertainty: true},
-        ...parameters,
-    });
 }
 
 /**
@@ -694,21 +627,6 @@ function DeleteBankAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // Stringify the parameters object as we cannot send an object via FormData
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -716,13 +634,6 @@ function Mobile_GetConstants(parameters) {
 function GetLocalCurrency(parameters) {
     const commandName = 'GetLocalCurrency';
     return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function GetCurrencyList() {
-    return Mobile_GetConstants({data: ['currencyList']});
 }
 
 /**
@@ -912,21 +823,16 @@ export {
     Plaid_GetLinkToken,
     Policy_Employees_Merge,
     RejectTransaction,
-    Report_AddComment,
     Report_GetHistory,
-    Report_TogglePinned,
     Report_EditComment,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
     SetPassword,
-    SetWalletLinkedAccount,
-    UpdateAccount,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
     User_GetBetas,
-    User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
@@ -939,7 +845,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    GetCurrencyList,
     Policy_Create,
     Policy_CustomUnit_Update,
     Policy_CustomUnitRate_Update,
