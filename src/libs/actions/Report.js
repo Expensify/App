@@ -844,6 +844,7 @@ function createOptimisticReport(participantList) {
         lastActorEmail: "",
         lastMessageHtml: "",
         lastMessageText: null,
+        lastReadSequenceNumber: undefined,
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
