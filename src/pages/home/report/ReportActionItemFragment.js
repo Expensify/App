@@ -112,36 +112,21 @@ const ReportActionItemFragment = (props) => {
                             ? `<email-comment>${htmlContent}</email-comment>`
                             : `<comment>${htmlContent}</comment>`}
                     />
-                ) : (
-                    <Text
-                        selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={[EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined, styles.ltr]}
-                    >
-                        {`\u2066${Str.htmlDecode(props.fragment.text)}`}
-                        {props.fragment.isEdited && (
-                            <Text
-                                fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
-                            >
-                                {` ${props.translate('reportActionCompose.edited')}`}
-                            </Text>
-                        )}
-                    </Text>
                 );
             }
             return (
                 <Text
                     selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined}
+                    style={[EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined, styles.ltr]}
                 >
-                    {Str.htmlDecode(text)}
+                    {`\u2066${Str.htmlDecode(props.fragment.text)}`}
                     {props.fragment.isEdited && (
-                        <Text
-                            fontSize={variables.fontSizeSmall}
-                            color={themeColors.textSupporting}
-                        >
-                            {` ${props.translate('reportActionCompose.edited')}`}
-                        </Text>
+                    <Text
+                        fontSize={variables.fontSizeSmall}
+                        color={themeColors.textSupporting}
+                    >
+                        {` ${props.translate('reportActionCompose.edited')}`}
+                    </Text>
                     )}
                 </Text>
             );
