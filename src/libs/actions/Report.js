@@ -984,11 +984,6 @@ function addActions(reportID, text = '', file) {
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-            value: {timezone},
-        });
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {[currentUserEmail]: timezone},
         });
