@@ -850,7 +850,7 @@ function createOptimisticReport(participantList) {
         statusNum: 0,
         unreadActionCount: 0,
         visibility: undefined,
-    }
+    };
 }
 
 /**
