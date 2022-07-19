@@ -19,11 +19,10 @@ import Icon from '../components/Icon';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
-import personalDetailsPropType from './personalDetailsPropType';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
 import TextInput from '../components/TextInput';
 import Text from '../components/Text';
 import Section from '../components/Section';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as LoginUtils from '../libs/LoginUtils';
@@ -38,9 +37,7 @@ import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: personalDetailsPropType.isRequired,
+    ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.arrayOf(PropTypes.shape({
@@ -101,12 +98,13 @@ const defaultProps = {
     lastAccessedWorkspacePolicyID: '',
     blockedFromConcierge: {},
     loginList: [],
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.myPersonalDetails);
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
         this.state = {
             firstName,
             hasFirstNameError: false,
@@ -357,7 +355,7 @@ class RequestCallPage extends Component {
                                 <FormAlertWithSubmitButton
                                     buttonText={this.props.translate('requestCallPage.callMe')}
                                     onSubmit={this.onSubmit}
-                                    containerStyles={[styles.w100, styles.mb2, styles.mh0]}
+                                    containerStyles={[styles.w100, styles.mb2, styles.mh0, styles.flexReset]}
                                     isLoading={this.props.requestCallForm.loading}
                                     isDisabled={isBlockedFromConcierge}
                                 />
@@ -375,10 +373,8 @@ RequestCallPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },

@@ -53,7 +53,7 @@ const defaultProps = {
 // This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
 const FormAlertWrapper = props => (
-    <View style={[props.containerStyles]}>
+    <View style={props.containerStyles}>
         {props.isAlertVisible && (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                 <Icon src={Expensicons.Exclamation} fill={colors.red} />

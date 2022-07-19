@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.84-7",
+  "version": "1.1.85-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -32,7 +32,9 @@
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env.envFile=.env.production",
-    "check-metro-bundler-port": "node config/checkMetroBundlerPort.js"
+    "check-metro-bundler-port": "node config/checkMetroBundlerPort.js",
+    "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
+    "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map"
   },
   "dependencies": {
     "@formatjs/intl-getcanonicallocales": "^1.5.8",
@@ -68,7 +70,7 @@
     "localforage": "^1.10.0",
     "lodash": "4.17.21",
     "metro-config": "^0.64.0",
-    "moment": "^2.27.0",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",
     "onfido-sdk-ui": "^8.1.0",
     "prop-types": "^15.7.2",
@@ -179,7 +181,7 @@
     "webpack": "^4.44.1",
     "webpack-bundle-analyzer": "^4.4.0",
     "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.0",
+    "webpack-dev-server": "^3.11.3",
     "webpack-merge": "^5.1.1"
   },
   "jest": {

@@ -52,8 +52,8 @@ Onyx.connect({
 
 let myPersonalDetails;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val,
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => myPersonalDetails = val[currentUserEmail],
 });
 
 const allReports = {};
@@ -821,38 +821,23 @@ function fetchAllReports(
 }
 
 /**
- * Add an action item to a report
- *
  * @param {Number} reportID
- * @param {String} text
+ * @param {String} [text]
  * @param {File} [file]
+ * @returns {Object}
  */
-function addComment(reportID, text, file) {
+function buildOptimisticReportAction(reportID, text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
     const commentText = text.length < 10000 ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
-
-    // The new sequence number will be one higher than the highest
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
-    const newSequenceNumber = highestSequenceNumber + 1;
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? '[Attachment]'
         : parser.htmlToText(htmlForNewComment);
-
-    // Update the report in Onyx to have the new sequence number
-    const optimisticReport = {
-        maxSequenceNumber: newSequenceNumber,
-        lastMessageTimestamp: moment().unix(),
-        lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
-        lastActorEmail: currentUserEmail,
-        unreadActionCount: 0,
-        lastReadSequenceNumber: newSequenceNumber,
-    };
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
     // remove the optimistic action when we add the real action created in the server. We do this because it's not
@@ -865,14 +850,9 @@ function addComment(reportID, text, file) {
     const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const optimisticReportActionID = parseInt(`${Date.now()}${randomNumber}`, 10);
 
-    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
-    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
-    // event, for whatever reason, from the server with the new action data
-    optimisticReport.optimisticReportActionIDs = [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID];
-
-    // Optimistically add the new comment to the store before waiting to save it to the server
-    const optimisticReportActions = {
-        [optimisticReportActionID]: {
+    return {
+        commentText,
+        reportAction: {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
@@ -904,12 +884,85 @@ function addComment(reportID, text, file) {
             shouldShow: true,
         },
     };
+}
+
+/**
+ * Add up to two report actions to a report. This method can be called for the following situations:
+ *
+ * - Adding one comment
+ * - Adding one attachment
+ * - Add both a comment and attachment simultaneously
+ *
+ * @param {Number} reportID
+ * @param {String} [text]
+ * @param {Object} [file]
+ */
+function addActions(reportID, text = '', file) {
+    let reportCommentText = '';
+    let reportCommentAction;
+    let attachmentAction;
+    let commandName = 'AddComment';
+
+    if (text) {
+        const reportComment = buildOptimisticReportAction(reportID, text);
+        reportCommentAction = reportComment.reportAction;
+        reportCommentText = reportComment.commentText;
+    }
+
+    if (file) {
+        // When we are adding an attachment we will call AddAttachment.
+        // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
+        commandName = 'AddAttachment';
+        const attachment = buildOptimisticReportAction(reportID, '', file);
+        attachmentAction = attachment.reportAction;
+    }
+
+    // Always prefer the file as the last action over text
+    const lastAction = attachmentAction || reportCommentAction;
+
+    // We need a newSequenceNumber that is n larger than the current depending on how many actions we are adding.
+    const actionCount = text && file ? 2 : 1;
+    const highestSequenceNumber = getMaxSequenceNumber(reportID);
+    const newSequenceNumber = highestSequenceNumber + actionCount;
+
+    // Update the report in Onyx to have the new sequence number
+    const optimisticReport = {
+        maxSequenceNumber: newSequenceNumber,
+        lastMessageTimestamp: Date.now(),
+        lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
+        lastActorEmail: currentUserEmail,
+        unreadActionCount: 0,
+        lastReadSequenceNumber: newSequenceNumber,
+    };
+
+    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
+    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
+    // event, for whatever reason, from the server with the new action data
+    optimisticReport.optimisticReportActionIDs = [...(optimisticReportActionIDs[reportID] || [])];
+
+    if (text) {
+        optimisticReport.optimisticReportActionIDs.push(reportCommentAction.clientID);
+    }
+
+    if (file) {
+        optimisticReport.optimisticReportActionIDs.push(attachmentAction.clientID);
+    }
+
+    // Optimistically add the new actions to the store before waiting to save them to the server
+    const optimisticReportActions = {};
+    if (text) {
+        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+    }
+    if (file) {
+        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+    }
 
     const parameters = {
         reportID,
+        reportComment: reportCommentText,
+        clientID: lastAction.clientID,
+        commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
         file,
-        reportComment: commentText,
-        clientID: optimisticReportActionID,
     };
 
     const optimisticData = [
@@ -942,28 +995,49 @@ function addComment(reportID, text, file) {
         DateUtils.setTimezoneUpdated();
     }
 
-    API.write(isAttachment ? 'AddAttachment' : 'AddComment', parameters, {
+    const failureDataReportActions = {};
+    const defaultLoadingState = {
+        isLoading: false,
+    };
+
+    if (text) {
+        failureDataReportActions[reportCommentAction.clientID] = defaultLoadingState;
+    }
+
+    if (file) {
+        failureDataReportActions[attachmentAction.clientID] = defaultLoadingState;
+    }
+
+    API.write(commandName, parameters, {
         optimisticData,
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {
-                    [optimisticReportActionID]: {
-                        isLoading: false,
-                    },
-                },
-            },
-        ],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: failureDataReportActions,
+        }],
     });
 }
 
 /**
+ *
+ * Add an attachment and optional comment.
+ *
  * @param {Number} reportID
- * @param {Object} file
+ * @param {File} file
+ * @param {String} [text]
  */
-function addAttachment(reportID, file) {
-    addComment(reportID, '', file);
+function addAttachment(reportID, file, text = '') {
+    addActions(reportID, text, file);
+}
+
+/**
+ * Add a single comment to a report
+ *
+ * @param {Number} reportID
+ * @param {String} text
+ */
+function addComment(reportID, text) {
+    addActions(reportID, text);
 }
 
 /**
@@ -1056,6 +1130,19 @@ function openReport(reportID) {
                 },
             }],
         });
+}
+
+/**
+ * Gets the IOUReport and the associated report actions.
+ *
+ * @param {Number} chatReportID
+ * @param {Number} iouReportID
+ */
+function openPaymentDetailsPage(chatReportID, iouReportID) {
+    API.read('OpenPaymentDetailsPage', {
+        reportID: chatReportID,
+        iouReportID,
+    });
 }
 
 /**
@@ -1575,4 +1662,5 @@ export {
     markCommentAsUnread,
     readNewestAction,
     openReport,
+    openPaymentDetailsPage,
 };
