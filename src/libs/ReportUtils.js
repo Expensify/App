@@ -510,6 +510,16 @@ function navigateToDetailsPage(report) {
     Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
 }
 
+/**
+ * Generate a random reportID between 98000000 (the number of reports before the switch from sequential to random)
+ * and the maximum safe integer of js (53 bits aka 9,007,199,254,740,991)
+ *
+ * @returns {number}
+ */
+function generateRandomReportID() {
+    return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -538,4 +548,5 @@ export {
     getDisplayNamesWithTooltips,
     getReportName,
     navigateToDetailsPage,
+    generateRandomReportID,
 };
