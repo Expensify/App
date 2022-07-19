@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import compose from '../../../libs/compose';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -135,7 +136,7 @@ const ReportActionItemFragment = (props) => {
                     selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined}
                 >
-                    {Str.htmlDecode(text)}
+                    {StyleUtils.convertToLTR(Str.htmlDecode(props.fragment.text))}
                     {props.fragment.isEdited && (
                         <Text
                             fontSize={variables.fontSizeSmall}
