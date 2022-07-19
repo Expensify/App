@@ -442,8 +442,10 @@ class GithubUtils {
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
                 // The format of this map is following:
-                // { 'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
-                //   'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ] }
+                // {
+                //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
+                //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
+                // }
                 const internalQAPRMap = _.reduce(
                     _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
                     (map, pr) => {
