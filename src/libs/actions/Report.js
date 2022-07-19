@@ -720,18 +720,6 @@ function fetchActions(reportID, offset) {
 }
 
 /**
- * Get the actions of a report
- *
- * @param {Number} reportID
- * @param {Number} [offset]
- */
-function fetchActionsWithLoadingState(reportID, offset) {
-    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
-    fetchActions(reportID, offset)
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
-}
-
-/**
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
@@ -1558,7 +1546,6 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
-    fetchActionsWithLoadingState,
     createPolicyRoom,
     renameReport,
     setIsComposerFullSize,
