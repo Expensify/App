@@ -11,16 +11,16 @@ function isBetaBuild() {
         fetch(CONST.PLAY_STORE_URL)
             .then(res => res.text())
             .then((text) => {
-                const productionVersionMatch = text.match(/\[\[\["\d+\.\d+\.\d+/);
-                if (!productionVersionMatch) {
+                const productionVersionSearch = text.match(/\[\[\["\d+\.\d+\.\d+/);
+                if (!productionVersionSearch) {
                     resolve(false);
                 }
 
-                const productionVersion = productionVersionMatch[0].match(/\d+\.\d+\.\d+/);
+                const productionVersion = productionVersionSearch[0].match(/\d+\.\d+\.\d+/);
 
                 // If we have a match for the production version regex and the current version is not the same
                 // as the production version, we are on a beta build
-                const isBeta = productionVersion && productionVersionMatch[0].trim() !== version;
+                const isBeta = productionVersion && productionVersionSearch[0].trim() !== version;
                 resolve(isBeta);
             })
             .catch(() => {
