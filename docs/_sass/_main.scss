@@ -435,18 +435,16 @@ textarea {
 
     #centered-content {
         width: 500px;
-        height: 250px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        align-content: center;
+        height: 240px;
         text-align: center;
-        padding-top: 22.5vh;
         font-size: larger;
+        position: absolute;
+        top: calc((100vh - 240px)/2);
+        right: calc((100vw - 500px)/2);
 
         @media screen and (max-width: 800px) {
             width: 380px;
-            padding-top: 15vh;
+            right: calc((100vw - 380px)/2);
         }
 
         div {
