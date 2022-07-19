@@ -189,7 +189,6 @@ function getSimplifiedReportObject(report) {
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
-        hasOutstandingIOU: false,
         notificationPreference,
         stateNum: report.state,
         statusNum: report.status,
@@ -1345,9 +1344,8 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     }
     simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
     simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
-        === (CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0);
+        === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
     simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
-
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIouReport);
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
