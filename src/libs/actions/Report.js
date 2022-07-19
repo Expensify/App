@@ -690,11 +690,10 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
  * Get the actions of a report
  *
  * @param {Number} reportID
- * @param {Number} [offset]
  * @returns {Promise}
  */
-function fetchActions(reportID, offset) {
-    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
+function fetchActions(reportID) {
+    const reportActionsOffset = -1;
 
     if (!_.isNumber(reportActionsOffset)) {
         Log.alert('[Report] Offset provided is not a number', {
