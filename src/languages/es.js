@@ -228,7 +228,6 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        settleVenmo: 'Pagar con Venmo',
         request: ({amount}) => `Solicitar ${amount}`,
         youowe: ({owner}) => `Le debes a ${owner}`,
         youpaid: ({owner}) => `Le pagaste a ${owner}`,
@@ -249,9 +248,7 @@ export default {
         mute: 'Nunca',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
-        useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
     avatarWithImagePicker: {
@@ -399,6 +396,8 @@ export default {
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
+        addBankAccountSuccess: 'Su cuenta bancaria ha sido añadida con éxito.',
+        addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,

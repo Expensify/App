@@ -135,7 +135,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        whiteSpace: 'pre',
     },
 };
 
@@ -727,7 +726,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
@@ -1397,6 +1395,10 @@ const styles = {
         alignSelf: 'flex-end',
         flex: 1,
         maxHeight: '100%',
+    },
+
+    editInputComposeSpacing: {
+        marginVertical: 6,
     },
 
     textInputComposeSpacing: {
