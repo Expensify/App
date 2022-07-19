@@ -10,7 +10,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Icon from '../../../components/Icon';

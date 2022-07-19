@@ -15,7 +15,6 @@ import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import FixedFooter from '../../../components/FixedFooter';
 import ConfirmModal from '../../../components/ConfirmModal';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import * as CloseAccountActions from '../../../libs/actions/CloseAccount';

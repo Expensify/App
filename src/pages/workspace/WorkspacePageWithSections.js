@@ -16,7 +16,6 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withFullPolicy from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';

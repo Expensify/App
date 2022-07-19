@@ -16,7 +16,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {

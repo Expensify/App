@@ -16,7 +16,6 @@ import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';

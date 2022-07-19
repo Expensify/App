@@ -13,7 +13,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import TextInput from '../../components/TextInput';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';

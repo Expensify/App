@@ -14,7 +14,6 @@ import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
 import {withNetwork} from '../../components/OnyxProvider';

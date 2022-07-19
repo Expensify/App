@@ -19,7 +19,6 @@ import withWindowDimensions from './withWindowDimensions';
 import OfflineIndicator from './OfflineIndicator';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import KeyboardAvoidingViewiOS from './KeyboardAvoidingView';
 
 const propTypes = {
     /** Array of additional styles to add */

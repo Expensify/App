@@ -11,7 +11,6 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions from './withWindowDimensions';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     /** Information about the network */

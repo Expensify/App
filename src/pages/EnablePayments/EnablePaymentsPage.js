@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {KeyboardAvoidingView} from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';

@@ -5,7 +5,6 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import CONST from '../../../CONST';
 import PaymentMethodList from './PaymentMethodList';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
