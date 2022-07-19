@@ -213,9 +213,9 @@ class AdditionalDetailsStep extends React.Component {
             return;
         }
         const personalDetails = {
-                ...this.props.walletAdditionalDetailsDraft,
-                phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
-            };
+            ...this.props.walletAdditionalDetailsDraft,
+            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
+        };
         Wallet.updatePersonalDetails(personalDetails);
     }
 
