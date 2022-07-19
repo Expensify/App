@@ -27,7 +27,6 @@ import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
