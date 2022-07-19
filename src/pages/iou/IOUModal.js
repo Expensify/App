@@ -362,7 +362,7 @@ class IOUModal extends Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <View style={[styles.headerBar]}>
                             <View style={[
                                 styles.dFlex,
@@ -459,7 +459,7 @@ class IOUModal extends Component {
                                 </>
                             )}
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );

@@ -59,14 +59,12 @@ class EnablePaymentsPage extends React.Component {
 
         if (this.props.userWallet.shouldShowFailedKYC) {
             return (
-                <ScreenWrapper>
-                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
-                        <HeaderWithCloseButton
-                            title={this.props.translate('additionalDetailsStep.headerTitle')}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                        />
-                        <FailedKYC />
-                    </KeyboardAvoidingView>
+                <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+                    <HeaderWithCloseButton
+                        title={this.props.translate('additionalDetailsStep.headerTitle')}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <FailedKYC />
                 </ScreenWrapper>
             );
         }

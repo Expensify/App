@@ -244,7 +244,7 @@ class WorkspaceInvitePage extends React.Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <HeaderWithCloseButton
                             title={this.props.translate('workspace.invite.invitePeople')}
                             subtitle={policyName}
@@ -335,7 +335,7 @@ class WorkspaceInvitePage extends React.Component {
                                 )}
                             </Pressable>
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );
