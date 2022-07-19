@@ -42,7 +42,8 @@ const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used */
+    /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
+     *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
     keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
 
     // react-navigation navigation object available to screen components
