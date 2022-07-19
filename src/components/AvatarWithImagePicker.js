@@ -14,7 +14,7 @@ import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import ConfirmModal from './ConfirmModal';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
-import withLocalize, { withLocalizePropTypes } from './withLocalize';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
@@ -117,14 +117,14 @@ class AvatarWithImagePicker extends React.Component {
      * @param {String} prompt
      */
     showErrorModal(title, prompt) {
-        this.setState({ isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt });
+        this.setState({isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt});
     }
 
     /**
      *  Hide the error modal
      */
     hideErrorModal() {
-        this.setState({ isErrorModalVisible: false });
+        this.setState({isErrorModalVisible: false});
     }
 
     /**
@@ -154,25 +154,27 @@ class AvatarWithImagePicker extends React.Component {
      */
     showAvatarCropModal(image) {
         if (!this.isValidSize(image)) {
-            return this.showErrorModal(
+            this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                this.props.translate('avatarWithImagePicker.sizeExceeded', { maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024) }),
-            )
+                this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
+            );
+            return;
         }
 
         this.isValidResolution(image.uri)
             .then((isValidResolution) => {
                 if (!isValidResolution) {
-                    return this.showErrorModal(
+                    this.showErrorModal(
                         this.props.translate('avatarWithImagePicker.imageUploadFailed'),
                         this.props.translate('avatarWithImagePicker.tooSmallResolution', {
                             minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
                             minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
                         }),
                     );
+                    return;
                 }
-                
-                this.setState({ isAvatarCropModalOpen: true, image });
+
+                this.setState({isAvatarCropModalOpen: true, image});
             });
     }
 
@@ -180,7 +182,7 @@ class AvatarWithImagePicker extends React.Component {
      *  Hide the avatar crop modal
      */
     hideAvatarCropModal() {
-        this.setState({ isAvatarCropModalOpen: false });
+        this.setState({isAvatarCropModalOpen: false});
     }
 
     /**
@@ -232,7 +234,7 @@ class AvatarWithImagePicker extends React.Component {
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <Pressable
-                    onPress={() => this.setState({ isMenuVisible: true })}
+                    onPress={() => this.setState({isMenuVisible: true})}
                     disabled={this.props.isUploading}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
@@ -250,7 +252,7 @@ class AvatarWithImagePicker extends React.Component {
                                 <DefaultAvatar />
                             )}
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                            {({ openPicker }) => (
+                            {({openPicker}) => (
                                 <>
                                     {
                                         this.props.isUploading
@@ -279,8 +281,8 @@ class AvatarWithImagePicker extends React.Component {
                                                     </Tooltip>
                                                     <PopoverMenu
                                                         isVisible={this.state.isMenuVisible}
-                                                        onClose={() => this.setState({ isMenuVisible: false })}
-                                                        onItemSelected={() => this.setState({ isMenuVisible: false })}
+                                                        onClose={() => this.setState({isMenuVisible: false})}
+                                                        onItemSelected={() => this.setState({isMenuVisible: false})}
                                                         menuItems={this.createMenuItems(openPicker)}
                                                         anchorPosition={this.props.anchorPosition}
                                                     />
