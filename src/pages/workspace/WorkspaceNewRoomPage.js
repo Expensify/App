@@ -20,7 +20,6 @@ import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {

@@ -23,7 +23,6 @@ import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import ROUTES from '../../ROUTES';

@@ -14,7 +14,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';

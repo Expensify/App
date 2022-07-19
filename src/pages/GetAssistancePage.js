@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Section from '../components/Section';
 import Navigation from '../libs/Navigation/Navigation';
