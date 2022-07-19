@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, SafeAreaView} from 'react-native';
+import {View, KeyboardAvoidingView} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../styles/styles';
@@ -19,6 +19,7 @@ import withWindowDimensions from './withWindowDimensions';
 import OfflineIndicator from './OfflineIndicator';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
+import KeyboardAvoidingViewiOS from './KeyboardAvoidingView';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -41,6 +42,9 @@ const propTypes = {
 
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    /** The styles to pass to the KeyboardAvoidingView i.e. height/padding */
+    keyboardAvoidingViewBehavior: PropTypes.string,
 
     // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
@@ -68,6 +72,7 @@ const defaultProps = {
         addListener: () => {},
     },
     modal: {},
+    keyboardAvoidingViewBehavior: 'padding',
 };
 
 class ScreenWrapper extends React.Component {
@@ -121,23 +126,26 @@ class ScreenWrapper extends React.Component {
                     }
 
                     return (
-                        <View style={[
-                            ...this.props.style,
-                            styles.flex1,
-                            paddingStyle,
-                        ]}
+                        <View
+                            style={[
+                                ...this.props.style,
+                                styles.flex1,
+                                paddingStyle,
+                            ]}
                         >
-                            <HeaderGap />
-                            {// If props.children is a function, call it to provide the insets to the children.
-                                _.isFunction(this.props.children)
-                                    ? this.props.children({
-                                        insets,
-                                        didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                    })
-                                    : this.props.children
-                            }
-                            <KeyboardShortcutsModal />
-                            {this.props.isSmallScreenWidth && <OfflineIndicator />}
+                            <KeyboardAvoidingView style={[styles.w100, styles.h100]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                                <HeaderGap />
+                                {// If props.children is a function, call it to provide the insets to the children.
+                                    _.isFunction(this.props.children)
+                                        ? this.props.children({
+                                            insets,
+                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                        })
+                                        : this.props.children
+                                }
+                                <KeyboardShortcutsModal />
+                                {this.props.isSmallScreenWidth && <OfflineIndicator />}
+                            </KeyboardAvoidingView>
                         </View>
                     );
                 }}

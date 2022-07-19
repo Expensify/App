@@ -28,36 +28,34 @@ const propTypes = {
 
 const GetAssistancePage = props => (
     <ScreenWrapper>
-        <KeyboardAvoidingView>
-            <HeaderWithCloseButton
-                title={props.translate('getAssistancePage.title')}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <Section
-                title={props.translate('getAssistancePage.subtitle')}
-                icon={Illustrations.ConciergeExclamation}
-                menuItems={[
-                    {
-                        title: props.translate('getAssistancePage.chatWithConcierge'),
-                        onPress: () => Report.navigateToConciergeChat(),
-                        icon: Expensicons.ChatBubble,
-                        shouldShowRightIcon: true,
-                    },
-                    {
-                        title: props.translate('getAssistancePage.requestSetupCall'),
-                        onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
-                        icon: Expensicons.Phone,
-                        shouldShowRightIcon: true,
-                    },
-                ]}
-            >
-                <View style={styles.mv4}>
-                    <Text>{props.translate('getAssistancePage.description')}</Text>
-                </View>
-            </Section>
-        </KeyboardAvoidingView>
+        <HeaderWithCloseButton
+            title={props.translate('getAssistancePage.title')}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.goBack()}
+        />
+        <Section
+            title={props.translate('getAssistancePage.subtitle')}
+            icon={Illustrations.ConciergeExclamation}
+            menuItems={[
+                {
+                    title: props.translate('getAssistancePage.chatWithConcierge'),
+                    onPress: () => Report.navigateToConciergeChat(),
+                    icon: Expensicons.ChatBubble,
+                    shouldShowRightIcon: true,
+                },
+                {
+                    title: props.translate('getAssistancePage.requestSetupCall'),
+                    onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
+                    icon: Expensicons.Phone,
+                    shouldShowRightIcon: true,
+                },
+            ]}
+        >
+            <View style={styles.mv4}>
+                <Text>{props.translate('getAssistancePage.description')}</Text>
+            </View>
+        </Section>
     </ScreenWrapper>
 );
 

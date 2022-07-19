@@ -213,7 +213,7 @@ class NewChatPage extends Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <HeaderWithCloseButton
                             title={this.props.isGroupChat
                                 ? this.props.translate('sidebarScreen.newGroup')
@@ -259,7 +259,7 @@ class NewChatPage extends Component {
                                 />
                             )}
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );

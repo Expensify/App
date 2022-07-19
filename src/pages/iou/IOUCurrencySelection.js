@@ -135,20 +135,18 @@ class IOUCurrencySelection extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                        onCloseButtonPress={Navigation.goBack}
-                    />
-                    <OptionsSelector
-                        sections={this.getSections()}
-                        onSelectRow={this.confirmCurrencySelection}
-                        value={this.state.searchValue}
-                        onChangeText={this.changeSearchValue}
-                        shouldDelayFocus
-                        placeholderText={this.props.translate('common.search')}
-                    />
-                </KeyboardAvoidingView>
+                <HeaderWithCloseButton
+                    title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                    onCloseButtonPress={Navigation.goBack}
+                />
+                <OptionsSelector
+                    sections={this.getSections()}
+                    onSelectRow={this.confirmCurrencySelection}
+                    value={this.state.searchValue}
+                    onChangeText={this.changeSearchValue}
+                    shouldDelayFocus
+                    placeholderText={this.props.translate('common.search')}
+                />
             </ScreenWrapper>
         );
     }

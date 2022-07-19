@@ -10,7 +10,6 @@ import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -25,23 +24,21 @@ const defaultProps = {
 
 const AddPersonalBankAccountPage = props => (
     <ScreenWrapper>
-        <KeyboardAvoidingView>
-            <HeaderWithCloseButton
-                title={props.translate('bankAccount.addBankAccount')}
-                onCloseButtonPress={Navigation.goBack}
-                shouldShowBackButton
-                onBackButtonPress={Navigation.goBack}
-            />
-            <AddPlaidBankAccount
-                onSubmit={({account, password, plaidLinkToken}) => {
-                    BankAccounts.addPersonalBankAccount(account, password, plaidLinkToken);
-                }}
-                onExitPlaid={Navigation.goBack}
-                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                plaidLinkOAuthToken={props.plaidLinkToken}
-                isPasswordRequired
-            />
-        </KeyboardAvoidingView>
+        <HeaderWithCloseButton
+            title={props.translate('bankAccount.addBankAccount')}
+            onCloseButtonPress={Navigation.goBack}
+            shouldShowBackButton
+            onBackButtonPress={Navigation.goBack}
+        />
+        <AddPlaidBankAccount
+            onSubmit={({account, password, plaidLinkToken}) => {
+                BankAccounts.addPersonalBankAccount(account, password, plaidLinkToken);
+            }}
+            onExitPlaid={Navigation.goBack}
+            receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+            plaidLinkOAuthToken={props.plaidLinkToken}
+            isPasswordRequired
+        />
     </ScreenWrapper>
 );
 
