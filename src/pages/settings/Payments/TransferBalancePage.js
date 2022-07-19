@@ -29,6 +29,7 @@ import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
+import OfflineIndicator from '../../../components/OfflineIndicator';
 
 const propTypes = {
     /** User's wallet information */
@@ -300,6 +301,7 @@ class TransferBalancePage extends React.Component {
                                 />
                             )}
                         </FormAlertWrapper>
+                        <OfflineIndicator containerStyles={[styles.pl1, styles.pv2]} />
                     </FixedFooter>
                 </KeyboardAvoidingView>
             </ScreenWrapper>

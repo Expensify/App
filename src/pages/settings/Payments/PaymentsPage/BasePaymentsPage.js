@@ -33,6 +33,7 @@ import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
+import OfflineIndicator from '../../../../components/OfflineIndicator';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -435,6 +436,7 @@ class BasePaymentsPage extends React.Component {
                         shouldShowCancelButton
                         danger
                     />
+                    <OfflineIndicator containerStyles={[styles.pl5, styles.pv3]} />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
