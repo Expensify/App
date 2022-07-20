@@ -395,14 +395,18 @@ textarea {
 
 .homepage {
     h1 {
-        text-align: center;
         padding-bottom: 20px;
+
+        @media screen and (max-width: 800px) {
+            margin-top: 0;
+            padding-top: 8px;
+        }
     }
     h2  {
         padding-bottom: 24px;
     }
     p {
-        margin-bottom: 40px;
+        margin-bottom: 20px;
     }
     .cards-group {
         padding-bottom: 32px;
