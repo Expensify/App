@@ -7,6 +7,7 @@ import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import AttachmentView from './AttachmentView';
+import SwipeableView from './SwipeableView';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import themeColors from '../styles/themes/default';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
@@ -28,8 +29,8 @@ const propTypes = {
 
 const defaultProps = {
     sourceURL: '',
-    onArrowPress: () => {},
     reportActions: {},
+    onArrowPress: () => {},
 };
 
 class AttachmentCarousel extends React.Component {
@@ -62,7 +63,7 @@ class AttachmentCarousel extends React.Component {
             attachments,
             sourceURL,
             file,
-            showArrows: !canUseTouchScreen(),
+            showArrows: canUseTouchScreen(),
             isBackDisabled: page === 0,
             isForwardDisabled: page === attachments.length - 1,
         };
@@ -113,6 +114,9 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
     */
     cycleThroughAttachments(deltaSlide) {
+        if ((deltaSlide < 0 && this.state.isBackDisabled) || (deltaSlide > 0 && this.state.isForwardDisabled)) {
+            return;
+        }
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
             const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
@@ -133,10 +137,10 @@ class AttachmentCarousel extends React.Component {
      * @param {Object} e
      */
     handleArrowPress(e) {
-        if (e.key === 'ArrowLeft' && !this.state.isBackDisabled) {
+        if (e.key === 'ArrowLeft') {
             this.cycleThroughAttachments(-1);
         }
-        if (e.key === 'ArrowRight' && !this.state.isForwardDisabled) {
+        if (e.key === 'ArrowRight') {
             this.cycleThroughAttachments(1);
         }
     }
@@ -145,7 +149,6 @@ class AttachmentCarousel extends React.Component {
         return (
             <Pressable
                 style={[styles.attachmentModalArrowsContainer]}
-                onPress={() => canUseTouchScreen() && this.onShowArrow(!this.state.showArrows)}
                 onMouseEnter={() => this.onShowArrow(true)}
                 onMouseLeave={() => this.onShowArrow(false)}
             >
@@ -171,7 +174,13 @@ class AttachmentCarousel extends React.Component {
                         />
                     </>
                 )}
-                <AttachmentView sourceURL={this.state.sourceURL} file={this.state.file} />
+                <SwipeableView
+                    isAnimated
+                    onPress={() => canUseTouchScreen() && this.onShowArrow(!this.state.showArrows)}                    
+                    onSwipeHorizontal={this.cycleThroughAttachments}
+                >
+                    <AttachmentView sourceURL={this.state.sourceURL} file={this.state.file} />
+                </SwipeableView>
             </Pressable>
 
         );
