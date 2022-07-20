@@ -24,10 +24,8 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
-import InlineSystemMessage from '../../../components/InlineSystemMessage';
-import styles from '../../../styles/styles';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -175,7 +173,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
-                                    (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
+                                    this.props.action.isPending || this.props.action.error,
                                 )}
                             >
                                 {!this.props.displayAsGroup
@@ -204,9 +202,6 @@ class ReportActionItem extends Component {
                         </View>
                     )}
                 </Hoverable>
-                <View style={styles.reportActionSystemMessageContainer}>
-                    <InlineSystemMessage message={this.props.action.error} />
-                </View>
             </PressableWithSecondaryInteraction>
         );
     }
@@ -216,7 +211,6 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withNetwork(),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {

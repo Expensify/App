@@ -3,7 +3,6 @@ import React from 'react';
 import {View, Image, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -32,8 +31,6 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
-import FormScrollView from '../../components/FormScrollView';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -62,7 +59,7 @@ class BankAccountStep extends React.Component {
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.state = {
-            selectedPlaidBankAccount: undefined,
+            // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
             accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
@@ -124,6 +121,7 @@ class BankAccountStep extends React.Component {
 
     addManualAccount() {
         if (!this.validate()) {
+            BankAccounts.showBankAccountErrorModal();
             return;
         }
 
@@ -141,27 +139,31 @@ class BankAccountStep extends React.Component {
     }
 
     /**
-     * Add the Bank account retrieved via Plaid in db
+     * @param {Object} params
+     * @param {Object} params.account
+     * @param {String} params.account.bankName
+     * @param {Boolean} params.account.isSavings
+     * @param {String} params.account.addressName
+     * @param {String} params.account.ownershipType
+     * @param {String} params.account.accountNumber
+     * @param {String} params.account.routingNumber
+     * @param {String} params.account.plaidAccountID
      */
-    addPlaidAccount() {
-        const selectedPlaidBankAccount = this.state.selectedPlaidBankAccount;
-        if (!this.state.selectedPlaidBankAccount) {
-            return;
-        }
+    addPlaidAccount(params) {
         BankAccounts.setupWithdrawalAccount({
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
             // Params passed via the Plaid callback when an account is selected
-            plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
-            accountNumber: selectedPlaidBankAccount.accountNumber,
-            routingNumber: selectedPlaidBankAccount.routingNumber,
-            plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
-            ownershipType: selectedPlaidBankAccount.ownershipType,
-            isSavings: selectedPlaidBankAccount.isSavings,
-            bankName: selectedPlaidBankAccount.bankName,
-            addressName: selectedPlaidBankAccount.addressName,
-            mask: selectedPlaidBankAccount.mask,
+            plaidAccessToken: params.plaidLinkToken,
+            accountNumber: params.account.accountNumber,
+            routingNumber: params.account.routingNumber,
+            plaidAccountID: params.account.plaidAccountID,
+            ownershipType: params.account.ownershipType,
+            isSavings: params.account.isSavings,
+            bankName: params.bankName,
+            addressName: params.account.addressName,
+            mask: params.account.mask,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
             country: CONST.COUNTRY.US,
@@ -178,8 +180,6 @@ class BankAccountStep extends React.Component {
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
         const plaidDesktopMessage = getPlaidDesktopMessage();
         const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
-        const error = lodashGet(this.props, 'reimbursementAccount.error', '');
-        const loading = lodashGet(this.props, 'reimbursementAccount.loading', false);
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -226,9 +226,9 @@ class BankAccountStep extends React.Component {
                             success
                             extraLarge
                         />
-                        {this.props.error && (
+                        {this.props.isPlaidDisabled && (
                             <Text style={[styles.formError, styles.mh5]}>
-                                {this.props.error}
+                                {this.props.translate('bankAccount.error.tooManyAttempts')}
                             </Text>
                         )}
                         <MenuItem
@@ -267,35 +267,16 @@ class BankAccountStep extends React.Component {
                     </ScrollView>
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
-                    <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
-                            <AddPlaidBankAccount
-                                text={this.props.translate('bankAccount.plaidBodyCopy')}
-                                onSelect={(params) => {
-                                    this.setState({
-                                        selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                    });
-                                }}
-                                onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
-                                receivedRedirectURI={this.props.receivedRedirectURI}
-                                plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
-                                allowDebit
-                            />
-                        </View>
-                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={Boolean(error)}
-                                buttonText={this.props.translate('common.saveAndContinue')}
-                                onSubmit={this.addPlaidAccount}
-                                message={error}
-                                isLoading={loading}
-                            />
-                        )}
-                    </FormScrollView>
+                    <AddPlaidBankAccount
+                        text={this.props.translate('bankAccount.plaidBodyCopy')}
+                        onSubmit={this.addPlaidAccount}
+                        onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                        receivedRedirectURI={this.props.receivedRedirectURI}
+                        plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
+                    />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ReimbursementAccountForm
-                        reimbursementAccount={this.props.reimbursementAccount}
                         onSubmit={this.addManualAccount}
                     >
                         <Text style={[styles.mb5]}>

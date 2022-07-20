@@ -201,7 +201,6 @@ class CompanyStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <ReimbursementAccountForm
-                    reimbursementAccount={this.props.reimbursementAccount}
                     onSubmit={this.submit}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>

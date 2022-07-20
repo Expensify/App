@@ -107,8 +107,8 @@ describe('getCurrentStep', () => {
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
     });
 
-    it('Returns step based on open BankAccount that needs to pass checks', () => {
-        // GIVEN an open bank account that needs to pass checks
+    it('Returns step based on open BankAccount that needs to pass checks and has not yet attempted upgrade', () => {
+        // GIVEN an open bank account that needs to pass checks and has not yet tried to upgrade
         const bankAccount = new BankAccount({
             state: BankAccount.STATE.OPEN,
             additionalData: {
@@ -123,6 +123,24 @@ describe('getCurrentStep', () => {
 
         // THEN it will be the company step
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.COMPANY);
+    });
+
+    it('Returns step based on open BankAccount that needs to pass checks and has attempted upgrade', () => {
+        // GIVEN an open bank account that needs to pass checks and has tried to upgrade
+        const bankAccount = new BankAccount({
+            state: BankAccount.STATE.OPEN,
+            additionalData: {
+                hasFullSSN: false,
+            },
+        });
+        const achData = {};
+        const stepToOpen = '';
+
+        // WHEN we get the current step
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, true);
+
+        // THEN it will be the validation step
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
     });
 
     it('Returns step based on open BankAccount that does not need to pass checks', () => {
@@ -185,7 +203,7 @@ describe('buildACHData()', () => {
         const bankAccount = new BankAccount({
             state: BankAccount.STATE.SETUP,
         });
-        const achData = fetchFreePlanVerifiedBankAccount.buildACHData(bankAccount);
+        const achData = fetchFreePlanVerifiedBankAccount.buildACHData(bankAccount, false);
         expect(achData).toEqual({
             useOnfido: true,
             policyID: '',
@@ -196,6 +214,29 @@ describe('buildACHData()', () => {
             subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
             state: BankAccount.STATE.SETUP,
             validateCodeExpectedDate: '',
+            needsToPassLatestChecks: true,
+        });
+    });
+
+    it('Returns the correct shape for an open account that has tried to upgrade', () => {
+        const bankAccount = new BankAccount({
+            state: BankAccount.STATE.OPEN,
+            additionalData: {
+                hasFullSSN: false,
+            },
+        });
+        const achData = fetchFreePlanVerifiedBankAccount.buildACHData(bankAccount, true);
+        expect(achData).toEqual({
+            useOnfido: true,
+            policyID: '',
+            isInSetup: false,
+            bankAccountInReview: true,
+            domainLimit: 0,
+            hasFullSSN: false,
+            needsToUpgrade: true,
+            state: BankAccount.STATE.OPEN,
+            validateCodeExpectedDate: '',
+            needsToPassLatestChecks: true,
         });
     });
 
@@ -203,7 +244,7 @@ describe('buildACHData()', () => {
         const bankAccount = new BankAccount({
             state: BankAccount.STATE.VERIFYING,
         });
-        const achData = fetchFreePlanVerifiedBankAccount.buildACHData(bankAccount);
+        const achData = fetchFreePlanVerifiedBankAccount.buildACHData(bankAccount, false);
         expect(achData).toEqual({
             useOnfido: true,
             policyID: '',
@@ -213,12 +254,13 @@ describe('buildACHData()', () => {
             needsToUpgrade: true,
             state: BankAccount.STATE.VERIFYING,
             validateCodeExpectedDate: '',
+            needsToPassLatestChecks: true,
         });
     });
 
     it('Returns the correct shape for no account', () => {
         const bankAccount = undefined;
-        const achData = fetchFreePlanVerifiedBankAccount.buildACHData(bankAccount);
+        const achData = fetchFreePlanVerifiedBankAccount.buildACHData(bankAccount, false);
         expect(achData).toEqual({
             useOnfido: true,
             policyID: '',

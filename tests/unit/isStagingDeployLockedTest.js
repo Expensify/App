@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const run = require('../../.github/actions/javascript/isStagingDeployLocked/isStagingDeployLocked');
+const run = require('../../.github/actions/isStagingDeployLocked/isStagingDeployLocked');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
 // Mock the entire GitHubUtils module

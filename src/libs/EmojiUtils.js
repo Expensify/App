@@ -196,7 +196,8 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 
     // Second sorting is required so that new emoji is properly placed at sort-ordered location
     frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
-    User.updateFrequentlyUsedEmojis(frequentEmojiList);
+
+    User.setFrequentlyUsedEmojis(frequentEmojiList);
 }
 
 export {

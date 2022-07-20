@@ -228,6 +228,7 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
+        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         youowe: ({owner}) => `You owe ${owner}`,
         youpaid: ({owner}) => `You paid ${owner}`,
@@ -248,7 +249,9 @@ export default {
         mute: 'Mute',
     },
     loginField: {
+        addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
+        useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
     avatarWithImagePicker: {
@@ -396,8 +399,6 @@ export default {
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
-        addBankAccountSuccess: 'Your bank account has successfully been added.',
-        addBankAccountFailure: 'And unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -506,8 +507,6 @@ export default {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
-        notHere: "Hmm... it's not here",
-        pageNotFound: 'That page is nowhere to be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -608,7 +607,6 @@ export default {
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
         selectAnswer: 'You need to select a response to proceed.',
-        ssnFull9Error: 'Please enter a valid 9 digit SSN',
         needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
         weCouldNotVerify: 'We could not verify',
         pleaseFixIt: 'Please fix this information before continuing.',
@@ -903,8 +901,8 @@ export default {
     },
     requestCallPage: {
         title: 'Request a call',
-        subtitle: 'Need help?',
-        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
+        subtitle: 'Have questions, or need help?',
+        description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
         extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
@@ -923,11 +921,6 @@ export default {
         error: {
             phoneExtension: 'Please enter a valid phone extension number',
         },
-    },
-    requestCallConfirmationScreen: {
-        callRequested: 'Call successfully requested!',
-        allSet: 'You’re all set. You will be receiving a call from us soon.',
-        gotIt: 'Got it',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',

@@ -224,7 +224,6 @@ class NewChatPage extends Component {
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
-                                    shouldDelayFocus
                                     canSelectMultipleOptions={this.props.isGroupChat}
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}
@@ -256,7 +255,8 @@ class NewChatPage extends Component {
                                     shouldFocusOnSelectRow={this.props.isGroupChat}
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
-                                    onConfirmSelection={this.props.isGroupChat ? this.createGroup : () => {}}
+                                    maxParticipantsReached={maxParticipantsReached}
+                                    onConfirmSelection={this.props.isGroupChat ? this.createGroup : this.createChat}
                                 />
                             )}
                         </View>

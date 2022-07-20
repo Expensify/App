@@ -14,9 +14,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
-import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
-import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -32,7 +30,16 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    cardList: PropTypes.objectOf(PropTypes.shape({
+        /** The name of the institution (bank of america, etc */
+        cardName: PropTypes.string,
+
+        /** The masked credit card number */
+        cardNumber: PropTypes.string,
+
+        /** The ID of the card in the cards DB */
+        cardID: PropTypes.number,
+    })),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
@@ -203,21 +210,17 @@ class PaymentMethodList extends Component {
         }
         if (item.type === BUTTON) {
             return (
-                <FormAlertWrapper>
-                    {isOffline => (
-                        <Button
-                            text={item.text}
-                            icon={item.icon}
-                            onPress={item.onPress}
-                            isDisabled={item.isDisabled || isOffline}
-                            style={item.style}
-                            iconStyles={item.iconStyles}
-                            success={item.success}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            extraLarge
-                        />
-                    )}
-                </FormAlertWrapper>
+                <Button
+                    text={item.text}
+                    icon={item.icon}
+                    onPress={item.onPress}
+                    isDisabled={item.isDisabled}
+                    style={item.style}
+                    iconStyles={item.iconStyles}
+                    success={item.success}
+                    shouldShowRightIcon={item.shouldShowRightIcon}
+                    extraLarge
+                />
             );
         }
 

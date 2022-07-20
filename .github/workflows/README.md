@@ -107,7 +107,7 @@ In order to bundle actions with their dependencies into a single Node.js executa
     - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
+        uses: Expensify/App/.github/actions/bumpVersion@main
       ```
        Do not try to use a relative path.
 - Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
@@ -120,7 +120,7 @@ We have a unique way of defining certain workflows which can be manually trigger
 
 ```yaml
 - name: Create new BUILD version
-  uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
+  uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
   with:
     GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
     WORKFLOW: createNewVersion.yml

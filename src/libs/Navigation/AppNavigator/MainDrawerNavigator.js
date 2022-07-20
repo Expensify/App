@@ -13,6 +13,8 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import * as PolicyUtils from '../../PolicyUtils';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -30,25 +32,23 @@ const propTypes = {
 
         /** The type of the policy */
         type: PropTypes.string,
-    })),
+    })).isRequired,
 };
 
 const defaultProps = {
     reports: {},
     betas: [],
-    policies: {},
 };
 
 /**
  * Get the most recently accessed report for the user
  *
  * @param {Object} reports
- * @param {Boolean} [ignoreDefaultRooms]
- * @param {Object} policies
+ * @param {String[]} [reportTypesToIgnore]
  * @returns {Object}
  */
-const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => {
-    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies);
+const getInitialReportScreenParams = (reports, reportTypesToIgnore) => {
+    const last = ReportUtils.findLastAccessedReport(reports, reportTypesToIgnore);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -56,7 +56,20 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => 
 };
 
 const MainDrawerNavigator = (props) => {
-    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
+    // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
+    // For everyone else, one must be on the beta to see a default room.
+    let reportTypesToIgnore = [];
+    const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(props.policies);
+    if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(props.betas)) {
+        reportTypesToIgnore = [CONST.REPORT.CHAT_TYPE.DOMAIN_ALL];
+    } else if (!Permissions.canUseDefaultRooms(props.betas)) {
+        reportTypesToIgnore = [
+            CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+            CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+        ];
+    }
+    const initialParams = getInitialReportScreenParams(props.reports, reportTypesToIgnore);
 
     // Wait until reports are fetched and there is a reportID in initialParams
     if (!initialParams.reportID) {

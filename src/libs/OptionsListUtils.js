@@ -10,6 +10,7 @@ import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
+import * as PolicyUtils from './PolicyUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -440,8 +441,14 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+        // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
+        // For everyone else, one must be on the beta to see a default room.
+        const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(policies);
+        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(betas)) {
+            if (ReportUtils.isDomainRoom(report)) {
+                return;
+            }
+        } else if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
             return;
         }
 

@@ -1,81 +1,57 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
+import Growl from '../Growl';
+import * as Localize from '../Localize';
+import Navigation from '../Navigation/Navigation';
+import * as User from './User';
 
 /**
- * Requests a call from Guides
- *
  * @param {Object} params
- * @param {String} params.taskID
- * @param {String} params.policyID
- * @param {String} params.firstName
- * @param {String} params.lastName
- * @param {String} params.phoneNumber
- * @param {String} params.phoneNumberExtension
+ * @param {String} taskID
+ * @param {String} policyID
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} phoneNumber
  */
-function requestCall({
+function requestInboxCall({
     taskID, policyID, firstName, lastName, phoneNumber, phoneNumberExtension,
 }) {
-    const optimisticData = [{
-        onyxMethod: 'merge',
-        key: ONYXKEYS.REQUEST_CALL_FORM,
-        value: {
-            loading: true,
-        },
-    }];
+    Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
+    DeprecatedAPI.Inbox_CallUser({
+        policyID,
+        firstName,
+        lastName,
+        phoneNumber,
+        phoneNumberExtension,
+        taskID,
+    })
+        .then((result) => {
+            if (result.jsonCode === 200) {
+                Growl.success(Localize.translateLocal('requestCallPage.growlMessageOnSave'));
+                Navigation.goBack();
+                return;
+            }
 
-    const successData = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.REQUEST_CALL_FORM,
-            value: {
-                loading: false,
-                error: '',
-                didRequestCallSucceed: true,
-            },
-        },
-    ];
+            if (result.jsonCode === 666) {
+                // The fact that the API is returning this error means the BLOCKED_FROM_CONCIERGE nvp in the user details has changed since the last time we checked, so let's update
+                User.getUserDetails();
+            }
 
-    const failureData = [{
-        onyxMethod: 'merge',
-        key: ONYXKEYS.REQUEST_CALL_FORM,
-        value: {
-            loading: false,
-        },
-    }];
-
-    API.write(
-        'RequestCall',
-        {
-            policyID,
-            firstName,
-            lastName,
-            phoneNumber,
-            phoneNumberExtension,
-            taskID,
-        },
-        {optimisticData, successData, failureData},
-    );
+            // Phone number validation is handled by the API
+            Growl.error(result.message, 3000);
+        })
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: false});
+        });
 }
 
 function openRequestCallPage() {
-    // Reset the error message in case we had one set from a previous failed attempt at requesting a call.
-    const optimisticData = [{
-        onyxMethod: 'merge',
-        key: ONYXKEYS.REQUEST_CALL_FORM,
-        value: {
-            error: '',
-        },
-    }];
-    API.read('OpenRequestCallPage', {}, {optimisticData});
-}
-
-function clearDidRequestCallSucceed() {
-    Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {didRequestCallSucceed: false});
+    API.read('OpenRequestCallPage');
 }
 
 export {
+    requestInboxCall,
     openRequestCallPage,
-    requestCall,
-    clearDidRequestCallSucceed,
 };

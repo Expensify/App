@@ -40,27 +40,14 @@ import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
 import networkPropTypes from '../../../components/networkPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 
-let currentUserEmail;
 Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserEmail = val.email;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
         if (!val) {
             return;
         }
 
-        const timezone = lodashGet(val, currentUserEmail, 'timezone', {});
+        const timezone = lodashGet(val, 'timezone', {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -108,7 +95,7 @@ class AuthScreens extends React.Component {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(() => {
             Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
@@ -118,7 +105,6 @@ class AuthScreens extends React.Component {
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
         App.getAppData(false);
-        App.openApp();
 
         App.fixAccountAndReloadData();
         App.setUpPoliciesAndNavigate(this.props.session);
@@ -131,6 +117,7 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetchPersonalDetails();
+            User.getUserDetails();
             User.getBetas();
         }, 1000 * 60 * 30));
 

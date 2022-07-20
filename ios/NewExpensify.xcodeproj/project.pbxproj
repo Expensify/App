@@ -359,7 +359,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\nexport EXTRA_PACKAGER_ARGS=\"--sourcemap-output $(pwd)/../main.jsbundle.map\"\n\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
 		};
 		0819B9EA2AC16F5E4380192C /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;

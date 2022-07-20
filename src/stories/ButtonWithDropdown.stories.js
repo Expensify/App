@@ -18,7 +18,7 @@ const Template = args => <ButtonWithDropdown {...args} />;
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 Default.args = {
-    buttonText: 'Pay with PayPal.me',
+    buttonText: 'Pay with Venmo',
 };
 
 export default story;

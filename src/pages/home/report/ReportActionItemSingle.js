@@ -92,7 +92,7 @@ const ReportActionItemSingle = (props) => {
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.isLoading}
+                                    isLoading={props.action.loading}
                                     isSingleLine
                                 />
                             ))}

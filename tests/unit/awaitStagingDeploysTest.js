@@ -3,7 +3,7 @@
  */
 const core = require('@actions/core');
 const _ = require('underscore');
-const run = require('../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys');
+const run = require('../../.github/actions/awaitStagingDeploys/awaitStagingDeploys');
 const GitHubUtils = require('../../.github/libs/GithubUtils');
 
 // Lower poll rate to speed up tests

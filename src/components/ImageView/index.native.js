@@ -8,6 +8,7 @@ import ImageZoom from 'react-native-image-pan-zoom';
 import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
@@ -28,6 +29,8 @@ class ImageView extends PureComponent {
 
         this.state = {
             isLoading: false,
+            thumbnailWidth: 100,
+            thumbnailHeight: 100,
             imageWidth: undefined,
             imageHeight: undefined,
             interactionPromise: undefined,
@@ -74,7 +77,11 @@ class ImageView extends PureComponent {
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
-            if (imageHeight > imageWidth) {
+            // Resize small images to fit the screen. Else resize the smaller dimension to avoid resize issue on Android - https://github.com/Expensify/App/pull/7660#issuecomment-1071622163
+            if (imageHeight < containerHeight && imageWidth < containerWidth) {
+                imageHeight *= aspectRatio;
+                imageWidth *= aspectRatio;
+            } else if (imageHeight > imageWidth) {
                 imageHeight *= aspectRatio;
             } else {
                 imageWidth *= aspectRatio;
@@ -135,9 +142,16 @@ class ImageView extends PureComponent {
                         });
                     }}
                 >
-                    <FullscreenLoadingIndicator
-                        style={[styles.opacity1, styles.bgTransparent]}
+                    <Image
+                        source={{uri: this.props.url}}
+                        style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
+                        resizeMode="contain"
                     />
+                    {this.state.isLoading && (
+                        <FullscreenLoadingIndicator
+                            style={[styles.opacity1, styles.bgTransparent]}
+                        />
+                    )}
                 </View>
             );
         }

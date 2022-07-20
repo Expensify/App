@@ -389,7 +389,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        User.updatePreferredSkinTone(skinTone);
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**

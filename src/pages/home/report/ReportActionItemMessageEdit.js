@@ -207,7 +207,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onKeyPress={this.triggerSaveOrCancel}
                         defaultValue={this.state.draft}
                         maxLines={16} // This is the same that slack has
-                        style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
+                        style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());

@@ -229,6 +229,7 @@ class IOUParticipantsSplit extends Component {
                         shouldDelayFocus
                         shouldShowConfirmButton
                         confirmButtonText={this.props.translate('common.next')}
+                        maxParticipantsReached={maxParticipantsReached}
                         onConfirmSelection={this.finalizeParticipants}
                     />
                 </View>

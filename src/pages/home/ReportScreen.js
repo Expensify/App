@@ -23,6 +23,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -145,7 +146,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        Report.addComment(getReportID(this.props.route), text);
+        Report.addAction(getReportID(this.props.route), text);
     }
 
     /**
@@ -194,10 +195,14 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (!Permissions.canUseDefaultRooms(this.props.betas)
-            && ReportUtils.isDefaultRoom(this.props.report)
-            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
+        // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
+        // For everyone else, one must be on the beta to see a default room.
+        const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(this.props.policies);
+        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(this.props.betas)) {
+            if (ReportUtils.isDomainRoom(this.props.report)) {
+                return null;
+            }
+        } else if (ReportUtils.isDefaultRoom(this.props.report) && !Permissions.canUseDefaultRooms(this.props.betas)) {
             return null;
         }
 

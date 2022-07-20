@@ -4,7 +4,6 @@ import {parseDocument} from 'htmlparser2';
 import {Element} from 'domhandler';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import {isCommentTag} from '../../components/HTMLEngineProvider/htmlEngineUtils';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -104,7 +103,7 @@ const replaceNodes = (dom) => {
         }
 
         // Adding a new line after each comment here, because adding after each range is not working for chrome.
-        if (isCommentTag(dom.attribs[tagAttribute])) {
+        if (dom.attribs[tagAttribute] === 'comment') {
             dom.children.push(new Element('br', {}));
         }
     }

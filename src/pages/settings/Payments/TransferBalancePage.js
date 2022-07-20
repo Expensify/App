@@ -22,7 +22,6 @@ import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import walletTransferPropTypes from './walletTransferPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
-import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
 
@@ -46,7 +45,16 @@ const propTypes = {
     })),
 
     /** List of card objects */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    cardList: PropTypes.objectOf(PropTypes.shape({
+        /** The name of the institution (bank of america, etc) */
+        cardName: PropTypes.string,
+
+        /** The masked credit card number */
+        cardNumber: PropTypes.string,
+
+        /** The ID of the card in the cards DB */
+        cardID: PropTypes.number,
+    })),
 
     /** Wallet balance transfer props */
     walletTransfer: walletTransferPropTypes,

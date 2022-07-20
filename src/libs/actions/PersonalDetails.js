@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
@@ -126,6 +125,8 @@ function fetchPersonalDetails() {
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
+            let myPersonalDetails = {};
+
             // If personalDetailsList does not have the current user ensure we initialize their details with an empty
             // object at least
             const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
@@ -135,6 +136,15 @@ function fetchPersonalDetails() {
 
             const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
+
+            myPersonalDetails = allPersonalDetails[currentUserEmail];
+
+            // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
+            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
+            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
+
+            // Set my personal details so they can be easily accessed and subscribed to on their own key
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
         });
 }
 
@@ -252,6 +262,8 @@ function mergeLocalPersonalDetails(details) {
     // displayName is a generated field so we'll use the firstName and lastName + login to update it.
     mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
 
+    // Update the associated Onyx keys
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
 }
 
@@ -284,10 +296,42 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 /**
- * Fetches the local currency based on location and sets currency code/symbol to Onyx
+ * Sets the onyx with the currency list from the network
+ * @returns {Object}
  */
-function openIOUModalPage() {
-    API.read('OpenIOUModalPage');
+function getCurrencyList() {
+    return DeprecatedAPI.GetCurrencyList()
+        .then((data) => {
+            const currencyListObject = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
+            return currencyListObject;
+        });
+}
+
+/**
+ * Fetches the local currency based on location and sets currency code/symbol to local storage
+ */
+function fetchLocalCurrency() {
+    const coords = {};
+    let currency = '';
+
+    Onyx.merge(ONYXKEYS.IOU, {
+        isRetrievingCurrency: true,
+    });
+
+    DeprecatedAPI.GetLocalCurrency({...coords})
+        .then((data) => {
+            currency = data.currency;
+        })
+        .then(getCurrencyList)
+        .then(() => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
+        })
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                isRetrievingCurrency: false,
+            });
+        });
 }
 
 /**
@@ -334,7 +378,8 @@ export {
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    openIOUModalPage,
+    fetchLocalCurrency,
+    getCurrencyList,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
 };

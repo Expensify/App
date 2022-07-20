@@ -1,7 +1,7 @@
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended'],
+    extends: 'expensify',
     parser: 'babel-eslint',
-    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js'],
+    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js'],
     env: {
         jest: true,
     },

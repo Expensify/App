@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {withNavigationFocus} from '@react-navigation/compat';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -14,7 +15,6 @@ import withNavigationFallback from './withNavigationFallback';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
-import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** The text for the button label */
@@ -159,7 +159,6 @@ class Button extends Component {
             if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
-            e.preventDefault();
             this.props.onPress();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
