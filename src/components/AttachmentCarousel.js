@@ -176,7 +176,7 @@ class AttachmentCarousel extends React.Component {
                 )}
                 <SwipeableView
                     isAnimated
-                    onPress={() => canUseTouchScreen() && this.onShowArrow(!this.state.showArrows)}                    
+                    onPress={() => canUseTouchScreen() && this.onShowArrow(!this.state.showArrows)}
                     onSwipeHorizontal={this.cycleThroughAttachments}
                 >
                     <AttachmentView sourceURL={this.state.sourceURL} file={this.state.file} />
