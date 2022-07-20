@@ -108,7 +108,7 @@ class ReportSettingsPage extends Component {
         };
 
         this.state = {
-            newRoomName: props.report.reportName,
+            newRoomName: this.props.report.reportName,
             errors: {},
         };
 
