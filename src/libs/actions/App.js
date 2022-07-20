@@ -53,7 +53,7 @@ function setLocale(locale) {
     // Optimistically change preferred locale
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             value: locale,
         },

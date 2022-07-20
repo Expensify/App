@@ -111,7 +111,7 @@ describe('actions/Report', () => {
                 delete actionWithoutLoading.isLoading;
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: 'merge',
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
@@ -123,7 +123,7 @@ describe('actions/Report', () => {
                         },
                     },
                     {
-                        onyxMethod: 'merge',
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             [clientID]: null,
