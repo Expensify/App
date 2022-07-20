@@ -1138,6 +1138,7 @@ function readNewestAction(reportID) {
     API.write('ReadNewestAction',
         {
             reportID,
+            sequenceNumber,
         },
         {
             optimisticData: [{
