@@ -54,6 +54,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmount = this.updateAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.addLeadingZero = this.addLeadingZero.bind(this);
 
         this.state = {
             amount: props.selectedAmount.replace('.', this.props.fromLocaleDigit('.')),
@@ -134,7 +135,7 @@ class IOUAmountPage extends React.Component {
         }
 
         this.setState((prevState) => {
-            const amount = `${prevState.amount}${key}`;
+            const amount = this.addLeadingZero(`${prevState.amount}${key}`);
             return this.validateAmount(amount) ? {amount} : prevState;
         });
     }
@@ -146,7 +147,22 @@ class IOUAmountPage extends React.Component {
      * @param {String} amount - Changed amount from user input
      */
     updateAmount(amount) {
-        this.setState(prevState => (this.validateAmount(amount) ? {amount} : prevState));
+        const newAmount = this.addLeadingZero(amount);
+        this.setState(prevState => (this.validateAmount(newAmount) ? {amount: newAmount} : prevState));
+    }
+
+    /**
+     * Adds a leading zero to amount if user entered just the decimal separator
+     *
+     * @param {String} amount - Changed amount from user input
+     * @returns {String}
+     */
+    addLeadingZero(amount) {
+        const decimalSeparator = this.props.fromLocaleDigit('.');
+        if (amount === decimalSeparator) {
+            return `0${decimalSeparator}`;
+        }
+        return amount;
     }
 
     navigateToCurrencySelectionPage() {
