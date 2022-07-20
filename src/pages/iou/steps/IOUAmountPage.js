@@ -56,6 +56,7 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.addLeadingZero = this.addLeadingZero.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -145,8 +146,8 @@ class IOUAmountPage extends React.Component {
         }
 
         this.setState((prevState) => {
-            const amount = `${prevState.amount}${key}`;
-            return this.validateAmount(amount) ? {amount: this.stripCommaFromAmount(amount)} : prevState;
+            const amount = this.addLeadingZero(`${prevState.amount}${key}`);
+            return this.validateAmount(amount) ? {amount} : prevState;
         });
     }
 
@@ -156,34 +157,23 @@ class IOUAmountPage extends React.Component {
      *
      * @param {String} text - Changed text from user input
      */
-    updateAmount(text) {
-        this.setState((prevState) => {
-            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
-            return this.validateAmount(amount)
-                ? {amount: this.stripCommaFromAmount(amount)}
-                : prevState;
-        });
+    updateAmount(amount) {
+        const newAmount = this.addLeadingZero(amount);
+        this.setState(prevState => (this.validateAmount(newAmount) ? {amount: newAmount} : prevState));
     }
 
     /**
-     * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
-     * the original character will be preserved.
+     * Adds a leading zero to amount if user entered just the decimal separator
      *
-     * @param {String} text
-     * @param {Function} convertFn - `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
+     * @param {String} amount - Changed amount from user input
      * @returns {String}
      */
-    replaceAllDigits(text, convertFn) {
-        return _.chain([...text])
-            .map((char) => {
-                try {
-                    return convertFn(char);
-                } catch {
-                    return char;
-                }
-            })
-            .join('')
-            .value();
+    addLeadingZero(amount) {
+        const decimalSeparator = this.props.fromLocaleDigit('.');
+        if (amount === decimalSeparator) {
+            return `0${decimalSeparator}`;
+        }
+        return amount;
     }
 
     navigateToCurrencySelectionPage() {
