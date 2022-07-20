@@ -514,7 +514,7 @@ function navigateToDetailsPage(report) {
  *
  * @returns {Number}
  */
-function generateRandomReportID() {
+function generateReportID() {
     return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
 }
 
@@ -546,5 +546,5 @@ export {
     getDisplayNamesWithTooltips,
     getReportName,
     navigateToDetailsPage,
-    generateRandomReportID,
+    generateReportID,
 };
