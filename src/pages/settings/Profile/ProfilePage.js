@@ -68,7 +68,7 @@ class ProfilePage extends Component {
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
         this.selectedTimezone = lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
         this.logins = this.getLogins(props.loginList);
-        this.avatar = {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))};
+        this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))};
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
