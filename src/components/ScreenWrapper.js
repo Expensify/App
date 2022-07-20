@@ -144,7 +144,11 @@ class ScreenWrapper extends React.Component {
                                         : this.props.children
                                 }
                                 <KeyboardShortcutsModal />
-                                {this.props.isSmallScreenWidth && <OfflineIndicator />}
+                                {this.props.isSmallScreenWidth && this.props.network.isOffline && (
+                                    <View style={styles.chatItemComposeSecondaryRow}>
+                                        <OfflineIndicator />
+                                    </View>
+                                )}
                             </KeyboardAvoidingView>
                         </View>
                     );
