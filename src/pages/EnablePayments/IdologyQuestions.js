@@ -7,7 +7,8 @@ import {
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import * as Wallet from '../../libs/actions/Wallet';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
+import CONST from '../../CONST';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import FormScrollView from '../../components/FormScrollView';
@@ -102,12 +103,12 @@ class IdologyQuestions extends React.Component {
                     }
                 }
 
-                const idologyAnswers = {
-                    answers,
-                    idNumber: this.props.idNumber,
-                };
-                Wallet.updatePersonalDetails(null, idologyAnswers);
-                return {answers, isLoading: true};
+                BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
+                    idologyAnswers: {
+                        answers,
+                        idNumber: this.props.idNumber,
+                    },
+                });
             }
 
             // Else, show next question

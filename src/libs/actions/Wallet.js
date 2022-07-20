@@ -158,18 +158,14 @@ function buildIdologyError(idologyErrors) {
  * Validates a user's provided details against a series of checks
  *
  * @param {Object} [personalDetails]
- * @param {Object} [idologyAnswers]
  */
-function updatePersonalDetails(personalDetails, idologyAnswers) {
-    if (!personalDetails && !idologyAnswers) {
+function updatePersonalDetails(personalDetails) {
+    if (!personalDetails) {
         return;
     }
     const personalDetailsString = personalDetails ? JSON.stringify(personalDetails) : '';
-    const idologyAnswersString = idologyAnswers ? JSON.stringify(idologyAnswers) : '';
-
     API.write('UpdatePersonalDetailsForWallet', {
         personalDetails: personalDetailsString,
-        idologyAnswers: idologyAnswersString,
     }, {
         optimisticData: [
             {
