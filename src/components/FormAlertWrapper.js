@@ -10,7 +10,6 @@ import TextLink from './TextLink';
 import Text from './Text';
 import colors from '../styles/colors';
 import compose from '../libs/compose';
-import OfflineIndicator from './OfflineIndicator';
 import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -82,7 +81,6 @@ const FormAlertWrapper = props => (
             </View>
         )}
         {props.children(props.network.isOffline)}
-        <OfflineIndicator style={[styles.chatItemComposeSecondaryRowOffset]} />
     </View>
 );
 

@@ -10,7 +10,6 @@ import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
 import * as PersonalDetails from './PersonalDetails';
-import * as User from './User';
 import * as Report from './Report';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
@@ -91,8 +90,6 @@ AppState.addEventListener('change', (nextAppState) => {
  * @returns {Promise}
  */
 function getAppData(shouldSyncPolicyList = true) {
-    User.getDomainInfo();
-    PersonalDetails.fetchLocalCurrency();
     BankAccounts.fetchUserWallet();
 
     if (shouldSyncPolicyList) {
