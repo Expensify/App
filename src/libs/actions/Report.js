@@ -50,10 +50,10 @@ Onyx.connect({
     callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
-let myPersonalDetails;
+let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val[currentUserEmail],
+    callback: val => personalDetails = val,
 });
 
 const allReports = {};
@@ -821,6 +821,39 @@ function fetchAllReports(
 }
 
 /**
+ * Creates an optimistic report with a randomly generated reportID and as much information as we currently have
+ *
+ * @param {Array} participantList
+ * @returns {Object}
+ */
+function createOptimisticReport(participantList) {
+    return {
+        chatType: '',
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat: false,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: undefined,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: '',
+        oldPolicyName: '',
+        ownerEmail: '__FAKE__',
+        participants: participantList,
+        policyID: '_FAKE_',
+        reportID: ReportUtils.generateReportID(),
+        reportName: 'Chat Report',
+        stateNum: 0,
+        statusNum: 0,
+        unreadActionCount: 0,
+        visibility: undefined,
+    };
+}
+
+/**
  * @param {Number} reportID
  * @param {String} [text]
  * @param {File} [file]
@@ -859,7 +892,7 @@ function buildOptimisticReportAction(reportID, text, file) {
             person: [
                 {
                     style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
                     type: 'TEXT',
                 },
             ],
@@ -868,7 +901,7 @@ function buildOptimisticReportAction(reportID, text, file) {
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
             clientID: optimisticReportActionID,
-            avatar: myPersonalDetails.avatar,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
             message: [
                 {
@@ -982,11 +1015,6 @@ function addActions(reportID, text = '', file) {
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();
         parameters.timezone = JSON.stringify(timezone);
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-            value: {timezone},
-        });
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
@@ -1663,4 +1691,5 @@ export {
     readNewestAction,
     openReport,
     openPaymentDetailsPage,
+    createOptimisticReport,
 };
