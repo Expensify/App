@@ -144,13 +144,13 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        this.fetchData();
+        PersonalDetails.openIOUModalPage();
         IOU.setIOUSelectedCurrency(this.props.currentUserPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            this.fetchData();
+            PersonalDetails.openIOUModalPage();
         }
 
         // Successfully close the modal if transaction creation has ended and there is no error
@@ -223,10 +223,6 @@ class IOUModal extends Component {
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
-    }
-
-    fetchData() {
-        PersonalDetails.fetchLocalCurrency();
     }
 
     /**
