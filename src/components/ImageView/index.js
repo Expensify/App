@@ -46,10 +46,14 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return;
         }
+        document.addEventListener('mousemove', this.trackMovement.bind(this));
+    }
+
+    componentDidUpdate() {
+        // resize the image when cycled through
         Image.getSize(this.props.url, (width, height) => {
             this.setImageRegion(width, height);
         });
-        document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
 
     componentWillUnmount() {
