@@ -1104,7 +1104,6 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {},
                 }
             ],
             failureData: [{
