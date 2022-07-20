@@ -458,7 +458,7 @@ export default compose(
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         isLoadingReportActions: {
-            key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
+            key: ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS,
             initWithStoredValues: false,
         },
     }),
