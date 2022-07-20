@@ -231,7 +231,7 @@ class EmojiPickerMenu extends Component {
         }
 
         // Arrow Down and Arrow Right enable arrow navigation when search is focused
-        if (this.searchInput && this.searchInput.isFocused() && this.state.filteredEmojis.length) {
+        if (this.searchInput && this.searchInput.isFocused()) {
             if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowRight') {
                 return;
             }
