@@ -7,7 +7,7 @@ SmartScan is the time-saving tool that every Expensify user needs. Using SmartSc
 ## What is SmartScan?
 
 SmartScan is simple on the outside and complex on the inside. When you SmartScan a receipt, we’ll read the **Merchant**, **Date** and **Amount** of the transaction, create an expense, and add it to your Expensify account automatically. If you have a credit card connected and you upload a receipt that matches a card expense, the SmartScanned receipt will automatically merge with the imported expense instead!
-- Expensify accounts come with 25 free SmartScans per month. If you’re an individual user and you need access to unlimited SmartScans, check out the **[Monthly Subscription](https://community.expensify.com/discussion/5535/deep-dive-the-monthly-subscription-is-it-right-for-me)**!
+- Expensify accounts come with 25 free SmartScans per month. If you’re an individual user and you need access to unlimited SmartScans, check out the [Monthly Subscription](https://community.expensify.com/discussion/5535/deep-dive-the-monthly-subscription-is-it-right-for-me)!
 - If your organization is already using Expensify and you belong to a company policy, you’ll have access to unlimited SmartScans by default.
 
 ### How SmartScan Works:
