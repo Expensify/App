@@ -33,6 +33,11 @@ const customHTMLElementModels = {
     }),
     comment: defaultHTMLElementModels.div.extend({
         tagName: 'comment',
+        mixedUAStyles: {whiteSpace: 'pre'},
+    }),
+    'email-comment': defaultHTMLElementModels.div.extend({
+        tagName: 'email-comment',
+        mixedUAStyles: {whiteSpace: 'normal'},
     }),
 };
 
@@ -45,7 +50,7 @@ const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]
 // costly invalidations and commits.
 const BaseHTMLEngineProvider = (props) => {
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable}), [props.textSelectable]);
+    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false}), [props.textSelectable]);
 
     return (
         <TRenderEngineProvider
@@ -56,8 +61,7 @@ const BaseHTMLEngineProvider = (props) => {
             systemFonts={_.values(fontFamily)}
         >
             <RenderHTMLConfigProvider
-                defaultTextProps={{...defaultTextProps, allowFontScaling: false}}
-                defaultViewProps={defaultViewProps}
+                defaultTextProps={defaultTextProps}
                 renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
             >

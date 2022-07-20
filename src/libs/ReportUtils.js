@@ -168,17 +168,29 @@ function isChatRoom(report) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
- * @param {String[]} [reportTypesToIgnore]
+ * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Object} policies
  * @returns {Object}
  */
-function findLastAccessedReport(reports, reportTypesToIgnore) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
-    if (reportTypesToIgnore) {
-        sortedReports = _.filter(sortedReports, report => !_.contains(reportTypesToIgnore, lodashGet(report, ['chatType'], '')));
+    if (ignoreDefaultRooms) {
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE);
     }
 
     return _.last(sortedReports);
@@ -305,12 +317,12 @@ function hasExpensifyEmails(emails) {
  * @return {Boolean}
  */
 function canShowReportRecipientLocalTime(personalDetails, report) {
-    const reportParticipants = lodashGet(report, 'participants', []);
-    const hasMultipleParticipants = reportParticipants.length > 1;
-    const reportRecipient = personalDetails[reportParticipants[0]];
+    const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
+    const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+    const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
+    const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    return !hasExpensifyEmails(reportParticipants)
-        && !hasMultipleParticipants
+    return !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected;
@@ -452,11 +464,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
     let formattedName;
-    if (isDefaultRoom(report)) {
-        formattedName = `#${report.reportName}`;
-    }
-
-    if (isUserCreatedPolicyRoom(report)) {
+    if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
@@ -512,11 +520,11 @@ export {
     isDefaultRoom,
     isAdminRoom,
     isAnnounceRoom,
-    isDomainRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,
+    getPolicyType,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,

@@ -15,21 +15,15 @@ import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Picker from '../../components/Picker';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import TextInput from '../../components/TextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
-
     ...fullPolicyPropTypes,
-
     ...withLocalizePropTypes,
 };
 
@@ -54,18 +48,6 @@ class WorkspaceSettingsPage extends React.Component {
         this.validate = this.validate.bind(this);
     }
 
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
     /**
      * @returns {Object[]}
      */
@@ -75,10 +57,6 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
-    }
-
-    fetchData() {
-        PersonalDetails.getCurrencyList();
     }
 
     removeAvatar() {

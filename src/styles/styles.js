@@ -135,7 +135,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        whiteSpace: 'pre',
     },
 };
 
@@ -727,7 +726,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
@@ -1399,6 +1397,10 @@ const styles = {
         maxHeight: '100%',
     },
 
+    editInputComposeSpacing: {
+        marginVertical: 6,
+    },
+
     textInputComposeSpacing: {
         paddingVertical: 6,
         ...flex.flexRow,
@@ -1841,6 +1843,10 @@ const styles = {
         ...spacing.mv1,
         ...spacing.mh1,
         ...{borderRadius: variables.componentBorderRadiusSmall},
+    },
+
+    reportActionSystemMessageContainer: {
+        marginLeft: 42,
     },
 
     reportDetailsTitleContainer: {
@@ -2567,7 +2573,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
-        marginLeft: 4,
+        marginLeft: 6,
     },
 };
 
