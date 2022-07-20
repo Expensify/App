@@ -229,7 +229,7 @@ class GithubUtils {
         const internalQAPRs = _.map(
             [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[2],
+                url: match[2].split('-')[0].trim(),
                 number: Number.parseInt(match[3], 10),
                 isResolved: match[1] === 'x',
                 isAccessible: false,
