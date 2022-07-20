@@ -301,8 +301,8 @@ class TransferBalancePage extends React.Component {
                                 />
                             )}
                         </FormAlertWrapper>
-                        <OfflineIndicator containerStyles={[styles.pl1, styles.pv2]} />
                     </FixedFooter>
+                    <OfflineIndicator containerStyles={[styles.ml5, styles.mb3]} />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
