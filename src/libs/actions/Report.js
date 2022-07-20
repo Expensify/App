@@ -695,14 +695,6 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 function fetchActions(reportID) {
     const reportActionsOffset = -1;
 
-    if (!_.isNumber(reportActionsOffset)) {
-        Log.alert('[Report] Offset provided is not a number', {
-            offset,
-            reportActionsOffset,
-        });
-        return;
-    }
-
     return DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
