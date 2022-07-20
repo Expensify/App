@@ -65,14 +65,14 @@ class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login);
-        this.selectedTimezone = lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
+        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
+        this.selectedTimezone = lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
         this.logins = this.getLogins(props.loginList);
-        this.avatar = {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login))};
-        this.pronouns = props.myPersonalDetails.pronouns;
+        this.avatar = {uri: lodashGet(this.props.myPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))};
+        this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
-            isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             isAvatarChanged: false,
         };
 
@@ -125,7 +125,7 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.avatar = _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.myPersonalDetails.login)} : avatar;
+        this.avatar = _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)} : avatar;
 
         this.setState({isAvatarChanged: true});
     }
@@ -136,7 +136,7 @@ class ProfilePage extends Component {
      */
     updatePersonalDetails(values) {
         // Check if the user has modified their avatar
-        if ((this.props.myPersonalDetails.avatar !== this.avatar.uri) && this.state.isAvatarChanged) {
+        if ((this.props.currentUserPersonalDetails.avatar !== this.avatar.uri) && this.state.isAvatarChanged) {
             // If the user removed their profile photo, replace it accordingly with the default avatar
             if (this.avatar.uri.includes('/images/avatars/avatar')) {
                 PersonalDetails.deleteAvatar(this.avatar.uri);
@@ -218,7 +218,7 @@ class ProfilePage extends Component {
                         submitButtonText={this.props.translate('common.save')}
                     >
                         <AvatarWithImagePicker
-                            isUploading={this.props.myPersonalDetails.avatarUploading}
+                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
                             isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.avatar.uri}
                             onImageSelected={this.updateAvatar}
@@ -236,7 +236,7 @@ class ProfilePage extends Component {
                                     inputID="firstName"
                                     name="fname"
                                     label={this.props.translate('common.firstName')}
-                                    defaultValue={this.props.myPersonalDetails.firstName}
+                                    defaultValue={this.props.currentUserPersonalDetails.firstName}
                                     placeholder={this.props.translate('profilePage.john')}
                                     shouldSaveDraft
                                 />
@@ -246,7 +246,7 @@ class ProfilePage extends Component {
                                     inputID="lastName"
                                     name="lname"
                                     label={this.props.translate('common.lastName')}
-                                    defaultValue={this.props.myPersonalDetails.lastName}
+                                    defaultValue={this.props.currentUserPersonalDetails.lastName}
                                     placeholder={this.props.translate('profilePage.doe')}
                                     shouldSaveDraft
                                 />
