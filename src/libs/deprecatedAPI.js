@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
@@ -487,13 +486,6 @@ function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
 }
 
 /**
- * @returns {Promise}
- */
-function Plaid_GetLinkToken() {
-    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.currentStep
  * @param {String} [parameters.onfidoData] - JSON string
@@ -510,19 +502,6 @@ function Wallet_Activate(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.publicToken
- * @param {Boolean} parameters.allowDebit
- * @param {String} parameters.bank
- * @returns {Promise}
- */
-function BankAccount_Get(parameters) {
-    const commandName = 'BankAccount_Get';
-    requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
- * @param {Object} parameters
  * @param {Object[]} parameters.employees
  * @param {String} parameters.welcomeNote
  * @param {String} parameters.policyID
@@ -534,35 +513,6 @@ function Policy_Employees_Merge(parameters) {
 
     // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
     return Network.post(commandName, {...parameters, returnPersonalDetails: true});
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.accountNumber
- * @param {String} parameters.addressName
- * @param {Boolean} parameters.allowDebit
- * @param {Boolean} parameters.confirm
- * @param {Boolean} parameters.isSavings
- * @param {String} parameters.password
- * @param {String} parameters.routingNumber
- * @param {String} parameters.setupType
- * @param {String} parameters.additionalData additional JSON data
- * @returns {Promise}
- */
-function BankAccount_Create(parameters) {
-    const commandName = 'BankAccount_Create';
-    requireParameters([
-        'accountNumber',
-        'addressName',
-        'allowDebit',
-        'confirm',
-        'isSavings',
-        'password',
-        'routingNumber',
-        'setupType',
-        'additionalData',
-    ], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 function BankAccount_Validate(parameters) {
@@ -793,8 +743,6 @@ function GetStatementPDF(parameters) {
 
 export {
     AddBillingCard,
-    BankAccount_Create,
-    BankAccount_Get,
     BankAccount_SetupWithdrawal,
     BankAccount_Validate,
     ChangePassword,
@@ -820,7 +768,6 @@ export {
     PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
-    Plaid_GetLinkToken,
     Policy_Employees_Merge,
     RejectTransaction,
     Report_GetHistory,
