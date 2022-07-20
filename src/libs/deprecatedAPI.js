@@ -363,13 +363,6 @@ function User_Delete(parameters) {
 }
 
 /**
- * @returns {Promise}
- */
-function User_GetBetas() {
-    return Network.post('User_GetBetas');
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
@@ -769,7 +762,6 @@ export {
     UpdatePolicy,
     User_SignUp,
     User_Delete,
-    User_GetBetas,
     User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,

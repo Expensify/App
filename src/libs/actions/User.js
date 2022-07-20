@@ -92,16 +92,6 @@ function closeAccount(message) {
     });
 }
 
-function getBetas() {
-    DeprecatedAPI.User_GetBetas().then((response) => {
-        if (response.jsonCode !== 200) {
-            return;
-        }
-
-        Onyx.set(ONYXKEYS.BETAS, response.betas);
-    });
-}
-
 /**
  * Fetches the data needed for user settings
  */
@@ -482,7 +472,6 @@ function generateStatementPDF(period) {
 export {
     updatePassword,
     closeAccount,
-    getBetas,
     getUserDetails,
     resendValidateCode,
     updateNewsletterSubscription,
