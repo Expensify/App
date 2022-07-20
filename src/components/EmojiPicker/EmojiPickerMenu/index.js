@@ -225,6 +225,11 @@ class EmojiPickerMenu extends Component {
      * @param {String} arrowKey
      */
     highlightAdjacentEmoji(arrowKey) {
+        // Do nothing if there are no emojis to highlight
+        if (!this.state.filteredEmojis.length) {
+            return;
+        }
+
         // Arrow Down and Arrow Right enable arrow navigation when search is focused
         if (this.searchInput && this.searchInput.isFocused() && this.state.filteredEmojis.length) {
             if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowRight') {
