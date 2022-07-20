@@ -11,7 +11,7 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
-import NameValuePair from './NameValuePair';
+import * as User from './User';
 import * as store from './ReimbursementAccount/store';
 
 /**
@@ -37,8 +37,7 @@ function deleteDebitCard(fundID) {
 }
 
 function deletePayPalMe() {
-    NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, '');
-    Onyx.set(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, null);
+    User.deletePaypalMeAddress();
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 

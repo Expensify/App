@@ -34,8 +34,8 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -471,7 +471,7 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.personalDetails.login);
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
@@ -669,7 +669,7 @@ class ReportActionCompose extends React.Component {
                     </View>
                 </View>
                 <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <OfflineIndicator />
+                    {!this.props.isSmallScreenWidth && <OfflineIndicator />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
@@ -686,6 +686,7 @@ export default compose(
     withDrawerState,
     withNavigationFocus,
     withLocalize,
+    withNetwork(),
     withPersonalDetails(),
     withCurrentUserPersonalDetails,
     withOnyx({
