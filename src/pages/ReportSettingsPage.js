@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
@@ -95,18 +96,25 @@ class ReportSettingsPage extends Component {
         };
 
         this.state = {
-            newRoomName: this.props.report.reportName,
+            newRoomName: this.getReportName(),
             errors: {},
         };
 
         this.validateAndRenameReport = this.validateAndRenameReport.bind(this);
     }
 
+    /**
+     * @returns {String}
+     */
+    getReportName() {
+        return lodashGet(this.props, 'report.reportName', '');
+    }
+
     validateAndRenameReport() {
         if (!this.validate()) {
             return;
         }
-        if (this.props.report.reportName === this.state.newRoomName) {
+        if (this.getReportName() === this.state.newRoomName) {
             Growl.success(this.props.translate('newRoomPage.policyRoomRenamed'));
             return;
         }
@@ -122,7 +130,7 @@ class ReportSettingsPage extends Component {
         }
 
         // We error if the room name already exists. We don't error if the room name matches same as previous.
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
+        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.getReportName()) {
             errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
