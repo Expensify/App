@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
@@ -49,10 +48,16 @@ const propTypes = {
 
         /** The current user's notification preference for this report */
         notificationPreference: PropTypes.string,
+
+        /** Access setting e.g. whether the report is "restricted" */
+        visibility: PropTypes.string,
+
+        /** Linked policy's ID */
+        policyID: PropTypes.string,
     }).isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
+    reports: PropTypes.objectOf(PropTypes.shape({
         /** The report name */
         reportName: PropTypes.string,
 
@@ -61,7 +66,7 @@ const propTypes = {
 
         /** ID of the policy */
         policyID: PropTypes.string,
-    }).isRequired,
+    })).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -75,6 +80,13 @@ const propTypes = {
 
 const defaultProps = {
     ...fullPolicyDefaultProps,
+    report: {
+        reportID: 0,
+        reportName: '',
+        policyID: '',
+        notificationPreference: '',
+        visibility: '',
+    },
 };
 
 class ReportSettingsPage extends Component {
@@ -96,25 +108,18 @@ class ReportSettingsPage extends Component {
         };
 
         this.state = {
-            newRoomName: this.getReportName(),
+            newRoomName: props.report.reportName,
             errors: {},
         };
 
         this.validateAndRenameReport = this.validateAndRenameReport.bind(this);
     }
 
-    /**
-     * @returns {String}
-     */
-    getReportName() {
-        return lodashGet(this.props, 'report.reportName', '');
-    }
-
     validateAndRenameReport() {
         if (!this.validate()) {
             return;
         }
-        if (this.getReportName() === this.state.newRoomName) {
+        if (this.props.report.reportName === this.state.newRoomName) {
             Growl.success(this.props.translate('newRoomPage.policyRoomRenamed'));
             return;
         }
@@ -130,7 +135,7 @@ class ReportSettingsPage extends Component {
         }
 
         // We error if the room name already exists. We don't error if the room name matches same as previous.
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.getReportName()) {
+        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
             errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
