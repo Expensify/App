@@ -1099,15 +1099,12 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
                     key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
                     value: {
                         isLoading: false,
-                        error: '',
                     },
                 },
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {
-                        error: '',
-                    },
+                    value: {},
                 }
             ],
             failureData: [{
