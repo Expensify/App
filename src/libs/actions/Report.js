@@ -49,10 +49,10 @@ Onyx.connect({
     callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
-let personalDetails;
+let myPersonalDetails;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    callback: val => myPersonalDetails = val,
 });
 
 const allReports = {};
@@ -953,7 +953,7 @@ function addAction(reportID, text, file) {
             person: [
                 {
                     style: 'strong',
-                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    text: myPersonalDetails.displayName || currentUserEmail,
                     type: 'TEXT',
                 },
             ],
@@ -962,7 +962,7 @@ function addAction(reportID, text, file) {
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
             clientID: optimisticReportActionID,
-            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+            avatar: myPersonalDetails.avatar,
             timestamp: moment().unix(),
             message: [
                 {
