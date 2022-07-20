@@ -844,7 +844,7 @@ function createOptimisticReport(participantList) {
         ownerEmail: '__FAKE__',
         Participants: participantList,
         policyID: '_FAKE_',
-        reportID: ReportUtils.generateRandomReportID(),
+        reportID: ReportUtils.generateReportID(),
         reportName: 'Chat Report',
         stateNum: 0,
         statusNum: 0,
