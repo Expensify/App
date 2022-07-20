@@ -51,7 +51,8 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
-* Go through the instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
+* Go through the instructions on [this SO post](https://stackoverflow.com/c/expensify/questions/13283/13284#13284) to start running the app on android.
+* For more information, go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -215,6 +216,9 @@ created to house a collection of items in plural form and using camelCase (eg: p
 - pages: These are components that define pages in the app. The component that defines the page itself should be named
 `<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
 - styles: These files define styles used among components/pages
+- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo.
+
+**Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
 
 ## File naming/structure
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie:

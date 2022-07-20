@@ -42,7 +42,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                     if (request.resolve) {
                         request.resolve(data);
                     }
-                    return;
+                    return data;
                 }
 
                 // We are already authenticating
