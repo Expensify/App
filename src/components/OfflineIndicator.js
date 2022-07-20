@@ -37,11 +37,11 @@ const OfflineIndicator = (props) => {
             styles.alignItemsCenter]}
         >
             <Icon
-                src={Expensicons.Offline}
+                src={Expensicons.OfflineCloud}
                 width={variables.iconSizeExtraSmall}
                 height={variables.iconSizeExtraSmall}
             />
-            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>
                 {props.translate('common.youAppearToBeOffline')}
             </Text>
         </View>
