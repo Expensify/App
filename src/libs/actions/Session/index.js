@@ -77,12 +77,12 @@ function signOut() {
 
     const optimisticData = [
         {
-            onyxMethod: 'set',
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.SESSION,
             value: null,
         },
         {
-            onyxMethod: 'set',
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.CREDENTIALS,
             value: null,
         },

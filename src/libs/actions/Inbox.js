@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
@@ -17,7 +18,7 @@ function requestCall({
     taskID, policyID, firstName, lastName, phoneNumber, phoneNumberExtension,
 }) {
     const optimisticData = [{
-        onyxMethod: 'merge',
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.REQUEST_CALL_FORM,
         value: {
             loading: true,
@@ -26,7 +27,7 @@ function requestCall({
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.REQUEST_CALL_FORM,
             value: {
                 loading: false,
@@ -37,7 +38,7 @@ function requestCall({
     ];
 
     const failureData = [{
-        onyxMethod: 'merge',
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.REQUEST_CALL_FORM,
         value: {
             loading: false,
@@ -61,7 +62,7 @@ function requestCall({
 function openRequestCallPage() {
     // Reset the error message in case we had one set from a previous failed attempt at requesting a call.
     const optimisticData = [{
-        onyxMethod: 'merge',
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.REQUEST_CALL_FORM,
         value: {
             error: '',
