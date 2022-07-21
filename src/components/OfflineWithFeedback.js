@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -23,8 +24,9 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    /** The error to display  */
-    error: PropTypes.string,
+    /** The errors to display  */
+    // eslint-disable-next-line react/forbid-prop-types
+    errors: PropTypes.object,
 
     /** A function to run when the X button next to the error is clicked */
     onClose: PropTypes.func.isRequired,
@@ -45,7 +47,7 @@ const propTypes = {
 
 const defaultProps = {
     pendingAction: null,
-    error: null,
+    errors: null,
     style: [],
 };
 
@@ -69,11 +71,11 @@ function applyStrikeThrough(children) {
 
 const OfflineWithFeedback = (props) => {
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
-    const isUpdateOrDeleteError = props.error && (props.pendingAction === 'delete' || props.pendingAction === 'update');
-    const isAddError = props.error && props.pendingAction === 'add';
+    const isUpdateOrDeleteError = props.errors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
+    const isAddError = props.errors && props.pendingAction === 'add';
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
-    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !props.error;
+    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !props.errors;
     let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
@@ -87,12 +89,16 @@ const OfflineWithFeedback = (props) => {
                     {children}
                 </View>
             )}
-            {props.error && (
+            {props.errors && (
                 <View style={styles.offlineFeedback.error}>
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={16} width={16} />
                     </View>
-                    <Text style={styles.offlineFeedback.text}>{props.error}</Text>
+                    <View style={{flexDirection: 'column', alignItems: 'center', flex: 1}}>
+                        {_.map(props.errors, error => (
+                            <Text style={styles.offlineFeedback.text}>{error}</Text>
+                        ))}
+                    </View>
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}

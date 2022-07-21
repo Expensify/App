@@ -27,6 +27,7 @@ import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -232,13 +233,13 @@ class WorkspaceMembersPage extends React.Component {
                         />
                     </View>
                     {this.props.session.email === item.login && (
-                    <View style={styles.peopleRowCell}>
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={[styles.peopleBadgeText]}>
-                                {this.props.translate('common.admin')}
-                            </Text>
+                        <View style={styles.peopleRowCell}>
+                            <View style={[styles.badge, styles.peopleBadge]}>
+                                <Text style={[styles.peopleBadgeText]}>
+                                    {this.props.translate('common.admin')}
+                                </Text>
+                            </View>
                         </View>
-                    </View>
                     )}
                 </TouchableOpacity>
             </Hoverable>
