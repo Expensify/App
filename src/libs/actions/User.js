@@ -219,29 +219,29 @@ function validateLogin(accountID, validateCode) {
     }, {
         optimisticData: [
             {
-                onyxMethod:'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
-                    isLoading: true
-                }
+                    isLoading: true,
+                },
             },
         ],
        successData: [
             {
-                onyxMethod:'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
-                    isLoading: false
-                }
+                    isLoading: false,
+                },
             },
         ],
         failureData : [
             {
-                onyxMethod:'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
-                    isLoading: false
-                }
+                    isLoading: false,
+                },
             },
         ]
     });
