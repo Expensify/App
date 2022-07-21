@@ -330,17 +330,6 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {string} parameters.email
- * @returns {Promise}
- */
-function ResetPassword(parameters) {
-    const commandName = 'ResetPassword';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
  * @param {Number} parameters.accountID
@@ -756,7 +745,6 @@ export {
     Report_GetHistory,
     Report_EditComment,
     ResendValidateCode,
-    ResetPassword,
     SetNameValuePair,
     SetPassword,
     UpdatePolicy,

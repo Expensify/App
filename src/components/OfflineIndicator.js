@@ -10,16 +10,27 @@ import Text from './Text';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Additional styles to add after local styles. */
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    style: [],
 };
 
 const OfflineIndicator = (props) => {
@@ -31,7 +42,9 @@ const OfflineIndicator = (props) => {
         <View style={[
             props.isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator,
             styles.flexRow,
-            styles.alignItemsCenter]}
+            styles.alignItemsCenter,
+            ...StyleUtils.parseStyleAsArray(props.style),
+        ]}
         >
             <Icon
                 src={Expensicons.Offline}
@@ -46,6 +59,7 @@ const OfflineIndicator = (props) => {
 };
 
 OfflineIndicator.propTypes = propTypes;
+OfflineIndicator.defaultProps = defaultProps;
 OfflineIndicator.displayName = 'OfflineIndicator';
 
 export default compose(
