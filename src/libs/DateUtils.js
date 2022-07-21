@@ -29,7 +29,7 @@ let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = lodashGet(val, currentUserEmail, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        timezone = lodashGet(val, [currentUserEmail, 'timezone'], CONST.DEFAULT_TIME_ZONE);
     },
 });
 
@@ -68,6 +68,8 @@ function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone 
  * @returns {String}
  */
 function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
+    console.log({locale, timestamp, includeTimeZone})
+    debugger;
     const date = getLocalMomentFromTimestamp(locale, timestamp);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
