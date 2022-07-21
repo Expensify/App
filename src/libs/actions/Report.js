@@ -21,7 +21,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
-import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -50,10 +49,10 @@ Onyx.connect({
     callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
-let myPersonalDetails;
+let personalDetails;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val,
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => personalDetails = val,
 });
 
 const allReports = {};
@@ -691,19 +690,10 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
  * Get the actions of a report
  *
  * @param {Number} reportID
- * @param {Number} [offset]
  * @returns {Promise}
  */
-function fetchActions(reportID, offset) {
-    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
-
-    if (!_.isNumber(reportActionsOffset)) {
-        Log.alert('[Report] Offset provided is not a number', {
-            offset,
-            reportActionsOffset,
-        });
-        return;
-    }
+function fetchActions(reportID) {
+    const reportActionsOffset = -1;
 
     return DeprecatedAPI.Report_GetHistory({
         reportID,
@@ -721,27 +711,13 @@ function fetchActions(reportID, offset) {
 }
 
 /**
- * Get the actions of a report
- *
- * @param {Number} reportID
- * @param {Number} [offset]
- */
-function fetchActionsWithLoadingState(reportID, offset) {
-    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
-    fetchActions(reportID, offset)
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
-}
-
-/**
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
- * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  * @returns {Promise}
  */
 function fetchAllReports(
     shouldRecordHomePageTiming = false,
-    shouldDelayActionsFetch = false,
 ) {
     Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
     return DeprecatedAPI.Get({
@@ -776,48 +752,40 @@ function fetchAllReports(
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
-
-            // Delay fetching report history as it significantly increases sign in to interactive time.
-            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
-            // cancel the timer we'll make unnecessary API requests from the sign in page.
-            Timers.register(setTimeout(() => {
-                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
-                // content and improve chat switching experience by only downloading content we don't have yet.
-                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
-                // data processing by Onyx.
-                const reportIDsWithMissingActions = _.chain(returnedReports)
-                    .map(report => report.reportID)
-                    .filter(reportID => ReportActions.isReportMissingActions(reportID, lodashGet(allReports, [reportID, 'maxSequenceNumber'])))
-                    .value();
-
-                // Once we have the reports that are missing actions we will find the intersection between the most
-                // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
-                // set to avoid making too many network requests at once.
-                const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
-                    .map(report => report.reportID)
-                    .reverse()
-                    .intersection(reportIDsWithMissingActions)
-                    .slice(0, 10)
-                    .value();
-
-                if (_.isEmpty(reportIDsToFetchActions)) {
-                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
-                    return;
-                }
-
-                Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
-                    reportIDs: reportIDsToFetchActions,
-                });
-                _.each(reportIDsToFetchActions, (reportID) => {
-                    const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
-                    fetchActions(reportID, offset);
-                });
-
-                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
-                // more requests and operations. Startup delay is longer since there is a lot more work done to build
-                // up the UI when the app first initializes.
-            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
         });
+}
+
+/**
+ * Creates an optimistic report with a randomly generated reportID and as much information as we currently have
+ *
+ * @param {Array} participantList
+ * @returns {Object}
+ */
+function createOptimisticReport(participantList) {
+    return {
+        chatType: '',
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat: false,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: undefined,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: '',
+        oldPolicyName: '',
+        ownerEmail: '__FAKE__',
+        participants: participantList,
+        policyID: '_FAKE_',
+        reportID: ReportUtils.generateReportID(),
+        reportName: 'Chat Report',
+        stateNum: 0,
+        statusNum: 0,
+        unreadActionCount: 0,
+        visibility: undefined,
+    };
 }
 
 /**
@@ -859,7 +827,7 @@ function buildOptimisticReportAction(reportID, text, file) {
             person: [
                 {
                     style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
                     type: 'TEXT',
                 },
             ],
@@ -868,7 +836,7 @@ function buildOptimisticReportAction(reportID, text, file) {
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
             clientID: optimisticReportActionID,
-            avatar: myPersonalDetails.avatar,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
             message: [
                 {
@@ -982,11 +950,6 @@ function addActions(reportID, text = '', file) {
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();
         parameters.timezone = JSON.stringify(timezone);
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-            value: {timezone},
-        });
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
@@ -1130,6 +1093,51 @@ function openReport(reportID) {
                 },
             }],
         });
+}
+
+/**
+ * Gets the older actions that have not been read yet.
+ * Normally happens when you scroll up on a chat, and the actions have not been read yet.
+ *
+ * @param {Number} reportID
+ * @param {Number} oldestActionSequenceNumber
+ */
+function readOldestAction(reportID, oldestActionSequenceNumber) {
+    API.read('ReadOldestAction',
+        {
+            reportID,
+            reportActionsOffset: oldestActionSequenceNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                value: true,
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                value: false,
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                value: false,
+            }],
+        });
+}
+
+/**
+ * Gets the IOUReport and the associated report actions.
+ *
+ * @param {Number} chatReportID
+ * @param {Number} iouReportID
+ */
+function openPaymentDetailsPage(chatReportID, iouReportID) {
+    API.read('OpenPaymentDetailsPage', {
+        reportID: chatReportID,
+        iouReportID,
+    });
 }
 
 /**
@@ -1642,11 +1650,13 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
-    fetchActionsWithLoadingState,
     createPolicyRoom,
     renameReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
+    readOldestAction,
     openReport,
+    openPaymentDetailsPage,
+    createOptimisticReport,
 };

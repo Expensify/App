@@ -34,7 +34,8 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -95,14 +96,9 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Primary login of the user */
-        login: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -112,7 +108,7 @@ const defaultProps = {
     reportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
-    myPersonalDetails: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class ReportActionCompose extends React.Component {
@@ -262,7 +258,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Array<object>}
      */
     getIOUOptions(reportParticipants) {
-        const participants = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email);
+        const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
         const iouOptions = [];
@@ -475,8 +471,9 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        const reportParticipants = lodashGet(this.props.report, 'participants', []);
-        const reportRecipient = this.props.personalDetails[reportParticipants[0]];
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
+        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
             && !this.props.isComposerFullSize;
@@ -672,7 +669,7 @@ class ReportActionCompose extends React.Component {
                     </View>
                 </View>
                 <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <OfflineIndicator />
+                    {!this.props.isSmallScreenWidth && <OfflineIndicator style={[styles.chatItemComposeSecondaryRowOffset]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
@@ -689,7 +686,9 @@ export default compose(
     withDrawerState,
     withNavigationFocus,
     withLocalize,
+    withNetwork(),
     withPersonalDetails(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -702,9 +701,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionCompose);

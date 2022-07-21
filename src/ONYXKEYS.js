@@ -46,9 +46,6 @@ export default {
     // Keeps track if there is modal currently visible or not
     MODAL: 'modal',
 
-    // Contains the personalDetails of the user as well as their timezone
-    MY_PERSONAL_DETAILS: 'myPersonalDetails',
-
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 
@@ -89,11 +86,11 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
-    // SDK token used to communicate with Plaid API
-    PLAID_LINK_TOKEN: 'plaidLinkToken',
+    // Plaid data (access tokens, bank accounts ...)
+    PLAID_DATA: 'plaidData',
 
-    // List of bank accounts returned by Plaid
-    PLAID_BANK_ACCOUNTS: 'plaidBankAccounts',
+    // Token needed to initialize Plaid link
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
 
     // Collection Keys
     COLLECTION: {
@@ -106,6 +103,7 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
+        IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions_',
     },
 
     // Indicates which locale should be used
@@ -138,6 +136,9 @@ export default {
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',
 
+    // Stores information about the active personal bank account being set up
+    PERSONAL_BANK_ACCOUNT: 'personalBankAccount',
+
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
@@ -161,9 +162,6 @@ export default {
 
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
-
-    // Are report actions loading?
-    IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
