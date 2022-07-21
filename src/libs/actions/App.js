@@ -10,7 +10,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import * as Report from './Report';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
@@ -92,19 +91,12 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- * @returns {Promise}
  */
 function getAppData() {
     User.getUserDetails();
     User.getBetas();
     User.getDomainInfo();
     BankAccounts.fetchUserWallet();
-
-    // We should update the syncing indicator when personal details and reports are both done fetching.
-    return Promise.all([
-        PersonalDetails.fetchPersonalDetails(),
-        Report.fetchAllReports(true),
-    ]);
 }
 
 /**
@@ -127,6 +119,26 @@ function getPolicyIDList(policies) {
 function openApp(policies) {
     API.read('OpenApp', {
         policyIDList: getPolicyIDList(policies),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
+            value: true,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 
@@ -136,6 +148,22 @@ function openApp(policies) {
 function reconnectApp() {
     API.read('ReconnectApp', {
         policyIDList: getPolicyIDList(allPolicies),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 
