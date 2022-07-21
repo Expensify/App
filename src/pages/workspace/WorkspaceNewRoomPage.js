@@ -20,7 +20,6 @@ import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
@@ -151,52 +150,50 @@ class WorkspaceNewRoomPage extends React.Component {
 
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('newRoomPage.newRoom')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <View style={styles.mb5}>
-                            <RoomNameInput
-                                policyID={this.state.policyID}
-                                errorText={this.state.errors.roomName}
-                                onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
-                            />
-                        </View>
-                        <View style={styles.mb5}>
-                            <Picker
-                                value={this.state.policyID}
-                                label={this.props.translate('workspace.common.workspace')}
-                                placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                                items={this.state.workspaceOptions}
-                                errorText={this.state.errors.policyID}
-                                onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
-                            />
-                        </View>
-                        <View style={styles.mb2}>
-                            <Picker
-                                value={this.state.visibility}
-                                label={this.props.translate('newRoomPage.visibility')}
-                                items={visibilityOptions}
-                                onInputChange={visibility => this.setState({visibility})}
-                            />
-                        </View>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
-                        </Text>
-                    </ScrollView>
-                    <FixedFooter>
-                        <Button
-                            isLoading={this.props.isLoadingCreatePolicyRoom}
-                            success
-                            pressOnEnter
-                            onPress={this.validateAndCreatePolicyRoom}
-                            style={[styles.w100]}
-                            text={this.props.translate('newRoomPage.createRoom')}
+                <HeaderWithCloseButton
+                    title={this.props.translate('newRoomPage.newRoom')}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <View style={styles.mb5}>
+                        <RoomNameInput
+                            policyID={this.state.policyID}
+                            errorText={this.state.errors.roomName}
+                            onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
                         />
-                    </FixedFooter>
-                </KeyboardAvoidingView>
+                    </View>
+                    <View style={styles.mb5}>
+                        <Picker
+                            value={this.state.policyID}
+                            label={this.props.translate('workspace.common.workspace')}
+                            placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
+                            items={this.state.workspaceOptions}
+                            errorText={this.state.errors.policyID}
+                            onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
+                        />
+                    </View>
+                    <View style={styles.mb2}>
+                        <Picker
+                            value={this.state.visibility}
+                            label={this.props.translate('newRoomPage.visibility')}
+                            items={visibilityOptions}
+                            onInputChange={visibility => this.setState({visibility})}
+                        />
+                    </View>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
+                    </Text>
+                </ScrollView>
+                <FixedFooter>
+                    <Button
+                        isLoading={this.props.isLoadingCreatePolicyRoom}
+                        success
+                        pressOnEnter
+                        onPress={this.validateAndCreatePolicyRoom}
+                        style={[styles.w100]}
+                        text={this.props.translate('newRoomPage.createRoom')}
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }

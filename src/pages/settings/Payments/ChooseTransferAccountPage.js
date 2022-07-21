@@ -5,7 +5,6 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import CONST from '../../../CONST';
 import PaymentMethodList from './PaymentMethodList';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -58,30 +57,28 @@ const ChooseTransferAccountPage = (props) => {
 
     return (
         <ScreenWrapper>
-            <KeyboardAvoidingView>
-                <HeaderWithCloseButton
-                    title={props.translate('chooseTransferAccountPage.chooseAccount')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+            <HeaderWithCloseButton
+                title={props.translate('chooseTransferAccountPage.chooseAccount')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
+                <PaymentMethodList
+                    onPress={selectAccountAndNavigateBack}
+                    shouldShowSelectedState
+                    filterType={props.walletTransfer.filterPaymentMethodType}
+                    selectedMethodID={props.walletTransfer.selectedAccountID}
+                    shouldShowAddPaymentMethodButton={false}
                 />
-                <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
-                    <PaymentMethodList
-                        onPress={selectAccountAndNavigateBack}
-                        shouldShowSelectedState
-                        filterType={props.walletTransfer.filterPaymentMethodType}
-                        selectedMethodID={props.walletTransfer.selectedAccountID}
-                        shouldShowAddPaymentMethodButton={false}
-                    />
-                </View>
-                <MenuItem
-                    onPress={navigateToAddPaymentMethodPage}
-                    title={props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-                        ? props.translate('paymentMethodList.addNewBankAccount')
-                        : props.translate('paymentMethodList.addNewDebitCard')}
-                    icon={Expensicons.Plus}
-                />
-            </KeyboardAvoidingView>
+            </View>
+            <MenuItem
+                onPress={navigateToAddPaymentMethodPage}
+                title={props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                    ? props.translate('paymentMethodList.addNewBankAccount')
+                    : props.translate('paymentMethodList.addNewDebitCard')}
+                icon={Expensicons.Plus}
+            />
         </ScreenWrapper>
     );
 };

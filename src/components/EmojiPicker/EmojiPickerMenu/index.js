@@ -98,6 +98,7 @@ class EmojiPickerMenu extends Component {
                 start: 0,
                 end: 0,
             },
+            isFocused: false,
         };
     }
 
@@ -388,7 +389,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        User.setPreferredSkinTone(skinTone);
+        User.updatePreferredSkinTone(skinTone);
     }
 
     /**
@@ -441,12 +442,14 @@ class EmojiPickerMenu extends Component {
                             placeholder={this.props.translate('common.search')}
                             placeholderTextColor={themeColors.textSupporting}
                             onChangeText={this.filterEmojis}
-                            style={styles.textInput}
+                            style={[styles.textInput, this.state.isFocused && styles.borderColorFocus]}
                             defaultValue=""
                             ref={el => this.searchInput = el}
                             autoFocus
                             selectTextOnFocus={this.state.selectTextOnFocus}
                             onSelectionChange={this.onSelectionChange}
+                            onFocus={() => this.setState({isFocused: true})}
+                            onBlur={() => this.setState({isFocused: false})}
                         />
                     </View>
                 )}

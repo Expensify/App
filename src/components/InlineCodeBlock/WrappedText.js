@@ -36,6 +36,10 @@ const defaultProps = {
 };
 
 const WrappedText = (props) => {
+    if (!_.isString(props.children)) {
+        return null;
+    }
+
     const textMatrix = getTextMatrix(props.children);
     return (
         <>

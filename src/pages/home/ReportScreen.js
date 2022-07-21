@@ -16,14 +16,12 @@ import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
-import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -67,6 +65,9 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Flag to check if report data is being loaded */
+    isLoadingInitialReportActions: PropTypes.bool,
+
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(PropTypes.shape({
         /** The policy name */
@@ -90,6 +91,7 @@ const defaultProps = {
     },
     isComposerFullSize: false,
     betas: [],
+    isLoadingInitialReportActions: false,
 };
 
 /**
@@ -113,13 +115,12 @@ class ReportScreen extends React.Component {
         this.viewportOffsetTop = this.updateViewportOffsetTop.bind(this);
 
         this.state = {
-            isLoading: true,
+            skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
         };
     }
 
     componentDidMount() {
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', this.viewportOffsetTop);
@@ -130,8 +131,6 @@ class ReportScreen extends React.Component {
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
-
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
     }
 
@@ -146,7 +145,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        Report.addAction(getReportID(this.props.route), text);
+        Report.addComment(getReportID(this.props.route), text);
     }
 
     /**
@@ -163,16 +162,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !getReportID(this.props.route);
-    }
-
-    /**
-     * Configures a small loading transition and proceeds with rendering available data
-     */
-    prepareTransition() {
-        this.setState({isLoading: true});
-        clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
+        return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
     }
 
     /**
@@ -195,14 +185,10 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
-        // For everyone else, one must be on the beta to see a default room.
-        const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(this.props.policies);
-        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(this.props.betas)) {
-            if (ReportUtils.isDomainRoom(this.props.report)) {
-                return null;
-            }
-        } else if (ReportUtils.isDefaultRoom(this.props.report) && !Permissions.canUseDefaultRooms(this.props.betas)) {
+        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        if (!Permissions.canUseDefaultRooms(this.props.betas)
+            && ReportUtils.isDefaultRoom(this.props.report)
+            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
             return null;
         }
 
@@ -217,21 +203,24 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
-                <KeyboardAvoidingView>
-                    <HeaderView
-                        reportID={reportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
+                <HeaderView
+                    reportID={reportID}
+                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                />
 
-                    <View
-                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    >
-                        {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
-                        {!this.shouldShowLoader() && (
+                <View
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                >
+                    {this.shouldShowLoader()
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={this.state.skeletonViewContainerHeight}
+                            />
+                        )
+                        : (
                             <ReportActionsView
                                 reportID={reportID}
                                 reportActions={this.props.reportActions}
@@ -240,7 +229,7 @@ class ReportScreen extends React.Component {
                                 isComposerFullSize={this.props.isComposerFullSize}
                             />
                         )}
-                        {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
                         <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             {
                                 isArchivedRoom
@@ -262,9 +251,8 @@ class ReportScreen extends React.Component {
                                     )
                             }
                         </View>
-                        )}
-                    </View>
-                </KeyboardAvoidingView>
+                    )}
+                </View>
             </ScreenWrapper>
         );
     }
@@ -292,6 +280,9 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    isLoadingInitialReportActions: {
+        key: ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS,
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
