@@ -68,8 +68,6 @@ function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone 
  * @returns {String}
  */
 function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
-    console.log({locale, timestamp, includeTimeZone})
-    debugger;
     const date = getLocalMomentFromTimestamp(locale, timestamp);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
