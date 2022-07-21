@@ -159,39 +159,37 @@ class TransferBalancePage extends React.Component {
         if (this.props.walletTransfer.shouldShowSuccess && !this.props.walletTransfer.loading) {
             return (
                 <ScreenWrapper>
-                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.transferBalance')}
-                            onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.transferBalance')}
+                        onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                    />
+                    <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <Icon
+                            src={Illustrations.TadaBlue}
+                            height={100}
+                            width={100}
+                            fill={defaultTheme.iconSuccessFill}
                         />
-                        <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <Icon
-                                src={Illustrations.TadaBlue}
-                                height={100}
-                                width={100}
-                                fill={defaultTheme.iconSuccessFill}
-                            />
-                            <View style={[styles.ph5]}>
-                                <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
-                                    {this.props.translate('transferAmountPage.transferSuccess')}
-                                </Text>
-                                <Text style={[styles.mt3, styles.textAlignCenter]}>
-                                    {this.props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-                                        ? this.props.translate('transferAmountPage.transferDetailBankAccount')
-                                        : this.props.translate('transferAmountPage.transferDetailDebitCard')}
-                                </Text>
-                            </View>
+                        <View style={[styles.ph5]}>
+                            <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
+                                {this.props.translate('transferAmountPage.transferSuccess')}
+                            </Text>
+                            <Text style={[styles.mt3, styles.textAlignCenter]}>
+                                {this.props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                                    ? this.props.translate('transferAmountPage.transferDetailBankAccount')
+                                    : this.props.translate('transferAmountPage.transferDetailDebitCard')}
+                            </Text>
                         </View>
-                        <FixedFooter>
-                            <Button
-                                text={this.props.translate('common.done')}
-                                onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
-                                style={[styles.mt4]}
-                                iconStyles={[styles.mr5]}
-                                success
-                            />
-                        </FixedFooter>
-                    </KeyboardAvoidingView>
+                    </View>
+                    <FixedFooter>
+                        <Button
+                            text={this.props.translate('common.done')}
+                            onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.mr5]}
+                            success
+                        />
+                    </FixedFooter>
                 </ScreenWrapper>
             );
         }
