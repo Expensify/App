@@ -433,19 +433,7 @@ class BasePaymentsPage extends React.Component {
                     shouldShowCancelButton
                     danger
                 />
-                <ConfirmModal
-                    title={this.props.translate('paymentsPage.allSet')}
-                    onConfirm={PaymentMethods.dismissWalletConfirmModal}
-                    isVisible={this.props.walletTransfer.shouldShowConfirmModal}
-                    prompt={this.props.translate('paymentsPage.transferConfirmText', {
-                        amount: this.props.numberFormat(
-                            this.props.walletTransfer.transferAmount / 100,
-                            {style: 'currency', currency: 'USD'},
-                        ),
-                    })}
-                    confirmText={this.props.translate('paymentsPage.gotIt')}
-                    shouldShowCancelButton={false}
-                />
+                <OfflineIndicator containerStyles={[styles.ml5, styles.mv3]} />
             </ScreenWrapper>
         );
     }

@@ -16,6 +16,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Optional styles for container element that will override the default styling for the offline indicator */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -26,6 +29,13 @@ const defaultProps = {
     containerStyles: [],
 };
 
+const setStyles = (containerStyles, isSmallScreenWidth) => {
+    if (containerStyles.length) {
+        return containerStyles;
+    }
+    return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
+};
+
 const OfflineIndicator = (props) => {
     if (!props.network.isOffline) {
         return null;
@@ -33,8 +43,7 @@ const OfflineIndicator = (props) => {
 
     return (
         <View style={[
-            ...props.containerStyles,
-            props.containerStyles.length === 0 ? (props.isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator) : [],
+            setStyles(props.containerStyles, props.isSmallScreenWidth),
             styles.flexRow,
             styles.alignItemsCenter]}
         >
