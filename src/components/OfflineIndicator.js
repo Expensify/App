@@ -37,7 +37,7 @@ const OfflineIndicator = (props) => {
     return (
         <View style={[
             ...props.containerStyles,
-            props.isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator,
+            props.containerStyles.length === 0 ? (props.isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator) : [],
             styles.flexRow,
             styles.alignItemsCenter]}
         >
