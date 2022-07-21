@@ -22,6 +22,9 @@ const propTypes = {
         PropTypes.object,
     ]),
 
+    /** Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
 };
 
