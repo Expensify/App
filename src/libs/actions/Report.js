@@ -1096,7 +1096,8 @@ function openReport(reportID) {
 }
 
 /**
- * Gets the actions from the oldest unread action.
+ * Gets the older actions that have not been read yet.
+ * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
  * @param {Number} reportID
  * @param {Number} oldestActionSequenceNumber
