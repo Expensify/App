@@ -525,7 +525,7 @@ function subscribeToPolicyEvents() {
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
                 _.each(policyExpenseChatIDs, (reportID) => {
-                    Report.fetchActions(reportID);
+                    Report.fetchInitialActions(reportID);
                 });
             }
 

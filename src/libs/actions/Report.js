@@ -721,15 +721,26 @@ function fetchActions(reportID, offset) {
 }
 
 /**
- * Get the actions of a report
+ * Get the actions of a report during pagination
  *
  * @param {Number} reportID
  * @param {Number} [offset]
  */
-function fetchActionsWithLoadingState(reportID, offset) {
-    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
+function fetchActionsWithPagination(reportID, offset) {
+    Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, true);
     fetchActions(reportID, offset)
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, false));
+}
+
+/**
+ * Get the initial actions of a report
+ *
+ * @param {Number} reportID
+ */
+function fetchInitialActions(reportID) {
+    Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, true);
+    fetchActions(reportID)
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, false));
 }
 
 /**
@@ -1658,7 +1669,6 @@ Onyx.connect({
 
 export {
     fetchAllReports,
-    fetchActions,
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
@@ -1683,7 +1693,8 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
-    fetchActionsWithLoadingState,
+    fetchActionsWithPagination,
+    fetchInitialActions,
     createPolicyRoom,
     renameReport,
     setIsComposerFullSize,
