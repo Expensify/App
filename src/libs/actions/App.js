@@ -2,6 +2,7 @@ import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -9,7 +10,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
@@ -31,6 +31,18 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: val => isSidebarLoaded = val,
     initWithStoredValues: false,
+});
+
+const allPolicies = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (val, key) => {
+        if (!val || !key) {
+            return;
+        }
+
+        allPolicies[key] = {...allPolicies[key], ...val};
+    },
 });
 
 /**
@@ -85,36 +97,47 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- *
- * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true) {
+function getAppData() {
     BankAccounts.fetchUserWallet();
-
-    if (shouldSyncPolicyList) {
-        Policy.getPolicyList();
-    }
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
     return Promise.all([
-        PersonalDetails.fetchPersonalDetails(),
         Report.fetchAllReports(true, true),
     ]);
 }
 
 /**
- * Fetches data needed for app initialization
+ * Gets a comma separated list of locally stored policy ids
+ *
+ * @param {Array} policies
+ * @return {String}
  */
-function openApp() {
-    API.read('OpenApp');
+function getPolicyIDList(policies) {
+    return _.chain(policies)
+        .filter(Boolean)
+        .map(policy => policy.id)
+        .join(',');
+}
+
+/**
+ * Fetches data needed for app initialization
+ * @param {Array} policies
+ */
+function openApp(policies) {
+    API.read('OpenApp', {
+        policyIDList: getPolicyIDList(policies),
+    });
 }
 
 /**
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp');
+    API.read('ReconnectApp', {
+        policyIDList: getPolicyIDList(allPolicies),
+    });
 }
 
 /**
@@ -128,7 +151,7 @@ function fixAccountAndReloadData() {
                 return;
             }
             Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-            getAppData(false);
+            getAppData();
         });
 }
 
@@ -159,7 +182,6 @@ function setUpPoliciesAndNavigate(session) {
     Linking.getInitialURL()
         .then((url) => {
             if (!url) {
-                Policy.getPolicyList();
                 return;
             }
             const path = new URL(url).pathname;
@@ -173,7 +195,6 @@ function setUpPoliciesAndNavigate(session) {
                 Policy.createAndGetPolicyList();
                 return;
             }
-            Policy.getPolicyList();
             if (!isLoggingInAsNewUser && exitTo) {
                 Navigation.isNavigationReady()
                     .then(() => {
@@ -187,7 +208,7 @@ function setUpPoliciesAndNavigate(session) {
 
 // When the app reconnects from being offline, fetch all initialization data
 NetworkConnection.onReconnect(() => {
-    getAppData(true);
+    getAppData();
     reconnectApp();
 });
 

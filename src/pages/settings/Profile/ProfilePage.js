@@ -19,7 +19,6 @@ import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
@@ -76,8 +75,8 @@ class ProfilePage extends Component {
             pronouns: this.props.currentUserPersonalDetails.pronouns,
             hasPronounError: false,
             hasSelfSelectedPronouns: !_.isEmpty(this.props.currentUserPersonalDetails.pronouns) && !this.props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            selectedTimezone: lodashGet(this.props.currentUserPersonalDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(this.props.currentUserPersonalDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
             avatar: {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))},
             isAvatarChanged: false,
@@ -219,99 +218,97 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('common.profile')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.profile')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <AvatarWithImagePicker
+                        isUploading={this.props.currentUserPersonalDetails.avatarUploading}
+                        isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
+                        avatarURL={this.state.avatar.uri}
+                        onImageSelected={this.updateAvatar}
+                        onImageRemoved={this.updateAvatar}
+                        anchorPosition={styles.createMenuPositionProfile}
+                        size={CONST.AVATAR_SIZE.LARGE}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <AvatarWithImagePicker
-                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
-                            isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
-                            avatarURL={this.state.avatar.uri}
-                            onImageSelected={this.updateAvatar}
-                            onImageRemoved={this.updateAvatar}
-                            anchorPosition={styles.createMenuPositionProfile}
-                            size={CONST.AVATAR_SIZE.LARGE}
+                    <Text style={[styles.mt6, styles.mb6]}>
+                        {this.props.translate('profilePage.tellUsAboutYourself')}
+                    </Text>
+                    <FullNameInputRow
+                        firstName={this.state.firstName}
+                        firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
+                        lastName={this.state.lastName}
+                        lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
+                        onChangeFirstName={firstName => this.setState({firstName})}
+                        onChangeLastName={lastName => this.setState({lastName})}
+                        style={[styles.mt4, styles.mb4]}
+                    />
+                    <View style={styles.mb6}>
+                        <Picker
+                            label={this.props.translate('profilePage.preferredPronouns')}
+                            onInputChange={(pronouns) => {
+                                const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                this.setState({
+                                    pronouns: hasSelfSelectedPronouns ? '' : pronouns,
+                                    hasSelfSelectedPronouns,
+                                });
+                            }}
+                            items={pronounsList}
+                            placeholder={{
+                                value: '',
+                                label: this.props.translate('profilePage.selectYourPronouns'),
+                            }}
+                            value={pronounsPickerValue}
                         />
-                        <Text style={[styles.mt6, styles.mb6]}>
-                            {this.props.translate('profilePage.tellUsAboutYourself')}
-                        </Text>
-                        <FullNameInputRow
-                            firstName={this.state.firstName}
-                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
-                            lastName={this.state.lastName}
-                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
-                            onChangeFirstName={firstName => this.setState({firstName})}
-                            onChangeLastName={lastName => this.setState({lastName})}
-                            style={[styles.mt4, styles.mb4]}
+                        {this.state.hasSelfSelectedPronouns && (
+                            <View style={styles.mt2}>
+                                <TextInput
+                                    value={this.state.pronouns}
+                                    onChangeText={pronouns => this.setState({pronouns})}
+                                    placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                    errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
+                                />
+                            </View>
+                        )}
+                    </View>
+                    <LoginField
+                        label={this.props.translate('profilePage.emailAddress')}
+                        type="email"
+                        login={this.state.logins.email}
+                    />
+                    <LoginField
+                        label={this.props.translate('common.phoneNumber')}
+                        type="phone"
+                        login={this.state.logins.phone}
+                    />
+                    <View style={styles.mb3}>
+                        <Picker
+                            label={this.props.translate('profilePage.timezone')}
+                            onInputChange={selectedTimezone => this.setState({selectedTimezone})}
+                            items={timezones}
+                            isDisabled={this.state.isAutomaticTimezone}
+                            value={this.state.selectedTimezone}
                         />
-                        <View style={styles.mb6}>
-                            <Picker
-                                label={this.props.translate('profilePage.preferredPronouns')}
-                                onInputChange={(pronouns) => {
-                                    const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
-                                    this.setState({
-                                        pronouns: hasSelfSelectedPronouns ? '' : pronouns,
-                                        hasSelfSelectedPronouns,
-                                    });
-                                }}
-                                items={pronounsList}
-                                placeholder={{
-                                    value: '',
-                                    label: this.props.translate('profilePage.selectYourPronouns'),
-                                }}
-                                value={pronounsPickerValue}
-                            />
-                            {this.state.hasSelfSelectedPronouns && (
-                                <View style={styles.mt2}>
-                                    <TextInput
-                                        value={this.state.pronouns}
-                                        onChangeText={pronouns => this.setState({pronouns})}
-                                        placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                        errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        <LoginField
-                            label={this.props.translate('profilePage.emailAddress')}
-                            type="email"
-                            login={this.state.logins.email}
-                        />
-                        <LoginField
-                            label={this.props.translate('common.phoneNumber')}
-                            type="phone"
-                            login={this.state.logins.phone}
-                        />
-                        <View style={styles.mb3}>
-                            <Picker
-                                label={this.props.translate('profilePage.timezone')}
-                                onInputChange={selectedTimezone => this.setState({selectedTimezone})}
-                                items={timezones}
-                                isDisabled={this.state.isAutomaticTimezone}
-                                value={this.state.selectedTimezone}
-                            />
-                        </View>
-                        <CheckboxWithLabel
-                            label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                            isChecked={this.state.isAutomaticTimezone}
-                            onInputChange={this.setAutomaticTimezone}
-                        />
-                    </ScrollView>
-                    <FixedFooter>
-                        <Button
-                            success
-                            isDisabled={isButtonDisabled}
-                            onPress={this.updatePersonalDetails}
-                            style={[styles.w100]}
-                            text={this.props.translate('common.save')}
-                            pressOnEnter
-                        />
-                    </FixedFooter>
-                </KeyboardAvoidingView>
+                    </View>
+                    <CheckboxWithLabel
+                        label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
+                        isChecked={this.state.isAutomaticTimezone}
+                        onInputChange={this.setAutomaticTimezone}
+                    />
+                </ScrollView>
+                <FixedFooter>
+                    <Button
+                        success
+                        isDisabled={isButtonDisabled}
+                        onPress={this.updatePersonalDetails}
+                        style={[styles.w100]}
+                        text={this.props.translate('common.save')}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }
