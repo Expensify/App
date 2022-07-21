@@ -10,6 +10,7 @@ import Text from './Text';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
@@ -45,7 +46,9 @@ const OfflineIndicator = (props) => {
         <View style={[
             setStyles(props.containerStyles, props.isSmallScreenWidth),
             styles.flexRow,
-            styles.alignItemsCenter]}
+            styles.alignItemsCenter,
+            ...StyleUtils.parseStyleAsArray(props.style),
+        ]}
         >
             <Icon
                 src={Expensicons.OfflineCloud}
