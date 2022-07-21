@@ -1,7 +1,10 @@
+import Onyx from 'react-native-onyx';
+import CONST from '../../src/CONST';
 import * as Session from '../../src/libs/actions/Session';
-import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
 import HttpUtils from '../../src/libs/HttpUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
+import * as ReportUtils from '../../src/libs/ReportUtils';
 
 /**
  * Simulate signing in and make sure all API calls in this flow succeed. Every time we add
@@ -52,32 +55,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 }
 
 /**
- * Fetch and set personal details with provided personalDetailsList
- *
- * @param {Number} accountID
- * @param {String} email
- * @param {Object} personalDetailsList
- * @returns {Promise}
- */
-function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) {
-    const originalXHR = HttpUtils.xhr;
-    HttpUtils.xhr = jest.fn();
-
-    HttpUtils.xhr
-        .mockImplementationOnce(() => Promise.resolve({
-            accountID,
-            email,
-            personalDetailsList,
-        }));
-
-    PersonalDetails.fetchPersonalDetails();
-    return waitForPromisesToResolve()
-        .then(() => {
-            HttpUtils.xhr = originalXHR;
-        });
-}
-
-/**
  * Use for situations where fetch() is required.
  *
  * @example
@@ -98,8 +75,34 @@ function getGlobalFetchMock() {
         });
 }
 
+/**
+ * @param {String} login
+ * @param {Number} accountID
+ * @returns {Promise}
+ */
+function setPersonalDetails(login, accountID) {
+    const avatar = ReportUtils.getDefaultAvatar(login);
+    const details = {
+        accountID,
+        login,
+        avatar,
+        displayName: 'Test User',
+        firstName: 'Test',
+        lastName: 'User',
+        pronouns: '',
+        timezone: CONST.DEFAULT_TIME_ZONE,
+        payPalMeAddress: '',
+        phoneNumber: '',
+        avatarHighResolution: avatar,
+    };
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+        [login]: details,
+    });
+    return waitForPromisesToResolve();
+}
+
 export {
     getGlobalFetchMock,
     signInWithTestUser,
-    fetchPersonalDetailsForTestUser,
+    setPersonalDetails,
 };
