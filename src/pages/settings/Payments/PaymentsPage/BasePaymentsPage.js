@@ -434,7 +434,7 @@ class BasePaymentsPage extends React.Component {
                     shouldShowCancelButton
                     danger
                 />
-               <OfflineIndicator containerStyles={[styles.ml5, styles.mv3]} />
+                <OfflineIndicator containerStyles={[styles.ml5, styles.mv3]} />
             </ScreenWrapper>
         );
     }
