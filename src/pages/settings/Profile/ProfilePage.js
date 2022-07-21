@@ -95,12 +95,6 @@ class ProfilePage extends Component {
             stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
         }
 
-        // Update avatar in state if changed in props
-        const newAvatar = lodashGet(this.props.currentUserPersonalDetails, 'avatar');
-        if (newAvatar !== lodashGet(prevProps.currentUserPersonalDetails, 'avatar')) {
-            stateToUpdate = {...stateToUpdate, avatar: {uri: newAvatar}};
-        }
-
         if (_.isEmpty(stateToUpdate)) {
             return;
         }
@@ -164,6 +158,7 @@ class ProfilePage extends Component {
      */
     removeAvatar() {
         PersonalDetails.deleteAvatar();
+        this.setState({avatar: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)});
     }
 
     /**
