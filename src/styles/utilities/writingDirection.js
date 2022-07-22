@@ -6,7 +6,7 @@
  */
 export default {
     rtl: {
-        writingDirection: 'ltr',
+        writingDirection: 'rtl',
     },
     ltr: {
         writingDirection: 'ltr',
