@@ -14,6 +14,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
@@ -30,16 +31,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc */
-        cardName: PropTypes.string,
-
-        /** The masked credit card number */
-        cardNumber: PropTypes.string,
-
-        /** The ID of the card in the cards DB */
-        cardID: PropTypes.number,
-    })),
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
