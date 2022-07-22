@@ -1,4 +1,4 @@
-import { Linking } from 'react-native';
+import {Linking} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -114,7 +114,7 @@ function getMaxSequenceNumber(reportID) {
  * @param {Object} report
  * @return {String[]}
  */
-function getParticipantEmailsFromReport({ sharedReportList, reportNameValuePairs, ownerEmail }) {
+function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
     const emailArray = _.map(sharedReportList, participant => participant.email);
     if (ReportUtils.isChatRoom(reportNameValuePairs)) {
         return emailArray;
@@ -302,9 +302,9 @@ function fetchIOUReportID(debtorEmail) {
 function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
-    return DeprecatedAPI.GetReportSummaryList({ reportIDList: chatList.join(',') })
-        .then(({ reportSummaryList, jsonCode }) => {
-            Log.info('[Report] successfully fetched report data', false, { chatList });
+    return DeprecatedAPI.GetReportSummaryList({reportIDList: chatList.join(',')})
+        .then(({reportSummaryList, jsonCode}) => {
+            Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
 
             // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
@@ -476,14 +476,14 @@ function subscribeToUserEvents() {
     // Live-update a report's actions when an 'edit comment' event is received.
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
         currentUserAccountID,
-        ({ reportID, sequenceNumber, message }) => {
+        ({reportID, sequenceNumber, message}) => {
             // We only want the active client to process these events once otherwise multiple tabs would decrement the 'unreadActionCount'
             if (!ActiveClientManager.isClientTheLeader()) {
                 return;
             }
 
             const actionsToMerge = {};
-            actionsToMerge[sequenceNumber] = { message: [message] };
+            actionsToMerge[sequenceNumber] = {message: [message]};
 
             // If someone besides the current user deleted an action and the sequenceNumber is greater than our last read we will decrement the unread count
             // we skip this for the current user because we should already have decremented the count optimistically when they deleted the comment.
@@ -505,13 +505,13 @@ function subscribeToUserEvents() {
  * Setup reportComment push notification callbacks.
  */
 function subscribeToReportCommentPushNotifications() {
-    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({ reportID, onyxData }) => {
-        Log.info('[Report] Handled event sent by Airship', false, { reportID });
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, onyxData}) => {
+        Log.info('[Report] Handled event sent by Airship', false, {reportID});
         Onyx.update(onyxData);
     });
 
     // Open correct report when push notification is clicked
-    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({ reportID }) => {
+    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
         if (Navigation.canNavigate('navigate')) {
             // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
             if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
@@ -541,7 +541,7 @@ function getNormalizedTypingStatus(typingStatus) {
     let normalizedTypingStatus = typingStatus;
 
     if (_.first(_.keys(typingStatus)) === 'userLogin') {
-        normalizedTypingStatus = { [typingStatus.userLogin]: true };
+        normalizedTypingStatus = {[typingStatus.userLogin]: true};
     }
 
     return normalizedTypingStatus;
@@ -588,7 +588,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, { errorType: error.type, pusherChannelName });
+            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
         });
 }
 
@@ -938,7 +938,7 @@ function addActions(reportID, text = '', file) {
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
-            value: { [currentUserEmail]: timezone },
+            value: {[currentUserEmail]: timezone},
         });
         DateUtils.setTimezoneUpdated();
     }
@@ -998,7 +998,7 @@ function deleteReportComment(reportID, reportAction) {
     // Optimistic Response
     const sequenceNumber = reportAction.sequenceNumber;
     const reportActionsToMerge = {};
-    const oldMessage = { ...reportAction.message };
+    const oldMessage = {...reportAction.message};
     reportActionsToMerge[sequenceNumber] = {
         ...reportAction,
         message: [
@@ -1191,14 +1191,14 @@ function togglePinnedState(report) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: { isPinned: pinnedValue },
+            value: {isPinned: pinnedValue},
         },
     ];
 
     API.write('TogglePinnedChat', {
         reportID: report.reportID,
         pinnedValue,
-    }, { optimisticData });
+    }, {optimisticData});
 }
 
 /**
@@ -1288,7 +1288,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
-    const htmlForNewComment = parser.replace(textForNewComment, { filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink') });
+    const htmlForNewComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
@@ -1303,7 +1303,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Optimistically update the report action with the new message
     const sequenceNumber = originalReportAction.sequenceNumber;
-    const newReportAction = { ...originalReportAction };
+    const newReportAction = {...originalReportAction};
     const actionToMerge = {};
     newReportAction.message[0].isEdited = true;
     newReportAction.message[0].html = htmlForNewComment;
@@ -1383,17 +1383,17 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: { notificationPreference: newValue },
+            value: {notificationPreference: newValue},
         },
     ];
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: { notificationPreference: previousValue },
+            value: {notificationPreference: previousValue},
         },
     ];
-    API.write('UpdateReportNotificationPreference', { reportID, notificationPreference: newValue }, { optimisticData, failureData });
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
 }
 
 /**
@@ -1426,7 +1426,7 @@ function handleInaccessibleReport() {
  */
 function createPolicyRoom(policyID, reportName, visibility) {
     Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
-    return DeprecatedAPI.CreatePolicyRoom({ policyID, reportName, visibility })
+    return DeprecatedAPI.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
@@ -1458,7 +1458,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  */
 function renameReport(reportID, reportName) {
     Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
-    DeprecatedAPI.RenameReport({ reportID, reportName })
+    DeprecatedAPI.RenameReport({reportID, reportName})
         .then((response) => {
             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
@@ -1473,7 +1473,7 @@ function renameReport(reportID, reportName) {
             Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
 
             // Update the report name so that the LHN and header display the updated name
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, { reportName });
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
         })
         .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
 }
