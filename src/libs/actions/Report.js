@@ -690,9 +690,9 @@ function fetchActionsWithPagination(reportID, offset) {
  * @param {Number} reportID
  */
 function fetchInitialActions(reportID) {
-    Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, true);
+    Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, true);
     fetchActions(reportID)
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS, false));
+        .finally(() => Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, false));
 }
 
 /**
