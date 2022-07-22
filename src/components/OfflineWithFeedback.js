@@ -13,6 +13,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import colors from '../styles/colors';
+import variables from '../styles/variables';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -70,12 +71,13 @@ function applyStrikeThrough(children) {
 }
 
 const OfflineWithFeedback = (props) => {
+    const hasErrors = !_.isEmpty(props.errors);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
-    const isUpdateOrDeleteError = props.errors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
-    const isAddError = props.errors && props.pendingAction === 'add';
+    const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
+    const isAddError = hasErrors && props.pendingAction === 'add';
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
-    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !props.errors;
+    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
     const sortedErrors = _.chain(props.errors)
         .keys()
@@ -94,10 +96,10 @@ const OfflineWithFeedback = (props) => {
                     {children}
                 </View>
             )}
-            {props.errors && (
+            {hasErrors && (
                 <View style={styles.offlineFeedback.error}>
                     <View style={styles.offlineFeedback.errorDot}>
-                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={16} width={16} />
+                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>
                     <View style={styles.offlineFeedback.textContainer}>
                         {_.map(sortedErrors, (error, i) => (
