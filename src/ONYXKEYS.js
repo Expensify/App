@@ -103,7 +103,8 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions_',
+        IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions_',
+        IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions_',
     },
 
     // Indicates which locale should be used
@@ -162,12 +163,6 @@ export default {
 
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
-
-    // Are report actions loading?
-    IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions',
-
-    // Are report actions loading with pagination?
-    IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions',
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
