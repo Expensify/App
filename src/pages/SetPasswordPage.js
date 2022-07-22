@@ -122,11 +122,12 @@ class SetPasswordPage extends Component {
                     welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
                 >
                     <View style={[styles.mb4]}>
+                        {/* The prop onSubmitEditing is required, but it needs to stay as a no-op because the form is submitted and validated from the button below */}
                         <NewPasswordForm
+                            onSubmitEditing={() => {}}
                             password={this.state.password}
                             updatePassword={password => this.setState({password})}
                             updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                            onSubmitEditing={this.validateAndSubmitForm}
                         />
                     </View>
                     <View>

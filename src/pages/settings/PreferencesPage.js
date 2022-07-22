@@ -12,7 +12,6 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -30,7 +29,7 @@ const propTypes = {
     /** The details about the user that is signed in */
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
-        expensifyNewsStatus: PropTypes.bool,
+        isSubscribedToNewsletter: PropTypes.bool,
         shouldUseSecureStaging: PropTypes.bool,
     }),
 
@@ -78,8 +77,8 @@ const PreferencesPage = (props) => {
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
-                                isOn={lodashGet(props.user, 'expensifyNewsStatus', true)}
-                                onToggle={User.setExpensifyNewsStatus}
+                                isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
+                                onToggle={User.updateNewsletterSubscription}
                             />
                         </View>
                     </View>
@@ -87,7 +86,7 @@ const PreferencesPage = (props) => {
                         <Picker
                             label={props.translate('preferencesPage.priorityMode')}
                             onInputChange={
-                                mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
+                                mode => User.updateChatPriorityMode(mode)
                             }
                             items={_.values(priorityModes)}
                             value={props.priorityMode}
@@ -101,7 +100,7 @@ const PreferencesPage = (props) => {
                     </View>
 
                     {/* If we are in the staging environment then we enable additional test features */}
-                    {props.environment === CONST.ENVIRONMENT.STAGING && <TestToolMenu />}
+                    {_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment) && <TestToolMenu />}
                 </View>
             </ScrollView>
         </ScreenWrapper>

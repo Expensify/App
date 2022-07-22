@@ -461,9 +461,26 @@ test(`persisted request should be retried up to ${CONST.NETWORK.MAX_REQUEST_RETR
         });
 });
 
-test('test bad response will log alert', () => {
+test('test Bad Gateway status will log hmmm', () => {
     global.fetch = jest.fn()
         .mockResolvedValueOnce({ok: false, status: 502, statusText: 'Bad Gateway'});
+
+    const logHmmmSpy = jest.spyOn(Log, 'hmmm');
+
+    // Given we have a request made while online
+    return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        .then(() => {
+            Network.post('MockBadNetworkResponse', {param1: 'value1'});
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            expect(logHmmmSpy).toHaveBeenCalled();
+        });
+});
+
+test('test unknown status will log alert', () => {
+    global.fetch = jest.fn()
+        .mockResolvedValueOnce({ok: false, status: 418, statusText: 'I\'m a teapot'});
 
     const logAlertSpy = jest.spyOn(Log, 'alert');
 
@@ -626,7 +643,7 @@ test('Sequential queue will succeed if triggered while reauthentication via main
     })
         .then(() => {
             // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
-            Network.post('Push_Authenticate', {content: 'value1'});
+            Network.post('AuthenticatePusher', {content: 'value1'});
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
             expect(NetworkStore.isOffline()).toBe(false);
             expect(NetworkStore.isAuthenticating()).toBe(false);
@@ -661,9 +678,9 @@ test('Sequential queue will succeed if triggered while reauthentication via main
             // We are not offline anymore
             expect(NetworkStore.isOffline()).toBe(false);
 
-            // First call to xhr is the Push_Authenticate request that could not call Authenticate because we went offline
+            // First call to xhr is the AuthenticatePusher request that could not call Authenticate because we went offline
             const [firstCommand] = xhr.mock.calls[0];
-            expect(firstCommand).toBe('Push_Authenticate');
+            expect(firstCommand).toBe('AuthenticatePusher');
 
             // Second call to xhr is the MockCommand that also failed with a 407
             const [secondCommand] = xhr.mock.calls[1];

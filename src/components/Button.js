@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import {withNavigationFocus} from '@react-navigation/compat';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -15,6 +14,7 @@ import withNavigationFallback from './withNavigationFallback';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
+import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** The text for the button label */
@@ -159,6 +159,7 @@ class Button extends Component {
             if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
+            e.preventDefault();
             this.props.onPress();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
@@ -233,6 +234,10 @@ class Button extends Component {
         return (
             <Pressable
                 onPress={(e) => {
+                    if (e && e.type === 'click') {
+                        e.currentTarget.blur();
+                    }
+
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.trigger();
                     }
@@ -253,36 +258,39 @@ class Button extends Component {
                 ]}
                 nativeID={this.props.nativeID}
             >
-                {({pressed, hovered}) => (
-                    <OpacityView
-                        shouldDim={pressed}
-                        style={[
-                            styles.button,
-                            this.props.small ? styles.buttonSmall : undefined,
-                            this.props.medium ? styles.buttonMedium : undefined,
-                            this.props.large ? styles.buttonLarge : undefined,
-                            this.props.extraLarge ? styles.buttonExtraLarge : undefined,
-                            this.props.success ? styles.buttonSuccess : undefined,
-                            this.props.danger ? styles.buttonDanger : undefined,
-                            (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
-                            (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
-                            (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
-                            (this.props.success && hovered) ? styles.buttonSuccessHovered : undefined,
-                            (this.props.danger && hovered) ? styles.buttonDangerHovered : undefined,
-                            this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                            this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                            ...this.props.innerStyles,
-                        ]}
-                    >
-                        {this.renderContent()}
-                        {this.props.isLoading && (
-                            <ActivityIndicator
-                                color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
-                                style={[styles.pAbsolute, styles.l0, styles.r0]}
-                            />
-                        )}
-                    </OpacityView>
-                )}
+                {({pressed, hovered}) => {
+                    const activeAndHovered = !this.props.isDisabled && hovered;
+                    return (
+                        <OpacityView
+                            shouldDim={pressed}
+                            style={[
+                                styles.button,
+                                this.props.small ? styles.buttonSmall : undefined,
+                                this.props.medium ? styles.buttonMedium : undefined,
+                                this.props.large ? styles.buttonLarge : undefined,
+                                this.props.extraLarge ? styles.buttonExtraLarge : undefined,
+                                this.props.success ? styles.buttonSuccess : undefined,
+                                this.props.danger ? styles.buttonDanger : undefined,
+                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
+                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
+                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
+                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
+                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
+                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                                ...this.props.innerStyles,
+                            ]}
+                        >
+                            {this.renderContent()}
+                            {this.props.isLoading && (
+                                <ActivityIndicator
+                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
+                                />
+                            )}
+                        </OpacityView>
+                    );
+                }}
             </Pressable>
         );
     }
