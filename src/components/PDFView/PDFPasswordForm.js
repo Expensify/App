@@ -98,7 +98,7 @@ class PDFPasswordForm extends Component {
 
     render() {
         const containerStyles = this.props.isSmallScreenWidth
-            ? [styles.p5, styles.w100, styles.h100]
+            ? [styles.p5, styles.w100]
             : styles.pdfPasswordForm.wideScreen;
 
         return (
