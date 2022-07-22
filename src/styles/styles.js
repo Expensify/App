@@ -2384,6 +2384,10 @@ const styles = {
         container: {
             ...spacing.pv2,
         },
+        textContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
         text: {
             color: themeColors.textSupporting,
             flex: 1,

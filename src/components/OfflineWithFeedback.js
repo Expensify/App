@@ -77,7 +77,11 @@ const OfflineWithFeedback = (props) => {
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !props.errors;
     let children = props.children;
-    const sortedErrors = _.map(_.sortBy(_.keys(props.errors)), key => props.errors[key]);
+    const sortedErrors = _.chain(props.errors)
+        .keys()
+        .sortBy()
+        .map(key => props.errors[key])
+        .value();
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
@@ -95,9 +99,9 @@ const OfflineWithFeedback = (props) => {
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={16} width={16} />
                     </View>
-                    <View style={{flexDirection: 'column', alignItems: 'center', flex: 1}}>
-                        {_.map(sortedErrors, error => (
-                            <Text style={styles.offlineFeedback.text}>{error}</Text>
+                    <View style={styles.offlineFeedback.textContainer}>
+                        {_.map(sortedErrors, (error, i) => (
+                            <Text key={i} style={styles.offlineFeedback.text}>{error}</Text>
                         ))}
                     </View>
                     <Tooltip text={props.translate('common.close')}>
