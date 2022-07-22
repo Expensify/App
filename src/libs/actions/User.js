@@ -230,7 +230,7 @@ function validateLogin(accountID, validateCode) {
                 },
             },
         ],
-       successData: [
+        successData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
@@ -239,7 +239,7 @@ function validateLogin(accountID, validateCode) {
                 },
             },
         ],
-        failureData : [
+        failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
@@ -247,7 +247,7 @@ function validateLogin(accountID, validateCode) {
                     isLoading: false,
                 },
             },
-        ]
+        ],
     });
     Navigation.navigate(redirectRoute);
 }
