@@ -68,6 +68,15 @@ const propTypes = {
 
     /** Flag to check if report data is being loaded */
     isLoadingInitialReportActions: PropTypes.bool,
+
+    /** The policies which the user has access to */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+    })).isRequired,
 };
 
 const defaultProps = {
@@ -192,7 +201,7 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1]}>
+            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <HeaderView
                     reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
@@ -216,6 +225,7 @@ class ReportScreen extends React.Component {
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
+                                isComposerFullSize={this.props.isComposerFullSize}
                             />
                         )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
