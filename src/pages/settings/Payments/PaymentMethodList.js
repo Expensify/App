@@ -212,7 +212,7 @@ class PaymentMethodList extends Component {
                                         icon={Expensicons.CreditCard}
                                         onPress={e => this.props.onPress(e)}
                                         isDisabled={this.props.isLoadingPayments || isOffline}
-                                        style={[styles.mh4]}
+                                        style={[styles.mh4, styles.mb4]}
                                         iconStyles={[styles.mr4]}
                                         success
                                         shouldShowRightIcon
