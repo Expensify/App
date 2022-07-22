@@ -290,6 +290,7 @@ export default withOnyx({
         key: ONYXKEYS.BETAS,
     },
     isLoadingInitialReportActions: {
-        key: ONYXKEYS.IS_LOADING_INITIAL_REPORT_ACTIONS,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${getReportID(route)}`,
+        initWithStoredValues: false,
     },
 })(ReportScreen);
