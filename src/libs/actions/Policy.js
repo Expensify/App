@@ -190,7 +190,7 @@ function deletePolicy(policyID) {
             // Removing the workspace data from Onyx as well
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
         })
-        .then(() => Report.fetchAllReports(false, true))
+        .then(() => Report.fetchAllReports(false))
         .then(() => {
             Navigation.goBack();
             return Promise.resolve();
