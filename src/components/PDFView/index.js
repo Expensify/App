@@ -70,7 +70,6 @@ class PDFView extends Component {
      * @param {String} password Password to send via callback to react-pdf
      */
     attemptPdfLoad(password) {
-        this.setState({isPasswordInvalid: false});
         this.onPasswordCallback(password);
     }
 
