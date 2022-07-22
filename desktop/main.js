@@ -36,9 +36,8 @@ contextMenu({
     append: (defaultActions, parameters) => [
         new MenuItem({
             visible: parameters.isEditable,
-            label: 'Paste and Match Style',
             role: 'pasteAndMatchStyle',
-            accelerator: 'Cmd+Shift+V',
+            accelerator: 'CmdOrCtrl+Shift+V',
         }),
     ],
 });
@@ -214,10 +213,9 @@ const mainWindow = (() => {
 
             // Register the Paste and Match Style command.
             const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
-            editMenu.submenu.insert(2, new MenuItem({
-                label: 'Paste and Match Style',
+            editMenu.submenu.insert(6, new MenuItem({
                 role: 'pasteAndMatchStyle',
-                accelerator: 'Cmd+Shift+V',
+                accelerator: 'CmdOrCtrl+Shift+V',
             }));
 
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
