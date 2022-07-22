@@ -5,7 +5,7 @@ import SkeletonViewContentLoader from 'react-content-loader/native';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** Number of rows to show in Skeletal UI block */
+    /** Number of rows to show in Skeleton UI block */
     numberOfRows: PropTypes.number.isRequired,
 };
 
@@ -14,10 +14,10 @@ const SkeletonViewLines = props => (
         height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[props.numberOfRows]}
     >
         <Circle cx="40" cy="26" r="20" />
-        <Rect x="70" y="11" width="20%" height="8" />
-        <Rect x="70" y="31" width="90%" height="8" />
-        {props.numberOfRows > 1 && <Rect x="70" y="51" width="50%" height="8" />}
-        {props.numberOfRows > 2 && <Rect x="70" y="71" width="50%" height="8" />}
+        <Rect x="67" y="11" width="20%" height="8" />
+        <Rect x="67" y="31" width="90%" height="8" />
+        {props.numberOfRows > 1 && <Rect x="67" y="51" width="50%" height="8" />}
+        {props.numberOfRows > 2 && <Rect x="67" y="71" width="50%" height="8" />}
     </SkeletonViewContentLoader>
 );
 
