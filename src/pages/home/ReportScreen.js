@@ -1,7 +1,7 @@
 import React from 'react';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import { Keyboard, View } from 'react-native';
+import {Keyboard, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
@@ -67,6 +67,7 @@ const propTypes = {
 
     /** Flag to check if report data is being loaded */
     isLoadingInitialReportActions: PropTypes.bool,
+
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(PropTypes.shape({
         /** The policy name */
@@ -152,7 +153,7 @@ class ReportScreen extends React.Component {
      */
     updateViewportOffsetTop(e) {
         const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-        this.setState({ viewportOffsetTop });
+        this.setState({viewportOffsetTop});
     }
 
     /**
@@ -203,7 +204,7 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, { marginTop: this.state.viewportOffsetTop }]}>
+            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <HeaderView
                     reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
@@ -212,7 +213,7 @@ class ReportScreen extends React.Component {
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    onLayout={event => this.setState({ skeletonViewContainerHeight: event.nativeEvent.layout.height })}
+                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
                     {this.shouldShowLoader()
                         ? (
@@ -226,6 +227,7 @@ class ReportScreen extends React.Component {
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
+                                isComposerFullSize={this.props.isComposerFullSize}
                             />
                         )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
@@ -268,14 +270,14 @@ export default withOnyx({
         key: ONYXKEYS.SESSION,
     },
     reportActions: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
         canEvict: false,
     },
     report: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
     },
     isComposerFullSize: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
     },
     betas: {
         key: ONYXKEYS.BETAS,
