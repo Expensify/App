@@ -225,8 +225,7 @@ class EmojiPickerMenu extends Component {
      * @param {String} arrowKey
      */
     highlightAdjacentEmoji(arrowKey) {
-        // Do nothing if there are no emojis to highlight
-        if (!this.state.filteredEmojis.length) {
+        if (this.state.filteredEmojis.length === 0) {
             return;
         }
 
