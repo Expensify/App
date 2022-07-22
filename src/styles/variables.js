@@ -64,6 +64,10 @@ export default {
     tooltipzIndex: 10050,
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
+    minHeightToShowGraphics: 854, // Login form layout breaks below this height due to insufficient space to show the form and graphics
+    optionRowHeight: 64,
+    optionRowHeightCompact: 52,
+    optionsListSectionHeaderHeight: 54,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
@@ -73,8 +77,4 @@ export default {
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 22),
-    minHeightToShowGraphics: 854, // Login form layout breaks below this height due to insufficient space to show the form and graphics
-    optionRowHeight: 64,
-    optionRowHeightCompact: 52,
-    optionsListSectionHeaderHeight: 54,
 };

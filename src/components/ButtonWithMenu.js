@@ -21,7 +21,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Menu options to display */
-    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}, {text: 'Venmo', icon: Venmo}] */
+    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}] */
     options: PropTypes.arrayOf(PropTypes.shape({
         value: PropTypes.string.isRequired,
         text: PropTypes.string.isRequired,
