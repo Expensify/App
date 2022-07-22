@@ -124,6 +124,7 @@ const OfflineWithFeedback = (props) => {
 
 OfflineWithFeedback.propTypes = propTypes;
 OfflineWithFeedback.defaultProps = defaultProps;
+OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default compose(
     withLocalize,
