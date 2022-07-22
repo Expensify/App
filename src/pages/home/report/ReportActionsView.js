@@ -414,22 +414,26 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <FloatingMessageCounter
-                    active={this.state.isFloatingMessageCounterVisible}
-                    count={this.state.messageCounterCount}
-                    onClick={this.scrollToBottomAndUpdateLastRead}
-                    onClose={this.hideFloatingMessageCounter}
-                />
-                <ReportActionsList
-                    report={this.props.report}
-                    onScroll={this.trackScroll}
-                    onLayout={this.recordTimeToMeasureItemLayout}
-                    sortedReportActions={this.sortedReportActions}
-                    mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                    isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
-                    loadMoreChats={this.loadMoreChats}
-                />
-                <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                {!this.props.isComposerFullSize && (
+                    <>
+                        <FloatingMessageCounter
+                            active={this.state.isFloatingMessageCounterVisible}
+                            count={this.state.messageCounterCount}
+                            onClick={this.scrollToBottomAndMarkReportAsRead}
+                            onClose={this.hideFloatingMessageCounter}
+                        />
+                        <ReportActionsList
+                            report={this.props.report}
+                            onScroll={this.trackScroll}
+                            onLayout={this.recordTimeToMeasureItemLayout}
+                            sortedReportActions={this.sortedReportActions}
+                            mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                            isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
+                            loadMoreChats={this.loadMoreChats}
+                        />
+                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    </>
+                )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>
@@ -451,7 +455,7 @@ export default compose(
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         isLoadingMoreReportActions: {
-            key: ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
             initWithStoredValues: false,
         },
     }),
