@@ -39,7 +39,7 @@ const AvatarWithIndicator = (props) => {
         styles.avatarWithIndicator.errorDot,
     ];
     const isLarge = props.size === 'large';
-    const hasError = _.chain(props.policiesMemberList).flatten().some(member => !_.isEmpty(member.erros)).value();
+    const hasError = _.chain(props.policiesMemberList).flatten().some(member => !_.isEmpty(member.errors)).value();
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
