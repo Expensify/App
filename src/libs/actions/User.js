@@ -13,7 +13,6 @@ import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
-import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
@@ -51,21 +50,21 @@ function updatePassword(oldPassword, password) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
             },
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {loading: false},
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {loading: false},
             },
@@ -90,16 +89,6 @@ function closeAccount(message) {
 
         // Inform user that they are currently unable to close their account
         CloseAccountActions.showCloseAccountModal();
-    });
-}
-
-function getBetas() {
-    DeprecatedAPI.User_GetBetas().then((response) => {
-        if (response.jsonCode !== 200) {
-            return;
-        }
-
-        Onyx.set(ONYXKEYS.BETAS, response.betas);
     });
 }
 
@@ -161,14 +150,14 @@ function updateNewsletterSubscription(isSubscribed) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: isSubscribed},
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: !isSubscribed},
             },
@@ -268,13 +257,37 @@ function isBlockedFromConcierge(blockedFromConcierge) {
 }
 
 /**
- * Fetch whether the user has the Expensify card enabled.
+ * Adds a paypal.me address for the user
+ *
+ * @param {String} address
  */
-function getDomainInfo() {
-    DeprecatedAPI.User_IsUsingExpensifyCard()
-        .then(({isUsingExpensifyCard}) => {
-            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-        });
+function addPaypalMeAddress(address) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            value: address,
+        },
+    ];
+    API.write('AddPaypalMeAddress', {
+        value: address,
+    }, {optimisticData});
+}
+
+/**
+ * Deletes a paypal.me address for the user
+ *
+ */
+function deletePaypalMeAddress() {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            value: '',
+        },
+    ];
+    API.write('DeletePaypalMeAddress', {}, {optimisticData});
+    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 /**
@@ -361,16 +374,51 @@ function subscribeToExpensifyCardUpdates() {
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
-function setPreferredSkinTone(skinTone) {
-    NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+function updatePreferredSkinTone(skinTone) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            value: skinTone,
+        },
+    ];
+    API.write('UpdatePreferredEmojiSkinTone', {
+        value: skinTone,
+    }, {optimisticData});
 }
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
  * @param {Object[]} frequentlyUsedEmojis
  */
-function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
-    NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+            value: frequentlyUsedEmojis,
+        },
+    ];
+    API.write('UpdateFrequentlyUsedEmojis', {
+        value: JSON.stringify(frequentlyUsedEmojis),
+    }, {optimisticData});
+}
+
+/**
+ * Sync user chat priority mode with Onyx and Server
+ * @param {String} mode
+ */
+function updateChatPriorityMode(mode) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+            value: mode,
+        },
+    ];
+    API.write('UpdateChatPriorityMode', {
+        value: mode,
+    }, {optimisticData});
 }
 
 /**
@@ -424,21 +472,22 @@ function generateStatementPDF(period) {
 export {
     updatePassword,
     closeAccount,
-    getBetas,
     getUserDetails,
     resendValidateCode,
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
-    getDomainInfo,
     subscribeToUserEvents,
-    setPreferredSkinTone,
+    updatePreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
-    setFrequentlyUsedEmojis,
+    updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
+    deletePaypalMeAddress,
+    addPaypalMeAddress,
+    updateChatPriorityMode,
 };
