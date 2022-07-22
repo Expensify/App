@@ -10,9 +10,9 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
-import ROUTES from '../../ROUTES';
 import * as User from './User';
 import * as store from './ReimbursementAccount/store';
+import ROUTES from '../../ROUTES';
 
 /**
  * Deletes a debit card
@@ -215,21 +215,42 @@ function transferWalletBalance(paymentMethod) {
         : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
     const parameters = {
         [paymentMethodIDKey]: paymentMethod.methodID,
+        shouldReturnOnyxData: true,
     };
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
-    DeprecatedAPI.TransferWalletBalance(parameters)
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-            Onyx.merge(ONYXKEYS.USER_WALLET, {currentBalance: 0});
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
-            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        }).catch(() => {
-            Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
-        });
+    API.write('TransferWalletBalance', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {
+                    loading: true,
+                    error: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {
+                    loading: false,
+                    shouldShowSuccess: true,
+                    paymentMethodType: paymentMethod.accountType,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {
+                    loading: false,
+                    shouldShowSuccess: false,
+                },
+            },
+        ],
+    });
 }
 
 function resetWalletTransferData() {
@@ -238,15 +259,8 @@ function resetWalletTransferData() {
         selectedAccountID: null,
         filterPaymentMethodType: null,
         loading: false,
-        shouldShowConfirmModal: false,
+        shouldShowSuccess: false,
     });
-}
-
-/**
- * @param {Number} transferAmount
- */
-function saveWalletTransferAmount(transferAmount) {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {transferAmount});
 }
 
 /**
@@ -265,8 +279,9 @@ function saveWalletTransferMethodType(filterPaymentMethodType) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {filterPaymentMethodType});
 }
 
-function dismissWalletConfirmModal() {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
+function dismissSuccessfulTransferBalancePage() {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
+    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
 export {
@@ -278,11 +293,10 @@ export {
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
+    dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
     resetWalletTransferData,
-    saveWalletTransferAmount,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
-    dismissWalletConfirmModal,
     cleanLocalReimbursementData,
 };
