@@ -743,6 +743,7 @@ const CONST = {
             NEED_PASSWORD: 1,
             INCORRECT_PASSWORD: 2,
         },
+        AVOID_KEYBOARD_DISPLACEMENT: 100,
     },
 };
 

@@ -7,6 +7,7 @@ const PDFView = props => (
     <BasePDFViewNative
         sourceURL={props.sourceURL}
         style={props.style}
+        shouldAvoidKeyboard
     />
 );
 
