@@ -17,7 +17,7 @@ const propTypes = {
 
     /** The copy selection. */
     selection: PropTypes.shape({
-        text: PropTypes.string.isRequired,
+        text: PropTypes.string,
         html: PropTypes.string,
     }),
 

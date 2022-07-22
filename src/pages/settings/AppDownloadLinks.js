@@ -85,7 +85,7 @@ const AppDownloadLinksPage = (props) => {
                         key={item.translationKey}
                         onPressIn={() => props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onSecondaryInteraction={e => showPopover(e, item.link)}
+                        onSecondaryInteraction={e => showPopover(e, {text: item.link})}
                         ref={el => popoverAnchor = el}
                         onKeyDown={(event) => {
                             event.target.blur();

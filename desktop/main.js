@@ -35,7 +35,8 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 contextMenu({
     append: (defaultActions, parameters) => [
         new MenuItem({
-            visible: parameters.isEditable,
+            // Only enable the menu item for Editable context which supports paste
+            visible: parameters.isEditable && parameters.editFlags.canPaste,
             role: 'pasteAndMatchStyle',
             accelerator: 'CmdOrCtrl+Shift+V',
         }),
@@ -211,7 +212,7 @@ const mainWindow = (() => {
                 }],
             }));
 
-            // Register the Paste and Match Style command.
+            // Register the custom Paste and Match Style command and place it near the default shorcut of the same role.
             const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
             editMenu.submenu.insert(6, new MenuItem({
                 role: 'pasteAndMatchStyle',
