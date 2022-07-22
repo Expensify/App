@@ -7,6 +7,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
+import * as API from '../API';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -317,6 +318,54 @@ function activateWallet(currentStep, parameters) {
 }
 
 /**
+ * Creates an identity check by calling Onfido's API with data returned from the SDK
+ *
+ * The API will always return the updated userWallet in the response as a convenience so we can avoid calling
+ * Get&returnValueList=userWallet after we call Wallet_Activate.
+ *
+ * @param {Object} parameters
+ * @param {String} [parameters.onfidoData] - JSON string
+ */
+function verifyIdentity(parameters) {
+    const onfidoData = parameters.onfidoData;
+    setWalletShouldShowFailedKYC(false);
+
+    API.write('VerifyIdentity', {
+        onfidoData,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: true,
+                    error: '',
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: false,
+                    error: '',
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
  * Fetches information about a user's Expensify Wallet
  *
  * @typedef {Object} UserWallet
@@ -361,4 +410,5 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    verifyIdentity,
 };
