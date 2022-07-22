@@ -9,7 +9,8 @@ import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import AvatarWithIndicator from '../../components/AvatarWithIndicator';
+import Tooltip from '../../components/Tooltip';
+import Avatar from '../../components/Avatar';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -21,15 +22,10 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -151,12 +147,13 @@ const InitialSettingsPage = (props) => {
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
-                            <AvatarWithIndicator
-                                size={CONST.AVATAR_SIZE.LARGE}
-                                source={props.currentUserPersonalDetails.avatar}
-                                isActive={props.network.isOffline === false}
-                                tooltipText={props.currentUserPersonalDetails.displayName}
-                            />
+                            <Tooltip text={props.currentUserPersonalDetails.displayName}>
+                                <Avatar
+                                    imageStyles={[styles.avatarLarge]}
+                                    source={props.currentUserPersonalDetails.avatar}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                />
+                            </Tooltip>
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
@@ -205,7 +202,6 @@ InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         session: {
