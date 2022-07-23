@@ -743,7 +743,10 @@ const CONST = {
             NEED_PASSWORD: 1,
             INCORRECT_PASSWORD: 2,
         },
-        AVOID_KEYBOARD_DISPLACEMENT: 100,
+        KEYBOARD_VERTICAL_OFFSET: {
+            DEFAULT: 150,
+            SMALL_SCREEN: 100,
+        },
     },
 };
 

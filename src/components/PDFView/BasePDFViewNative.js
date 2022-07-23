@@ -1,10 +1,9 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, KeyboardAvoidingView} from 'react-native';
+import {TouchableWithoutFeedback, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
 import {propTypes as pdfViewPropTypes, defaultProps as pdfViewDefaultProps} from './pdfViewPropTypes';
@@ -15,15 +14,11 @@ const propTypes = {
 
     /** Notify parent that a PDF load attempt is in progress */
     onAttemptPdfLoad: PropTypes.func,
-
-    /** If keyboard avoidance should be enabled */
-    shouldAvoidKeyboard: PropTypes.bool,
 };
 
 const defaultProps = {
     ...pdfViewDefaultProps,
     onAttemptPdfLoad: () => {},
-    shouldAvoidKeyboard: false,
 };
 
 /**
@@ -141,12 +136,7 @@ class BasePDFViewNative extends Component {
             ? styles.w100 : {};
 
         return (
-            <KeyboardAvoidingView
-                enabled={this.props.shouldAvoidKeyboard}
-                style={containerStyles}
-                behavior="position"
-                keyboardVerticalOffset={CONST.PDF_PASSWORD_FORM.AVOID_KEYBOARD_DISPLACEMENT}
-            >
+            <View style={containerStyles}>
                 {this.state.shouldAttemptPdfLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
@@ -165,10 +155,9 @@ class BasePDFViewNative extends Component {
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
-                        onAvoidKeyboard={this.props.onAvoidKeyboard}
                     />
                 )}
-            </KeyboardAvoidingView>
+            </View>
         );
     }
 }
