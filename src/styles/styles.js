@@ -1782,7 +1782,7 @@ const styles = {
     },
 
     pdfPasswordForm: {
-        wideScreen: {
+        wideScreenWidth: {
             width: 350,
         },
     },
