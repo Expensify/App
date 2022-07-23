@@ -186,8 +186,8 @@ class AttachmentPicker extends Component {
             if (!isCamera) {
                 this.openImagePicker(imagePickerFunc, resolve, reject);
             } else {
-                checkCameraPermission().then((isValid) => {
-                    isValid ? this.openImagePicker(imagePickerFunc, resolve, reject) : this.showPermissionsAlert();
+                checkCameraPermission().then((hasPermissions) => {
+                    hasPermissions ? this.openImagePicker(imagePickerFunc, resolve, reject) : this.showPermissionsAlert();
                 });
             }
         });
@@ -200,10 +200,13 @@ class AttachmentPicker extends Component {
                 return resolve();
             }
             if (response.errorCode) {
-                if (response.errorCode === 'permission') {
-                    this.showPermissionsAlert();
-                } else {
-                    this.showGeneralAlert();
+                switch (response.errorCode) {
+                    case 'permission':
+                        this.showPermissionsAlert();
+                        break;
+                    default:
+                        this.showGeneralAlert();
+                        break;
                 }
                 return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
             }
