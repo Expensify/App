@@ -1,8 +1,8 @@
 // on Web/desktop this import will be replaced with `react-native-web`
-import _ from 'lodash';
 import {Clipboard} from 'react-native-web';
+import lodashGet from 'lodash/get';
 
-const canSetHtml = () => _.get(navigator, 'clipboard.write');
+const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
 
 /**
  * Writes the content as HTML if the web client supports it.
@@ -15,7 +15,7 @@ const setHtml = (html, text) => {
     }
 
     if (!canSetHtml()) {
-        throw new Error('HTML is not supported on this platform');
+        throw new Error('clipboard.write is not supported on this platform, thus HTML cannot be copied.');
     }
 
     navigator.clipboard.write([

@@ -13,7 +13,6 @@ import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
-import SelectionScraper from '../../../../libs/SelectionScraper';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -107,16 +106,15 @@ export default [
                 if (selection && (selection.text || !selection.html)) {
                     throw new Error('Selection has to either exclusively bear html or be null.');
                 }
-                const resolvedSelection = selection || SelectionScraper.prepareSelection(messageHtml);
-                if (!resolvedSelection) {
-                    return;
+                const resolvedSelection = selection || (messageHtml && {html: messageHtml});
+                if (resolvedSelection) {
+                    const parser = new ExpensiMark();
+                    if (!Clipboard.canSetHtml()) {
+                        Clipboard.setString(parser.htmlToMarkdown(resolvedSelection.html));
+                    } else {
+                        Clipboard.setHtml(resolvedSelection.html, parser.htmlToText(resolvedSelection.html));
+                    }
                 }
-                const parser = new ExpensiMark();
-                if (!Clipboard.canSetHtml()) {
-                    Clipboard.setString(parser.htmlToMarkdown(resolvedSelection.html));
-                    return;
-                }
-                Clipboard.setHtml(resolvedSelection.html, parser.htmlToText(resolvedSelection.html));
             } else {
                 Clipboard.setString(messageHtml);
             }
