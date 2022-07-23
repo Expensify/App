@@ -212,7 +212,7 @@ const mainWindow = (() => {
                 }],
             }));
 
-            // Register the custom Paste and Match Style command and place it near the default shorcut of the same role.
+            // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
             const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
             editMenu.submenu.insert(6, new MenuItem({
                 role: 'pasteAndMatchStyle',
