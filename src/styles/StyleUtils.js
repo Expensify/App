@@ -449,7 +449,8 @@ function getPaddingLeft(paddingLeft) {
 }
 
 /**
- * Convert RTL text to a LTR text on Android devices useing the Unicode controls, see : https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
  * @param {String} text
  * @returns {String}
  */
