@@ -1,13 +1,13 @@
 import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 
-export default async function checkCameraPermission() {
+export default function checkCameraPermission() {
     /**
     * Checks to see if the iOS device has camera permission or not
     */
-    const result = await request(PERMISSIONS.IOS.CAMERA);
-    if (result === RESULTS.GRANTED) {
-        return true;
-    } else if (result === RESULTS.BLOCKED) {
+    request(PERMISSIONS.IOS.CAMERA).then((result) => {
+        if (result === RESULTS.GRANTED) {
+            return true;
+        }
         return false;
-    }
+    });
 }
