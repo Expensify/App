@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import _ from 'lodash';
+import lodashGet from 'lodash/get';
 
 /**
  * Always show popover description on native platforms
@@ -9,7 +9,7 @@ import _ from 'lodash';
  * @returns {String}
  */
 function getPopoverDescription(selection) {
-    return _.get(selection, 'text', '');
+    return lodashGet(selection, 'text', '');
 }
 
 export {

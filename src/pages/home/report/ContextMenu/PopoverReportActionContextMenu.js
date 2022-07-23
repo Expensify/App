@@ -202,6 +202,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.setState({
             reportID: 0,
             reportAction: {},
+            selection: null,
             reportActionDraftMessage: '',
             isPopoverVisible: false,
         });
