@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import Button from '../Button';
 import Text from '../Text';
 import TextInput from '../TextInput';
@@ -105,40 +105,42 @@ class PDFPasswordForm extends Component {
             <>
                 {this.state.shouldShowForm ? (
                     <View style={containerStyles}>
-                        <Text style={styles.mb4}>
-                            {this.props.translate('attachmentView.pdfPasswordForm.formLabel')}
-                        </Text>
-                        <TextInput
-                            label={this.props.translate('common.password')}
-                            autoComplete="off"
-                            autoCorrect={false}
-                            textContentType="password"
-                            onChangeText={this.updatePassword}
-                            returnKeyType="done"
-                            onSubmitEditing={this.submitPassword}
-                            errorText={this.state.validationErrorText}
-                            onBlur={this.validateOnBlur}
-                            onFocus={() => this.props.onAvoidKeyboard(true)}
-                            autoFocus={this.props.shouldAutofocusPasswordField}
-                            secureTextEntry
-                        />
-                        {this.props.isPasswordInvalid && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
-                                <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                                <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                                    <Text style={styles.mutedTextLabel}>
-                                        {this.props.translate('attachmentView.passwordIncorrect')}
-                                    </Text>
+                        <ScrollView keyboardShouldPersistTaps="handled">
+                            <Text style={styles.mb4}>
+                                {this.props.translate('attachmentView.pdfPasswordForm.formLabel')}
+                            </Text>
+                            <TextInput
+                                label={this.props.translate('common.password')}
+                                autoComplete="off"
+                                autoCorrect={false}
+                                textContentType="password"
+                                onChangeText={this.updatePassword}
+                                returnKeyType="done"
+                                onSubmitEditing={this.submitPassword}
+                                errorText={this.state.validationErrorText}
+                                onBlur={this.validateOnBlur}
+                                onFocus={() => this.props.onAvoidKeyboard(true)}
+                                autoFocus={this.props.shouldAutofocusPasswordField}
+                                secureTextEntry
+                            />
+                            {this.props.isPasswordInvalid && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
+                                    <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                                    <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                                        <Text style={styles.mutedTextLabel}>
+                                            {this.props.translate('attachmentView.passwordIncorrect')}
+                                        </Text>
+                                    </View>
                                 </View>
-                            </View>
-                        )}
-                        <Button
-                            text={this.props.translate('common.confirm')}
-                            onPress={this.submitPassword}
-                            style={styles.pt4}
-                            isLoading={this.props.shouldShowLoadingIndicator}
-                            pressOnEnter
-                        />
+                            )}
+                            <Button
+                                text={this.props.translate('common.confirm')}
+                                onPress={this.submitPassword}
+                                style={styles.pt4}
+                                isLoading={this.props.shouldShowLoadingIndicator}
+                                pressOnEnter
+                            />
+                        </ScrollView>
                     </View>
                 ) : (
                     <PDFInfoMessage onShowForm={this.showForm} />
