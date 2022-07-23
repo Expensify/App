@@ -25,6 +25,15 @@ class PDFView extends Component {
         this.avoidKeyboardOnSmallScreens = this.avoidKeyboardOnSmallScreens.bind(this);
     }
 
+    componentDidUpdate(prevProps) {
+        // If window height has changed update keyboard state and alert parent.
+        if (this.props.windowHeight < prevProps.windowHeight) {
+            this.avoidKeyboardOnSmallScreens(true);
+        } else if (this.props.windowHeight > prevProps.windowHeight) {
+            this.avoidKeyboardOnSmallScreens(false);
+        }
+    }
+
     /**
      * Upon successful document load, set the number of pages on PDF,
      * hide/reset PDF password form, and notify parent component that
@@ -100,13 +109,11 @@ class PDFView extends Component {
             styles.alignItemsCenter,
         ];
 
-        const pdfContainerStyle = [styles.PDFView, this.props.style];
-
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
-        if (this.state.shouldRequestPassword) {
-            pdfContainerStyle.push(styles.invisible);
-        }
+        const pdfContainerStyle = this.state.shouldRequestPassword
+            ? [styles.PDFView, this.props.style, styles.invisible]
+            : [styles.PDFView, this.props.style];
 
         return (
             <View style={outerContainerStyle}>
@@ -140,7 +147,6 @@ class PDFView extends Component {
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
-                        onAvoidKeyboard={this.avoidKeyboardOnSmallScreens}
                     />
                 )}
             </View>

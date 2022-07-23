@@ -24,9 +24,6 @@ const propTypes = {
     /** If loading indicator should be shown */
     shouldShowLoadingIndicator: PropTypes.bool,
 
-    /** Notify parent that the UI should be updated to avoid keyboard */
-    onAvoidKeyboard: PropTypes.func,
-
     /** Notify parent that the password form has been submitted */
     onSubmit: PropTypes.func,
 
@@ -41,7 +38,6 @@ const defaultProps = {
     isPasswordInvalid: false,
     shouldAutofocusPasswordField: false,
     shouldShowLoadingIndicator: false,
-    onAvoidKeyboard: () => {},
     onSubmit: () => {},
     onPasswordUpdated: () => {},
 };
@@ -56,7 +52,6 @@ class PDFPasswordForm extends Component {
         };
         this.submitPassword = this.submitPassword.bind(this);
         this.validate = this.validate.bind(this);
-        this.validateOnBlur = this.validateOnBlur.bind(this);
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
     }
@@ -76,13 +71,6 @@ class PDFPasswordForm extends Component {
         this.setState({password});
     }
 
-    validateOnBlur() {
-        // Notify parent that keyboard is no longer visible (for mobile devices).
-        this.props.onAvoidKeyboard(false);
-
-        this.validate();
-    }
-
     validate() {
         if (!_.isEmpty(this.state.password)) {
             return;
@@ -97,14 +85,14 @@ class PDFPasswordForm extends Component {
     }
 
     render() {
-        const containerStyles = this.props.isSmallScreenWidth
+        const containerStyle = this.props.isSmallScreenWidth
             ? [styles.p5, styles.w100]
             : styles.pdfPasswordForm.wideScreenWidth;
 
         return (
             <>
                 {this.state.shouldShowForm ? (
-                    <View style={containerStyles}>
+                    <View style={containerStyle}>
                         <ScrollView keyboardShouldPersistTaps="handled">
                             <Text style={styles.mb4}>
                                 {this.props.translate('attachmentView.pdfPasswordForm.formLabel')}
@@ -118,8 +106,7 @@ class PDFPasswordForm extends Component {
                                 returnKeyType="done"
                                 onSubmitEditing={this.submitPassword}
                                 errorText={this.state.validationErrorText}
-                                onBlur={this.validateOnBlur}
-                                onFocus={() => this.props.onAvoidKeyboard(true)}
+                                onBlur={this.validate}
                                 autoFocus={this.props.shouldAutofocusPasswordField}
                                 secureTextEntry
                             />
