@@ -2,12 +2,20 @@ import React, {Component} from 'react';
 import {Keyboard} from 'react-native';
 import BasePDFViewNative from './BasePDFViewNative';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
+import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
+import withKeyboardState from '../withKeyboardState';
 
 class PDFView extends Component {
     constructor(props) {
         super(props);
         this.hideKeyboard = this.hideKeyboard.bind(this);
+    }
+
+    componentDidUpdate() {
+        // Alert the parent component that it may be necessary to adjust the UI
+        // to accommodate the keyboard.
+        this.props.onAvoidKeyboard(this.props.isShown);
     }
 
     /**
@@ -25,7 +33,6 @@ class PDFView extends Component {
                 sourceURL={this.props.sourceURL}
                 style={this.props.style}
                 onAttemptPdfLoad={this.hideKeyboard}
-                onAvoidKeyboard={this.props.onAvoidKeyboard}
             />
         );
     }
@@ -34,4 +41,7 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default withWindowDimensions(PDFView);
+export default compose(
+    withWindowDimensions,
+    withKeyboardState,
+)(PDFView);
