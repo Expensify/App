@@ -15,6 +15,7 @@ const PDFView = (props) => {
         styles.alignItemsCenter,
         styles.justifyContentCenter,
         styles.w100,
+        styles.pb4,
     ];
 
     return (
