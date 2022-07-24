@@ -5,6 +5,7 @@ import {Keyboard, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
+import DrawerStatusContext from '@react-navigation/drawer/lib/module/utils/DrawerStatusContext';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -22,6 +23,8 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import compose from '../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -73,6 +76,8 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     })).isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -193,6 +198,10 @@ class ReportScreen extends React.Component {
             return null;
         }
 
+        if (this.props.isSmallScreenWidth && this.context === 'open') {
+            return null;
+        }
+
         // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
         if (!Permissions.canUseDefaultRooms(this.props.betas)
             && ReportUtils.isDefaultRoom(this.props.report)
@@ -262,30 +271,34 @@ class ReportScreen extends React.Component {
     }
 }
 
+ReportScreen.contextType = DrawerStatusContext;
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
-export default withOnyx({
-    isSidebarLoaded: {
-        key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    reportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-        canEvict: false,
-    },
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-    },
-    isComposerFullSize: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(ReportScreen);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        isSidebarLoaded: {
+            key: ONYXKEYS.IS_SIDEBAR_LOADED,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            canEvict: false,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        },
+        isComposerFullSize: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
+)(ReportScreen);
