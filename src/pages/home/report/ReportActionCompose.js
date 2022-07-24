@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -21,11 +21,11 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
-import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -189,7 +189,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.setState({ selection: e.nativeEvent.selection });
+        this.setState({selection: e.nativeEvent.selection});
     }
 
     /**
@@ -198,11 +198,11 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
-        this.setState({ isFocused: shouldHighlight });
+        this.setState({isFocused: shouldHighlight});
     }
 
     setIsFullComposerAvailable(isFullComposerAvailable) {
-        this.setState({ isFullComposerAvailable });
+        this.setState({isFullComposerAvailable});
     }
 
     /**
@@ -211,7 +211,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
-        this.setState({ textInputShouldClear: shouldClear });
+        this.setState({textInputShouldClear: shouldClear});
     }
 
     /**
@@ -220,7 +220,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} isMenuVisible
      */
     setMenuVisibility(isMenuVisible) {
-        this.setState({ isMenuVisible });
+        this.setState({isMenuVisible});
     }
 
     /**
@@ -298,7 +298,7 @@ class ReportActionCompose extends React.Component {
         if (this.props.isComposerFullSize) {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
-        this.setState({ maxLines });
+        this.setState({maxLines});
     }
 
     /**
@@ -370,7 +370,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
-        this.textInput.setNativeProps({ text: newComment });
+        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
         });
@@ -418,7 +418,7 @@ class ReportActionCompose extends React.Component {
             );
 
             if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
-                const { reportActionID, message } = this.props.reportActions[reportActionKey];
+                const {reportActionID, message} = this.props.reportActions[reportActionKey];
                 Report.saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
             }
         }
@@ -440,10 +440,10 @@ class ReportActionCompose extends React.Component {
         if (this.props.isComposerFullSize) {
             Report.setIsComposerFullSize(this.props.reportID, false);
         }
-        this.setState({ isFullComposerAvailable: false });
+        this.setState({isFullComposerAvailable: false});
 
         // Important to reset the selection on Submit action
-        this.textInput.setNativeProps({ selection: { start: 0, end: 0 } });
+        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
         return trimmedComment;
     }
 
@@ -506,10 +506,10 @@ class ReportActionCompose extends React.Component {
                             this.setTextInputShouldClear(false);
                         }}
                     >
-                        {({ displayFileInModal }) => (
+                        {({displayFileInModal}) => (
                             <>
                                 <AttachmentPicker>
-                                    {({ openPicker }) => (
+                                    {({openPicker}) => (
                                         <>
                                             <View style={[
                                                 styles.dFlex, styles.flexColumn,
@@ -567,17 +567,17 @@ class ReportActionCompose extends React.Component {
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 menuItems={[...this.getIOUOptions(reportParticipants),
-                                                {
-                                                    icon: Expensicons.Paperclip,
-                                                    text: this.props.translate('reportActionCompose.addAttachment'),
-                                                    onSelected: () => {
-                                                        openPicker({
-                                                            onPicked: (file) => {
-                                                                displayFileInModal({ file });
-                                                            },
-                                                        });
+                                                    {
+                                                        icon: Expensicons.Paperclip,
+                                                        text: this.props.translate('reportActionCompose.addAttachment'),
+                                                        onSelected: () => {
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
+                                                        },
                                                     },
-                                                },
                                                 ]}
                                             />
                                         </>
@@ -598,16 +598,16 @@ class ReportActionCompose extends React.Component {
                                                 return;
                                             }
 
-                                            this.setState({ isDraggingOver: true });
+                                            this.setState({isDraggingOver: true});
                                         }}
                                         onDragOver={(e, isOriginComposer) => {
                                             if (!isOriginComposer) {
                                                 return;
                                             }
 
-                                            this.setState({ isDraggingOver: true });
+                                            this.setState({isDraggingOver: true});
                                         }}
-                                        onDragLeave={() => this.setState({ isDraggingOver: false })}
+                                        onDragLeave={() => this.setState({isDraggingOver: false})}
                                         onDrop={(e) => {
                                             e.preventDefault();
 
@@ -616,15 +616,15 @@ class ReportActionCompose extends React.Component {
                                                 return;
                                             }
 
-                                            displayFileInModal({ file });
-                                            this.setState({ isDraggingOver: false });
+                                            displayFileInModal({file});
+                                            this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                         defaultValue={this.props.comment}
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={file => displayFileInModal({ file })}
+                                        onPasteFile={file => displayFileInModal({file})}
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
@@ -694,7 +694,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         comment: {
-            key: ({ reportID }) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
         modal: {
             key: ONYXKEYS.MODAL,
