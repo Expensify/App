@@ -461,6 +461,16 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
+/**
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * @param {String} text
+ * @returns {String}
+ */
+function convertToLTR(text) {
+    return `\u2066${text}`;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -489,4 +499,5 @@ export {
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
+    convertToLTR,
 };
