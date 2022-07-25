@@ -328,7 +328,6 @@ function activateWallet(currentStep, parameters) {
  */
 function verifyIdentity(parameters) {
     const onfidoData = parameters.onfidoData;
-    setWalletShouldShowFailedKYC(false);
 
     API.write('VerifyIdentity', {
         onfidoData,
@@ -340,6 +339,13 @@ function verifyIdentity(parameters) {
                 value: {
                     loading: true,
                     error: '',
+                },
+            },
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    shouldShowFailedKYC: false,
                 },
             },
         ],
