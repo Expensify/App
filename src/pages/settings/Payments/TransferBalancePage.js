@@ -9,6 +9,7 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import {withNetwork} from '../../../components/OnyxProvider';
 import compose from '../../../libs/compose';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -27,8 +28,8 @@ import * as PaymentUtils from '../../../libs/PaymentUtils';
 import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
-import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineIndicator from '../../../components/OfflineIndicator';
+import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** User's wallet information */
@@ -202,6 +203,8 @@ class TransferBalancePage extends React.Component {
         const transferAmount = this.props.userWallet.currentBalance - calculatedFee;
         const isTransferable = transferAmount > 0;
         const isButtonDisabled = !isTransferable || !selectedAccount;
+        const error = this.props.walletTransfer.error;
+        console.log('this.props.walletTransfer', this.props.walletTransfer);
 
         return (
             <ScreenWrapper>
@@ -275,29 +278,25 @@ class TransferBalancePage extends React.Component {
                         </Text>
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.flexGrow0]}>
-                    <FormAlertWrapper>
-                        {isOffline => (
-                            <Button
-                                success
-                                pressOnEnter
-                                isLoading={this.props.walletTransfer.loading}
-                                isDisabled={isButtonDisabled || isOffline}
-                                onPress={() => PaymentMethods.transferWalletBalance(selectedAccount)}
-                                text={this.props.translate(
-                                    'transferAmountPage.transfer',
-                                    {
-                                        amount: isTransferable
-                                            ? this.props.numberFormat(
-                                                transferAmount / 100,
-                                                {style: 'currency', currency: 'USD'},
-                                            ) : '',
-                                    },
-                                )}
-                            />
+                <View>
+                    <FormAlertWithSubmitButton
+                        buttonText={this.props.translate(
+                            'transferAmountPage.transfer',
+                            {
+                                amount: isTransferable
+                                    ? this.props.numberFormat(
+                                        transferAmount / 100,
+                                        {style: 'currency', currency: 'USD'},
+                                    ) : '',
+                            },
                         )}
-                    </FormAlertWrapper>
-                </FixedFooter>
+                        isLoading={this.props.walletTransfer.loading}
+                        onSubmit={() => PaymentMethods.transferWalletBalance(selectedAccount)}
+                        isDisabled={isButtonDisabled || this.props.network.isOffline}
+                        message={error}
+                        isAlertVisible={!_.isEmpty(error)}
+                    />
+                </View>
                 <OfflineIndicator containerStyles={[styles.ml5, styles.mb3]} />
             </ScreenWrapper>
         );
@@ -309,6 +308,7 @@ TransferBalancePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
