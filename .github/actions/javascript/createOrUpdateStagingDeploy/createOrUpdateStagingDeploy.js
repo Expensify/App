@@ -122,6 +122,12 @@ const run = function () {
                 'number',
             );
 
+            // Get the internalQA PR list, preserving the previous state of `isResolved`
+            const internalQAPRList = _.sortBy(
+                currentStagingDeployCashData.internalQAPRList,
+                'number',
+            );
+
             return GithubUtils.generateStagingDeployCashBody(
                 newTag,
                 _.pluck(PRList, 'url'),
@@ -129,6 +135,7 @@ const run = function () {
                 _.pluck(_.where(PRList, {isAccessible: true}), 'url'),
                 _.pluck(deployBlockers, 'url'),
                 _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
+                _.pluck(_.where(internalQAPRList, {isResolved: true}), 'url'),
                 didVersionChange ? false : currentStagingDeployCashData.isTimingDashboardChecked,
                 didVersionChange ? false : currentStagingDeployCashData.isFirebaseChecked,
             );
