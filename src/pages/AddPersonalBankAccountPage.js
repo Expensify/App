@@ -28,7 +28,7 @@ const propTypes = {
     ...withLocalizePropTypes,
     personalBankAccount: PropTypes.shape({
         error: PropTypes.string,
-        success: PropTypes.string,
+        shouldShowSuccess: PropTypes.bool,
         loading: PropTypes.bool,
     }),
 };
@@ -36,7 +36,7 @@ const propTypes = {
 const defaultProps = {
     personalBankAccount: {
         error: '',
-        success: '',
+        success: false,
         loading: false,
     },
 };
@@ -118,7 +118,7 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     render() {
-        const success = lodashGet(this.props, 'personalBankAccount.success', '');
+        const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
         const error = lodashGet(this.props, 'personalBankAccount.error', '');
         const loading = lodashGet(this.props, 'personalBankAccount.loading', false);
 
@@ -130,7 +130,7 @@ class AddPersonalBankAccountPage extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
                 />
-                {success ? (
+                {shouldShowSuccess ? (
                     <>
                         <Text style={[styles.formSuccess, styles.mh5]}>
                             {success}
