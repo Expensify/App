@@ -539,6 +539,15 @@ function subscribeToPolicyEvents() {
     });
 }
 
+/**
+ * Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
+ * @param {Array} policyMemberList
+ * @returns {Boolean}
+ */
+function hasPolicyMemberError(policyMemberList) {
+    return _.chain(policyMemberList).some(member => !_.isEmpty(member.errors)).value();
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
