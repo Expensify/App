@@ -135,6 +135,7 @@ const InitialSettingsPage = (props) => {
             iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+            brickRoadIndicator: 'error',
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -190,6 +191,7 @@ const InitialSettingsPage = (props) => {
                                 shouldShowRightIcon
                                 badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
                                 fallbackIcon={item.fallbackIcon}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         );
                     })}
