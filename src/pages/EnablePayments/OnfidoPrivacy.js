@@ -33,6 +33,7 @@ const defaultProps = {
         sdkToken: '',
         loading: false,
         error: '',
+        fixableErrors: [],
         hasAcceptedPrivacyPolicy: false,
     },
 };
@@ -55,7 +56,7 @@ class OnfidoPrivacy extends React.Component {
     render() {
         let onfidoError = lodashGet(this.props, 'walletOnfidoData.error') || '';
         if (!onfidoError) {
-            const onfidoFixableErrors = lodashGet(this.props, 'userWallet.onfidoFixableErrors', []);
+            const onfidoFixableErrors = lodashGet(this.props, 'walletOnfidoData.fixableErrors', []);
             if (!_.isEmpty(onfidoFixableErrors)) {
                 const supportedErrorKeys = ['originalDocumentNeeded', 'documentNeedsBetterQuality', 'imageNeedsBetterQuality', 'selfieIssue', 'selfieNotMatching', 'selfieNotLive'];
                 const translatedFixableErrors = _.filter(_.map(onfidoFixableErrors, (errorKey) => {

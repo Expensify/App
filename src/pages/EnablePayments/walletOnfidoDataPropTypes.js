@@ -13,6 +13,9 @@ export default PropTypes.shape({
     /** Error message to inform the user of any problem that might occur */
     error: PropTypes.string,
 
+    /** A list of Onfido errors that the user can fix in order to attempt the Onfido flow again */
+    fixableErrors: PropTypes.array,
+
     /** Whether the user has accepted the privacy policy of Onfido or not */
     hasAcceptedPrivacyPolicy: PropTypes.bool,
 });
