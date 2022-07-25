@@ -1,9 +1,15 @@
 
-function navigateTo(path) { // eslint-disable-line no-unused-vars
+/* eslint-disable no-unused-vars */
+function navigateTo(path) {
     window.location.href = path;
 }
 
-function toggleHeaderMenu() { // eslint-disable-line no-unused-vars
+function navigateToHome() {
+    // TODO: Change to '/index' when the site is live
+    navigateTo('/main');
+}
+
+function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
     const anguleUpIcon = document.getElementById('angle-up-icon');
@@ -23,11 +29,11 @@ function toggleHeaderMenu() { // eslint-disable-line no-unused-vars
     }
 }
 
-function navigateBack() { // eslint-disable-line no-unused-vars
+function navigateBack() {
     if (window.location.pathname.includes('/request-money/')) {
-        window.location.href = '/hubs/request-money/';
+        window.location.href = '/hubs/request-money';
     } else {
-        window.location.href = '/hubs/send-money/';
+        window.location.href = '/hubs/send-money';
     }
 
     // Add a little delay to avoid showing the previous content in a fraction of a time

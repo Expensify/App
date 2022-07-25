@@ -50,10 +50,10 @@ Onyx.connect({
     callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
-let myPersonalDetails;
+let personalDetails;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val,
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => personalDetails = val,
 });
 
 const allReports = {};
@@ -132,7 +132,7 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
 
 /**
  * Only store the minimal amount of data in Onyx that needs to be stored
- * because space is limited
+ * because space is limited.
  *
  * @param {Object} report
  * @param {Number} report.reportID
@@ -859,7 +859,7 @@ function buildOptimisticReportAction(reportID, text, file) {
             person: [
                 {
                     style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
                     type: 'TEXT',
                 },
             ],
@@ -868,7 +868,7 @@ function buildOptimisticReportAction(reportID, text, file) {
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
             clientID: optimisticReportActionID,
-            avatar: myPersonalDetails.avatar,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
             message: [
                 {
@@ -982,11 +982,6 @@ function addActions(reportID, text = '', file) {
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();
         parameters.timezone = JSON.stringify(timezone);
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-            value: {timezone},
-        });
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
@@ -1130,6 +1125,19 @@ function openReport(reportID) {
                 },
             }],
         });
+}
+
+/**
+ * Gets the IOUReport and the associated report actions.
+ *
+ * @param {Number} chatReportID
+ * @param {Number} iouReportID
+ */
+function openPaymentDetailsPage(chatReportID, iouReportID) {
+    API.read('OpenPaymentDetailsPage', {
+        reportID: chatReportID,
+        iouReportID,
+    });
 }
 
 /**
@@ -1649,4 +1657,5 @@ export {
     markCommentAsUnread,
     readNewestAction,
     openReport,
+    openPaymentDetailsPage,
 };
