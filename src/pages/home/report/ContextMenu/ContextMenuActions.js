@@ -13,6 +13,7 @@ import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
+import Permissions from '../../../../libs/Permissions';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -121,7 +122,7 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: () => true,
+        shouldShow: (type, reportAction, betas) => Permissions.canUseCommentLinking(betas),
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL()
                 .then((environmentURL) => {

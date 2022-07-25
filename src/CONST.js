@@ -115,6 +115,7 @@ const CONST = {
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
+        BETA_COMMENT_LINKING: 'commentLinking',
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
