@@ -566,4 +566,5 @@ export {
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
+    hasPolicyMemberError,
 };
