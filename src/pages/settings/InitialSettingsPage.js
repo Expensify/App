@@ -52,6 +52,12 @@ const propTypes = {
         role: PropTypes.string,
     })),
 
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(PropTypes.shape({
+        /** ID of the policy */
+        policyID: PropTypes.string,
+    })),
+
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
@@ -135,7 +141,7 @@ const InitialSettingsPage = (props) => {
             iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-            brickRoadIndicator: 'error',
+            brickRoadIndicator: hasPolicyMemberError(allPolicyMembers.policyID.members) ? 'error' : null,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -215,6 +221,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
