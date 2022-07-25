@@ -2,6 +2,7 @@ import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
@@ -24,6 +25,7 @@ import Permissions from '../../libs/Permissions';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import * as Policy from '../../libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -141,7 +143,7 @@ const InitialSettingsPage = (props) => {
             iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-            brickRoadIndicator: hasPolicyMemberError(allPolicyMembers.policyID.members) ? 'error' : null,
+            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, [policy.id, 'members'], [])) ? 'error' : null,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
