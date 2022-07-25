@@ -28,9 +28,6 @@ const propTypes = {
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
 
-        /** The current position of the new marker */
-        newMarkerSequenceNumber: PropTypes.number,
-
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
@@ -116,8 +113,8 @@ class ReportActionsList extends React.Component {
         item,
         index,
     }) {
-        const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
-            && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+        const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
+            && item.action.sequenceNumber === this.props.newMarkerSequenceNumber;
         return (
             <ReportActionItem
                 reportID={this.props.report.reportID}
