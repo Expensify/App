@@ -204,7 +204,6 @@ class TransferBalancePage extends React.Component {
         const isTransferable = transferAmount > 0;
         const isButtonDisabled = !isTransferable || !selectedAccount;
         const error = this.props.walletTransfer.error;
-        console.log('this.props.walletTransfer', this.props.walletTransfer);
 
         return (
             <ScreenWrapper>
