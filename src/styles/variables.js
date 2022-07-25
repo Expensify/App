@@ -17,7 +17,7 @@ function getValueUsingPixelRatio(defaultValue, maxValue) {
 
 export default {
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
-    componentSizeSmall: 28,
+    componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
     inputComponentSizeNormal: 42,
     componentSizeLarge: 52,
@@ -71,10 +71,11 @@ export default {
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
-    lineHeightXLarge: getValueUsingPixelRatio(20, 22),
+    lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     inputHeight: getValueUsingPixelRatio(52, 72),
     pickerIconTop: getValueUsingPixelRatio(16, 26),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
-    alternateTextHeight: getValueUsingPixelRatio(20, 22),
+    alternateTextHeight: getValueUsingPixelRatio(20, 24),
+    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
 };
