@@ -121,7 +121,7 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})),
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL()
                 .then((environmentURL) => {
