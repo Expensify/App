@@ -12,7 +12,6 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -87,7 +86,7 @@ const PreferencesPage = (props) => {
                         <Picker
                             label={props.translate('preferencesPage.priorityMode')}
                             onInputChange={
-                                mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
+                                mode => User.updateChatPriorityMode(mode)
                             }
                             items={_.values(priorityModes)}
                             value={props.priorityMode}
