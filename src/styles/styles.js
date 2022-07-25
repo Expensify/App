@@ -979,6 +979,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -991,6 +992,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -1007,8 +1009,9 @@ const styles = {
 
     avatarWithIndicator: {
         errorDot: {
-            // borderColor: themeColors.sidebar,
-            // borderWidth: 2,
+            borderColor: themeColors.sidebar,
+            borderRadius: 6,
+            borderWidth: 2,
             position: 'absolute',
             right: -1,
             bottom: -1,

@@ -539,6 +539,33 @@ function subscribeToPolicyEvents() {
     });
 }
 
+/**
+ * Removes an error after trying to delete a member
+ *
+ * @param {String} policyID
+ * @param {String} memberEmail
+ */
+function clearDeleteMemberError(policyID, memberEmail) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
+        [memberEmail]: {
+            pendingAction: null,
+            errors: null,
+        },
+    });
+}
+
+/**
+ * Removes an error after trying to add a member
+ *
+ * @param {String} policyID
+ * @param {String} memberEmail
+ */
+function clearAddMemberError(policyID, memberEmail) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
+        [memberEmail]: null,
+    });
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -557,4 +584,6 @@ export {
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
+    clearDeleteMemberError,
+    clearAddMemberError,
 };

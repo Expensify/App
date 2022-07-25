@@ -7,10 +7,6 @@ import Avatar from './Avatar';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import ONYXKEYS from '../ONYXKEYS';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** URL for the avatar */
@@ -23,7 +19,7 @@ const propTypes = {
     tooltipText: PropTypes.string,
 
     /** The employee list of all policies (coming from Onyx) */
-    policiesMemberList: PropTypes.arrayOf(PropTypes.object),
+    policiesMemberList: PropTypes.object,
 };
 
 const defaultProps = {
@@ -36,7 +32,7 @@ const AvatarWithIndicator = (props) => {
     const indicatorStyles = [
         styles.alignItemsCenter,
         styles.justifyContentCenter,
-        styles.avatarWithIndicator.errorDot,
+        props.size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
     const isLarge = props.size === 'large';
     const hasError = _.chain(props.policiesMemberList).flatten().some(member => !_.isEmpty(member.errors)).value();
@@ -49,14 +45,7 @@ const AvatarWithIndicator = (props) => {
                     size={props.size}
                 />
                 {hasError && (
-                    <View style={StyleSheet.flatten(indicatorStyles)}>
-                        <Icon
-                            src={Expensicons.DotIndicator}
-                            fill={colors.red}
-                            height={isLarge ? variables.iconSizeSmall : variables.iconSizeLarge}
-                            width={isLarge ? variables.iconSizeSmall : variables.iconSizeLarge}
-                        />
-                    </View>
+                    <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
         </View>
