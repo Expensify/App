@@ -41,7 +41,7 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.bool),
 
         /** Any additional error message to show */
-        error: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Questions returned by Idology */
         questions: PropTypes.arrayOf(PropTypes.shape({
@@ -65,7 +65,7 @@ const defaultProps = {
     walletAdditionalDetails: {
         errorFields: {},
         isLoading: false,
-        error: '',
+        errors: {},
         questions: [],
         idNumber: '',
         errorCode: '',
@@ -264,10 +264,12 @@ class AdditionalDetailsStep extends React.Component {
             );
         }
 
+        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
         const isErrorVisible = _.size(this.getErrors()) > 0
-            || lodashGet(this.props, 'walletAdditionalDetails.error', '').length > 0;
+            || !_.isEmpty(errors);
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+        const errorMessage = _.isEmpty(errors) ? '' : _.values(errors[0])[0];
 
         return (
             <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
@@ -383,7 +385,7 @@ class AdditionalDetailsStep extends React.Component {
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
-                            message={this.props.walletAdditionalDetails.error}
+                            message={errorMessage}
                             isLoading={this.props.walletAdditionalDetails.isLoading}
                             buttonText={this.props.translate('common.saveAndContinue')}
                         />
