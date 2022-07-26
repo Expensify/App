@@ -71,7 +71,7 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
-            isConfirmModalOpen: false,
+            isAttachmentInvalid: false,
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
@@ -128,29 +128,43 @@ class AttachmentModal extends PureComponent {
      * Close the confirm modal.
      */
     closeConfirmModal() {
-        this.setState({isConfirmModalOpen: false});
+        this.setState({isAttachmentInvalid: false});
     }
 
     /**
-     * Check if the attachment is with the API size limits.
      * @param {Object} file
      * @returns {Boolean}
      */
-    isValidSize(file) {
-        if (!file) {
+    isValidFile(file) {
+        if (file.size > CONST.API_MAX_ATTACHMENT_SIZE) {
+            this.setState({
+                isAttachmentInvalid: true,
+            });
             return false;
         }
-        return file.size < CONST.API_MAX_ATTACHMENT_SIZE && file.size > CONST.API_MIN_ATTACHMENT_SIZE;
+
+        if (file.size < CONST.API_MIN_ATTACHMENT_SIZE) {
+            this.setState({
+                isAttachmentInvalid: true,
+            });
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * @param {Object} file
      */
     validateAndDisplayFileToUpload(file) {
-        if (!this.isValidSize(file)) {
-            this.setState({isConfirmModalOpen: true});
+        if (!file) {
             return;
         }
+
+        if (!this.isValidFile(file)) {
+            return;
+        }
+
         if (file instanceof File) {
             const source = URL.createObjectURL(file);
             const modalType = this.getModalType(source, file);
@@ -222,15 +236,17 @@ class AttachmentModal extends PureComponent {
                         />
                     )}
                 </Modal>
+
                 <ConfirmModal
                     title={this.props.translate('attachmentPicker.attachmentTooLarge')}
                     onConfirm={this.closeConfirmModal}
                     onCancel={this.closeConfirmModal}
-                    isVisible={this.state.isConfirmModalOpen}
+                    isVisible={this.state.isAttachmentInvalid}
                     prompt={this.props.translate('attachmentPicker.sizeExceeded')}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
+
                 {this.props.children({
                     displayFileInModal: this.validateAndDisplayFileToUpload,
                     show: () => {
