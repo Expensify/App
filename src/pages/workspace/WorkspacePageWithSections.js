@@ -16,6 +16,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withFullPolicy from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -95,33 +96,35 @@ class WorkspacePageWithSections extends React.Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.headerText}
-                    subtitle={policyName}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={this.props.guidesCallTaskID}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                {this.props.reimbursementAccount.loading ? (
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <ActivityIndicator color={themeColors.spinner} size="large" />
-                    </View>
-                ) : (
-                    <>
-                        <ScrollView
-                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                        >
-                            <View style={[styles.w100, styles.flex1]}>
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.headerText}
+                        subtitle={policyName}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={this.props.guidesCallTaskID}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    {this.props.reimbursementAccount.loading ? (
+                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <ActivityIndicator color={themeColors.spinner} size="large" />
+                        </View>
+                    ) : (
+                        <>
+                            <ScrollView
+                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                            >
+                                <View style={[styles.w100, styles.flex1]}>
 
-                                {this.props.children(hasVBA, policyID, isUsingECard)}
+                                    {this.props.children(hasVBA, policyID, isUsingECard)}
 
-                            </View>
-                        </ScrollView>
-                        {this.props.footer}
-                    </>
-                )}
+                                </View>
+                            </ScrollView>
+                            {this.props.footer}
+                        </>
+                    )}
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

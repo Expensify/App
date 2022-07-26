@@ -13,6 +13,7 @@ import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import Text from '../components/Text';
 import styles from '../styles/styles';
 import Button from '../components/Button';
@@ -124,65 +125,67 @@ class AddPersonalBankAccountPage extends React.Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={Navigation.goBack}
-                    shouldShowBackButton
-                    onBackButtonPress={Navigation.goBack}
-                />
-                {success ? (
-                    <>
-                        <Text style={[styles.formSuccess, styles.mh5]}>
-                            {success}
-                        </Text>
-                        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
-                            <Button
-                                success
-                                text={this.props.translate('common.continue')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
-                            />
-                        </View>
-                    </>
-                ) : (
-                    <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
-                            <AddPlaidBankAccount
-                                onSelect={(params) => {
-                                    this.setState({
-                                        selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                    });
-                                }}
-                                onExitPlaid={Navigation.goBack}
-                                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                            />
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('bankAccount.addBankAccount')}
+                        onCloseButtonPress={Navigation.goBack}
+                        shouldShowBackButton
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                    {success ? (
+                        <>
+                            <Text style={[styles.formSuccess, styles.mh5]}>
+                                {success}
+                            </Text>
+                            <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+                                <Button
+                                    success
+                                    text={this.props.translate('common.continue')}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                                />
+                            </View>
+                        </>
+                    ) : (
+                        <FormScrollView>
+                            <View style={[styles.mh5, styles.mb5]}>
+                                <AddPlaidBankAccount
+                                    onSelect={(params) => {
+                                        this.setState({
+                                            selectedPlaidBankAccount: params.selectedPlaidBankAccount,
+                                        });
+                                    }}
+                                    onExitPlaid={Navigation.goBack}
+                                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                />
+                                {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                                    <View style={[styles.mb5]}>
+                                        <TextInput
+                                            label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                            secureTextEntry
+                                            value={this.state.password}
+                                            autoCompleteType="password"
+                                            textContentType="password"
+                                            autoCapitalize="none"
+                                            autoFocus={canFocusInputOnScreenFocus()}
+                                            onChangeText={text => this.setState({password: text})}
+                                            errorText={this.getErrorText('password')}
+                                            hasError={this.getErrors().password}
+                                        />
+                                    </View>
+                                )}
+                            </View>
                             {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                <View style={[styles.mb5]}>
-                                    <TextInput
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                        secureTextEntry
-                                        value={this.state.password}
-                                        autoCompleteType="password"
-                                        textContentType="password"
-                                        autoCapitalize="none"
-                                        autoFocus={canFocusInputOnScreenFocus()}
-                                        onChangeText={text => this.setState({password: text})}
-                                        errorText={this.getErrorText('password')}
-                                        hasError={this.getErrors().password}
-                                    />
-                                </View>
+                                <FormAlertWithSubmitButton
+                                    isAlertVisible={Boolean(error)}
+                                    buttonText={this.props.translate('common.saveAndContinue')}
+                                    onSubmit={this.submit}
+                                    message={error}
+                                    isLoading={loading}
+                                />
                             )}
-                        </View>
-                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={Boolean(error)}
-                                buttonText={this.props.translate('common.saveAndContinue')}
-                                onSubmit={this.submit}
-                                message={error}
-                                isLoading={loading}
-                            />
-                        )}
-                    </FormScrollView>
-                )}
+                        </FormScrollView>
+                    )}
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
