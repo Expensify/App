@@ -153,7 +153,7 @@ class AddPlaidBankAccount extends React.Component {
                             {this.props.plaidData.error}
                         </Text>
                     )}
-                    {token && (
+                    {(token) && (
                         <PlaidLink
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
