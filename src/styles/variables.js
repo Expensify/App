@@ -67,7 +67,7 @@ export default {
     minHeightToShowGraphics: 854, // Login form layout breaks below this height due to insufficient space to show the form and graphics
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
-    optionsListSectionHeaderHeight: 54,
+    optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
