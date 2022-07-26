@@ -1,4 +1,4 @@
-import {AppState, Linking} from 'react-native';
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -179,31 +179,32 @@ function fixAccountAndReloadData() {
  * @param {Object} session
  */
 function setUpPoliciesAndNavigate(session) {
-    Linking.getInitialURL()
-        .then((url) => {
-            if (!url) {
-                return;
-            }
-            const path = new URL(url).pathname;
-            const params = new URLSearchParams(url);
-            const exitTo = params.get('exitTo');
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(url, session.email);
-            const shouldCreateFreePolicy = !isLoggingInAsNewUser
+    // Since this flow should only be triggered on Web, we use
+    // window.location.href here to reliably retrieve the current URL.
+    const url = window.location.href;
+
+    if (!url) {
+        return;
+    }
+    const path = new URL(url).pathname;
+    const params = new URLSearchParams(url);
+    const exitTo = params.get('exitTo');
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(url, session.email);
+    const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
-            if (shouldCreateFreePolicy) {
-                Policy.createAndGetPolicyList();
-                return;
-            }
-            if (!isLoggingInAsNewUser && exitTo) {
-                Navigation.isNavigationReady()
-                    .then(() => {
-                        // We must call dismissModal() to remove the /transition route from history
-                        Navigation.dismissModal();
-                        Navigation.navigate(exitTo);
-                    });
-            }
-        });
+    if (shouldCreateFreePolicy) {
+        Policy.createAndGetPolicyList();
+        return;
+    }
+    if (!isLoggingInAsNewUser && exitTo) {
+        Navigation.isNavigationReady()
+            .then(() => {
+                // We must call dismissModal() to remove the /transition route from history
+                Navigation.dismissModal();
+                Navigation.navigate(exitTo);
+            });
+    }
 }
 
 // When the app reconnects from being offline, fetch all initialization data
