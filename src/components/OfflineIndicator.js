@@ -44,6 +44,7 @@ const OfflineIndicator = (props) => {
 
     return (
         <View style={[
+            styles.chatItemComposeSecondaryRowOffset,
             setStyles(props.containerStyles, props.isSmallScreenWidth),
             styles.flexRow,
             styles.alignItemsCenter,

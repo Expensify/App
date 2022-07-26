@@ -16,6 +16,7 @@ import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -214,49 +215,51 @@ class ReportScreen extends React.Component {
 
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
-                <HeaderView
-                    reportID={reportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                />
+                <KeyboardAvoidingView>
+                    <HeaderView
+                        reportID={reportID}
+                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    />
 
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                >
-                    {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
-                    {!this.shouldShowLoader() && (
-                        <ReportActionsView
-                            reportID={reportID}
-                            reportActions={this.props.reportActions}
-                            report={this.props.report}
-                            session={this.props.session}
-                            isComposerFullSize={this.props.isComposerFullSize}
-                        />
-                    )}
-                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                    <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                        {
-                            isArchivedRoom
-                                ? (
-                                    <ArchivedReportFooter
-                                        reportClosedAction={reportClosedAction}
-                                        report={this.props.report}
-                                    />
-                                ) : (
-                                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                        <ReportActionCompose
-                                            onSubmit={this.onSubmitComment}
-                                            reportID={reportID}
-                                            reportActions={this.props.reportActions}
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    >
+                        {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
+                        {!this.shouldShowLoader() && (
+                            <ReportActionsView
+                                reportID={reportID}
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
+                                session={this.props.session}
+                                isComposerFullSize={this.props.isComposerFullSize}
+                            />
+                        )}
+                        {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                            {
+                                isArchivedRoom
+                                    ? (
+                                        <ArchivedReportFooter
+                                            reportClosedAction={reportClosedAction}
                                             report={this.props.report}
-                                            isComposerFullSize={this.props.isComposerFullSize}
                                         />
-                                    </SwipeableView>
-                                )
-                        }
+                                    ) : (
+                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                            <ReportActionCompose
+                                                onSubmit={this.onSubmitComment}
+                                                reportID={reportID}
+                                                reportActions={this.props.reportActions}
+                                                report={this.props.report}
+                                                isComposerFullSize={this.props.isComposerFullSize}
+                                            />
+                                        </SwipeableView>
+                                    )
+                            }
+                        </View>
+                        )}
                     </View>
-                    )}
-                </View>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
