@@ -230,15 +230,12 @@ textarea {
         display: grid;
         grid-template-columns: 40px auto;
         cursor: pointer;
+    }
 
-        &.selected {
-            cursor: auto;
-
-            span {
-                font-weight: bold;
-                color: $color-dark;
-            }
-        }
+    .selected {
+        cursor: auto;
+        font-weight: bold;
+        color: $color-dark;
     }
 
     .hide {
