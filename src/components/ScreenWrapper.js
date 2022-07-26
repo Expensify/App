@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, KeyboardAvoidingView} from 'react-native';
+import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../styles/styles';
@@ -15,10 +15,6 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import withNavigation from './withNavigation';
-import withWindowDimensions from './withWindowDimensions';
-import OfflineIndicator from './OfflineIndicator';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -39,13 +35,6 @@ const propTypes = {
     // Called when navigated Screen's transition is finished.
     onTransitionEnd: PropTypes.func,
 
-    /** Is the window width narrow, like on a mobile device */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-
-    /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
-     *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
-    keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
-
     // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
         // Method to attach listener to Navigation state.
@@ -58,9 +47,6 @@ const propTypes = {
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
 };
 
 const defaultProps = {
@@ -72,7 +58,6 @@ const defaultProps = {
         addListener: () => {},
     },
     modal: {},
-    keyboardAvoidingViewBehavior: 'padding',
 };
 
 class ScreenWrapper extends React.Component {
@@ -120,36 +105,27 @@ class ScreenWrapper extends React.Component {
                         paddingStyle.paddingTop = paddingTop;
                     }
 
-                    // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (this.props.includePaddingBottom || this.props.network.isOffline) {
+                    if (this.props.includePaddingBottom) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
 
                     return (
-                        <View
-                            style={[
-                                ...this.props.style,
-                                styles.flex1,
-                                paddingStyle,
-                            ]}
+                        <View style={[
+                            ...this.props.style,
+                            styles.flex1,
+                            paddingStyle,
+                        ]}
                         >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100]} behavior={this.props.keyboardAvoidingViewBehavior}>
-                                <HeaderGap />
-                                {// If props.children is a function, call it to provide the insets to the children.
-                                    _.isFunction(this.props.children)
-                                        ? this.props.children({
-                                            insets,
-                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                        })
-                                        : this.props.children
-                                }
-                                <KeyboardShortcutsModal />
-                                {this.props.isSmallScreenWidth && this.props.network.isOffline && (
-                                    <View style={styles.chatItemComposeSecondaryRow}>
-                                        <OfflineIndicator />
-                                    </View>
-                                )}
-                            </KeyboardAvoidingView>
+                            <HeaderGap />
+                            {// If props.children is a function, call it to provide the insets to the children.
+                                _.isFunction(this.props.children)
+                                    ? this.props.children({
+                                        insets,
+                                        didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                    })
+                                    : this.props.children
+                            }
+                            <KeyboardShortcutsModal />
                         </View>
                     );
                 }}
@@ -163,11 +139,9 @@ ScreenWrapper.defaultProps = defaultProps;
 
 export default compose(
     withNavigation,
-    withWindowDimensions,
     withOnyx({
         modal: {
             key: ONYXKEYS.MODAL,
         },
     }),
-    withNetwork(),
 )(ScreenWrapper);

@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {KeyboardAvoidingView} from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -58,12 +59,14 @@ class EnablePaymentsPage extends React.Component {
 
         if (this.props.userWallet.shouldShowFailedKYC) {
             return (
-                <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
-                    <HeaderWithCloseButton
-                        title={this.props.translate('additionalDetailsStep.headerTitle')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <FailedKYC />
+                <ScreenWrapper>
+                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
+                        <HeaderWithCloseButton
+                            title={this.props.translate('additionalDetailsStep.headerTitle')}
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                        />
+                        <FailedKYC />
+                    </KeyboardAvoidingView>
                 </ScreenWrapper>
             );
         }
