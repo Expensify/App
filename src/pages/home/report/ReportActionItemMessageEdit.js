@@ -16,7 +16,6 @@ import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 
