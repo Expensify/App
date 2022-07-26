@@ -665,6 +665,14 @@ const styles = {
         marginLeft: 48,
     },
 
+    offlineIndicator: {
+        marginLeft: 48,
+    },
+
+    offlineIndicatorMobile: {
+        marginLeft: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
