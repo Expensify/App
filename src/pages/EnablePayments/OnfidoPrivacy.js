@@ -91,7 +91,7 @@ class OnfidoPrivacy extends React.Component {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
-                            isMessageHtml={true}
+                            isMessageHtml
                             isLoading={this.props.walletOnfidoData.loading}
                             buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
                         />
