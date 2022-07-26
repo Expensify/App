@@ -19,7 +19,6 @@ import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -43,11 +42,8 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    // The NVP describing a user's block status
-    blockedFromConcierge: PropTypes.shape({
-        // The date that the user will be unblocked
-        expiresAt: PropTypes.string,
-    }),
+    // Whether or not the emoji picker is disabled
+    emojiPickerDisabled: PropTypes.bool,
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -59,7 +55,7 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     report: {},
-    blockedFromConcierge: {},
+    emojiPickerDisabled: false,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -190,10 +186,6 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const shouldDisableEmojiPicker = (ReportUtils.chatIncludesConcierge(this.props.report)
-                                            && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
-                                            || ReportUtils.isArchivedRoom(this.props.report);
-
         return (
             <View style={styles.chatItemMessage}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
@@ -225,7 +217,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
-                            isDisabled={shouldDisableEmojiPicker}
+                            isDisabled={this.props.emojiPickerDisabled}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
