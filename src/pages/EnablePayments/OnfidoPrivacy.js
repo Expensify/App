@@ -15,7 +15,6 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import FormScrollView from '../../components/FormScrollView';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
-import * as Localize from '../../libs/Localize';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -55,27 +54,16 @@ class OnfidoPrivacy extends React.Component {
 
     render() {
         let onfidoError = lodashGet(this.props, 'walletOnfidoData.error') || '';
-        if (!onfidoError) {
+        if (onfidoError) {
             const onfidoFixableErrors = lodashGet(this.props, 'walletOnfidoData.fixableErrors', []);
-            if (!_.isEmpty(onfidoFixableErrors)) {
-                const supportedErrorKeys = ['originalDocumentNeeded', 'documentNeedsBetterQuality', 'imageNeedsBetterQuality', 'selfieIssue', 'selfieNotMatching', 'selfieNotLive'];
-                const translatedFixableErrors = _.filter(_.map(onfidoFixableErrors, (errorKey) => {
-                    if (_.contains(supportedErrorKeys, errorKey)) {
-                        return Localize.translateLocal(`onfidoStep.${errorKey}`);
-                    }
-                    return null;
-                }));
-                if (!_.isEmpty(translatedFixableErrors)) {
-                    onfidoError = translatedFixableErrors.join(' ');
-                }
-            }
+            onfidoError += !_.isEmpty(onfidoFixableErrors) ? onfidoFixableErrors.join(' ') : '';
         }
 
         return (
-            <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentBetween]}>
+            <View style={[styles.mb5, styles.flex1, styles.justifyContentBetween]}>
                 {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy ? (
                     <FormScrollView ref={el => this.form = el}>
-                        <View style={styles.justifyContentCenter}>
+                        <View style={[styles.mh5, styles.justifyContentCenter]}>
                             <Text style={[styles.mb5]}>
                                 {this.props.translate('onfidoStep.acceptTerms')}
                                 <TextLink

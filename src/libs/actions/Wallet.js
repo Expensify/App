@@ -365,6 +365,7 @@ function verifyIdentity(parameters) {
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: false,
+                    hasAcceptedPrivacyPolicy: false,
                 },
             },
         ],
