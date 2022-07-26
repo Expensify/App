@@ -72,6 +72,8 @@ class AttachmentModal extends PureComponent {
         this.state = {
             isModalOpen: false,
             isAttachmentInvalid: false,
+            attachmentInvalidReasonTitle: null,
+            attachmentInvalidReason: null,
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
@@ -139,6 +141,8 @@ class AttachmentModal extends PureComponent {
         if (file.size > CONST.API_MAX_ATTACHMENT_SIZE) {
             this.setState({
                 isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: 'attachmentPicker.attachmentTooLarge',
+                attachmentInvalidReason: 'attachmentPicker.sizeExceeded',
             });
             return false;
         }
@@ -146,6 +150,8 @@ class AttachmentModal extends PureComponent {
         if (file.size < CONST.API_MIN_ATTACHMENT_SIZE) {
             this.setState({
                 isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: 'attachmentPicker.attachmentTooSmall',
+                attachmentInvalidReason: 'attachmentPicker.sizeNotMet',
             });
             return false;
         }
@@ -238,11 +244,11 @@ class AttachmentModal extends PureComponent {
                 </Modal>
 
                 <ConfirmModal
-                    title={this.props.translate('attachmentPicker.attachmentTooLarge')}
+                    title={this.state.attachmentInvalidReasonTitle && this.props.translate(this.state.attachmentInvalidReasonTitle)}
                     onConfirm={this.closeConfirmModal}
                     onCancel={this.closeConfirmModal}
                     isVisible={this.state.isAttachmentInvalid}
-                    prompt={this.props.translate('attachmentPicker.sizeExceeded')}
+                    prompt={this.state.attachmentInvalidReason && this.props.translate(this.state.attachmentInvalidReason)}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
