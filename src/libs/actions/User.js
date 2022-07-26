@@ -241,19 +241,19 @@ function validateLogin(accountID, validateCode) {
  * Checks the blockedFromConcierge object to see if it has an expiresAt key,
  * and if so whether the expiresAt date of a user's ban is before right now
  *
- * @param {Object} blockedFromConcierge
+ * @param {Object} blockedFromConciergeNVP
  * @returns {Boolean}
  */
-function isBlockedFromConcierge(blockedFromConcierge) {
-    if (_.isEmpty(blockedFromConcierge)) {
+function isBlockedFromConcierge(blockedFromConciergeNVP) {
+    if (_.isEmpty(blockedFromConciergeNVP)) {
         return false;
     }
 
-    if (!blockedFromConcierge.expiresAt) {
+    if (!blockedFromConciergeNVP.expiresAt) {
         return false;
     }
 
-    return moment().isBefore(moment(blockedFromConcierge.expiresAt), 'day');
+    return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
 }
 
 /**
