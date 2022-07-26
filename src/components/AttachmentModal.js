@@ -100,13 +100,14 @@ class AttachmentModal extends PureComponent {
 
     /**
      * Returns the filename split into fileName and fileExtension
+     *
+     * @param {String} fullFileName
      * @returns {Object}
      */
-    splitExtensionFromFileName() {
-        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
-        const splittedFileName = fullFileName.split('.');
-        const fileExtension = splittedFileName.pop();
-        const fileName = splittedFileName.join('.');
+    splitExtensionFromFileName(fullFileName) {
+        const splitFileName = fullFileName.trim().split('.');
+        const fileExtension = splitFileName.pop();
+        const fileName = splitFileName.join('.');
         return {fileName, fileExtension};
     }
 
@@ -194,7 +195,7 @@ class AttachmentModal extends PureComponent {
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
 
-        const {fileName, fileExtension} = this.splitExtensionFromFileName();
+        const {fileName, fileExtension} = this.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
         return (
             <>
