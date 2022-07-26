@@ -65,7 +65,7 @@ function setLocale(locale) {
     // Optimistically change preferred locale
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             value: locale,
         },
@@ -104,7 +104,7 @@ function getAppData() {
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
     return Promise.all([
-        Report.fetchAllReports(true, true),
+        Report.fetchAllReports(true),
     ]);
 }
 

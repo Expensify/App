@@ -11,6 +11,9 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import Icon from '../../../components/Icon';
+import defaultTheme from '../../../styles/themes/default';
 import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
@@ -24,6 +27,8 @@ import * as PaymentUtils from '../../../libs/PaymentUtils';
 import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
+import OfflineIndicator from '../../../components/OfflineIndicator';
 
 const propTypes = {
     /** User's wallet information */
@@ -124,15 +129,6 @@ class TransferBalancePage extends React.Component {
     }
 
     /**
-     * @param {Number} transferAmount
-     * @param {Object} selectedAccount
-     */
-    saveTransferAmountAndStartTransfer(transferAmount, selectedAccount) {
-        PaymentMethods.saveWalletTransferAmount(transferAmount);
-        PaymentMethods.transferWalletBalance(selectedAccount);
-    }
-
-    /**
      * @param {String} filterPaymentMethodType
      */
     navigateToChooseTransferAccount(filterPaymentMethodType) {
@@ -160,6 +156,43 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
+        if (this.props.walletTransfer.shouldShowSuccess && !this.props.walletTransfer.loading) {
+            return (
+                <ScreenWrapper>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.transferBalance')}
+                        onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                    />
+                    <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <Icon
+                            src={Illustrations.TadaBlue}
+                            height={100}
+                            width={100}
+                            fill={defaultTheme.iconSuccessFill}
+                        />
+                        <View style={[styles.ph5]}>
+                            <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
+                                {this.props.translate('transferAmountPage.transferSuccess')}
+                            </Text>
+                            <Text style={[styles.mt3, styles.textAlignCenter]}>
+                                {this.props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                                    ? this.props.translate('transferAmountPage.transferDetailBankAccount')
+                                    : this.props.translate('transferAmountPage.transferDetailDebitCard')}
+                            </Text>
+                        </View>
+                    </View>
+                    <FixedFooter>
+                        <Button
+                            text={this.props.translate('common.done')}
+                            onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.mr5]}
+                            success
+                        />
+                    </FixedFooter>
+                </ScreenWrapper>
+            );
+        }
         const selectedAccount = this.getSelectedPaymentMethodAccount();
         const selectedPaymentType = selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
             ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
@@ -243,24 +276,29 @@ class TransferBalancePage extends React.Component {
                     </View>
                 </ScrollView>
                 <FixedFooter style={[styles.flexGrow0]}>
-                    <Button
-                        success
-                        pressOnEnter
-                        isLoading={this.props.walletTransfer.loading}
-                        isDisabled={isButtonDisabled}
-                        onPress={() => this.saveTransferAmountAndStartTransfer(transferAmount, selectedAccount)}
-                        text={this.props.translate(
-                            'transferAmountPage.transfer',
-                            {
-                                amount: isTransferable
-                                    ? this.props.numberFormat(
-                                        transferAmount / 100,
-                                        {style: 'currency', currency: 'USD'},
-                                    ) : '',
-                            },
+                    <FormAlertWrapper>
+                        {isOffline => (
+                            <Button
+                                success
+                                pressOnEnter
+                                isLoading={this.props.walletTransfer.loading}
+                                isDisabled={isButtonDisabled || isOffline}
+                                onPress={() => PaymentMethods.transferWalletBalance(selectedAccount)}
+                                text={this.props.translate(
+                                    'transferAmountPage.transfer',
+                                    {
+                                        amount: isTransferable
+                                            ? this.props.numberFormat(
+                                                transferAmount / 100,
+                                                {style: 'currency', currency: 'USD'},
+                                            ) : '',
+                                    },
+                                )}
+                            />
                         )}
-                    />
+                    </FormAlertWrapper>
                 </FixedFooter>
+                <OfflineIndicator containerStyles={[styles.ml5, styles.mb3]} />
             </ScreenWrapper>
         );
     }

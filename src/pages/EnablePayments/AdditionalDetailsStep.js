@@ -351,6 +351,7 @@ class AdditionalDetailsStep extends React.Component {
                             </View>
                             <TextInput
                                 containerStyles={[styles.mt4]}
+                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                 onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
                                 value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
