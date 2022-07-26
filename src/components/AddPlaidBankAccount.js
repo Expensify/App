@@ -148,12 +148,12 @@ class AddPlaidBankAccount extends React.Component {
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                    {(this.props.plaidData.error) && (
+                    {Boolean(this.props.plaidData.error) && (
                         <Text style={[styles.formError, styles.mh5]}>
                             {this.props.plaidData.error}
                         </Text>
                     )}
-                    {(token) && (
+                    {Boolean(token) && (
                         <PlaidLink
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
