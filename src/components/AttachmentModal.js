@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'lodash';
+import underscore from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
@@ -158,11 +159,12 @@ class AttachmentModal extends PureComponent {
         }
 
         const {fileExtension} = this.splitExtensionFromFileName(file.name);
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension)) {
+        if (!underscore.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension)) {
+            const invalidReasion = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
-                attachmentInvalidReason: this.props.translate('attachmentPicker.notAllowedExtension'),
+                attachmentInvalidReason: invalidReasion,
             });
             return false;
         }
