@@ -387,9 +387,6 @@ export default {
         deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
-        allSet: 'All Set!',
-        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
-        gotIt: 'Got it, Thanks!',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
