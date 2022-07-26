@@ -14,6 +14,7 @@ const CONST = {
 
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
+    API_MIN_ATTACHMENT_SIZE: 240, // An arbitrary size, but the same minimum as in the PHP layer
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {

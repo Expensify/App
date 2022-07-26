@@ -79,7 +79,7 @@ class AttachmentModal extends PureComponent {
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
-        this.isValidSize = this.isValidSize.bind(this);
+        this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
     }
 
     /**
@@ -132,12 +132,37 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * Check if the attachment size is less than the API size limit.
+     * Check if the attachment is with the API size limits.
      * @param {Object} file
      * @returns {Boolean}
      */
     isValidSize(file) {
-        return !file || lodashGet(file, 'size', 0) < CONST.API_MAX_ATTACHMENT_SIZE;
+        if (!file) {
+            return false;
+        }
+        return file.size < CONST.API_MAX_ATTACHMENT_SIZE && file.size > CONST.API_MIN_ATTACHMENT_SIZE;
+    }
+
+    /**
+     * @param {Object} file
+     */
+    validateAndDisplayFileToUpload(file) {
+        if (!this.isValidSize(file)) {
+            this.setState({isConfirmModalOpen: true});
+            return;
+        }
+        if (file instanceof File) {
+            const source = URL.createObjectURL(file);
+            const modalType = this.getModalType(source, file);
+            this.setState({
+                isModalOpen: true, sourceURL: source, file, modalType,
+            });
+        } else {
+            const modalType = this.getModalType(file.uri, file);
+            this.setState({
+                isModalOpen: true, sourceURL: file.uri, file, modalType,
+            });
+        }
     }
 
     render() {
@@ -207,24 +232,7 @@ class AttachmentModal extends PureComponent {
                     shouldShowCancelButton={false}
                 />
                 {this.props.children({
-                    displayFileInModal: ({file}) => {
-                        if (!this.isValidSize(file)) {
-                            this.setState({isConfirmModalOpen: true});
-                            return;
-                        }
-                        if (file instanceof File) {
-                            const source = URL.createObjectURL(file);
-                            const modalType = this.getModalType(source, file);
-                            this.setState({
-                                isModalOpen: true, sourceURL: source, file, modalType,
-                            });
-                        } else {
-                            const modalType = this.getModalType(file.uri, file);
-                            this.setState({
-                                isModalOpen: true, sourceURL: file.uri, file, modalType,
-                            });
-                        }
-                    },
+                    displayFileInModal: this.validateAndDisplayFileToUpload,
                     show: () => {
                         this.setState({isModalOpen: true});
                     },
