@@ -29,7 +29,6 @@ import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
-import OfflineIndicator from '../../../components/OfflineIndicator';
 
 const propTypes = {
     /** User's wallet information */
@@ -127,15 +126,6 @@ class TransferBalancePage extends React.Component {
                 && method.methodID === this.props.walletTransfer.selectedAccountID,
         );
         return selectedAccount || defaultAccount;
-    }
-
-    /**
-     * @param {Number} transferAmount
-     * @param {Object} selectedAccount
-     */
-    saveTransferAmountAndStartTransfer(transferAmount, selectedAccount) {
-        PaymentMethods.saveWalletTransferAmount(transferAmount);
-        PaymentMethods.transferWalletBalance(selectedAccount);
     }
 
     /**
