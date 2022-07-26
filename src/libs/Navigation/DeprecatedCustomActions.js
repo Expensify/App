@@ -16,6 +16,7 @@ function getActiveState() {
 
 /**
  * Go back to the Main Drawer
+ * @deprecated
  * @param {Object} navigationRef
  */
 function navigateBackToRootDrawer() {
@@ -64,6 +65,7 @@ function getScreenNameFromState(state) {
  *
  * More context here: https://github.com/react-navigation/react-navigation/issues/9744
  *
+ * @deprecated
  * @param {String} route
  * @returns {Function}
  */
