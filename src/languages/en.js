@@ -118,9 +118,11 @@ export default {
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',
         attachmentTooLarge: 'Attachment too large',
-        attachmentTooSmall: 'Attachment too small',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
+        attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size is less than the 240 byte minimum requirement',
+        wrongFileType: 'Attachment is a wrong file type',
+        notAllowedExtension: 'Attachments must be one of the following types: ',
     },
     composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
