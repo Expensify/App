@@ -120,8 +120,8 @@ export default {
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
         attachmentTooSmall: 'Attachment too small',
-        sizeNotMet: 'Attachment size is less than the 240 byte minimum requirement',
-        wrongFileType: 'Attachment is a wrong file type',
+        sizeNotMet: 'Attachment size must be greater than 240 bytes',
+        wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'Attachments must be one of the following types: ',
     },
     composer: {
