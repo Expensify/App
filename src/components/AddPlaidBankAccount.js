@@ -217,6 +217,7 @@ export default compose(
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
+            initWithStoredValues: false,
         },
     }),
 )(AddPlaidBankAccount);
