@@ -7,7 +7,7 @@ import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
     /** Title of the modal */
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
 
     /** A callback to call when the form has been submitted */
     onConfirm: PropTypes.func.isRequired,
@@ -54,6 +54,7 @@ const defaultProps = {
     onCancel: () => {},
     shouldShowCancelButton: true,
     shouldSetModalVisibility: true,
+    title: '',
     onModalHide: () => {},
 };
 
