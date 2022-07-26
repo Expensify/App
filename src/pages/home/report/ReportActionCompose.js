@@ -124,12 +124,14 @@ class ReportActionCompose extends React.Component {
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.comment = props.comment;
-        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.addAttachment = this.addAttachment.bind(this);
+
+        this.comment = props.comment;
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -448,6 +450,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * @param {Object} file
+     */
+    addAttachment(file) {
+        const comment = this.prepareCommentAndResetComposer();
+        Report.addAttachment(this.props.reportID, file, comment);
+        this.setTextInputShouldClear(false);
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -500,11 +511,7 @@ class ReportActionCompose extends React.Component {
                 >
                     <AttachmentModal
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
-                        onConfirm={(file) => {
-                            const comment = this.prepareCommentAndResetComposer();
-                            Report.addAttachment(this.props.reportID, file, comment);
-                            this.setTextInputShouldClear(false);
-                        }}
+                        onConfirm={this.addAttachment}
                     >
                         {({displayFileInModal}) => (
                             <>
