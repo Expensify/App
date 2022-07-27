@@ -70,6 +70,10 @@ hr {
     margin: 0 0 16px;
 }
 
+strong {
+    font-weight: bold;
+}
+
 em {
     font-style: italic;
 }
@@ -90,7 +94,6 @@ h4,
 h5,
 h6 {
     color: $color-dark;
-    font-family: "GTAmericaExp-Regular";
     font-weight: bold;
     padding-bottom: 12px;
 }
