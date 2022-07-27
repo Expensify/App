@@ -13,7 +13,6 @@ import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import Text from '../components/Text';
 import styles from '../styles/styles';
 import * as Illustrations from '../components/Icon/Illustrations';
@@ -176,33 +175,33 @@ class AddPersonalBankAccountPage extends React.Component {
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             />
                             {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                    <View style={[styles.mb5]}>
-                                        <TextInput
-                                            label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                            secureTextEntry
-                                            value={this.state.password}
-                                            autoCompleteType="password"
-                                            textContentType="password"
-                                            autoCapitalize="none"
-                                            autoFocus={canFocusInputOnScreenFocus()}
-                                            onChangeText={text => this.setState({password: text})}
-                                            errorText={this.getErrorText('password')}
-                                            hasError={this.getErrors().password}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                            {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                <FormAlertWithSubmitButton
-                                    isAlertVisible={Boolean(error)}
-                                    buttonText={this.props.translate('common.saveAndContinue')}
-                                    onSubmit={this.submit}
-                                    message={error}
-                                    isLoading={loading}
-                                />
+                                <View style={[styles.mb5]}>
+                                    <TextInput
+                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                        secureTextEntry
+                                        value={this.state.password}
+                                        autoCompleteType="password"
+                                        textContentType="password"
+                                        autoCapitalize="none"
+                                        autoFocus={canFocusInputOnScreenFocus()}
+                                        onChangeText={text => this.setState({password: text})}
+                                        errorText={this.getErrorText('password')}
+                                        hasError={this.getErrors().password}
+                                    />
+                                </View>
                             )}
-                        </FormScrollView>
-                    )}
+                        </View>
+                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={Boolean(error)}
+                                buttonText={this.props.translate('common.saveAndContinue')}
+                                onSubmit={this.submit}
+                                message={error}
+                                isLoading={loading}
+                            />
+                        )}
+                    </FormScrollView>
+                )}
             </ScreenWrapper>
         );
     }
