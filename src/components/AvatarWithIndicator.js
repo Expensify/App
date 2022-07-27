@@ -19,13 +19,13 @@ const propTypes = {
     tooltipText: PropTypes.string,
 
     /** The employee list of all policies (coming from Onyx) */
-    policiesMemberList: PropTypes.object,
+    policiesMemberList: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.object)),
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
-    policiesMemberList: [],
+    policiesMemberList: {},
 };
 
 const AvatarWithIndicator = (props) => {
@@ -35,7 +35,9 @@ const AvatarWithIndicator = (props) => {
         props.size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
     const isLarge = props.size === 'large';
-    const hasError = _.chain(props.policiesMemberList).flatten().some(member => !_.isEmpty(member.errors)).value();
+
+    // TODO: this is in a utility method
+    const hasError = _.some(props.policiesMemberList, policyMembers => _.some(policyMembers, member => !_.isEmpty(member.errors)));
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>

@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -22,7 +23,6 @@ import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './wit
 import * as PolicyActions from '../../libs/actions/Policy';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -78,8 +78,9 @@ class WorkspaceInitialPage extends React.Component {
         if (_.isEmpty(policy)) {
             return <FullScreenLoadingIndicator />;
         }
-        const hasMembersError = _.chain(this.props.policyMemberList).some(member => !_.isEmpty(member.errors)).value();
 
+        // TODO: this is in a utility method
+        const hasMembersError = _.some(this.props.policyMemberList, member => !_.isEmpty(member.errors));
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
