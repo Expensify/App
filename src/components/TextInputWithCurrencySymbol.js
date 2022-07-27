@@ -53,6 +53,8 @@ function TextInputWithCurrencySymbol(props) {
             onChangeAmount={props.onChangeAmount}
             placeholder={props.placeholder}
             ref={props.forwardedRef}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
         />
     );
 

@@ -59,6 +59,7 @@ class IOUAmountPage extends React.Component {
 
         this.state = {
             amount: props.selectedAmount,
+            selection: {start: 0, end: 0},
         };
     }
 
@@ -72,6 +73,19 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
+    }
+
+    /**
+     * Returns the new selection object based on updated amount
+     *
+     * @param {Object} oldSelection
+     * @param {String} oldAmount
+     * @param {String} newAmount
+     * @returns {Object}
+     */
+    getNewSelection(oldSelection, oldAmount, newAmount) {
+        const cursorPosition = oldSelection.end + (newAmount.length - oldAmount.length);
+        return {start: cursorPosition, end: cursorPosition};
     }
 
     /**
@@ -147,16 +161,23 @@ class IOUAmountPage extends React.Component {
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
-                this.setState(prevState => ({
-                    amount: prevState.amount.slice(0, -1),
-                }));
+                this.setState((prevState) => {
+                    const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
+                    const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
+                    const selection = this.getNewSelection(prevState.selection, prevState.amount, amount);
+                    return {amount, selection};
+                });
             }
             return;
         }
 
         this.setState((prevState) => {
-            const amount = this.addLeadingZero(`${prevState.amount}${key}`);
-            return this.validateAmount(amount) ? {amount} : prevState;
+            const amount = this.stripCommaFromAmount(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
+            if (this.validateAmount(amount)) {
+                const selection = this.getNewSelection(prevState.selection, prevState.amount, amount);
+                return {amount, selection};
+            }
+            return prevState;
         });
     }
 
@@ -166,9 +187,15 @@ class IOUAmountPage extends React.Component {
      *
      * @param {String} text - Changed text from user input
      */
-    updateAmount(amount) {
-        const newAmount = this.addLeadingZero(amount);
-        this.setState(prevState => (this.validateAmount(newAmount) ? {amount: newAmount} : prevState));
+    updateAmount(text) {
+        this.setState((prevState) => {
+            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
+            if (this.validateAmount(amount)) {
+                const selection = this.getNewSelection(prevState.selection, prevState.amount, amount);
+                return {amount, selection};
+            }
+            return prevState;
+        });
     }
 
     /**
@@ -214,6 +241,8 @@ class IOUAmountPage extends React.Component {
                         preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
+                        selection={this.state.selection}
+                        onSelectionChange={e => this.setState({selection: e.nativeEvent.selection})}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
