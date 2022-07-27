@@ -55,10 +55,10 @@ const propTypes = {
     })),
 
     /** List of policy members */
-    policyMembers: PropTypes.objectOf(PropTypes.shape({
-        /** ID of the policy */
-        policyID: PropTypes.string,
-    })),
+    policyMembers: PropTypes.objectOf(PropTypes.shape(
+        /** The members list is keyed by email which is dynamic so we just check that it's a string */
+        PropTypes.objectOf(PropTypes.string),
+    )),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -80,6 +80,7 @@ const defaultProps = {
         currentBalance: 0,
     },
     betas: [],
+    policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -143,7 +144,7 @@ const InitialSettingsPage = (props) => {
             iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, [policy.id, 'members'], [])) ? 'error' : null,
+            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
