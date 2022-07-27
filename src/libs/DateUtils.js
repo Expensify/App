@@ -161,6 +161,10 @@ function setTimezoneUpdated() {
     lastUpdatedTimezoneTime = moment();
 }
 
+function getMicroseconds() {
+    return Date.now() * 1000;
+}
+
 /**
  * @namespace DateUtils
  */
@@ -173,6 +177,7 @@ const DateUtils = {
     getCurrentTimezone,
     canUpdateTimezone,
     setTimezoneUpdated,
+    getMicroseconds,
 };
 
 export default DateUtils;
