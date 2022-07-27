@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import _ from 'lodash';
-import underscore from 'underscore';
+import {extend as lodashExtend} from 'lodash';
+import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
@@ -122,7 +122,7 @@ class AttachmentModal extends PureComponent {
         }
 
         if (this.props.onConfirm) {
-            this.props.onConfirm(_.extend(this.state.file, {source: this.state.sourceURL}));
+            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.sourceURL}));
         }
 
         this.setState({isModalOpen: false});
@@ -159,7 +159,7 @@ class AttachmentModal extends PureComponent {
         }
 
         const {fileExtension} = this.splitExtensionFromFileName(file.name);
-        if (!underscore.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension)) {
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension)) {
             const invalidReasion = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
             this.setState({
                 isAttachmentInvalid: true,
