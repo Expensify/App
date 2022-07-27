@@ -79,12 +79,13 @@ function cropCanvas(canvas, options) {
 
 /**
  * @param {Object} canvas
+ * @param {Object} options
  * @returns {Promise<File>}
  */
-function convertCanvasToFile(canvas) {
+function convertCanvasToFile(canvas, options = {}) {
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
-            const file = new File([blob], 'fileName.jpg', {type: 'image/jpeg'});
+            const file = new File([blob], `${options.name || 'fileName'}.jpg`, {type: 'image/jpeg'});
             file.uri = URL.createObjectURL(file);
             resolve(file);
         });
