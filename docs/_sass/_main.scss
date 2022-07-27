@@ -341,15 +341,28 @@ textarea {
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
+    $border-amount-darken: 15%;
+
+    &:hover {
+        border-color: darken($color-gray2, $border-amount-darken);
+    }
 
     &.send-money {
         border-color: $color-blue;
         border-width: 1.5px;
+
+        &:hover {
+            border-color: darken($color-blue, $border-amount-darken);
+        }
     }
 
     &.request-money {
         border-color: $color-green;
         border-width: 1.5px;
+
+        &:hover {
+            border-color: darken($color-green, $border-amount-darken);
+        }
     }
 
     .left-icon {
