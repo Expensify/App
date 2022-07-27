@@ -76,19 +76,6 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Returns the new selection object based on updated amount
-     *
-     * @param {Object} oldSelection
-     * @param {String} oldAmount
-     * @param {String} newAmount
-     * @returns {Object}
-     */
-    getNewSelection(oldSelection, oldAmount, newAmount) {
-        const cursorPosition = oldSelection.end + (newAmount.length - oldAmount.length);
-        return {start: cursorPosition, end: cursorPosition};
-    }
-
-    /**
      * Focus text input
      */
     focusTextInput() {
@@ -148,13 +135,19 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
+        // Returns the new selection object based on updated amount
+        const getNewSelection = (oldSelection, oldAmount, newAmount) => {
+            const cursorPosition = oldSelection.end + (newAmount.length - oldAmount.length);
+            return {start: cursorPosition, end: cursorPosition};
+        }
+
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
                 this.setState((prevState) => {
                     const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
                     const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
-                    const selection = this.getNewSelection(prevState.selection, prevState.amount, amount);
+                    const selection = getNewSelection(prevState.selection, prevState.amount, amount);
                     return {amount, selection};
                 });
             }
@@ -164,7 +157,7 @@ class IOUAmountPage extends React.Component {
         this.setState((prevState) => {
             const amount = this.stripCommaFromAmount(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
             if (this.validateAmount(amount)) {
-                const selection = this.getNewSelection(prevState.selection, prevState.amount, amount);
+                const selection = getNewSelection(prevState.selection, prevState.amount, amount);
                 return {amount, selection};
             }
             return prevState;
