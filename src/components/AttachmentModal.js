@@ -171,7 +171,7 @@ class AttachmentModal extends PureComponent {
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
-                attachmentInvalidReason: invalidReasion,
+                attachmentInvalidReason: invalidReason,
             });
             return false;
         }
