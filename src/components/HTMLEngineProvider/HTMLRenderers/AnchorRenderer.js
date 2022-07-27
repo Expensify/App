@@ -12,7 +12,7 @@ import Text from '../../Text';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
-import AnchorForCommentsOnly from '../../asd';
+import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
 import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
 
 const AnchorRenderer = (props) => {
@@ -82,7 +82,7 @@ const AnchorRenderer = (props) => {
             style={{...props.style, ...parentStyle}}
             key={props.key}
             displayName={displayName}
-            onPress={internalNewExpensifyPath || internalExpensifyPath || !HTMLEngineUtils.isInsideComment(props.tnode) ? navigateToLink : undefined}
+            onPress={internalNewExpensifyPath || internalExpensifyPath ? navigateToLink : undefined}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>
