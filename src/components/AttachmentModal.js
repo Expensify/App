@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import {extend as lodashExtend} from 'lodash';
+import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
@@ -147,7 +147,7 @@ class AttachmentModal extends PureComponent {
      * @returns {Boolean}
      */
     isValidFile(file) {
-        if (file.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooLarge'),
@@ -156,7 +156,7 @@ class AttachmentModal extends PureComponent {
             return false;
         }
 
-        if (file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
@@ -165,7 +165,7 @@ class AttachmentModal extends PureComponent {
             return false;
         }
 
-        const {fileExtension} = this.splitExtensionFromFileName(file.name);
+        const {fileExtension} = this.splitExtensionFromFileName(lodashGet(file, 'name', ''));
         if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension)) {
             const invalidReasion = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
             this.setState({
