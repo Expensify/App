@@ -79,6 +79,7 @@ const AboutPage = (props) => {
                         <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
                             <Logo height={80} width={80} />
                             <Text
+                                selectable
                                 style={[
                                     styles.textLabel,
                                     styles.alignSelfCenter,
