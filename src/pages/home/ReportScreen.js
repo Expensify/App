@@ -23,7 +23,6 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
-import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -146,7 +145,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        Report.addAction(getReportID(this.props.route), text);
+        Report.addComment(getReportID(this.props.route), text);
     }
 
     /**
@@ -195,14 +194,10 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
-        // For everyone else, one must be on the beta to see a default room.
-        const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(this.props.policies);
-        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(this.props.betas)) {
-            if (ReportUtils.isDomainRoom(this.props.report)) {
-                return null;
-            }
-        } else if (ReportUtils.isDefaultRoom(this.props.report) && !Permissions.canUseDefaultRooms(this.props.betas)) {
+        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        if (!Permissions.canUseDefaultRooms(this.props.betas)
+            && ReportUtils.isDefaultRoom(this.props.report)
+            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
             return null;
         }
 
@@ -241,27 +236,27 @@ class ReportScreen extends React.Component {
                             />
                         )}
                         {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            {
-                                isArchivedRoom
-                                    ? (
-                                        <ArchivedReportFooter
-                                            reportClosedAction={reportClosedAction}
-                                            report={this.props.report}
-                                        />
-                                    ) : (
-                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                            <ReportActionCompose
-                                                onSubmit={this.onSubmitComment}
-                                                reportID={reportID}
-                                                reportActions={this.props.reportActions}
+                            <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                                {
+                                    isArchivedRoom
+                                        ? (
+                                            <ArchivedReportFooter
+                                                reportClosedAction={reportClosedAction}
                                                 report={this.props.report}
-                                                isComposerFullSize={this.props.isComposerFullSize}
                                             />
-                                        </SwipeableView>
-                                    )
-                            }
-                        </View>
+                                        ) : (
+                                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                                <ReportActionCompose
+                                                    onSubmit={this.onSubmitComment}
+                                                    reportID={reportID}
+                                                    reportActions={this.props.reportActions}
+                                                    report={this.props.report}
+                                                    isComposerFullSize={this.props.isComposerFullSize}
+                                                />
+                                            </SwipeableView>
+                                        )
+                                }
+                            </View>
                         )}
                     </View>
                 </KeyboardAvoidingView>

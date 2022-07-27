@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import overflowXHidden from './overflowXHidden';
@@ -135,7 +136,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        whiteSpace: 'pre',
     },
 };
 
@@ -149,6 +149,7 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+    ...writingDirection,
 
     rateCol: {
         margin: 0,
@@ -662,6 +663,14 @@ const styles = {
 
     chatItemComposeSecondaryRowOffset: {
         marginLeft: 48,
+    },
+
+    offlineIndicator: {
+        marginLeft: 48,
+    },
+
+    offlineIndicatorMobile: {
+        marginLeft: 25,
     },
 
     // Actions
@@ -1399,6 +1408,10 @@ const styles = {
         maxHeight: '100%',
     },
 
+    editInputComposeSpacing: {
+        marginVertical: 6,
+    },
+
     textInputComposeSpacing: {
         paddingVertical: 6,
         ...flex.flexRow,
@@ -1841,6 +1854,10 @@ const styles = {
         ...spacing.mv1,
         ...spacing.mh1,
         ...{borderRadius: variables.componentBorderRadiusSmall},
+    },
+
+    reportActionSystemMessageContainer: {
+        marginLeft: 42,
     },
 
     reportDetailsTitleContainer: {
@@ -2331,6 +2348,9 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+
+    peopleRowOfflineFeedback: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
@@ -2350,6 +2370,36 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    offlineFeedback: {
+        deleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        pending: {
+            opacity: 0.5,
+        },
+        error: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        container: {
+            ...spacing.pv2,
+        },
+        textContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        text: {
+            color: themeColors.textSupporting,
+            flex: 1,
+            textAlignVertical: 'center',
+            fontSize: variables.fontSizeLabel,
+        },
+        errorDot: {
+            marginRight: 12,
+        },
     },
 
     sidebarPopover: {
@@ -2567,7 +2617,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
-        marginLeft: 4,
+        marginLeft: 6,
     },
 };
 

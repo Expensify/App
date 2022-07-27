@@ -10,7 +10,6 @@ import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
-import * as PolicyUtils from './PolicyUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -89,10 +88,6 @@ Onyx.connect({
         lastReportActions[reportID] = _.last(_.toArray(actions));
     },
 });
-
-// We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
-// will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
-const defaultAvatarForUserToInvite = ReportUtils.getDefaultAvatar();
 
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
@@ -441,14 +436,8 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        // If one is a member of a free policy, then they are allowed to see the Policy default rooms.
-        // For everyone else, one must be on the beta to see a default room.
-        const isMemberOfFreePolicy = PolicyUtils.isMemberOfFreePolicy(policies);
-        if (isMemberOfFreePolicy && !Permissions.canUseDefaultRooms(betas)) {
-            if (ReportUtils.isDomainRoom(report)) {
-                return;
-            }
-        } else if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
             return;
         }
 
@@ -598,7 +587,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         userToInvite = createOption([login], personalDetails, null, {
             showChatPreviewLine,
         });
-        userToInvite.icons = [defaultAvatarForUserToInvite];
+        userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching

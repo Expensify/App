@@ -386,7 +386,7 @@ const CONST = {
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
+        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
@@ -434,6 +434,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
+        VISIBLE_PASSWORD: 'visible-password',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -607,7 +608,6 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
-            VENMO: 'Venmo',
         },
         IOU_TYPE: {
             SEND: 'send',
@@ -730,6 +730,13 @@ const CONST = {
 
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
+
+    ONYX: {
+        METHOD: {
+            MERGE: 'merge',
+            SET: 'set',
+        },
+    },
 };
 
 export default CONST;

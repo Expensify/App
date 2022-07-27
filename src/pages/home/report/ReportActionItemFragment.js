@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import compose from '../../../libs/compose';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -44,6 +45,9 @@ const propTypes = {
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
+    /** The reportAction's source */
+    source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']),
+
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
 
@@ -64,6 +68,7 @@ const defaultProps = {
     loading: false,
     isSingleLine: false,
     tooltipText: '',
+    source: '',
 };
 
 const ReportActionItemFragment = (props) => {
@@ -86,6 +91,7 @@ const ReportActionItemFragment = (props) => {
                         )
                 );
             }
+            let {html, text} = props.fragment;
 
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we replace them with line breaks and render it as text, not as html.
@@ -93,32 +99,38 @@ const ReportActionItemFragment = (props) => {
             const differByLineBreaksOnly = Str.replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
             if (differByLineBreaksOnly) {
                 const textWithLineBreaks = Str.replaceAll(props.fragment.html, '<br />', '\n');
-                // eslint-disable-next-line no-param-reassign
-                props.fragment = {...props.fragment, text: textWithLineBreaks, html: textWithLineBreaks};
+                html = textWithLineBreaks;
+                text = textWithLineBreaks;
             }
 
             // Only render HTML if we have html in the fragment
-            return props.fragment.html !== props.fragment.text
-                ? (
+            if (html !== text) {
+                const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
+                const htmlContent = html + editedTag;
+                return (
                     <RenderHTML
-                        html={`<comment>${props.fragment.html + (props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
+                        html={props.source === 'email'
+                            ? `<email-comment>${htmlContent}</email-comment>`
+                            : `<comment>${htmlContent}</comment>`}
                     />
-                ) : (
-                    <Text
-                        selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined}
-                    >
-                        {Str.htmlDecode(props.fragment.text)}
-                        {props.fragment.isEdited && (
-                            <Text
-                                fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
-                            >
-                                {` ${props.translate('reportActionCompose.edited')}`}
-                            </Text>
-                        )}
-                    </Text>
                 );
+            }
+            return (
+                <Text
+                    selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr]}
+                >
+                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    {props.fragment.isEdited && (
+                    <Text
+                        fontSize={variables.fontSizeSmall}
+                        color={themeColors.textSupporting}
+                    >
+                        {` ${props.translate('reportActionCompose.edited')}`}
+                    </Text>
+                    )}
+                </Text>
+            );
         }
         case 'TEXT':
             return (
