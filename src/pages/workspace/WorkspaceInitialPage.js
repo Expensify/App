@@ -29,12 +29,12 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** The employee list of this policy (coming from Onyx) */
-    policyMemberList: PropTypes.arrayOf(PropTypes.object),
+    policyMemberList: PropTypes.objectOf(PropTypes.object),
 };
 
 const defaultProps = {
     ...fullPolicyDefaultProps,
-    policyMemberList: [],
+    policyMemberList: {},
 };
 
 class WorkspaceInitialPage extends React.Component {

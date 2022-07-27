@@ -19,7 +19,7 @@ const propTypes = {
     tooltipText: PropTypes.string,
 
     /** The employee list of all policies (coming from Onyx) */
-    policiesMemberList: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.object)),
+    policiesMemberList: PropTypes.objectOf(PropTypes.object),
 };
 
 const defaultProps = {
