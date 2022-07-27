@@ -77,13 +77,16 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getRateDisplayValue(value) {
-        return value.toString().replace('.', this.props.fromLocaleDigit('.'));
+        const numValue = parseFloat(value);
+        if (Number.isNaN(numValue)) {
+            return '';
+        }
+
+        return numValue.toFixed(3);
     }
 
     setRate(value) {
-        const decimalSeparator = this.props.fromLocaleDigit('.');
-        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${decimalSeparator}]\d{0,3})?$`, 'i');
-        const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
+        const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
 
         this.setState(prevState => ({
             rateValue: !isInvalidRateValue ? value : prevState.rateValue,
@@ -112,11 +115,15 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     updateRateValue(value) {
-        const numValue = parseFloat(value.replace(this.props.fromLocaleDigit('.'), '.'));
+        const numValue = parseFloat(value);
 
         if (_.isNaN(numValue)) {
             return;
         }
+
+        this.setState({
+            rateValue: numValue.toFixed(3),
+        });
 
         Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
             customUnitRateID: this.state.rateID,
