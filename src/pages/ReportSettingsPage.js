@@ -48,10 +48,16 @@ const propTypes = {
 
         /** The current user's notification preference for this report */
         notificationPreference: PropTypes.string,
+
+        /** Access setting e.g. whether the report is "restricted" */
+        visibility: PropTypes.string,
+
+        /** Linked policy's ID */
+        policyID: PropTypes.string,
     }).isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
+    reports: PropTypes.objectOf(PropTypes.shape({
         /** The report name */
         reportName: PropTypes.string,
 
@@ -60,7 +66,7 @@ const propTypes = {
 
         /** ID of the policy */
         policyID: PropTypes.string,
-    }).isRequired,
+    })).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -74,6 +80,13 @@ const propTypes = {
 
 const defaultProps = {
     ...fullPolicyDefaultProps,
+    report: {
+        reportID: 0,
+        reportName: '',
+        policyID: '',
+        notificationPreference: '',
+        visibility: '',
+    },
 };
 
 class ReportSettingsPage extends Component {

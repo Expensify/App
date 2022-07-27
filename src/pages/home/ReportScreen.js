@@ -236,27 +236,27 @@ class ReportScreen extends React.Component {
                             />
                         )}
                         {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            {
-                                isArchivedRoom
-                                    ? (
-                                        <ArchivedReportFooter
-                                            reportClosedAction={reportClosedAction}
-                                            report={this.props.report}
-                                        />
-                                    ) : (
-                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                            <ReportActionCompose
-                                                onSubmit={this.onSubmitComment}
-                                                reportID={reportID}
-                                                reportActions={this.props.reportActions}
+                            <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                                {
+                                    isArchivedRoom
+                                        ? (
+                                            <ArchivedReportFooter
+                                                reportClosedAction={reportClosedAction}
                                                 report={this.props.report}
-                                                isComposerFullSize={this.props.isComposerFullSize}
                                             />
-                                        </SwipeableView>
-                                    )
-                            }
-                        </View>
+                                        ) : (
+                                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                                <ReportActionCompose
+                                                    onSubmit={this.onSubmitComment}
+                                                    reportID={reportID}
+                                                    reportActions={this.props.reportActions}
+                                                    report={this.props.report}
+                                                    isComposerFullSize={this.props.isComposerFullSize}
+                                                />
+                                            </SwipeableView>
+                                        )
+                                }
+                            </View>
                         )}
                     </View>
                 </KeyboardAvoidingView>

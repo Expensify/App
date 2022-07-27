@@ -14,6 +14,7 @@ import MoneyMousePink from '../../../assets/images/product-illustrations/money-m
 import ReceiptYellow from '../../../assets/images/product-illustrations/receipt--yellow.svg';
 import RocketOrange from '../../../assets/images/product-illustrations/rocket--orange.svg';
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
+import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
 
 export {
@@ -33,5 +34,6 @@ export {
     ReceiptYellow,
     RocketOrange,
     TadaYellow,
+    TadaBlue,
     GpsTrackOrange,
 };

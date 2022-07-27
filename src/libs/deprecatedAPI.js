@@ -147,15 +147,6 @@ function GetAccountStatus(parameters) {
 }
 
 /**
- * Returns a short lived authToken for this account
- * @returns {Promise}
- */
-function GetShortLivedAuthToken() {
-    const commandName = 'GetShortLivedAuthToken';
-    return Network.post(commandName);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
@@ -339,17 +330,6 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {string} parameters.email
- * @returns {Promise}
- */
-function ResetPassword(parameters) {
-    const commandName = 'ResetPassword';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
  * @param {Number} parameters.accountID
@@ -369,13 +349,6 @@ function SetPassword(parameters) {
 function User_Delete(parameters) {
     const commandName = 'User_Delete';
     return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function User_GetBetas() {
-    return Network.post('User_GetBetas');
 }
 
 /**
@@ -755,7 +728,6 @@ export {
     DeleteBankAccount,
     Get,
     GetAccountStatus,
-    GetShortLivedAuthToken,
     GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,
@@ -773,13 +745,11 @@ export {
     Report_GetHistory,
     Report_EditComment,
     ResendValidateCode,
-    ResetPassword,
     SetNameValuePair,
     SetPassword,
     UpdatePolicy,
     User_SignUp,
     User_Delete,
-    User_GetBetas,
     User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
