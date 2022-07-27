@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import styles from '../../styles/styles';
