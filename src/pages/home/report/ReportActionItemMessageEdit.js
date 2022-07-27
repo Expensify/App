@@ -42,7 +42,7 @@ const propTypes = {
     }),
 
     // Whether or not the emoji picker is disabled
-    emojiPickerDisabled: PropTypes.bool,
+    shouldDisableEmojiPicker: PropTypes.bool,
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -54,7 +54,7 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     report: {},
-    emojiPickerDisabled: false,
+    shouldDisableEmojiPicker: false,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -216,7 +216,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
-                            isDisabled={this.props.emojiPickerDisabled}
+                            isDisabled={this.props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
