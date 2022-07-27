@@ -8,14 +8,14 @@ import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const propTypes = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */
-    onGestureEventHandler: gestureHandlerPropTypes,
+    onGesture: gestureHandlerPropTypes,
 
     /** X position of the slider knob */
     sliderValue: PropTypes.shape({value: PropTypes.number}),
 };
 
 const defaultProps = {
-    onGestureEventHandler: () => {},
+    onGesture: () => {},
     sliderValue: {},
 };
 
@@ -29,7 +29,7 @@ const Slider = (props) => {
 
     return (
         <View style={styles.sliderBar}>
-            <PanGestureHandler onGestureEvent={props.onGestureEventHandler}>
+            <PanGestureHandler onGestureEvent={props.onGesture}>
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]} />
             </PanGestureHandler>
         </View>

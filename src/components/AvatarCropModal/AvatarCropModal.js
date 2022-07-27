@@ -288,7 +288,7 @@ const AvatarCropModal = (props) => {
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={colors.gray3} />
                                 <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
-                                    <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} />
+                                    <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </View>
                                 <Button medium icon={Expensicons.Rotate} iconFill={colors.black} iconStyles={[styles.mr0]} style={[styles.imageCropRotateButton]} onPress={rotateImage} />
                             </View>
