@@ -12,7 +12,8 @@ import Text from '../../Text';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
-import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
+import AnchorForCommentsOnly from '../../asd';
+import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
 
 const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -57,10 +58,19 @@ const AnchorRenderer = (props) => {
         );
     }
 
+    if (isAttachment) {
+        return (
+            <AnchorForAttachmentsOnly
+                href={attrHref}
+                key={props.key}
+                displayName={displayName}
+            />
+        );
+    }
+
     return (
         <AnchorForCommentsOnly
             href={attrHref}
-            isAuthTokenRequired={isAttachment}
 
             // Unless otherwise specified open all links in
             // a new window. On Desktop this means that we will
