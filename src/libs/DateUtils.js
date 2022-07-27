@@ -161,6 +161,11 @@ function setTimezoneUpdated() {
     lastUpdatedTimezoneTime = moment();
 }
 
+/**
+ * Get the UNIX timestamp in microseconds, with millisecond precision.
+ *
+ * @returns {Number}
+ */
 function getMicroseconds() {
     return Date.now() * CONST.MICROSECONDS_PER_MS;
 }
