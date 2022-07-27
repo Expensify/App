@@ -3,6 +3,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -86,6 +87,9 @@ const modalScreenListeners = {
 
 const propTypes = {
     ...windowDimensionsPropTypes,
+
+    /** The current path as reported by the NavigationContainer */
+    currentPath: PropTypes.string.isRequired,
 };
 
 class AuthScreens extends React.Component {
@@ -115,7 +119,6 @@ class AuthScreens extends React.Component {
         App.openApp(this.props.allPolicies);
 
         App.fixAccountAndReloadData();
-        App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -133,6 +136,10 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        if (this.props.currentPath !== nextProps.currentPath) {
+            App.setUpPoliciesAndNavigate(nextProps.session, nextProps.currentPath);
+        }
+
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
