@@ -167,7 +167,7 @@ class AttachmentModal extends PureComponent {
 
         const {fileExtension} = this.splitExtensionFromFileName(lodashGet(file, 'name', ''));
         if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension)) {
-            const invalidReasion = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
