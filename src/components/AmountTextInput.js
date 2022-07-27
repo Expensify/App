@@ -39,6 +39,8 @@ function AmountTextInput(props) {
             placeholder={props.placeholder}
             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
             blurOnSubmit={false}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
         />
     );
 }
