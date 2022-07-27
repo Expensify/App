@@ -12,7 +12,7 @@ import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 const propTypes = {
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.string.isRequired,
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func.isRequired,

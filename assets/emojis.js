@@ -32,19 +32,19 @@ const skinTones = [{
     skinTone: CONST.DEFAULT_SKIN_TONE,
 }, {
     code: '🖐🏻',
-    skinTone: 4,
+    skinTone: '4',
 }, {
     code: '🖐🏼',
-    skinTone: 3,
+    skinTone: '3',
 }, {
     code: '🖐🏽',
-    skinTone: 2,
+    skinTone: '2',
 }, {
     code: '🖐🏾',
-    skinTone: 1,
+    skinTone: '1',
 }, {
     code: '🖐🏿',
-    skinTone: 0,
+    skinTone: '0',
 }];
 
 const emojis = [

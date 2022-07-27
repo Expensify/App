@@ -20,7 +20,7 @@ const propTypes = {
     onEmojiSelected: PropTypes.func.isRequired,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    preferredSkinTone: PropTypes.string,
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
