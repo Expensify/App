@@ -213,7 +213,7 @@ class ReportScreen extends React.Component {
         }
 
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
+            <ScreenWrapper keyboardAvoidingViewBehavior="height" style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <HeaderView
                     reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
