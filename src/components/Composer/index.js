@@ -11,6 +11,8 @@ import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
 
+const COPY_DROP_EFFECT = 'copy';
+
 const propTypes = {
     /** Maximum number of lines in the text input */
     maxLines: PropTypes.number,
@@ -197,13 +199,15 @@ class Composer extends React.Component {
     dragNDropListener(e) {
         let isOriginComposer = false;
         const handler = () => {
+            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
             switch (e.type) {
                 case 'dragover':
                     e.preventDefault();
+                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragOver(e, isOriginComposer);
                     break;
                 case 'dragenter':
-                    e.dataTransfer.dropEffect = 'copy';
+                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragEnter(e, isOriginComposer);
                     break;
                 case 'dragleave':
