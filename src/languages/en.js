@@ -261,7 +261,7 @@ export default {
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `The resolution of the selected image is less than ${minHeightInPx}x${minWidthInPx}PX`, // TODO: ask for translation
+        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than 80x80 ${minHeightInPx}x${minWidthInPx} pixels`,
     },
     profilePage: {
         profile: 'Profile',
