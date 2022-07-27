@@ -26,31 +26,22 @@ const AnchorRenderer = (props) => {
         || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
     const internalExpensifyPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL) && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
 
-    // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
-    // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-    if (internalNewExpensifyPath) {
-        return (
-            <Text
-                style={styles.link}
-                onPress={() => Navigation.navigate(internalNewExpensifyPath)}
-            >
-                <TNodeChildrenRenderer tnode={props.tnode} />
-            </Text>
-        );
-    }
+    const navigateToLink = () => {
+        // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
+        // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
+        if (internalNewExpensifyPath) {
+            Navigation.navigate(internalNewExpensifyPath);
+            return;
+        }
 
-    // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
-    // As attachments also use expensify.com we don't want it working the same as links.
-    if (internalExpensifyPath && !isAttachment) {
-        return (
-            <Text
-                style={styles.link}
-                onPress={() => Link.openOldDotLink(internalExpensifyPath)}
-            >
-                <TNodeChildrenRenderer tnode={props.tnode} />
-            </Text>
-        );
-    }
+        // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
+        // As attachments also use expensify.com we don't want it working the same as links.
+        if (internalExpensifyPath && !isAttachment) {
+            Link.openOldDotLink(internalExpensifyPath);
+            return;
+        }
+        Linking.openURL(attrHref);
+    };
 
     if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -59,7 +50,7 @@ const AnchorRenderer = (props) => {
         return (
             <Text
                 style={styles.link}
-                onPress={() => Linking.openURL(attrHref)}
+                onPress={navigateToLink}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>
@@ -81,6 +72,7 @@ const AnchorRenderer = (props) => {
             style={{...props.style, ...parentStyle}}
             key={props.key}
             displayName={displayName}
+            onPress={internalNewExpensifyPath || internalExpensifyPath || !HTMLEngineUtils.isInsideComment(props.tnode) ? navigateToLink : undefined}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>
