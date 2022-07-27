@@ -87,7 +87,8 @@ class AvatarWithImagePicker extends React.Component {
             errorModalPrompt: '',
             errorModalTitle: '',
             isAvatarCropModalOpen: false,
-            image: null,
+            imageName: '',
+            imageUri: '',
         };
     }
 
@@ -174,7 +175,7 @@ class AvatarWithImagePicker extends React.Component {
                     return;
                 }
 
-                this.setState({isAvatarCropModalOpen: true, image});
+                this.setState({isAvatarCropModalOpen: true, imageUri: image.uri, imageName: image.name});
             });
     }
 
@@ -307,7 +308,8 @@ class AvatarWithImagePicker extends React.Component {
                     onClose={this.hideAvatarCropModal}
                     isVisible={this.state.isAvatarCropModalOpen}
                     onSave={this.props.onImageSelected}
-                    imageUri={lodashGet(this.state.image, 'uri')}
+                    imageUri={this.state.imageUri}
+                    imageName={this.state.imageName}
                 />
             </View>
         );

@@ -32,8 +32,11 @@ import HeaderGap from '../HeaderGap';
 import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
-    /** Link to image for cropping   */
+    /** Link to image for cropping */
     imageUri: PropTypes.string,
+
+    /** Name of the image */
+    imageName: PropTypes.string,
 
     /** Callback to be called when user closes the modal */
     onClose: PropTypes.func,
@@ -49,7 +52,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    imageUri: null,
+    imageUri: '',
+    imageName: '',
     onClose: () => { },
     onSave: () => { },
 };
@@ -241,12 +245,12 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
-        imageManipulator(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1})
+        imageManipulator(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: props.imageName})
             .then((newImage) => {
                 props.onClose();
                 props.onSave(newImage);
             });
-    }, [props.imageUri, imageContainerSize]);
+    }, [props.imageUri, props.imageName, imageContainerSize]);
 
     return (
         <Modal
