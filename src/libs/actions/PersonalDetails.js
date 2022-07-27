@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
@@ -114,27 +115,6 @@ function formatPersonalDetails(personalDetailsList) {
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     return formattedResult;
-}
-
-/**
- * Get the personal details for our organization
- * @returns {Promise}
- */
-function fetchPersonalDetails() {
-    return DeprecatedAPI.Get({
-        returnValueList: 'personalDetailsList',
-    })
-        .then((data) => {
-            // If personalDetailsList does not have the current user ensure we initialize their details with an empty
-            // object at least
-            const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
-            if (!personalDetailsList[currentUserEmail]) {
-                personalDetailsList[currentUserEmail] = {};
-            }
-
-            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-        });
 }
 
 /**
@@ -283,28 +263,10 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 /**
- * Fetches the local currency based on location and sets currency code/symbol to local storage
+ * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
-function fetchLocalCurrency() {
-    const coords = {};
-    let currency = '';
-
-    Onyx.merge(ONYXKEYS.IOU, {
-        isRetrievingCurrency: true,
-    });
-
-    DeprecatedAPI.GetLocalCurrency({...coords})
-        .then((data) => {
-            currency = data.currency;
-        })
-        .then(() => {
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: {localCurrencyCode: currency}});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                isRetrievingCurrency: false,
-            });
-        });
+function openIOUModalPage() {
+    API.read('OpenIOUModalPage');
 }
 
 /**
@@ -344,14 +306,13 @@ function deleteAvatar(defaultAvatarURL) {
 }
 
 export {
-    fetchPersonalDetails,
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    fetchLocalCurrency,
+    openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
 };

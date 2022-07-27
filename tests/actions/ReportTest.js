@@ -81,14 +81,7 @@ describe('actions/Report', () => {
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
-                [TEST_USER_LOGIN]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    email: TEST_USER_LOGIN,
-                    firstName: 'Test',
-                    lastName: 'User',
-                },
-            }))
+            .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
@@ -111,7 +104,7 @@ describe('actions/Report', () => {
                 delete actionWithoutLoading.isLoading;
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: 'merge',
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
@@ -123,7 +116,7 @@ describe('actions/Report', () => {
                         },
                     },
                     {
-                        onyxMethod: 'merge',
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             [clientID]: null,
@@ -183,14 +176,7 @@ describe('actions/Report', () => {
 
         // GIVEN a test user with initial data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
-                [TEST_USER_LOGIN]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    email: TEST_USER_LOGIN,
-                    firstName: 'Test',
-                    lastName: 'User',
-                },
-            }))
+            .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 global.fetch = TestHelper.getGlobalFetchMock();
 
@@ -243,14 +229,7 @@ describe('actions/Report', () => {
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
-            .then(() => TestHelper.fetchPersonalDetailsForTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN, {
-                [USER_1_LOGIN]: {
-                    accountID: USER_1_ACCOUNT_ID,
-                    email: USER_1_LOGIN,
-                    firstName: 'Test',
-                    lastName: 'User',
-                },
-            }))
+            .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
                 // When a Pusher event is handled for a new report comment
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [

@@ -14,6 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -272,6 +273,7 @@ class BaseTextInput extends Component {
                                         secureTextEntry={this.state.passwordHidden}
                                         onPressOut={this.props.onPress}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
+                                        keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable
