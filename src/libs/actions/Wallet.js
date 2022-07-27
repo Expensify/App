@@ -163,9 +163,25 @@ function updatePersonalDetails(personalDetails) {
     if (!personalDetails) {
         return;
     }
-    const personalDetailsString = personalDetails ? JSON.stringify(personalDetails) : '';
+    const firstName = personalDetails.legalFirstName || '';
+    const lastName = personalDetails.legalLastName || '';
+    const dateOfBirth = personalDetails.dob || '';
+    const addressStreet = personalDetails.addressStreet || '';
+    const addressCity = personalDetails.addressCity || '';
+    const addressState = personalDetails.addressState || '';
+    const addressZip = personalDetails.addressZip || '';
+    const ssn = personalDetails.ssn || '';
+    const phoneNumber = personalDetails.phoneNumber || '';
     API.write('UpdatePersonalDetailsForWallet', {
-        personalDetails: personalDetailsString,
+        firstName,
+        lastName,
+        dateOfBirth,
+        addressStreet,
+        addressCity,
+        addressState,
+        addressZip,
+        ssn,
+        phoneNumber,
     }, {
         optimisticData: [
             {
