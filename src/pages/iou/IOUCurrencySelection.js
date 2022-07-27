@@ -10,6 +10,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -116,19 +117,21 @@ class IOUCurrencySelection extends Component {
         const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                    onCloseButtonPress={Navigation.goBack}
-                />
-                <OptionsSelector
-                    sections={this.getSections()}
-                    onSelectRow={this.confirmCurrencySelection}
-                    value={this.state.searchValue}
-                    onChangeText={this.changeSearchValue}
-                    shouldDelayFocus
-                    placeholderText={this.props.translate('common.search')}
-                    headerMessage={headerMessage}
-                />
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                        onCloseButtonPress={Navigation.goBack}
+                    />
+                    <OptionsSelector
+                        sections={this.getSections()}
+                        onSelectRow={this.confirmCurrencySelection}
+                        value={this.state.searchValue}
+                        onChangeText={this.changeSearchValue}
+                        shouldDelayFocus
+                        placeholderText={this.props.translate('common.search')}
+                        headerMessage={headerMessage}
+                    />
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import overflowXHidden from './overflowXHidden';
@@ -148,6 +149,7 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+    ...writingDirection,
 
     rateCol: {
         margin: 0,
@@ -734,6 +736,7 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
+        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
