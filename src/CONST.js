@@ -737,6 +737,7 @@ const CONST = {
             SET: 'set',
         },
     },
+    MICROSECONDS_PER_MS: 1000,
 };
 
 export default CONST;
