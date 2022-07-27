@@ -92,11 +92,18 @@ class AttachmentModal extends PureComponent {
      * @returns {String}
      */
     getModalType(sourceUrl, file) {
-        const modalType = (sourceUrl
-            && (Str.isPDF(sourceUrl) || (file && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename')))))
+        return (
+            sourceUrl
+            && (
+                Str.isPDF(sourceUrl)
+                || (
+                    file
+                    && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))
+                )
+            )
+        )
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
-        return modalType;
     }
 
     /**
@@ -106,9 +113,9 @@ class AttachmentModal extends PureComponent {
      * @returns {Object}
      */
     splitExtensionFromFileName(fullFileName) {
-        const splitFileName = fullFileName.trim().split('.');
+        const fileName = fullFileName.trim();
+        const splitFileName = fileName.split('.');
         const fileExtension = splitFileName.pop();
-        const fileName = splitFileName.join('.');
         return {fileName, fileExtension};
     }
 
