@@ -26,6 +26,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as Policy from '../../libs/actions/Policy';
+import policyMemberPropType from '../pages/policyMemberPropType';
 
 const propTypes = {
     /* Onyx Props */
@@ -55,11 +56,7 @@ const propTypes = {
     })),
 
     /** List of policy members */
-    policyMembers: PropTypes.objectOf(PropTypes.shape(
-
-        /** The members list is keyed by email which is dynamic so we just check that it's a string */
-        PropTypes.objectOf(PropTypes.string),
-    )),
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
