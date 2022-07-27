@@ -200,7 +200,7 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
+            <ScreenWrapper keyboardAvoidingViewBehavior="height" style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <HeaderView
                     reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
