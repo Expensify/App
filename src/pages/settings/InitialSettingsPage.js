@@ -26,7 +26,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as Policy from '../../libs/actions/Policy';
-import policyMemberPropType from '../pages/policyMemberPropType';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /* Onyx Props */
