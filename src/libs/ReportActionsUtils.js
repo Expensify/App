@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
 
@@ -7,7 +8,8 @@ import CONST from '../CONST';
  */
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
-    return reportAction.message.length === 0 || reportAction.message[0].html === '';
+    const message = lodashGet(reportAction, 'message', []);
+    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
 }
 
 /**
