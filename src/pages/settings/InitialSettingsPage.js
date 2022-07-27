@@ -56,6 +56,7 @@ const propTypes = {
 
     /** List of policy members */
     policyMembers: PropTypes.objectOf(PropTypes.shape(
+
         /** The members list is keyed by email which is dynamic so we just check that it's a string */
         PropTypes.objectOf(PropTypes.string),
     )),
