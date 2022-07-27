@@ -33,12 +33,12 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 // See https://github.com/sindresorhus/electron-context-menu
 contextMenu();
 
-// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all Console logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 _.assign(console, log.functions);
 
