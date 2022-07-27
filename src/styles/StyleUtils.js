@@ -438,6 +438,19 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Receives any number of object or array style objects and returns them all as an array
+ * @param {Object|Object[]} allStyles
+ * @return {Object[]}
+ */
+function combineStyles(...allStyles) {
+    let finalStyles = [];
+    _.each(allStyles, (style) => {
+        finalStyles = finalStyles.concat(parseStyleAsArray(style));
+    });
+    return finalStyles;
+}
+
+/**
  * Get variable padding-left as style
  * @param {Number} paddingLeft
  * @returns {Object}
@@ -446,6 +459,16 @@ function getPaddingLeft(paddingLeft) {
     return {
         paddingLeft,
     };
+}
+
+/**
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * @param {String} text
+ * @returns {String}
+ */
+function convertToLTR(text) {
+    return `\u2066${text}`;
 }
 
 export {
@@ -474,5 +497,7 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    combineStyles,
     getPaddingLeft,
+    convertToLTR,
 };

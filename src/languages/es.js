@@ -387,16 +387,12 @@ export default {
         deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
         deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
         deletePayPalSuccess: 'PayPal.me eliminada correctamente',
-        allSet: 'Todo listo!',
-        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
-        gotIt: 'Gracias!',
         error: {
             notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como tu método de pago predeterminado.',
             invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
-        addBankAccountSuccess: 'Su cuenta bancaria ha sido añadida con éxito.',
         addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
@@ -407,6 +403,9 @@ export default {
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
+        transferSuccess: '¡Transferencia exitosa!',
+        transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
+        transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
@@ -569,6 +568,8 @@ export default {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
+        successTitle: '¡Cuenta bancaria personal añadida!',
+        successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',

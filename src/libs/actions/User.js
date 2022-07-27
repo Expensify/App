@@ -50,21 +50,21 @@ function updatePassword(oldPassword, password) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
             },
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {loading: false},
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {loading: false},
             },
@@ -89,16 +89,6 @@ function closeAccount(message) {
 
         // Inform user that they are currently unable to close their account
         CloseAccountActions.showCloseAccountModal();
-    });
-}
-
-function getBetas() {
-    DeprecatedAPI.User_GetBetas().then((response) => {
-        if (response.jsonCode !== 200) {
-            return;
-        }
-
-        Onyx.set(ONYXKEYS.BETAS, response.betas);
     });
 }
 
@@ -160,14 +150,14 @@ function updateNewsletterSubscription(isSubscribed) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: isSubscribed},
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: !isSubscribed},
             },
@@ -482,7 +472,6 @@ function generateStatementPDF(period) {
 export {
     updatePassword,
     closeAccount,
-    getBetas,
     getUserDetails,
     resendValidateCode,
     updateNewsletterSubscription,

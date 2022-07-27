@@ -387,16 +387,12 @@ export default {
         deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
-        allSet: 'All Set!',
-        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
-        gotIt: 'Got it, Thanks!',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
-        addBankAccountSuccess: 'Your bank account has successfully been added.',
         addBankAccountFailure: 'And unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
@@ -407,6 +403,9 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
+        transferSuccess: 'Transfer successful!',
+        transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
+        transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
@@ -569,6 +568,8 @@ export default {
         enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
+        successTitle: 'Personal bank account added!',
+        successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
