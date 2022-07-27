@@ -28,8 +28,8 @@ import * as PaymentUtils from '../../../libs/PaymentUtils';
 import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
-import FormAlertWrapper from '../../../components/FormAlertWrapper';
-import OfflineIndicator from '../../../components/OfflineIndicator';
+import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** User's wallet information */
