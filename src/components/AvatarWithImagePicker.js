@@ -113,7 +113,6 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     *  Show the error modal
      * @param {String} title
      * @param {String} prompt
      */
@@ -121,15 +120,13 @@ class AvatarWithImagePicker extends React.Component {
         this.setState({isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt});
     }
 
-    /**
-     *  Hide the error modal
-     */
     hideErrorModal() {
         this.setState({isErrorModalVisible: false});
     }
 
     /**
      * Check if the attachment size is less than allowed size.
+     *
      * @param {Object} image
      * @returns {Boolean}
      */
@@ -139,6 +136,7 @@ class AvatarWithImagePicker extends React.Component {
 
     /**
      * Check if the attachment resolution is bigger than required.
+     *
      * @param {String} imageUri
      * @returns {Promise}
      */
@@ -150,7 +148,9 @@ class AvatarWithImagePicker extends React.Component {
         });
     }
 
-    /** Validates if an image has a valid resolution and opens an avatar crop modal
+    /**
+     * Validates if an image has a valid resolution and opens an avatar crop modal
+     *
      * @param {Object} image
      */
     showAvatarCropModal(image) {
@@ -179,9 +179,6 @@ class AvatarWithImagePicker extends React.Component {
             });
     }
 
-    /**
-     *  Hide the avatar crop modal
-     */
     hideAvatarCropModal() {
         this.setState({isAvatarCropModalOpen: false});
     }
