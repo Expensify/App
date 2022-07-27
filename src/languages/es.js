@@ -393,7 +393,6 @@ export default {
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
-        addBankAccountSuccess: 'Su cuenta bancaria ha sido añadida con éxito.',
         addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
@@ -569,6 +568,8 @@ export default {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
+        successTitle: '¡Cuenta bancaria personal añadida!',
+        successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',

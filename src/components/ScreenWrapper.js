@@ -110,6 +110,7 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
+        console.log(">>>>", this.props.network)
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
