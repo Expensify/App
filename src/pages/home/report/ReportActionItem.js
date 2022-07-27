@@ -151,7 +151,7 @@ class ReportActionItem extends Component {
                         index={this.props.index}
                         ref={el => this.textInput = el}
                         report={this.props.report}
-                        emojiPickerDisabled={
+                        shouldDisableEmojiPicker={
                             (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
                             || ReportUtils.isArchivedRoom(this.props.report)
                         }
