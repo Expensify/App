@@ -41,6 +41,12 @@ class BaseAnchorForCommentsOnly extends React.Component {
     render() {
         let linkRef;
         const rest = _.omit(this.props, _.keys(propTypes));
+        const linkProps = {};
+        if (_.isFunction(this.props.onPress)) {
+            linkProps.onPress = this.props.onPress;
+        } else {
+            linkProps.href = this.props.href;
+        }
         const defaultTextStyle = canUseTouchScreen() || this.props.isSmallScreenWidth ? {} : styles.userSelectText;
 
         return (
@@ -80,12 +86,13 @@ class BaseAnchorForCommentsOnly extends React.Component {
                                 ref={el => linkRef = el}
                                 style={StyleSheet.flatten([this.props.style, defaultTextStyle])}
                                 accessibilityRole="link"
-                                href={this.props.href}
                                 hrefAttrs={{
                                     rel: this.props.rel,
                                     target: this.props.target,
                                 }}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...linkProps}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...rest}
                             >
                                 {this.props.children}

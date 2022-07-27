@@ -28,6 +28,8 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
+    /** Press handler for the link */
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -38,6 +40,7 @@ const defaultProps = {
     children: null,
     style: {},
     displayName: '',
+    onPress: undefined,
 };
 
 export {propTypes, defaultProps};
