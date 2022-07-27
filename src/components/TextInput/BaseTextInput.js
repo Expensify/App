@@ -71,7 +71,6 @@ class BaseTextInput extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({value: inputValue});
-        this.input.setNativeProps({text: inputValue});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (inputValue === '') {
@@ -274,6 +273,7 @@ class BaseTextInput extends Component {
                                         onPressOut={this.props.onPress}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
+                                        value={this.props.value}
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable
