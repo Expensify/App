@@ -40,7 +40,7 @@ const propTypes = {
 const defaultProps = {
     personalBankAccount: {
         error: '',
-        success: false,
+        shouldShowSuccess: false,
         loading: false,
     },
 };
