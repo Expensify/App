@@ -29,6 +29,7 @@ import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 import imageManipulator from '../../libs/imageManipulator';
 import HeaderGap from '../HeaderGap';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -49,8 +50,8 @@ const propTypes = {
 
 const defaultProps = {
     imageUri: null,
-    onClose: () => {},
-    onSave: () => {},
+    onClose: () => { },
+    onSave: () => { },
 };
 
 // This component can't be written using class since reanimated API uses hooks.
@@ -252,7 +253,7 @@ const AvatarCropModal = (props) => {
             onClose={props.onClose}
             isVisible={props.isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            containerStyle={styles.avatarCropModalContainer}
+            containerStyle={!props.isSmallScreenWidth && styles.avatarCropModalContainer}
             onModalHide={resetState}
             statusBarTranslucent={false}
         >
@@ -262,7 +263,7 @@ const AvatarCropModal = (props) => {
                 onCloseButtonPress={props.onClose}
             />
             <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
-            <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1]}>
+            <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}>
 
                 {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                 {(!isImageInitialized || !isImageContainerInitialized)
@@ -280,7 +281,7 @@ const AvatarCropModal = (props) => {
                                     translateX={translateX}
                                     rotation={rotation}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow]}>
+                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={colors.gray3} />
                                 <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
                                     <Slider sliderValue={translateSlider} onGestureEventHandler={panSliderGestureEventHandler} />
