@@ -165,7 +165,7 @@ function updatePersonalDetails(personalDetails) {
     }
     const firstName = personalDetails.legalFirstName || '';
     const lastName = personalDetails.legalLastName || '';
-    const dateOfBirth = personalDetails.dob || '';
+    const dob = personalDetails.dob || '';
     const addressStreet = personalDetails.addressStreet || '';
     const addressCity = personalDetails.addressCity || '';
     const addressState = personalDetails.addressState || '';
@@ -175,7 +175,7 @@ function updatePersonalDetails(personalDetails) {
     API.write('UpdatePersonalDetailsForWallet', {
         firstName,
         lastName,
-        dateOfBirth,
+        dob,
         addressStreet,
         addressCity,
         addressState,
