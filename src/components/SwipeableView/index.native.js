@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
-import {PanResponder, View, Animated} from 'react-native';
+import {
+    PanResponder, View, Dimensions, Animated,
+} from 'react-native';
 import PropTypes from 'prop-types';
 
 import CONST from '../../CONST';
@@ -13,6 +15,10 @@ const propTypes = {
     /** Callback to fire when swiping left or right */
     onSwipeHorizontal: PropTypes.func,
 
+    /** These help to prevent a swipe animation when at either end */
+    canSwipeLeft: PropTypes.bool,
+    canSwipeRight: PropTypes.bool,
+
     /** Callback to facility an press event */
     onPress: PropTypes.func,
 
@@ -25,6 +31,8 @@ const defaultProps = {
     onSwipeHorizontal: () => {},
     onPress: () => {},
     isAnimated: false,
+    canSwipeLeft: false,
+    canSwipeRight: false,
 };
 
 class SwipeableView extends Component {
@@ -32,7 +40,7 @@ class SwipeableView extends Component {
         super(props);
 
         if (this.props.isAnimated) {
-            this.pan = new Animated.ValueXY();
+            this.pan = new Animated.Value(0);
         }
 
         this.panResponder = PanResponder.create({
@@ -45,8 +53,7 @@ class SwipeableView extends Component {
             onPanResponderMove: (event, gestureState) => {
                 if (!this.props.isAnimated) { return; }
                 return Animated.event([null, {
-                    dx: this.pan.x,
-                    dy: this.pan.y,
+                    dx: this.pan,
                 }], {useNativeDriver: false})(event, gestureState);
             },
 
@@ -60,12 +67,21 @@ class SwipeableView extends Component {
                     return this.props.onPress();
                 }
 
-                if (Math.abs(gestureState.dx) > CONST.MAX_HORIZONTAL_SWIPE) {
-                    const deltaSlide = gestureState.dx > 0 ? -1 : 1;
-                    this.props.onSwipeHorizontal(deltaSlide);
+                const deltaSlide = gestureState.dx > 0 ? -1 : 1;
+                if (Math.abs(gestureState.vx) < 1.8 || (deltaSlide === -1 && !this.props.canSwipeLeft) || (deltaSlide === 1 && !this.props.canSwipeRight)) {
+                    return Animated.spring(this.pan, {useNativeDriver: false, toValue: 0}).start();
                 }
 
-                Animated.spring(this.pan, {useNativeDriver: false, toValue: {x: 0, y: 0}}).start();
+                const width = Dimensions.get('window').width;
+                const slideLength = deltaSlide * (width * (3 / 4));
+                Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: -slideLength}).start(({finished}) => {
+                    if (!finished) {
+                        return;
+                    }
+                    this.props.onSwipeHorizontal(deltaSlide);
+                    this.pan.setValue(slideLength);
+                    Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: 0}).start();
+                });
             },
         });
     }
@@ -75,7 +91,7 @@ class SwipeableView extends Component {
             return (
                 <Animated.View
                     style={{
-                        transform: [{translateX: this.pan.x}],
+                        transform: [{translateX: this.pan}],
                     }}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.panResponder.panHandlers}

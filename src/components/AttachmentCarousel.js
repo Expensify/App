@@ -176,6 +176,8 @@ class AttachmentCarousel extends React.Component {
                 )}
                 <SwipeableView
                     isAnimated
+                    canSwipeLeft={!this.state.isBackDisabled}
+                    canSwipeRight={!this.state.isForwardDisabled}
                     onPress={() => canUseTouchScreen() && this.onShowArrow(!this.state.showArrows)}
                     onSwipeHorizontal={this.cycleThroughAttachments}
                 >
