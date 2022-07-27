@@ -189,7 +189,6 @@ class SearchPage extends Component {
                                 shouldShowOptions={didScreenTransitionEnd}
                             />
                         </View>
-                        <KeyboardSpacer />
                     </>
                 )}
             </ScreenWrapper>
