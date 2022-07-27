@@ -2623,7 +2623,6 @@ const styles = {
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        alignSelf: 'center',
         backgroundColor: themeColors.shadow,
     },
 
