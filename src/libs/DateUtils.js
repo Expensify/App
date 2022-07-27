@@ -162,7 +162,7 @@ function setTimezoneUpdated() {
 }
 
 function getMicroseconds() {
-    return Date.now() * 1000;
+    return Date.now() * CONST.MICROSECONDS_PER_MS;
 }
 
 /**
