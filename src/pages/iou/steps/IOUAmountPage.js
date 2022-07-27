@@ -126,7 +126,7 @@ class IOUAmountPage extends React.Component {
     stripCommaFromAmount(amount) {
         return amount.replace(/,/g, '');
     }
-    
+
     /**
      * Adds a leading zero to amount if user entered just the decimal separator
      *
