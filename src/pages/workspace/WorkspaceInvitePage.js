@@ -13,7 +13,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import TextInput from '../../components/TextInput';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
@@ -244,7 +243,7 @@ class WorkspaceInvitePage extends React.Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <HeaderWithCloseButton
                             title={this.props.translate('workspace.invite.invitePeople')}
                             subtitle={policyName}
@@ -335,7 +334,7 @@ class WorkspaceInvitePage extends React.Component {
                                 )}
                             </Pressable>
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );

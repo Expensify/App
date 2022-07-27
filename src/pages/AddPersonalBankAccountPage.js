@@ -128,35 +128,24 @@ class AddPersonalBankAccountPage extends React.Component {
 
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('bankAccount.addBankAccount')}
-                        onCloseButtonPress={Navigation.goBack}
-                        shouldShowBackButton
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    {success ? (
-                        <>
-                            <Text style={[styles.formSuccess, styles.mh5]}>
-                                {success}
-                            </Text>
-                            <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
-                                <Button
-                                    success
-                                    text={this.props.translate('common.continue')}
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
-                                />
-                            </View>
-                        </View>
-                        <FixedFooter>
+                <HeaderWithCloseButton
+                    title={this.props.translate('bankAccount.addBankAccount')}
+                    onCloseButtonPress={Navigation.goBack}
+                    shouldShowBackButton
+                    onBackButtonPress={Navigation.goBack}
+                />
+                {success ? (
+                    <>
+                        <Text style={[styles.formSuccess, styles.mh5]}>
+                            {success}
+                        </Text>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
                             <Button
+                                success
                                 text={this.props.translate('common.continue')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
-                                style={[styles.mt4]}
-                                iconStyles={[styles.mr5]}
-                                success
                             />
-                        </FixedFooter>
+                        </View>
                     </>
                 ) : (
                     <FormScrollView>
