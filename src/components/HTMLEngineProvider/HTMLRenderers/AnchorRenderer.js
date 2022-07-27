@@ -64,7 +64,6 @@ const AnchorRenderer = (props) => {
         return (
             <AnchorForAttachmentsOnly
                 source={attrHref}
-                key={props.key}
                 displayName={displayName}
             />
         );
