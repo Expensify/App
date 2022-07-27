@@ -128,6 +128,19 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Adds a leading zero to amount if user entered just the decimal separator
+     *
+     * @param {String} amount - Changed amount from user input
+     * @returns {String}
+     */
+    addLeadingZero(amount) {
+        if (amount === '.') {
+            return '0.';
+        }
+        return amount;
+    }
+
+    /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
