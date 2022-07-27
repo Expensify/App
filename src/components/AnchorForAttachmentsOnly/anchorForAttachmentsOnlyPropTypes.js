@@ -1,22 +1,19 @@
 import PropTypes from 'prop-types';
+import stylePropTypes from '../../styles/stylePropTypes';
 
-/**
- * Text based component that is passed a URL to open onPress
- */
 const propTypes = {
-    /** The URL to open */
-    href: PropTypes.string,
+    /** The URL of the attachment */
+    source: PropTypes.string,
 
     /** Filename in case of attachments, anchor text in case of URLs or emails. */
     displayName: PropTypes.string,
 
     /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    style: stylePropTypes,
 };
 
 const defaultProps = {
-    href: '',
+    source: '',
     style: {},
     displayName: '',
 };

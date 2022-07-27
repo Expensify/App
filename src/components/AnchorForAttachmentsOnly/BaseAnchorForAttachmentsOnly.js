@@ -27,7 +27,7 @@ class BaseAnchorForAttachmentsOnly extends React.Component {
     }
 
     render() {
-        const href = addEncryptedAuthTokenToURL(this.props.href);
+        const source = addEncryptedAuthTokenToURL(this.props.source);
 
         return (
             <Pressable
@@ -36,11 +36,11 @@ class BaseAnchorForAttachmentsOnly extends React.Component {
                     if (this.state.isDownloading) {
                         return;
                     }
-                    this.processDownload(href, this.props.displayName);
+                    this.processDownload(source, this.props.displayName);
                 }}
             >
                 <AttachmentView
-                    sourceURL={href}
+                    sourceURL={source}
                     file={{name: this.props.displayName}}
                     shouldShowDownloadIcon
                     shouldShowLoadingSpinnerIcon={this.state.isDownloading}
