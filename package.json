@@ -113,7 +113,7 @@
     "shim-keyboard-event-key": "^1.0.3",
     "smoothscroll-polyfill": "^0.4.4",
     "underscore": "^1.13.1",
-    "urbanairship-react-native": "^14.3.1"
+    "urbanairship-react-native": "^13.0.0"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",
