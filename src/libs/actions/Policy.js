@@ -546,7 +546,7 @@ function subscribeToPolicyEvents() {
  * @returns {Boolean}
  */
 function hasPolicyMemberError(policyMemberList) {
-    return _.chain(policyMemberList).some(member => !_.isEmpty(member.errors)).value();
+    return policyMemberList.some(member => !_.isEmpty(member.errors)).value();
 }
 
 export {
