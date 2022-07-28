@@ -139,7 +139,7 @@ class IOUAmountPage extends React.Component {
         const getNewSelection = (oldSelection, oldAmount, newAmount) => {
             const cursorPosition = oldSelection.end + (newAmount.length - oldAmount.length);
             return {start: cursorPosition, end: cursorPosition};
-        }
+        };
 
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
