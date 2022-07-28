@@ -46,13 +46,6 @@ Onyx.connect({
 });
 
 /**
- * @param {String} url
- */
-function setCurrentURL(url) {
-    Onyx.set(ONYXKEYS.CURRENT_URL, url);
-}
-
-/**
 * @param {String} locale
 */
 function setLocale(locale) {
@@ -211,7 +204,6 @@ NetworkConnection.onReconnect(() => {
 });
 
 export {
-    setCurrentURL,
     setLocale,
     setSidebarLoaded,
     getAppData,
