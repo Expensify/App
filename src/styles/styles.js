@@ -1385,7 +1385,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         color: themeColors.text,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
