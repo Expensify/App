@@ -48,6 +48,18 @@ function pushNotificationEventCallback(eventType, notification) {
 }
 
 /**
+ * Check if a user is opted-in to push notifications and update the `pushNotificationsEnabled` NVP accordingly.
+ */
+function refreshNotificationOptInStatus() {
+    UrbanAirship.getNotificationStatus()
+        .then((notificationStatus) => {
+            const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+            Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
+            NVP.set(CONST.NVP.PUSH_NOTIFICATIONS_ENABLED, isOptedIn);
+        });
+}
+
+/**
  * Register push notification callbacks. This is separate from namedUser registration because it needs to be executed
  * from a headless JS process, outside of any react lifecycle.
  *
@@ -74,14 +86,7 @@ function init() {
     });
 
     // Keep track of which users have enabled push notifications via an NVP.
-    UrbanAirship.addListener(EventType.NotificationOptInStatus, () => {
-        UrbanAirship.getNotificationStatus()
-            .then((notificationStatus) => {
-                const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
-                Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
-                NVP.set(CONST.NVP.PUSH_NOTIFICATIONS_ENABLED, isOptedIn);
-            });
-    });
+    UrbanAirship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 }
 
 /**
@@ -169,6 +174,7 @@ function clearNotifications() {
 }
 
 export default {
+    refreshNotificationOptInStatus,
     init,
     register,
     deregister,
