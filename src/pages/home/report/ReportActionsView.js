@@ -31,6 +31,7 @@ import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -75,7 +76,6 @@ const propTypes = {
 
 const defaultProps = {
     report: {
-        isUnread: false,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
@@ -95,7 +95,7 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerSequenceNumber: props.report.isUnread ? props.report.lastReadSequenceNumber + 1 : 0,
+            newMarkerSequenceNumber: ReportUtils.isUnread(props.report) ? props.report.lastReadSequenceNumber + 1 : 0,
         };
 
         this.currentScrollOffset = 0;
@@ -117,7 +117,7 @@ class ReportActionsView extends React.Component {
                 return;
             }
 
-            if (!this.props.report.isUnread) {
+            if (!ReportUtils.isUnread(this.props.report)) {
                 this.resetNewMarkerSequenceNumber();
             }
 
@@ -203,7 +203,7 @@ class ReportActionsView extends React.Component {
             this.fetchData();
         }
 
-        if ((prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber) && this.props.report.isUnread) {
+        if ((prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber) && ReportUtils.isUnread(this.props.report)) {
             this.updateNewMarkerSequenceNumber(this.props.report.lastReadSequenceNumber + 1);
         }
 
@@ -249,7 +249,7 @@ class ReportActionsView extends React.Component {
         }
 
         // Switched from report view to LHN reset the new marker
-        if (sidebarOpened && !this.props.report.isUnread) {
+        if (sidebarOpened && !ReportUtils.isUnread(this.props.report)) {
             this.resetNewMarkerSequenceNumber();
         }
     }

@@ -76,7 +76,6 @@ const defaultProps = {
     },
     reportActions: {},
     report: {
-        isUnread: false,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },

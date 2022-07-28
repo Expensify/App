@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import updateUnread from './updateUnread';
+import * as ReportUtils from '../ReportUtils';
 
 // Stash the unread action counts for each report
 const unreadReports = {};
@@ -34,7 +35,7 @@ function listenForReportChanges() {
                 return;
             }
 
-            unreadReports[report.reportID] = report.isUnread;
+            unreadReports[report.reportID] = ReportUtils.isUnread(report);
             throttledUpdatePageTitleAndUnreadCount();
         },
     });

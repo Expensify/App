@@ -523,6 +523,10 @@ function generateReportID() {
     return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
 }
 
+function isUnread(report) {
+    return report && report.lastReadSequenceNumber < report.maxSequenceNumber;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -552,4 +556,5 @@ export {
     getReportName,
     navigateToDetailsPage,
     generateReportID,
+    isUnread,
 };
