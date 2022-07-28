@@ -1038,11 +1038,9 @@ function deleteReportComment(reportID, reportAction) {
  * @param {Number} reportID
  */
 function openReport(reportID) {
-    const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('OpenReport',
         {
             reportID,
-            sequenceNumber,
         },
         {
             optimisticData: [{
