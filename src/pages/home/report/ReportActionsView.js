@@ -40,9 +40,6 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
 
@@ -78,7 +75,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {
-        unreadActionCount: 0,
+        isUnread: false,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
@@ -98,7 +95,7 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerSequenceNumber: props.report.lastReadSequenceNumber + 1,
+            newMarkerSequenceNumber: props.report.isUnread ? props.report.lastReadSequenceNumber + 1 : 0,
         };
 
         this.currentScrollOffset = 0;
@@ -120,7 +117,7 @@ class ReportActionsView extends React.Component {
                 return;
             }
 
-            if (this.props.report.unreadActionCount === 0) {
+            if (!this.props.report.isUnread) {
                 this.resetNewMarkerSequenceNumber();
             }
 
@@ -206,8 +203,8 @@ class ReportActionsView extends React.Component {
             this.fetchData();
         }
 
-        if (prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber) {
-            this.setState({newMarkerSequenceNumber: this.props.lastReadSequenceNumber + 1});
+        if ((prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber) && this.props.report.isUnread) {
+            this.updateNewMarkerSequenceNumber(this.props.report.lastReadSequenceNumber + 1);
         }
 
         // Update the last read action for the report currently in view when report data finishes loading.
@@ -236,10 +233,13 @@ class ReportActionsView extends React.Component {
                 this.resetNewMarkerSequenceNumber();
             }
 
-            // When the last action changes, record the max action
-            // This will make the NEW marker line go away if you receive comments in the same chat you're looking at
             if (isReportFullyVisible) {
-                Report.readNewestAction(this.props.reportID);
+                if (this.currentScrollOffset === 0) {
+                    Report.readNewestAction(this.props.reportID);
+                    this.resetNewMarkerSequenceNumber();
+                } else if (this.state.newMarkerSequenceNumber === 0) {
+                    this.updateNewMarkerSequenceNumber(currentLastSequenceNumber);
+                }
             }
         }
 
@@ -249,7 +249,7 @@ class ReportActionsView extends React.Component {
         }
 
         // Switched from report view to LHN reset the new marker
-        if (sidebarOpened && this.props.report.unreadActionCount === 0) {
+        if (sidebarOpened && !this.props.report.isUnread) {
             this.resetNewMarkerSequenceNumber();
         }
     }
@@ -280,6 +280,10 @@ class ReportActionsView extends React.Component {
 
     resetNewMarkerSequenceNumber() {
         this.setState({newMarkerSequenceNumber: 0});
+    }
+
+    updateNewMarkerSequenceNumber(newMarkerSequenceNumber) {
+        this.setState({newMarkerSequenceNumber});
     }
 
     /**
