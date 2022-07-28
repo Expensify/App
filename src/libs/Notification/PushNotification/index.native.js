@@ -130,6 +130,9 @@ function register(accountID) {
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
     Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
     UrbanAirship.setNamedUser(accountID.toString());
+
+    // Refresh notification opt-in status NVP for the new user.
+    refreshNotificationOptInStatus();
 }
 
 /**
@@ -197,5 +200,4 @@ export default {
     onSelected,
     TYPE: NotificationType,
     clearNotifications,
-    refreshNotificationOptInStatus,
 };
