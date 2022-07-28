@@ -136,6 +136,7 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        // we perform this check here instead of componentDidUpdate to skip an unnecessary re-render
         if (this.props.currentPath !== nextProps.currentPath) {
             App.setUpPoliciesAndNavigate(nextProps.session, nextProps.currentPath);
         }
