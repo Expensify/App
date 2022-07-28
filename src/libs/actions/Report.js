@@ -1032,12 +1032,9 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  * @param {Number} reportID
  */
 function openReport(reportID) {
-    const sequenceNumber = reportMaxSequenceNumbers[reportID];
-    lastReadSequenceNumbers[reportID] = sequenceNumber;
     API.write('OpenReport',
         {
             reportID,
-            sequenceNumber,
         },
         {
             optimisticData: [{
