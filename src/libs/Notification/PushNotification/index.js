@@ -9,4 +9,5 @@ export default {
     onSelected: () => {},
     TYPE: NotificationType,
     clearNotifications: () => {},
+    refreshNotificationOptInStatus: () => {},
 };
