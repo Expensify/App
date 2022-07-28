@@ -8,7 +8,7 @@ import Log from '../../Log';
 import NotificationType from './NotificationType';
 import * as User from '../../actions/User';
 
-let arePushNotificationsEnabled = false;
+let arePushNotificationsEnabled = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
     callback: val => arePushNotificationsEnabled = val,

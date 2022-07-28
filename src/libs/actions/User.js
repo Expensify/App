@@ -484,7 +484,7 @@ function setPushNotificationOptInStatus(arePushNotificationsEnabled) {
             value: arePushNotificationsEnabled,
         },
     ];
-    API.write('setPushNotificationOptInStatus', {
+    API.write('SetPushNotificationOptInStatus', {
         value: arePushNotificationsEnabled,
     }, {optimisticData});
 }
