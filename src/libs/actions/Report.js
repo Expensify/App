@@ -442,6 +442,15 @@ function subscribeToUserEvents() {
             const actionsToMerge = {};
             actionsToMerge[sequenceNumber] = {message: [message]};
 
+            // If someone besides the current user deleted an action and it is the only comment we have not read then we will update the lastReadSequenceNumber
+            // we skip this for the current user because we should already have increased it when they deleted the comment
+            const isFromCurrentUser = ReportActions.isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge);
+            if (!message.html && !isFromCurrentUser && sequenceNumber === getLastReadSequenceNumber(reportID) + 1) {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                    lastReadSequenceNumber: getLastReadSequenceNumber(reportID) + 1,
+                });
+            }
+
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 lastMessageText: ReportActions.getLastVisibleMessageText(reportID, actionsToMerge),
             });
@@ -932,6 +941,13 @@ function deleteReportComment(reportID, reportAction) {
             },
         ],
     };
+
+    // If the comment we are deleting is more recent than our last read comment we will increment the lastReadSequenceNumber
+    if (sequenceNumber === getLastReadSequenceNumber(reportID) + 1) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastReadSequenceNumber: getLastReadSequenceNumber(reportID) + 1,
+        });
+    }
 
     // Optimistically update the report and reportActions
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);

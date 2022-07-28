@@ -523,6 +523,10 @@ function generateReportID() {
     return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function isUnread(report) {
     return report && report.lastReadSequenceNumber < report.maxSequenceNumber;
 }
