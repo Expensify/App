@@ -594,10 +594,7 @@ export {
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
-<<<<<<< HEAD
     clearDeleteMemberError,
     clearAddMemberError,
-=======
     hasPolicyMemberError,
->>>>>>> main
 };

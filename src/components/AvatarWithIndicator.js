@@ -7,6 +7,7 @@ import Avatar from './Avatar';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import ONYXKEYS from '../ONYXKEYS';
+import policyMemberPropType from '../pages/policyMemberPropType';
 
 const propTypes = {
     /** URL for the avatar */
@@ -19,7 +20,7 @@ const propTypes = {
     tooltipText: PropTypes.string,
 
     /** The employee list of all policies (coming from Onyx) */
-    policiesMemberList: PropTypes.objectOf(PropTypes.object),
+    policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const defaultProps = {
