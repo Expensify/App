@@ -2,6 +2,7 @@ import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
@@ -23,6 +24,8 @@ import CONST from '../../CONST';
 import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import * as Policy from '../../libs/actions/Policy';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /* Onyx Props */
@@ -48,6 +51,9 @@ const propTypes = {
         role: PropTypes.string,
     })),
 
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
+
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
@@ -68,6 +74,7 @@ const defaultProps = {
         currentBalance: 0,
     },
     betas: [],
+    policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -131,6 +138,7 @@ const InitialSettingsPage = (props) => {
             iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -187,6 +195,7 @@ const InitialSettingsPage = (props) => {
                                 shouldShowRightIcon
                                 badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
                                 fallbackIcon={item.fallbackIcon}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         );
                     })}
@@ -209,6 +218,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
