@@ -170,7 +170,7 @@ function fixAccountAndReloadData() {
  * @param {string} currentPath
  */
 function setUpPoliciesAndNavigate(session, currentPath) {
-    if (!session || !currentPath) {
+    if (!session || !currentPath || !currentPath.includes('exitTo')) {
         return;
     }
 
