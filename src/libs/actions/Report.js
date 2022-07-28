@@ -1398,7 +1398,6 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 function viewNewReportAction(reportID, action) {
     const incomingSequenceNumber = action.sequenceNumber;
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-    const lastReadSequenceNumber = getLastReadSequenceNumber(reportID);
     const updatedReportObject = {};
 
     // When handling an action from the current user we can assume that their last read actionID has been updated in the server, but not necessarily reflected
@@ -1406,8 +1405,6 @@ function viewNewReportAction(reportID, action) {
     //  if the incoming sequenceNumber is higher than the last read for the user.
     if (isFromCurrentUser) {
         updatedReportObject.lastVisitedTimestamp = Date.now();
-        updatedReportObject.lastReadSequenceNumber = incomingSequenceNumber;
-    } else if (incomingSequenceNumber > lastReadSequenceNumber) {
         updatedReportObject.lastReadSequenceNumber = incomingSequenceNumber;
     }
 
