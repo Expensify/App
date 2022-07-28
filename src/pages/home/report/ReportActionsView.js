@@ -145,7 +145,7 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerAndMarkReadOnce();
         }
 
-        this.fetchData();
+        Report.openReport(this.props.reportID);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -201,10 +201,7 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            if (this.getIsReportFullyVisible()) {
-                Report.openReport(this.props.reportID);
-            }
-            this.fetchData();
+            Report.openReport(this.props.reportID);
         }
 
         // Update the last read action for the report currently in view when report data finishes loading.
@@ -272,10 +269,6 @@ class ReportActionsView extends React.Component {
     getIsReportFullyVisible() {
         const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
         return Visibility.isVisible() && !isSidebarCoveringReportView;
-    }
-
-    fetchData() {
-        Report.fetchActions(this.props.reportID);
     }
 
     /**
