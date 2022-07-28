@@ -469,6 +469,26 @@ function generateStatementPDF(period) {
         });
 }
 
+/**
+ * Save opt-in status when push notifications are enable or disabled.
+ * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
+ *
+ * @param {Boolean} arePushNotificationsEnabled
+ * @void
+ */
+function setPushNotificationOptInStatus(arePushNotificationsEnabled) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+            value: arePushNotificationsEnabled,
+        },
+    ];
+    API.write('setPushNotificationOptInStatus', {
+        value: arePushNotificationsEnabled,
+    }, {optimisticData});
+}
+
 export {
     updatePassword,
     closeAccount,
@@ -490,4 +510,5 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     updateChatPriorityMode,
+    setPushNotificationOptInStatus,
 };

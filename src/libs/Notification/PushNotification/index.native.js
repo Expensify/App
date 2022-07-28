@@ -174,7 +174,6 @@ function clearNotifications() {
 }
 
 export default {
-    refreshNotificationOptInStatus,
     init,
     register,
     deregister,
@@ -182,4 +181,5 @@ export default {
     onSelected,
     TYPE: NotificationType,
     clearNotifications,
+    refreshNotificationOptInStatus,
 };
