@@ -55,10 +55,11 @@ class BaseDrawerNavigator extends Component {
 
   componentDidUpdate(prevProps) {
     // You don't have to do this check first, but it can help prevent an unneeded render
-    if (prevProps !== this.props) {
+
+    if (prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
       this.setState({
         defaultStatus: Navigation.getDefaultDrawerState(
-          prevProps.isSmallScreenWidth,
+          this.props.isSmallScreenWidth,
         ),
       });
     }
