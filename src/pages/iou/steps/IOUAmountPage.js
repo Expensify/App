@@ -128,16 +128,13 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Adds a leading zero to amount if user entered just the decimal separator
+     * Adds a leading zero to the amount if user entered just the decimal separator
      *
      * @param {String} amount - Changed amount from user input
      * @returns {String}
      */
     addLeadingZero(amount) {
-        if (amount === '.') {
-            return '0.';
-        }
-        return amount;
+        return amount === '.' ? '0.' : amount;
     }
 
     /**
