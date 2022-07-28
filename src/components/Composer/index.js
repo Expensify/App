@@ -11,8 +11,6 @@ import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
 
-const COPY_DROP_EFFECT = 'copy';
-
 const propTypes = {
     /** Maximum number of lines in the text input */
     maxLines: PropTypes.number,
@@ -109,6 +107,8 @@ const IMAGE_EXTENSIONS = {
     'image/tiff': 'tiff',
     'image/webp': 'webp',
 };
+
+const COPY_DROP_EFFECT = 'copy';
 
 /**
  * Enable Markdown parsing.
