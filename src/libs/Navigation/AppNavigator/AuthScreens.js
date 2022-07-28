@@ -11,6 +11,7 @@ import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
+import PushNotification from '../../Notification/PushNotification';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -108,6 +109,7 @@ class AuthScreens extends React.Component {
             User.subscribeToUserEvents();
             Policy.subscribeToPolicyEvents();
         });
+        PushNotification.refreshNotificationOptInStatus();
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
