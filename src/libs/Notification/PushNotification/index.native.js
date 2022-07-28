@@ -1,11 +1,18 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
-import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
-import NVP from '../../actions/NameValuePair';
-import CONST from '../../../CONST';
+import * as User from '../../actions/User';
+
+let arePushNotificationsEnabled = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+    callback: val => arePushNotificationsEnabled = val,
+});
 
 const notificationEventActionMap = {};
 
@@ -54,8 +61,12 @@ function refreshNotificationOptInStatus() {
     UrbanAirship.getNotificationStatus()
         .then((notificationStatus) => {
             const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+            if (isOptedIn === arePushNotificationsEnabled) {
+                return;
+            }
+
             Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
-            NVP.set(CONST.NVP.PUSH_NOTIFICATIONS_ENABLED, isOptedIn);
+            User.setPushNotificationOptInStatus(isOptedIn);
         });
 }
 
@@ -69,6 +80,11 @@ function refreshNotificationOptInStatus() {
 function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
+        // By default, refresh notification opt-in status to true if we receive a notification
+        if (!arePushNotificationsEnabled) {
+            User.setPushNotificationOptInStatus(true);
+        }
+
         // If a push notification is received while the app is in foreground,
         // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
         if (AppState.currentState === 'active') {
