@@ -7,7 +7,6 @@ import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import KeyboardSpacer from '../components/KeyboardSpacer';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
