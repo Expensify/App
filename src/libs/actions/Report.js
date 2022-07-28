@@ -680,18 +680,6 @@ function fetchActions(reportID) {
 }
 
 /**
- * Get the actions of a report during pagination
- *
- * @param {Number} reportID
- * @param {Number} [offset]
- */
-function fetchActionsWithPagination(reportID, offset) {
-    Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, true);
-    fetchActions(reportID, offset)
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_MORE_REPORT_ACTIONS, false));
-}
-
-/**
  * Get the initial actions of a report
  *
  * @param {Number} reportID
@@ -1654,7 +1642,6 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
-    fetchActionsWithPagination,
     fetchInitialActions,
     createPolicyRoom,
     renameReport,
