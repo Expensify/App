@@ -11,7 +11,6 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as PersonalDetails from './actions/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
-window.Onyx = Onyx;
 
 let currentUserEmail;
 Onyx.connect({
