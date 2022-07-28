@@ -23,13 +23,14 @@ import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './wit
 import * as PolicyActions from '../../libs/actions/Policy';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 
     /** The employee list of this policy (coming from Onyx) */
-    policyMemberList: PropTypes.objectOf(PropTypes.object),
+    policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const defaultProps = {

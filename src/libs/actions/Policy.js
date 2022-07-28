@@ -586,4 +586,5 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
+    hasPolicyMemberError,
 };
