@@ -59,6 +59,7 @@ const BaseHTMLEngineProvider = (props) => {
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             systemFonts={_.values(fontFamily)}
+            fallbackFonts={{'GTAmericaExp-Regular': fontFamily.EMOJI_TEXT_FONT}}
         >
             <RenderHTMLConfigProvider
                 defaultTextProps={defaultTextProps}
