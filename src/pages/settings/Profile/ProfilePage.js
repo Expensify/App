@@ -66,18 +66,19 @@ class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
+        const currentUserDetails = this.props.currentUserPersonalDetails || {};
         this.state = {
-            firstName: this.props.currentUserPersonalDetails.firstName || '',
+            firstName: currentUserDetails.firstName || '',
             hasFirstNameError: false,
-            lastName: this.props.currentUserPersonalDetails.lastName || '',
+            lastName: currentUserDetails.lastName || '',
             hasLastNameError: false,
-            pronouns: this.props.currentUserPersonalDetails.pronouns || '',
+            pronouns: currentUserDetails.pronouns || '',
             hasPronounError: false,
-            hasSelfSelectedPronouns: !_.isEmpty(this.props.currentUserPersonalDetails.pronouns) && !this.props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(this.props.currentUserPersonalDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(this.props.currentUserPersonalDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            hasSelfSelectedPronouns: !(currentUserDetails.pronouns || '').startsWith(CONST.PRONOUNS.PREFIX),
+            selectedTimezone: lodashGet(currentUserDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(currentUserDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
-            avatar: {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))},
+            avatar: {uri: currentUserDetails.avatar || ReportUtils.getDefaultAvatar(currentUserDetails.login)},
             isAvatarChanged: false,
         };
 
@@ -128,7 +129,7 @@ class ProfilePage extends Component {
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
             // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== this.props.currentUserPersonalDetails.login) && !_.isEmpty(logins[type])
+            if ((login !== lodashGet(this.props.currentUserPersonalDetails, 'login')) && !_.isEmpty(logins[type])
                 && (logins[type].validatedDate || !currentLogin.validatedDate)) {
                 return logins;
             }
@@ -171,7 +172,7 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has modified their avatar
-        if ((this.props.currentUserPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+        if ((lodashGet(this.props.currentUserPersonalDetails, 'avatar') !== this.state.avatar.uri) && this.state.isAvatarChanged) {
             PersonalDetails.setAvatar(this.state.avatar);
 
             // Reset the changed state
@@ -209,12 +210,13 @@ class ProfilePage extends Component {
         }));
 
         // Disables button if none of the form values have changed
-        const isButtonDisabled = (this.props.currentUserPersonalDetails.firstName === this.state.firstName.trim())
-            && (this.props.currentUserPersonalDetails.lastName === this.state.lastName.trim())
-            && (this.props.currentUserPersonalDetails.timezone.selected === this.state.selectedTimezone)
-            && (this.props.currentUserPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && (this.props.currentUserPersonalDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged || this.props.currentUserPersonalDetails.avatarUploading);
+        const currentUserDetails = this.props.currentUserPersonalDetails || {};
+        const isButtonDisabled = (currentUserDetails.firstName === this.state.firstName.trim())
+            && (currentUserDetails.lastName === this.state.lastName.trim())
+            && (lodashGet(currentUserDetails, 'timezone.selected') === this.state.selectedTimezone)
+            && (lodashGet(currentUserDetails, 'timezone.automatic') === this.state.isAutomaticTimezone)
+            && (currentUserDetails.pronouns === this.state.pronouns.trim())
+            && (!this.state.isAvatarChanged || currentUserDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -229,7 +231,7 @@ class ProfilePage extends Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
-                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
+                            isUploading={currentUserDetails.avatarUploading}
                             isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.state.avatar.uri}
                             onImageSelected={this.updateAvatar}
