@@ -149,13 +149,10 @@ function fixAccountAndReloadData() {
 }
 
 /**
- * This action runs every time the AuthScreens are mounted. The navigator may
- * not be ready yet, and therefore we need to wait before navigating within this
- * action and any actions this method calls.
+ * This action runs when the Navigator is ready and the current route changes
  *
- * getInitialURL allows us to access params from the transition link more easily
- * than trying to extract them from the navigation state.
-
+ * currentPath should be the path as reported by the NavigationContainer
+ *
  * The transition link contains an exitTo param that contains the route to
  * navigate to after the user is signed in. A user can transition from OldDot
  * with a different account than the one they are currently signed in with, so
