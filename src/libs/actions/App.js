@@ -177,8 +177,16 @@ function setUpPoliciesAndNavigate(session, currentPath) {
         return;
     }
 
-    const params = new URLSearchParams(currentPath);
-    const exitTo = params.get('exitTo');
+    let exitTo;
+    try {
+        const params = new URLSearchParams(currentPath);
+        exitTo = params.get('exitTo');
+    } catch (error) {
+        // URLSearchParams is unsupported on iOS so we catch th error and
+        // silence it here since this is primarily a Web flow
+        return;
+    }
+
     const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
