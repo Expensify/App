@@ -210,7 +210,7 @@ function setUpPoliciesAndNavigate(session) {
 function openProfile() {
     const oldTimezoneData = myPersonalDetails.timezone || {};
     const newTimezoneData = {
-        automatic: oldTimezoneData.automatic || true,
+        automatic: lodashGet(oldTimezoneData, 'automatic', true),
         selected: moment.tz.guess(true),
     };
 
