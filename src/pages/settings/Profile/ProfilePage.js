@@ -87,6 +87,7 @@ class ProfilePage extends Component {
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
         this.updateAvatar = this.updateAvatar.bind(this);
+        this.deleteAvatar = this.deleteAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -158,9 +159,9 @@ class ProfilePage extends Component {
     /**
      * Replaces the user's current avatar image with a default avatar.
      */
-    removeAvatar() {
+    deleteAvatar() {
         PersonalDetails.deleteAvatar();
-        this.setState({avatar: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)});
+        this.setState({avatar: {uri: ReportUtils.getDefaultAvatar(lodashGet(this.props.currentUserPersonalDetails, 'login'))}});
     }
 
     /**
@@ -235,7 +236,7 @@ class ProfilePage extends Component {
                             isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={this.state.avatar.uri}
                             onImageSelected={this.updateAvatar}
-                            onImageRemoved={this.removeAvatar}
+                            onImageRemoved={this.deleteAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
