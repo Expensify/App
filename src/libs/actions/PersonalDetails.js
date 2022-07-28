@@ -6,6 +6,7 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
@@ -117,38 +118,6 @@ function formatPersonalDetails(personalDetailsList) {
 }
 
 /**
- * Get the personal details for our organization
- * @returns {Promise}
- */
-function fetchPersonalDetails() {
-    return API.Get({
-        returnValueList: 'personalDetailsList',
-    })
-        .then((data) => {
-            let myPersonalDetails = {};
-
-            // If personalDetailsList does not have the current user ensure we initialize their details with an empty
-            // object at least
-            const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
-            if (!personalDetailsList[currentUserEmail]) {
-                personalDetailsList[currentUserEmail] = {};
-            }
-
-            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-
-            myPersonalDetails = allPersonalDetails[currentUserEmail];
-
-            // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
-            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
-            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
-
-            // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-        });
-}
-
-/**
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
@@ -201,7 +170,7 @@ function getFromReportParticipants(reports) {
         return;
     }
 
-    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
+    DeprecatedAPI.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const existingDetails = _.pick(data, participantEmails);
 
@@ -262,8 +231,6 @@ function mergeLocalPersonalDetails(details) {
     // displayName is a generated field so we'll use the firstName and lastName + login to update it.
     mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
 
-    // Update the associated Onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
 }
 
@@ -274,7 +241,7 @@ function mergeLocalPersonalDetails(details) {
  * @param {boolean} shouldGrowl
  */
 function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)})
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
         .then((response) => {
             if (response.jsonCode === 200) {
                 if (details.timezone) {
@@ -289,49 +256,17 @@ function setPersonalDetails(details, shouldGrowl) {
                 Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
             } else if (response.jsonCode === 401) {
                 Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
+            } else {
+                console.debug('Error while setting personal details', response);
             }
-        }).catch((error) => {
-            console.debug('Error while setting personal details', error);
         });
 }
 
 /**
- * Sets the onyx with the currency list from the network
- * @returns {Object}
+ * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
-function getCurrencyList() {
-    return API.GetCurrencyList()
-        .then((data) => {
-            const currencyListObject = JSON.parse(data.currencyList);
-            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
-            return currencyListObject;
-        });
-}
-
-/**
- * Fetches the local currency based on location and sets currency code/symbol to local storage
- */
-function fetchLocalCurrency() {
-    const coords = {};
-    let currency = '';
-
-    Onyx.merge(ONYXKEYS.IOU, {
-        isRetrievingCurrency: true,
-    });
-
-    API.GetLocalCurrency({...coords})
-        .then((data) => {
-            currency = data.currency;
-        })
-        .then(getCurrencyList)
-        .then(() => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                isRetrievingCurrency: false,
-            });
-        });
+function openIOUModalPage() {
+    API.read('OpenIOUModalPage');
 }
 
 /**
@@ -341,7 +276,7 @@ function fetchLocalCurrency() {
  */
 function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
-    API.User_UploadAvatar({file})
+    DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
@@ -366,20 +301,18 @@ function setAvatar(file) {
 function deleteAvatar(defaultAvatarURL) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
-    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: defaultAvatarURL});
 }
 
 export {
-    fetchPersonalDetails,
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    fetchLocalCurrency,
-    getCurrencyList,
+    openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
 };

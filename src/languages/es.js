@@ -37,7 +37,6 @@ export default {
         privacy: 'Privacidad',
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
-        deleted: 'eliminado',
         archived: 'archivado',
         contacts: 'Contactos',
         recents: 'Recientes',
@@ -105,6 +104,9 @@ export default {
         leaveRoom: 'Salir de la sala de chat',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
+        youAppearToBeOffline: 'Parece que estás desconectado.',
+        thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -117,6 +119,10 @@ export default {
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
+        attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
+        sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes',
+        wrongFileType: 'El tipo del archivo adjunto es incorrecto',
+        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
     },
     composer: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
@@ -158,11 +164,12 @@ export default {
         writeSomething: 'Escribe algo...',
         sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
-        youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -217,7 +224,6 @@ export default {
     iou: {
         amount: 'Importe',
         participants: 'Participantes',
-        confirm: 'Confirmar',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
@@ -226,7 +232,6 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        settleVenmo: 'Pagar con Venmo',
         request: ({amount}) => `Solicitar ${amount}`,
         youowe: ({owner}) => `Le debes a ${owner}`,
         youpaid: ({owner}) => `Le pagaste a ${owner}`,
@@ -235,7 +240,6 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
-        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -248,9 +252,7 @@ export default {
         mute: 'Nunca',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
-        useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
     avatarWithImagePicker: {
@@ -389,15 +391,13 @@ export default {
         deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
         deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
         deletePayPalSuccess: 'PayPal.me eliminada correctamente',
-        allSet: 'Todo listo!',
-        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
-        gotIt: 'Gracias!',
         error: {
             notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como tu método de pago predeterminado.',
             invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
+        addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -407,6 +407,9 @@ export default {
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
+        transferSuccess: '¡Transferencia exitosa!',
+        transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
+        transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
@@ -506,6 +509,8 @@ export default {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
+        notHere: 'Hmm… no está aquí',
+        pageNotFound: 'La página que buscas no existe.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -535,6 +540,7 @@ export default {
         buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
+            noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Ingresa un número de identificación fiscal válido',
             website: 'Ingresa un sitio web válido',
             zipCode: 'Ingresa un código postal válido',
@@ -566,6 +572,8 @@ export default {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
+        successTitle: '¡Cuenta bancaria personal añadida!',
+        successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
@@ -580,7 +588,6 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
-        maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -606,6 +613,7 @@ export default {
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
         selectAnswer: 'Selecciona una respuesta.',
+        ssnFull9Error: 'Por favor escribe los 9 dígitos de un SSN válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
         weCouldNotVerify: 'No pudimos verificar',
         pleaseFixIt: 'Corrije esta información antes de continuar.',
@@ -902,8 +910,8 @@ export default {
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
-        subtitle: '¿Tienes preguntas o necesitas ayuda?',
-        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
+        subtitle: '¿Necesitas ayuda?',
+        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
         extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
@@ -922,6 +930,11 @@ export default {
         error: {
             phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
         },
+    },
+    requestCallConfirmationScreen: {
+        callRequested: '¡Llamada solicitada con éxito!',
+        allSet: 'Todo listo! Pronto recibirás una llamada nuestra.',
+        gotIt: 'Entendido',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',

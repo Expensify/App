@@ -10,6 +10,7 @@ import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
+import NetworkConnection from '../libs/NetworkConnection';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -31,6 +32,7 @@ const story = {
 
 const Template = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
+    NetworkConnection.setOfflineStatus(false);
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
     FormActions.setDraftValues(args.formID, args.draftValues);
@@ -42,7 +44,6 @@ const Template = (args) => {
                 <TextInput
                     label="Routing number"
                     inputID="routingNumber"
-                    isFormInput
                     shouldSaveDraft
                 />
             </View>
@@ -50,20 +51,17 @@ const Template = (args) => {
                 label="Account number"
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
-                isFormInput
             />
             <AddressSearch
                 label="Street"
                 inputID="street"
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
-                isFormInput
             />
             <DatePicker
                 label="Date of birth"
                 inputID="dob"
                 containerStyles={[styles.mt4]}
-                isFormInput
             />
             <View>
                 <Picker
@@ -85,7 +83,6 @@ const Template = (args) => {
                             value: 'apple',
                         },
                     ]}
-                    isFormInput
                 />
             </View>
             <Picker
@@ -106,20 +103,16 @@ const Template = (args) => {
                         value: 'apple',
                     },
                 ]}
-                isFormInput
             />
             <View style={styles.mt4}>
                 <StatePicker
-                    inputID="pickState"
+                    inputID="state"
                     shouldSaveDraft
-                    isFormInput
                 />
             </View>
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
-                isFormInput
-                shouldSaveDraft
                 LabelComponent={() => (
                     <Text>I accept the Expensify Terms of Service</Text>
                 )}
@@ -137,6 +130,7 @@ const WithNativeEventHandler = (args) => {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
+    NetworkConnection.setOfflineStatus(false);
     FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
     FormActions.setDraftValues(args.formID, args.draftValues);
@@ -148,7 +142,6 @@ const WithNativeEventHandler = (args) => {
                 label="Routing number"
                 inputID="routingNumber"
                 onChangeText={setLog}
-                isFormInput
                 shouldSaveDraft
             />
             <Text>
@@ -188,8 +181,8 @@ const defaultArgs = {
         if (!values.pickAnotherFruit) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!values.pickState) {
-            errors.pickState = 'Please select a state';
+        if (!values.state) {
+            errors.state = 'Please select a state';
         }
         if (!values.checkbox) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
@@ -213,7 +206,7 @@ const defaultArgs = {
         dob: '1990-01-01',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',
-        pickState: 'AL',
+        state: 'AL',
         checkbox: false,
     },
 };
@@ -230,7 +223,7 @@ InputError.args = {
         pickFruit: '',
         dob: '',
         pickAnotherFruit: '',
-        pickState: '',
+        state: '',
         checkbox: false,
     },
 };

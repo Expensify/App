@@ -133,7 +133,7 @@ class PasswordPage extends Component {
         if (!this.validate()) {
             return;
         }
-        User.changePasswordAndNavigate(this.state.currentPassword, this.state.newPassword);
+        User.updatePassword(this.state.currentPassword, this.state.newPassword);
     }
 
     render() {
@@ -200,20 +200,20 @@ class PasswordPage extends Component {
                                             onSubmitEditing={this.submit}
                                         />
                                         {shouldShowNewPasswordPrompt && (
-                                        <Text
-                                            style={[
-                                                styles.textLabelSupporting,
-                                                styles.mt1,
-                                            ]}
-                                        >
-                                            {this.props.translate('passwordPage.newPasswordPrompt')}
-                                        </Text>
+                                            <Text
+                                                style={[
+                                                    styles.textLabelSupporting,
+                                                    styles.mt1,
+                                                ]}
+                                            >
+                                                {this.props.translate('passwordPage.newPasswordPrompt')}
+                                            </Text>
                                         )}
                                     </View>
                                     {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
-                                    <Text style={styles.formError}>
-                                        {this.props.account.error}
-                                    </Text>
+                                        <Text style={styles.formError}>
+                                            {this.props.account.error}
+                                        </Text>
                                     )}
                                 </ScrollView>
                                 <FixedFooter style={[styles.flexGrow0]}>

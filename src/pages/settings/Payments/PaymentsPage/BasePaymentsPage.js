@@ -3,6 +3,8 @@ import {
     View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -27,9 +29,10 @@ import ConfirmPopover from '../../../../components/ConfirmPopover';
 import AddPaymentMethodMenu from '../../../../components/AddPaymentMethodMenu';
 import CONST from '../../../../CONST';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
+import {withNetwork} from '../../../../components/OnyxProvider';
+import * as PaymentUtils from '../../../../libs/PaymentUtils';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -42,7 +45,9 @@ class BasePaymentsPage extends React.Component {
             shouldShowConfirmPopover: false,
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
-            formattedSelectedPaymentMethod: {},
+            formattedSelectedPaymentMethod: {
+                title: '',
+            },
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
             addPaymentMethodButton: null,
@@ -60,10 +65,18 @@ class BasePaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        PaymentMethods.getPaymentMethods();
+        this.fetchData();
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
+        }
+
+        this.fetchData();
     }
 
     componentWillUnmount() {
@@ -186,6 +199,10 @@ class BasePaymentsPage extends React.Component {
         throw new Error('Invalid payment method type selected');
     }
 
+    fetchData() {
+        PaymentMethods.getPaymentMethods();
+    }
+
     /**
      * Hide the add payment modal
      */
@@ -209,10 +226,20 @@ class BasePaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password) {
+        // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
+        const paymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            this.props.cardList,
+            '',
+            this.props.userWallet,
+        );
+        const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
+        const previousPaymentMethodID = lodashGet(previousPaymentMethod, 'methodID');
+        const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'accountType');
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
+            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethodID, previousPaymentMethodType);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethodID, previousPaymentMethodType);
         }
     }
 
@@ -265,6 +292,7 @@ class BasePaymentsPage extends React.Component {
                                                 icon={Expensicons.Transfer}
                                                 onPress={triggerKYCFlow}
                                                 shouldShowRightIcon
+                                                disabled={this.props.network.isOffline}
                                             />
                                         )}
                                     </KYCWall>
@@ -313,7 +341,7 @@ class BasePaymentsPage extends React.Component {
                         >
                             {isPopoverBottomMount && (
                                 <MenuItem
-                                    title={this.state.formattedSelectedPaymentMethod.title}
+                                    title={this.state.formattedSelectedPaymentMethod.title || ''}
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
@@ -407,19 +435,6 @@ class BasePaymentsPage extends React.Component {
                         shouldShowCancelButton
                         danger
                     />
-                    <ConfirmModal
-                        title={this.props.translate('paymentsPage.allSet')}
-                        onConfirm={PaymentMethods.dismissWalletConfirmModal}
-                        isVisible={this.props.walletTransfer.shouldShowConfirmModal}
-                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
-                            amount: this.props.numberFormat(
-                                this.props.walletTransfer.transferAmount / 100,
-                                {style: 'currency', currency: 'USD'},
-                            ),
-                        })}
-                        confirmText={this.props.translate('paymentsPage.gotIt')}
-                        shouldShowCancelButton={false}
-                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
@@ -432,6 +447,7 @@ BasePaymentsPage.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -441,6 +457,12 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
         },
     }),
 )(BasePaymentsPage);

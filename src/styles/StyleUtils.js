@@ -36,6 +36,7 @@ function getAvatarStyle(size) {
         height: avatarSize,
         width: avatarSize,
         borderRadius: avatarSize,
+        backgroundColor: themeColors.offline,
     };
 }
 
@@ -386,9 +387,10 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
+ * @param {Boolean} [isLoading]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false) {
+function getReportActionItemStyle(isHovered = false, isLoading = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -397,6 +399,7 @@ function getReportActionItemStyle(isHovered = false) {
 
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
+        opacity: isLoading ? 0.5 : 1,
         cursor: 'default',
     };
 }
@@ -435,6 +438,19 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Receives any number of object or array style objects and returns them all as an array
+ * @param {Object|Object[]} allStyles
+ * @return {Object[]}
+ */
+function combineStyles(...allStyles) {
+    let finalStyles = [];
+    _.each(allStyles, (style) => {
+        finalStyles = finalStyles.concat(parseStyleAsArray(style));
+    });
+    return finalStyles;
+}
+
+/**
  * Get variable padding-left as style
  * @param {Number} paddingLeft
  * @returns {Object}
@@ -443,6 +459,16 @@ function getPaddingLeft(paddingLeft) {
     return {
         paddingLeft,
     };
+}
+
+/**
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * @param {String} text
+ * @returns {String}
+ */
+function convertToLTR(text) {
+    return `\u2066${text}`;
 }
 
 export {
@@ -471,5 +497,7 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    combineStyles,
     getPaddingLeft,
+    convertToLTR,
 };

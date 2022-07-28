@@ -1,20 +1,22 @@
-import {AppState} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
+import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import * as API from '../API';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import NameValuePair from './NameValuePair';
-import * as PersonalDetails from './PersonalDetails';
-import * as User from './User';
 import * as Report from './Report';
-import * as GeoLocation from './GeoLocation';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import * as SessionUtils from '../SessionUtils';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -31,10 +33,16 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let currentPreferredLocale;
+const allPolicies = {};
 Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (val, key) => {
+        if (!val || !key) {
+            return;
+        }
+
+        allPolicies[key] = {...allPolicies[key], ...val};
+    },
 });
 
 /**
@@ -48,24 +56,24 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    if (currentUserAccountID) {
-        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    // If user is not signed in, change just locally.
+    if (!currentUserAccountID) {
+        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+        return;
     }
-    Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
-}
 
-function getLocale() {
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    }).then((response) => {
-        const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-        if (preferredLocale === currentPreferredLocale) {
-            return;
-        }
+    // Optimistically change preferred locale
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            value: locale,
+        },
+    ];
 
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-    });
+    API.write('UpdatePreferredLocale', {
+        value: locale,
+    }, {optimisticData});
 }
 
 function setSidebarLoaded() {
@@ -89,31 +97,47 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- *
- * @param {Boolean} shouldSyncPolicyList Should be false if the initial policy needs to be created. Otherwise, should be true.
  * @returns {Promise}
  */
-function getAppData(shouldSyncPolicyList = true) {
-    NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-    NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-    getLocale();
-    User.getUserDetails();
-    User.getBetas();
-    User.getDomainInfo();
-    PersonalDetails.fetchLocalCurrency();
-    GeoLocation.fetchCountryCodeByRequestIP();
-    BankAccounts.fetchFreePlanVerifiedBankAccount();
+function getAppData() {
     BankAccounts.fetchUserWallet();
-
-    if (shouldSyncPolicyList) {
-        Policy.getPolicyList();
-    }
 
     // We should update the syncing indicator when personal details and reports are both done fetching.
     return Promise.all([
-        PersonalDetails.fetchPersonalDetails(),
-        Report.fetchAllReports(true, true),
+        Report.fetchAllReports(true),
     ]);
+}
+
+/**
+ * Gets a comma separated list of locally stored policy ids
+ *
+ * @param {Array} policies
+ * @return {String}
+ */
+function getPolicyIDList(policies) {
+    return _.chain(policies)
+        .filter(Boolean)
+        .map(policy => policy.id)
+        .join(',');
+}
+
+/**
+ * Fetches data needed for app initialization
+ * @param {Array} policies
+ */
+function openApp(policies) {
+    API.read('OpenApp', {
+        policyIDList: getPolicyIDList(policies),
+    });
+}
+
+/**
+ * Refreshes data when the app reconnects
+ */
+function reconnectApp() {
+    API.read('ReconnectApp', {
+        policyIDList: getPolicyIDList(allPolicies),
+    });
 }
 
 /**
@@ -121,24 +145,79 @@ function getAppData(shouldSyncPolicyList = true) {
  * because some migrations might create new chat reports or their change data.
  */
 function fixAccountAndReloadData() {
-    API.User_FixAccount()
+    DeprecatedAPI.User_FixAccount()
         .then((response) => {
             if (!response.changed) {
                 return;
             }
             Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-            getAppData(false);
+            getAppData();
+        });
+}
+
+/**
+ * This action runs every time the AuthScreens are mounted. The navigator may
+ * not be ready yet, and therefore we need to wait before navigating within this
+ * action and any actions this method calls.
+ *
+ * getInitialURL allows us to access params from the transition link more easily
+ * than trying to extract them from the navigation state.
+
+ * The transition link contains an exitTo param that contains the route to
+ * navigate to after the user is signed in. A user can transition from OldDot
+ * with a different account than the one they are currently signed in with, so
+ * we only navigate if they are not signing in as a new user. Once they are
+ * signed in as that new user, this action will run again and the navigation
+ * will occur.
+
+ * When the exitTo route is 'workspace/new', we create a new
+ * workspace and navigate to it via Policy.createAndGetPolicyList.
+ *
+ * We subscribe to the session using withOnyx in the AuthScreens and
+ * pass it in as a parameter. withOnyx guarantees that the value has been read
+ * from Onyx because it will not render the AuthScreens until that point.
+ * @param {Object} session
+ */
+function setUpPoliciesAndNavigate(session) {
+    Linking.getInitialURL()
+        .then((url) => {
+            if (!url) {
+                return;
+            }
+            const path = new URL(url).pathname;
+            const params = new URLSearchParams(url);
+            const exitTo = params.get('exitTo');
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(url, session.email);
+            const shouldCreateFreePolicy = !isLoggingInAsNewUser
+                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && exitTo === ROUTES.WORKSPACE_NEW;
+            if (shouldCreateFreePolicy) {
+                Policy.createAndGetPolicyList();
+                return;
+            }
+            if (!isLoggingInAsNewUser && exitTo) {
+                Navigation.isNavigationReady()
+                    .then(() => {
+                        // We must call dismissModal() to remove the /transition route from history
+                        Navigation.dismissModal();
+                        Navigation.navigate(exitTo);
+                    });
+            }
         });
 }
 
 // When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(getAppData);
+NetworkConnection.onReconnect(() => {
+    getAppData();
+    reconnectApp();
+});
 
 export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
-    getLocale,
     getAppData,
     fixAccountAndReloadData,
+    setUpPoliciesAndNavigate,
+    openApp,
 };

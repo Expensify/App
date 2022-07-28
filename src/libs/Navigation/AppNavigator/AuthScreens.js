@@ -1,7 +1,5 @@
 import React from 'react';
-import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -33,23 +31,33 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
-import Timers from '../../Timers';
-import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
+import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
+
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
 
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
         if (!val) {
             return;
         }
 
-        const timezone = lodashGet(val, 'timezone', {});
+        const timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -77,9 +85,6 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     ...windowDimensionsPropTypes,
 };
 
@@ -97,7 +102,7 @@ class AuthScreens extends React.Component {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
             Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
@@ -106,33 +111,11 @@ class AuthScreens extends React.Component {
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        App.getAppData(false);
+        App.getAppData();
+        App.openApp(this.props.allPolicies);
 
         App.fixAccountAndReloadData();
-
-        // Load policies, maybe creating a new policy first.
-        Linking.getInitialURL()
-            .then((url) => {
-                if (this.shouldCreateFreePolicy(url)) {
-                    Policy.createAndGetPolicyList();
-                    return;
-                }
-
-                Policy.getPolicyList();
-            });
-
-        // Refresh the personal details, timezone and betas every 30 minutes
-        // There is no pusher event that sends updated personal details data yet
-        // See https://github.com/Expensify/ReactNativeChat/issues/468
-        this.interval = Timers.register(setInterval(() => {
-            if (this.props.network.isOffline) {
-                return;
-            }
-            PersonalDetails.fetchPersonalDetails();
-            User.getUserDetails();
-            User.getBetas();
-        }, 1000 * 60 * 30));
-
+        App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -163,25 +146,6 @@ class AuthScreens extends React.Component {
         Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-    }
-
-    /**
-     * @param {String} [url]
-     * @returns {Boolean}
-     */
-    shouldCreateFreePolicy(url = '') {
-        if (!url) {
-            return false;
-        }
-
-        const path = new URL(url).pathname;
-        const params = new URLSearchParams(url);
-        const exitTo = params.get('exitTo');
-        const email = params.get('email');
-        const isLoggingInAsNewUser = !_.isNull(this.props.session.email) && (email !== this.props.session.email);
-        return !isLoggingInAsNewUser
-            && Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
-            && exitTo === ROUTES.WORKSPACE_NEW;
     }
 
     render() {
@@ -239,9 +203,9 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
+                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
-                    component={LogInWithShortLivedTokenPage}
+                    component={LogOutPreviousUserPage}
                 />
 
                 {/* These are the various modal routes */}
@@ -351,10 +315,12 @@ class AuthScreens extends React.Component {
 AuthScreens.propTypes = propTypes;
 export default compose(
     withWindowDimensions,
-    withNetwork(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        allPolicies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(AuthScreens);

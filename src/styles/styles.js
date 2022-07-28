@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import overflowXHidden from './overflowXHidden';
@@ -148,6 +149,7 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+    ...writingDirection,
 
     rateCol: {
         margin: 0,
@@ -317,6 +319,10 @@ const styles = {
 
     bgTransparent: {
         backgroundColor: 'transparent',
+    },
+
+    opacity0: {
+        opacity: 0,
     },
 
     opacity1: {
@@ -659,6 +665,14 @@ const styles = {
         marginLeft: 48,
     },
 
+    offlineIndicator: {
+        marginLeft: 48,
+    },
+
+    offlineIndicatorMobile: {
+        marginLeft: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -951,10 +965,6 @@ const styles = {
         height: '100%',
     },
 
-    resendLinkButton: {
-        minWidth: 124,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -1042,9 +1052,9 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    singleEmojiText: {
-        fontSize: variables.fontSizeSingleEmoji,
-        lineHeight: variables.fontSizeSingleEmojiHeight,
+    onlyEmojisText: {
+        fontSize: variables.fontSizeOnlyEmojis,
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
     createMenuPositionSidebar: {
@@ -1128,18 +1138,6 @@ const styles = {
         paddingRight: 20,
     },
 
-    sidebarInnerRow: {
-        height: 64,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
-    sidebarInnerRowSmall: {
-        height: 52,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
     sidebarLinkText: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
@@ -1204,6 +1202,22 @@ const styles = {
         flexGrow: 1,
         flexBasis: 'auto',
         ...optionAlternateTextPlatformStyles,
+    },
+
+    optionRow: {
+        height: variables.optionRowHeight,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionRowCompact: {
+        height: variables.optionRowHeightCompact,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionsListSectionHeader: {
+        height: variables.optionsListSectionHeaderHeight,
     },
 
     appContent: {
@@ -1327,6 +1341,10 @@ const styles = {
         minHeight: 90,
     },
 
+    chatItemFullComposeRow: {
+        ...sizing.h100,
+    },
+
     chatItemComposeBoxColor: {
         borderColor: themeColors.border,
     },
@@ -1342,6 +1360,12 @@ const styles = {
         minHeight: variables.componentSizeNormal,
     },
 
+    chatItemFullComposeBox: {
+        ...flex.flex1,
+        ...spacing.mt4,
+        ...sizing.h100,
+    },
+
     chatFooter: {
         minHeight: 65,
         marginBottom: 5,
@@ -1349,6 +1373,12 @@ const styles = {
         paddingRight: 20,
         display: 'flex',
         backgroundColor: themeColors.appBG,
+    },
+
+    chatFooterFullCompose: {
+        flex: 1,
+        flexShrink: 1,
+        flexBasis: '100%',
     },
 
     textInputCompose: addOutlineWidth({
@@ -1367,11 +1397,26 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        marginVertical: 5,
         paddingVertical: 0,
         ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
+
+    textInputFullCompose: {
+        alignSelf: 'flex-end',
+        flex: 1,
+        maxHeight: '100%',
+    },
+
+    editInputComposeSpacing: {
+        marginVertical: 6,
+    },
+
+    textInputComposeSpacing: {
+        paddingVertical: 6,
+        ...flex.flexRow,
+        flex: 1,
+    },
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
@@ -1456,6 +1501,16 @@ const styles = {
         alignSelf: 'flex-end',
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
+        height: 26,
+        marginBottom: 6,
+        marginTop: 6,
+        justifyContent: 'center',
+        width: 39,
+    },
+
+    composerSizeButton: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
         height: 26,
         marginBottom: 6,
         marginTop: 6,
@@ -1801,6 +1856,10 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportActionSystemMessageContainer: {
+        marginLeft: 42,
+    },
+
     reportDetailsTitleContainer: {
         ...flex.dFlex,
         ...flex.flexColumn,
@@ -2068,10 +2127,6 @@ const styles = {
         paddingEnd: 20,
     },
 
-    iouConfirmComment: {
-        flexBasis: 92,
-    },
-
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -2189,6 +2244,11 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    noSelect: {
+        boxShadow: 'none',
+        outline: 'none',
+    },
+
     cursorPointer: {
         cursor: 'pointer',
     },
@@ -2288,6 +2348,9 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+
+    peopleRowOfflineFeedback: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
@@ -2307,6 +2370,36 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    offlineFeedback: {
+        deleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        pending: {
+            opacity: 0.5,
+        },
+        error: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        container: {
+            ...spacing.pv2,
+        },
+        textContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        text: {
+            color: themeColors.textSupporting,
+            flex: 1,
+            textAlignVertical: 'center',
+            fontSize: variables.fontSizeLabel,
+        },
+        errorDot: {
+            marginRight: 12,
+        },
     },
 
     sidebarPopover: {
@@ -2518,6 +2611,13 @@ const styles = {
         justifyContent: 'center',
         marginBottom: 40,
         padding: 16,
+    },
+
+    inlineSystemMessage: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        marginLeft: 6,
     },
 };
 

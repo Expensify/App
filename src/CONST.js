@@ -12,8 +12,17 @@ const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
 
-    // 50 megabytes in bytes
-    API_MAX_ATTACHMENT_SIZE: 52428800,
+    API_ATTACHMENT_VALIDATIONS: {
+        // Same as the PHP layer allows
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml'],
+
+        // 50 megabytes in bytes
+        MAX_SIZE: 52428800,
+
+        // An arbitrary size, but the same minimum as in the PHP layer
+        MIN_SIZE: 240,
+    },
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
@@ -168,10 +177,25 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
         },
+        CTRL_ENTER: {
+            descriptionKey: null,
+            shortcutKey: 'Enter',
+            modifiers: ['CTRL'],
+        },
         COPY: {
             descriptionKey: 'copy',
             shortcutKey: 'C',
             modifiers: ['CTRL'],
+        },
+        ARROW_UP: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowUp',
+            modifiers: [],
+        },
+        ARROW_DOWN: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowDown',
+            modifiers: [],
         },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
@@ -188,6 +212,7 @@ const CONST = {
     USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
+    GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -203,6 +228,10 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+
+    // Use Environment.getEnvironmentURL to get the complete URL with port number
+    DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -272,6 +301,14 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
     },
+    COMPOSER: {
+        MAX_LINES: 16,
+        MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_FULL: -1,
+
+        // The minimum number of typed lines needed to enable the full screen composer
+        FULL_COMPOSER_MIN_LINES: 3,
+    },
     MODAL: {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
@@ -329,6 +366,7 @@ const CONST = {
         IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
         IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
         IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
+        IOS_NETWORK_CONNECTION_LOST_SPANISH: 'La conexión a Internet parece estar desactivada.',
         IOS_LOAD_FAILED: 'Load failed',
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
@@ -357,7 +395,7 @@ const CONST = {
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
+        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
@@ -382,11 +420,18 @@ const CONST = {
         },
     },
 
+    PUSHER: {
+        PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
+        PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+    },
+
     EMOJI_SPACER: 'SPACER',
 
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
+
+    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -399,6 +444,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
+        VISIBLE_PASSWORD: 'visible-password',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -572,7 +618,6 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
-            VENMO: 'Venmo',
         },
         IOU_TYPE: {
             SEND: 'send',
@@ -695,6 +740,14 @@ const CONST = {
 
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
+
+    ONYX: {
+        METHOD: {
+            MERGE: 'merge',
+            SET: 'set',
+        },
+    },
+    MICROSECONDS_PER_MS: 1000,
 };
 
 export default CONST;

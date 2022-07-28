@@ -24,8 +24,12 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import InlineSystemMessage from '../../../components/InlineSystemMessage';
+import styles from '../../../styles/styles';
+import * as User from '../../../libs/actions/User';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -137,16 +141,20 @@ class ReportActionItem extends Component {
             );
         } else {
             children = !this.props.draftMessage
-                ? <ReportActionItemMessage action={this.props.action} />
-                : (
+                ? (
+                    <ReportActionItemMessage action={this.props.action} />
+                ) : (
                     <ReportActionItemMessageEdit
-                            action={this.props.action}
-                            draftMessage={this.props.draftMessage}
-                            reportID={this.props.reportID}
-                            index={this.props.index}
-                            ref={el => this.textInput = el}
-                            report={this.props.report}
-                            blockedFromConcierge={this.props.blockedFromConcierge}
+                        action={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        reportID={this.props.reportID}
+                        index={this.props.index}
+                        ref={el => this.textInput = el}
+                        report={this.props.report}
+                        shouldDisableEmojiPicker={
+                            (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                            || ReportUtils.isArchivedRoom(this.props.report)
+                        }
                     />
                 );
         }
@@ -173,6 +181,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
+                                    (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
                                 {!this.props.displayAsGroup
@@ -201,6 +210,9 @@ class ReportActionItem extends Component {
                         </View>
                     )}
                 </Hoverable>
+                <View style={styles.reportActionSystemMessageContainer}>
+                    <InlineSystemMessage message={this.props.action.error} />
+                </View>
             </PressableWithSecondaryInteraction>
         );
     }
@@ -210,6 +222,7 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withNetwork(),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {

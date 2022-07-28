@@ -23,18 +23,10 @@ import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Display name of the current user from their personal details */
-        displayName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-    }),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -70,16 +62,17 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    myPersonalDetails: {},
     session: {},
     policies: {},
     userWallet: {
         currentBalance: 0,
     },
     betas: [],
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const defaultMenuItems = [
@@ -127,7 +120,7 @@ const InitialSettingsPage = (props) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
-    if (_.isEmpty(props.myPersonalDetails)) {
+    if (_.isEmpty(props.currentUserPersonalDetails)) {
         return null;
     }
 
@@ -139,8 +132,9 @@ const InitialSettingsPage = (props) => {
             icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
             action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-            iconStyles: [styles.popoverMenuIconEmphasized],
+            iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
+            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -159,20 +153,20 @@ const InitialSettingsPage = (props) => {
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                source={props.myPersonalDetails.avatar}
+                                source={props.currentUserPersonalDetails.avatar}
                                 isActive={props.network.isOffline === false}
-                                tooltipText={props.myPersonalDetails.displayName}
+                                tooltipText={props.currentUserPersonalDetails.displayName}
                             />
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
                             <Text style={[styles.displayName]} numberOfLines={1}>
-                                {props.myPersonalDetails.displayName
-                                    ? props.myPersonalDetails.displayName
+                                {props.currentUserPersonalDetails.displayName
+                                    ? props.currentUserPersonalDetails.displayName
                                     : Str.removeSMSDomain(props.session.email)}
                             </Text>
                         </Pressable>
-                        {props.myPersonalDetails.displayName && (
+                        {props.currentUserPersonalDetails.displayName && (
                             <Text
                                 style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
@@ -195,6 +189,7 @@ const InitialSettingsPage = (props) => {
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
                                 badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
+                                fallbackIcon={item.fallbackIcon}
                             />
                         );
                     })}
@@ -211,10 +206,8 @@ InitialSettingsPage.displayName = 'InitialSettingsPage';
 export default compose(
     withLocalize,
     withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },

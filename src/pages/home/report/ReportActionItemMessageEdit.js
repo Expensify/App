@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -15,10 +16,8 @@ import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -42,11 +41,8 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    // The NVP describing a user's block status
-    blockedFromConcierge: PropTypes.shape({
-        // The date that the user will be unblocked
-        expiresAt: PropTypes.string,
-    }),
+    // Whether or not the emoji picker is disabled
+    shouldDisableEmojiPicker: PropTypes.bool,
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -58,7 +54,7 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     report: {},
-    blockedFromConcierge: {},
+    shouldDisableEmojiPicker: false,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -71,6 +67,8 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.saveButtonID = 'saveButton';
+        this.cancelButtonID = 'cancelButton';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -126,7 +124,6 @@ class ReportActionItemMessageEdit extends React.Component {
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
      * @param {String} newDraft
      */
-
     debouncedSaveDraft(newDraft) {
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
     }
@@ -188,10 +185,6 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const shouldDisableEmojiPicker = (ReportUtils.chatIncludesConcierge(this.props.report)
-                                            && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
-                                            || ReportUtils.isArchivedRoom(this.props.report);
-
         return (
             <View style={styles.chatItemMessage}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
@@ -205,17 +198,25 @@ class ReportActionItemMessageEdit extends React.Component {
                         onKeyPress={this.triggerSaveOrCancel}
                         defaultValue={this.state.draft}
                         maxLines={16} // This is the same that slack has
-                        style={[styles.textInputCompose, styles.flex4]}
+                        style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
+                        }}
+                        onBlur={(event) => {
+                            // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
+                            if (_.contains([this.saveButtonID, this.cancelButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
+                                return;
+                            }
+
+                            toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
-                            isDisabled={shouldDisableEmojiPicker}
+                            isDisabled={this.props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
@@ -226,12 +227,14 @@ class ReportActionItemMessageEdit extends React.Component {
                     <Button
                         small
                         style={[styles.mr2]}
+                        nativeID={this.cancelButtonID}
                         onPress={this.deleteDraft}
                         text={this.props.translate('common.cancel')}
                     />
                     <Button
                         small
                         success
+                        nativeID={this.saveButtonID}
                         style={[styles.mr2]}
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}

@@ -62,7 +62,9 @@ function Logging(response, request) {
                 if (persisted) {
                     PersistedRequests.remove(request);
                 }
-                return;
+
+                // Re-throw this error so the next handler can manage it
+                throw error;
             }
 
             if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
@@ -70,7 +72,11 @@ function Logging(response, request) {
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] Error: Failed to fetch', {message: error.message, status: error.status});
             } else if (_.contains([
-                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST, CONST.ERROR.NETWORK_REQUEST_FAILED, CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN, CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
+                CONST.ERROR.NETWORK_REQUEST_FAILED,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
+                CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SPANISH,
             ], error.message)) {
                 // These errors seem to happen for native devices with interrupted connections. Often we will see logs about Pusher disconnecting together with these.
                 // This type of error may also indicate a problem with SSL certs.
@@ -89,14 +95,15 @@ function Logging(response, request) {
                 // This error seems to only throw on dev when localhost:8080 tries to access the production web server. It's unclear whether this can happen on production or if
                 // it's a sign that the web server is down.
                 Log.hmmm('[Network] Error: Gateway Timeout error', {message: error.message, status: error.status});
-            } else if (request.command === 'Push_Authenticate') {
-                // Push_Authenticate requests can return with fetch errors and no message. It happens because we return a non 200 header like 403 Forbidden.
+            } else if (request.command === 'AuthenticatePusher') {
+                // AuthenticatePusher requests can return with fetch errors and no message. It happens because we return a non 200 header like 403 Forbidden.
                 // This is common to see if we are subscribing to a bad channel related to something the user shouldn't be able to access. There's no additional information
                 // we can get about these requests.
-                Log.hmmm('[Network] Error: Push_Authenticate', {message: error.message, status: error.status});
+                Log.hmmm('[Network] Error: AuthenticatePusher', {message: error.message, status: error.status});
             } else if (error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED) {
-                // Auth (database connection) is down or bedrock has timed out while making a request. We currently can't tell the difference between these two states.
-                Log.hmmm('[Network] Error: Expensify service interrupted or timed out', {type: error.type, title: error.title, jsonCode: error.jsonCode});
+                // Expensify site is down completely OR
+                // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
+                Log.hmmm('[Network] Error: Expensify service interrupted or timed out', {error: error.title, status: error.status});
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown error caught while processing request - ${error.message}`, {

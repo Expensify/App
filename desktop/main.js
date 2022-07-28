@@ -33,12 +33,12 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 // See https://github.com/sindresorhus/electron-context-menu
 contextMenu();
 
-// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all Console logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 _.assign(console, log.functions);
 
@@ -47,6 +47,7 @@ _.assign(console, log.functions);
 // until it detects that it has been upgraded to the correct version.
 
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
+const APP_DOMAIN = __DEV__ ? `http://localhost:${port}` : 'app://-';
 
 let expectedUpdateVersion;
 for (let i = 0; i < process.argv.length; i++) {
@@ -159,18 +160,19 @@ const mainWindow = (() => {
                     details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
                     callback({requestHeaders: details.requestHeaders});
                 });
-
-                // Modify access-control-allow-origin header for the response
-                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    details.responseHeaders['access-control-allow-origin'] = ['app://-'];
-                    callback({responseHeaders: details.responseHeaders});
-                });
-            } else {
-                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    details.responseHeaders['access-control-allow-origin'] = [`http://localhost:${process.env.PORT}`];
-                    callback({responseHeaders: details.responseHeaders});
-                });
             }
+
+            // Modify access-control-allow-origin header and CSP for the response
+            webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                details.responseHeaders['access-control-allow-origin'] = [APP_DOMAIN];
+                if (details.responseHeaders['content-security-policy']) {
+                    details.responseHeaders['content-security-policy'] = _.map(
+                        details.responseHeaders['content-security-policy'],
+                        value => (value.startsWith('frame-ancestors') ? `${value} ${APP_DOMAIN}` : value),
+                    );
+                }
+                callback({responseHeaders: details.responseHeaders});
+            });
             /* eslint-enable */
 
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev

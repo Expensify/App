@@ -3,11 +3,10 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import BankAccount from '../../models/BankAccount';
-import * as Plaid from '../Plaid';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
-import * as API from '../../API';
+import * as DeprecatedAPI from '../../deprecatedAPI';
 import * as errors from './errors';
 import * as Localize from '../../Localize';
 import * as navigation from './navigation';
@@ -17,7 +16,7 @@ import * as navigation from './navigation';
  * @param {Number} bankAccountID
  */
 function setFreePlanVerifiedBankAccountID(bankAccountID) {
-    API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: bankAccountID});
+    DeprecatedAPI.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: bankAccountID});
 }
 
 /**
@@ -26,17 +25,14 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 function getBankAccountListAndGoToValidateStep(updatedACHData) {
     // Get an up-to-date bank account list so that we can allow the user to validate their newly
     // generated bank account
-    API.Get({returnValueList: 'bankAccountList'})
+    DeprecatedAPI.Get({returnValueList: 'bankAccountList'})
         .then((bankAccountListResponse) => {
             const bankAccountJSON = _.findWhere(bankAccountListResponse.bankAccountList, {
                 bankAccountID: updatedACHData.bankAccountID,
             });
             const bankAccount = new BankAccount(bankAccountJSON);
             const achData = bankAccount.toACHData();
-            const needsToPassLatestChecks = achData.state === BankAccount.STATE.OPEN
-                && achData.needsToPassLatestChecks;
-            achData.bankAccountInReview = needsToPassLatestChecks
-                || achData.state === BankAccount.STATE.VERIFYING;
+            achData.bankAccountInReview = achData.state === BankAccount.STATE.VERIFYING;
 
             navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
@@ -136,13 +132,6 @@ function mergeParamsWithLocalACHData(data) {
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
-    // If we are setting up a Plaid account replace the accountNumber with the unmasked number
-    if (data.plaidAccountID) {
-        const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
-            bankAccount.plaidAccountID === data.plaidAccountID
-        ));
-        updatedACHData.accountNumber = unmaskedAccount.accountNumber;
-    }
     return updatedACHData;
 }
 
@@ -204,9 +193,9 @@ function mergeParamsWithLocalACHData(data) {
  * @param {Array} [params.beneficialOwners]
  */
 function setupWithdrawalAccount(params) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: '', errors: null});
     const updatedACHData = mergeParamsWithLocalACHData(params);
-    API.BankAccount_SetupWithdrawal(updatedACHData)
+    DeprecatedAPI.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...updatedACHData}});
             const currentStep = updatedACHData.currentStep;

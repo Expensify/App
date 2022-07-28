@@ -14,6 +14,9 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import * as ReportUtils from '../../libs/ReportUtils';
+import OfflineIndicator from '../../components/OfflineIndicator';
+import networkPropTypes from '../../components/networkPropTypes';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +41,9 @@ const propTypes = {
         /** Whether or not the account already exists */
         accountExists: PropTypes.bool,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -143,9 +149,10 @@ class ResendValidationForm extends React.Component {
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
-                        style={styles.resendLinkButton}
+                        isDisabled={this.props.network.isOffline}
                     />
                 </View>
+                <OfflineIndicator />
             </>
         );
     }
@@ -156,6 +163,7 @@ ResendValidationForm.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},

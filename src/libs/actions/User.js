@@ -1,10 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
@@ -14,21 +13,20 @@ import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import redirectToSignIn from './SignInRedirect';
-import NameValuePair from './NameValuePair';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
+import * as SequentialQueue from '../Network/SequentialQueue';
+import PusherUtils from '../PusherUtils';
 
 let sessionAuthToken = '';
-let sessionEmail = '';
 let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionAuthToken = lodashGet(val, 'authToken', '');
-        sessionEmail = lodashGet(val, 'email', '');
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
 });
@@ -44,25 +42,34 @@ Onyx.connect({
  *
  * @param {String} oldPassword
  * @param {String} password
- * @returns {Promise}
  */
-function changePasswordAndNavigate(oldPassword, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
-
-    return API.ChangePassword({oldPassword, password})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-                return;
-            }
-
-            const success = lodashGet(response, 'message', 'Password changed successfully.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
+function updatePassword(oldPassword, password) {
+    API.write('UpdatePassword', {
+        oldPassword,
+        password,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {loading: false},
+            },
+        ],
+    });
 }
 
 /**
@@ -71,7 +78,7 @@ function changePasswordAndNavigate(oldPassword, password) {
  * @param {String} message optional reason for closing account
  */
 function closeAccount(message) {
-    API.User_Delete({message}).then((response) => {
+    DeprecatedAPI.User_Delete({message}).then((response) => {
         console.debug('User_Delete: ', JSON.stringify(response));
 
         if (response.jsonCode === 200) {
@@ -85,21 +92,11 @@ function closeAccount(message) {
     });
 }
 
-function getBetas() {
-    API.User_GetBetas().then((response) => {
-        if (response.jsonCode !== 200) {
-            return;
-        }
-
-        Onyx.set(ONYXKEYS.BETAS, response.betas);
-    });
-}
-
 /**
  * Fetches the data needed for user settings
  */
 function getUserDetails() {
-    API.Get({
+    DeprecatedAPI.Get({
         returnValueList: 'account, loginList, nameValuePairs',
         nvpNames: [
             CONST.NVP.PAYPAL_ME_ADDRESS,
@@ -111,9 +108,9 @@ function getUserDetails() {
         .then((response) => {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
+            const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
+            Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
@@ -139,28 +136,33 @@ function getUserDetails() {
  * @param {String} login
  */
 function resendValidateCode(login) {
-    API.ResendValidateCode({email: login});
+    DeprecatedAPI.ResendValidateCode({email: login});
 }
 
 /**
  * Sets whether or not the user is subscribed to Expensify news
  *
- * @param {Boolean} subscribed
+ * @param {Boolean} isSubscribed
  */
-function setExpensifyNewsStatus(subscribed) {
-    Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
-
-    API.UpdateAccount({subscribed})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
-        })
-        .catch(() => {
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
-        });
+function updateNewsletterSubscription(isSubscribed) {
+    API.write('UpdateNewsletterSubscription', {
+        isSubscribed,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER,
+                value: {isSubscribedToNewsletter: isSubscribed},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER,
+                value: {isSubscribedToNewsletter: !isSubscribed},
+            },
+        ],
+    });
 }
 
 /**
@@ -173,7 +175,7 @@ function setExpensifyNewsStatus(subscribed) {
 function setSecondaryLoginAndNavigate(login, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    return API.User_SecondaryLogin_Send({
+    return DeprecatedAPI.User_SecondaryLogin_Send({
         email: login,
         password,
     }).then((response) => {
@@ -211,7 +213,7 @@ function validateLogin(accountID, validateCode) {
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    API.ValidateEmail({
+    DeprecatedAPI.ValidateEmail({
         accountID,
         validateCode,
     }).then((response) => {
@@ -239,56 +241,53 @@ function validateLogin(accountID, validateCode) {
  * Checks the blockedFromConcierge object to see if it has an expiresAt key,
  * and if so whether the expiresAt date of a user's ban is before right now
  *
- * @param {Object} blockedFromConcierge
+ * @param {Object} blockedFromConciergeNVP
  * @returns {Boolean}
  */
-function isBlockedFromConcierge(blockedFromConcierge) {
-    if (_.isEmpty(blockedFromConcierge)) {
+function isBlockedFromConcierge(blockedFromConciergeNVP) {
+    if (_.isEmpty(blockedFromConciergeNVP)) {
         return false;
     }
 
-    if (!blockedFromConcierge.expiresAt) {
+    if (!blockedFromConciergeNVP.expiresAt) {
         return false;
     }
 
-    return moment().isBefore(moment(blockedFromConcierge.expiresAt), 'day');
+    return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
 }
 
 /**
- * Fetch the public domain info for the current user.
+ * Adds a paypal.me address for the user
  *
- * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
- * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
- * If that happens, this function will automatically retry itself in 10 minutes.
+ * @param {String} address
  */
-function getDomainInfo() {
-    // If this command fails, we'll retry again in 10 minutes,
-    // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
-    const RETRY_TIMEOUT = 600000;
+function addPaypalMeAddress(address) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            value: address,
+        },
+    ];
+    API.write('AddPaypalMeAddress', {
+        value: address,
+    }, {optimisticData});
+}
 
-    // First check list of common public domains
-    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
-        Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
-        return;
-    }
-
-    // If it is not a common public domain, check the API
-    API.User_IsFromPublicDomain({email: sessionEmail})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                const {isFromPublicDomain} = response;
-                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
-
-                API.User_IsUsingExpensifyCard()
-                    .then(({isUsingExpensifyCard}) => {
-                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                    });
-            } else {
-                // eslint-disable-next-line max-len
-                Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(getDomainInfo, RETRY_TIMEOUT);
-            }
-        });
+/**
+ * Deletes a paypal.me address for the user
+ *
+ */
+function deletePaypalMeAddress() {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            value: '',
+        },
+    ];
+    API.write('DeletePaypalMeAddress', {}, {optimisticData});
+    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 /**
@@ -300,12 +299,19 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+
+    // Receive any relevant Onyx updates from the server
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
+        SequentialQueue.getCurrentRequest().then(() => {
+            Onyx.update(pushJSON);
+        });
+    });
 
     // Live-update an user's preferred locale
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -320,7 +326,7 @@ function subscribeToUserEvents() {
     // Subscribe to screen share requests sent by GuidesPlus agents
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
         Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -341,7 +347,7 @@ function subscribeToExpensifyCardUpdates() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Handle Expensify Card approval flow updates
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
@@ -351,7 +357,7 @@ function subscribeToExpensifyCardUpdates() {
         } else {
             Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
         }
-    }, false,
+    },
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
@@ -368,16 +374,51 @@ function subscribeToExpensifyCardUpdates() {
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
-function setPreferredSkinTone(skinTone) {
-    NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+function updatePreferredSkinTone(skinTone) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            value: skinTone,
+        },
+    ];
+    API.write('UpdatePreferredEmojiSkinTone', {
+        value: skinTone,
+    }, {optimisticData});
 }
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
  * @param {Object[]} frequentlyUsedEmojis
  */
-function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
-    NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+            value: frequentlyUsedEmojis,
+        },
+    ];
+    API.write('UpdateFrequentlyUsedEmojis', {
+        value: JSON.stringify(frequentlyUsedEmojis),
+    }, {optimisticData});
+}
+
+/**
+ * Sync user chat priority mode with Onyx and Server
+ * @param {String} mode
+ */
+function updateChatPriorityMode(mode) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+            value: mode,
+        },
+    ];
+    API.write('UpdateChatPriorityMode', {
+        value: mode,
+    }, {optimisticData});
 }
 
 /**
@@ -415,7 +456,7 @@ function joinScreenShare(accessToken, roomName) {
  */
 function generateStatementPDF(period) {
     Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
-    return API.GetStatementPDF({period})
+    return DeprecatedAPI.GetStatementPDF({period})
         .then((response) => {
             if (response.jsonCode !== 200 || !response.filename) {
                 Log.info('[User] Failed to generate statement PDF', false, {response});
@@ -429,23 +470,24 @@ function generateStatementPDF(period) {
 }
 
 export {
-    changePasswordAndNavigate,
+    updatePassword,
     closeAccount,
-    getBetas,
     getUserDetails,
     resendValidateCode,
-    setExpensifyNewsStatus,
+    updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
-    getDomainInfo,
     subscribeToUserEvents,
-    setPreferredSkinTone,
+    updatePreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
-    setFrequentlyUsedEmojis,
+    updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
+    deletePaypalMeAddress,
+    addPaypalMeAddress,
+    updateChatPriorityMode,
 };

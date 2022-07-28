@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {CONST} from 'expensify-common/lib/CONST';
 import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import * as FormUtils from '../libs/FormUtils';
 
 const STATES = _.map(CONST.STATES, ({stateISO}) => ({
     value: stateISO,
@@ -21,16 +20,8 @@ const propTypes = {
     /** The value that needs to be selected */
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** Indicates that the input is being used with the Form component */
-    isFormInput: PropTypes.bool,
-
-    /**
-    * The ID used to uniquely identify the input
-    *
-    * @param {Object} props - props passed to the input
-    * @returns {Object} - returns an Error object if isFormInput is supplied but inputID is falsey or not a string
-    */
-    inputID: props => FormUtils.validateInputIDProps(props),
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
@@ -53,7 +44,6 @@ const defaultProps = {
     defaultValue: undefined,
     errorText: '',
     shouldSaveDraft: false,
-    isFormInput: false,
     inputID: undefined,
     onBlur: () => {},
 };
@@ -65,11 +55,11 @@ const StatePicker = forwardRef((props, ref) => (
         placeholder={{value: '', label: '-'}}
         items={STATES}
         onInputChange={props.onInputChange}
-        value={props.value ? props.value : props.defaultValue}
+        value={props.value}
+        defaultValue={props.defaultValue}
         label={props.label || props.translate('common.state')}
         errorText={props.errorText}
         onBlur={props.onBlur}
-        isFormInput={props.isFormInput}
         shouldSaveDraft={props.shouldSaveDraft}
     />
 ));

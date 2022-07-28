@@ -8,8 +8,6 @@ import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import NameValuePair from '../../../libs/actions/NameValuePair';
-import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -20,6 +18,7 @@ import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -43,19 +42,6 @@ class AddPayPalMePage extends React.Component {
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
     }
 
-    componentDidMount() {
-        PaymentMethods.getPaymentMethods();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.payPalMeUsername === this.props.payPalMeUsername) {
-            return;
-        }
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({payPalMeUsername: this.props.payPalMeUsername});
-    }
-
     /**
      * Sets the payPalMeUsername for the current user
      */
@@ -66,7 +52,8 @@ class AddPayPalMePage extends React.Component {
             return;
         }
         this.setState({payPalMeUsernameError: false});
-        NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
+        User.addPaypalMeAddress(this.state.payPalMeUsername);
+
         Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }

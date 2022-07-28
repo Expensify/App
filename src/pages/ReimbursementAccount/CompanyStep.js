@@ -201,6 +201,7 @@ class CompanyStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <ReimbursementAccountForm
+                    reimbursementAccount={this.props.reimbursementAccount}
                     onSubmit={this.submit}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
@@ -275,7 +276,7 @@ class CompanyStep extends React.Component {
                             onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                             value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}
-                            hasError={this.getErrors().incorporationType}
+                            errorText={this.getErrorText('incorporationType')}
                         />
                     </View>
                     <View style={styles.mt4}>
