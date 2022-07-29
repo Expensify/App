@@ -60,7 +60,7 @@ const AppDownloadLinksPage = (props) => {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {Object} [selection] - Copied content.
+     * @param {String} [selection] - Copied content.
      */
     const showPopover = (event, selection) => {
         ReportActionContextMenu.showContextMenu(
@@ -85,7 +85,7 @@ const AppDownloadLinksPage = (props) => {
                         key={item.translationKey}
                         onPressIn={() => props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onSecondaryInteraction={e => showPopover(e, {text: item.link})}
+                        onSecondaryInteraction={e => showPopover(e, item.link)}
                         ref={el => popoverAnchor = el}
                         onKeyDown={(event) => {
                             event.target.blur();
