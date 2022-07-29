@@ -269,7 +269,7 @@ class WorkspaceMembersPage extends React.Component {
             .map(email => this.props.personalDetails[email])
             .filter()
             .sortBy(person => person.displayName.toLowerCase())
-            .map(person => ({...person, pendingAction: 'delete', errors: {1: 'caca'}})) // TODO: remove this hardcoded values
+            .map(person => ({...person})) // TODO: here we will add the pendingAction and errors prop
             .value();
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
