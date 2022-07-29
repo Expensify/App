@@ -66,7 +66,7 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** Flag to check if report data is being loaded */
+    /** Flag to check if the initial report actions data are loading */
     isLoadingInitialReportActions: PropTypes.bool,
 
     /** The policies which the user has access to */
