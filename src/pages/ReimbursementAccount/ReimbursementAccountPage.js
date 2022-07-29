@@ -27,12 +27,19 @@ import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
+import plaidDataPropTypes from './plaidDataPropTypes';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
+    /** Contains plaid data */
+    plaidData: plaidDataPropTypes,
+
+    /** Plaid SDK token to use to initialize the widget */
+    plaidLinkToken: PropTypes.string,
+
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
@@ -60,6 +67,10 @@ const propTypes = {
 const defaultProps = {
     reimbursementAccount: {
         loading: true,
+    },
+    plaidLinkToken: '',
+    plaidData: {
+        isPlaidDisabled: false,
     },
     route: {
         params: {
@@ -212,7 +223,7 @@ class ReimbursementAccountPage extends React.Component {
                     {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                         <BankAccountStep
                             achData={achData}
-                            isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
+                            isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
                             receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             plaidLinkOAuthToken={this.props.plaidLinkToken}
                         />
@@ -252,6 +263,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
