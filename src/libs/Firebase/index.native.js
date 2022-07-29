@@ -33,7 +33,6 @@ function startTrace(customEventName) {
  */
 function stopTrace(customEventName) {
     const stop = global.performance.now();
-
     if (Environment.isDevelopment()) {
         return;
     }
