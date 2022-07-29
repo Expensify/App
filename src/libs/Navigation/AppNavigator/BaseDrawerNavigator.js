@@ -51,14 +51,20 @@ class BaseDrawerNavigator extends Component {
 
     componentDidUpdate(prevProps) {
         // You don't have to do this check first, but it can help prevent an unneeded render
-        if (prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
-          this.setState({
-            defaultStatus: Navigation.getDefaultDrawerState(
-              this.props.isSmallScreenWidth,
-            ),
-          });
+        if (prevProps.isSmallScreenWidth === this.props.isSmallScreenWidth) {
+            return;
         }
-      }
+        this.updateNavigationState(this.props.isSmallScreenWidth);
+    }
+
+    // This Function will update Drawer Status to Open
+    updateNavigationState(props) {
+        this.setState({
+            defaultStatus: Navigation.getDefaultDrawerState(
+                props,
+            ),
+        });
+    }
 
     render() {
         const content = (
