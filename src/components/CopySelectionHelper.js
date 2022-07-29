@@ -32,10 +32,10 @@ class CopySelectionHelper extends React.Component {
         }
         const parser = new ExpensiMark();
         if (!Clipboard.canSetHtml()) {
-            Clipboard.setString(parser.htmlToMarkdown(selection.html));
+            Clipboard.setString(parser.htmlToMarkdown(selection));
             return;
         }
-        Clipboard.setHtml(selection.html, parser.htmlToText(selection.html));
+        Clipboard.setHtml(selection, parser.htmlToText(selection));
     }
 
     render() {

@@ -67,7 +67,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                             ReportActionContextMenu.showContextMenu(
                                 Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                 event,
-                                {text: this.props.href},
+                                this.props.href,
                                 lodashGet(linkRef, 'current'),
                             );
                         }

@@ -20,6 +20,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.state = {
             reportID: 0,
             reportAction: {},
+            selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
             isDeleteCommentConfirmModalVisible: false,
@@ -202,7 +203,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.setState({
             reportID: 0,
             reportAction: {},
-            selection: null,
+            selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
         });

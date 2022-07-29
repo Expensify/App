@@ -16,10 +16,7 @@ const propTypes = {
     isVisible: PropTypes.bool,
 
     /** The copy selection. */
-    selection: PropTypes.shape({
-        text: PropTypes.string,
-        html: PropTypes.string,
-    }),
+    selection: PropTypes.string,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
@@ -29,7 +26,7 @@ const defaultProps = {
     isMini: false,
     isVisible: false,
     draftMessage: '',
-    selection: null,
+    selection: '',
 };
 
 export {propTypes, defaultProps};

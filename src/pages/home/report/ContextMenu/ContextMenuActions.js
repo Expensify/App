@@ -66,7 +66,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection.text);
+            Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: ContextMenuUtils.getPopoverDescription,
@@ -78,7 +78,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection.text.replace('mailto:', ''));
+            Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
@@ -103,17 +103,13 @@ export default [
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
-                // This error indicates new code that uses the selection object incorrectly.
-                if (selection && (selection.text || !selection.html)) {
-                    throw new Error('Selection has to either exclusively bear html or be null.');
-                }
-                const resolvedSelection = selection || (messageHtml && {html: messageHtml});
-                if (resolvedSelection) {
+                const content = selection || messageHtml;
+                if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(parser.htmlToMarkdown(resolvedSelection.html));
+                        Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        Clipboard.setHtml(resolvedSelection.html, parser.htmlToText(resolvedSelection.html));
+                        Clipboard.setHtml(content, parser.htmlToText(content));
                     }
                 }
             } else {

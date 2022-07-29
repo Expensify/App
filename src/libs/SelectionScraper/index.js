@@ -127,17 +127,14 @@ const replaceNodes = (dom) => {
 
 /**
  * Resolves the current selection to values and produces clean HTML.
- * @returns {?Object} resolved HTML in the selection format
+ * @returns {String} resolved HTML in the selection format
  */
 const getCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
     domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
 
     const newHtml = render(domRepresentation);
-    if (!newHtml) {
-        return null;
-    }
-    return {html: newHtml};
+    return newHtml || '';
 };
 
 export default {
