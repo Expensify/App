@@ -176,8 +176,8 @@ function setUpPoliciesAndNavigate(session, currentPath) {
 
     let exitTo;
     try {
-        const params = new URLSearchParams(currentPath);
-        exitTo = params.get('exitTo');
+        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
+        exitTo = url.searchParams.get('exitTo');
     } catch (error) {
         // URLSearchParams is unsupported on iOS so we catch th error and
         // silence it here since this is primarily a Web flow
