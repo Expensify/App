@@ -18,12 +18,12 @@ import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
-import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
+import DateUtils from '../../DateUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -138,44 +138,41 @@ function resendValidationLink(login = credentials.login) {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
 
-    DeprecatedAPI.GetAccountStatus({email: login, forceNetworkRequest: true})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {
-                    login: response.normalizedLogin,
-                });
-                Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    accountExists: response.accountExists,
-                    validated: response.validated,
-                    closed: response.isClosed,
-                    forgotPassword: false,
-                    validateCodeExpired: false,
-                });
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
-                if (!response.accountExists) {
-                    createAccount(login);
-                } else if (response.isClosed) {
-                    reopenAccount(login);
-                } else if (!response.validated) {
-                    resendValidationLink(login);
-                }
-            } else if (response.jsonCode === 402) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    error: ValidationUtils.isNumericWithSpecialChars(login)
-                        ? Localize.translateLocal('common.error.phoneNumber')
-                        : Localize.translateLocal('loginForm.error.invalidFormatEmailLogin'),
-                });
-            } else if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('session.offlineMessageRetry')});
-            } else {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
-            }
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: {
+                    [DateUtils.getMicroseconds()]: 'Cannot get account details, please try again',
+                },
+            },
+        },
+    ];
+
+    API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**

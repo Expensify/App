@@ -136,18 +136,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} parameters.forceNetworkRequest
- * @returns {Promise}
- */
-function GetAccountStatus(parameters) {
-    const commandName = 'GetAccountStatus';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
  */
@@ -727,7 +715,6 @@ export {
     DeleteLogin,
     DeleteBankAccount,
     Get,
-    GetAccountStatus,
     GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,

@@ -65,7 +65,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into CORS errors like (in the browser dev console)
    ```sh
-   Access to fetch at 'https://www.expensify.com/api?command=GetAccountStatus' from origin 'http://localhost:8080' has been blocked by CORS policy
+   Access to fetch at 'https://www.expensify.com/api?command=BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
    ```
    You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
 
