@@ -277,6 +277,10 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                     lastName,
                     pronouns,
                     timezone,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
                 },
             },
         }],
@@ -289,6 +293,7 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                     lastName: myPersonalDetails.lastName,
                     pronouns: myPersonalDetails.pronouns,
                     timezone: myPersonalDetails.timeZone,
+                    displayName: myPersonalDetails.displayName,
                 },
             },
         }],
