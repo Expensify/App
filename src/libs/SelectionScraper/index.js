@@ -127,7 +127,7 @@ const replaceNodes = (dom) => {
 
 /**
  * Resolves the current selection to values and produces clean HTML.
- * @returns {String} resolved HTML in the selection format
+ * @returns {String} resolved selection in the HTML format
  */
 const getCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
