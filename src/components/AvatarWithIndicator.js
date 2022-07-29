@@ -8,7 +8,7 @@ import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
-import {hasPolicyMemberError} from '../libs/actions/Policy';
+import * as Policy from '../libs/actions/Policy';
 
 const propTypes = {
     /** URL for the avatar */
@@ -38,7 +38,7 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    const hasError = _.some(props.policiesMemberList, policyMembers => hasPolicyMemberError(policyMembers));
+    const hasError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>

@@ -24,7 +24,7 @@ import * as PolicyActions from '../../libs/actions/Policy';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
-import {hasPolicyMemberError} from '../../libs/actions/Policy';
+import * as Policy from '../../libs/actions/Policy';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -81,7 +81,7 @@ class WorkspaceInitialPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        const hasMembersError = hasPolicyMemberError(this.props.policyMemberList);
+        const hasMembersError = Policy.hasPolicyMemberError(this.props.policyMemberList);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
