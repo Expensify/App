@@ -15,7 +15,7 @@ function isAuthTokenRequired(command) {
         'Log',
         'Graphite_Timer',
         'Authenticate',
-        'GetAccountStatus',
+        'BeginSignIn',
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
