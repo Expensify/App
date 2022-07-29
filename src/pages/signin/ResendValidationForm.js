@@ -152,7 +152,7 @@ class ResendValidationForm extends React.Component {
                         isDisabled={this.props.network.isOffline}
                     />
                 </View>
-                <OfflineIndicator />
+                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }
