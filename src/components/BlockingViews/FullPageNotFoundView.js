@@ -1,9 +1,13 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import BlockingView from './BlockingView';
 import * as Expensicons from '../Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import HeaderWithCloseButton from '../HeaderWithCloseButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Props to fetch translation features */
@@ -24,11 +28,21 @@ const defaultProps = {
 const FullPageNotFoundView = (props) => {
     if (props.shouldShow) {
         return (
-            <BlockingView
-                icon={Expensicons.QuestionMark}
-                title={props.translate('notFound.notHere')}
-                subtitle={props.translate('notFound.pageNotFound')}
-            />
+            <View style={[styles.flex1, styles.dFlex, styles.flexColumn]}>
+                <HeaderWithCloseButton
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View style={styles.flex1}>
+                    <BlockingView
+                        icon={Expensicons.QuestionMark}
+                        title={props.translate('notFound.notHere')}
+                        subtitle={props.translate('notFound.pageNotFound')}
+                    />
+                </View>
+            </View>
+
         );
     }
 
