@@ -212,6 +212,16 @@ const AvatarCropModal = (props) => {
         },
     }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize]);
 
+    // this effect is needed to prevent the incorrect position of
+    // the slider's knob when the window's layout changes
+    useEffect(() => {
+        translateSlider.value = interpolate(
+            scale.value,
+            [CONST.AVATAR_CROP_MODAL.MIN_SCALE, CONST.AVATAR_CROP_MODAL.MAX_SCALE],
+            [0, sliderContainerSize],
+        );
+    }, [sliderContainerSize]);
+
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
     const rotateImage = useCallback(() => {
