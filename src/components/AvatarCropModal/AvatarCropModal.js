@@ -212,7 +212,7 @@ const AvatarCropModal = (props) => {
         },
     }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize]);
 
-    // this effect is needed to prevent the incorrect position of
+    // This effect is needed to prevent the incorrect position of
     // the slider's knob when the window's layout changes
     useEffect(() => {
         translateSlider.value = interpolate(
