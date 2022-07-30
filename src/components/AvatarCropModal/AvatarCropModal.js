@@ -257,7 +257,7 @@ const AvatarCropModal = (props) => {
             onClose={props.onClose}
             isVisible={props.isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            containerStyle={!props.isSmallScreenWidth && styles.avatarCropModalContainer}
+            containerStyle={!props.isSmallScreenWidth ? styles.avatarCropModalContainer : null}
             onModalHide={resetState}
             statusBarTranslucent={false}
         >
