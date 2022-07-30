@@ -181,6 +181,7 @@ class PasswordForm extends React.Component {
                 <View>
                     <Button
                         success
+                        pressOnEnter
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
                         isLoading={this.props.account.loading}
