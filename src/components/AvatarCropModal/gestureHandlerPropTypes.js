@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 
+// PropTypes of react-native-gesture-handler's onGestureEvent prop
 export default PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.shape({

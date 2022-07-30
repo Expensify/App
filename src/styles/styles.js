@@ -2615,7 +2615,7 @@ const styles = {
     },
 
     avatarCropModalContainer: {
-        maxWidth: 500,
+        maxWidth: 450,
     },
 
     imageCropContainer: {
