@@ -17,6 +17,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    longPressHandlerStateChanged: () => {},
+};
+
 const padNumbers = [
     ['1', '2', '3'],
     ['4', '5', '6'],
@@ -85,5 +89,6 @@ class BigNumberPad extends React.Component {
 }
 
 BigNumberPad.propTypes = propTypes;
+BigNumberPad.defaultProps = defaultProps;
 
 export default withLocalize(BigNumberPad);
