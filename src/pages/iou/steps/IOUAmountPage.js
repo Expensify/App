@@ -77,6 +77,19 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Returns the new selection object based on updated amount
+     *
+     * @param {Object} oldSelection
+     * @param {String} oldAmount
+     * @param {String} newAmount
+     * @returns {Object}
+     */
+    getNewSelection(oldSelection, oldAmount, newAmount) {
+        const cursorPosition = oldSelection.end + (newAmount.length - oldAmount.length);
+        return {start: cursorPosition, end: cursorPosition};
+    }
+
+    /**
      * Focus text input
      */
     focusTextInput() {
@@ -137,19 +150,6 @@ class IOUAmountPage extends React.Component {
      */
     addLeadingZero(amount) {
         return amount === '.' ? '0.' : amount;
-    }
-
-    /**
-     * Returns the new selection object based on updated amount
-     *
-     * @param {Object} oldSelection
-     * @param {String} oldAmount
-     * @param {String} newAmount
-     * @returns {Object}
-     */
-    getNewSelection(oldSelection, oldAmount, newAmount) {
-        const cursorPosition = oldSelection.end + (newAmount.length - oldAmount.length);
-        return {start: cursorPosition, end: cursorPosition};
     }
 
     /**
@@ -251,9 +251,10 @@ class IOUAmountPage extends React.Component {
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
-                            if (this.shouldUpdateSelection) {
-                                this.setState({selection: e.nativeEvent.selection});
+                            if (!this.shouldUpdateSelection) {
+                                return;
                             }
+                            this.setState({selection: e.nativeEvent.selection});
                         }}
                     />
                 </View>
