@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import _ from 'lodash';
+import lodashExtend from 'lodash/extend';
+import _ from 'underscore';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import Modal from './Modal';
@@ -77,14 +78,17 @@ class AttachmentModal extends PureComponent {
             reportId: null,
             showArrows: false,
             file: {name: lodashGet(props, 'originalFileName', '')},
+            isAttachmentInvalid: false,
+            attachmentInvalidReasonTitle: null,
+            attachmentInvalidReason: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
-        this.isValidSize = this.isValidSize.bind(this);
         this.onArrowPress = this.onArrowPress.bind(this);
+        this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
     }
 
     // this prevents a bug in iOS that would show the last image before closing then opening on a new image
@@ -119,22 +123,30 @@ class AttachmentModal extends PureComponent {
      * @returns {String}
      */
     getModalType(sourceUrl, file) {
-        const modalType = (sourceUrl
-            && (Str.isPDF(sourceUrl) || (file && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename')))))
+        return (
+            sourceUrl
+            && (
+                Str.isPDF(sourceUrl)
+                || (
+                    file
+                    && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))
+                )
+            )
+        )
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
-        return modalType;
     }
 
     /**
      * Returns the filename split into fileName and fileExtension
+     *
+     * @param {String} fullFileName
      * @returns {Object}
      */
-    splitExtensionFromFileName() {
-        const fullFileName = lodashGet(this.state, 'file.name', '').trim();
-        const splittedFileName = fullFileName.split('.');
-        const fileExtension = splittedFileName.pop();
-        const fileName = splittedFileName.join('.');
+    splitExtensionFromFileName(fullFileName) {
+        const fileName = fullFileName.trim();
+        const splitFileName = fileName.split('.');
+        const fileExtension = splitFileName.pop();
         return {fileName, fileExtension};
     }
 
@@ -148,7 +160,7 @@ class AttachmentModal extends PureComponent {
         }
 
         if (this.props.onConfirm) {
-            this.props.onConfirm(_.extend(this.state.file, {source: this.state.sourceURL}));
+            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.sourceURL}));
         }
 
         this.setState({isModalOpen: false});
@@ -158,16 +170,70 @@ class AttachmentModal extends PureComponent {
      * Close the confirm modal.
      */
     closeConfirmModal() {
-        this.setState({isConfirmModalOpen: false});
+        this.setState({isAttachmentInvalid: false});
     }
 
     /**
-     * Check if the attachment size is less than the API size limit.
      * @param {Object} file
      * @returns {Boolean}
      */
-    isValidSize(file) {
-        return !file || lodashGet(file, 'size', 0) < CONST.API_MAX_ATTACHMENT_SIZE;
+    isValidFile(file) {
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooLarge'),
+                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeExceeded'),
+            });
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
+                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
+            });
+            return false;
+        }
+
+        const {fileExtension} = this.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension)) {
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReason: invalidReason,
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {Object} file
+     */
+    validateAndDisplayFileToUpload(file) {
+        if (!file) {
+            return;
+        }
+
+        if (!this.isValidFile(file)) {
+            return;
+        }
+
+        if (file instanceof File) {
+            const source = URL.createObjectURL(file);
+            const modalType = this.getModalType(source, file);
+            this.setState({
+                isModalOpen: true, sourceURL: source, file, modalType,
+            });
+        } else {
+            const modalType = this.getModalType(file.uri, file);
+            this.setState({
+                isModalOpen: true, sourceURL: file.uri, file, modalType,
+            });
+        }
     }
 
     render() {
@@ -179,7 +245,7 @@ class AttachmentModal extends PureComponent {
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
 
-        const {fileName, fileExtension} = this.splitExtensionFromFileName();
+        const {fileName, fileExtension} = this.splitExtensionFromFileName(lodashGet(this.state, 'file.name') || this.props.originalFileName);
 
         return (
             <>
@@ -234,34 +300,19 @@ class AttachmentModal extends PureComponent {
                         />
                         )}
                 </Modal>
+
                 <ConfirmModal
-                    title={this.props.translate('attachmentPicker.attachmentTooLarge')}
+                    title={this.state.attachmentInvalidReasonTitle}
                     onConfirm={this.closeConfirmModal}
                     onCancel={this.closeConfirmModal}
-                    isVisible={this.state.isConfirmModalOpen}
-                    prompt={this.props.translate('attachmentPicker.sizeExceeded')}
+                    isVisible={this.state.isAttachmentInvalid}
+                    prompt={this.state.attachmentInvalidReason}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
+
                 {this.props.children({
-                    displayFileInModal: ({file}) => {
-                        if (!this.isValidSize(file)) {
-                            this.setState({isConfirmModalOpen: true});
-                            return;
-                        }
-                        if (file instanceof File) {
-                            const source = URL.createObjectURL(file);
-                            const modalType = this.getModalType(source, file);
-                            this.setState({
-                                isModalOpen: true, sourceURL: source, file, modalType,
-                            });
-                        } else {
-                            const modalType = this.getModalType(file.uri, file);
-                            this.setState({
-                                isModalOpen: true, sourceURL: file.uri, file, modalType,
-                            });
-                        }
-                    },
+                    displayFileInModal: this.validateAndDisplayFileToUpload,
                     show: () => {
                         const route = Navigation.getActiveRoute();
                         let reportId = null;

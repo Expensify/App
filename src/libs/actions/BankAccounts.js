@@ -70,7 +70,7 @@ function addPersonalBankAccount(account, password) {
     const onyxData = {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: true,
@@ -80,18 +80,18 @@ function addPersonalBankAccount(account, password) {
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: false,
                     error: '',
-                    success: Localize.translateLocal('paymentsPage.addBankAccountSuccess'),
+                    shouldShowSuccess: true,
                 },
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: false,
