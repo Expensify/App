@@ -56,7 +56,7 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
-        this.shouldUpdateSelection = false;
+        this.shouldUpdateSelection = true;
 
         this.state = {
             amount: props.selectedAmount,
