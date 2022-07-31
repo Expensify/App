@@ -56,6 +56,7 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.shouldUpdateSelection = false;
 
         this.state = {
             amount: props.selectedAmount,
@@ -249,7 +250,11 @@ class IOUAmountPage extends React.Component {
                         ref={el => this.textInput = el}
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
                         selection={this.state.selection}
-                        onSelectionChange={e => this.setState({selection: e.nativeEvent.selection})}
+                        onSelectionChange={(e) => {
+                            if (this.shouldUpdateSelection) {
+                                this.setState({selection: e.nativeEvent.selection});
+                            }
+                        }}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
@@ -257,6 +262,7 @@ class IOUAmountPage extends React.Component {
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
+                                longPressHandlerStateChanged={state => this.shouldUpdateSelection = !state}
                             />
                         ) : <View />}
 

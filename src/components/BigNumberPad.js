@@ -11,6 +11,9 @@ const propTypes = {
     /** Callback to inform parent modal with key pressed */
     numberPressed: PropTypes.func.isRequired,
 
+    /** Callback to inform parent modal whether user is long pressing the "<" button */
+    longPressHandlerStateChanged: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -41,6 +44,7 @@ class BigNumberPad extends React.Component {
         if (key !== '<') {
             return;
         }
+        this.props.longPressHandlerStateChanged(true);
         const timer = setInterval(() => {
             this.props.numberPressed(key);
         }, 100);
@@ -68,6 +72,7 @@ class BigNumberPad extends React.Component {
                                     onPressOut={() => {
                                         clearInterval(this.state.timer);
                                         ControlSelection.unblock();
+                                        this.props.longPressHandlerStateChanged(false);
                                     }}
                                 />
                             );
