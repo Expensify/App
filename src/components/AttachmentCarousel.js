@@ -1,8 +1,9 @@
 import React from 'react';
-import {Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'lodash';
+import Str from 'expensify-common/lib/str';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
@@ -37,6 +38,11 @@ class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
 
+        this.canUseTouchScreen = canUseTouchScreen();
+        this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
+        this.handleArrowPress = this.handleArrowPress.bind(this);
+        this.onShowArrow = this.onShowArrow.bind(this);
+
         let page;
         const actionsArr = _.values(props.reportActions);
         const attachments = _.reduce(actionsArr, (attachmentsAccumulator, reportAction) => {
@@ -63,25 +69,21 @@ class AttachmentCarousel extends React.Component {
             attachments,
             sourceURL,
             file,
-            showArrows: canUseTouchScreen(),
+            showArrows: this.canUseTouchScreen,
             isBackDisabled: page === 0,
             isForwardDisabled: page === attachments.length - 1,
         };
-
-        this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
-        this.handleArrowPress = this.handleArrowPress.bind(this);
-        this.onShowArrow = this.onShowArrow.bind(this);
     }
 
     componentDidMount() {
-        if (canUseTouchScreen()) {
+        if (this.canUseTouchScreen) {
             return;
         }
         document.addEventListener('keydown', this.handleArrowPress);
     }
 
     componentWillUnmount() {
-        if (canUseTouchScreen()) {
+        if (this.canUseTouchScreen) {
             return;
         }
         document.removeEventListener('keydown', this.handleArrowPress);
@@ -147,12 +149,12 @@ class AttachmentCarousel extends React.Component {
 
     render() {
         return (
-            <Pressable
+            <View
                 style={[styles.attachmentModalArrowsContainer]}
                 onMouseEnter={() => this.onShowArrow(true)}
                 onMouseLeave={() => this.onShowArrow(false)}
             >
-                {this.state.showArrows && (
+                {(this.state.showArrows || Str.isPDF(this.state.sourceURL)) && (
                     <>
                         <Button
                             medium
@@ -178,12 +180,12 @@ class AttachmentCarousel extends React.Component {
                     isAnimated
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() => canUseTouchScreen() && this.onShowArrow(!this.state.showArrows)}
+                    onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.showArrows)}
                     onSwipeHorizontal={this.cycleThroughAttachments}
                 >
                     <AttachmentView sourceURL={this.state.sourceURL} file={this.state.file} />
                 </SwipeableView>
-            </Pressable>
+            </View>
 
         );
     }

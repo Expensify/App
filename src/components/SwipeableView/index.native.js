@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 
+import styles from '../../styles/styles';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -68,7 +69,7 @@ class SwipeableView extends Component {
                 }
 
                 const deltaSlide = gestureState.dx > 0 ? -1 : 1;
-                if (Math.abs(gestureState.vx) < 1.8 || (deltaSlide === -1 && !this.props.canSwipeLeft) || (deltaSlide === 1 && !this.props.canSwipeRight)) {
+                if (Math.abs(gestureState.vx) < 1.6 || (deltaSlide === -1 && !this.props.canSwipeLeft) || (deltaSlide === 1 && !this.props.canSwipeRight)) {
                     return Animated.spring(this.pan, {useNativeDriver: false, toValue: 0}).start();
                 }
 
@@ -90,9 +91,11 @@ class SwipeableView extends Component {
         if (this.props.isAnimated) {
             return (
                 <Animated.View
-                    style={{
-                        transform: [{translateX: this.pan}],
-                    }}
+                    style={[
+                        styles.w100,
+                        styles.h100,
+                        {transform: [{translateX: this.pan}]},
+                    ]}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.panResponder.panHandlers}
                 >

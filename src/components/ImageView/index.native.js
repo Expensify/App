@@ -55,9 +55,9 @@ class ImageView extends PureComponent {
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => this.calculateImageSize());
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         // This resizes the images on cycling
-        if (!this.state.containerHeight || this.state.isLoading) {
+        if (!this.state.containerHeight || this.state.isLoading || prevProps.url === this.props.url) {
             return;
         }
         this.calculateImageSize();
