@@ -2,6 +2,7 @@ import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as Localize from '../Localize';
+import CONST from '../../CONST';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -27,7 +28,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
         bank: bankName,
     }, {
         optimisticData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 loading: true,
@@ -36,7 +37,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             },
         }],
         successData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 loading: false,
@@ -44,7 +45,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             },
         }],
         failureData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 loading: false,

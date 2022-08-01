@@ -34,8 +34,8 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -124,12 +124,14 @@ class ReportActionCompose extends React.Component {
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.comment = props.comment;
-        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.addAttachment = this.addAttachment.bind(this);
+
+        this.comment = props.comment;
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -448,6 +450,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * @param {Object} file
+     */
+    addAttachment(file) {
+        const comment = this.prepareCommentAndResetComposer();
+        Report.addAttachment(this.props.reportID, file, comment);
+        this.setTextInputShouldClear(false);
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -500,11 +511,7 @@ class ReportActionCompose extends React.Component {
                 >
                     <AttachmentModal
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
-                        onConfirm={(file) => {
-                            const comment = this.prepareCommentAndResetComposer();
-                            Report.addAttachment(this.props.reportID, file, comment);
-                            this.setTextInputShouldClear(false);
-                        }}
+                        onConfirm={this.addAttachment}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -572,9 +579,7 @@ class ReportActionCompose extends React.Component {
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
-                                                                onPicked: (file) => {
-                                                                    displayFileInModal({file});
-                                                                },
+                                                                onPicked: displayFileInModal,
                                                             });
                                                         },
                                                     },
@@ -616,7 +621,7 @@ class ReportActionCompose extends React.Component {
                                                 return;
                                             }
 
-                                            displayFileInModal({file});
+                                            displayFileInModal(file);
                                             this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
@@ -624,7 +629,7 @@ class ReportActionCompose extends React.Component {
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={file => displayFileInModal({file})}
+                                        onPasteFile={displayFileInModal}
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
@@ -686,6 +691,7 @@ export default compose(
     withDrawerState,
     withNavigationFocus,
     withLocalize,
+    withNetwork(),
     withPersonalDetails(),
     withCurrentUserPersonalDetails,
     withOnyx({

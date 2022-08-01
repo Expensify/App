@@ -174,7 +174,7 @@ class IOUModal extends Component {
      * Decides our animation type based on whether we're increasing or decreasing
      * our step index.
      * @returns {String}
-    */
+     */
     getDirection() {
         if (this.state.previousStepIndex < this.state.currentStepIndex) {
             return 'in';
