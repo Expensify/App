@@ -8,6 +8,9 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import withWindowDimensions from './withWindowDimensions';
 import TextInput from './TextInput';
+import KeyboardSpacer from './KeyboardSpacer';
+import getPlatform from '../libs/getPlatform';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Is the popover currently showing? */
@@ -92,6 +95,7 @@ class PasswordPopover extends Component {
                         onSubmitEditing={() => this.props.onSubmit(this.state.password)}
                         style={styles.mt3}
                         autoFocus
+                        shouldDelayFocus={getPlatform() === CONST.PLATFORM.ANDROID}
                     />
                     <TouchableOpacity
                         onPress={() => this.props.onSubmit(this.state.password)}
@@ -106,6 +110,7 @@ class PasswordPopover extends Component {
                         </Text>
                     </TouchableOpacity>
                 </View>
+                <KeyboardSpacer androidEnable />
             </Popover>
         );
     }
