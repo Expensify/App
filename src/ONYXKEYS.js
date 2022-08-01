@@ -103,7 +103,8 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions_',
+        IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions_',
+        IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
@@ -179,8 +180,8 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
-    // Is close acount modal open?
-    IS_CLOSE_ACCOUNT_MODAL_OPEN: 'isCloseAccountModalOpen',
+    // Data related to user closing their account (loading status and error message)
+    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
