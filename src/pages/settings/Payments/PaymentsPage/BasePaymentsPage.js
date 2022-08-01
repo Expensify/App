@@ -14,6 +14,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import withLocalize from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
+import KeyboardAvoidingView from '../../../../components/KeyboardAvoidingView/index';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import Popover from '../../../../components/Popover';
 import MenuItem from '../../../../components/MenuItem';
@@ -290,6 +291,7 @@ class BasePaymentsPage extends React.Component {
                                                 icon={Expensicons.Transfer}
                                                 onPress={triggerKYCFlow}
                                                 shouldShowRightIcon
+                                                disabled={this.props.network.isOffline}
                                             />
                                         )}
                                     </KYCWall>
@@ -318,7 +320,7 @@ class BasePaymentsPage extends React.Component {
                         onClose={this.hideAddPaymentMenu}
                         anchorPosition={{
                             bottom: this.state.anchorPositionBottom,
-                            right: this.state.anchorPositionRight - 30,
+                            right: this.state.anchorPositionRight - 10,
                         }}
                         onItemSelected={method => this.addPaymentMethodTypePressed(method)}
                     />
@@ -338,7 +340,7 @@ class BasePaymentsPage extends React.Component {
                         >
                             {isPopoverBottomMount && (
                                 <MenuItem
-                                    title={this.state.formattedSelectedPaymentMethod.title}
+                                    title={this.state.formattedSelectedPaymentMethod.title || ''}
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
@@ -365,101 +367,32 @@ class BasePaymentsPage extends React.Component {
                                     }}
                                     style={[styles.button, styles.alignSelfCenter, styles.w100]}
                                 >
-                                    <CurrentWalletBalance />
-                                </OfflineWithFeedback>
-                            </View>
-                            {this.props.userWallet.currentBalance > 0 && (
-                                <KYCWall
-                                    onSuccessfulKYC={this.navigateToTransferBalancePage}
-                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                    popoverPlacement="bottom"
-                                >
-                                    {triggerKYCFlow => (
-                                        <MenuItem
-                                            title={this.props.translate('common.transferBalance')}
-                                            icon={Expensicons.Transfer}
-                                            onPress={triggerKYCFlow}
-                                            shouldShowRightIcon
-                                            disabled={this.props.network.isOffline}
-                                        />
-                                    )}
-                                </KYCWall>
+                                    <Text style={[styles.buttonText]}>
+                                        {this.props.translate('paymentsPage.setDefaultConfirmation')}
+                                    </Text>
+                                </TouchableOpacity>
                             )}
-                        </>
-                    )}
-                    <Text
-                        style={[styles.ph5, styles.mt6, styles.formLabel]}
-                    >
-                        {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                    </Text>
-                    <PaymentMethodList
-                        onPress={this.paymentMethodPressed}
-                        style={[styles.flex4]}
-                        isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
-                        actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
-                            ? this.state.selectedPaymentMethodType
-                            : ''}
-                        activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
-                            ? this.getSelectedPaymentMethodID()
-                            : ''}
-                    />
-                </View>
-                <AddPaymentMethodMenu
-                    isVisible={this.state.shouldShowAddPaymentMenu}
-                    onClose={this.hideAddPaymentMenu}
-                    anchorPosition={{
-                        bottom: this.state.anchorPositionBottom,
-                        right: this.state.anchorPositionRight - 10,
-                    }}
-                    onItemSelected={method => this.addPaymentMethodTypePressed(method)}
-                />
-                <Popover
-                    isVisible={this.state.shouldShowDefaultDeleteMenu}
-                    onClose={this.hideDefaultDeleteMenu}
-                    anchorPosition={{
-                        top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
-                    }}
-                >
-                    <View
-                        style={[
-                            styles.m5,
-                            !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
-                        ]}
-                    >
-                        {isPopoverBottomMount && (
-                            <MenuItem
-                                title={this.state.formattedSelectedPaymentMethod.title || ''}
-                                icon={this.state.formattedSelectedPaymentMethod.icon}
-                                description={this.state.formattedSelectedPaymentMethod.description}
-                                wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
-                                disabled
-                                interactive={false}
-                            />
-                        )}
-                        {shouldShowMakeDefaultButton && (
                             <TouchableOpacity
                                 onPress={() => {
                                     this.setState({
                                         shouldShowDefaultDeleteMenu: false,
                                     });
-
-                                    // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
-                                    // InteractionManager fires after the currently running animation is completed.
-                                    // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                     InteractionManager.runAfterInteractions(() => {
                                         this.setState({
-                                            shouldShowPasswordPrompt: true,
-                                            passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                            shouldShowConfirmPopover: true,
                                         });
                                     });
                                 }}
-                                style={[styles.button, styles.alignSelfCenter, styles.w100]}
+                                style={[
+                                    styles.button,
+                                    styles.buttonDanger,
+                                    shouldShowMakeDefaultButton && styles.mt4,
+                                    styles.alignSelfCenter,
+                                    styles.w100,
+                                ]}
                             >
-                                <Text style={[styles.buttonText]}>
-                                    {this.props.translate('paymentsPage.setDefaultConfirmation')}
+                                <Text style={[styles.buttonText, styles.textWhite]}>
+                                    {this.props.translate('common.delete')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -501,19 +434,7 @@ class BasePaymentsPage extends React.Component {
                         shouldShowCancelButton
                         danger
                     />
-                    <ConfirmModal
-                        title={this.props.translate('paymentsPage.allSet')}
-                        onConfirm={PaymentMethods.dismissWalletConfirmModal}
-                        isVisible={this.props.walletTransfer.shouldShowConfirmModal}
-                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
-                            amount: this.props.numberFormat(
-                                this.props.walletTransfer.transferAmount / 100,
-                                {style: 'currency', currency: 'USD'},
-                            ),
-                        })}
-                        confirmText={this.props.translate('paymentsPage.gotIt')}
-                        shouldShowCancelButton={false}
-                    />
+                    <OfflineIndicator containerStyles={[styles.ml5, styles.mb2]} />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
