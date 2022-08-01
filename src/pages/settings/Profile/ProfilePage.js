@@ -74,7 +74,7 @@ class ProfilePage extends Component {
             hasLastNameError: false,
             pronouns: currentUserDetails.pronouns || '',
             hasPronounError: false,
-            hasSelfSelectedPronouns: !(currentUserDetails.pronouns || '').startsWith(CONST.PRONOUNS.PREFIX),
+            hasSelfSelectedPronouns: !_.isEmpty(currentUserDetails.pronouns) && !currentUserDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: lodashGet(currentUserDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(currentUserDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
