@@ -45,7 +45,7 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import reportPropTypes from '../../reportPropTypes';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -383,7 +383,9 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      * @param {Boolean} shouldDebounceSaveComment
      */
-    updateComment(newComment, shouldDebounceSaveComment) {
+    updateComment(newComment) {
+        const textWithEmojis = EmojiUtils.replaceEmojis(newComment);
+        this.textInput.setNativeProps({text: textWithEmojis});
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
             value: newComment,
@@ -399,13 +401,9 @@ class ReportActionCompose extends React.Component {
             Report.setReportWithDraft(this.props.reportID, false);
         }
 
-        this.comment = newComment;
-        if (shouldDebounceSaveComment) {
-            this.debouncedSaveReportComment(newComment);
-        } else {
-            Report.saveReportComment(this.props.reportID, newComment || '');
-        }
-        if (newComment) {
+        this.comment = textWithEmojis;
+        this.debouncedSaveReportComment(textWithEmojis);
+        if (textWithEmojis) {
             this.debouncedBroadcastUserIsTyping();
         }
     }
