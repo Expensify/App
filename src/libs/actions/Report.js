@@ -1032,20 +1032,48 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  * @param {Number} reportID
  */
 function openReport(reportID) {
-    API.write('OpenReport',
+    let onyxData;
+    let commonOptimisticData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            lastVisitedTimestamp: Date.now(),
+            unreadActionCount: 0,
+        }
+    };
+    // only show loading state if the report has not been open yet
+    if (getLastReadSequenceNumber(reportID) === 0) {
+        onyxData = {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                    value: true,
+                },
+                commonOptimisticData,
+            ],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                value: false,
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                value: false,
+            }],
+        };
+    } else {
+        onyxData = {
+            optimisticData: [commonOptimisticData],
+        };
+    }
+
+    API.read('OpenReport',
         {
             reportID,
         },
-        {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
-                },
-            }],
-        });
+        onyxData);
 }
 
 /**
