@@ -11,5 +11,5 @@ export default PropTypes.shape({
     errors: PropTypes.objectOf(PropTypes.string),
 
     /** Is this action pending? */
-    pending: PropTypes.string,
+    pendingAction: PropTypes.string,
 });
