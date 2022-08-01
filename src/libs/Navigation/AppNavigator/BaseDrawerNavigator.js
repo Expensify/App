@@ -53,11 +53,10 @@ class BaseDrawerNavigator extends Component {
         if (prevProps.isSmallScreenWidth === this.props.isSmallScreenWidth) {
             return;
         }
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
-            defaultStatus: Navigation.getDefaultDrawerState(
-                this.props.isSmallScreenWidth,
-            ),
+            defaultStatus: Navigation.getDefaultDrawerState(this.props.isSmallScreenWidth),
         });
     }
 
