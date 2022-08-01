@@ -121,7 +121,7 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER_WALLET,
                 value: {
                     walletLinkedAccountID: bankAccountID || fundID,
@@ -131,7 +131,7 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER_WALLET,
                 value: {
                     walletLinkedAccountID: previousPaymentMethodID,

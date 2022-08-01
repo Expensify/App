@@ -1,20 +1,22 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View, Animated} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
+import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
+import CONST from '../../../CONST';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** Personal details of all the users */
@@ -48,7 +50,7 @@ const propTypes = {
     mostRecentIOUReportSequenceNumber: PropTypes.number,
 
     /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool.isRequired,
+    isLoadingMoreReportActions: PropTypes.bool.isRequired,
 
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
@@ -74,6 +76,22 @@ class ReportActionsList extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
+
+        this.state = {
+            fadeInAnimation: new Animated.Value(0),
+        };
+    }
+
+    componentDidMount() {
+        this.fadeIn();
+    }
+
+    fadeIn() {
+        Animated.timing(this.state.fadeInAnimation, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
     }
 
     /**
@@ -156,28 +174,34 @@ class ReportActionsList extends React.Component {
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
-            <InvertedFlatList
-                ref={ReportScrollManager.flatListRef}
-                data={this.props.sortedReportActions}
-                renderItem={this.renderItem}
-                CellRendererComponent={this.renderCell}
-                contentContainerStyle={[
-                    styles.chatContentScrollView,
-                    shouldShowReportRecipientLocalTime && styles.pt0,
-                ]}
-                keyExtractor={this.keyExtractor}
-                initialRowHeight={32}
-                initialNumToRender={this.calculateInitialNumToRender()}
-                onEndReached={this.props.loadMoreChats}
-                onEndReachedThreshold={0.75}
-                ListFooterComponent={this.props.isLoadingReportActions
-                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
-                    : null}
-                keyboardShouldPersistTaps="handled"
-                onLayout={this.props.onLayout}
-                onScroll={this.props.onScroll}
-                extraData={extraData}
-            />
+            <Animated.View style={StyleUtils.getReportListAnimationStyle(this.state.fadeInAnimation)}>
+                <InvertedFlatList
+                    ref={ReportScrollManager.flatListRef}
+                    data={this.props.sortedReportActions}
+                    renderItem={this.renderItem}
+                    CellRendererComponent={this.renderCell}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldShowReportRecipientLocalTime && styles.pt0,
+                    ]}
+                    keyExtractor={this.keyExtractor}
+                    initialRowHeight={32}
+                    initialNumToRender={this.calculateInitialNumToRender()}
+                    onEndReached={this.props.loadMoreChats}
+                    onEndReachedThreshold={0.75}
+                    ListFooterComponent={this.props.isLoadingMoreReportActions
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                            />
+                        )
+                        : null}
+                    keyboardShouldPersistTaps="handled"
+                    onLayout={this.props.onLayout}
+                    onScroll={this.props.onScroll}
+                    extraData={extraData}
+                />
+            </Animated.View>
         );
     }
 }

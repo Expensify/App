@@ -36,7 +36,7 @@ function setBankAccountFormValidationErrors(errors) {
  * Clear validation messages from reimbursement account
  */
 function resetReimbursementAccount() {
-    this.setBankAccountFormValidationErrors({});
+    setBankAccountFormValidationErrors({});
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {successRoute: null});
 }
 
