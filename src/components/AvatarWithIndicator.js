@@ -38,7 +38,7 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    const hasError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
+    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -47,7 +47,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {hasError && (
+                {hasPolicyMemberError && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
