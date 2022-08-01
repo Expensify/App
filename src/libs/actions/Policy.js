@@ -525,7 +525,7 @@ function subscribeToPolicyEvents() {
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
                 _.each(policyExpenseChatIDs, (reportID) => {
-                    Report.fetchActions(reportID);
+                    Report.fetchInitialActions(reportID);
                 });
             }
 
@@ -537,6 +537,16 @@ function subscribeToPolicyEvents() {
             }
         });
     });
+}
+
+/**
+ * Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
+ * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * @param {Object} policyMemberList
+ * @returns {Boolean}
+ */
+function hasPolicyMemberError(policyMemberList) {
+    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
 export {
@@ -557,4 +567,5 @@ export {
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
+    hasPolicyMemberError,
 };

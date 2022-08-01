@@ -17,14 +17,20 @@ import FixedFooter from '../../../components/FixedFooter';
 import ConfirmModal from '../../../components/ConfirmModal';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import * as CloseAccountActions from '../../../libs/actions/CloseAccount';
+import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** Onyx Props */
 
-    /** Is the Close Account information modal open? */
-    isCloseAccoutModalOpen: PropTypes.bool,
+    /** Data from when user attempts to close their account */
+    closeAccount: PropTypes.shape({
+        /** Error message if previous attempt to close account was unsuccessful */
+        error: PropTypes.string,
+
+        /** Is account currently being closed? */
+        isLoading: PropTypes.bool.isRequired,
+    }),
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -37,7 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isCloseAccoutModalOpen: false,
+    closeAccount: {error: '', isLoading: false},
 };
 
 class CloseAccountPage extends Component {
@@ -103,7 +109,7 @@ class CloseAccountPage extends Component {
                     <Button
                         danger
                         text={this.props.translate('closeAccountPage.closeAccount')}
-                        isLoading={this.state.loading}
+                        isLoading={this.props.closeAccount.isLoading}
                         onPress={() => User.closeAccount(this.state.reasonForLeaving)}
                         isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase()}
                     />
@@ -126,8 +132,8 @@ class CloseAccountPage extends Component {
                             {this.props.translate('closeAccountPage.closeAccountTryAgainAfter')}
                         </Text>
                     )}
-                    onConfirm={CloseAccountActions.hideCloseAccountModal}
-                    isVisible={this.props.isCloseAccoutModalOpen}
+                    onConfirm={CloseAccount.clearError}
+                    isVisible={Boolean(this.props.closeAccount.error)}
                     shouldShowCancelButton={false}
                 />
             </ScreenWrapper>
@@ -143,9 +149,9 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
-        isCloseAccoutModalOpen: {
-            key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN,
-            initWithStoredValues: false,
+        closeAccount: {
+            key: ONYXKEYS.CLOSE_ACCOUNT,
+            initWithStoredValues: {error: '', isLoading: false},
         },
         session: {
             key: ONYXKEYS.SESSION,
