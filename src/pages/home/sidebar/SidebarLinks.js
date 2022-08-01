@@ -18,7 +18,6 @@ import OptionsList from '../../../components/OptionsList';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
-import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -329,7 +328,6 @@ class SidebarLinks extends React.Component {
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
                 />
-                <KeyboardSpacer />
             </View>
         );
     }

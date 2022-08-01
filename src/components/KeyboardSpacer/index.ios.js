@@ -4,7 +4,7 @@
  */
 import _ from 'underscore';
 import React from 'react';
-import ReactNativeKeyboardSpacer from './KeyboardSpacer';
+import ReactNativeKeyboardSpacer from './components';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
@@ -25,7 +25,7 @@ const KeyboardSpacer = (props) => {
     }
 
     return (
-        <ReactNativeKeyboardSpacer topSpacing={hasSafeAreas(props.windowWidth, props.windowHeight) ? -30 : 0} />
+        <ReactNativeKeyboardSpacer style={props.style} topSpacing={hasSafeAreas(props.windowWidth, props.windowHeight) ? -30 : 0} />
     );
 };
 

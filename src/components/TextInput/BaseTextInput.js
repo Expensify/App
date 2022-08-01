@@ -15,6 +15,7 @@ import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
+import CONST from '../../CONST';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -59,7 +60,11 @@ class BaseTextInput extends Component {
             return;
         }
 
-        this.input.focus();
+        if (this.props.shouldDelayFocus) {
+            setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            this.input.focus();
+        }
     }
 
     componentDidUpdate() {

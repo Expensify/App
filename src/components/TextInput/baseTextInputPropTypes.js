@@ -93,6 +93,7 @@ const defaultProps = {
     hint: '',
     prefixCharacter: '',
     onInputChange: () => {},
+    shouldDelayFocus: false,
 };
 
 export {propTypes, defaultProps};
