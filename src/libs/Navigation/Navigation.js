@@ -10,11 +10,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 
-let resolveNavigationIsReadyPromise;
-let navigationIsReadyPromise = new Promise((resolve) => {
-    resolveNavigationIsReadyPromise = resolve;
-});
-
 let isLoggedIn = false;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -191,51 +186,6 @@ function isActiveRoute(routePath) {
     return getActiveRoute().substring(1) === routePath;
 }
 
-/**
- * @returns {Promise}
- */
-function isNavigationReady() {
-    return navigationIsReadyPromise;
-}
-
-function setIsNavigationReady() {
-    resolveNavigationIsReadyPromise();
-}
-
-function resetIsNavigationReady() {
-    navigationIsReadyPromise = new Promise((resolve) => {
-        resolveNavigationIsReadyPromise = resolve;
-    });
-}
-
-/**
- * Alternative to the `Navigation.dismissModal()` function that we can use inside
- * the render function of other components to avoid breaking React rules about side-effects.
- *
- * Example:
- * ```jsx
- * if (!Permissions.canUseFreePlan(this.props.betas)) {
- *     return <Navigation.DismissModal />;
- * }
- * ```
- */
-class DismissModal extends React.Component {
-    componentDidMount() {
-        dismissModal(this.props.shouldOpenDrawer);
-    }
-
-    render() {
-        return null;
-    }
-}
-
-DismissModal.propTypes = {
-    shouldOpenDrawer: PropTypes.bool,
-};
-DismissModal.defaultProps = {
-    shouldOpenDrawer: false,
-};
-
 export default {
     canNavigate,
     navigate,
@@ -246,9 +196,6 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
-    isNavigationReady,
-    setIsNavigationReady,
-    resetIsNavigationReady,
 };
 
 export {
