@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -19,10 +20,12 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 
 let currentUserAccountID;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -31,6 +34,12 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: val => isSidebarLoaded = val,
     initWithStoredValues: false,
+});
+
+let myPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => myPersonalDetails = val[currentUserEmail],
 });
 
 const allPolicies = {};
@@ -206,6 +215,39 @@ function setUpPoliciesAndNavigate(session) {
         });
 }
 
+function openProfile() {
+    const oldTimezoneData = myPersonalDetails.timezone || {};
+    const newTimezoneData = {
+        automatic: lodashGet(oldTimezoneData, 'automatic', true),
+        selected: moment.tz.guess(true),
+    };
+
+    API.write('OpenProfile', {
+        timezone: JSON.stringify(newTimezoneData),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone: newTimezoneData,
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone: oldTimezoneData,
+                },
+            },
+        }],
+    });
+
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
 // When the app reconnects from being offline, fetch all initialization data
 NetworkConnection.onReconnect(() => {
     getAppData();
@@ -219,5 +261,6 @@ export {
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
+    openProfile,
     openApp,
 };
