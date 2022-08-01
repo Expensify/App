@@ -65,7 +65,7 @@ class PDFPasswordForm extends Component {
 
     updatePassword(password) {
         this.props.onPasswordUpdated(password);
-        if (!_.isEmpty(password)) {
+        if (!_.isEmpty(password) && this.state.validationErrorText) {
             this.setState({validationErrorText: ''});
         }
         this.setState({password});
