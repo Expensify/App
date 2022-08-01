@@ -60,8 +60,10 @@ class IOUCurrencySelection extends Component {
      * @returns {Array}
      */
     getSections() {
+        if (this.state.searchValue.trim() && !this.state.currencyData.length) {
+            return [];
+        }
         const sections = [];
-
         sections.push({
             title: this.props.translate('iOUCurrencySelection.allCurrencies'),
             data: this.state.currencyData,
@@ -112,6 +114,7 @@ class IOUCurrencySelection extends Component {
     }
 
     render() {
+        const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -126,6 +129,7 @@ class IOUCurrencySelection extends Component {
                         onChangeText={this.changeSearchValue}
                         shouldDelayFocus
                         placeholderText={this.props.translate('common.search')}
+                        headerMessage={headerMessage}
                     />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
