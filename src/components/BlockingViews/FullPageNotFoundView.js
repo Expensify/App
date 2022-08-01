@@ -28,7 +28,7 @@ const defaultProps = {
 const FullPageNotFoundView = (props) => {
     if (props.shouldShow) {
         return (
-            <View style={[styles.flex1, styles.dFlex, styles.flexColumn]}>
+            <>
                 <HeaderWithCloseButton
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.dismissModal()}
@@ -41,7 +41,7 @@ const FullPageNotFoundView = (props) => {
                         subtitle={props.translate('notFound.pageNotFound')}
                     />
                 </View>
-            </View>
+            </>
 
         );
     }
