@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
-import CustomActions from './CustomActions';
+import DeprecatedCustomActions from './DeprecatedCustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
@@ -135,7 +135,7 @@ function navigate(route = ROUTES.HOME) {
     }
 
     if (isDrawerRoute(route)) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(route));
+        navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
         return;
     }
 
@@ -156,7 +156,7 @@ function dismissModal(shouldOpenDrawer = false) {
         ? shouldOpenDrawer
         : false;
 
-    CustomActions.navigateBackToRootDrawer();
+    DeprecatedCustomActions.navigateBackToRootDrawer();
     if (normalizedShouldOpenDrawer) {
         openDrawer();
     }
