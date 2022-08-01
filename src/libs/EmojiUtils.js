@@ -4,6 +4,7 @@ import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
+import emojisTrie from './EmojisTrie';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -199,10 +200,29 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     User.updateFrequentlyUsedEmojis(frequentEmojiList);
 }
 
+/**
+ * Replace any emoji name in a text with the emoji icon
+ * @param {String} text
+ * @returns {String}
+ */
+function replaceEmojis(text) {
+    let newText = text;
+    const emojiNames = text.match(/:[\w+-]+:/g);
+    if (!emojiNames || emojiNames.length === 0) { return text; }
+    for (let i = 0; i < emojiNames.length; i++) {
+        const checkEmoji = emojisTrie.isEmoji(emojiNames[i].slice(1, -1));
+        if (checkEmoji.found) {
+            newText = newText.replace(emojiNames[i], checkEmoji.code);
+        }
+    }
+    return newText;
+}
+
 export {
     isSingleEmoji,
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
+    replaceEmojis,
 };

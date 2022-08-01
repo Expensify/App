@@ -18,6 +18,7 @@ import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -97,13 +98,14 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} newDraft
      */
     updateDraft(newDraft) {
-        this.textInput.setNativeProps({text: newDraft});
-        this.setState({draft: newDraft});
+        const textWithEmojis = EmojiUtils.replaceEmojis(newDraft);
+        this.textInput.setNativeProps({text: textWithEmojis});
+        this.setState({draft: textWithEmojis});
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
         // unmount when user deletes content of textarea, we set previous message instead of empty string.
-        if (newDraft.trim().length > 0) {
-            this.debouncedSaveDraft(newDraft);
+        if (textWithEmojis.trim().length > 0) {
+            this.debouncedSaveDraft(textWithEmojis);
         } else {
             this.debouncedSaveDraft(this.props.action.message[0].html);
         }
