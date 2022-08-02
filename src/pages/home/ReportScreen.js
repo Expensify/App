@@ -22,6 +22,9 @@ import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonVie
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import {withNetwork} from '../../components/OnyxProvider';
+import compose from '../../libs/compose';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -76,6 +79,9 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     })).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -161,6 +167,10 @@ class ReportScreen extends React.Component {
         return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
     }
 
+    setChatFooterStyles(isOffline) {
+        return {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    }
+
     /**
      * Persists the currently viewed report id
      */
@@ -221,20 +231,12 @@ class ReportScreen extends React.Component {
                         />
                     )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                    <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                        {
-                            isArchivedRoom
-                                ? (
-                                    <ArchivedReportFooter
-                                        reportClosedAction={reportClosedAction}
-                                        report={this.props.report}
-                                    />
-                                ) : (
-                                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                        <ReportActionCompose
-                                            onSubmit={this.onSubmitComment}
-                                            reportID={reportID}
-                                            reportActions={this.props.reportActions}
+                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                            {
+                                isArchivedRoom
+                                    ? (
+                                        <ArchivedReportFooter
+                                            reportClosedAction={reportClosedAction}
                                             report={this.props.report}
                                             isComposerFullSize={this.props.isComposerFullSize}
                                         />
@@ -252,7 +254,7 @@ class ReportScreen extends React.Component {
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
-export default withOnyx({
+export default compose(withNetwork(), withOnyx({
     isSidebarLoaded: {
         key: ONYXKEYS.IS_SIDEBAR_LOADED,
     },
@@ -276,4 +278,7 @@ export default withOnyx({
         key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${getReportID(route)}`,
         initWithStoredValues: false,
     },
-})(ReportScreen);
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+}))(ReportScreen);
