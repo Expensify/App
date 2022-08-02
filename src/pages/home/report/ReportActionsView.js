@@ -65,9 +65,6 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
 
-    /** Are we waiting for more report data? */
-    isLoadingReportData: PropTypes.bool,
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -85,7 +82,6 @@ const defaultProps = {
     reportActions: {},
     session: {},
     isLoadingMoreReportActions: false,
-    isLoadingReportData: false,
 };
 
 class ReportActionsView extends React.Component {
@@ -157,10 +153,6 @@ class ReportActionsView extends React.Component {
         }
 
         if (nextProps.isLoadingMoreReportActions !== this.props.isLoadingMoreReportActions) {
-            return true;
-        }
-
-        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData) {
             return true;
         }
 
@@ -421,9 +413,6 @@ export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
         isLoadingMoreReportActions: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
             initWithStoredValues: false,
