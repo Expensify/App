@@ -1057,7 +1057,7 @@ function openReport(reportID) {
             optimisticData: [
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                    key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
                     value: true,
                 },
                 {
@@ -1071,12 +1071,12 @@ function openReport(reportID) {
             ],
             successData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
                 value: false,
             }],
             failureData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
                 value: false,
             }],
         });

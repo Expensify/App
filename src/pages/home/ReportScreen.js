@@ -66,8 +66,8 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** Flag to check if the initial report actions data are loading */
-    isLoadingInitialReportActions: PropTypes.bool,
+    /** Flag to check if the report actions data are loading */
+    isLoadingReportActions: PropTypes.bool,
 
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(PropTypes.shape({
@@ -92,7 +92,7 @@ const defaultProps = {
     },
     isComposerFullSize: false,
     betas: [],
-    isLoadingInitialReportActions: false,
+    isLoadingReportActions: false,
 };
 
 /**
@@ -136,9 +136,10 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
-        if (window.visualViewport) {
-            window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
+        if (!window.visualViewport) {
+            return;
         }
+        window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
     }
 
     /**
@@ -162,7 +163,8 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
+        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.isLoadingReportActions;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions;
     }
 
     /**
@@ -284,8 +286,8 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
-    isLoadingInitialReportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${getReportID(route)}`,
+    isLoadingReportActions: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${getReportID(route)}`,
         initWithStoredValues: false,
     },
     policies: {
