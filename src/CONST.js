@@ -208,6 +208,7 @@ const CONST = {
     CURRENCY: {
         USD: 'USD',
     },
+    EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     USE_EXPENSIFY_URL,
