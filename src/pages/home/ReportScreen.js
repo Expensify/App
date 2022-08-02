@@ -22,7 +22,7 @@ import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonVie
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
-import addResizeListener from '../../libs/VisualViewport';
+import addViewportResizeListener from '../../libs/VisualViewport';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -117,7 +117,7 @@ class ReportScreen extends React.Component {
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.viewportOffsetTop = this.updateViewportOffsetTop.bind(this);
-        this.removeResizeListener = () => {};
+        this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: 0,
@@ -126,7 +126,7 @@ class ReportScreen extends React.Component {
 
     componentDidMount() {
         this.storeCurrentlyViewedReport();
-        this.removeResizeListener = addResizeListener(this.viewportOffsetTop);
+        this.removeViewportResizeListener = addViewportResizeListener(this.viewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
@@ -138,7 +138,7 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
-        this.removeResizeListener();
+        this.removeViewportResizeListener();
     }
 
     /**

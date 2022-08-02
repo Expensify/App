@@ -6,8 +6,8 @@
  * @returns {Function}
  */
 // eslint-disable-next-line no-unused-vars
-function addResizeListener(onViewportResize) {
+function addViewportResizeListener(onViewportResize) {
     return () => {};
 }
 
-export default addResizeListener;
+export default addViewportResizeListener;

@@ -4,7 +4,7 @@
  * @param {Function} onViewportResize
  * @returns {Function}
  */
-function addResizeListener(onViewportResize) {
+function addViewportResizeListener(onViewportResize) {
     if (!window.visualViewport) {
         return () => {};
     }
@@ -13,4 +13,4 @@ function addResizeListener(onViewportResize) {
     return () => window.visualViewport.removeEventListener('resize', onViewportResize);
 }
 
-export default addResizeListener;
+export default addViewportResizeListener;
