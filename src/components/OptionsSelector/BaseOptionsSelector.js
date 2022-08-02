@@ -318,6 +318,7 @@ class BaseOptionsSelector extends Component {
 
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
+
 export default compose(
     withLocalize,
     withOnyx({
