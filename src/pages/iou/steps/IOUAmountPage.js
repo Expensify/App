@@ -61,8 +61,8 @@ class IOUAmountPage extends React.Component {
         this.state = {
             amount: props.selectedAmount,
             selection: {
-                start: 0,
-                end: 0,
+                start: props.selectedAmount.length,
+                end: props.selectedAmount.length,
             },
         };
     }
