@@ -60,6 +60,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** Are we waiting for more report data? */
+    isLoadingReportData: PropTypes.bool,
+
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
@@ -87,6 +90,7 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
+    isLoadingReportData: false,
     isComposerFullSize: false,
     betas: [],
 };
@@ -112,13 +116,11 @@ class ReportScreen extends React.Component {
         this.viewportOffsetTop = this.updateViewportOffsetTop.bind(this);
 
         this.state = {
-            isLoading: true,
             viewportOffsetTop: 0,
         };
     }
 
     componentDidMount() {
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', this.viewportOffsetTop);
@@ -130,12 +132,10 @@ class ReportScreen extends React.Component {
             return;
         }
 
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
-        clearTimeout(this.loadingTimerId);
         if (window.visualViewport) {
             window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
         }
@@ -162,16 +162,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !getReportID(this.props.route);
-    }
-
-    /**
-     * Configures a small loading transition and proceeds with rendering available data
-     */
-    prepareTransition() {
-        this.setState({isLoading: true});
-        clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
+        return propTypes.isLoadingReportData && _.isEmpty(propTypes.reportActions) || !getReportID(this.props.route);
     }
 
     /**
@@ -281,6 +272,9 @@ export default withOnyx({
     },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    isLoadingReportData: {
+        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     },
     isComposerFullSize: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
