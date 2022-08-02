@@ -124,7 +124,11 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
+        shouldShow: (type, reportAction, menuTarget) => {
+            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
+            const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
+            return type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
+        },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL()
                 .then((environmentURL) => {
@@ -142,7 +146,8 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.updateLastReadActionID(reportID, reportAction.sequenceNumber, true);
+            Report.markCommentAsUnread(reportID, reportAction.sequenceNumber);
+            Report.setNewMarkerPosition(reportID, reportAction.sequenceNumber);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
