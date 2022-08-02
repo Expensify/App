@@ -60,6 +60,7 @@ class ButtonWithMenu extends PureComponent {
                     <ButtonWithDropdown
                         buttonText={selectedItemText}
                         isLoading={this.props.isLoading}
+                        isDisabled={this.props.isDisabled}
                         onButtonPress={event => this.props.onPress(event, this.state.selectedItem.value)}
                         onDropdownPress={() => {
                             this.setMenuVisibility(true);

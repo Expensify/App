@@ -17,6 +17,8 @@ const propTypes = {
     /** Listen for window resize event on web and desktop */
     shouldListenForResize: PropTypes.bool,
 
+    isDisabled: PropTypes.bool,
+
     ...userWalletPropTypes,
 };
 
@@ -25,6 +27,7 @@ const defaultProps = {
     userWallet: {},
     popoverPlacement: 'top',
     shouldListenForResize: false,
+    isDisabled: false,
 };
 
 export {propTypes, defaultProps};
