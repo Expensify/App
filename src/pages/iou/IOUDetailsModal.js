@@ -22,6 +22,7 @@ import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     /** URL Route params */
