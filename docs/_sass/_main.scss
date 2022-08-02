@@ -345,9 +345,11 @@ textarea {
     font-weight: bold;
     cursor: pointer;
     $border-amount-darken: 15%;
+    color: $color-dark;
 
     &:hover {
         border-color: darken($color-gray2, $border-amount-darken);
+        color: $color-dark;
     }
 
     &.send-money {
