@@ -16,6 +16,9 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
+
+    /** Target node which is the target of ContentMenu */
+    anchor: PropTypes.node,
     ...genericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -23,6 +26,7 @@ const propTypes = {
 
 const defaultProps = {
     type: CONTEXT_MENU_TYPES.REPORT_ACTION,
+    anchor: null,
     ...GenericReportActionContextMenuDefaultProps,
 };
 class BaseReportActionContextMenu extends React.Component {
@@ -32,7 +36,7 @@ class BaseReportActionContextMenu extends React.Component {
     }
 
     render() {
-        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction);
+        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction, this.props.anchor);
 
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
