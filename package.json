@@ -16,7 +16,7 @@
     "start": "react-native start",
     "web": "scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
     "web-proxy": "node web/proxy.js",
-    "web-server": "webpack serve --open --config config/webpack/webpack.dev.js",
+    "web-server": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
     "build": "webpack --config config/webpack/webpack.common.js --env.envFile=.env.production",
     "build-staging": "webpack --config config/webpack/webpack.common.js --env.envFile=.env.staging",
     "desktop": "scripts/set-pusher-suffix.sh && node desktop/start.js",
@@ -180,10 +180,10 @@
     "semver": "^7.3.4",
     "style-loader": "^2.0.0",
     "wait-port": "^0.2.9",
-    "webpack": "^5.73.0",
+    "webpack": "^5.74.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^3.11.3",
+    "webpack-dev-server": "^4.9.3",
     "webpack-merge": "^5.8.0"
   },
   "jest": {
