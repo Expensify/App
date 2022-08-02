@@ -62,6 +62,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** Are we waiting for more report data? */
+    isLoadingReportData: PropTypes.bool,
+
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
@@ -94,6 +97,7 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
+    isLoadingReportData: false,
     isComposerFullSize: false,
     betas: [],
     isLoadingInitialReportActions: false,
@@ -122,7 +126,7 @@ class ReportScreen extends React.Component {
         this.removeViewportResizeListener = () => {};
 
         this.state = {
-            skeletonViewContainerHeight: 0,
+            viewportOffsetTop: 0,
         };
     }
 
@@ -135,12 +139,14 @@ class ReportScreen extends React.Component {
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
+
         this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
-        clearTimeout(this.loadingTimerId);
-        this.removeViewportResizeListener();
+        if (window.visualViewport) {
+            window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
+        }
     }
 
     /**
@@ -160,7 +166,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
+        return propTypes.isLoadingReportData && _.isEmpty(propTypes.reportActions) || !getReportID(this.props.route);
     }
 
     /**
@@ -259,30 +265,30 @@ ReportScreen.contextType = DrawerStatusContext;
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        isSidebarLoaded: {
-            key: ONYXKEYS.IS_SIDEBAR_LOADED,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
-        isComposerFullSize: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
-)(ReportScreen);
+export default withOnyx({
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    reportActions: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+        canEvict: false,
+    },
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    isLoadingReportData: {
+        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    },
+    isComposerFullSize: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+})(ReportScreen);
