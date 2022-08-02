@@ -17,6 +17,7 @@ const propTypes = {
     /** Listen for window resize event on web and desktop */
     shouldListenForResize: PropTypes.bool,
 
+    /** Wrapped components are disabled, not loading */
     isDisabled: PropTypes.bool,
 
     ...userWalletPropTypes,

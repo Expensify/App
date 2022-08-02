@@ -1,12 +1,12 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, Dimensions} from 'react-native';
+import lodashGet from 'lodash/get';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
 import getClickedElementLocation from '../../libs/getClickedElementLocation';
-import * as PaymentUtils from '../../libs/PaymentUtils';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
@@ -31,7 +31,6 @@ class KYCWall extends React.Component {
     }
 
     componentDidMount() {
-        PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
@@ -97,7 +96,7 @@ class KYCWall extends React.Component {
         });
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
+        if (!lodashGet(this.props.userWallet, 'hasPaymentMethod', false)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             const clickedElementLocation = getClickedElementLocation(event.nativeEvent);
             const position = this.getAnchorPosition(clickedElementLocation);
@@ -140,7 +139,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.isLoadingPaymentMethods
+                {this.props.isLoadingPaymentMethods && !this.props.isDisabled
                     ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
                     : this.props.children(this.continue)}
             </>
@@ -154,12 +153,6 @@ KYCWall.defaultProps = defaultProps;
 export default withOnyx({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
-    },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
     isLoadingPaymentMethods: {
         key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
