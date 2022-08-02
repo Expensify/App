@@ -670,7 +670,8 @@ const styles = {
     },
 
     offlineIndicatorMobile: {
-        marginLeft: 25,
+        paddingLeft: 20,
+        paddingBottom: 12,
     },
 
     // Actions
@@ -1367,7 +1368,6 @@ const styles = {
     },
 
     chatFooter: {
-        minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,

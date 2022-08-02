@@ -477,6 +477,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
     COMPOSER_MAX_HEIGHT: 125,
+    CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {
@@ -745,7 +746,7 @@ const CONST = {
     },
 
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
-    MAX_COMMENT_LENGTH: 60000,
+    MAX_COMMENT_LENGTH: 1,
 
     ONYX: {
         METHOD: {

@@ -19,11 +19,15 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Additional styles to apply to the container */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     userTypingStatuses: {},
+    containerStyles: {},
 };
 
 class ReportTypingIndicator extends React.Component {
@@ -67,7 +71,7 @@ class ReportTypingIndicator extends React.Component {
                         leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
                         trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={styles.chatItemComposeSecondaryRow}
+                        wrapperStyle={[...styles.chatItemComposeSecondaryRow, ...this.props.containerStyles]}
                         leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
                     />
                 );
@@ -78,6 +82,7 @@ class ReportTypingIndicator extends React.Component {
                         style={[
                             styles.chatItemComposeSecondaryRowSubText,
                             styles.chatItemComposeSecondaryRowOffset,
+                            ...this.props.containerStyles,
                         ]}
                         numberOfLines={1}
                     >

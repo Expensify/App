@@ -22,6 +22,9 @@ import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonVie
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import {withNetwork} from '../../components/OnyxProvider';
+import compose from '../../libs/compose';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -76,6 +79,9 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     })).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -165,6 +171,10 @@ class ReportScreen extends React.Component {
         return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
     }
 
+    setChatFooterStyles(isOffline) {
+        return {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    }
+
     /**
      * Persists the currently viewed report id
      */
@@ -231,7 +241,7 @@ class ReportScreen extends React.Component {
                             />
                         )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                        <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             {
                                 isArchivedRoom
                                     ? (
@@ -262,7 +272,7 @@ class ReportScreen extends React.Component {
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
-export default withOnyx({
+export default compose(withNetwork(), withOnyx({
     isSidebarLoaded: {
         key: ONYXKEYS.IS_SIDEBAR_LOADED,
     },
@@ -289,4 +299,4 @@ export default withOnyx({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },
-})(ReportScreen);
+}))(ReportScreen);
