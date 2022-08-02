@@ -492,11 +492,9 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
+        weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
         validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
-        unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
-        newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },
     detailsPage: {
         localTime: 'Local time',
