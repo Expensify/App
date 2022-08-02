@@ -109,6 +109,7 @@ class IdologyQuestions extends React.Component {
                         idNumber: this.props.idNumber,
                     },
                 });
+                return {answers, isLoading: true};
             }
 
             // Else, show next question
