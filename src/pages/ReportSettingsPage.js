@@ -174,7 +174,7 @@ class ReportSettingsPage extends Component {
                     title={this.props.translate('common.settings')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
