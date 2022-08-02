@@ -107,19 +107,6 @@ function signOutAndRedirectToSignIn() {
 }
 
 /**
- * Reopen the account and send the user a link to set password
- *
- * @param {String} [login]
- */
-function reopenAccount(login = credentials.login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    DeprecatedAPI.User_ReopenAccount({email: login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
-}
-
-/**
  * Resend the validation link to the user that is validating their account
  *
  * @param {String} [login]
@@ -319,7 +306,6 @@ function resetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    validateCodeExpired: false,
                 },
             },
         ],
@@ -329,7 +315,6 @@ function resetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    validateCodeExpired: false,
                 },
             },
         ],
@@ -346,7 +331,7 @@ function resetPassword() {
  * @param {Number} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validateCodeExpired: false});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
     DeprecatedAPI.SetPassword({
         password,
         validateCode,
@@ -416,7 +401,6 @@ function changePasswordAndSignIn(authToken, password) {
         password,
     })
         .then((responsePassword) => {
-            Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: null});
             if (responsePassword.jsonCode === 200) {
                 signIn(password);
                 return;
@@ -429,7 +413,7 @@ function changePasswordAndSignIn(authToken, password) {
             }
             if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 // authToken has expired, and we have the account email, so we request a new magic link.
-                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: null});
                 resetPassword();
                 Navigation.navigate(ROUTES.HOME);
                 return;
@@ -445,7 +429,6 @@ function changePasswordAndSignIn(authToken, password) {
  * @param {String} authToken
  */
 function validateEmail(accountID, validateCode) {
-    Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: true});
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
     DeprecatedAPI.ValidateEmail({
         accountID,
@@ -453,19 +436,16 @@ function validateEmail(accountID, validateCode) {
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: responseValidate.authToken});
-                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email});
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email, authToken: responseValidate.authToken});
                 return;
             }
             if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
             }
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
             }
-        })
-        .finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false}));
+        });
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -540,7 +520,6 @@ export {
     signInWithShortLivedToken,
     signOut,
     signOutAndRedirectToSignIn,
-    reopenAccount,
     resendValidationLink,
     resetPassword,
     clearSignInData,

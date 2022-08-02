@@ -21,7 +21,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
         jsonCode: 200,
-        accountExists: true,
         requiresTwoFactorAuth: false,
         normalizedLogin: login,
     }));
