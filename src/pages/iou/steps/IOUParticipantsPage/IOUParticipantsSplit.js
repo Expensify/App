@@ -226,7 +226,6 @@ class IOUParticipantsSplit extends Component {
                         headerMessage={headerMessage}
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
-                        shouldDelayFocus
                         shouldShowConfirmButton
                         confirmButtonText={this.props.translate('common.next')}
                         onConfirmSelection={this.finalizeParticipants}
