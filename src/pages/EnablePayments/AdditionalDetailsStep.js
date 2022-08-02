@@ -274,7 +274,7 @@ class AdditionalDetailsStep extends React.Component {
             || !_.isEmpty(errors);
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
-        const errorMessage = _.isEmpty(errors) ? '' : _.values(errors)[0];
+        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
 
         return (
             <ScreenWrapper>
