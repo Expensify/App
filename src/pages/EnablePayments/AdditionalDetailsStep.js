@@ -27,6 +27,7 @@ import FormHelper from '../../libs/FormHelper';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -389,6 +390,7 @@ class AdditionalDetailsStep extends React.Component {
                                 isLoading={this.props.walletAdditionalDetails.isLoading}
                                 buttonText={this.props.translate('common.saveAndContinue')}
                             />
+                            <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                         </FormScrollView>
                     </View>
                     <FormScrollView ref={el => this.form = el}>
