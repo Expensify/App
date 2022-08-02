@@ -3,9 +3,15 @@ import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
-function getShouldShowBankOrNonAccountPage(reimbursementAccount, policyID) {
+/**
+ * Navigate Bank Account Route
+ *
+ * @param {String} reimbursementAccount
+ * @param {String} policyID
+ */
+function navigateToBankAccountRoute(reimbursementAccount, policyID) {
     const state = lodashGet(reimbursementAccount, 'achData.state');
-    const isShowPage = lodashGet(reimbursementAccount, 'achData.bankAccountID') && state !== +BankAccount.STATE.OPEN;
+    const isShowPage = lodashGet(reimbursementAccount, 'achData.bankAccountID') && state !== BankAccount.STATE.OPEN;
     if (isShowPage) {
         Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID));
     } else {
@@ -13,4 +19,4 @@ function getShouldShowBankOrNonAccountPage(reimbursementAccount, policyID) {
     }
 }
 
-export {getShouldShowBankOrNonAccountPage};
+export default navigateToBankAccountRoute;

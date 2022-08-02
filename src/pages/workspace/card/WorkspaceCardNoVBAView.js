@@ -3,14 +3,13 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import Section from '../../../components/Section';
 import Button from '../../../components/Button';
-import * as WorkSpaceUtils from '../WorkSpaceUtils';
+import navigateToBankAccountRoute from '../WorkSpaceUtils';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -38,9 +37,7 @@ const WorkspaceCardNoVBAView = props => (
         />
         <Button
             text={props.translate('workspace.common.bankAccount')}
-            onPress={() => {
-                WorkSpaceUtils.getShouldShowBankOrNonAccountPage(props.reimbursementAccount, props.policyID);
-            }}
+            onPress={() => navigateToBankAccountRoute(props.reimbursementAccount, props.policyID)}
             icon={Expensicons.Bank}
             style={[styles.mt6]}
             iconStyles={[styles.mr5]}

@@ -8,11 +8,10 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
-import ROUTES from '../../../ROUTES';
 import Button from '../../../components/Button';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as WorkSpaceUtils from '../WorkSpaceUtils';
+import navigateToBankAccountRoute from '../WorkSpaceUtils';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -32,9 +31,7 @@ const WorkspaceTravelNoVBAView = props => (
             </View>
             <Button
                 text={props.translate('workspace.common.bankAccount')}
-                onPress={() => {
-                    WorkSpaceUtils.getShouldShowBankOrNonAccountPage(props.reimbursementAccount, props.policyID);
-                }}
+                onPress={() => navigateToBankAccountRoute(props.reimbursementAccount, props.policyID)}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
                 iconStyles={[styles.mr5]}

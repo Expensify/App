@@ -45,13 +45,11 @@ const defaultProps = {
 class WorkspaceBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
-        this.onScreenFocus = this.onScreenFocus.bind(this);
         this.getShouldShowPage = this.getShouldShowPage.bind(this);
         this.navigateToBankAccountRoute = this.navigateToBankAccountRoute.bind(this);
     }
 
     componentDidMount() {
-        this.unsubscribe = this.props.navigation.addListener('focus', this.onScreenFocus);
 
         if (!this.getShouldShowPage()) {
             this.navigateToBankAccountRoute();
@@ -64,17 +62,6 @@ class WorkspaceBankAccountPage extends React.Component {
         }
 
         this.unsubscribe();
-    }
-
-    /**
-     * When we are returning to this screen we want to check if we should go back or show the alternate view with "Continue with setup" button.
-     */
-    onScreenFocus() {
-        if (this.getShouldShowPage()) {
-            return;
-        }
-
-        this.props.navigation.goBack();
     }
 
     /**
