@@ -116,7 +116,6 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
-        this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
     }
 
     componentDidMount() {
@@ -140,10 +139,6 @@ class ReportActionsView extends React.Component {
             }
             ReportScrollManager.scrollToBottom();
         });
-
-        if (!this.props.isLoadingReportData) {
-            this.updateNewMarkerAndMarkReadOnce();
-        }
 
         Report.openReport(this.props.reportID);
     }
@@ -202,12 +197,6 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             Report.openReport(this.props.reportID);
-        }
-
-        // Update the last read action for the report currently in view when report data finishes loading.
-        // This report should now be up-to-date and since it is in view we mark it as read.
-        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
-            this.updateNewMarkerAndMarkReadOnce();
         }
 
         // The last sequenceNumber of the same report has changed.
@@ -341,18 +330,6 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerPosition(messageCounterCount);
             return {messageCounterCount};
         });
-    }
-
-    /**
-     * Update NEW marker and mark report as read
-     */
-    updateNewMarkerAndMarkRead() {
-        this.updateNewMarkerPosition(this.props.report.unreadActionCount);
-
-        // Only mark as read if the report is fully visible
-        if (this.getIsReportFullyVisible()) {
-            Report.openReport(this.props.reportID);
-        }
     }
 
     /**
