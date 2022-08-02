@@ -150,12 +150,8 @@ class ReportScreen extends React.Component {
         Report.addComment(getReportID(this.props.route), text);
     }
 
-    /**
-     * @param {SyntheticEvent} e
-     */
-    updateViewportOffsetTop(e) {
-        const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-        this.setState({viewportOffsetTop});
+    setChatFooterStyles(isOffline) {
+        return {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     }
 
     /**
@@ -165,10 +161,6 @@ class ReportScreen extends React.Component {
      */
     shouldShowLoader() {
         return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
-    }
-
-    setChatFooterStyles(isOffline) {
-        return {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     }
 
     /**
@@ -185,6 +177,15 @@ class ReportScreen extends React.Component {
         toggleReportActionComposeView(true);
         Report.updateCurrentlyViewedReportID(reportID);
     }
+
+    /**
+     * @param {SyntheticEvent} e
+     */
+    updateViewportOffsetTop(e) {
+        const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
+        this.setState({viewportOffsetTop});
+    }
+
 
     render() {
         if (!this.props.isSidebarLoaded) {
