@@ -66,7 +66,7 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool.isRequired,
 
     /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool,
+    isLoadingMoreReportActions: PropTypes.bool,
 
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
@@ -87,7 +87,7 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
-    isLoadingReportActions: false,
+    isLoadingMoreReportActions: false,
     isLoadingReportData: false,
 };
 
@@ -159,7 +159,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
+        if (nextProps.isLoadingMoreReportActions !== this.props.isLoadingMoreReportActions) {
             return true;
         }
 
@@ -266,7 +266,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.isLoadingReportActions) {
+        if (this.props.isLoadingMoreReportActions) {
             return;
         }
 
@@ -401,7 +401,7 @@ class ReportActionsView extends React.Component {
                             onLayout={this.recordTimeToMeasureItemLayout}
                             sortedReportActions={this.sortedReportActions}
                             mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                            isLoadingReportActions={this.props.isLoadingReportActions}
+                            isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
                         />
                         <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
@@ -427,8 +427,8 @@ export default compose(
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
-        isLoadingReportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+        isLoadingMoreReportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
             initWithStoredValues: false,
         },
     }),
