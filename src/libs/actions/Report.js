@@ -131,7 +131,7 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
 
 /**
  * Only store the minimal amount of data in Onyx that needs to be stored
- * because space is limited
+ * because space is limited.
  *
  * @param {Object} report
  * @param {Number} report.reportID
@@ -188,7 +188,6 @@ function getSimplifiedReportObject(report) {
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
-        hasOutstandingIOU: false,
         notificationPreference,
         stateNum: report.state,
         statusNum: report.status,
@@ -441,43 +440,6 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
 }
 
 /**
- * If an iouReport is open (has an IOU, but is not yet paid) then we sync the reportIDs of both chatReport and
- * iouReport in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU components:
- * - chatReport: {id: 123, iouReportID: 987, ...}
- * - iouReport: {id: 987, chatReportID: 123, ...}
- *
- * The reports must remain in sync when the iouReport is modified. This function ensures that we sync reportIds after
- * fetching the iouReport and therefore should only be called if we are certain that the fetched iouReport is currently
- * open - else we would overwrite the existing open iouReportID with a closed iouReportID.
- *
- * Examples of correct usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
- * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a closed
- * IOU). Send Money is an incorrect use case, because these IOUReports are never associated with the chatReport and this would
- * prevent outstanding IOUs from showing.
- *
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID, used to sync the reports
- */
-function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
-    fetchIOUReportByID(iouReportID, chatReportID)
-        .then((iouReportObject) => {
-            // Now sync the chatReport data to ensure it has a reference to the updated iouReportID
-            const chatReportObject = {
-                hasOutstandingIOU: iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING
-                    && iouReportObject.total !== 0,
-                iouReportID: iouReportObject.reportID,
-            };
-
-            if (!chatReportObject.hasOutstandingIOU) {
-                chatReportObject.iouReportID = null;
-            }
-
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-            Onyx.merge(reportKey, chatReportObject);
-        });
-}
-
-/**
  * @param {Number} reportID
  * @param {Number} sequenceNumber
  */
@@ -708,6 +670,17 @@ function fetchActions(reportID) {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
         });
+}
+
+/**
+ * Get the initial actions of a report
+ *
+ * @param {Number} reportID
+ */
+function fetchInitialActions(reportID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, true);
+    fetchActions(reportID)
+        .finally(() => Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, false));
 }
 
 /**
@@ -1111,17 +1084,17 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
                 value: true,
             }],
             successData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
                 value: false,
             }],
             failureData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${reportID}`,
+                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
                 value: false,
             }],
         });
@@ -1382,9 +1355,8 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     }
     simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
     simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
-        === (CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0);
+        === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
     simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
-
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIouReport);
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
@@ -1525,18 +1497,6 @@ function viewNewReportAction(reportID, action) {
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
-    // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.IOUReportID) {
-        const iouReportID = action.originalMessage.IOUReportID;
-
-        // If the IOUDetails object exists we are in the Send Money flow, and we should not fetch and update the chatReport
-        // as this would overwrite any existing IOUs. For all other cases we must update the chatReport with the iouReportID as
-        // if we don't, new IOUs would not be displayed and paid IOUs would still show as unpaid.
-        if (action.originalMessage.IOUDetails === undefined) {
-            fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
-        }
-    }
-
     const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
@@ -1625,11 +1585,9 @@ Onyx.connect({
 
 export {
     fetchAllReports,
-    fetchActions,
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
-    fetchIOUReportByIDAndUpdateChatReport,
     addComment,
     addAttachment,
     updateNotificationPreference,
@@ -1650,6 +1608,7 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
+    fetchInitialActions,
     createPolicyRoom,
     renameReport,
     setIsComposerFullSize,
