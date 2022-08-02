@@ -57,15 +57,17 @@ class SignInPage extends Component {
         // - A login has been entered
         // - AND an account exists and is validated for this login
         // - AND a password hasn't been entered yet
+        // - AND haven't forgotten password
         const showPasswordForm = this.props.credentials.login
             && this.props.account.validated
-            && !this.props.credentials.password;
+            && !this.props.credentials.password
+            && !this.props.account.forgotPassword;
 
         // Show the resend validation link form if
         // - A login has been entered
-        // - AND a GitHub username has been entered OR they already have access to this app
-        // - AND an account did not exist or is not validated for that login
-        const shouldShowResendValidationLinkForm = this.props.credentials.login && !this.props.account.validated;
+        // - AND is not validated or password is forgotten
+        const shouldShowResendValidationLinkForm = this.props.credentials.login
+            && (!this.props.account.validated || this.props.account.forgotPassword);
 
         const welcomeText = shouldShowResendValidationLinkForm
             ? ''
