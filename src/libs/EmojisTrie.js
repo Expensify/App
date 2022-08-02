@@ -1,48 +1,5 @@
-/* eslint-disable max-classes-per-file */
 import emojis from '../../assets/emojis';
-
-/** Class representing a Trie node. */
-class TrieNode {
-    /**
-     * Reset all attributes to default values.
-     */
-    constructor() {
-        this.keys = new Map();
-        this.end = false;
-        this.code = '';
-    }
-
-    /**
-     * Make the current node an end node.
-    */
-    setEnd() {
-        this.end = true;
-    }
-
-    /**
-    * Check if the current node is an end node.
-    * @returns {boolean}
-    */
-    isEnd() {
-        return this.end;
-    }
-
-    /**
-    * Set the node code, code represent an emoji
-    * @param {string} code
-    */
-    setCode(code) {
-        this.code = code;
-    }
-
-    /**
-    * Get the node code, code represent an emoji
-    * @return {string}
-    */
-    getCode() {
-        return this.code;
-    }
-}
+import TrieNode from './EmojiTrieNode';
 
 /** Class representing a Trie. */
 class Trie {
@@ -52,8 +9,8 @@ class Trie {
 
     /**
     * Add an emoji into the Trie
-    * @param {string} input
-    * @param {string} code
+    * @param {String} input
+    * @param {String} code
     * @param {TrieNode} node
     * @return {Object}
     */
@@ -71,7 +28,7 @@ class Trie {
 
     /**
     * Check if the emoji is exist in the Trie.
-    * @param {string} emoji
+    * @param {String} emoji
     * @return {Object}
     */
     isEmoji(emoji) {

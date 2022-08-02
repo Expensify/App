@@ -85,7 +85,6 @@ class ReportActionItemMessageEdit extends React.Component {
 
     /**
      * Update Selection on change cursor position.
-     *
      * @param {Event} e
      */
     onSelectionChange(e) {
@@ -94,7 +93,6 @@ class ReportActionItemMessageEdit extends React.Component {
 
     /**
      * Update the value of the draft in Onyx
-     *
      * @param {String} newDraft
      */
     updateDraft(newDraft) {
@@ -173,7 +171,6 @@ class ReportActionItemMessageEdit extends React.Component {
 
     /**
      * Key event handlers that short cut to saving/canceling.
-     *
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
