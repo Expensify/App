@@ -227,7 +227,6 @@ class NewChatPage extends Component {
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
-                                    shouldDelayFocus
                                     canSelectMultipleOptions={this.props.isGroupChat}
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}

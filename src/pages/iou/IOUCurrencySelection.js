@@ -133,19 +133,20 @@ class IOUCurrencySelection extends Component {
         const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                    onCloseButtonPress={Navigation.goBack}
-                />
-                <OptionsSelector
-                    sections={this.getSections()}
-                    onSelectRow={this.confirmCurrencySelection}
-                    value={this.state.searchValue}
-                    onChangeText={this.changeSearchValue}
-                    shouldDelayFocus
-                    placeholderText={this.props.translate('common.search')}
-                    headerMessage={headerMessage}
-                />
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                        onCloseButtonPress={Navigation.goBack}
+                    />
+                    <OptionsSelector
+                        sections={this.getSections()}
+                        onSelectRow={this.confirmCurrencySelection}
+                        value={this.state.searchValue}
+                        onChangeText={this.changeSearchValue}
+                        placeholderText={this.props.translate('common.search')}
+                        headerMessage={headerMessage}
+                    />
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
