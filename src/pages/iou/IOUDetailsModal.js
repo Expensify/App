@@ -151,6 +151,7 @@ class IOUDetailsModal extends Component {
                         ))}
                     </View>
                 )}
+                <OfflineIndicator containerStyles={[styles.ml5, styles.mb2]} />
             </ScreenWrapper>
         );
     }
