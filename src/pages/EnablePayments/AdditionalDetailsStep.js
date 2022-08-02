@@ -54,7 +54,7 @@ const propTypes = {
         /** ExpectID ID number related to those questions */
         idNumber: PropTypes.string,
 
-        /** If we should ask for the full SSN (when LexisNexis failed retrieving the first 5 from the last 4) */
+        /** Error code to determine additional behavior */
         errorCode: PropTypes.string,
     }),
 
@@ -386,7 +386,7 @@ class AdditionalDetailsStep extends React.Component {
                                 onFixTheErrorsLinkPressed={() => {
                                     this.form.scrollTo({y: 0, animated: true});
                                 }}
-                                message={this.props.walletAdditionalDetails.error}
+                                message={errorMessage}
                                 isLoading={this.props.walletAdditionalDetails.isLoading}
                                 buttonText={this.props.translate('common.saveAndContinue')}
                             />

@@ -539,6 +539,7 @@ const CONST = {
             },
         },
         ERROR: {
+            // If these get updated, we need to update the codes on the Web side too
             SSN: 'ssnError',
             KBA: 'kbaNeeded',
             KYC: 'kycFailed',
