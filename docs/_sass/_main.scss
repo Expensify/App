@@ -71,7 +71,7 @@ hr {
 }
 
 strong {
-    font-family: "GTAmericaExp-Bold", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-weight: bold;
 }
 
 em {
@@ -84,7 +84,6 @@ a {
 
     &:hover {
         color: $color-blueHover;
-        text-decoration: underline;
     }
 }
 
@@ -95,9 +94,15 @@ h4,
 h5,
 h6 {
     color: $color-dark;
-    font-family: "GTAmericaExp-Regular";
     font-weight: bold;
     padding-bottom: 12px;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
     margin-top: 20px;
 }
 
@@ -232,15 +237,12 @@ textarea {
         display: grid;
         grid-template-columns: 40px auto;
         cursor: pointer;
+    }
 
-        &.selected {
-            cursor: auto;
-
-            span {
-                font-weight: bold;
-                color: $color-dark;
-            }
-        }
+    .selected {
+        cursor: auto;
+        font-weight: bold;
+        color: $color-dark;
     }
 
     .hide {
@@ -295,7 +297,6 @@ textarea {
 
     &:hover {
         color: $color-blueHover;
-        text-decoration: underline;
     }
 }
 
@@ -352,15 +353,28 @@ textarea {
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
+    $border-amount-darken: 15%;
+
+    &:hover {
+        border-color: darken($color-gray2, $border-amount-darken);
+    }
 
     &.send-money {
         border-color: $color-blue;
         border-width: 1.5px;
+
+        &:hover {
+            border-color: darken($color-blue, $border-amount-darken);
+        }
     }
 
     &.request-money {
         border-color: $color-green;
         border-width: 1.5px;
+
+        &:hover {
+            border-color: darken($color-green, $border-amount-darken);
+        }
     }
 
     .left-icon {
@@ -404,14 +418,18 @@ textarea {
 
 .homepage {
     h1 {
-        text-align: center;
         padding-bottom: 20px;
+
+        @media screen and (max-width: 800px) {
+            margin-top: 0;
+            padding-top: 8px;
+        }
     }
     h2  {
         padding-bottom: 24px;
     }
     p {
-        margin-bottom: 40px;
+        margin-bottom: 20px;
     }
     .cards-group {
         padding-bottom: 32px;
