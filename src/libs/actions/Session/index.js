@@ -112,10 +112,10 @@ function signOutAndRedirectToSignIn() {
  * @param {String} [login]
  */
 function resendValidationLink(login = credentials.login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
     DeprecatedAPI.ResendValidateCode({email: login})
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 
@@ -219,7 +219,7 @@ function createTemporaryLogin(authToken, email) {
             return createLoginResponse;
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 
@@ -232,7 +232,7 @@ function createTemporaryLogin(authToken, email) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     Authentication.Authenticate({
         useExpensifyLogin: true,
@@ -247,10 +247,10 @@ function signIn(password, twoFactorAuthCode) {
             if (response.jsonCode !== 200) {
                 const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
                 if (errorMessage === 'passwordForm.error.twoFactorAuthenticationEnabled') {
-                    Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: false});
                     return;
                 }
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(errorMessage), loading: false});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(errorMessage), isLoading: false});
                 return;
             }
 
@@ -267,7 +267,7 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} exitTo
  */
 function signInWithShortLivedToken(email, shortLivedToken) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     createTemporaryLogin(shortLivedToken, email)
         .then((response) => {
@@ -278,7 +278,7 @@ function signInWithShortLivedToken(email, shortLivedToken) {
             User.getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
         }).finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 
@@ -331,7 +331,7 @@ function resetPassword() {
  * @param {Number} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
     DeprecatedAPI.SetPassword({
         password,
         validateCode,
@@ -347,7 +347,7 @@ function setPassword(password, validateCode, accountID) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 
