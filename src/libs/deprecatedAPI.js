@@ -332,17 +332,6 @@ function SetPassword(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
- * @returns {Promise}
- */
-function User_ReopenAccount(parameters) {
-    const commandName = 'User_ReopenAccount';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -727,7 +716,6 @@ export {
     UpdatePolicy,
     User_SignUp,
     User_IsUsingExpensifyCard,
-    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     User_FixAccount,
