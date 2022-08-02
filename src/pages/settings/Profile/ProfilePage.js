@@ -66,10 +66,10 @@ class ProfilePage extends Component {
         super(props);
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-        this.logins = this.getLogins(props.loginList);
         this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))};
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
+            logins: this.getLogins(props.loginList),
             selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
@@ -83,11 +83,19 @@ class ProfilePage extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        let stateToUpdate = {};
+
         // Recalculate logins if loginList has changed
-        if (this.props.loginList === prevProps.loginList) {
+        if (this.props.loginList !== prevProps.loginList) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
+        }
+
+        if (_.isEmpty(stateToUpdate)) {
             return;
         }
-        this.logins = this.getLogins(this.props.loginList);
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState(stateToUpdate);
     }
 
     /**
@@ -279,14 +287,14 @@ class ProfilePage extends Component {
                         <LoginField
                             label={this.props.translate('profilePage.emailAddress')}
                             type="email"
-                            login={this.logins.email}
-                            defaultValue={this.logins.email}
+                            login={this.state.logins.email}
+                            defaultValue={this.state.logins.email}
                         />
                         <LoginField
                             label={this.props.translate('common.phoneNumber')}
                             type="phone"
-                            login={this.logins.phone}
-                            defaultValue={this.logins.phone}
+                            login={this.state.logins.phone}
+                            defaultValue={this.state.logins.phone}
                         />
                         <View style={styles.mb3}>
                             <Picker
