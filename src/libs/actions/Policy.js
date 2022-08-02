@@ -540,7 +540,34 @@ function subscribeToPolicyEvents() {
 }
 
 /**
- * Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
+ * Removes an error after trying to delete a member
+ *
+ * @param {String} policyID
+ * @param {String} memberEmail
+ */
+function clearDeleteMemberError(policyID, memberEmail) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
+        [memberEmail]: {
+            pendingAction: null,
+            errors: null,
+        },
+    });
+}
+
+/**
+ * Removes an error after trying to add a member
+ *
+ * @param {String} policyID
+ * @param {String} memberEmail
+ */
+function clearAddMemberError(policyID, memberEmail) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
+        [memberEmail]: null,
+    });
+}
+
+/**
+* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
  * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
  * @param {Object} policyMemberList
  * @returns {Boolean}
@@ -567,5 +594,7 @@ export {
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
+    clearDeleteMemberError,
+    clearAddMemberError,
     hasPolicyMemberError,
 };

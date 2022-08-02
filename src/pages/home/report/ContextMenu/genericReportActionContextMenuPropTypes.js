@@ -15,7 +15,7 @@ const propTypes = {
     /** Controls the visibility of this component. */
     isVisible: PropTypes.bool,
 
-    /** The copy selection of text. */
+    /** The copy selection. */
     selection: PropTypes.string,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
