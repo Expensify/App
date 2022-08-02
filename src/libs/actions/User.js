@@ -12,10 +12,8 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
-import redirectToSignIn from './SignInRedirect';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import * as CloseAccountActions from './CloseAccount';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
@@ -50,21 +48,21 @@ function updatePassword(oldPassword, password) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
             },
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {loading: false},
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {loading: false},
             },
@@ -78,27 +76,23 @@ function updatePassword(oldPassword, password) {
  * @param {String} message optional reason for closing account
  */
 function closeAccount(message) {
-    DeprecatedAPI.User_Delete({message}).then((response) => {
-        console.debug('User_Delete: ', JSON.stringify(response));
-
-        if (response.jsonCode === 200) {
-            Growl.show(Localize.translateLocal('closeAccountPage.closeAccountSuccess'), CONST.GROWL.SUCCESS);
-            redirectToSignIn();
-            return;
-        }
-
-        // Inform user that they are currently unable to close their account
-        CloseAccountActions.showCloseAccountModal();
-    });
-}
-
-function getBetas() {
-    DeprecatedAPI.User_GetBetas().then((response) => {
-        if (response.jsonCode !== 200) {
-            return;
-        }
-
-        Onyx.set(ONYXKEYS.BETAS, response.betas);
+    // Note: successData does not need to set isLoading to false because if the CloseAccount
+    // command succeeds, a Pusher response will clear all Onyx data.
+    API.write('CloseAccount', {message}, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.CLOSE_ACCOUNT,
+                value: {isLoading: true},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.CLOSE_ACCOUNT,
+                value: {isLoading: false},
+            },
+        ],
     });
 }
 
@@ -160,14 +154,14 @@ function updateNewsletterSubscription(isSubscribed) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: isSubscribed},
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: !isSubscribed},
             },
@@ -251,19 +245,19 @@ function validateLogin(accountID, validateCode) {
  * Checks the blockedFromConcierge object to see if it has an expiresAt key,
  * and if so whether the expiresAt date of a user's ban is before right now
  *
- * @param {Object} blockedFromConcierge
+ * @param {Object} blockedFromConciergeNVP
  * @returns {Boolean}
  */
-function isBlockedFromConcierge(blockedFromConcierge) {
-    if (_.isEmpty(blockedFromConcierge)) {
+function isBlockedFromConcierge(blockedFromConciergeNVP) {
+    if (_.isEmpty(blockedFromConciergeNVP)) {
         return false;
     }
 
-    if (!blockedFromConcierge.expiresAt) {
+    if (!blockedFromConciergeNVP.expiresAt) {
         return false;
     }
 
-    return moment().isBefore(moment(blockedFromConcierge.expiresAt), 'day');
+    return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
 }
 
 /**
@@ -482,7 +476,6 @@ function generateStatementPDF(period) {
 export {
     updatePassword,
     closeAccount,
-    getBetas,
     getUserDetails,
     resendValidateCode,
     updateNewsletterSubscription,

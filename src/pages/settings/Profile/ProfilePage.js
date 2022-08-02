@@ -110,7 +110,7 @@ class ProfilePage extends Component {
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
             // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== this.props.currentUserPersonalDetails.login) && !_.isEmpty(logins[type])
+            if ((login !== lodashGet(this.props.currentUserPersonalDetails, 'login')) && !_.isEmpty(logins[type])
                 && (logins[type].validatedDate || !currentLogin.validatedDate)) {
                 return logins;
             }
@@ -164,7 +164,7 @@ class ProfilePage extends Component {
                 automatic: values.isAutomaticTimezone,
                 selected: values.timezone,
             },
-        }, true);
+        );
     }
 
     /**
