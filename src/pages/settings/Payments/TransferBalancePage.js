@@ -11,6 +11,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {withNetwork} from '../../../components/OnyxProvider';
 import compose from '../../../libs/compose';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Icon from '../../../components/Icon';
@@ -207,72 +208,54 @@ class TransferBalancePage extends React.Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.transferBalance')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
-                    <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
-                </View>
-                <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.pv5}>
-                    <View style={styles.ph5}>
-                        {_.map(this.paymentTypes, paymentType => (
-                            <MenuItem
-                                key={paymentType.key}
-                                title={paymentType.title}
-                                description={paymentType.description}
-                                iconWidth={variables.iconSizeXLarge}
-                                iconHeight={variables.iconSizeXLarge}
-                                icon={paymentType.icon}
-                                success={selectedPaymentType === paymentType.key}
-                                wrapperStyle={{
-                                    ...styles.mt3,
-                                    ...styles.pv4,
-                                    ...styles.transferBalancePayment,
-                                    ...(selectedPaymentType === paymentType.key
-                                        && styles.transferBalanceSelectedPayment),
-                                }}
-                                onPress={() => this.navigateToChooseTransferAccount(paymentType.type)}
-                            />
-                        ))}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.transferBalance')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    />
+                    <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
+                        <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
                     </View>
-                    <Text
-                        style={[styles.p5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
-                    >
-                        {this.props.translate('transferAmountPage.whichAccount')}
-                    </Text>
-                    {Boolean(selectedAccount)
-                        && (
-                            <MenuItem
-                                title={selectedAccount.title}
-                                description={selectedAccount.description}
-                                shouldShowRightIcon
-                                iconWidth={selectedAccount.iconSize}
-                                iconHeight={selectedAccount.iconSize}
-                                icon={selectedAccount.icon}
-                                onPress={() => this.navigateToChooseTransferAccount(selectedAccount.accountType)}
-                            />
-                        )}
-                    <View style={styles.ph5}>
+                    <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.pv5}>
+                        <View style={styles.ph5}>
+                            {_.map(this.paymentTypes, paymentType => (
+                                <MenuItem
+                                    key={paymentType.key}
+                                    title={paymentType.title}
+                                    description={paymentType.description}
+                                    iconWidth={variables.iconSizeXLarge}
+                                    iconHeight={variables.iconSizeXLarge}
+                                    icon={paymentType.icon}
+                                    success={selectedPaymentType === paymentType.key}
+                                    wrapperStyle={{
+                                        ...styles.mt3,
+                                        ...styles.pv4,
+                                        ...styles.transferBalancePayment,
+                                        ...(selectedPaymentType === paymentType.key
+                                            && styles.transferBalanceSelectedPayment),
+                                    }}
+                                    onPress={() => this.navigateToChooseTransferAccount(paymentType.type)}
+                                />
+                            ))}
+                        </View>
                         <Text
-                            style={[
-                                styles.mt5,
-                                styles.mb3,
-                                styles.textStrong,
-                                styles.textLabel,
-                                styles.justifyContentStart,
-                            ]}
+                            style={[styles.p5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
                         >
-                            {this.props.translate('transferAmountPage.fee')}
+                            {this.props.translate('transferAmountPage.whichAccount')}
                         </Text>
-                        <Text
-                            style={[styles.justifyContentStart]}
-                        >
-                            {this.props.numberFormat(
-                                calculatedFee / 100,
-                                {style: 'currency', currency: 'USD'},
+                        {Boolean(selectedAccount)
+                            && (
+                                <MenuItem
+                                    title={selectedAccount.title}
+                                    description={selectedAccount.description}
+                                    shouldShowRightIcon
+                                    iconWidth={selectedAccount.iconSize}
+                                    iconHeight={selectedAccount.iconSize}
+                                    icon={selectedAccount.icon}
+                                    onPress={() => this.navigateToChooseTransferAccount(selectedAccount.accountType)}
+                                />
                             )}
                         </Text>
                     </View>
