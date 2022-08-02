@@ -66,11 +66,11 @@ class ProfilePage extends Component {
         super(props);
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-        this.selectedTimezone = lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
         this.logins = this.getLogins(props.loginList);
         this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))};
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
+            selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             isAvatarChanged: false,
@@ -176,6 +176,7 @@ class ProfilePage extends Component {
         this.setState({
             hasSelfSelectedPronouns,
             isAutomaticTimezone: values.isAutomaticTimezone,
+            selectedTimezone: values.isAutomaticTimezone ? moment.tz.guess() : values.timezone,
         });
 
         if (hasFirstNameError) {
@@ -293,7 +294,8 @@ class ProfilePage extends Component {
                                 label={this.props.translate('profilePage.timezone')}
                                 items={timezones}
                                 isDisabled={this.state.isAutomaticTimezone}
-                                defaultValue={this.selectedTimezone}
+                                defaultValue={this.state.selectedTimezone}
+                                value={this.state.selectedTimezone}
                                 shouldSaveDraft
                             />
                         </View>
