@@ -198,7 +198,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Updates the Highlight state of the composer
-     *
      * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
@@ -211,7 +210,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Updates the should clear state of the composer
-     *
      * @param {Boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
@@ -220,7 +218,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Updates the visibility state of the menu
-     *
      * @param {Boolean} isMenuVisible
      */
     setMenuVisibility(isMenuVisible) {
@@ -229,7 +226,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Set the TextInput Ref
-     *
      * @param {Element} el
      * @memberof ReportActionCompose
      */
@@ -240,7 +236,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Get the placeholder to display in the chat input.
-     *
      * @return {String}
      */
     getInputPlaceholder() {
@@ -261,7 +256,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Returns the list of IOU Options
-     *
      * @param {Array} reportParticipants
      * @returns {Array<object>}
      */
@@ -315,7 +309,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
@@ -362,7 +355,6 @@ class ReportActionCompose extends React.Component {
     /**
      * Save our report comment in Onyx. We debounce this method in the constructor so that it's not called too often
      * to update Onyx and re-render this component.
-     *
      * @param {String} comment
      */
     debouncedSaveReportComment(comment) {
@@ -379,7 +371,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Update the value of the comment in Onyx
-     *
      * @param {String} newComment
      * @param {Boolean} shouldDebounceSaveComment
      */
@@ -410,7 +401,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Listens for keyboard shortcuts and applies the action
-     *
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
@@ -474,7 +464,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Add a new comment to this chat
-     *
      * @param {SyntheticEvent} [e]
      */
     submitForm(e) {
