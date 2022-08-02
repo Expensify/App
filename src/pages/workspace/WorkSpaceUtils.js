@@ -1,15 +1,16 @@
 import lodashGet from 'lodash/get';
 import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
-function getShouldShowPage(props, nextPage, defaultPage) {
-    const state = lodashGet(props.reimbursementAccount, 'achData.state');
-    const isShowPage = lodashGet(props.reimbursementAccount, 'achData.bankAccountID') && state !== +BankAccount.STATE.OPEN;
+function getShouldShowBankOrNonAccountPage(reimbursementAccount, policyID) {
+    const state = lodashGet(reimbursementAccount, 'achData.state');
+    const isShowPage = lodashGet(reimbursementAccount, 'achData.bankAccountID') && state !== +BankAccount.STATE.OPEN;
     if (isShowPage) {
-       Navigation.navigate(nextPage);
+        Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID));
     } else {
-        Navigation.navigate(defaultPage);
+        Navigation.navigate(ROUTES.getBankAccountRoute());
     }
 }
 
-export {getShouldShowPage};
+export {getShouldShowBankOrNonAccountPage};

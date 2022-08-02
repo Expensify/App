@@ -201,7 +201,7 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                         <Button
                             text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => WorkSpaceUtils.getShouldShowPage(this.props, ROUTES.getWorkspaceBankAccountRoute(this.props.policyID), ROUTES.getBankAccountRoute())}
+                            onPress={() => WorkSpaceUtils.getShouldShowBankOrNonAccountPage(this.props.reimbursementAccount, this.props.policyID)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
                             iconStyles={[styles.mr5]}

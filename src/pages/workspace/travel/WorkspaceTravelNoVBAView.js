@@ -33,7 +33,7 @@ const WorkspaceTravelNoVBAView = props => (
             <Button
                 text={props.translate('workspace.common.bankAccount')}
                 onPress={() => {
-                    WorkSpaceUtils.getShouldShowPage(props, ROUTES.getWorkspaceBankAccountRoute(props.policyID), ROUTES.getBankAccountRoute());
+                    WorkSpaceUtils.getShouldShowBankOrNonAccountPage(props.reimbursementAccount, props.policyID);
                 }}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
