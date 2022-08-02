@@ -186,7 +186,6 @@ class ReportScreen extends React.Component {
         this.setState({viewportOffsetTop});
     }
 
-
     render() {
         if (!this.props.isSidebarLoaded) {
             return null;
