@@ -188,7 +188,11 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            Report.openReport(this.props.reportID);
+            if (this.getIsReportFullyVisible()) {
+                Report.openReport(this.props.reportID);
+            } else {
+                this.fetchData();
+            }
         }
 
         // The last sequenceNumber of the same report has changed.
@@ -244,6 +248,10 @@ class ReportActionsView extends React.Component {
         Report.unsubscribeFromReportChannel(this.props.reportID);
     }
 
+    fetchData() {
+        Report.fetchInitialActions(this.props.reportID);
+    }
+    
     /**
      * @returns {Boolean}
      */
