@@ -671,7 +671,7 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 12,
+        paddingBottom: 9,
     },
 
     // Actions
