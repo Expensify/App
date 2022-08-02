@@ -164,7 +164,7 @@ class ProfilePage extends Component {
                 automatic: values.isAutomaticTimezone,
                 selected: values.timezone,
             },
-        );
+        });
     }
 
     /**
