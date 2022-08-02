@@ -496,7 +496,11 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && !this.props.network.isOffline && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <View style={[
+                shouldShowReportRecipientLocalTime && !this.props.network.isOffline && styles.chatItemComposeWithFirstRow,
+                this.props.isComposerFullSize && styles.chatItemFullComposeRow,
+            ]}
+            >
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
