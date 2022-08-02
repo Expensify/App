@@ -157,7 +157,7 @@ function buildIdologyError(idologyErrors) {
 /**
  * Validates a user's provided details against a series of checks
  *
- * @param {Object} [personalDetails]
+ * @param {Object} personalDetails
  */
 function updatePersonalDetails(personalDetails) {
     if (!personalDetails) {
@@ -185,7 +185,7 @@ function updatePersonalDetails(personalDetails) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                 value: {
                     isLoading: true,
@@ -196,7 +196,7 @@ function updatePersonalDetails(personalDetails) {
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                 value: {
                     isLoading: false,
@@ -207,7 +207,7 @@ function updatePersonalDetails(personalDetails) {
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                 value: {
                     isLoading: false,
