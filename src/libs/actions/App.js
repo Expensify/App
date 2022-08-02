@@ -32,15 +32,16 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-const allPolicies = {};
+let policyIDList = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!val || !key) {
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (_.isEmpty(val)) {
             return;
         }
 
-        allPolicies[key] = {...allPolicies[key], ...val};
+        policyIDList = _.map(_.values(val), policy => policy.id);
     },
 });
 
@@ -102,26 +103,10 @@ function getAppData() {
 }
 
 /**
- * Gets a comma separated list of locally stored policy ids
- *
- * @param {Array} policies
- * @return {String}
- */
-function getPolicyIDList(policies) {
-    return _.chain(policies)
-        .filter(Boolean)
-        .map(policy => policy.id)
-        .join(',');
-}
-
-/**
  * Fetches data needed for app initialization
- * @param {Array} policies
  */
-function openApp(policies) {
-    API.read('OpenApp', {
-        policyIDList: getPolicyIDList(policies),
-    }, {
+function openApp() {
+    API.read('OpenApp', {policyIDList}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -148,9 +133,7 @@ function openApp(policies) {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {
-        policyIDList: getPolicyIDList(allPolicies),
-    }, {
+    API.read('ReconnectApp', {policyIDList}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
