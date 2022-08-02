@@ -49,28 +49,6 @@ function setSuccessfulSignInData(data) {
 }
 
 /**
- * Create an account for the user logging in.
- * This will send them a notification with a link to click on to validate the account and set a password
- *
- * @param {String} login
- */
-function createAccount(login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
-
-    DeprecatedAPI.User_SignUp({
-        email: login,
-    }).then((response) => {
-        // A 405 means that the account needs to be validated. We should let the user proceed to the ResendValidationForm view.
-        if (response.jsonCode === 200 || response.jsonCode === 405) {
-            return;
-        }
-
-        Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message || `Unknown API Error: ${response.jsonCode}`});
-    });
-}
-
-/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
