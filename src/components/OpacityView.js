@@ -34,7 +34,7 @@ class OpacityView extends React.Component {
         }
 
         if (prevProps.shouldDim && !this.props.shouldDim) {
-            this.undim()
+            this.undim();
         }
     }
 
