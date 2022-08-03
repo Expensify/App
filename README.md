@@ -163,7 +163,7 @@ That action will then call `Onyx.merge()` to [set default data and a loading sta
 
 ```js
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
     Authentication.Authenticate({
         ...defaultParams,
         password,
@@ -176,7 +176,7 @@ function signIn(password, twoFactorAuthCode) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message});
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 ```
@@ -187,7 +187,7 @@ Keeping our `Onyx.merge()` out of the view layer and in actions helps organize t
 // Bad
 validateAndSubmitForm() {
     // validate...
-    this.setState({loading: true});
+    this.setState({isLoading: true});
     signIn()
         .then((response) => {
             if (result.jsonCode === 200) {
@@ -197,7 +197,7 @@ validateAndSubmitForm() {
             this.setState({error: response.message});
         })
         .finally(() => {
-            this.setState({loading: false});
+            this.setState({isLoading: false});
         });
 }
 
