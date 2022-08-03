@@ -47,9 +47,10 @@ class OpacityView extends React.Component {
             // If animation doesn't finish because Animation.stop was called
             // (e.g. because it was interrupted by a gesture or another animation),
             // restart animation so we always make sure the component gets completely shown.
-            if (!finished) {
-                this.undim();
+            if (finished) {
+                return;
             }
+            this.undim();
         });
     }
 
