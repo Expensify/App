@@ -10,15 +10,15 @@ import _ from 'underscore';
  */
 function sizeFromAngle(width, height, angle) {
     const radians = (angle * Math.PI) / 180;
-    let c = Math.cos(radians);
-    let s = Math.sin(radians);
-    if (s < 0) {
-        s = -s;
+    let sine = Math.cos(radians);
+    let cosine = Math.sin(radians);
+    if (cosine < 0) {
+        cosine = -cosine;
     }
-    if (c < 0) {
-        c = -c;
+    if (sine < 0) {
+        sine = -sine;
     }
-    return {width: (height * s) + (width * c), height: (height * c) + (width * s)};
+    return {width: (height * cosine) + (width * sine), height: (height * sine) + (width * cosine)};
 }
 
 /**
