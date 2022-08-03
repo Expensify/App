@@ -116,7 +116,7 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
-        this.viewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
         this.removeViewportResizeListener = () => {};
 
         this.state = {
@@ -126,7 +126,7 @@ class ReportScreen extends React.Component {
 
     componentDidMount() {
         this.storeCurrentlyViewedReport();
-        this.removeViewportResizeListener = addViewportResizeListener(this.viewportOffsetTop);
+        this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
