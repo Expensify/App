@@ -1,46 +1,27 @@
 import React, {PureComponent} from 'react';
 import {
+    Dimensions,
     Keyboard,
     LayoutAnimation,
     View,
-    Dimensions,
-    ViewPropTypes,
-    Platform,
-    StyleSheet,
 } from 'react-native';
-import PropTypes from 'prop-types';
-
-const styles = StyleSheet.create({
-    container: {
-        left: 0,
-        right: 0,
-        bottom: 0,
-    },
-});
+import {
+    propTypes as keyboardSpacerPropTypes,
+    defaultProps as keyboardSpacerDefaultProps,
+    defaultAnimation as keyboardSpacerDefaultAnimation,
+} from './KeyboardSpacerPropTypes';
+import styles from '../../styles/styles';
 
 const defaultAnimation = {
-    duration: 500,
-    create: {
-        duration: 300,
-        type: LayoutAnimation.Types.easeInEaseOut,
-        property: LayoutAnimation.Properties.opacity,
-    },
-    update: {
-        type: LayoutAnimation.Types.spring,
-        springDamping: 200,
-    },
+    ...keyboardSpacerDefaultAnimation,
 };
 
 const propTypes = {
-    topSpacing: PropTypes.number,
-    onToggle: PropTypes.func,
-    // eslint-disable-next-line react/require-default-props
-    style: ViewPropTypes.style,
+    ...keyboardSpacerPropTypes,
 };
 
 const defaultProps = {
-    topSpacing: 0,
-    onToggle: () => null,
+    ...keyboardSpacerDefaultProps,
 };
 
 class ReactNativeKeyboardSpacer extends PureComponent {
@@ -55,8 +36,8 @@ class ReactNativeKeyboardSpacer extends PureComponent {
     }
 
     componentDidMount() {
-        const updateListener = Platform.OS === 'android' ? 'keyboardDidShow' : 'keyboardWillShow';
-        const resetListener = Platform.OS === 'android' ? 'keyboardDidHide' : 'keyboardWillHide';
+        const updateListener = this.props.keyboardShowMethod;
+        const resetListener = this.props.keyboardHideMethod;
         this.keyboardListeners = [
             Keyboard.addListener(updateListener, this.updateKeyboardSpace),
             Keyboard.addListener(resetListener, this.resetKeyboardSpace),
@@ -73,7 +54,7 @@ class ReactNativeKeyboardSpacer extends PureComponent {
         }
 
         let animationConfig = defaultAnimation;
-        if (Platform.OS === 'ios') {
+        if (this.props.iOSAnimated) {
             animationConfig = LayoutAnimation.create(
                 event.duration,
                 LayoutAnimation.Types[event.easing],
@@ -81,13 +62,7 @@ class ReactNativeKeyboardSpacer extends PureComponent {
             );
         }
         LayoutAnimation.configureNext(animationConfig);
-
-        // get updated on rotation
         const screenHeight = Dimensions.get('window').height;
-
-        // when external physical keyboard is connected
-        // event.endCoordinates.height still equals virtual keyboard height
-        // however only the keyboard toolbar is showing if there should be one
         const keyboardSpace = (screenHeight - event.endCoordinates.screenY) + this.props.topSpacing;
         this.setState({
             keyboardSpace,
@@ -96,7 +71,7 @@ class ReactNativeKeyboardSpacer extends PureComponent {
 
     resetKeyboardSpace(event) {
         let animationConfig = defaultAnimation;
-        if (Platform.OS === 'ios') {
+        if (this.props.iOSAnimated) {
             animationConfig = LayoutAnimation.create(
                 event.duration,
                 LayoutAnimation.Types[event.easing],
@@ -112,7 +87,14 @@ class ReactNativeKeyboardSpacer extends PureComponent {
 
     render() {
         return (
-            <View style={[styles.container, {height: this.state.keyboardSpace}, this.props.style]} />);
+            <View
+                style={[
+                    styles.keyboardSpacerContain,
+                    {height: this.state.keyboardSpace},
+                    this.props.style,
+                ]}
+            />
+        );
     }
 }
 
