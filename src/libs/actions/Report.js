@@ -1467,6 +1467,52 @@ function renameReport(reportID, reportName) {
 }
 
 /**
+ * Update the policy room name.
+ *
+ * @param {Object} policyRoomReport
+ * @param {*} name The updated name
+ */
+function updatePolicyRoomName(policyRoomReport, name) {
+    const reportID = policyRoomReport.reportID;
+    const previousName = policyRoomReport.name;
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                name,
+                pendingFields: {
+                    name: 'update',
+                },
+            },
+        },
+    ];
+    const successData = [
+        {
+
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    name: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                name: previousName,
+            },
+        },
+    ];
+    API.write('UpdatePolicyRoomName', {reportID, name}, {optimisticData, successData, failureData});
+}
+
+/**
  * @param {Number} reportID
  * @param {Boolean} isComposerFullSize
  */
