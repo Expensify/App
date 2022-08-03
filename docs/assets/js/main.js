@@ -66,3 +66,5 @@ if (window.tocbot) {
         },
     });
 }
+
+document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
