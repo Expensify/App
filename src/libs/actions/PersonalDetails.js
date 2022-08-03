@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
@@ -114,27 +115,6 @@ function formatPersonalDetails(personalDetailsList) {
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     return formattedResult;
-}
-
-/**
- * Get the personal details for our organization
- * @returns {Promise}
- */
-function fetchPersonalDetails() {
-    return DeprecatedAPI.Get({
-        returnValueList: 'personalDetailsList',
-    })
-        .then((data) => {
-            // If personalDetailsList does not have the current user ensure we initialize their details with an empty
-            // object at least
-            const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
-            if (!personalDetailsList[currentUserEmail]) {
-                personalDetailsList[currentUserEmail] = {};
-            }
-
-            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-        });
 }
 
 /**
@@ -282,29 +262,53 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
-/**
- * Fetches the local currency based on location and sets currency code/symbol to local storage
- */
-function fetchLocalCurrency() {
-    const coords = {};
-    let currency = '';
-
-    Onyx.merge(ONYXKEYS.IOU, {
-        isRetrievingCurrency: true,
+function updateProfile(firstName, lastName, pronouns, timezone) {
+    const myPersonalDetails = personalDetails[currentUserEmail];
+    API.write('UpdateProfile', {
+        // 'details' is an old param that will be removed in https://github.com/Expensify/Expensify/issues/220321
+        details: JSON.stringify({firstName, lastName, pronouns}),
+        firstName,
+        lastName,
+        pronouns,
+        timezone: JSON.stringify(timezone),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    pronouns,
+                    timezone,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName: myPersonalDetails.firstName,
+                    lastName: myPersonalDetails.lastName,
+                    pronouns: myPersonalDetails.pronouns,
+                    timezone: myPersonalDetails.timeZone,
+                    displayName: myPersonalDetails.displayName,
+                },
+            },
+        }],
     });
+}
 
-    DeprecatedAPI.GetLocalCurrency({...coords})
-        .then((data) => {
-            currency = data.currency;
-        })
-        .then(() => {
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: {localCurrencyCode: currency}});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {
-                isRetrievingCurrency: false,
-            });
-        });
+/**
+ * Fetches the local currency based on location and sets currency code/symbol to Onyx
+ */
+function openIOUModalPage() {
+    API.read('OpenIOUModalPage');
 }
 
 /**
@@ -333,25 +337,41 @@ function setAvatar(file) {
 
 /**
  * Replaces the user's avatar image with a default avatar
- *
- * @param {String} defaultAvatarURL
  */
-function deleteAvatar(defaultAvatarURL) {
-    // We don't want to save the default avatar URL in the backend since we don't want to allow
-    // users the option of removing the default avatar, instead we'll save an empty string
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: defaultAvatarURL});
+function deleteAvatar() {
+    const defaultAvatar = ReportUtils.getDefaultAvatar(currentUserEmail);
+
+    API.write('DeleteUserAvatar', {}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: defaultAvatar,
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
+                },
+            },
+        }],
+    });
 }
 
 export {
-    fetchPersonalDetails,
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    fetchLocalCurrency,
+    openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
+    updateProfile,
 };

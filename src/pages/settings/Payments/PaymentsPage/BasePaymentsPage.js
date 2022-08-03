@@ -29,11 +29,11 @@ import ConfirmPopover from '../../../../components/ConfirmPopover';
 import AddPaymentMethodMenu from '../../../../components/AddPaymentMethodMenu';
 import CONST from '../../../../CONST';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
+import OfflineIndicator from '../../../../components/OfflineIndicator';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -201,7 +201,7 @@ class BasePaymentsPage extends React.Component {
     }
 
     fetchData() {
-        PaymentMethods.getPaymentMethods();
+        PaymentMethods.openPaymentsPage();
     }
 
     /**
@@ -293,6 +293,7 @@ class BasePaymentsPage extends React.Component {
                                                 icon={Expensicons.Transfer}
                                                 onPress={triggerKYCFlow}
                                                 shouldShowRightIcon
+                                                disabled={this.props.network.isOffline}
                                             />
                                         )}
                                     </KYCWall>
@@ -341,7 +342,7 @@ class BasePaymentsPage extends React.Component {
                         >
                             {isPopoverBottomMount && (
                                 <MenuItem
-                                    title={this.state.formattedSelectedPaymentMethod.title}
+                                    title={this.state.formattedSelectedPaymentMethod.title || ''}
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
@@ -435,19 +436,7 @@ class BasePaymentsPage extends React.Component {
                         shouldShowCancelButton
                         danger
                     />
-                    <ConfirmModal
-                        title={this.props.translate('paymentsPage.allSet')}
-                        onConfirm={PaymentMethods.dismissWalletConfirmModal}
-                        isVisible={this.props.walletTransfer.shouldShowConfirmModal}
-                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
-                            amount: this.props.numberFormat(
-                                this.props.walletTransfer.transferAmount / 100,
-                                {style: 'currency', currency: 'USD'},
-                            ),
-                        })}
-                        confirmText={this.props.translate('paymentsPage.gotIt')}
-                        shouldShowCancelButton={false}
-                    />
+                    <OfflineIndicator containerStyles={[styles.ml5, styles.mb2]} />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
