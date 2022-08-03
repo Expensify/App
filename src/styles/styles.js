@@ -2620,7 +2620,7 @@ const styles = {
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight + 1,
+        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
     },
 
