@@ -280,27 +280,33 @@ const AvatarCropModal = (props) => {
             <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}>
 
                 {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
-                {(!isImageInitialized || !isImageContainerInitialized)
-                    ? <ActivityIndicator color={themeColors.spinner} style={[styles.flex1]} size="large" />
+                {(!isImageInitialized || !isImageContainerInitialized) ? <ActivityIndicator color={themeColors.spinner} style={[styles.flex1]} size="large" />
                     : (
                         <>
                             <ImageCropView
-                                    imageUri={props.imageUri}
-                                    containerSize={imageContainerSize}
-                                    panGestureEventHandler={panGestureEventHandler}
-                                    originalImageHeight={originalImageHeight}
-                                    originalImageWidth={originalImageWidth}
-                                    scale={scale}
-                                    translateY={translateY}
-                                    translateX={translateX}
-                                    rotation={rotation}
+                                imageUri={props.imageUri}
+                                containerSize={imageContainerSize}
+                                panGestureEventHandler={panGestureEventHandler}
+                                originalImageHeight={originalImageHeight}
+                                originalImageWidth={originalImageWidth}
+                                scale={scale}
+                                translateY={translateY}
+                                translateX={translateX}
+                                rotation={rotation}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={colors.gray3} />
                                 <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </View>
-                                <Button medium icon={Expensicons.Rotate} iconFill={colors.black} iconStyles={[styles.mr0]} style={[styles.imageCropRotateButton]} onPress={rotateImage} />
+                                <Button
+                                    medium
+                                    icon={Expensicons.Rotate}
+                                    iconFill={colors.black}
+                                    iconStyles={[styles.mr0]}
+                                    style={[styles.imageCropRotateButton]}
+                                    onPress={rotateImage}
+                                />
                             </View>
                         </>
                     )}
