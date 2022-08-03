@@ -108,8 +108,8 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     getFilteredPaymentMethods() {
-        // Hide the billing card from the payments menu for now because you can't make it your default method, or delete it
-        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
+        // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
+        const filteredCardList = _.filter(this.props.cardList, card => card.additionalData.isP2PDebitCard);
 
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 
