@@ -40,7 +40,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     }));
 
     // Simulate user entering their login and populating the credentials.login
-    Session.fetchAccountDetails(login);
+    Session.beginSignIn(login);
     return waitForPromisesToResolve()
         .then(() => {
             // First call to Authenticate

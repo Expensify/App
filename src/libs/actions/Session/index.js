@@ -102,7 +102,7 @@ function resendValidationLink(login = credentials.login) {
  *
  * @param {String} login
  */
-function fetchAccountDetails(login) {
+function beginSignIn(login) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -492,7 +492,7 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 }
 
 export {
-    fetchAccountDetails,
+    beginSignIn,
     setPassword,
     signIn,
     signInWithShortLivedToken,

@@ -132,7 +132,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
     }
 
     render() {

@@ -104,10 +104,7 @@ class ResendValidationForm extends React.Component {
                 </View>
                 <View style={[styles.mv5]}>
                     <Text>
-                        {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
-                            login,
-                            loginType,
-                        })}
+                        {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (
