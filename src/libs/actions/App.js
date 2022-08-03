@@ -202,7 +202,7 @@ function setUpPoliciesAndNavigate(session, currentPath) {
 function openProfile() {
     const oldTimezoneData = myPersonalDetails.timezone || {};
     let newTimezoneData;
-    
+
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
         newTimezoneData = {
             automatic: true,
