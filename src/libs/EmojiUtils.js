@@ -4,7 +4,7 @@ import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
-import emojisTrie from './EmojisTrie';
+import emojisTrie from './EmojiTrie';
 
 /**
  * Get the unicode code of an emoji in base 16.
