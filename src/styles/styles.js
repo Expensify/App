@@ -2631,6 +2631,12 @@ const styles = {
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
     },
+
+    keyboardSpacerContain: {
+        left: 0,
+        right: 0,
+        bottom: 0,
+    },
 };
 
 export default styles;
