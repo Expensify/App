@@ -517,7 +517,7 @@ class ReportActionCompose extends React.Component {
 
         return (
             <View style={[
-                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+                shouldShowReportRecipientLocalTime && !this.props.network.isOffline && styles.chatItemComposeWithFirstRow,
                 this.props.isComposerFullSize && styles.chatItemFullComposeRow,
             ]}
             >
@@ -699,12 +699,7 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[
-                    styles.flexRow,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
-                    (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
-                >
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
