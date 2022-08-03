@@ -318,7 +318,7 @@ function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
     DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
-            // Once we get the s3url back, update the personal details for the user with the new avatar URL
+            // Once we get the avatarURL back, update the personal details for the user with the new avatar URL
             if (response.jsonCode !== 200) {
                 setPersonalDetails({avatarUploading: false});
                 if (response.jsonCode === 405 || response.jsonCode === 502) {
@@ -329,7 +329,7 @@ function setAvatar(file) {
                 return;
             }
 
-            setPersonalDetails({avatar: response.s3url, avatarUploading: false});
+            setPersonalDetails({avatar: response.avatarURL, avatarUploading: false});
         });
 }
 
