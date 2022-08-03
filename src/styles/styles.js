@@ -2615,7 +2615,7 @@ const styles = {
     },
 
     avatarCropModalContainer: {
-        maxWidth: 450,
+        maxWidth: 450, // this width was chosen to match layout to avarage mobile device
     },
 
     imageCropContainer: {
