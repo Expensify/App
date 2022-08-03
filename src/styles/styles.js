@@ -2603,7 +2603,7 @@ const styles = {
     },
 
     avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to avarage mobile device
+        maxWidth: 450, // this width was chosen to match layout to average mobile device
     },
 
     imageCropContainer: {
@@ -2620,8 +2620,8 @@ const styles = {
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -9,
-        left: -13,
+        top: -variables.sliderBarHeight + 1,
+        left: -(variables.sliderKnobSize / 2),
     },
 
     sliderBar: {
@@ -2632,7 +2632,7 @@ const styles = {
     },
 
     imageCropRotateButton: {
-        height: 40,
+        height: variables.iconSizeExtraLarge,
     },
 
     userSelectText: {
