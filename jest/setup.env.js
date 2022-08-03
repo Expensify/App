@@ -1,0 +1,1 @@
+global.setImmediate = jest.useRealTimers;

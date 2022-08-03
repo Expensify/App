@@ -134,8 +134,8 @@
     "@storybook/react": "^6.5.9",
     "@storybook/theming": "^6.5.9",
     "@svgr/webpack": "^5.5.0",
-    "@testing-library/jest-native": "^3.4.2",
-    "@testing-library/react-native": "^7.0.2",
+    "@testing-library/jest-native": "^4.0.5",
+    "@testing-library/react-native": "^11.0.0",
     "@vercel/ncc": "^0.27.0",
     "@welldone-software/why-did-you-render": "^6.2.0",
     "ajv-cli": "^5.0.0",
@@ -162,9 +162,10 @@
     "eslint-plugin-storybook": "^0.5.13",
     "flipper-plugin-bridgespy-client": "^0.1.9",
     "html-webpack-plugin": "^4.3.0",
-    "jest": "^26.5.2",
-    "jest-circus": "^26.5.2",
-    "jest-cli": "^26.5.2",
+    "jest": "^28.1.3",
+    "jest-circus": "^28.1.3",
+    "jest-cli": "^28.1.3",
+    "jest-environment-jsdom": "^28.1.3",
     "metro-react-native-babel-preset": "^0.66.2",
     "mock-fs": "^4.13.0",
     "portfinder": "^1.0.28",
@@ -188,7 +189,8 @@
   "jest": {
     "preset": "react-native",
     "transform": {
-      "^.+\\.jsx?$": "babel-jest"
+      "^.+\\.jsx?$": "babel-jest",
+      "^.+\\.(bmp|gif|jpg|jpeg|mp4|png|psd|svg|webp)$": "<rootDir>jest/assetFileTransformer.js"
     },
     "transformIgnorePatterns": [
       "node_modules/(?!react-native)/"
@@ -205,13 +207,17 @@
       "__DEV__": true,
       "WebSocket": {}
     },
-    "timers": "fake",
+    "fakeTimers": {
+      "enableGlobally": true,
+      "legacyFakeTimers": true
+    },
     "testEnvironment": "jsdom",
     "setupFiles": [
       "<rootDir>/jest/setup.js"
     ],
     "setupFilesAfterEnv": [
-      "@testing-library/jest-native/extend-expect"
+      "@testing-library/jest-native/extend-expect",
+      "<rootDir>/jest/setup.env.js"
     ]
   },
   "prettier": {
