@@ -9,7 +9,7 @@ import RNFetchBlob from 'rn-fetch-blob';
  * @param {Object} options
  * @returns {Promise<Object>} Returns cropped and rotated image
  */
-function imageManipulator(uri, actions, options = {}) {
+function cropOrRotateImage(uri, actions, options = {}) {
     return new Promise((resolve) => {
         RNImageManipulator.manipulate(uri, actions, options).then((result) => {
             RNFetchBlob.fs.stat(result.uri.replace('file://', '')).then(({size}) => {
@@ -21,4 +21,4 @@ function imageManipulator(uri, actions, options = {}) {
     });
 }
 
-export default imageManipulator;
+export default cropOrRotateImage;

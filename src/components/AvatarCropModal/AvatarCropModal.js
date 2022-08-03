@@ -27,7 +27,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
-import imageManipulator from '../../libs/imageManipulator';
+import cropOrRotateImage from '../../libs/cropOrRotateImage';
 import HeaderGap from '../HeaderGap';
 import * as StyleUtils from '../../styles/StyleUtils';
 
@@ -255,7 +255,7 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
-        imageManipulator(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: props.imageName})
+        cropOrRotateImage(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: props.imageName})
             .then((newImage) => {
                 props.onClose();
                 props.onSave(newImage);
