@@ -68,3 +68,8 @@ if (window.tocbot) {
 }
 
 document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
+
+const backButton = document.getElementById('back-button');
+if (backButton) {
+    backButton.addEventListener('click', navigateBack);
+}
