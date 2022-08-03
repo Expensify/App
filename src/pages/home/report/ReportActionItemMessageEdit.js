@@ -85,6 +85,7 @@ class ReportActionItemMessageEdit extends React.Component {
 
     /**
      * Update Selection on change cursor position.
+     *
      * @param {Event} e
      */
     onSelectionChange(e) {
@@ -93,10 +94,11 @@ class ReportActionItemMessageEdit extends React.Component {
 
     /**
      * Update the value of the draft in Onyx
-     * @param {String} newDraft
+     *
+     * @param {String} draft
      */
-    updateDraft(newDraft) {
-        const textWithEmojis = EmojiUtils.replaceEmojis(newDraft);
+    updateDraft(draft) {
+        const textWithEmojis = EmojiUtils.replaceEmojis(draft);
         this.textInput.setNativeProps({text: textWithEmojis});
         this.setState({draft: textWithEmojis});
 
@@ -171,6 +173,7 @@ class ReportActionItemMessageEdit extends React.Component {
 
     /**
      * Key event handlers that short cut to saving/canceling.
+     *
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
