@@ -127,6 +127,8 @@ export default [
         icon: Expensicons.LinkCopy,
         shouldShow: (type, reportAction, betas, menuTarget) => {
             const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
+
+            // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
         },
@@ -148,7 +150,6 @@ export default [
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.markCommentAsUnread(reportID, reportAction.sequenceNumber);
-            Report.setNewMarkerPosition(reportID, reportAction.sequenceNumber);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
