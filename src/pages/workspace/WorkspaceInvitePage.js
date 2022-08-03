@@ -104,19 +104,6 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     /**
-     * @returns {String}
-     */
-    getErrorText() {
-        const errors = lodashGet(this.props.policy, 'errors', {});
-
-        if (errors.noUserSelected) {
-            return this.props.translate('workspace.invite.pleaseSelectUser');
-        }
-
-        return '';
-    }
-
-    /**
      * @returns {Boolean}
      */
     getShouldShowAlertPrompt() {
