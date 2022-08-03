@@ -14,10 +14,15 @@ import * as Localize from './Localize';
  * @returns {Boolean}
  */
 function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
-    return _.some(cardList, card => card) || _.some(bankAccountList, (bankAccountJSON) => {
+    const validBankAccount = _.some(bankAccountList, (bankAccountJSON) => {
         const bankAccount = new BankAccount(bankAccountJSON);
         return bankAccount.isDefaultCredit();
     });
+
+    // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
+    const validDebitCard = _.some(cardList, card => lodashGet(card, 'additionalData.isP2PDebitCard', false));
+
+    return validBankAccount || validDebitCard;
 }
 
 /**
