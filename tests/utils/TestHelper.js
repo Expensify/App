@@ -25,7 +25,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.CREDENTIALS,
                 value: {
-                    login: 'yuwen@expensify.com',
+                    login,
                 },
             },
             {
