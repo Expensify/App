@@ -20,9 +20,23 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
+        onyxData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.CREDENTIALS,
+                value: {
+                    login: 'yuwen@expensify.com',
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    validated: true,
+                },
+            },
+        ],
         jsonCode: 200,
-        requiresTwoFactorAuth: false,
-        normalizedLogin: login,
     }));
 
     // Simulate user entering their login and populating the credentials.login
