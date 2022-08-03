@@ -248,16 +248,16 @@ class ReportActionsView extends React.Component {
         Report.unsubscribeFromReportChannel(this.props.reportID);
     }
 
-    fetchData() {
-        Report.fetchInitialActions(this.props.reportID);
-    }
-    
     /**
      * @returns {Boolean}
      */
     getIsReportFullyVisible() {
         const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
         return Visibility.isVisible() && !isSidebarCoveringReportView;
+    }
+
+    fetchData() {
+        Report.fetchInitialActions(this.props.reportID);
     }
 
     /**
