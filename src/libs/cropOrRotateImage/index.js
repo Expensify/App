@@ -125,7 +125,7 @@ function loadImageAsync(uri) {
  * @param {Object} options
  * @returns {Promise<Object>} Returns cropped and rotated image
  */
-function imageManipulator(uri, actions, options) {
+function cropOrRotateImage(uri, actions, options) {
     return loadImageAsync(uri).then((originalCanvas) => {
         const resultCanvas = _.reduce(actions, (canvas, action) => {
             if ('crop' in action) {
@@ -141,4 +141,4 @@ function imageManipulator(uri, actions, options) {
     });
 }
 
-export default imageManipulator;
+export default cropOrRotateImage;
