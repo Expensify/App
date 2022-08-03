@@ -43,17 +43,9 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     Session.beginSignIn(login);
     return waitForPromisesToResolve()
         .then(() => {
-            // First call to Authenticate
+            // Response is the same for calls to Authenticate and CreateLogin
             HttpUtils.xhr
-                .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 200,
-                    accountID,
-                    authToken,
-                    email: login,
-                }))
-
-                // Next call to CreateLogin
-                .mockImplementationOnce(() => Promise.resolve({
+                .mockImplementation(() => Promise.resolve({
                     jsonCode: 200,
                     accountID,
                     authToken,
