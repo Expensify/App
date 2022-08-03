@@ -83,12 +83,11 @@ class IOUAmountPage extends React.Component {
      * Returns the new selection object based on updated amount
      *
      * @param {Object} oldSelection
-     * @param {String} oldAmount
-     * @param {String} newAmount
+     * @param {Number} amountDelta
      * @returns {Object}
      */
-    getNewSelection(oldSelection, oldAmount, newAmount) {
-        const cursorPosition = oldSelection.end + (newAmount.length - oldAmount.length);
+    getNewSelection(oldSelection, amountDelta) {
+        const cursorPosition = oldSelection.end + amountDelta;
         return {start: cursorPosition, end: cursorPosition};
     }
 
@@ -168,7 +167,7 @@ class IOUAmountPage extends React.Component {
                 this.setState((prevState) => {
                     const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
                     const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
-                    const selection = this.getNewSelection(prevState.selection, prevState.amount, amount);
+                    const selection = this.getNewSelection(prevState.selection, amount.length - prevState.amount.length);
                     return {amount, selection};
                 });
             }
@@ -178,7 +177,7 @@ class IOUAmountPage extends React.Component {
         this.setState((prevState) => {
             const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
             if (this.validateAmount(amount)) {
-                const selection = this.getNewSelection(prevState.selection, prevState.amount, amount);
+                const selection = this.getNewSelection(prevState.selection, amount.length - prevState.amount.length);
                 return {amount: this.stripCommaFromAmount(amount), selection};
             }
             return prevState;
