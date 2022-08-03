@@ -90,7 +90,7 @@ class BasePasswordPopover extends Component {
                         </Text>
                     </TouchableOpacity>
                 </View>
-                <KeyboardSpacer androidEnable />
+                <KeyboardSpacer />
             </Popover>
         );
     }
