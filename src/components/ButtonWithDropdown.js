@@ -27,6 +27,7 @@ const propTypes = {
 const defaultProps = {
     onButtonPress: () => {},
     onDropdownPress: () => {},
+    isDisabled: false,
     isLoading: false,
 };
 
