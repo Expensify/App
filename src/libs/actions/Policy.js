@@ -418,8 +418,8 @@ function uploadAvatar(policyID, file) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 // Update the policy with the new avatarURL as soon as we get it
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
-                update(policyID, {avatarURL: response.s3url}, true);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.avatarURL, isAvatarUploading: false});
+                update(policyID, {avatarURL: response.avatarURL}, true);
                 return;
             }
 
