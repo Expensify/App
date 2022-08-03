@@ -108,10 +108,6 @@ class AdditionalDetailsStep extends React.Component {
         this.errorTranslationKeys = {
             legalFirstName: 'bankAccount.error.firstName',
             legalLastName: 'bankAccount.error.lastName',
-            addressStreet: 'bankAccount.error.addressStreet',
-            addressCity: 'bankAccount.error.addressCity',
-            addressState: 'bankAccount.error.addressState',
-            addressZip: 'bankAccount.error.zipCode',
             phoneNumber: 'bankAccount.error.phoneNumber',
             dob: 'bankAccount.error.dob',
             age: 'bankAccount.error.age',
