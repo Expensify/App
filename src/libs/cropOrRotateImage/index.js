@@ -31,11 +31,15 @@ function sizeFromAngle(width, height, angle) {
 function rotateCanvas(canvas, degrees) {
     const {width, height} = sizeFromAngle(canvas.width, canvas.height, degrees);
 
+    // We have to create a new canvas because it is not possible to change already drawn
+    // elements. Transformations such as rotation have to be applied before drawing
     const result = document.createElement('canvas');
     result.width = width;
     result.height = height;
 
     const context = result.getContext('2d');
+
+    // In order to rotate image along its center we have to apply next transformation
     context.translate(result.width / 2, result.height / 2);
 
     const radians = (degrees * Math.PI) / 180;
