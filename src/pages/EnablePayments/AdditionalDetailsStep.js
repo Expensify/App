@@ -185,6 +185,10 @@ class AdditionalDetailsStep extends React.Component {
             errors.addressStreet = true;
         }
 
+        if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
+            errors.addressZip = true;
+        }
+
         if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
             errors.phoneNumber = true;
         }
