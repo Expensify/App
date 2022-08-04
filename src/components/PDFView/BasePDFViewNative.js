@@ -125,18 +125,17 @@ class BasePDFViewNative extends Component {
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
         // is positioned nicely. We're specifically hiding it because we still need to render
-        // the PDF so that it can validate the password.
+        // the PDF component so that it can validate the password.
         if (this.state.shouldRequestPassword) {
             pdfStyles.push(styles.invisible);
         }
 
-        // For small screens force the container view to take up the full width when
-        // displaying the password form.
         const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
-            ? styles.w100 : {};
+            ? [styles.w100, styles.flex1]
+            : [styles.alignItemsCenter, styles.flex1];
 
         return (
-            <View style={[containerStyles, styles.flex1]}>
+            <View style={containerStyles}>
                 {this.state.shouldAttemptPdfLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
