@@ -124,6 +124,10 @@ export default {
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
         notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
     },
+    avatarCropModal: {
+        title: 'Editar Foto',
+        description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
+    },
     composer: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
@@ -261,6 +265,7 @@ export default {
         editImage: 'Editar foto',
         imageUploadFailed: 'Error al cargar la imagen',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
+        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
     },
     profilePage: {
         profile: 'Perfil',
