@@ -76,7 +76,7 @@ const propTypes = {
 
         /** The type of the policy */
         type: PropTypes.string,
-    })).isRequired,
+    })),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -96,6 +96,7 @@ const defaultProps = {
     isComposerFullSize: false,
     betas: [],
     isLoadingInitialReportActions: false,
+    policies: {},
 };
 
 /**

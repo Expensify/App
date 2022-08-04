@@ -8,10 +8,10 @@ const sidebarPropTypes = {
     allPolicies: PropTypes.shape({
         /** The policy name */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /* Is workspace is being created by the user? */
     isCreatingWorkspace: PropTypes.bool,
@@ -23,6 +23,8 @@ const sidebarPropTypes = {
 
 const sidebarDefaultProps = {
     isCreatingWorkspace: false,
+    allPolicies: {},
+    betas: [],
 };
 
 export {sidebarPropTypes, sidebarDefaultProps};
