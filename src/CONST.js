@@ -756,12 +756,10 @@ const CONST = {
         },
     },
     MICROSECONDS_PER_MS: 1000,
-    RBR: {
-        PENDING_ACTION: {
-            ADD: 'add',
-            DELETE: 'delete',
-            UPDATE: 'update',
-        },
+    RED_BRICK_ROAD_PENDING_ACTION: {
+        ADD: 'add',
+        DELETE: 'delete',
+        UPDATE: 'update',
     },
 };
 
