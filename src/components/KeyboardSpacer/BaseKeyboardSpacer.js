@@ -8,12 +8,19 @@ import {
 import {
     propTypes as keyboardSpacerPropTypes,
     defaultProps as keyboardSpacerDefaultProps,
-    defaultAnimation as keyboardSpacerDefaultAnimation,
 } from './KeyboardSpacerPropTypes';
-import styles from '../../styles/styles';
 
 const defaultAnimation = {
-    ...keyboardSpacerDefaultAnimation,
+    duration: 500,
+    create: {
+        duration: 300,
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+    },
+    update: {
+        type: LayoutAnimation.Types.spring,
+        springDamping: 200,
+    },
 };
 
 const propTypes = {
@@ -24,9 +31,9 @@ const defaultProps = {
     ...keyboardSpacerDefaultProps,
 };
 
-class ReactNativeKeyboardSpacer extends PureComponent {
-    constructor(props, context) {
-        super(props, context);
+class BaseKeyboardSpacer extends PureComponent {
+    constructor(props) {
+        super(props);
         this.state = {
             keyboardSpace: 0,
         };
@@ -89,7 +96,6 @@ class ReactNativeKeyboardSpacer extends PureComponent {
         return (
             <View
                 style={[
-                    styles.keyboardSpacerContain,
                     {height: this.state.keyboardSpace},
                     this.props.style,
                 ]}
@@ -98,6 +104,6 @@ class ReactNativeKeyboardSpacer extends PureComponent {
     }
 }
 
-ReactNativeKeyboardSpacer.defaultProps = defaultProps;
-ReactNativeKeyboardSpacer.propTypes = propTypes;
-export default ReactNativeKeyboardSpacer;
+BaseKeyboardSpacer.defaultProps = defaultProps;
+BaseKeyboardSpacer.propTypes = propTypes;
+export default BaseKeyboardSpacer;

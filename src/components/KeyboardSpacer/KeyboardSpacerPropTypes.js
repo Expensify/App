@@ -1,15 +1,22 @@
 import PropTypes from 'prop-types';
-import {
-    LayoutAnimation,
-    ViewPropTypes,
-} from 'react-native';
 
 const propTypes = {
+    /** Top Spacing is used when there requirement of additional height to view. */
     topSpacing: PropTypes.number,
+
+    /** Callback to update the value of keybaord status along with current height. */
     onToggle: PropTypes.func,
-    style: ViewPropTypes.style,
+
+    /** Any additional styles to pass to the keyboard container. */
+    style: PropTypes.arrayOf(PropTypes.object),
+
+    /** iOS uses LayoutAnimation.Types[event.easing]. */
     iOSAnimated: PropTypes.bool,
+
+    /** Pass event name for keyboardShow since iOS and android both has different event to show keyboard. */
     keyboardShowMethod: PropTypes.string,
+
+    /** Pass event name for keyboardHide since iOS and android both has different event to hide keyboard. */
     keyboardHideMethod: PropTypes.string,
 };
 
@@ -20,17 +27,4 @@ const defaultProps = {
     iOSAnimated: false,
 };
 
-const defaultAnimation = {
-    duration: 500,
-    create: {
-        duration: 300,
-        type: LayoutAnimation.Types.easeInEaseOut,
-        property: LayoutAnimation.Properties.opacity,
-    },
-    update: {
-        type: LayoutAnimation.Types.spring,
-        springDamping: 200,
-    },
-};
-
-export {propTypes, defaultProps, defaultAnimation};
+export {propTypes, defaultProps};
