@@ -764,12 +764,10 @@ const CONST = {
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
     },
     MICROSECONDS_PER_MS: 1000,
-    RBR: {
-        PENDING_ACTION: {
-            ADD: 'add',
-            DELETE: 'delete',
-            UPDATE: 'update',
-        },
+    RED_BRICK_ROAD_PENDING_ACTION: {
+        ADD: 'add',
+        DELETE: 'delete',
+        UPDATE: 'update',
     },
 };
 
