@@ -1,18 +1,18 @@
 PODS:
-  - Airship (16.6.0):
-    - Airship/Automation (= 16.6.0)
-    - Airship/Basement (= 16.6.0)
-    - Airship/Core (= 16.6.0)
-    - Airship/ExtendedActions (= 16.6.0)
-    - Airship/MessageCenter (= 16.6.0)
-  - Airship/Automation (16.6.0):
+  - Airship (16.4.0):
+    - Airship/Automation (= 16.4.0)
+    - Airship/Basement (= 16.4.0)
+    - Airship/Core (= 16.4.0)
+    - Airship/ExtendedActions (= 16.4.0)
+    - Airship/MessageCenter (= 16.4.0)
+  - Airship/Automation (16.4.0):
     - Airship/Core
-  - Airship/Basement (16.6.0)
-  - Airship/Core (16.6.0):
+  - Airship/Basement (16.4.0)
+  - Airship/Core (16.4.0):
     - Airship/Basement
-  - Airship/ExtendedActions (16.6.0):
+  - Airship/ExtendedActions (16.4.0):
     - Airship/Core
-  - Airship/MessageCenter (16.6.0):
+  - Airship/MessageCenter (16.4.0):
     - Airship/Core
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
@@ -542,13 +542,14 @@ PODS:
     - DoubleConversion
     - glog
     - RCT-Folly (= 2021.06.28.00-v2)
-    - React-bridging (= 0.69.4)
-    - React-callinvoker (= 0.69.4)
-    - React-Core (= 0.69.4)
-    - React-cxxreact (= 0.69.4)
-    - React-jsi (= 0.69.4)
-    - React-logger (= 0.69.4)
-    - React-perflogger (= 0.69.4)
+    - React-callinvoker (= 0.66.4)
+    - React-Core (= 0.66.4)
+    - React-cxxreact (= 0.66.4)
+    - React-jsi (= 0.66.4)
+    - React-logger (= 0.66.4)
+    - React-perflogger (= 0.66.4)
+  - rn-fetch-blob (0.12.0):
+    - React-Core
   - RNCAsyncStorage (1.17.7):
     - React-Core
   - RNCClipboard (1.5.1):
@@ -622,9 +623,8 @@ PODS:
   - SDWebImageWebPCoder (0.8.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
-  - SocketRocket (0.6.0)
-  - urbanairship-react-native (14.3.1):
-    - Airship (= 16.6.0)
+  - urbanairship-react-native (14.0.0):
+    - Airship (= 16.4.0)
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -906,7 +906,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: 976707cd192aebead4fde4246bcf86229078bae6
+  Airship: 755b12485ab6001bc846001edf31a9bceb675689
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -968,8 +968,7 @@ SPEC CHECKSUMS:
   react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
   react-native-document-picker: 772d04a4bc5c35da9abe27b08ac271420ae3f9ef
   react-native-flipper: 4bfe0a324e663f1ae2f76ad0da75673de6895efe
-  react-native-image-manipulator: db28c0cc09d89e740974c9bb2f13175eb48f1ef2
-  react-native-image-picker: 24a36044140202085113ce99b57bf52c62dc339e
+  react-native-image-picker: ae1202414bd5c37c00b2a701daa5b6194a06b7d9
   react-native-netinfo: ebbcd8fbe1a0ce7035e43cd18c5a545dcb93dd08
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-plaid-link-sdk: 9e0ebdaed648a237b36d5f6f6292b5147af92da7
@@ -978,18 +977,19 @@ SPEC CHECKSUMS:
   react-native-render-html: 786d150a8e38d3d299bc21dc4848c5d70edc5a5f
   react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
   react-native-webview: 77ee909f73e1fcab76380f7dcc3344771fe61bd8
-  React-perflogger: cb386fd44c97ec7f8199c04c12b22066b0f2e1e0
-  React-RCTActionSheet: f803a85e46cf5b4066c2ac5e122447f918e9c6e5
-  React-RCTAnimation: 19c80fa950ccce7f4db76a2a7f2cf79baae07fc7
-  React-RCTBlob: f36ab97e2d515c36df14a1571e50056be80413d5
-  React-RCTImage: 2c8f0a329a116248e82f8972ffe806e47c6d1cfa
-  React-RCTLinking: 670f0223075aff33be3b89714f1da4f5343fc4af
-  React-RCTNetwork: 09385b73f4ff1f46bd5d749540fb33f69a7e5908
-  React-RCTSettings: 33b12d3ac7a1f2eba069ec7bd1b84345263b3bbe
-  React-RCTText: a1a3ea902403bd9ae4cf6f7960551dc1d25711b5
-  React-RCTVibration: 9adb4a3cbb598d1bbd46a05256f445e4b8c70603
-  React-runtimeexecutor: 61ee22a8cdf8b6bb2a7fb7b4ba2cc763e5285196
-  ReactCommon: 8f67bd7e0a6afade0f20718f859dc8c2275f2e83
+  React-perflogger: 93075d8931c32cd1fce8a98c15d2d5ccc4d891bd
+  React-RCTActionSheet: 7d3041e6761b4f3044a37079ddcb156575fb6d89
+  React-RCTAnimation: 743e88b55ac62511ae5c2e22803d4f503f2a3a13
+  React-RCTBlob: bee3a2f98fa7fc25c957c8643494244f74bea0a0
+  React-RCTImage: 19fc9e29b06cc38611c553494f8d3040bf78c24e
+  React-RCTLinking: dc799503979c8c711126d66328e7ce8f25c2848f
+  React-RCTNetwork: 417e4e34cf3c19eaa5fd4e9eb20180d662a799ce
+  React-RCTSettings: 4df89417265af26501a7e0e9192a34d3d9848dff
+  React-RCTText: f8a21c3499ab322326290fa9b701ae29aa093aa5
+  React-RCTVibration: e3ffca672dd3772536cb844274094b0e2c31b187
+  React-runtimeexecutor: dec32ee6f2e2a26e13e58152271535fadff5455a
+  ReactCommon: 57b69f6383eafcbd7da625bfa6003810332313c4
+  rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: 19af8f3e136504e0450e7f85cfb46fc38da87ec9
   RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
   RNCMaskedView: 138134c4d8a9421b4f2bf39055a79aa05c2d47b1
@@ -1008,9 +1008,8 @@ SPEC CHECKSUMS:
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
-  SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  urbanairship-react-native: 0d2b1ed0a1387202708e7b592f213ec10b3756ad
-  Yoga: ff994563b2fd98c982ca58e8cd9db2cdaf4dda74
+  urbanairship-react-native: 4e805253e716f01c410ab7614f152d00676bd390
+  Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: 228abc2223665c7faa71c25cb7e7ff2a4251b97a
