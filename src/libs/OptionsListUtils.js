@@ -157,8 +157,6 @@ function getParticipantNames(personalDetailList) {
     return participantNames;
 }
 
-const getMemoizedParticipantNames = _.memoize(getParticipantNames);
-
 /**
  * Returns a string with all relevant search terms.
  * Default should be serachable by policy/domain name but not by participants.
@@ -515,7 +513,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
             // Finally check to see if this option is a match for the provided search string if we have one
             const {searchText, participantsList, isChatRoom} = reportOption;
-            const participantNames = getMemoizedParticipantNames(participantsList);
+            const participantNames = getParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 continue;
             }
@@ -574,7 +572,7 @@ function getOptions(reports, personalDetails, activeReportID, {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
-            const participantNames = getMemoizedParticipantNames(participantsList);
+            const participantNames = getParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 return;
             }
@@ -761,15 +759,7 @@ function getMemberInviteOptions(
  * @param {Array<String>} betas
  * @returns {Object}
  */
-function calculateSidebarOptions(...args) {
-    const {
-        reports,
-        personalDetails,
-        activeReportID,
-        priorityMode,
-        betas,
-    } = args;
-
+function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas) {
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
