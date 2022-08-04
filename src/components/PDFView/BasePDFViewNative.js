@@ -136,7 +136,7 @@ class BasePDFViewNative extends Component {
             ? styles.w100 : {};
 
         return (
-            <View style={containerStyles}>
+            <View style={[containerStyles, styles.flex1]}>
                 {this.state.shouldAttemptPdfLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
