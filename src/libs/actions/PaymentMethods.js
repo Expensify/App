@@ -103,6 +103,34 @@ function getPaymentMethods() {
         });
 }
 
+function openPaymentsPage() {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+    };
+
+    return API.read('OpenPaymentsPage', {}, onyxData);
+}
+
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
@@ -215,7 +243,6 @@ function transferWalletBalance(paymentMethod) {
         : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
     const parameters = {
         [paymentMethodIDKey]: paymentMethod.methodID,
-        shouldReturnOnyxData: true,
     };
 
     API.write('TransferWalletBalance', parameters, {
@@ -288,6 +315,7 @@ export {
     deleteDebitCard,
     deletePayPalMe,
     getPaymentMethods,
+    openPaymentsPage,
     makeDefaultPaymentMethod,
     addBillingCard,
     kycWallRef,

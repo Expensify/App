@@ -16,13 +16,16 @@ import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import addViewportResizeListener from '../../libs/VisualViewport';
+import {withNetwork} from '../../components/OnyxProvider';
+import compose from '../../libs/compose';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -66,6 +69,9 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Flag to check if the initial report actions data are loading */
+    isLoadingInitialReportActions: PropTypes.bool,
+
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(PropTypes.shape({
         /** The policy name */
@@ -74,6 +80,9 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     })).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -89,6 +98,7 @@ const defaultProps = {
     },
     isComposerFullSize: false,
     betas: [],
+    isLoadingInitialReportActions: false,
 };
 
 /**
@@ -109,36 +119,30 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
-        this.viewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.removeViewportResizeListener = () => {};
 
         this.state = {
-            isLoading: true,
+            skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
         };
     }
 
     componentDidMount() {
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', this.viewportOffsetTop);
-        }
+        this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
-
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
-        if (window.visualViewport) {
-            window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
-        }
+        this.removeViewportResizeListener();
     }
 
     /**
@@ -148,12 +152,8 @@ class ReportScreen extends React.Component {
         Report.addComment(getReportID(this.props.route), text);
     }
 
-    /**
-     * @param {SyntheticEvent} e
-     */
-    updateViewportOffsetTop(e) {
-        const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-        this.setState({viewportOffsetTop});
+    setChatFooterStyles(isOffline) {
+        return {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     }
 
     /**
@@ -162,16 +162,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !getReportID(this.props.route);
-    }
-
-    /**
-     * Configures a small loading transition and proceeds with rendering available data
-     */
-    prepareTransition() {
-        this.setState({isLoading: true});
-        clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
+        return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
     }
 
     /**
@@ -187,6 +178,14 @@ class ReportScreen extends React.Component {
         // Always reset the state of the composer view when the current reportID changes
         toggleReportActionComposeView(true);
         Report.updateCurrentlyViewedReportID(reportID);
+    }
+
+    /**
+     * @param {SyntheticEvent} e
+     */
+    updateViewportOffsetTop(e) {
+        const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
+        this.setState({viewportOffsetTop});
     }
 
     render() {
@@ -212,21 +211,25 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
-                <KeyboardAvoidingView>
-                    <HeaderView
-                        reportID={reportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
+                <HeaderView
+                    reportID={reportID}
+                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                />
 
-                    <View
-                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    >
-                        {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
-                        {!this.shouldShowLoader() && (
+                <View
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                >
+                    {this.shouldShowLoader()
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={this.state.skeletonViewContainerHeight}
+                            />
+                        )
+                        : (
                             <ReportActionsView
                                 reportID={reportID}
                                 reportActions={this.props.reportActions}
@@ -235,31 +238,30 @@ class ReportScreen extends React.Component {
                                 isComposerFullSize={this.props.isComposerFullSize}
                             />
                         )}
-                        {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
-                            <View style={[styles.chatFooter, this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                                {
-                                    isArchivedRoom
-                                        ? (
-                                            <ArchivedReportFooter
-                                                reportClosedAction={reportClosedAction}
+                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                            {
+                                isArchivedRoom
+                                    ? (
+                                        <ArchivedReportFooter
+                                            reportClosedAction={reportClosedAction}
+                                            report={this.props.report}
+                                        />
+                                    ) : (
+                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                            <ReportActionCompose
+                                                onSubmit={this.onSubmitComment}
+                                                reportID={reportID}
+                                                reportActions={this.props.reportActions}
                                                 report={this.props.report}
+                                                isComposerFullSize={this.props.isComposerFullSize}
                                             />
-                                        ) : (
-                                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                                <ReportActionCompose
-                                                    onSubmit={this.onSubmitComment}
-                                                    reportID={reportID}
-                                                    reportActions={this.props.reportActions}
-                                                    report={this.props.report}
-                                                    isComposerFullSize={this.props.isComposerFullSize}
-                                                />
-                                            </SwipeableView>
-                                        )
-                                }
-                            </View>
-                        )}
-                    </View>
-                </KeyboardAvoidingView>
+                                        </SwipeableView>
+                                    )
+                            }
+                        </View>
+                    )}
+                </View>
             </ScreenWrapper>
         );
     }
@@ -268,7 +270,7 @@ class ReportScreen extends React.Component {
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
-export default withOnyx({
+export default compose(withNetwork(), withOnyx({
     isSidebarLoaded: {
         key: ONYXKEYS.IS_SIDEBAR_LOADED,
     },
@@ -288,7 +290,11 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
+    isLoadingInitialReportActions: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${getReportID(route)}`,
+        initWithStoredValues: false,
+    },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },
-})(ReportScreen);
+}))(ReportScreen);
