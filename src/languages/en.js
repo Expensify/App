@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: 'Please enter a valid phone number, with the country code (e.g. +1234567890)',
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -329,7 +329,6 @@ export default {
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
         closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
-        closeAccountSuccess: 'Account closed successfully',
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
         enterDefaultContact: 'Enter your default contact method',
@@ -592,7 +591,7 @@ export default {
         callMeByMyName: 'Call me by my name',
     },
     messages: {
-        errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
+        errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -866,10 +865,9 @@ export default {
         invite: {
             invitePeople: 'Invite new members',
             personalMessagePrompt: 'Add a personal message (optional)',
-            pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
-            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         editor: {
             nameInputLabel: 'Name',
