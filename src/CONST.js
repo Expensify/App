@@ -12,8 +12,17 @@ const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
 
-    // 50 megabytes in bytes
-    API_MAX_ATTACHMENT_SIZE: 52428800,
+    API_ATTACHMENT_VALIDATIONS: {
+        // Same as the PHP layer allows
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml'],
+
+        // 50 megabytes in bytes
+        MAX_SIZE: 52428800,
+
+        // An arbitrary size, but the same minimum as in the PHP layer
+        MIN_SIZE: 240,
+    },
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
@@ -106,6 +115,7 @@ const CONST = {
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
+        BETA_COMMENT_LINKING: 'commentLinking',
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
@@ -198,6 +208,7 @@ const CONST = {
     CURRENCY: {
         USD: 'USD',
     },
+    EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     USE_EXPENSIFY_URL,
@@ -466,9 +477,16 @@ const CONST = {
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
-
     COMPOSER_MAX_HEIGHT: 125,
-
+    CHAT_FOOTER_MIN_HEIGHT: 65,
+    CHAT_SKELETON_VIEW: {
+        AVERAGE_ROW_HEIGHT: 80,
+        HEIGHT_FOR_ROW_COUNT: {
+            1: 60,
+            2: 80,
+            3: 100,
+        },
+    },
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
         HELP: 'help@expensify.com',
@@ -680,6 +698,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -736,6 +755,7 @@ const CONST = {
             SET: 'set',
         },
     },
+    MICROSECONDS_PER_MS: 1000,
 };
 
 export default CONST;
