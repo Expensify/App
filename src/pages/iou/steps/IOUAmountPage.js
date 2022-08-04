@@ -80,14 +80,15 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Returns the new selection object based on updated amount
+     * Returns the new selection object based on the updated amount's length
      *
      * @param {Object} oldSelection
-     * @param {Number} amountDelta
+     * @param {Number} prevLength
+     * @param {Number} newLength
      * @returns {Object}
      */
-    getNewSelection(oldSelection, amountDelta) {
-        const cursorPosition = oldSelection.end + amountDelta;
+    getNewSelection(oldSelection, prevLength, newLength) {
+        const cursorPosition = oldSelection.end + (newLength - prevLength);
         return {start: cursorPosition, end: cursorPosition};
     }
 
@@ -167,7 +168,7 @@ class IOUAmountPage extends React.Component {
                 this.setState((prevState) => {
                     const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
                     const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
-                    const selection = this.getNewSelection(prevState.selection, amount.length - prevState.amount.length);
+                    const selection = this.getNewSelection(prevState.selection, prevState.amount.length, amount.length);
                     return {amount, selection};
                 });
             }
@@ -176,11 +177,11 @@ class IOUAmountPage extends React.Component {
 
         this.setState((prevState) => {
             const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
-            if (this.validateAmount(amount)) {
-                const selection = this.getNewSelection(prevState.selection, amount.length - prevState.amount.length);
-                return {amount: this.stripCommaFromAmount(amount), selection};
+            if (!this.validateAmount(amount)) {
+                return prevState;
             }
-            return prevState;
+            const selection = this.getNewSelection(prevState.selection, prevState.amount.length, amount.length);
+            return {amount: this.stripCommaFromAmount(amount), selection};
         });
     }
 
