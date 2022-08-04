@@ -670,7 +670,8 @@ const styles = {
     },
 
     offlineIndicatorMobile: {
-        marginLeft: 25,
+        paddingLeft: 20,
+        paddingBottom: 9,
     },
 
     // Actions
@@ -1379,7 +1380,6 @@ const styles = {
     },
 
     chatFooter: {
-        minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
@@ -2612,6 +2612,39 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
+    },
+
+    avatarCropModalContainer: {
+        maxWidth: 450, // this width was chosen to match layout to average mobile device
+    },
+
+    imageCropContainer: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.shadow,
+    },
+
+    sliderKnob: {
+        backgroundColor: themeColors.badgeSuccessBG,
+        position: 'absolute',
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+        top: -variables.sliderBarHeight,
+        left: -(variables.sliderKnobSize / 2),
+    },
+
+    sliderBar: {
+        backgroundColor: themeColors.border,
+        height: variables.sliderBarHeight,
+        borderRadius: variables.sliderBarHeight / 2,
+        alignSelf: 'stretch',
+    },
+
+    imageCropRotateButton: {
+        height: variables.iconSizeExtraLarge,
     },
 
     userSelectText: {

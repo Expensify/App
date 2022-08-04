@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Section from '../components/Section';
 import Navigation from '../libs/Navigation/Navigation';
@@ -28,36 +27,34 @@ const propTypes = {
 
 const GetAssistancePage = props => (
     <ScreenWrapper>
-        <KeyboardAvoidingView>
-            <HeaderWithCloseButton
-                title={props.translate('getAssistancePage.title')}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <Section
-                title={props.translate('getAssistancePage.subtitle')}
-                icon={Illustrations.ConciergeExclamation}
-                menuItems={[
-                    {
-                        title: props.translate('getAssistancePage.chatWithConcierge'),
-                        onPress: () => Report.navigateToConciergeChat(),
-                        icon: Expensicons.ChatBubble,
-                        shouldShowRightIcon: true,
-                    },
-                    {
-                        title: props.translate('getAssistancePage.requestSetupCall'),
-                        onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
-                        icon: Expensicons.Phone,
-                        shouldShowRightIcon: true,
-                    },
-                ]}
-            >
-                <View style={styles.mv4}>
-                    <Text>{props.translate('getAssistancePage.description')}</Text>
-                </View>
-            </Section>
-        </KeyboardAvoidingView>
+        <HeaderWithCloseButton
+            title={props.translate('getAssistancePage.title')}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.goBack()}
+        />
+        <Section
+            title={props.translate('getAssistancePage.subtitle')}
+            icon={Illustrations.ConciergeExclamation}
+            menuItems={[
+                {
+                    title: props.translate('getAssistancePage.chatWithConcierge'),
+                    onPress: () => Report.navigateToConciergeChat(),
+                    icon: Expensicons.ChatBubble,
+                    shouldShowRightIcon: true,
+                },
+                {
+                    title: props.translate('getAssistancePage.requestSetupCall'),
+                    onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
+                    icon: Expensicons.Phone,
+                    shouldShowRightIcon: true,
+                },
+            ]}
+        >
+            <View style={styles.mv4}>
+                <Text>{props.translate('getAssistancePage.description')}</Text>
+            </View>
+        </Section>
     </ScreenWrapper>
 );
 
