@@ -3,6 +3,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
+import lodashMemoize from 'lodash/memoize';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -10,6 +11,8 @@ import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
+
+const memoizedOrderBy = lodashMemoize(lodashOrderBy);
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -154,6 +157,8 @@ function getParticipantNames(personalDetailList) {
     return participantNames;
 }
 
+const getMemoizedParticipantNames = _.memoize(getParticipantNames);
+
 /**
  * Returns a string with all relevant search terms.
  * Default should be serachable by policy/domain name but not by participants.
@@ -212,7 +217,7 @@ function hasReportDraftComment(report) {
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(logins, personalDetails, report, {
+function generateOption(logins, personalDetails, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
@@ -289,6 +294,8 @@ function createOption(logins, personalDetails, report, {
     };
 }
 
+const createOption = lodashMemoize(generateOption);
+
 /**
  * Searches for a match when provided with a value
  *
@@ -342,6 +349,8 @@ function isCurrentUser(userDetails) {
     return result;
 }
 
+const loginArrayMap = {};
+
 /**
  * Build the options
  *
@@ -390,8 +399,9 @@ function getOptions(reports, personalDetails, activeReportID, {
     if (sortByAlphaAsc) {
         sortProperty = ['reportName'];
     }
+
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+    let orderedReports = memoizedOrderBy(reports, sortProperty, sortDirection);
 
     // Move the archived Rooms to the last
     orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
@@ -462,16 +472,19 @@ function getOptions(reports, personalDetails, activeReportID, {
         }));
     });
 
-    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
+    let allPersonalDetailsOptions = _.map(personalDetails, (personalDetail) => {
+        if (!loginArrayMap[personalDetail.login]) {
+            loginArrayMap[personalDetail.login] = [personalDetail.login];
+        }
+        return createOption(loginArrayMap[personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
-        })
-    ));
+        });
+    });
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+        allPersonalDetailsOptions = memoizedOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
     }
 
     // Always exclude already selected options and the currently logged in user
@@ -502,7 +515,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
             // Finally check to see if this option is a match for the provided search string if we have one
             const {searchText, participantsList, isChatRoom} = reportOption;
-            const participantNames = getParticipantNames(participantsList);
+            const participantNames = getMemoizedParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 continue;
             }
@@ -529,20 +542,20 @@ function getOptions(reports, personalDetails, activeReportID, {
     // If we are prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
     if (prioritizeReportsWithDraftComments) {
-        const sortedDraftReports = lodashOrderBy(draftReportOptions, ['text'], ['asc']);
+        const sortedDraftReports = memoizedOrderBy(draftReportOptions, ['text'], ['asc']);
         recentReportOptions = sortedDraftReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing IOUs the user owes, add them before the normal recent report options and reports
     // with draft comments.
     if (prioritizeIOUDebts) {
-        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
+        const sortedIOUReports = memoizedOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
         recentReportOptions = sortedIOUReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
     if (prioritizePinnedReports) {
-        const sortedPinnedReports = lodashOrderBy(pinnedReportOptions, ['text'], ['asc']);
+        const sortedPinnedReports = memoizedOrderBy(pinnedReportOptions, ['text'], ['asc']);
         recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
@@ -561,7 +574,7 @@ function getOptions(reports, personalDetails, activeReportID, {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
-            const participantNames = getParticipantNames(participantsList);
+            const participantNames = getMemoizedParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 return;
             }
@@ -595,7 +608,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
         recentReportOptions.push(...personalDetailsOptions);
         personalDetailsOptions = [];
-        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
+        recentReportOptions = memoizedOrderBy(recentReportOptions, [(option) => {
             if (option.isChatRoom || option.isArchivedRoom) {
                 return 3;
             }
@@ -748,13 +761,15 @@ function getMemberInviteOptions(
  * @param {Array<String>} betas
  * @returns {Object}
  */
-function getSidebarOptions(
-    reports,
-    personalDetails,
-    activeReportID,
-    priorityMode,
-    betas,
-) {
+function calculateSidebarOptions(...args) {
+    const {
+        reports,
+        personalDetails,
+        activeReportID,
+        priorityMode,
+        betas,
+    } = args;
+
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
@@ -776,6 +791,8 @@ function getSidebarOptions(
         ...sideBarOptions,
     });
 }
+
+const getSidebarOptions = lodashMemoize(calculateSidebarOptions);
 
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
