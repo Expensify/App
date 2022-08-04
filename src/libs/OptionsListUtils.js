@@ -117,6 +117,8 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
     return personalDetailsForLogins;
 }
 
+const memoizedGetPersonalDetailsForLogins = memoizeOne(getPersonalDetailsForLogins);
+
 /**
  * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
  * to be used in isSearchStringMatch.
@@ -180,6 +182,8 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     return _.unique(searchTerms).join(' ');
 }
 
+const memoizedGetSearchText = memoizeOne(getSearchText);
+
 /**
  * Determines whether a report has a draft comment.
  *
@@ -210,7 +214,7 @@ function createOption(logins, personalDetails, report, reportsWithDraft, {
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
+    const personalDetailMap = memoizedGetPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
@@ -269,7 +273,7 @@ function createOption(logins, personalDetails, report, reportsWithDraft, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
+        searchText: memoizedGetSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
