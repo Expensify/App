@@ -211,9 +211,14 @@ class AttachmentModal extends PureComponent {
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
 
+        // When the send button is visible we don't need bottom padding on the attachment view.
+        const attachmentViewPaddingStyles = this.props.onConfirm
+            ? [styles.pl5, styles.pr5, styles.pt5]
+            : styles.p5;
+
         const attachmentViewStyles = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth
             ? [styles.imageModalImageCenterContainer]
-            : [styles.imageModalImageCenterContainer, styles.p5];
+            : [styles.imageModalImageCenterContainer, attachmentViewPaddingStyles];
 
         const {fileName, fileExtension} = this.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
