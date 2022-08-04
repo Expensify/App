@@ -495,6 +495,7 @@ class AdditionalDetailsStep extends React.Component {
                             isLoading={this.props.walletAdditionalDetails.isLoading}
                             buttonText={this.props.translate('common.saveAndContinue')}
                         />
+                        <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>
             </ScreenWrapper>
