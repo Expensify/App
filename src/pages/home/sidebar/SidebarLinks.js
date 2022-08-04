@@ -110,6 +110,7 @@ class SidebarLinks extends React.Component {
             activeReportID,
             props.priorityMode,
             props.betas,
+            props.reportsWithDraft,
         );
         return sidebarOptions.recentReports;
     }

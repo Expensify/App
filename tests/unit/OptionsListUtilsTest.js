@@ -683,6 +683,8 @@ describe('OptionsListUtils', () => {
                     personalDetailsWithNewParticipant,
                     0,
                     CONST.PRIORITY_MODE.DEFAULT,
+                    [],
+                    {[`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${1}`]: true},
                 );
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
@@ -696,19 +698,17 @@ describe('OptionsListUtils', () => {
                 expect(results.personalDetails.length).toBe(0);
 
                 // And the most recent pinned report is first in the list of reports
-                let index = 0;
-                expect(results.recentReports[index].text).toBe('Captain Britain');
-                expect(results.recentReports[index].login).toBe('captain_britain@expensify.com');
+                expect(results.recentReports[0].text).toBe('Captain Britain');
+                expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
 
                 // And the third report is the report with an IOU debt
-                index += 2;
-                expect(results.recentReports[index].login).toBe('mistersinister@marauders.com');
+                expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
 
                 // And the fourth report is the report with a draft comment
-                expect(results.recentReports[++index].text).toBe('Iron Man, Mister Fantastic');
+                expect(results.recentReports[3].text).toBe('Iron Man, Mister Fantastic');
 
                 // And the fifth report is the report with the lastMessage timestamp
-                expect(results.recentReports[++index].login).toBe('steverogers@expensify.com');
+                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
 
                 expect(_.last(results.recentReports).text).toBe("SHIELD's workspace");
             });
@@ -718,7 +718,14 @@ describe('OptionsListUtils', () => {
         () => Report.setReportWithDraft(1, true)
             .then(() => {
                 // When we call getSidebarOptions() with no search value
-                const results = OptionsListUtils.getSidebarOptions(REPORTS_WITH_MORE_PINS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
+                const results = OptionsListUtils.getSidebarOptions(
+                    REPORTS_WITH_MORE_PINS,
+                    PERSONAL_DETAILS,
+                    0,
+                    CONST.PRIORITY_MODE.GSD,
+                    [],
+                    {[`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${1}`]: true},
+                );
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
                 // report that has no lastMessageTimestamp and the chat with Thor who's message is read
@@ -836,6 +843,8 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS,
             0,
             CONST.PRIORITY_MODE.DEFAULT,
+            [],
+            {},
         );
 
         // Then expect all of the reports to be shown except the archived policyExpenseChats and defaultRooms
