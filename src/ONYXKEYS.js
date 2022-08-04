@@ -28,9 +28,6 @@ export default {
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
-    // What the active route is for our navigator. Global route that determines what views to display.
-    CURRENT_URL: 'currentURL',
-
     // Stores current date
     CURRENT_DATE: 'currentDate',
 
@@ -180,8 +177,8 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
-    // Is close acount modal open?
-    IS_CLOSE_ACCOUNT_MODAL_OPEN: 'isCloseAccountModalOpen',
+    // Data related to user closing their account (loading status and error message)
+    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
