@@ -55,6 +55,11 @@ class BaseKeyboardSpacer extends PureComponent {
         this.keyboardListeners.forEach(listener => listener.remove());
     }
 
+    /**
+     * Update the height of Keyboard View.
+     *
+     * @param {Object} [event] - A Keyboard Event.
+     */
     updateKeyboardSpace(event) {
         if (!event.endCoordinates) {
             return;
@@ -76,6 +81,11 @@ class BaseKeyboardSpacer extends PureComponent {
         }, this.props.onToggle(true, keyboardSpace));
     }
 
+    /**
+     * Reset the height of Keyboard View.
+     *
+     * @param {Object} [event] - A Keyboard Event.
+     */
     resetKeyboardSpace(event) {
         let animationConfig = defaultAnimation;
         if (this.props.iOSAnimated) {
@@ -106,4 +116,5 @@ class BaseKeyboardSpacer extends PureComponent {
 
 BaseKeyboardSpacer.defaultProps = defaultProps;
 BaseKeyboardSpacer.propTypes = propTypes;
+
 export default BaseKeyboardSpacer;
