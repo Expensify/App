@@ -29,7 +29,7 @@ const propTypes = {
         error: PropTypes.string,
 
         /** Whether a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     /** The credentials of the logged in person */
@@ -120,7 +120,7 @@ class SetPasswordPage extends Component {
                     <View>
                         <FormAlertWithSubmitButton
                             buttonText={buttonText}
-                            isLoading={this.props.account.loading}
+                            isLoading={this.props.account.isLoading}
                             onSubmit={this.validateAndSubmitForm}
                             containerStyles={[styles.mb2, styles.mh0]}
                             message={error}
