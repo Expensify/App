@@ -763,6 +763,14 @@ const CONST = {
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
     },
+    MICROSECONDS_PER_MS: 1000,
+    RBR: {
+        PENDING_ACTION: {
+            ADD: 'add',
+            DELETE: 'delete',
+            UPDATE: 'update',
+        },
+    },
 };
 
 export default CONST;
