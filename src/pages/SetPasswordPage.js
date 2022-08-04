@@ -105,7 +105,7 @@ class SetPasswordPage extends Component {
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
         if (this.props.userSignUp.authToken) {
-            Session.changePasswordAndSignIn(this.props.userSignUp.authToken, this.state.password);
+            Session.setPasswordForNewUserAndSignin(this.props.userSignUp.authToken, this.state.password);
         } else {
             Session.setPassword(this.state.password, validateCode, accountID);
         }

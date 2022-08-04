@@ -442,6 +442,67 @@ function changePasswordAndSignIn(authToken, password) {
 }
 
 /**
+ * Validates new user login, sets a new password and authenticates them
+ * @param {String} authToken
+ * @param {String} password
+ */
+function setPasswordForNewUserAndSignin(authToken, password) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                validateCodeExpired: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                error: '',
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                error: '',
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                error: 'Unable to set Password',
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                error: 'setPasswordPage.passwordNotSet',
+            },
+        },
+    ];
+    API.write('SetPasswordForNewAccountAndSignin', {authToken, password}, {optimisticData, successData, failureData});
+}
+
+/**
  * @param {Number} accountID
  * @param {String} validateCode
  * @param {String} login
@@ -539,6 +600,7 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 export {
     fetchAccountDetails,
     setPassword,
+    setPasswordForNewUserAndSignin,
     signIn,
     signInWithShortLivedToken,
     signOut,
