@@ -3,7 +3,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
-import lodashMemoize from 'lodash/memoize';
+import memoizeOne from 'memoize-one';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -12,8 +12,7 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 
-// We are memoizing some slow functions to make refreshing the options more performant
-const memoizedOrderBy = lodashMemoize(lodashOrderBy);
+const memoizedOrderBy = memoizeOne(lodashOrderBy);
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -43,18 +42,6 @@ let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
-});
-
-const reportsWithDraft = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
-    callback: (hasDraft, key) => {
-        if (!key) {
-            return;
-        }
-
-        reportsWithDraft[key] = hasDraft;
-    },
 });
 
 const policies = {};
@@ -197,11 +184,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
  * Determines whether a report has a draft comment.
  *
  * @param {Object} report
+ * @param {Object} reportsWithDraft
  * @return {Boolean}
  */
-function hasReportDraftComment(report) {
+function hasReportDraftComment(report, reportsWithDraft = {}) {
     return report
-        && reportsWithDraft
         && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
 }
 
@@ -211,13 +198,15 @@ function hasReportDraftComment(report) {
  * @param {Array<String>} logins
  * @param {Object} personalDetails
  * @param {Object} report
+ * @param {Object} reportsWithDraft
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(logins, personalDetails, report, {
-    showChatPreviewLine = false, forcePolicyNamePreview = false,
+function createOption(logins, personalDetails, report, reportsWithDraft, {
+    showChatPreviewLine = false,
+    forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -226,7 +215,7 @@ function createOption(logins, personalDetails, report, {
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
-    const hasDraftComment = hasReportDraftComment(report);
+    const hasDraftComment = hasReportDraftComment(report, reportsWithDraft);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const iouReport = hasOutstandingIOU
         ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
@@ -293,8 +282,7 @@ function createOption(logins, personalDetails, report, {
     };
 }
 
-// We are memoizing this to increase the performance when recalculating options
-const memoizedCreateOption = lodashMemoize(createOption);
+const memoizedCreateOption = memoizeOne(createOption);
 
 /**
  * Searches for a match when provided with a value
@@ -364,6 +352,7 @@ const loginArrayMap = {};
  * @private
  */
 function getOptions(reports, personalDetails, activeReportID, {
+    reportsWithDraft = {},
     betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
@@ -421,7 +410,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        const hasDraftComment = hasReportDraftComment(report);
+        const hasDraftComment = hasReportDraftComment(report, reportsWithDraft);
         const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
             ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
             : '';
@@ -468,7 +457,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(memoizedCreateOption(logins, personalDetails, report, {
+        allReportOptions.push(memoizedCreateOption(logins, personalDetails, report, reportsWithDraft, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
@@ -480,10 +469,17 @@ function getOptions(reports, personalDetails, activeReportID, {
         if (!loginArrayMap[personalDetail.login]) {
             loginArrayMap[personalDetail.login] = [personalDetail.login];
         }
-        return memoizedCreateOption(loginArrayMap[personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
-            showChatPreviewLine,
-            forcePolicyNamePreview,
-        });
+        return memoizedCreateOption(
+            loginArrayMap[personalDetail.login],
+            personalDetails,
+            reportMapForLogins[personalDetail.login],
+            reportsWithDraft,
+            {
+                showChatPreviewLine,
+                forcePolicyNamePreview,
+                reportsWithDraft,
+            },
+        );
     });
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -601,8 +597,9 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        userToInvite = memoizedCreateOption([login], personalDetails, null, {
+        userToInvite = memoizedCreateOption([login], personalDetails, null, reportsWithDraft, {
             showChatPreviewLine,
+            reportsWithDraft,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
     }
@@ -763,9 +760,10 @@ function getMemberInviteOptions(
  * @param {Number} activeReportID
  * @param {String} priorityMode
  * @param {Array<String>} betas
+ * @param {Object} reportsWithDraft
  * @returns {Object}
  */
-function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas) {
+function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportsWithDraft) {
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
@@ -785,10 +783,11 @@ function calculateSidebarOptions(reports, personalDetails, activeReportID, prior
         showChatPreviewLine: true,
         prioritizePinnedReports: true,
         ...sideBarOptions,
+        reportsWithDraft,
     });
 }
 
-const getSidebarOptions = lodashMemoize(calculateSidebarOptions);
+const getSidebarOptions = memoizeOne(calculateSidebarOptions);
 
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
