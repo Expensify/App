@@ -50,7 +50,19 @@ Onyx.connect({
             return;
         }
 
-        policyIDList = _.map(_.values(val), policy => policy.id);
+        const tempPolicyIDList = [];
+        _.each(_.keys(val), (key) => {
+            if (!val[key] || !val[key].id) {
+                return;
+            }
+            tempPolicyIDList.push(val[key].id);
+        });
+
+        if (_.isEmpty(tempPolicyIDList)) {
+            return;
+        }
+        console.log(tempPolicyIDList);
+        policyIDList = tempPolicyIDList;
     },
 });
 
