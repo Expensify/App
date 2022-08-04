@@ -104,7 +104,6 @@ class PDFView extends Component {
         const outerContainerStyle = [
             styles.w100,
             styles.h100,
-            styles.dFlex,
             styles.justifyContentCenter,
             styles.alignItemsCenter,
         ];
