@@ -12,6 +12,7 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 
+// We are memoizing some slow functions to make refreshing the options more performant
 const memoizedOrderBy = lodashMemoize(lodashOrderBy);
 
 /**
@@ -215,7 +216,7 @@ function hasReportDraftComment(report) {
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function generateOption(logins, personalDetails, report, {
+function createOption(logins, personalDetails, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
@@ -292,7 +293,8 @@ function generateOption(logins, personalDetails, report, {
     };
 }
 
-const createOption = lodashMemoize(generateOption);
+// We are memoizing this to increase the performance when recalculating options
+const memoizedCreateOption = lodashMemoize(createOption);
 
 /**
  * Searches for a match when provided with a value
@@ -347,6 +349,8 @@ function isCurrentUser(userDetails) {
     return result;
 }
 
+// We are storing a map of logins in the format {[login]: [login]} so that the memoized functions looking for an array with a login in it
+// treat this like the same argument (because it will use the same reference). Memoization for personalDetails won't work properly without this.
 const loginArrayMap = {};
 
 /**
@@ -464,17 +468,19 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(createOption(logins, personalDetails, report, {
+        allReportOptions.push(memoizedCreateOption(logins, personalDetails, report, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
     let allPersonalDetailsOptions = _.map(personalDetails, (personalDetail) => {
+        // We want to use the same argument reference when creating the personalDetails option as memoization won't work properly
+        // if we passed [personalDetail.login] directly (that would be a new argument since we'd initialize a new array)
         if (!loginArrayMap[personalDetail.login]) {
             loginArrayMap[personalDetail.login] = [personalDetail.login];
         }
-        return createOption(loginArrayMap[personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
+        return memoizedCreateOption(loginArrayMap[personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         });
@@ -595,7 +601,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        userToInvite = createOption([login], personalDetails, null, {
+        userToInvite = memoizedCreateOption([login], personalDetails, null, {
             showChatPreviewLine,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
