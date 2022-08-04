@@ -119,6 +119,10 @@ export default {
         chooseDocument: 'Choose document',
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
+        attachmentTooSmall: 'Attachment too small',
+        sizeNotMet: 'Attachment size must be greater than 240 bytes',
+        wrongFileType: 'Attachment is the wrong type',
+        notAllowedExtension: 'Attachments must be one of the following types: ',
     },
     composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
@@ -320,7 +324,6 @@ export default {
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
         closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
-        closeAccountSuccess: 'Account closed successfully',
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
         enterDefaultContact: 'Enter your default contact method',
@@ -393,7 +396,6 @@ export default {
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
-        addBankAccountSuccess: 'Your bank account has successfully been added.',
         addBankAccountFailure: 'And unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
@@ -569,6 +571,8 @@ export default {
         enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
+        successTitle: 'Personal bank account added!',
+        successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',

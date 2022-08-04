@@ -119,6 +119,10 @@ export default {
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
+        attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
+        sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes',
+        wrongFileType: 'El tipo del archivo adjunto es incorrecto',
+        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
     },
     composer: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
@@ -320,7 +324,6 @@ export default {
         enterMessageHere: 'Ingresa el mensaje aquí',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
         closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
-        closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
         enterDefaultContact: 'Tu método de contacto predeterminado',
@@ -393,7 +396,6 @@ export default {
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
-        addBankAccountSuccess: 'Su cuenta bancaria ha sido añadida con éxito.',
         addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
@@ -569,6 +571,8 @@ export default {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
+        successTitle: '¡Cuenta bancaria personal añadida!',
+        successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
