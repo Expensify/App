@@ -116,10 +116,6 @@ function openApp() {
         }],
         successData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
-            value: true,
-        }, {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             value: false,
         }],
