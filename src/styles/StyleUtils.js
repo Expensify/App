@@ -483,6 +483,18 @@ function convertToLTR(text) {
     return `\u2066${text}`;
 }
 
+/**
+ * Checks to see if the iOS device has safe areas or not
+ *
+ * @param {Number} windowWidth
+ * @param {Number} windowHeight
+ * @returns {Boolean}
+ */
+function hasSafeAreas(windowWidth, windowHeight) {
+    const heightsIphonesWithNotches = [812, 896, 844, 926];
+    return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -513,4 +525,5 @@ export {
     getPaddingLeft,
     getReportListAnimationStyle,
     convertToLTR,
+    hasSafeAreas,
 };
