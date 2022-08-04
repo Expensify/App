@@ -80,9 +80,6 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    /** Whether we have the necessary report data to load the sidebar */
-    initialReportDataLoaded: PropTypes.bool,
-
     // Whether we are syncing app data
     isSyncingData: PropTypes.bool,
 
@@ -98,7 +95,6 @@ const defaultProps = {
     },
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    initialReportDataLoaded: false,
     isSyncingData: false,
 };
 
@@ -258,7 +254,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         // Wait until the reports and personalDetails are actually loaded before displaying the LHN
-        if (!this.props.initialReportDataLoaded || _.isEmpty(this.props.personalDetails)) {
+        if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
@@ -357,9 +353,6 @@ export default compose(
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        initialReportDataLoaded: {
-            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,

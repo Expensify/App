@@ -47,9 +47,6 @@ const propTypes = {
     /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
 
-    /** Whether the initial data needed to render the app is ready */
-    initialReportDataLoaded: PropTypes.bool,
-
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: PropTypes.bool,
 
@@ -72,7 +69,6 @@ const defaultProps = {
         accountID: null,
     },
     updateAvailable: false,
-    initialReportDataLoaded: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
 };
@@ -123,8 +119,7 @@ class Expensify extends PureComponent {
         }
 
         if (this.state.isNavigationReady && this.state.isSplashShown) {
-            const authStackReady = this.props.initialReportDataLoaded && this.props.isSidebarLoaded;
-            const shouldHideSplash = !this.isAuthenticated() || authStackReady;
+            const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
 
             if (shouldHideSplash) {
                 BootSplash.hide();
@@ -222,9 +217,6 @@ export default compose(
         updateAvailable: {
             key: ONYXKEYS.UPDATE_AVAILABLE,
             initWithStoredValues: false,
-        },
-        initialReportDataLoaded: {
-            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
         },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
