@@ -11,7 +11,7 @@ const propTypes = {
     /** Callback to inform parent modal with key pressed */
     numberPressed: PropTypes.func.isRequired,
 
-    /** Callback to inform parent modal whether user is long pressing the "<" button */
+    /** Callback to inform parent modal whether user is long pressing the "<" (backspace) button */
     longPressHandlerStateChanged: PropTypes.func,
 
     ...withLocalizePropTypes,
