@@ -4,6 +4,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import memoizeOne from 'memoize-one';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -101,6 +102,32 @@ const defaultProps = {
     isSyncingData: false,
 };
 
+/**
+ * @param {Object} nextUnreadReports
+ * @param {Object} unreadReports
+ * @returns {Boolean}
+ */
+function checkForNewUnreadReports(nextUnreadReports, unreadReports) {
+    return nextUnreadReports.length > 0
+            && _.some(nextUnreadReports,
+                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
+}
+const getHasNewUnreadReports = memoizeOne(checkForNewUnreadReports);
+
+/**
+ * @param {Object} reportsObject
+ * @returns {Array}
+ */
+function getUnreadReports(reportsObject) {
+    const reports = _.values(reportsObject);
+    if (reports.length === 0) {
+        return [];
+    }
+    const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
+    return unreadReports;
+}
+const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
+
 class SidebarLinks extends React.Component {
     static getRecentReports(props) {
         const activeReportID = parseInt(props.currentlyViewedReportID, 10);
@@ -113,15 +140,6 @@ class SidebarLinks extends React.Component {
             props.reportsWithDraft,
         );
         return sidebarOptions.recentReports;
-    }
-
-    static getUnreadReports(reportsObject) {
-        const reports = _.values(reportsObject);
-        if (reports.length === 0) {
-            return [];
-        }
-        const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
-        return unreadReports;
     }
 
     /**
@@ -156,11 +174,8 @@ class SidebarLinks extends React.Component {
         }
 
         // If any reports have new unread messages, re-order the list
-        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps.reports || {});
-        const hasNewUnreadReports = nextUnreadReports.length > 0
-            && _.some(nextUnreadReports,
-                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
-        if (hasNewUnreadReports) {
+        const nextUnreadReports = memoizeGetUnreadReports(nextProps.reports || {});
+        if (getHasNewUnreadReports(nextUnreadReports, unreadReports)) {
             return true;
         }
 
@@ -183,7 +198,7 @@ class SidebarLinks extends React.Component {
             },
             orderedReports: [],
             priorityMode: props.priorityMode,
-            unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
+            unreadReports: memoizeGetUnreadReports(props.reports || {}),
         };
     }
 
@@ -233,7 +248,7 @@ class SidebarLinks extends React.Component {
                 hasDraftHistory,
                 lastMessageTimestamp,
             },
-            unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
+            unreadReports: memoizeGetUnreadReports(nextProps.reports || {}),
         };
     }
 
