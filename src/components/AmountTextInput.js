@@ -19,10 +19,21 @@ const propTypes = {
 
     /** Placeholder value for amount text input */
     placeholder: PropTypes.string.isRequired,
+
+    /** Selection Object */
+    selection: PropTypes.shape({
+        start: PropTypes.number,
+        end: PropTypes.number,
+    }),
+
+    /** Function to call when selection in text input is changed */
+    onSelectionChange: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
+    selection: undefined,
+    onSelectionChange: () => {},
 };
 
 function AmountTextInput(props) {
@@ -39,8 +50,8 @@ function AmountTextInput(props) {
             placeholder={props.placeholder}
             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
             blurOnSubmit={false}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            selection={props.selection}
+            onSelectionChange={props.onSelectionChange}
         />
     );
 }
