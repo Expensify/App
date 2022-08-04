@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import PDFPasswordForm from './PDFPasswordForm';
 import {propTypes as pdfViewPropTypes, defaultProps as pdfViewDefaultProps} from './pdfViewPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
@@ -149,12 +150,14 @@ class BasePDFViewNative extends Component {
                     </TouchableWithoutFeedback>
                 )}
                 {this.state.shouldRequestPassword && (
-                    <PDFPasswordForm
-                        onSubmit={this.attemptPdfLoadWithPassword}
-                        onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
-                        isPasswordInvalid={this.state.isPasswordInvalid}
-                        shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
-                    />
+                    <KeyboardAvoidingView>
+                        <PDFPasswordForm
+                            onSubmit={this.attemptPdfLoadWithPassword}
+                            onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
+                            isPasswordInvalid={this.state.isPasswordInvalid}
+                            shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
+                        />
+                    </KeyboardAvoidingView>
                 )}
             </View>
         );
