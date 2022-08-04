@@ -23,8 +23,12 @@ jobs:
             exit 1
           fi
 
+      - name: Get number of CPU cores
+        id: cpu-cores
+        uses: SimenB/github-actions-cpu-cores@v1
+
       - name: Jest Unit Tests
-        run: npm run test
+        run: npm run test -- --max-workers ${{ steps.cpu-cores.outputs.count }}
         env:
           CI: true
 
