@@ -98,9 +98,11 @@ class PDFPasswordForm extends Component {
                         style={containerStyle}
                         contentContainerStyle={[styles.ph5, styles.flex1, styles.justifyContentCenter]}
                     >
-                        <Text style={styles.mb4}>
-                            {this.props.translate('attachmentView.pdfPasswordForm.formLabel')}
-                        </Text>
+                        <View style={styles.mb4}>
+                            <Text>
+                                {this.props.translate('attachmentView.pdfPasswordForm.formLabel')}
+                            </Text>
+                        </View>
                         <TextInput
                             label={this.props.translate('common.password')}
                             autoComplete="off"
