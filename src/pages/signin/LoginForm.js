@@ -34,7 +34,7 @@ const propTypes = {
         success: PropTypes.string,
 
         /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     ...windowDimensionsPropTypes,
@@ -132,7 +132,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
     }
 
     render() {
@@ -174,7 +174,7 @@ class LoginForm extends React.Component {
                     <Button
                         success
                         text={this.props.translate('common.continue')}
-                        isLoading={this.props.account.loading}
+                        isLoading={this.props.account.isLoading}
                         onPress={this.validateAndSubmitForm}
                     />
                 </View>

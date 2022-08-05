@@ -19,7 +19,7 @@ let networkRequestQueue = [];
  * @return {Boolean}
  */
 function canMakeRequest(request) {
-    // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, GetAccountStatus)
+    // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, BeginSignIn)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
     return request.data.forceNetworkRequest === true || (!NetworkStore.isAuthenticating() && !SequentialQueue.isRunning());
 }
