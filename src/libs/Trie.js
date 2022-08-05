@@ -28,7 +28,7 @@ class Trie {
     /**
     * Check if the word is exist in the Trie.
     * @param {String} word
-    * @return {Object}
+    * @returns {Object}
     */
     isWord(word) {
         let node = this.root;
@@ -43,6 +43,39 @@ class Trie {
         }
         const found = !!((node.keys.has(word) && node.keys.get(word).isEnd()));
         return {found, code: node.keys.get(word).getCode()};
+    }
+
+    getAllMatchingWords(substr) {
+        let node = this.root;
+        const words = [];
+        let firstChars = '';
+
+        const getAllChildren = function (parentNode, string) {
+            if (parentNode.keys.size !== 0) {
+                parentNode.keys.keys().forEach((letter) => {
+                    // eslint-disable-next-line no-unused-vars
+                    getAllChildren(parentNode.keys.get(letter), string.concat(letter));
+                });
+                if (parentNode.isEnd()) {
+                    words.push(firstChars + string);
+                }
+            } else if (string.length > 0) {
+                words.push(firstChars + string);
+            }
+        };
+
+        while (substr.length > 1) {
+            if (!node.keys.has(substr[0])) {
+                return false;
+            }
+            node = node.keys.get(substr[0]);
+            firstChars += substr.charAt(0);
+            // eslint-disable-next-line no-param-reassign
+            substr = substr.substr(1);
+        }
+
+        getAllChildren(node, '');
+        return words;
     }
 }
 
