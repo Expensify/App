@@ -112,7 +112,7 @@ function checkForNewUnreadReports(nextUnreadReports, unreadReports) {
             && _.some(nextUnreadReports,
                 nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
 }
-const getHasNewUnreadReports = memoizeOne(checkForNewUnreadReports);
+const memoizeCheckForNewUnreadReports = memoizeOne(checkForNewUnreadReports);
 
 /**
  * @param {Object} reportsObject
@@ -175,7 +175,7 @@ class SidebarLinks extends React.Component {
 
         // If any reports have new unread messages, re-order the list
         const nextUnreadReports = memoizeGetUnreadReports(nextProps.reports || {});
-        if (getHasNewUnreadReports(nextUnreadReports, unreadReports)) {
+        if (memoizeCheckForNewUnreadReports(nextUnreadReports, unreadReports)) {
             return true;
         }
 
