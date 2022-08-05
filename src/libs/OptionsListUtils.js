@@ -481,7 +481,6 @@ function getOptions(reports, personalDetails, activeReportID, {
             {
                 showChatPreviewLine,
                 forcePolicyNamePreview,
-                reportsWithDraft,
             },
         );
     });
@@ -603,7 +602,6 @@ function getOptions(reports, personalDetails, activeReportID, {
             : searchValue;
         userToInvite = memoizedCreateOption([login], personalDetails, null, reportsWithDraft, {
             showChatPreviewLine,
-            reportsWithDraft,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
     }
