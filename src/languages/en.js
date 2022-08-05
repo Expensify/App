@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: 'Please enter a valid phone number, with the country code (e.g. +1234567890)',
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -123,6 +123,10 @@ export default {
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'Attachments must be one of the following types: ',
+    },
+    avatarCropModal: {
+        title: 'Edit photo',
+        description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
@@ -261,6 +265,7 @@ export default {
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
+        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
     },
     profilePage: {
         profile: 'Profile',
@@ -492,11 +497,9 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
+        weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
         validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
-        unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
-        newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },
     detailsPage: {
         localTime: 'Local time',
@@ -518,7 +521,7 @@ export default {
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
-        verifyingAccount: 'Verifying account',
+        validatingAccount: 'Verifying account',
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
@@ -586,7 +589,7 @@ export default {
         callMeByMyName: 'Call me by my name',
     },
     messages: {
-        errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
+        errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -860,10 +863,9 @@ export default {
         invite: {
             invitePeople: 'Invite new members',
             personalMessagePrompt: 'Add a personal message (optional)',
-            pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
-            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         editor: {
             nameInputLabel: 'Name',
