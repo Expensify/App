@@ -136,6 +136,18 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.email
+ * @param {Boolean} parameters.forceNetworkRequest
+ * @returns {Promise}
+ */
+function GetAccountStatus(parameters) {
+    const commandName = 'GetAccountStatus';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
  */
@@ -373,6 +385,17 @@ function User_IsFromPublicDomain(parameters) {
         ...{requireCertainty: true},
         ...parameters,
     });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
+ * @returns {Promise}
+ */
+function User_ReopenAccount(parameters) {
+    const commandName = 'User_ReopenAccount';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -747,6 +770,7 @@ export {
     DeleteLogin,
     DeleteBankAccount,
     Get,
+    GetAccountStatus,
     GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,
@@ -771,6 +795,7 @@ export {
     User_GetBetas,
     User_IsFromPublicDomain,
     User_IsUsingExpensifyCard,
+    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     User_FixAccount,
