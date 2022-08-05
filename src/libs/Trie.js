@@ -28,7 +28,7 @@ class Trie {
     /**
     * Check if the word is exist in the Trie.
     * @param {String} word
-    * @return {Object}
+    * @returns {Object}
     */
     isWord(word) {
         let node = this.root;
