@@ -330,13 +330,14 @@ function getLoginContainerMarginStyles({
     isMediumScreenWidth,
     windowHeight,
 }) {
+    let marginStyle = {};
     if (isSmallScreenWidth) {
-        return styles.signInPageNarrowContentMargin;
+        marginStyle = {...marginStyle, ...styles.signInPageNarrowContentMargin};
     }
     if (!isMediumScreenWidth || (isMediumScreenWidth && windowHeight < variables.minHeightToShowGraphics)) {
-        return styles.signInPageWideLeftContentMargin;
+        marginStyle = {...marginStyle, ...styles.signInPageWideLeftContentMargin};
     }
-    return {};
+    return marginStyle;
 }
 
 /**
