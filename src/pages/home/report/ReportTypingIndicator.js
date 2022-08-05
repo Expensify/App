@@ -16,9 +16,6 @@ const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
 
-    /** Optional styles for container element that will override the default styling for the report typing indicator */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -26,7 +23,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    containerStyles: [],
     userTypingStatuses: {},
 };
 
@@ -82,7 +78,6 @@ class ReportTypingIndicator extends React.Component {
                         style={[
                             styles.chatItemComposeSecondaryRowSubText,
                             styles.chatItemComposeSecondaryRowOffset,
-                            ...this.props.containerStyles,
                         ]}
                         numberOfLines={1}
                     >
