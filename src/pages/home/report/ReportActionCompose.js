@@ -370,11 +370,11 @@ class ReportActionCompose extends React.Component {
     /**
      * Update the value of the comment in Onyx
      *
-     * @param {String} newComment
+     * @param {String} comment
      */
-    updateComment(newComment) {
-        const textWithEmojis = EmojiUtils.replaceEmojis(newComment);
-        this.textInput.setNativeProps({text: textWithEmojis});
+    updateComment(comment) {
+        const newComment = EmojiUtils.replaceEmojis(comment);
+        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
         });
@@ -389,9 +389,9 @@ class ReportActionCompose extends React.Component {
             Report.setReportWithDraft(this.props.reportID.toString(), false);
         }
 
-        this.comment = textWithEmojis;
-        this.debouncedSaveReportComment(textWithEmojis);
-        if (textWithEmojis) {
+        this.comment = newComment;
+        this.debouncedSaveReportComment(newComment);
+        if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
     }

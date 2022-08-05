@@ -210,7 +210,7 @@ function replaceEmojis(text) {
     const emojiNames = text.match(/:[\w+-]+:/g);
     if (!emojiNames || emojiNames.length === 0) { return text; }
     for (let i = 0; i < emojiNames.length; i++) {
-        const checkEmoji = emojisTrie.isEmoji(emojiNames[i].slice(1, -1));
+        const checkEmoji = emojisTrie.isWord(emojiNames[i].slice(1, -1));
         if (checkEmoji.found) {
             newText = newText.replace(emojiNames[i], checkEmoji.code);
         }

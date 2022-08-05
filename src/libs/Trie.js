@@ -7,42 +7,42 @@ class Trie {
     }
 
     /**
-    * Add an emoji into the Trie
-    * @param {String} input
-    * @param {String} code
+    * Add a word to the Trie
+    * @param {String} word
+    * @param {String} [code]
     * @param {TrieNode} node
-    * @return {Object}
+    * @returns {Object}
     */
-    add(input, code, node = this.root) {
-        if (input.length === 0) {
+    add(word, code, node = this.root) {
+        if (word.length === 0) {
             node.setEnd();
             node.setCode(code);
             return;
-        } if (!node.keys.has(input[0])) {
-            node.keys.set(input[0], new TrieNode());
-            return this.add(input.substring(1), code, node.keys.get(input[0]));
+        } if (!node.keys.has(word[0])) {
+            node.keys.set(word[0], new TrieNode());
+            return this.add(word.substring(1), code, node.keys.get(word[0]));
         }
-        return this.add(input.substring(1), code, node.keys.get(input[0]));
+        return this.add(word.substring(1), code, node.keys.get(word[0]));
     }
 
     /**
-    * Check if the emoji is exist in the Trie.
-    * @param {String} emoji
+    * Check if the word is exist in the Trie.
+    * @param {String} word
     * @return {Object}
     */
-    isEmoji(emoji) {
+    isWord(word) {
         let node = this.root;
-        while (emoji.length > 1) {
-            if (!node.keys.has(emoji[0])) {
+        while (word.length > 1) {
+            if (!node.keys.has(word[0])) {
                 // return false;
                 return {found: false};
             }
-            node = node.keys.get(emoji[0]);
+            node = node.keys.get(word[0]);
             // eslint-disable-next-line no-param-reassign
-            emoji = emoji.substring(1);
+            word = word.substring(1);
         }
-        const found = !!((node.keys.has(emoji) && node.keys.get(emoji).isEnd()));
-        return {found, code: node.keys.get(emoji).getCode()};
+        const found = !!((node.keys.has(word) && node.keys.get(word).isEnd()));
+        return {found, code: node.keys.get(word).getCode()};
     }
 }
 
