@@ -259,30 +259,25 @@ describe('actions/BankAccounts', () => {
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
 
-                HttpUtils.xhr.mockImplementation((command) => {
-                    // WHEN we mock a sucessful call to SetupWithdrawalAccount while on the ACHContractStep
-                    switch (command) {
-                        case 'BankAccount_SetupWithdrawal':
-                            return Promise.resolve({
-                                jsonCode: 200,
-                                achData: {
-                                    bankAccountID: TEST_BANK_ACCOUNT_ID,
-                                },
-                            });
+                // WHEN we mock a sucessful call to SetupWithdrawalAccount while on the ACHContractStep
+                HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({
+                    jsonCode: 200,
+                    achData: {
+                        bankAccountID: TEST_BANK_ACCOUNT_ID,
+                    },
+                }));
 
-                        // And mock the response of Get&returnValueList=bankAccountList
-                        case 'Get':
-                            return Promise.resolve({
-                                jsonCode: 200,
-                                bankAccountList: [{
-                                    bankAccountID: TEST_BANK_ACCOUNT_ID,
-                                    state: BankAccount.STATE.PENDING,
-                                }],
-                            });
-                        default:
-                            return Promise.resolve({jsonCode: 200});
-                    }
-                });
+                // And mock SetNameValuePair response
+                HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({jsonCode: 200}));
+
+                // And mock the response of Get&returnValueList=bankAccountList
+                HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({
+                    jsonCode: 200,
+                    bankAccountList: [{
+                        bankAccountID: TEST_BANK_ACCOUNT_ID,
+                        state: BankAccount.STATE.PENDING,
+                    }],
+                }));
 
                 // WHEN we call setupWithdrawalAccount via the ACHContractStep
                 BankAccounts.setupWithdrawalAccount({
