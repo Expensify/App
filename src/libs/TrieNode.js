@@ -25,7 +25,7 @@ class TrieNode {
     }
 
     /**
-    * Set the node code, code represent an emoji
+    * Set the node code, code represent a word payload
     * @param {String} code
     */
     setCode(code) {
@@ -33,7 +33,7 @@ class TrieNode {
     }
 
     /**
-    * Get the node code, code represent an emoji
+    * Get the node code, code represent a word payload
     * @return {String}
     */
     getCode() {

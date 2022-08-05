@@ -17,6 +17,11 @@ describe('Trie', () => {
         wordTrie.add('harry');
         wordTrie.add('James');
         wordTrie.add('Robert');
+        wordTrie.add('Rooert');
+        wordTrie.add('Roeert');
+        wordTrie.add('Roaert');
+        wordTrie.add('Royert');
+        console.log(wordTrie.getAllMatchingWords('Ro'));
         expect(wordTrie.isWord('James')).toMatchObject({found: true});
         expect(wordTrie.isWord('Steven')).toEqual({found: false});
     });
