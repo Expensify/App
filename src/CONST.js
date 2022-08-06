@@ -24,6 +24,10 @@ const CONST = {
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
+
+    // Minimum width and height size in px for a selected image
+    AVATAR_MIN_WIDTH_PX: 80,
+    AVATAR_MIN_HEIGHT_PX: 80,
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -208,6 +212,7 @@ const CONST = {
     CURRENCY: {
         USD: 'USD',
     },
+    EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     USE_EXPENSIFY_URL,
@@ -477,6 +482,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
     COMPOSER_MAX_HEIGHT: 125,
+    CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {
@@ -748,6 +754,18 @@ const CONST = {
     MAX_COMMENT_LENGTH: 60000,
 
     FORM_CHARACTER_LIMIT: 50,
+    AVATAR_CROP_MODAL: {
+        // The next two constants control what is min and max value of the image crop scale.
+        // Values define in how many times the image can be bigger than its container.
+        // Notice: that values less than 1 mean that the image won't cover the container fully.
+        MAX_SCALE: 3, // 3x scale is used commonly in different apps.
+        MIN_SCALE: 1, // 1x min scale means that the image covers the container completely
+
+        // This const defines the initial container size, before layout measurement.
+        // Since size cant be null, we have to define some initial value.
+        INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
+    },
+
     ONYX: {
         METHOD: {
             MERGE: 'merge',
@@ -755,6 +773,11 @@ const CONST = {
         },
     },
     MICROSECONDS_PER_MS: 1000,
+    RED_BRICK_ROAD_PENDING_ACTION: {
+        ADD: 'add',
+        DELETE: 'delete',
+        UPDATE: 'update',
+    },
 };
 
 export default CONST;
