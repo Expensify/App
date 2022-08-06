@@ -7,7 +7,6 @@ import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import KeyboardSpacer from '../components/KeyboardSpacer';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
@@ -177,7 +176,6 @@ class SearchPage extends Component {
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector
-                                shouldDelayFocus
                                 sections={sections}
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
@@ -189,7 +187,6 @@ class SearchPage extends Component {
                                 shouldShowOptions={didScreenTransitionEnd}
                             />
                         </View>
-                        <KeyboardSpacer />
                     </>
                 )}
             </ScreenWrapper>

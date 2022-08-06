@@ -9,4 +9,7 @@ export default PropTypes.shape({
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
      */
     errors: PropTypes.objectOf(PropTypes.string),
+
+    /** Is this action pending? */
+    pendingAction: PropTypes.string,
 });

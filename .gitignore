@@ -24,6 +24,7 @@ DerivedData
 *.p12
 *.mobileprovision
 ios-fastlane-json-key.json
+ios/.xcode.env.local
 
 # Android/IntelliJ
 #
@@ -62,15 +63,17 @@ android/app/android-fastlane-json-key.json
 # For more information about the recommended setup visit:
 # https://docs.fastlane.tools/best-practices/source-control/
 
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
 
 # Bundle artifact
 *.jsbundle
 
-# CocoaPods
+# Ruby / CocoaPods
 /ios/Pods/
+/vendor/bundle/
 
 # Local DEV config
 /.env

@@ -343,16 +343,6 @@ function SetPassword(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.message
- * @returns {Promise}
- */
-function User_Delete(parameters) {
-    const commandName = 'User_Delete';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -749,7 +739,6 @@ export {
     SetPassword,
     UpdatePolicy,
     User_SignUp,
-    User_Delete,
     User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,

@@ -1,5 +1,5 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import _ from 'underscore';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
@@ -97,20 +97,23 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const html = lodashGet(message, 'html', '');
-
-            const parser = new ExpensiMark();
-            const reportMarkdown = parser.htmlToMarkdown(html);
-
-            const text = selection || reportMarkdown;
+            const messageHtml = lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
-                Clipboard.setString(text);
+                const content = selection || messageHtml;
+                if (content) {
+                    const parser = new ExpensiMark();
+                    if (!Clipboard.canSetHtml()) {
+                        Clipboard.setString(parser.htmlToMarkdown(content));
+                    } else {
+                        Clipboard.setHtml(content, parser.htmlToText(content));
+                    }
+                }
             } else {
-                Clipboard.setString(html);
+                Clipboard.setString(messageHtml);
             }
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);

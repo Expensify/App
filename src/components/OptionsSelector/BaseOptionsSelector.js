@@ -4,145 +4,34 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Button from './Button';
-import FixedFooter from './FixedFooter';
-import OptionsList from './OptionsList';
-import Text from './Text';
-import compose from '../libs/compose';
-import CONST from '../CONST';
-import styles from '../styles/styles';
-import optionPropTypes from './optionPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import TextInput from './TextInput';
-import ArrowKeyFocusManager from './ArrowKeyFocusManager';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import ONYXKEYS from '../ONYXKEYS';
-import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
+import Button from '../Button';
+import FixedFooter from '../FixedFooter';
+import OptionsList from '../OptionsList';
+import Text from '../Text';
+import compose from '../../libs/compose';
+import CONST from '../../CONST';
+import styles from '../../styles/styles';
+import withLocalize from '../withLocalize';
+import TextInput from '../TextInput';
+import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import ONYXKEYS from '../../ONYXKEYS';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 
 const propTypes = {
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
+    /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
 
-    /** Callback to fire when a row is tapped */
-    onSelectRow: PropTypes.func,
-
-    /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        /** Title of the section */
-        title: PropTypes.string,
-
-        /** The initial index of this section given the total number of options in each section's data array */
-        indexOffset: PropTypes.number,
-
-        /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypes),
-
-        /** Whether this section should show or not */
-        shouldShow: PropTypes.bool,
-
-        /** Whether this section items disabled for selection */
-        isDisabled: PropTypes.bool,
-    })).isRequired,
-
-    /** Value in the search input field */
-    value: PropTypes.string.isRequired,
-
-    /** Callback fired when text changes */
-    onChangeText: PropTypes.func.isRequired,
-
-    /** Label to display for the text input */
-    textInputLabel: PropTypes.string,
-
-    /** Optional placeholder text for the selector */
-    placeholderText: PropTypes.string,
-
-    /** Options that have already been selected */
-    selectedOptions: PropTypes.arrayOf(optionPropTypes),
-
-    /** Optional header message */
-    headerMessage: PropTypes.string,
-
-    /** Whether we can select multiple options */
-    canSelectMultipleOptions: PropTypes.bool,
-
-    /** Whether any section headers should be visible */
-    hideSectionHeaders: PropTypes.bool,
-
-    /** Whether to allow arrow key actions on the list */
-    disableArrowKeysActions: PropTypes.bool,
-
-    /** Whether to disable interactivity of option rows */
-    isDisabled: PropTypes.bool,
-
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
-    /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
-
-    /** Whether to show the title tooltip */
-    showTitleTooltip: PropTypes.bool,
-
-    /** Whether to focus the textinput after an option is selected */
-    shouldFocusOnSelectRow: PropTypes.bool,
-
-    /** Whether to autofocus the search input on mount */
-    autoFocus: PropTypes.bool,
-
-    /** Should a button be shown if a selection is made (only relevant if canSelectMultipleOptions is true) */
-    shouldShowConfirmButton: PropTypes.bool,
-
-    /** Text to show in the confirm button (only visible if multiple options are selected) */
-    confirmButtonText: PropTypes.string,
-
-    /** Function to execute if the confirm button is pressed */
-    onConfirmSelection: PropTypes.func,
-
-    /** If true, the text input will be below the options in the selector, not above. */
-    shouldTextInputAppearBelowOptions: PropTypes.bool,
-
-    /** If true, a message will display in the footer if the app is offline. */
-    shouldShowOfflineMessage: PropTypes.bool,
-
-    /** Custom content to display in the footer instead of the default button. */
-    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
-
-    /** Hover style for options in the OptionsList */
-    optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** Whether to show options list */
-    shouldShowOptions: PropTypes.bool,
-
-    ...withLocalizePropTypes,
+    ...optionsSelectorPropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
-    onSelectRow: () => {},
-    textInputLabel: '',
-    placeholderText: '',
-    selectedOptions: [],
-    headerMessage: '',
-    canSelectMultipleOptions: false,
-    hideSectionHeaders: false,
-    hideAdditionalOptionStates: false,
-    forceTextUnreadStyle: false,
-    showTitleTooltip: false,
-    shouldFocusOnSelectRow: false,
-    autoFocus: true,
-    shouldShowConfirmButton: false,
-    confirmButtonText: undefined,
-    onConfirmSelection: () => {},
-    shouldTextInputAppearBelowOptions: false,
-    shouldShowOfflineMessage: false,
-    footerContent: undefined,
-    optionHoveredStyle: styles.hoveredComponentBG,
-    shouldShowOptions: true,
-    disableArrowKeysActions: false,
-    isDisabled: false,
+    ...optionsSelectorDefaultProps,
 };
 
-class OptionsSelector extends Component {
+class BaseOptionsSelector extends Component {
     constructor(props) {
         super(props);
 
@@ -220,8 +109,8 @@ class OptionsSelector extends Component {
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
         }, () => {
-            // If we just selected a new option on a multiple-selection page, scroll to the top
-            if (this.props.selectedOptions.length > prevProps.selectedOptions.length) {
+            // If we just toggled an option on a multi-selection page, scroll to top
+            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length) {
                 this.scrollToIndex(0);
                 return;
             }
@@ -427,8 +316,9 @@ class OptionsSelector extends Component {
     }
 }
 
-OptionsSelector.defaultProps = defaultProps;
-OptionsSelector.propTypes = propTypes;
+BaseOptionsSelector.defaultProps = defaultProps;
+BaseOptionsSelector.propTypes = propTypes;
+
 export default compose(
     withLocalize,
     withOnyx({
@@ -436,4 +326,4 @@ export default compose(
             key: ONYXKEYS.NETWORK,
         },
     }),
-)(OptionsSelector);
+)(BaseOptionsSelector);

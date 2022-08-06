@@ -1,4 +1,5 @@
-import {AppState, Linking} from 'react-native';
+import moment from 'moment-timezone';
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -19,10 +20,12 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 
 let currentUserAccountID;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -31,6 +34,12 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: val => isSidebarLoaded = val,
     initWithStoredValues: false,
+});
+
+let myPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => myPersonalDetails = val[currentUserEmail],
 });
 
 const allPolicies = {};
@@ -44,13 +53,6 @@ Onyx.connect({
         allPolicies[key] = {...allPolicies[key], ...val};
     },
 });
-
-/**
- * @param {String} url
- */
-function setCurrentURL(url) {
-    Onyx.set(ONYXKEYS.CURRENT_URL, url);
-}
 
 /**
 * @param {String} locale
@@ -156,13 +158,10 @@ function fixAccountAndReloadData() {
 }
 
 /**
- * This action runs every time the AuthScreens are mounted. The navigator may
- * not be ready yet, and therefore we need to wait before navigating within this
- * action and any actions this method calls.
+ * This action runs when the Navigator is ready and the current route changes
  *
- * getInitialURL allows us to access params from the transition link more easily
- * than trying to extract them from the navigation state.
-
+ * currentPath should be the path as reported by the NavigationContainer
+ *
  * The transition link contains an exitTo param that contains the route to
  * navigate to after the user is signed in. A user can transition from OldDot
  * with a different account than the one they are currently signed in with, so
@@ -177,33 +176,73 @@ function fixAccountAndReloadData() {
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
+ * @param {string} currentPath
  */
-function setUpPoliciesAndNavigate(session) {
-    Linking.getInitialURL()
-        .then((url) => {
-            if (!url) {
-                return;
-            }
-            const path = new URL(url).pathname;
-            const params = new URLSearchParams(url);
-            const exitTo = params.get('exitTo');
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(url, session.email);
-            const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(path, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+function setUpPoliciesAndNavigate(session, currentPath) {
+    if (!session || !currentPath || !currentPath.includes('exitTo')) {
+        return;
+    }
+
+    let exitTo;
+    try {
+        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
+        exitTo = url.searchParams.get('exitTo');
+    } catch (error) {
+        // URLSearchParams is unsupported on iOS so we catch th error and
+        // silence it here since this is primarily a Web flow
+        return;
+    }
+
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
+    const shouldCreateFreePolicy = !isLoggingInAsNewUser
+                        && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
-            if (shouldCreateFreePolicy) {
-                Policy.createAndGetPolicyList();
-                return;
-            }
-            if (!isLoggingInAsNewUser && exitTo) {
-                Navigation.isNavigationReady()
-                    .then(() => {
-                        // We must call dismissModal() to remove the /transition route from history
-                        Navigation.dismissModal();
-                        Navigation.navigate(exitTo);
-                    });
-            }
-        });
+    if (shouldCreateFreePolicy) {
+        Policy.createAndGetPolicyList();
+        return;
+    }
+    if (!isLoggingInAsNewUser && exitTo) {
+        // We must call dismissModal() to remove the /transition route from history
+        Navigation.dismissModal();
+        Navigation.navigate(exitTo);
+    }
+}
+
+function openProfile() {
+    const oldTimezoneData = myPersonalDetails.timezone || {};
+    let newTimezoneData = oldTimezoneData;
+
+    if (lodashGet(oldTimezoneData, 'automatic', true)) {
+        newTimezoneData = {
+            automatic: true,
+            selected: moment.tz.guess(true),
+        };
+    }
+
+    API.write('OpenProfile', {
+        timezone: JSON.stringify(newTimezoneData),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone: newTimezoneData,
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone: oldTimezoneData,
+                },
+            },
+        }],
+    });
+
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 // When the app reconnects from being offline, fetch all initialization data
@@ -213,11 +252,11 @@ NetworkConnection.onReconnect(() => {
 });
 
 export {
-    setCurrentURL,
     setLocale,
     setSidebarLoaded,
     getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
+    openProfile,
     openApp,
 };
