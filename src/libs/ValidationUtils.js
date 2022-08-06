@@ -320,10 +320,21 @@ function isValidRoutingNumber(number) {
  * @param {String[]} valuesToBeValidated
  * @returns {Boolean[]}
  */
+ function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => value && value.length > maxLength);
+}
+
+/**
+ * Checks if each string in array is of valid length and then returns true
+ * for each string which exceeds the limit. The function trims the passed values.
+ *
+ * @param {Number} maxLength
+ * @param {String[]} valuesToBeValidated
+ * @returns {Boolean[]}
+ */
 function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
     return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
 }
-
 /**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
@@ -383,6 +394,7 @@ export {
     isValidRoutingNumber,
     isValidSSNLastFour,
     isValidSSNFullNine,
+    doesFailCharacterLimit,
     doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
