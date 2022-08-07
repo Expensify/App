@@ -63,10 +63,10 @@ class BaseTextInput extends Component {
         this.input.focus();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         // Activate or deactivate the label when value is changed programmatically from outside
         const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
-        if (_.isUndefined(inputValue) || this.state.value === inputValue) {
+        if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {
             return;
         }
 
