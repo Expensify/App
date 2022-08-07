@@ -78,4 +78,6 @@ export default {
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
     INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
+    sliderBarHeight: 8,
+    sliderKnobSize: 26,
 };
