@@ -50,21 +50,21 @@ function updatePassword(oldPassword, password) {
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
+                value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
             },
         ],
         successData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
+                value: {loading: false},
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
+                value: {loading: false},
             },
         ],
     });
@@ -177,7 +177,7 @@ function updateNewsletterSubscription(isSubscribed) {
  * @returns {Promise}
  */
 function setSecondaryLoginAndNavigate(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return DeprecatedAPI.User_SecondaryLogin_Send({
         email: login,
@@ -202,7 +202,7 @@ function setSecondaryLoginAndNavigate(login, password) {
 
         Onyx.merge(ONYXKEYS.USER, {error});
     }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
     });
 }
 
@@ -215,7 +215,7 @@ function setSecondaryLoginAndNavigate(login, password) {
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     DeprecatedAPI.ValidateEmail({
         accountID,
@@ -236,7 +236,7 @@ function validateLogin(accountID, validateCode) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error});
         }
     }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         Navigation.navigate(redirectRoute);
     });
 }
