@@ -1628,4 +1628,5 @@ export {
     openReport,
     openPaymentDetailsPage,
     createOptimisticReport,
+    updatePolicyRoomName,
 };

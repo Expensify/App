@@ -123,7 +123,7 @@ class ReportSettingsPage extends Component {
             Growl.success(this.props.translate('newRoomPage.policyRoomRenamed'));
             return;
         }
-        Report.renameReport(this.props.report.reportID, this.state.newRoomName);
+        Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
     }
 
     validate() {
