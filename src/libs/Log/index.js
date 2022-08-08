@@ -2,10 +2,11 @@
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 /* eslint-disable rulesdir/no-api-in-views */
 import Logger from 'expensify-common/lib/Logger';
-import getPlatform from './getPlatform';
-import {version} from '../../package.json';
-import requireParameters from './requireParameters';
-import * as Network from './Network';
+import getPlatform from '../getPlatform';
+import {version} from '../../../package.json';
+import requireParameters from '../requireParameters';
+import * as Network from '../Network';
+import clientLoggingCallback from './clientLoggingCallback';
 
 let timeout = null;
 
@@ -51,9 +52,7 @@ function serverLoggingCallback(logger, params) {
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
 const Log = new Logger({
     serverLoggingCallback,
-    clientLoggingCallback: (message) => {
-        console.debug(message);
-    },
+    clientLoggingCallback,
     isDebug: true,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
