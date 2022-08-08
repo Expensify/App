@@ -28,5 +28,5 @@ jobs:
         env:
           CI: true
 
-      - name: Pull Request Tests
-        run: tests/unit/getPullRequestsMergedBetweenTest.sh
+      - name: Test CI Git Logic
+        run: tests/unit/gitTestCI.sh
