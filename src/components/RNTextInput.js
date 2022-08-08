@@ -15,6 +15,7 @@ const defaultProps = {
 
 const RNTextInput = props => (
     <TextInput
+        allowFontScaling={false}
         ref={(ref) => {
             if (!_.isFunction(props.forwardedRef)) {
                 return;

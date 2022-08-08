@@ -29,7 +29,7 @@ const picker = {
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 52,
+    height: variables.inputHeight,
     borderWidth: 1,
     borderStyle: 'solid',
     borderColor: themeColors.border,
@@ -215,25 +215,25 @@ const styles = {
 
     label: {
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     mutedTextLabel: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     textMicro: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroBold: {
@@ -247,7 +247,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textExtraSmallSupporting: {
@@ -611,7 +611,7 @@ const styles = {
     badgeText: {
         color: themeColors.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        lineHeight: variables.lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
@@ -658,7 +658,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -681,7 +681,7 @@ const styles = {
     },
 
     componentHeightLarge: {
-        height: variables.componentSizeLarge,
+        height: variables.inputHeight,
     },
 
     textInputContainer: {
@@ -809,7 +809,7 @@ const styles = {
     },
     picker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
-            top: 16,
+            top: variables.pickerIconTop,
             right: 11,
             zIndex: -1,
         },
@@ -867,21 +867,21 @@ const styles = {
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
         marginBottom: 8,
     },
 
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
         marginBottom: 4,
     },
 
     formError: {
         color: themeColors.textError,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.formErrorLineHeight,
         marginBottom: 4,
     },
 
@@ -970,7 +970,7 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         justifyContent: 'center',
-        paddingVertical: 20,
+        paddingVertical: variables.lineHeightXLarge,
         width: '100%',
     },
 
@@ -1186,8 +1186,8 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 20,
-        lineHeight: 20,
+        height: variables.alternateTextHeight,
+        lineHeight: variables.lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
 
@@ -1206,8 +1206,8 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 20,
-        lineHeight: 20,
+        height: variables.alternateTextHeight,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     optionAlternateTextCompact: {
@@ -1313,7 +1313,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
@@ -1324,14 +1324,14 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         height: 24,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemMessage: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         marginTop: -2,
         marginBottom: -2,
         maxWidth: '100%',
@@ -1347,7 +1347,7 @@ const styles = {
         color: colors.blue,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemComposeWithFirstRow: {
@@ -1402,7 +1402,7 @@ const styles = {
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         ...overflowXHidden,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
@@ -2380,7 +2380,7 @@ const styles = {
     peopleBadgeText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        lineHeight: variables.lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
@@ -2478,7 +2478,7 @@ const styles = {
     },
 
     communicationsLinkHeight: {
-        height: 20,
+        height: variables.communicationsLinkHeight,
     },
 
     floatingMessageCounterWrapper: {

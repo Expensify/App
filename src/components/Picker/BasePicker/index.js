@@ -53,6 +53,7 @@ class BasePicker extends React.Component {
                 fixAndroidTouchableBug
                 onOpen={this.props.onOpen}
                 onClose={this.props.onClose}
+                textInputProps={{allowFontScaling: false}}
                 pickerProps={{
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,

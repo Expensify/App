@@ -216,7 +216,7 @@ class Button extends Component {
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View>
+                        <View style={styles.justifyContentCenter}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
