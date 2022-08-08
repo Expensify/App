@@ -246,6 +246,7 @@ function openProfile() {
 }
 
 // When the app reconnects from being offline, fetch all initialization data
+NetworkConnection.listenForReconnect();
 NetworkConnection.onReconnect(() => {
     getAppData();
     reconnectApp();
