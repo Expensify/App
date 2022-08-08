@@ -91,7 +91,10 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
-        avatar: fullPolicyOrPolicySummary.avatar || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '') || fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+        avatar: fullPolicyOrPolicySummary.avatar
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
+            || fullPolicyOrPolicySummary.avatarURL
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
         customUnit: customUnitSimplified,
     };
