@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import {Dimensions, Keyboard, LayoutAnimation, View} from 'react-native';
-import {propTypes as keyboardSpacerPropTypes,defaultProps as keyboardSpacerDefaultProps} from './KeyboardSpacerPropTypes';
+import {propTypes, defaultProps} from './BaseKeyboardSpacerPropTypes';
 
 const defaultAnimation = {
     duration: 500,
@@ -14,15 +14,6 @@ const defaultAnimation = {
         springDamping: 200,
     },
 };
-
-const propTypes = {
-    ...keyboardSpacerPropTypes,
-};
-
-const defaultProps = {
-    ...keyboardSpacerDefaultProps,
-};
-
 class BaseKeyboardSpacer extends PureComponent {
     constructor(props) {
         super(props);

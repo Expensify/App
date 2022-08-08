@@ -494,7 +494,6 @@ function hasSafeAreas(windowWidth, windowHeight) {
     const heightsIphonesWithNotches = [812, 896, 844, 926];
     return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
 }
-
 export {
     getAvatarSize,
     getAvatarStyle,
