@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: 'Please enter a valid phone number, with the country code (e.g. +1234567890)',
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -119,6 +119,14 @@ export default {
         chooseDocument: 'Choose document',
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 50 MB limit.',
+        attachmentTooSmall: 'Attachment too small',
+        sizeNotMet: 'Attachment size must be greater than 240 bytes',
+        wrongFileType: 'Attachment is the wrong type',
+        notAllowedExtension: 'Attachments must be one of the following types: ',
+    },
+    avatarCropModal: {
+        title: 'Edit photo',
+        description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
@@ -228,7 +236,6 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         youowe: ({owner}) => `You owe ${owner}`,
         youpaid: ({owner}) => `You paid ${owner}`,
@@ -249,9 +256,7 @@ export default {
         mute: 'Mute',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
-        useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
     avatarWithImagePicker: {
@@ -260,6 +265,7 @@ export default {
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
+        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
     },
     profilePage: {
         profile: 'Profile',
@@ -323,7 +329,6 @@ export default {
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
         closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
-        closeAccountSuccess: 'Account closed successfully',
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
         enterDefaultContact: 'Enter your default contact method',
@@ -390,15 +395,13 @@ export default {
         deleteBankAccountSuccess: 'Bank account successfully deleted',
         deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
-        allSet: 'All Set!',
-        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
-        gotIt: 'Got it, Thanks!',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
+        addBankAccountFailure: 'And unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -408,6 +411,9 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
+        transferSuccess: 'Transfer successful!',
+        transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
+        transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
@@ -570,6 +576,8 @@ export default {
         enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
+        successTitle: 'Personal bank account added!',
+        successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
@@ -583,7 +591,7 @@ export default {
         callMeByMyName: 'Call me by my name',
     },
     messages: {
-        errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
+        errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -609,6 +617,7 @@ export default {
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
         selectAnswer: 'You need to select a response to proceed.',
+        ssnFull9Error: 'Please enter a valid 9 digit SSN',
         needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
         weCouldNotVerify: 'We could not verify',
         pleaseFixIt: 'Please fix this information before continuing.',
@@ -856,10 +865,9 @@ export default {
         invite: {
             invitePeople: 'Invite new members',
             personalMessagePrompt: 'Add a personal message (optional)',
-            pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
-            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         editor: {
             nameInputLabel: 'Name',

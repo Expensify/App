@@ -37,7 +37,7 @@ This document lists specific guidelines for all PR reviews and aims to clarify i
 ## Good code patterns to require
 
 1. Check that functions have comments when appropriate.
-    - If the function has params or returns something, use [JSDocs syntax]((https://github.com/Expensify/App/blob/main/docs/STYLE.md#jsdocs)) to describe them.
+    - If the function has params or returns something, use [JSDocs syntax]((https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) to describe them.
         - Indicate the param name(s), data type passed and / or returned, and purpose if not immediately obvious.
     - Obvious functions (with no params / return value) should not have comments.
     - **In short: _Add comments & docs, only when useful._**

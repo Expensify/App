@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Monto no válido',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
-            phoneNumber: 'Ingresa un teléfono válido, incluyendo el código de país (p. ej. +1234567890)',
+            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -119,6 +119,14 @@ export default {
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
+        attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
+        sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes',
+        wrongFileType: 'El tipo del archivo adjunto es incorrecto',
+        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
+    },
+    avatarCropModal: {
+        title: 'Editar Foto',
+        description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
@@ -228,7 +236,6 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        settleVenmo: 'Pagar con Venmo',
         request: ({amount}) => `Solicitar ${amount}`,
         youowe: ({owner}) => `Le debes a ${owner}`,
         youpaid: ({owner}) => `Le pagaste a ${owner}`,
@@ -249,9 +256,7 @@ export default {
         mute: 'Nunca',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
-        useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
     avatarWithImagePicker: {
@@ -260,6 +265,7 @@ export default {
         editImage: 'Editar foto',
         imageUploadFailed: 'Error al cargar la imagen',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
+        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
     },
     profilePage: {
         profile: 'Perfil',
@@ -323,7 +329,6 @@ export default {
         enterMessageHere: 'Ingresa el mensaje aquí',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
         closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
-        closeAccountSuccess: 'Cuenta cerrada exitosamente',
         closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
         closeAccountTryAgainAfter: 'e intenta nuevamente',
         enterDefaultContact: 'Tu método de contacto predeterminado',
@@ -390,15 +395,13 @@ export default {
         deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
         deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
         deletePayPalSuccess: 'PayPal.me eliminada correctamente',
-        allSet: 'Todo listo!',
-        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
-        gotIt: 'Gracias!',
         error: {
             notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como tu método de pago predeterminado.',
             invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
+        addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -408,6 +411,9 @@ export default {
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
+        transferSuccess: '¡Transferencia exitosa!',
+        transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
+        transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor transfiere los fondos a una cuenta bancaria.',
     },
     chooseTransferAccountPage: {
@@ -570,6 +576,8 @@ export default {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
+        successTitle: '¡Cuenta bancaria personal añadida!',
+        successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
@@ -583,7 +591,7 @@ export default {
         callMeByMyName: 'Llámame por mi nombre',
     },
     messages: {
-        errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
+        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -609,6 +617,7 @@ export default {
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellido legal',
         selectAnswer: 'Selecciona una respuesta.',
+        ssnFull9Error: 'Por favor escribe los 9 dígitos de un SSN válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
         weCouldNotVerify: 'No pudimos verificar',
         pleaseFixIt: 'Corrije esta información antes de continuar.',
@@ -858,10 +867,9 @@ export default {
         invite: {
             invitePeople: 'Invitar nuevos miembros',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
-            pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
-            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
+            pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         editor: {
             nameInputLabel: 'Nombre',

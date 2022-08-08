@@ -18,6 +18,16 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
 }
 
 /**
+ * Check if tagName is equal to any of our custom tags wrapping chat comments.
+ *
+ * @param {string} tagName
+ * @returns {Boolean}
+ */
+function isCommentTag(tagName) {
+    return tagName === 'email-comment' || tagName === 'comment';
+}
+
+/**
  * Check if there is an ancestor node with name 'comment'.
  * Finding node with name 'comment' flags that we are rendering a comment.
  * @param {TNode} tnode
@@ -26,7 +36,7 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
 function isInsideComment(tnode) {
     let currentNode = tnode;
     while (currentNode.parent) {
-        if (currentNode.domNode.name === 'comment') {
+        if (isCommentTag(currentNode.domNode.name)) {
             return true;
         }
         currentNode = currentNode.parent;
@@ -37,4 +47,5 @@ function isInsideComment(tnode) {
 export {
     computeEmbeddedMaxWidth,
     isInsideComment,
+    isCommentTag,
 };

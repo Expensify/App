@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import overflowXHidden from './overflowXHidden';
@@ -135,7 +136,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        whiteSpace: 'pre',
     },
 };
 
@@ -149,6 +149,7 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+    ...writingDirection,
 
     rateCol: {
         margin: 0,
@@ -664,6 +665,15 @@ const styles = {
         marginLeft: 48,
     },
 
+    offlineIndicator: {
+        marginLeft: 48,
+    },
+
+    offlineIndicatorMobile: {
+        paddingLeft: 20,
+        paddingBottom: 9,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -973,6 +983,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -985,6 +996,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -999,8 +1011,18 @@ const styles = {
         backgroundColor: themeColors.online,
     },
 
-    statusIndicatorOffline: {
-        backgroundColor: themeColors.offline,
+    avatarWithIndicator: {
+        errorDot: {
+            borderColor: themeColors.sidebar,
+            borderRadius: 6,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -1,
+            bottom: -1,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
     },
 
     floatingActionButton: {
@@ -1358,7 +1380,6 @@ const styles = {
     },
 
     chatFooter: {
-        minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
@@ -1397,6 +1418,10 @@ const styles = {
         alignSelf: 'flex-end',
         flex: 1,
         maxHeight: '100%',
+    },
+
+    editInputComposeSpacing: {
+        marginVertical: 6,
     },
 
     textInputComposeSpacing: {
@@ -2335,6 +2360,9 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+
+    peopleRowOfflineFeedback: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
@@ -2354,6 +2382,36 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    offlineFeedback: {
+        deleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        pending: {
+            opacity: 0.5,
+        },
+        error: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        container: {
+            ...spacing.pv2,
+        },
+        textContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        text: {
+            color: themeColors.textSupporting,
+            flex: 1,
+            textAlignVertical: 'center',
+            fontSize: variables.fontSizeLabel,
+        },
+        errorDot: {
+            marginRight: 12,
+        },
     },
 
     sidebarPopover: {
@@ -2554,6 +2612,39 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
+    },
+
+    avatarCropModalContainer: {
+        maxWidth: 450, // this width was chosen to match layout to average mobile device
+    },
+
+    imageCropContainer: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.shadow,
+    },
+
+    sliderKnob: {
+        backgroundColor: themeColors.badgeSuccessBG,
+        position: 'absolute',
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+        top: -variables.sliderBarHeight,
+        left: -(variables.sliderKnobSize / 2),
+    },
+
+    sliderBar: {
+        backgroundColor: themeColors.border,
+        height: variables.sliderBarHeight,
+        borderRadius: variables.sliderBarHeight / 2,
+        alignSelf: 'stretch',
+    },
+
+    imageCropRotateButton: {
+        height: variables.iconSizeExtraLarge,
     },
 
     userSelectText: {

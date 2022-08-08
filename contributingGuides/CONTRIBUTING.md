@@ -37,6 +37,8 @@ Payment for your contributions will be made no less than 7 days after the pull r
 
 New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. 
 
+Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
+
 ## Finding Jobs
 There are two ways you can find a job that you can contribute to:
 
@@ -55,7 +57,7 @@ Please follow these steps to propose a job:
 2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it will help solve the issue.
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
-6. If the issue happens in main, staging or production then report the issue(s) in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/docs/CONTRIBUTING.md#asking-questions) Slack channel, prefixed with `BUG:` or `Feature Request:`. Please use the templates for bugs and feature requests that are bookmarked in #expensify-open-source. View [this guide](https://github.com/Expensify/App/blob/main/docs/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. 
+6. If the issue happens in main, staging or production then report the issue(s) in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#asking-questions) Slack channel, prefixed with `BUG:` or `Feature Request:`. Please use the templates for bugs and feature requests that are bookmarked in #expensify-open-source. View [this guide](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. 
 7. After review in #expensify-open-source, if you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 8. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork. No additional work is needed. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
 9. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
@@ -75,7 +77,7 @@ Additionally if you want to discuss an idea with the community without having a 
 #### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.
-* In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/docs/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
+* In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/contributingGuides/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
 
 #### Check GitHub for existing proposals from other users
 
@@ -111,7 +113,7 @@ Additionally if you want to discuss an idea with the community without having a 
 
 #### Submit your pull request for final review
 12. When you are ready to submit your pull request for final review, make sure the following checks pass:
-	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/App/blob/main/docs/CLA.md) by following the CLA bot instructions that will be posted on your PR
+	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/App/blob/main/contributingGuides/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
@@ -126,5 +128,5 @@ Additionally if you want to discuss an idea with the community without having a 
 - On occasion, our engineers will need to focus on a feature release and choose to place a hold on the review of your PR. Depending on the hold length, our team will decide if a bonus will be applied to the job.    
 
 #### Important note about JavaScript Style
-- Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/docs/STYLE.md). Please refer to our Style Guide before asking for a review.
+- Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
 - We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in unnecessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not related to the important changes you are making.

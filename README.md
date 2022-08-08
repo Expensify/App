@@ -45,13 +45,16 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11580) for installing cocoapods.
 
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install && cd ..`
+* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
-* Go through the instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
+* Go through the instructions on [this SO post](https://stackoverflow.com/c/expensify/questions/13283/13284#13284) to start running the app on android.
+* For more information, go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
+* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -109,7 +112,7 @@ to help run our Unit tests.
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser.
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
 
-Alternatively, you can also setup debugger using [Flipper](https://fbflipper.com/). After installation, press `⌘D` and select "Open Debugger". This will open Flipper window. To view data stored by Onyx, go to Plugin Manager and install `async-storage` plugin.
+Alternatively, you can also set up debugger using [Flipper](https://fbflipper.com/). After installation, press `⌘D` and select "Open Debugger". This will open Flipper window. To view data stored by Onyx, go to Plugin Manager and install `async-storage` plugin.
 
 ## Android
 Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
@@ -215,6 +218,9 @@ created to house a collection of items in plural form and using camelCase (eg: p
 - pages: These are components that define pages in the app. The component that defines the page itself should be named
 `<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
 - styles: These files define styles used among components/pages
+- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo.
+
+**Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
 
 ## File naming/structure
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
@@ -298,7 +304,7 @@ This application is built with the following principles.
     - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that doesn't have a report name.
+        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
         - The order that actions are done in. All actions should be done in parallel instead of sequence.
             - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.

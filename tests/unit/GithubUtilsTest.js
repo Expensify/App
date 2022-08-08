@@ -65,6 +65,7 @@ describe('GithubUtils', () => {
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,
             deployBlockers: [],
+            internalQAPRList: [],
             isTimingDashboardChecked: false,
             isFirebaseChecked: false,
         };
@@ -509,7 +510,7 @@ describe('GithubUtils', () => {
         ));
 
         test('Test some verified internalQA PRs', () => (
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [internalQAPRList[0]])
+            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [], [internalQAPRList[0]])
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`

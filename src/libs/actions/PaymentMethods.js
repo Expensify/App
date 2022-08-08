@@ -4,14 +4,15 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import CONST from '../../CONST';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
-import ROUTES from '../../ROUTES';
-import NameValuePair from './NameValuePair';
+import * as User from './User';
 import * as store from './ReimbursementAccount/store';
+import ROUTES from '../../ROUTES';
 
 /**
  * Deletes a debit card
@@ -36,8 +37,7 @@ function deleteDebitCard(fundID) {
 }
 
 function deletePayPalMe() {
-    NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, '');
-    Onyx.set(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, null);
+    User.deletePaypalMeAddress();
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
@@ -103,47 +103,71 @@ function getPaymentMethods() {
         });
 }
 
+function openPaymentsPage() {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+    };
+
+    return API.read('OpenPaymentsPage', {}, onyxData);
+}
+
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  * @param {String} password
  * @param {Number} bankAccountID
  * @param {Number} fundID
+ * @param {Number} previousPaymentMethodID
+ * @param {String} previousPaymentMethodType
  *
- * @returns {Promise}
  */
-function setWalletLinkedAccount(password, bankAccountID, fundID) {
-    return DeprecatedAPI.SetWalletLinkedAccount({
+function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethodID, previousPaymentMethodType) {
+    API.write('MakeDefaultPaymentMethod', {
         password,
         bankAccountID,
         fundID,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.USER_WALLET, {
-                    walletLinkedAccountID: bankAccountID || fundID, walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                });
-                Growl.show(Localize.translateLocal('paymentsPage.setDefaultSuccess'), CONST.GROWL.SUCCESS, 5000);
-                return;
-            }
-
-            // Make sure to show user more specific errors which will help support identify the problem faster.
-            switch (response.message) {
-                case CONST.WALLET.ERROR.INVALID_WALLET:
-                case CONST.WALLET.ERROR.NOT_OWNER_OF_BANK_ACCOUNT:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                case CONST.WALLET.ERROR.NOT_OWNER_OF_FUND:
-                case CONST.WALLET.ERROR.INVALID_FUND:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.notOwnerOfFund')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                case CONST.WALLET.ERROR.INVALID_BANK_ACCOUNT:
-                    Growl.show(`${Localize.translateLocal('paymentsPage.error.invalidBankAccount')} ${Localize.translateLocal('common.conciergeHelp')}`, CONST.GROWL.ERROR, 5000);
-                    return;
-                default:
-                    Growl.show(Localize.translateLocal('paymentsPage.error.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
-            }
-        });
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: bankAccountID || fundID,
+                    walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: previousPaymentMethodID,
+                    walletLinkedAccountType: previousPaymentMethodType,
+                },
+            },
+        ],
+    });
 }
 
 /**
@@ -220,20 +244,40 @@ function transferWalletBalance(paymentMethod) {
     const parameters = {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
-    DeprecatedAPI.TransferWalletBalance(parameters)
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-            Onyx.merge(ONYXKEYS.USER_WALLET, {currentBalance: 0});
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: true, loading: false});
-            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        }).catch(() => {
-            Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
-        });
+    API.write('TransferWalletBalance', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {
+                    loading: true,
+                    error: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {
+                    loading: false,
+                    shouldShowSuccess: true,
+                    paymentMethodType: paymentMethod.accountType,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.WALLET_TRANSFER,
+                value: {
+                    loading: false,
+                    shouldShowSuccess: false,
+                },
+            },
+        ],
+    });
 }
 
 function resetWalletTransferData() {
@@ -242,15 +286,8 @@ function resetWalletTransferData() {
         selectedAccountID: null,
         filterPaymentMethodType: null,
         loading: false,
-        shouldShowConfirmModal: false,
+        shouldShowSuccess: false,
     });
-}
-
-/**
- * @param {Number} transferAmount
- */
-function saveWalletTransferAmount(transferAmount) {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {transferAmount});
 }
 
 /**
@@ -269,24 +306,25 @@ function saveWalletTransferMethodType(filterPaymentMethodType) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {filterPaymentMethodType});
 }
 
-function dismissWalletConfirmModal() {
-    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowConfirmModal: false});
+function dismissSuccessfulTransferBalancePage() {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
+    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
 export {
     deleteDebitCard,
     deletePayPalMe,
     getPaymentMethods,
-    setWalletLinkedAccount,
+    openPaymentsPage,
+    makeDefaultPaymentMethod,
     addBillingCard,
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
+    dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
     resetWalletTransferData,
-    saveWalletTransferAmount,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
-    dismissWalletConfirmModal,
     cleanLocalReimbursementData,
 };

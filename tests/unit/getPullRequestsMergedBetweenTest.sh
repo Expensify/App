@@ -6,7 +6,7 @@ set -e
 TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1;pwd)/$(basename "$0")")")
 SCRIPTS_DIR="$TEST_DIR/../scripts"
 DUMMY_DIR="$HOME/DumDumRepo"
-getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
+getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
