@@ -70,12 +70,8 @@
     "htmlparser2": "^7.2.0",
     "localforage": "^1.10.0",
     "lodash": "4.17.21",
-<<<<<<< HEAD
-    "metro-config": "^0.64.0",
-=======
     "memoize-one": "^6.0.0",
     "metro-config": "^0.71.3",
->>>>>>> c15c2e73e (Merge pull request #10239 from Expensify/marcaaron-memoizeGetOptions)
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",
     "onfido-sdk-ui": "^8.1.0",
@@ -98,13 +94,8 @@
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#6b5ab5110dc3ed554f8eafbc38d7d87c17147972",
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal": "^13.0.0",
-<<<<<<< HEAD
-    "react-native-onyx": "1.0.10",
-    "react-native-pdf": "^6.2.2",
-=======
     "react-native-onyx": "1.0.12",
     "react-native-pdf": "^6.6.2",
->>>>>>> c15c2e73e (Merge pull request #10239 from Expensify/marcaaron-memoizeGetOptions)
     "react-native-performance": "^2.0.0",
     "react-native-permissions": "^3.0.1",
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#7f09b2c15ffae320d769788f75bdf8948714bb10",
