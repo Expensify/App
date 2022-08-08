@@ -1,5 +1,6 @@
 import React, {PureComponent} from 'react';
 import {Dimensions, Keyboard, LayoutAnimation, View} from 'react-native';
+import {getKeyboardHeight} from '../../styles/StyleUtils';
 import {propTypes, defaultProps} from './BaseKeyboardSpacerPropTypes';
 
 const defaultAnimation = {
@@ -89,7 +90,7 @@ class BaseKeyboardSpacer extends PureComponent {
         return (
             <View
                 style={[
-                    {height: this.state.keyboardSpace},
+                    {height: getKeyboardHeight(this.state.keyboardSpace)},
                     this.props.style,
                 ]}
             />
