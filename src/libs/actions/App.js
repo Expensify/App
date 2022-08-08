@@ -39,7 +39,13 @@ Onyx.connect({
 let myPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val[currentUserEmail],
+    callback: (val) => {
+        if (!val || !currentUserEmail) {
+            return;
+        }
+
+        myPersonalDetails = val[currentUserEmail];
+    },
 });
 
 const allPolicies = {};
