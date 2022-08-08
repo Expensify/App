@@ -11,10 +11,6 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    androidEnable: false,
-};
-
 const KeyboardSpacer = props => (
     <BaseKeyboardSpacer
         style={props.style}
@@ -25,7 +21,6 @@ const KeyboardSpacer = props => (
 );
 
 KeyboardSpacer.propTypes = propTypes;
-KeyboardSpacer.defaultProps = defaultProps;
 KeyboardSpacer.displayName = 'KeyboardSpacer';
 
 export default withWindowDimensions(KeyboardSpacer);
