@@ -223,11 +223,11 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const PRList = _.map(
-            [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[1],
-                number: Number.parseInt(match[2], 10),
-                isVerified: match[3] === 'x',
+                url: match[2],
+                number: Number.parseInt(match[3], 10),
+                isVerified: match[1] === 'x',
             }),
         );
         return _.sortBy(PRList, 'number');
