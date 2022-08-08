@@ -264,7 +264,7 @@ class GithubUtils {
      * @private
      *
      * @param {Object} issue
-     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     static getStagingDeployCashInternalQA(issue) {
         let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) || [];
@@ -278,7 +278,6 @@ class GithubUtils {
                 url: match[2].split('-')[0].trim(),
                 number: Number.parseInt(match[3], 10),
                 isResolved: match[1] === 'x',
-                isAccessible: false,
             }),
         );
         return _.sortBy(internalQAPRs, 'number');
