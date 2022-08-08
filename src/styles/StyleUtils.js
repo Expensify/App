@@ -320,27 +320,6 @@ function getModalPaddingStyles({
 }
 
 /**
- * Gives the margin style for login container
- *
- * @param {Object} params
- * @returns {Object}
- */
-function getLoginContainerMarginStyles({
-    isSmallScreenWidth,
-    isMediumScreenWidth,
-    windowHeight,
-}) {
-    let marginStyle = {};
-    if (isSmallScreenWidth) {
-        marginStyle = {...marginStyle, ...styles.signInPageNarrowContentMargin};
-    }
-    if (!isMediumScreenWidth || (isMediumScreenWidth && windowHeight < variables.minHeightToShowGraphics)) {
-        marginStyle = {...marginStyle, ...styles.signInPageWideLeftContentMargin};
-    }
-    return marginStyle;
-}
-
-/**
  * Takes fontStyle and fontWeight and returns the correct fontFamily
  *
  * @param {Object} params
@@ -511,7 +490,6 @@ export {
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,
-    getLoginContainerMarginStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
     getLoginPagePromoStyle,
