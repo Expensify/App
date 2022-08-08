@@ -51,20 +51,8 @@ let policyIDList = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        const tempPolicyIDList = [];
-        _.each(_.keys(val), (key) => {
-            if (!val[key] || !val[key].id) {
-                return;
-            }
-            tempPolicyIDList.push(val[key].id);
-        });
-
-        if (_.isEmpty(tempPolicyIDList)) {
-            return;
-        }
-
-        policyIDList = tempPolicyIDList;
+    callback: (policies) => {
+        policyIDList = _.filter(_.pluck(policies, 'id'));
     },
 });
 
