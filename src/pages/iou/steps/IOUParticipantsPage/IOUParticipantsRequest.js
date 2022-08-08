@@ -138,7 +138,6 @@ class IOUParticipantsRequest extends Component {
                 headerMessage={headerMessage}
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
-                shouldDelayFocus
             />
         );
     }
