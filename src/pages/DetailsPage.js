@@ -107,7 +107,7 @@ const DetailsPage = (props) => {
                         <View style={styles.pageWrapper}>
                             <AttachmentModal
                                 headerTitle={isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                sourceURL={details.avatarHighResolution}
+                                sourceURL={details.avatar}
                                 isAuthTokenRequired
                             >
                                 {({show}) => (

@@ -61,8 +61,8 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.role
  * @param {String} fullPolicyOrPolicySummary.type
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
- * @param {String} [fullPolicyOrPolicySummary.avatarURL]
- * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
+ * @param {String} [fullPolicyOrPolicySummary.avatar]
+ * @param {String} [fullPolicyOrPolicySummary.value.avatar]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
  * @param {Boolean} isFromFullPolicy,
@@ -80,7 +80,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
-        avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+        avatar: fullPolicyOrPolicySummary.avatar || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
@@ -456,76 +456,7 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
- * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
- * If the response fails set a general error message. Clear the error message when updating.
- *
- * @param {String} policyID
- * @param {String} name
- * @param {String} currency
- */
-function updateGeneralSettings(policyID, name, currency) {
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-
-                // Clear errorFields in case the user didn't dismiss the general settings error
-                errorFields: {
-                    generalSettings: null,
-                },
-                name,
-                outputCurrency: currency,
-            },
-        },
-    ];
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    generalSettings: null,
-                },
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    generalSettings: null,
-                },
-                errorFields: {
-                    generalSettings: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
-                    },
-                },
-            },
-        },
-    ];
-
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
-}
-
-/**
- * @param {String} policyID The id of the workspace / policy
- */
-function clearWorkspaceGeneralSettingsErrors(policyID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: {
-            generalSettings: null,
-        },
-    });
-}
-
-/**
- * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
+ * Uploads the avatar image to S3 bucket and updates the policy with new avatar
  *
  * @param {String} policyID
  * @param {Object} file
@@ -535,9 +466,10 @@ function uploadAvatar(policyID, file) {
     DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode === 200) {
-                // Update the policy with the new avatarURL as soon as we get it
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.avatarURL, isAvatarUploading: false});
-                update(policyID, {avatarURL: response.avatarURL}, true);
+                // Update the policy with the new avatar as soon as we get it
+                const {avatar} = response;
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatar, isAvatarUploading: false});
+                update(policyID, {avatar}, true);
                 return;
             }
 

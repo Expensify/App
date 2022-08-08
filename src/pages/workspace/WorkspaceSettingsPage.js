@@ -38,7 +38,7 @@ class WorkspaceSettingsPage extends React.Component {
 
         this.state = {
             name: props.policy.name,
-            previewAvatarURL: props.policy.avatarURL,
+            previewAvatarURL: props.policy.avatar,
             currency: props.policy.outputCurrency,
         };
 
@@ -62,7 +62,7 @@ class WorkspaceSettingsPage extends React.Component {
 
     removeAvatar() {
         this.setState({previewAvatarURL: ''});
-        Policy.deleteWorkspaceAvatar(this.props.policy.id);
+        Policy.update(this.props.policy.id, {avatar: ''}, true);
     }
 
     /**

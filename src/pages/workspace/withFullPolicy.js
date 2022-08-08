@@ -57,7 +57,7 @@ const fullPolicyPropTypes = {
         outputCurrency: PropTypes.string,
 
         /** The URL for the policy avatar */
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
 
         /** A list of emails for the employees on the policy */
         employeeList: PropTypes.arrayOf(PropTypes.string),

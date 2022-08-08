@@ -134,38 +134,61 @@ class WorkspaceInitialPage extends React.Component {
 
         return (
             <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.workspace')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        shouldShowThreeDotsButton
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Plus,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                onSelected: () => PolicyActions.createAndNavigate(),
-                            }, {
-                                icon: Expensicons.Trashcan,
-                                text: this.props.translate('workspace.common.delete'),
-                                onSelected: () => this.setState({isDeleteModalOpen: true}),
-                            },
-                        ]}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
-                    />
-                    <ScrollView
-                        contentContainerStyle={[
-                            styles.flexGrow1,
-                            styles.flexColumn,
-                            styles.justifyContentBetween,
-                        ]}
-                    >
-                        <View style={[styles.flex1]}>
-                            <View style={styles.pageWrapper}>
-                                <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('workspace.common.workspace')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    shouldShowThreeDotsButton
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Plus,
+                            text: this.props.translate('workspace.new.newWorkspace'),
+                            onSelected: () => PolicyActions.createAndNavigate(),
+                        }, {
+                            icon: Expensicons.Trashcan,
+                            text: this.props.translate('workspace.common.delete'),
+                            onSelected: () => this.setState({isDeleteModalOpen: true}),
+                        },
+                    ]}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                />
+                <ScrollView
+                    contentContainerStyle={[
+                        styles.flexGrow1,
+                        styles.flexColumn,
+                        styles.justifyContentBetween,
+                    ]}
+                >
+                    <View style={[styles.flex1]}>
+                        <View style={styles.pageWrapper}>
+                            <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
+                                <Pressable
+                                    style={[styles.pRelative, styles.avatarLarge]}
+                                    onPress={this.openEditor}
+                                >
+                                    {this.props.policy.avatar
+                                        ? (
+                                            <Avatar
+                                                containerStyles={styles.avatarLarge}
+                                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                                source={this.props.policy.avatar}
+                                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                size={CONST.AVATAR_SIZE.LARGE}
+                                            />
+                                        )
+                                        : (
+                                            <Icon
+                                                src={Expensicons.Workspace}
+                                                height={80}
+                                                width={80}
+                                                fill={themedefault.iconSuccessFill}
+                                            />
+                                        )}
+                                </Pressable>
+                                {!_.isEmpty(this.props.policy.name) && (
                                     <Pressable
                                         style={[styles.pRelative, styles.avatarLarge]}
                                         onPress={this.openEditor}
