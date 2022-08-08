@@ -147,3 +147,4 @@ The expected size of `app.asar` = `desktop/dist/www/` + `desktop/node_modules/`;
 
 - `main` process logs are written to `~/Library/Logs/new.expensify.desktop/main.log`
 - `renderer` logs can be observed live in the developer console (⌘ Cmd + ⌥ Option + I)
+  - staging and prod builds capture renderer logs at `~/Library/Logs/new.expensify.desktop/renderer.log`

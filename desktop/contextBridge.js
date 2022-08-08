@@ -74,5 +74,5 @@ contextBridge.exposeInMainWorld('electron', {
      * Expose electron-log to the renderer world, data logged with electron.log would be captured to file
      * (~/Library/Logs/new.expensify.desktop/renderer.log)
      */
-    log,
+    log: log.create('renderer'),
 });

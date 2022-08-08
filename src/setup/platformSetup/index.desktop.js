@@ -1,4 +1,5 @@
 import {AppRegistry} from 'react-native';
+import _ from 'underscore';
 import Config from '../../CONFIG';
 import LocalNotification from '../../libs/Notification/LocalNotification';
 import * as KeyboardShortcuts from '../../libs/actions/KeyboardShortcuts';
@@ -9,6 +10,9 @@ export default function () {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
+
+    // Capture generic logs in dev tools console as well as on file
+    _.assign(console, window.electron.log.scope('renderer:generic'));
 
     // Send local notification when update is downloaded
     window.electron.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, () => {
