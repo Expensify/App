@@ -45,12 +45,15 @@ contextMenu({
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.logger = log.scope('autoUpdater');
+log.transports.file.level = 'info';
+
+// Set `ipc` level to enable and see main process logs in dev tools (⌘ Cmd + ⌥ Option + I)
+log.transports.ipc.level = 'info';
 
 // Send all Console logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
-_.assign(console, log.functions);
+_.assign(console, log.scope('main'));
 
 // This sets up the command line arguments used to manage the update. When
 // the --expected-update-version flag is set, the app will open pre-hidden
