@@ -16,7 +16,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
@@ -211,9 +210,9 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper>
+            <ScreenWrapper keyboardAvoidingViewBehavior="height">
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <HeaderWithCloseButton
                             title={this.props.isGroupChat
                                 ? this.props.translate('sidebarScreen.newGroup')
@@ -255,11 +254,11 @@ class NewChatPage extends Component {
                                     shouldFocusOnSelectRow={this.props.isGroupChat}
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
-                                    onConfirmSelection={this.props.isGroupChat ? this.createGroup : this.createChat}
+                                    onConfirmSelection={this.props.isGroupChat ? this.createGroup : () => {}}
                                 />
                             )}
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );

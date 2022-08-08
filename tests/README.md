@@ -60,7 +60,7 @@ describe('actions/Report', () => {
         }));
 
         // When we add a new action to that report
-        addAction(REPORT_ID, 'Hello!');
+        Report.addComment(REPORT_ID, 'Hello!');
         return waitForPromisesToResolve()
             .then(() => {
                 const action = reportActions[ACTION_ID];
@@ -69,7 +69,7 @@ describe('actions/Report', () => {
                 // the comment we left and it will be in a loading state because
                 // it's an "optimistic comment"
                 expect(action.message[0].text).toBe('Hello!');
-                expect(action.loading).toBe(true);
+                expect(action.isPending).toBe(true);
             });
     });
 });

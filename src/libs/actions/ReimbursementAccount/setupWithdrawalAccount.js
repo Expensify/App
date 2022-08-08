@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import BankAccount from '../../models/BankAccount';
-import * as Plaid from '../Plaid';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
@@ -33,10 +32,7 @@ function getBankAccountListAndGoToValidateStep(updatedACHData) {
             });
             const bankAccount = new BankAccount(bankAccountJSON);
             const achData = bankAccount.toACHData();
-            const needsToPassLatestChecks = achData.state === BankAccount.STATE.OPEN
-                && achData.needsToPassLatestChecks;
-            achData.bankAccountInReview = needsToPassLatestChecks
-                || achData.state === BankAccount.STATE.VERIFYING;
+            achData.bankAccountInReview = achData.state === BankAccount.STATE.VERIFYING;
 
             navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
@@ -136,13 +132,6 @@ function mergeParamsWithLocalACHData(data) {
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
-    // If we are setting up a Plaid account replace the accountNumber with the unmasked number
-    if (data.plaidAccountID) {
-        const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
-            bankAccount.plaidAccountID === data.plaidAccountID
-        ));
-        updatedACHData.accountNumber = unmaskedAccount.accountNumber;
-    }
     return updatedACHData;
 }
 
@@ -204,7 +193,7 @@ function mergeParamsWithLocalACHData(data) {
  * @param {Array} [params.beneficialOwners]
  */
 function setupWithdrawalAccount(params) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: '', errors: null});
     const updatedACHData = mergeParamsWithLocalACHData(params);
     DeprecatedAPI.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
