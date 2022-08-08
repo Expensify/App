@@ -11,7 +11,7 @@ const defaultProps = {
     keyboardShowMethod: '',
     keyboardHideMethod: '',
     iOSAnimated: false,
-    topSpacing:{}
+    topSpacing: {},
 };
 
 const KeyboardSpacer = props => (
