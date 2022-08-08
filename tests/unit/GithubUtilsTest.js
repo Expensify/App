@@ -365,7 +365,6 @@ describe('GithubUtils', () => {
         const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
         const openCheckbox = '- [ ] ';
         const closedCheckbox = '- [x] ';
-        const listStart = '- ';
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
         const deployBlockerHeader = '\r\n**Deploy Blockers:**';
         const internalQAHeader = '\r\n\r\n**Internal QA:**';

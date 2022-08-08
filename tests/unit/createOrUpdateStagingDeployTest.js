@@ -99,8 +99,6 @@ const baseIssueList = [
 const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
-const listStart = '- ';
-const QA = 'QA';
 const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
 // eslint-disable-next-line max-len
 const timingDashboardVerification = 'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
@@ -110,7 +108,6 @@ const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
 const deployBlockerHeader = '\r\n**Deploy Blockers:**';
 const lineBreak = '\r\n';
 const lineBreakDouble = '\r\n\r\n';
-const indent = '  ';
 
 describe('createOrUpdateStagingDeployCash', () => {
     const closedStagingDeployCash = {
