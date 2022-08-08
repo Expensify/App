@@ -18,6 +18,7 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import OfflineIndicator from "../../components/OfflineIndicator";
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -181,6 +182,7 @@ class LoginForm extends React.Component {
                         containerStyles={[styles.mh0]}
                     />
                 </View>
+                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }
