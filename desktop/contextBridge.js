@@ -3,6 +3,7 @@ const {
     contextBridge,
     ipcRenderer,
 } = require('electron');
+const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 
 const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
@@ -18,7 +19,7 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
 ];
 
 /**
- * The following methods will be available in the renderer process under `window.electron`.
+ * The following methods and props will be available in the renderer process under `window.electron`.
  */
 contextBridge.exposeInMainWorld('electron', {
     /**
@@ -68,4 +69,10 @@ contextBridge.exposeInMainWorld('electron', {
         // Deliberately strip event as it includes `sender`
         ipcRenderer.on(channel, (event, ...args) => func(...args));
     },
+
+    /**
+     * Expose electron-log to the renderer world, data logged with electron.log would be captured to file
+     * (~/Library/Logs/new.expensify.desktop/renderer.log)
+     */
+    log,
 });
