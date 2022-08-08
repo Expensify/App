@@ -2631,7 +2631,6 @@ const styles = {
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
     },
-
 };
 
 export default styles;
