@@ -27,13 +27,13 @@ Onyx.connect({
 });
 
 /**
- * Returns the URL for a user's avatar and handles someone not having any avatar at all
+ * Returns the URL for a user's avatar thumbnail and handles someone not having any avatar at all
  *
  * @param {Object} personalDetail
  * @param {String} login
  * @returns {String}
  */
-function getAvatar(personalDetail, login) {
+function getAvatarThumbnail(personalDetail, login) {
     if (personalDetail && personalDetail.avatarThumbnail) {
         return personalDetail.avatarThumbnail;
     }
@@ -91,7 +91,7 @@ function formatPersonalDetails(personalDetailsList) {
         const sanitizedLogin = LoginUtils.getEmailWithoutMergedAccountPrefix(login);
 
         // Form the details into something that has all the data in an easy to use format.
-        const avatar = getAvatar(details, sanitizedLogin);
+        const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
         const displayName = getDisplayName(sanitizedLogin, details);
         const pronouns = details.pronouns || '';
         const timezone = details.timeZone || CONST.DEFAULT_TIME_ZONE;
@@ -99,7 +99,7 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
-        const avatarHighResolution = details.avatar || details.avatarThumbnail;
+        const avatar = details.avatar || details.avatarThumbnail;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,
@@ -110,7 +110,7 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
-            avatarHighResolution,
+            avatarThumbnail,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
@@ -331,7 +331,8 @@ function setAvatar(file) {
                 return;
             }
 
-            setPersonalDetails({avatar: response.s3url, avatarUploading: false});
+            const {avatar, avatarThumbnail} = response;
+            setPersonalDetails({avatar, avatarThumbnail, avatarUploading: false}, false);
         });
 }
 

@@ -162,12 +162,12 @@ class WorkspaceInitialPage extends React.Component {
                                     style={[styles.pRelative, styles.avatarLarge]}
                                     onPress={this.openEditor}
                                 >
-                                    {this.props.policy.avatarURL
+                                    {this.props.policy.avatar
                                         ? (
                                             <Avatar
                                                 containerStyles={styles.avatarLarge}
                                                 imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                source={this.props.policy.avatarURL}
+                                                source={this.props.policy.avatar}
                                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                                 size={CONST.AVATAR_SIZE.LARGE}
                                             />

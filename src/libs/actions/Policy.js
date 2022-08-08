@@ -59,8 +59,8 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.role
  * @param {String} fullPolicyOrPolicySummary.type
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
- * @param {String} [fullPolicyOrPolicySummary.avatarURL]
- * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
+ * @param {String} [fullPolicyOrPolicySummary.avatar]
+ * @param {String} [fullPolicyOrPolicySummary.value.avatar]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
  * @param {Boolean} isFromFullPolicy,
@@ -91,7 +91,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
-        avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+        avatar: fullPolicyOrPolicySummary.avatar || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
         customUnit: customUnitSimplified,
     };
@@ -407,7 +407,7 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
- * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
+ * Uploads the avatar image to S3 bucket and updates the policy with new avatar
  *
  * @param {String} policyID
  * @param {Object} file
@@ -417,9 +417,10 @@ function uploadAvatar(policyID, file) {
     DeprecatedAPI.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode === 200) {
-                // Update the policy with the new avatarURL as soon as we get it
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
-                update(policyID, {avatarURL: response.s3url}, true);
+                // Update the policy with the new avatar as soon as we get it
+                const {avatar} = response;
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatar, isAvatarUploading: false});
+                update(policyID, {avatar}, true);
                 return;
             }
 
