@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {
+import {Dimensions, Keyboard, LayoutAnimation, View} from 'react-native';
     Dimensions,
     Keyboard,
     LayoutAnimation,
