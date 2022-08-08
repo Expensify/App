@@ -24,7 +24,9 @@ const AnchorRenderer = (props) => {
     const attrHref = htmlAttribs.href || '';
     const internalNewExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
-    const internalExpensifyPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL) && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
+    const internalExpensifyPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL)
+                                    && !attrHref.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL)
+                                    && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
@@ -39,7 +41,7 @@ const AnchorRenderer = (props) => {
         );
     }
 
-    // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
+    // If we are handling an old dot Expensify link (excluding Concierge) we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
     // As attachments also use expensify.com we don't want it working the same as links.
     if (internalExpensifyPath && !isAttachment) {
         return (
