@@ -1,14 +1,6 @@
 import React, {PureComponent} from 'react';
 import {Dimensions, Keyboard, LayoutAnimation, View} from 'react-native';
-    Dimensions,
-    Keyboard,
-    LayoutAnimation,
-    View,
-} from 'react-native';
-import {
-    propTypes as keyboardSpacerPropTypes,
-    defaultProps as keyboardSpacerDefaultProps,
-} from './KeyboardSpacerPropTypes';
+import {propTypes as keyboardSpacerPropTypes,defaultProps as keyboardSpacerDefaultProps} from './KeyboardSpacerPropTypes';
 
 const defaultAnimation = {
     duration: 500,
