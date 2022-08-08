@@ -212,12 +212,11 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const PRList = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[([ x])] QA\\s+- \\[([ x])] Accessibility`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[1],
-                number: Number.parseInt(match[2], 10),
-                isVerified: match[3] === 'x',
-                isAccessible: match[4] === 'x',
+                url: match[2],
+                number: Number.parseInt(match[3], 10),
+                isVerified: match[1] === 'x',
             }),
         );
         return _.sortBy(PRList, 'number');
@@ -12109,7 +12108,7 @@ module.exports = require("zlib");;
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -12122,7 +12121,7 @@ module.exports = require("zlib");;
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
@@ -12131,14 +12130,14 @@ module.exports = require("zlib");;
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
-/******/ 	
+/******/
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
