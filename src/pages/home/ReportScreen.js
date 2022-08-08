@@ -22,6 +22,7 @@ import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonVie
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import addViewportResizeListener from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -118,7 +119,8 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
-        this.viewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: 0,
@@ -128,9 +130,7 @@ class ReportScreen extends React.Component {
 
     componentDidMount() {
         this.storeCurrentlyViewedReport();
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', this.viewportOffsetTop);
-        }
+        this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
@@ -142,9 +142,7 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
-        if (window.visualViewport) {
-            window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
-        }
+        this.removeViewportResizeListener();
     }
 
     /**
