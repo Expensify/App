@@ -494,6 +494,15 @@ function hasSafeAreas(windowWidth, windowHeight) {
     const heightsIphonesWithNotches = [812, 896, 844, 926];
     return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
 }
+
+/**
+ * Get variable keyboard height as style
+ * @param {Number} keyboardHeight
+ * @returns {Number}
+ */
+function getKeyboardHeight(keyboardHeight) {
+    return keyboardHeight;
+}
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -525,4 +534,5 @@ export {
     getReportListAnimationStyle,
     convertToLTR,
     hasSafeAreas,
+    getKeyboardHeight,
 };
