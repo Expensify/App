@@ -99,7 +99,7 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
-        const avatar = details.avatar || details.avatarThumbnail;
+        const avatar = details.avatar || details.avatarThumbnail || details.avatarHighResolution || ReportUtils.getDefaultAvatar(login);
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,
