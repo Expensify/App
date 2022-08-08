@@ -126,14 +126,6 @@ describe('checkDeployBlockers', () => {
             });
         });
 
-        test('Test an issue with all QA checked but no accessibility', () => {
-            mockGetIssue.mockResolvedValue(mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}]));
-            mockListComments.mockResolvedValue(baseComments);
-            return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
-            });
-        });
-
         test('Test an issue with all QA checked but not all deploy blockers', () => {
             mockGetIssue.mockResolvedValue(mockIssue(
                 [{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}],
