@@ -86,7 +86,7 @@ All actions must have an "action metadata file" called `action.yml`. This descri
 
 JavaScript actions are modules comprised of three parts:
 
-1. An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
+1. An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`.
 1. A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
 1. A compiled file called index.js. This is a compiled output of the file from (2) and should _NEVER_ be directly modified.
 
