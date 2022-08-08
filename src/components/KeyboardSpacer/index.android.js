@@ -7,10 +7,6 @@ import {StatusBar} from 'react-native';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const propTypes = {
-    ...windowDimensionsPropTypes,
-};
-
 const KeyboardSpacer = props => (
     <BaseKeyboardSpacer
         style={props.style}
@@ -20,7 +16,7 @@ const KeyboardSpacer = props => (
     />
 );
 
-KeyboardSpacer.propTypes = propTypes;
+KeyboardSpacer.propTypes = windowDimensionsPropTypes;
 KeyboardSpacer.displayName = 'KeyboardSpacer';
 
 export default withWindowDimensions(KeyboardSpacer);
