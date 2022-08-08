@@ -216,10 +216,14 @@ function setUpPoliciesAndNavigate(session, currentPath) {
 
 function openProfile() {
     const oldTimezoneData = myPersonalDetails.timezone || {};
-    const newTimezoneData = {
-        automatic: lodashGet(oldTimezoneData, 'automatic', true),
-        selected: moment.tz.guess(true),
-    };
+    let newTimezoneData = oldTimezoneData;
+
+    if (lodashGet(oldTimezoneData, 'automatic', true)) {
+        newTimezoneData = {
+            automatic: true,
+            selected: moment.tz.guess(true),
+        };
+    }
 
     API.write('OpenProfile', {
         timezone: JSON.stringify(newTimezoneData),
