@@ -320,7 +320,7 @@ function isValidRoutingNumber(number) {
  * @param {String[]} valuesToBeValidated
  * @returns {Boolean[]}
  */
- function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
+function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
     return _.map(valuesToBeValidated, value => value && value.length > maxLength);
 }
 
@@ -335,6 +335,7 @@ function isValidRoutingNumber(number) {
 function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
     return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
 }
+
 /**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
