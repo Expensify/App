@@ -1,5 +1,7 @@
 import React, {PureComponent} from 'react';
-import {Dimensions, Keyboard, LayoutAnimation, View} from 'react-native';
+import {
+    Dimensions, Keyboard, LayoutAnimation, View,
+} from 'react-native';
 import {getKeyboardHeight} from '../../styles/StyleUtils';
 import {propTypes, defaultProps} from './BaseKeyboardSpacerPropTypes';
 
