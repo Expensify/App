@@ -38,7 +38,13 @@ Onyx.connect({
 let myPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val[currentUserEmail],
+    callback: (val) => {
+        if (!val || !currentUserEmail) {
+            return;
+        }
+
+        myPersonalDetails = val[currentUserEmail];
+    },
 });
 
 let policyIDList = [];
@@ -226,10 +232,14 @@ function setUpPoliciesAndNavigate(session, currentPath) {
 
 function openProfile() {
     const oldTimezoneData = myPersonalDetails.timezone || {};
-    const newTimezoneData = {
-        automatic: lodashGet(oldTimezoneData, 'automatic', true),
-        selected: moment.tz.guess(true),
-    };
+    let newTimezoneData = oldTimezoneData;
+
+    if (lodashGet(oldTimezoneData, 'automatic', true)) {
+        newTimezoneData = {
+            automatic: true,
+            selected: moment.tz.guess(true),
+        };
+    }
 
     API.write('OpenProfile', {
         timezone: JSON.stringify(newTimezoneData),
