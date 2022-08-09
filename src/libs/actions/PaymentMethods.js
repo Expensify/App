@@ -13,6 +13,7 @@ import * as CardUtils from '../CardUtils';
 import * as User from './User';
 import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
+import * as DateUtils from '../DateUtils';
 
 /**
  * Deletes a debit card
@@ -215,7 +216,12 @@ function addPaymentCard(params) {
 
                 // TODO: We use isSubmitting in Form. Are we changing this?
                 // TODO: We use serverErrorMessage in Form. Are we changing this?
-                value: {isLoading: false},
+                value: {
+                    isLoading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('addDebitCardPage.genericFailureMessage'),
+                    },
+                },
             },
         ],
     });
