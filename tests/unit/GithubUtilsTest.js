@@ -1,11 +1,50 @@
 /**
  * @jest-environment node
  */
-const {Octokit} = require('@octokit/rest');
+const core = require('@actions/core');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
-beforeEach(() => {
-    GithubUtils.octokitInternal = new Octokit();
+const mockGetInput = jest.fn();
+const mockListIssues = jest.fn();
+
+beforeAll(() => {
+    // Mock core module
+    core.getInput = mockGetInput;
+
+    // Mock octokit module
+    const mocktokit = {
+        rest: {
+            issues: {
+                create: jest.fn().mockImplementation(arg => Promise.resolve({
+                    data: {
+                        ...arg,
+                        html_url: 'https://github.com/Expensify/App/issues/29',
+                    },
+                })),
+                update: jest.fn().mockImplementation(arg => Promise.resolve({
+                    data: {
+                        ...arg,
+                        html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
+                    },
+                })),
+                listForRepo: mockListIssues,
+            },
+            pulls: {
+                list: jest.fn().mockImplementation(arg => Promise.resolve({
+                    data: {
+                        ...arg,
+                        html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
+                    },
+                })),
+            },
+        },
+    };
+    GithubUtils.internalOctokit = mocktokit;
+});
+
+afterEach(() => {
+    mockGetInput.mockClear();
+    mockListIssues.mockClear();
 });
 
 describe('GithubUtils', () => {
