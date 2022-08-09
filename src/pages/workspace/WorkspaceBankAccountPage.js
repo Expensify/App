@@ -103,7 +103,7 @@ class WorkspaceBankAccountPage extends React.Component {
                     title={this.props.translate('workspace.common.bankAccount')}
                     subtitle={policyName}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                    onBackButtonPress={() => Navigation.goBack()}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
