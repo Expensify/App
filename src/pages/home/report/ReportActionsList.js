@@ -140,13 +140,7 @@ class ReportActionsList extends React.Component {
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
             <OfflineWithFeedback
-                onClose={() => {
-                    if (item.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                        ReportActions.deleteClientAction(this.props.report.reportID, item.action.clientID);
-                    } else if (item.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || item.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.EDIT) {
-                        // Revert
-                    }
-                }}
+                onClose={() => ReportActions.deleteClientAction(this.props.report.reportID, item.action.clientID)}
                 pendingAction={item.action.pendingAction}
                 errors={item.action.errors}
                 errorStyle={styles.ml10}
