@@ -297,14 +297,14 @@ function deletePaymentCard(fundID) {
             {
                 onyxMethod: 'merge',
                 key: `${ONYXKEYS.CARD_LIST}`,
-                value: {[fundID]: {isLoading: true}},
+                value: {[fundID]: {isPendingDelete: true}},
             },
         ],
         failureData: [
             {
                 onyxMethod: 'merge',
                 key: `${ONYXKEYS.CARD_LIST}`,
-                value: {[fundID]: {isLoading: false}},
+                value: {[fundID]: {isPendingDelete: false}},
             },
         ],
     });
