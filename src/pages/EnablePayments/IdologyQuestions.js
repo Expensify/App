@@ -13,6 +13,9 @@ import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import compose from "../../libs/compose";
+import {withOnyx} from "react-native-onyx";
+import ONYXKEYS from "../../ONYXKEYS";
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -108,7 +111,7 @@ class IdologyQuestions extends React.Component {
                     idNumber: this.props.idNumber,
                 };
                 BankAccounts.answerQuestionsForWallet(idologyAnswers);
-                return {answers, isLoading: true};
+                return {answers};
             }
 
             // Else, show next question
@@ -171,4 +174,8 @@ class IdologyQuestions extends React.Component {
 
 IdologyQuestions.propTypes = propTypes;
 IdologyQuestions.defaultProps = defaultProps;
-export default withLocalize(IdologyQuestions);
+export default compose(withLocalize(IdologyQuestions), withOnyx({
+    additionalDetails: {
+        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+    },
+}))(IdologyQuestions);
