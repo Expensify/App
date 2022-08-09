@@ -2,10 +2,10 @@ import Onyx from 'react-native-onyx';
 
 /**
  * @param {String} formID
- * @param {Boolean} isSubmitting
+ * @param {Boolean} isLoading
  */
-function setIsSubmitting(formID, isSubmitting) {
-    Onyx.merge(formID, {isSubmitting});
+function setIsLoading(formID, isLoading) {
+    Onyx.merge(formID, {isLoading});
 }
 
 /**
@@ -25,7 +25,7 @@ function setDraftValues(formID, draftValues) {
 }
 
 export {
-    setIsSubmitting,
+    setIsLoading,
     setServerErrorMessage,
     setDraftValues,
 };
