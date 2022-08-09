@@ -21,21 +21,7 @@ beforeAll(() => {
                         html_url: 'https://github.com/Expensify/App/issues/29',
                     },
                 })),
-                update: jest.fn().mockImplementation(arg => Promise.resolve({
-                    data: {
-                        ...arg,
-                        html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
-                    },
-                })),
                 listForRepo: mockListIssues,
-            },
-            pulls: {
-                list: jest.fn().mockImplementation(arg => Promise.resolve({
-                    data: {
-                        ...arg,
-                        html_url: 'https://github.com/Expensify/App/issues/29',
-                    },
-                })),
             },
         },
         paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
@@ -370,11 +356,13 @@ describe('GithubUtils', () => {
         ];
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
-                repos: {
-                    listTags: jest.fn().mockResolvedValue({data: mockTags}),
-                },
-                pulls: {
-                    list: jest.fn().mockResolvedValue({data: mockPRs}),
+                rest: {
+                    repos: {
+                        listTags: jest.fn().mockResolvedValue({data: mockTags}),
+                    },
+                    pulls: {
+                        list: jest.fn().mockResolvedValue({data: mockPRs}),
+                    },
                 },
                 paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
             }),
@@ -382,7 +370,7 @@ describe('GithubUtils', () => {
 
         const octokit = mockGithub().getOctokit();
         const githubUtils = class extends GithubUtils { };
-        githubUtils.octokitInternal = octokit;
+        githubUtils.internalOctokit = octokit;
         const tag = '1.0.2-12';
         const basePRList = [
             'https://github.com/Expensify/App/pull/2',
