@@ -3,7 +3,7 @@ const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
-const {composePaginateRest} = require("@octokit/plugin-paginate-rest");
+const {paginateRest} = require('@octokit/plugin-paginate-rest');
 
 const GITHUB_OWNER = 'Expensify';
 const APP_REPO = 'App';
@@ -31,11 +31,11 @@ class GithubUtils {
         if (this.internalOctokit) {
             return this.internalOctokit;
         }
-        const OctokitThrottled = GitHub.plugin(throttling);
+        const Octokit = GitHub.plugin(throttling, paginateRest);
         const token = core.getInput('GITHUB_TOKEN', {required: true});
 
         // Save a copy of octokit used in this class
-        this.internalOctokit = new OctokitThrottled(getOctokitOptions(token, {
+        this.internalOctokit = new Octokit(getOctokitOptions(token, {
             throttle: {
                 onRateLimit: (retryAfter, options) => {
                     console.warn(
@@ -332,7 +332,7 @@ class GithubUtils {
      */
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
-        return composePaginateRest(this.octokit, this.octokitRest.pulls.list, {
+        return this.octokit.paginate(this.octokitRest.pulls.list, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             state: 'all',
@@ -468,7 +468,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return composePaginateRest(this.octokit, this.octokitRest.issues.listEvents, {
+        return this.octokit.paginate(this.octokitRest.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,
