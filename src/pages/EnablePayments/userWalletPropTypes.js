@@ -11,8 +11,5 @@ export default {
 
         /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
         shouldShowFailedKYC: PropTypes.bool,
-
-        /* A list of errors */
-        errors: PropTypes.object,
     }),
 };

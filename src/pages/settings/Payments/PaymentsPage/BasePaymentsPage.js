@@ -261,7 +261,8 @@ class BasePaymentsPage extends React.Component {
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
         const shouldShowMakeDefaultButton = !this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected;
-        const errorMessage = !_.isEmpty(this.props.userWallet.errors) ? _.last(_.values(this.props.userWallet.errors)) : '';
+        const errors = lodashGet(this.props, 'userWallet.errors', {});
+        const errorMessage = _.last(_.values(errors));
 
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
