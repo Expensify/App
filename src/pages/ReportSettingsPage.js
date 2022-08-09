@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
@@ -20,6 +21,7 @@ import Picker from '../components/Picker';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Growl from '../libs/Growl';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Route params */
@@ -107,12 +109,39 @@ class ReportSettingsPage extends Component {
             },
         };
 
+        this.roomNameInputRef = null;
+
         this.state = {
             newRoomName: this.props.report.reportName,
             errors: {},
         };
 
+        this.setRoomNameInputRef = this.setRoomNameInputRef.bind(this);
+        this.onDismissRoomNameError = this.onDismissRoomNameError.bind(this);
         this.validateAndRenameReport = this.validateAndRenameReport.bind(this);
+    }
+
+    /**
+     * When the user dismisses the error updating the policy room name,
+     * reset the report name to the previously saved name and clear errors.
+     */
+    onDismissRoomNameError() {
+        this.setState({newRoomName: this.props.report.reportName});
+
+        // Reset the input's value back to the previously saved report name
+        if (this.roomNameInputRef) {
+            this.roomNameInputRef.value = this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '');
+        }
+        Report.clearPolicyRoomNameErrors(this.props.report.reportID);
+    }
+
+    /**
+     * Set the room name input ref
+     *
+     * @param {Element} el
+     */
+    setRoomNameInputRef(el) {
+        this.roomNameInputRef = el;
     }
 
     validateAndRenameReport() {
@@ -208,13 +237,20 @@ class ReportSettingsPage extends Component {
                                         </View>
                                     )
                                         : (
-                                            <RoomNameInput
-                                                initialValue={this.state.newRoomName}
-                                                policyID={linkedWorkspace && linkedWorkspace.id}
-                                                errorText={this.state.errors.newRoomName}
-                                                onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
-                                                disabled={shouldDisableRename}
-                                            />
+                                            <OfflineWithFeedback
+                                                pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
+                                                errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
+                                                onClose={this.onDismissRoomNameError}
+                                            >
+                                                <RoomNameInput
+                                                    ref={this.setRoomNameInputRef}
+                                                    initialValue={this.state.newRoomName}
+                                                    policyID={linkedWorkspace && linkedWorkspace.id}
+                                                    errorText={this.state.errors.newRoomName}
+                                                    onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
+                                                    disabled={shouldDisableRename}
+                                                />
+                                            </OfflineWithFeedback>
                                         )}
                                 </View>
                                 {!shouldDisableRename && (
