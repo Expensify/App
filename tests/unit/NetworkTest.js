@@ -261,7 +261,7 @@ describe('NetworkTests', () => {
         const spyHttpUtilsXhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => Promise.resolve({}));
 
         // When we make a request
-        Session.fetchAccountDetails(TEST_USER_LOGIN);
+        Session.beginSignIn(TEST_USER_LOGIN);
 
         // Then we should expect that no requests have been made yet
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
