@@ -52,7 +52,7 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (policies) => {
-        policyIDList = _.filter(_.pluck(policies, 'id'));
+        policyIDList = _.compact(_.pluck(policies, 'id'));
     },
 });
 
