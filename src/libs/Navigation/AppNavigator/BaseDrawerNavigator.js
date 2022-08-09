@@ -49,6 +49,17 @@ class BaseDrawerNavigator extends Component {
         };
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.isSmallScreenWidth === this.props.isSmallScreenWidth) {
+            return;
+        }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+            defaultStatus: Navigation.getDefaultDrawerState(this.props.isSmallScreenWidth),
+        });
+    }
+
     render() {
         const content = (
             <Drawer.Navigator

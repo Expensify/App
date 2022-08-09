@@ -48,10 +48,16 @@ const propTypes = {
 
         /** The current user's notification preference for this report */
         notificationPreference: PropTypes.string,
+
+        /** Access setting e.g. whether the report is "restricted" */
+        visibility: PropTypes.string,
+
+        /** Linked policy's ID */
+        policyID: PropTypes.string,
     }).isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
+    reports: PropTypes.objectOf(PropTypes.shape({
         /** The report name */
         reportName: PropTypes.string,
 
@@ -60,7 +66,7 @@ const propTypes = {
 
         /** ID of the policy */
         policyID: PropTypes.string,
-    }).isRequired,
+    })).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -74,6 +80,13 @@ const propTypes = {
 
 const defaultProps = {
     ...fullPolicyDefaultProps,
+    report: {
+        reportID: 0,
+        reportName: '',
+        policyID: '',
+        notificationPreference: '',
+        visibility: '',
+    },
 };
 
 class ReportSettingsPage extends Component {
@@ -161,7 +174,7 @@ class ReportSettingsPage extends Component {
                     title={this.props.translate('common.settings')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
@@ -171,6 +184,7 @@ class ReportSettingsPage extends Component {
                                 onInputChange={(notificationPreference) => {
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
+                                        this.props.report.notificationPreference,
                                         notificationPreference,
                                     );
                                 }}

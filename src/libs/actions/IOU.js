@@ -249,16 +249,6 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
 
 /**
  * @param {Number} amount
- * @param {String} submitterPhoneNumber
- * @returns {String}
- */
-function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
-    const note = encodeURIComponent('For New Expensify request');
-    return `venmo://paycharge?txn=pay&recipients=${submitterPhoneNumber}&amount=${(amount / 100)}&note=${note}`;
-}
-
-/**
- * @param {Number} amount
  * @param {String} submitterPayPalMeAddress
  * @param {String} currency
  * @returns {String}
@@ -276,7 +266,6 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
  * @param {Number} params.amount
  * @param {String} params.currency
- * @param {String} [params.requestorPhoneNumber] - used for Venmo
  * @param {String} [params.requestorPayPalMeAddress]
  * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
  *
@@ -288,7 +277,6 @@ function payIOUReport({
     paymentMethodType,
     amount,
     currency,
-    requestorPhoneNumber,
     requestorPayPalMeAddress,
     newIOUReportDetails,
 }) {
@@ -298,13 +286,10 @@ function payIOUReport({
         ? DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
         : DeprecatedAPI.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
 
-    // Build the url for the user's platform of choice if they have selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+    // Build the url for Paypal.me if they have selected it instead of a manual settlement or Expensify Wallet
     let url;
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
-    }
-    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-        url = buildVenmoPaymentURL(amount, requestorPhoneNumber);
     }
 
     const promiseWithHandlers = payIOUPromise

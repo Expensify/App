@@ -26,36 +26,9 @@ jobs:
 
   createNewVersion:
     needs: validateActor
-    runs-on: ubuntu-latest
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.inputs.NEW_VERSION == '' }}
-    outputs:
-      NEW_VERSION: ${{ steps.getNewVersion.outputs.NEW_VERSION }}
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new BUILD version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
-
-      - name: Pull main to get the new version
-        id: getNewVersion
-        run: |
-          git pull origin main
-          echo "New version is $(npm run print-version --silent)"
-          echo "::set-output name=NEW_VERSION::$(npm run print-version --silent)"
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    secrets: inherit
 
   cherryPick:
     needs: [validateActor, createNewVersion]
@@ -69,20 +42,9 @@ jobs:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Decrypt Botify GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import Botify GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git for Botify
-        run: |
-          git config user.signingkey 367811D53E34168C
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Create branch for new pull request
         run: |
@@ -91,7 +53,7 @@ jobs:
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
-        uses: Expensify/App/.github/actions/getPullRequestDetails@main
+        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}
@@ -111,7 +73,7 @@ jobs:
 
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
-        uses: Expensify/App/.github/actions/getPullRequestDetails@main
+        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: OSBotify
@@ -155,7 +117,7 @@ jobs:
 
       - name: Check if ShortVersionString is up to date
         id: isShortVersionStringUpdated
-        uses: Expensify/App/.github/actions/checkBundleVersionStringMatch@main
+        uses: Expensify/App/.github/actions/javascript/checkBundleVersionStringMatch@main
 
       - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
         if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
@@ -198,7 +160,7 @@ jobs:
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
-        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
+        uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}

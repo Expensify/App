@@ -387,10 +387,10 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
- * @param {Boolean} [isPending]
+ * @param {Boolean} [isLoading]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false, isPending = false) {
+function getReportActionItemStyle(isHovered = false, isLoading = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -399,7 +399,7 @@ function getReportActionItemStyle(isHovered = false, isPending = false) {
 
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
-        opacity: isPending ? 0.5 : 1,
+        opacity: isLoading ? 0.5 : 1,
         cursor: 'default',
     };
 }
@@ -438,6 +438,19 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Receives any number of object or array style objects and returns them all as an array
+ * @param {Object|Object[]} allStyles
+ * @return {Object[]}
+ */
+function combineStyles(...allStyles) {
+    let finalStyles = [];
+    _.each(allStyles, (style) => {
+        finalStyles = finalStyles.concat(parseStyleAsArray(style));
+    });
+    return finalStyles;
+}
+
+/**
  * Get variable padding-left as style
  * @param {Number} paddingLeft
  * @returns {Object}
@@ -446,6 +459,28 @@ function getPaddingLeft(paddingLeft) {
     return {
         paddingLeft,
     };
+}
+
+/**
+ * Get animated opacity for report chat list
+ * @param {Animated.Value} fadeInAnimation
+ * @returns {Object}
+ */
+function getReportListAnimationStyle(fadeInAnimation) {
+    return {
+        ...styles.flex1,
+        opacity: fadeInAnimation,
+    };
+}
+
+/**
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * @param {String} text
+ * @returns {String}
+ */
+function convertToLTR(text) {
+    return `\u2066${text}`;
 }
 
 export {
@@ -474,5 +509,8 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    combineStyles,
     getPaddingLeft,
+    getReportListAnimationStyle,
+    convertToLTR,
 };
