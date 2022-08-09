@@ -14,6 +14,30 @@ import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import * as User from './User';
 import * as store from './ReimbursementAccount/store';
+import ROUTES from '../../ROUTES';
+import * as DateUtils from '../DateUtils';
+
+/**
+ * Deletes a debit card
+ *
+ * @param {Number} fundID
+ *
+ * @returns {Promise}
+ */
+function deleteDebitCard(fundID) {
+    return DeprecatedAPI.DeleteFund({fundID})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
+                Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
+            } else {
+                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+            }
+        })
+        .catch(() => {
+            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+        });
+}
 
 function deletePayPalMe() {
     User.deletePaypalMeAddress();
@@ -194,7 +218,12 @@ function addPaymentCard(params) {
 
                 // TODO: We use isSubmitting in Form. Are we changing this?
                 // TODO: We use serverErrorMessage in Form. Are we changing this?
-                value: {isLoading: false},
+                value: {
+                    isLoading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('addDebitCardPage.genericFailureMessage'),
+                    },
+                },
             },
         ],
     });
