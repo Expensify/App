@@ -28,7 +28,8 @@ export {
 export {
     openOnfidoFlow,
     activateWallet,
-    verifyIdentity,
+    fetchUserWallet,
+    answerQuestionsForWallet,
 } from './Wallet';
 
 function clearPersonalBankAccount() {

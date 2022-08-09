@@ -582,6 +582,5 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
-    acceptWalletTerms,
-    setKYCWallSourceChatReportID,
+    answerQuestionsForWallet,
 };
