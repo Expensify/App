@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -18,6 +17,7 @@ import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -34,7 +34,7 @@ const propTypes = {
         success: PropTypes.string,
 
         /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     ...windowDimensionsPropTypes,
@@ -59,6 +59,10 @@ class LoginForm extends React.Component {
             formError: false,
             login: '',
         };
+
+        if (this.props.account.errors || this.props.account.isLoading) {
+            Session.clearAccountMessages();
+        }
     }
 
     componentDidMount() {
@@ -93,7 +97,7 @@ class LoginForm extends React.Component {
             formError: null,
         });
 
-        if (this.props.account.error) {
+        if (this.props.account.errors) {
             Session.clearAccountMessages();
         }
     }
@@ -132,10 +136,18 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
     }
 
     render() {
+        const formErrorTranslated = this.state.formError && this.props.translate(this.state.formError);
+        const error = formErrorTranslated || _.chain(this.props.account.errors || [])
+            .keys()
+            .sortBy()
+            .reverse()
+            .map(key => this.props.account.errors[key])
+            .first()
+            .value();
         return (
             <>
                 <View style={[styles.mt3]}>
@@ -154,28 +166,19 @@ class LoginForm extends React.Component {
                         keyboardType={getEmailKeyboardType()}
                     />
                 </View>
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.props.translate(this.state.formError)}
-                    </Text>
-                )}
-
-                {!this.state.formError && !_.isEmpty(this.props.account.error) && (
-                    <Text style={[styles.formError]}>
-                        {this.props.account.error}
-                    </Text>
-                )}
                 {!_.isEmpty(this.props.account.success) && (
                     <Text style={[styles.formSuccess]}>
                         {this.props.account.success}
                     </Text>
                 )}
                 <View style={[styles.mt5]}>
-                    <Button
-                        success
-                        text={this.props.translate('common.continue')}
-                        isLoading={this.props.account.loading}
-                        onPress={this.validateAndSubmitForm}
+                    <FormAlertWithSubmitButton
+                        buttonText={this.props.translate('common.continue')}
+                        isLoading={this.props.account.isLoading}
+                        onSubmit={this.validateAndSubmitForm}
+                        message={error}
+                        isAlertVisible={!_.isEmpty(error)}
+                        containerStyles={[styles.mh0]}
                     />
                 </View>
             </>
