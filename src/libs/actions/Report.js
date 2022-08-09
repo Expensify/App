@@ -57,17 +57,6 @@ const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
 
-// Map of optimistic report action IDs. These should be cleared when replaced by a recent fetch of report history
-// since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
-const optimisticReportActionIDs = {};
-
-// Boolean to indicate if report data is loading from the API or not.
-let isReportDataLoading = true;
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    callback: val => isReportDataLoading = val,
-});
-
 /**
  * @param {Number} reportID
  * @param {Number} lastReadSequenceNumber
@@ -856,19 +845,6 @@ function addActions(reportID, text = '', file) {
         lastActorEmail: currentUserEmail,
     };
 
-    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
-    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
-    // event, for whatever reason, from the server with the new action data
-    optimisticReport.optimisticReportActionIDs = [...(optimisticReportActionIDs[reportID] || [])];
-
-    if (text) {
-        optimisticReport.optimisticReportActionIDs.push(reportCommentAction.clientID);
-    }
-
-    if (file) {
-        optimisticReport.optimisticReportActionIDs.push(attachmentAction.clientID);
-    }
-
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
@@ -911,24 +887,8 @@ function addActions(reportID, text = '', file) {
         DateUtils.setTimezoneUpdated();
     }
 
-    const successData = [];
-    if (text) {
-        successData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {[reportCommentAction.clientID]: {pendingAction: null}},
-        });
-    }
-    if (file) {
-        successData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {[attachmentAction.clientID]: {pendingAction: null}},
-        });
-    }
     API.write(commandName, parameters, {
         optimisticData,
-        successData,
     });
 }
 
@@ -1253,9 +1213,6 @@ function handleReportChanged(report) {
     if (report.reportID && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
-
-    // Store optimistic actions IDs for each report
-    optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
 }
 
 /**
@@ -1495,8 +1452,8 @@ function viewNewReportAction(reportID, action) {
     // unreadActionCount if the incoming sequenceNumber is higher than the last read for the user.
     if (isFromCurrentUser) {
         updatedReportObject.unreadActionCount = 0;
-        updatedReportObject.lastVisitedTimestamp = moment().valueOf();
-        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
+        updatedReportObject.lastVisitedTimestamp = Date.now();
+        updatedReportObject.lastReadSequenceNumber = action.pendingAction ? lastReadSequenceNumber : action.sequenceNumber;
     } else if (incomingSequenceNumber > lastReadSequenceNumber) {
         updatedReportObject.unreadActionCount = getUnreadActionCount(reportID) + 1;
     }
