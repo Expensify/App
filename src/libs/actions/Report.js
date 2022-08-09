@@ -399,26 +399,6 @@ function setLocalIOUReportData(iouReportObject) {
 }
 
 /**
- * Remove all optimistic actions from report actions and reset the optimisticReportActionsIDs array. We do this
- * to clear any stuck optimistic actions that have not be updated for whatever reason.
- *
- * @param {Number} reportID
- */
-function removeOptimisticActions(reportID) {
-    const actionIDs = optimisticReportActionIDs[reportID] || [];
-    const actionsToRemove = _.reduce(actionIDs, (actions, actionID) => ({
-        ...actions,
-        [actionID]: null,
-    }), {});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionsToRemove);
-
-    // Reset the optimistic report action IDs to an empty array
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        optimisticReportActionIDs: [],
-    });
-}
-
-/**
  * Fetch the iouReport and persist the data to Onyx.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
@@ -663,10 +643,6 @@ function fetchActions(reportID) {
         reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
     })
         .then((data) => {
-            // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
-            // be caught up and no longer need any optimistic comments.
-            removeOptimisticActions(reportID);
-
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
         });
@@ -933,10 +909,18 @@ function addActions(reportID, text = '', file) {
 
     const successData = [];
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = {pendingAction: null};
+        successData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {[reportCommentAction.clientID]: {pendingAction: null}},
+        });
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = {pendingAction: null};
+        successData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {[attachmentAction.clientID]: {pendingAction: null}},
+        });
     }
     API.write(commandName, parameters, {
         optimisticData,
