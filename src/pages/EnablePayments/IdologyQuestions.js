@@ -33,11 +33,18 @@ const propTypes = {
 
     /** ID from Idology, referencing those questions */
     idNumber: PropTypes.string,
+
+    additionalDetails: PropTypes.shape({
+        isLoading: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     questions: [],
     idNumber: '',
+    additionalDetails: {
+        isLoading: false,
+    },
 };
 
 class IdologyQuestions extends React.Component {
@@ -57,9 +64,6 @@ class IdologyQuestions extends React.Component {
 
             /** Any error message */
             errorMessage: '',
-
-            /** Did the user just submitted all his answers? */
-            isLoading: false,
         };
     }
 
@@ -163,7 +167,7 @@ class IdologyQuestions extends React.Component {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
                         message={this.state.errorMessage}
-                        isLoading={this.state.isLoading}
+                        isLoading={this.props.additionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
                 </FormScrollView>
