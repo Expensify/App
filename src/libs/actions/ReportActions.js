@@ -130,10 +130,21 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
     return action.actorAccountID === currentUserAccountID;
 }
 
+/**
+ * @param {Number} reportID
+ * @param {String} clientID
+ */
+function deleteClientAction(reportID, clientID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [clientID]: null,
+    });
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
     isFromCurrentUser,
+    deleteClientAction,
 };
