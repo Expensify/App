@@ -1208,7 +1208,7 @@ function deleteReportComment(reportID, reportAction) {
 
     const optimisticReportActions = {
         [sequenceNumber]: {
-            isPending: true,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             message: [{
                 html: '',
                 text: '',
@@ -1299,7 +1299,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const sequenceNumber = originalReportAction.sequenceNumber;
     const optimisticReportActions = {
         [sequenceNumber]: {
-            isPending: true,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [{
                 isEdited: true,
                 html: htmlForEditedComment,
