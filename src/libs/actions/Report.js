@@ -1476,6 +1476,22 @@ function updatePolicyRoomName(policyRoomReport, reportName) {
 }
 
 /**
+ * Clear policy room name errors.
+ *
+ * @param {Number} reportID The reportID of the policy room.
+ */
+function clearPolicyRoomNameErrors(reportID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        errorFields: {
+            reportName: null,
+        },
+        pendingFields: {
+            reportName: null,
+        },
+    });
+}
+
+/**
  * @param {Number} reportID
  * @param {Boolean} isComposerFullSize
  */
@@ -1629,4 +1645,5 @@ export {
     openPaymentDetailsPage,
     createOptimisticReport,
     updatePolicyRoomName,
+    clearPolicyRoomNameErrors,
 };
