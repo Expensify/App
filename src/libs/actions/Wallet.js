@@ -398,7 +398,8 @@ function verifyIdentity(parameters) {
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: true,
-                    error: '',
+                    errors: {},
+                    fixableErrors: [],
                 },
             },
             {
@@ -415,7 +416,7 @@ function verifyIdentity(parameters) {
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: false,
-                    error: '',
+                    errors: {},
                 },
             },
         ],
