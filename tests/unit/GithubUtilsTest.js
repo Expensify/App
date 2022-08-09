@@ -33,11 +33,12 @@ beforeAll(() => {
                 list: jest.fn().mockImplementation(arg => Promise.resolve({
                     data: {
                         ...arg,
-                        html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
+                        html_url: 'https://github.com/Expensify/App/issues/29',
                     },
                 })),
             },
         },
+        paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
     };
     GithubUtils.internalOctokit = mocktokit;
 });
