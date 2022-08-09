@@ -17,6 +17,7 @@ import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -165,6 +166,16 @@ class PaymentMethodList extends Component {
     }
 
     /**
+     * Dismisses the error on the payment method
+     * @param {*} item 
+     */
+    dismissError(item) {
+        if (item.pendingAction === 'delete') {
+            
+        }
+    }
+
+    /**
      * @param {Object} paymentMethod
      * @param {String|Number} paymentMethod.methodID
      * @param {String} paymentMethod.accountType
@@ -185,20 +196,22 @@ class PaymentMethodList extends Component {
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
             return (
-                <MenuItem
-                    onPress={item.onPress}
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    disabled={item.disabled}
-                    iconFill={item.iconFill}
-                    iconHeight={item.iconSize}
-                    iconWidth={item.iconSize}
-                    badgeText={this.getDefaultBadgeText(item.isDefault)}
-                    wrapperStyle={item.wrapperStyle}
-                    shouldShowSelectedState={this.props.shouldShowSelectedState}
-                    isSelected={this.props.selectedMethodID === item.methodID}
-                />
+                <OfflineWithFeedback>
+                    <MenuItem
+                        onPress={item.onPress}
+                        title={item.title}
+                        description={item.description}
+                        icon={item.icon}
+                        disabled={item.disabled}
+                        iconFill={item.iconFill}
+                        iconHeight={item.iconSize}
+                        iconWidth={item.iconSize}
+                        badgeText={this.getDefaultBadgeText(item.isDefault)}
+                        wrapperStyle={item.wrapperStyle}
+                        shouldShowSelectedState={this.props.shouldShowSelectedState}
+                        isSelected={this.props.selectedMethodID === item.methodID}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (item.type === BUTTON) {
