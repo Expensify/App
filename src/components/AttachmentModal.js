@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Animated} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
@@ -78,12 +78,14 @@ class AttachmentModal extends PureComponent {
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
-            shouldHideConfirmButton: false,
+            isConfirmButtonDisabled: false,
+            confirmButtonFadeAnimation: new Animated.Value(1),
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
+        this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
 
     /**
@@ -124,8 +126,9 @@ class AttachmentModal extends PureComponent {
      * Execute the onConfirm callback and close the modal.
      */
     submitAndClose() {
-        // If the modal has already been closed, don't allow another submission
-        if (!this.state.isModalOpen) {
+        // If the modal has already been closed or the confirm button is disabled
+        // do not submit.
+        if (!this.state.isModalOpen || this.state.isConfirmButtonDisabled) {
             return;
         }
 
@@ -206,12 +209,31 @@ class AttachmentModal extends PureComponent {
         }
     }
 
+    /**
+     * In order to gracefully hide/show the confirm button on Android when the keyboard
+     * opens/closes, apply an animation to fade the confirm button out/in. And since
+     * we're only updating the opacity of the confirm button, we must also conditionally
+     * disable it.
+     *
+     * @param {Boolean} shouldFadeOut If true, fade out confirm button. Otherwise fade in.
+     */
+    updateConfirmButtonVisibility(shouldFadeOut) {
+        this.setState({isConfirmButtonDisabled: shouldFadeOut});
+        const toValue = shouldFadeOut ? 0 : 1;
+
+        Animated.timing(this.state.confirmButtonFadeAnimation, {
+            toValue,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
+    }
+
     render() {
         const sourceURL = this.props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
 
-        // When the send button is visible we don't need bottom padding on the attachment view.
+        // When the confirm button is visible we don't need bottom padding on the attachment view.
         const attachmentViewPaddingStyles = this.props.onConfirm
             ? [styles.pl5, styles.pr5, styles.pt5]
             : styles.p5;
@@ -255,23 +277,24 @@ class AttachmentModal extends PureComponent {
                             <AttachmentView
                                 sourceURL={sourceURL}
                                 file={this.state.file}
-                                onAvoidKeyboard={shouldAvoid => this.setState({
-                                    shouldHideConfirmButton: shouldAvoid,
-                                })}
+                                onAvoidKeyboard={this.updateConfirmButtonVisibility}
                             />
                         )}
                     </View>
 
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {this.props.onConfirm && !this.state.shouldHideConfirmButton && (
-                        <Button
-                            success
-                            style={[styles.buttonConfirm]}
-                            textStyles={[styles.buttonConfirmText]}
-                            text={this.props.translate('common.send')}
-                            onPress={this.submitAndClose}
-                            pressOnEnter
-                        />
+                    {this.props.onConfirm && (
+                        <Animated.View style={{opacity: this.state.confirmButtonFadeAnimation}}>
+                            <Button
+                                success
+                                style={[styles.buttonConfirm]}
+                                textStyles={[styles.buttonConfirmText]}
+                                text={this.props.translate('common.send')}
+                                onPress={this.submitAndClose}
+                                disabled={this.state.isConfirmButtonDisabled}
+                                pressOnEnter
+                            />
+                        </Animated.View>
                     )}
                 </Modal>
 
