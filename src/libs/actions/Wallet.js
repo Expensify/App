@@ -395,4 +395,5 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    answerQuestionsForWallet,
 };

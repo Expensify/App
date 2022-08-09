@@ -103,12 +103,11 @@ class IdologyQuestions extends React.Component {
                     }
                 }
 
-                BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-                    idologyAnswers: {
-                        answers,
-                        idNumber: this.props.idNumber,
-                    },
-                });
+                let idologyAnswers = {
+                    answers,
+                    idNumber: this.props.idNumber,
+                };
+                BankAccounts.answerQuestionsForWallet(idologyAnswers);
                 return {answers, isLoading: true};
             }
 
