@@ -245,13 +245,6 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-// When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.listenForReconnect();
-NetworkConnection.onReconnect(() => {
-    getAppData();
-    reconnectApp();
-});
-
 export {
     setLocale,
     setSidebarLoaded,
@@ -260,4 +253,5 @@ export {
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
+    reconnectApp,
 };

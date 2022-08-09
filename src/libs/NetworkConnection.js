@@ -81,8 +81,6 @@ function listenForReconnect() {
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
     });
-
-    subscribeToNetInfo();
 }
 
 /**
@@ -130,4 +128,5 @@ export default {
     onReconnect,
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
+    subscribeToNetInfo,
 };
