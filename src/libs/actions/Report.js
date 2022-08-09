@@ -821,7 +821,7 @@ function buildOptimisticReportAction(reportID, text, file) {
             isFirstItem: false,
             isAttachment,
             attachmentInfo,
-            isLoading: true,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
         },
     };
@@ -931,26 +931,8 @@ function addActions(reportID, text = '', file) {
         DateUtils.setTimezoneUpdated();
     }
 
-    const failureDataReportActions = {};
-    const defaultLoadingState = {
-        isLoading: false,
-    };
-
-    if (text) {
-        failureDataReportActions[reportCommentAction.clientID] = defaultLoadingState;
-    }
-
-    if (file) {
-        failureDataReportActions[attachmentAction.clientID] = defaultLoadingState;
-    }
-
     API.write(commandName, parameters, {
         optimisticData,
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: failureDataReportActions,
-        }],
     });
 }
 
