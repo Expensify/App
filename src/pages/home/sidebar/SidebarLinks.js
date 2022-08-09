@@ -138,6 +138,7 @@ class SidebarLinks extends React.Component {
             props.priorityMode,
             props.betas,
             props.reportsWithDraft,
+            props.reportActions,
         );
         return sidebarOptions.recentReports;
     }
@@ -370,6 +371,9 @@ export default compose(
         },
         reportsWithDraft: {
             key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
+        },
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         },
     }),
 )(SidebarLinks);
