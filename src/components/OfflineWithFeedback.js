@@ -43,6 +43,11 @@ const propTypes = {
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
+
+    /** Additional style object for the error row */
+    // eslint-disable-next-line react/forbid-prop-types
+    errorStyle: PropTypes.object,
+
     ...withLocalizePropTypes,
 };
 
@@ -50,6 +55,7 @@ const defaultProps = {
     pendingAction: null,
     errors: null,
     style: [],
+    errorStyle: {},
 };
 
 /**
@@ -97,7 +103,7 @@ const OfflineWithFeedback = (props) => {
                 </View>
             )}
             {hasErrors && (
-                <View style={styles.offlineFeedback.error}>
+                <View style={[styles.offlineFeedback.error, props.errorStyle]}>
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>

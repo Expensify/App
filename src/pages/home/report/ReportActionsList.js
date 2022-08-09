@@ -149,6 +149,7 @@ class ReportActionsList extends React.Component {
                 }}
                 pendingAction={item.action.pendingAction}
                 errors={item.action.errors}
+                errorStyle={styles.ml10}
             >
                 <ReportActionItem
                     reportID={this.props.report.reportID}
