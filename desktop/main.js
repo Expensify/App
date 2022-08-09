@@ -31,14 +31,24 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
-contextMenu();
+// Add the Paste and Match Style command to the context menu
+contextMenu({
+    append: (defaultActions, parameters) => [
+        new MenuItem({
+            // Only enable the menu item for Editable context which supports paste
+            visible: parameters.isEditable && parameters.editFlags.canPaste,
+            role: 'pasteAndMatchStyle',
+            accelerator: 'CmdOrCtrl+Shift+V',
+        }),
+    ],
+});
 
-// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all Console logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 _.assign(console, log.functions);
 
@@ -200,6 +210,13 @@ const mainWindow = (() => {
                     accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                     click: () => { browserWindow.webContents.goForward(); },
                 }],
+            }));
+
+            // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
+            const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
+            editMenu.submenu.insert(6, new MenuItem({
+                role: 'pasteAndMatchStyle',
+                accelerator: 'CmdOrCtrl+Shift+V',
             }));
 
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');

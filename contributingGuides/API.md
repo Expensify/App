@@ -43,14 +43,16 @@ The data will automatically be sent to the user via Pusher.
 #### WRITE Response Errors
 When there is an error on a WRITE response (`jsonCode!==200`), the error must come back to the client on the HTTPS response. The error is only relevant to the client that made the request and it wouldn't make sense to send it out to all connected clients.
 
-Error messages should be returned and stored as a String under the `error` property. If absolutely needed, additional error properties can be stored under other, more specific fields that sit at the same level as `error`:
+Error messages should be returned and stored as an object under the `errors` property, keyed by an integer [microtime](https://github.com/Expensify/Web-Expensify/blob/25d056c9c531ea7f12c9bf3283ec554dd5d1d316/lib/Onyx.php#L148-L154). If absolutely needed, additional error properties can be stored under other, more specific fields that sit at the same level as `errors`:
 ```php
 [
     'onyxMethod' => Onyx::METHOD_MERGE,
     'key' => OnyxKeys::WALLET_ADDITIONAL_DETAILS,
     'value' => [
-        'error' => 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
-        'errorCode' => 'ssnError'
+        'errors' => [
+            Onyx::getErrorMicroTime() => 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
+        ],
+        'errorCode' => 'ssnError',
     ],
 ]
 ```

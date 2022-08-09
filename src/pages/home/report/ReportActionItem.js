@@ -28,6 +28,9 @@ import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProv
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
+import SelectionScraper from '../../../libs/SelectionScraper';
+import * as User from '../../../libs/actions/User';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -96,13 +99,13 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
      */
-    showPopover(event, selection) {
+    showPopover(event) {
         // Block menu on the message being Edited
         if (this.props.draftMessage) {
             return;
         }
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -139,16 +142,20 @@ class ReportActionItem extends Component {
             );
         } else {
             children = !this.props.draftMessage
-                ? <ReportActionItemMessage action={this.props.action} />
-                : (
+                ? (
+                    <ReportActionItemMessage action={this.props.action} />
+                ) : (
                     <ReportActionItemMessageEdit
-                            action={this.props.action}
-                            draftMessage={this.props.draftMessage}
-                            reportID={this.props.reportID}
-                            index={this.props.index}
-                            ref={el => this.textInput = el}
-                            report={this.props.report}
-                            blockedFromConcierge={this.props.blockedFromConcierge}
+                        action={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        reportID={this.props.reportID}
+                        index={this.props.index}
+                        ref={el => this.textInput = el}
+                        report={this.props.report}
+                        shouldDisableEmojiPicker={
+                            (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                            || ReportUtils.isArchivedRoom(this.props.report)
+                        }
                     />
                 );
         }

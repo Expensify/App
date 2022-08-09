@@ -26,14 +26,11 @@ const propTypes = {
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        /** Whether or not the account already exists */
-        accountExists: PropTypes.bool,
-
         /** Whether or not two factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
         /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -183,7 +180,7 @@ class PasswordForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={this.props.account.loading}
+                        isLoading={this.props.account.isLoading}
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink />

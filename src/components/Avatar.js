@@ -8,6 +8,7 @@ import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
+import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -70,7 +71,12 @@ class Avatar extends PureComponent {
                         />
                     )
                     : (
-                        <Image source={{uri: this.props.source}} style={imageStyle} onError={() => this.setState({imageError: true})} />
+                        <Image
+                            source={{uri: this.props.source}}
+                            defaultSource={getAvatarDefaultSource(this.props.source)}
+                            style={imageStyle}
+                            onError={() => this.setState({imageError: true})}
+                        />
                     )}
             </View>
         );
