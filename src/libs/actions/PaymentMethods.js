@@ -15,7 +15,7 @@ import ROUTES from '../../ROUTES';
 import * as User from './User';
 import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
-import * as DateUtils from '../DateUtils';
+import DateUtils from '../DateUtils';
 
 /**
  * Deletes a debit card
@@ -213,10 +213,11 @@ function addPaymentCard(params) {
                 key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
 
                 // TODO: We use serverErrorMessage in Form. Are we changing this?
+                // TODO: We end up with two errors, one from the front-end and one from the API
                 value: {
                     isLoading: false,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('addDebitCardPage.genericFailureMessage'),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('addDebitCardPage.error.genericFailureMessage'),
                     },
                 },
             },
