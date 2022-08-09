@@ -415,18 +415,16 @@ assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
 
 info "Reverting PR #16 and cherry-picking the revert to staging..."
 git checkout main
-git checkout -b revert-pr-16
+CP_BRANCH_NAME="revert-pr-16"
+git checkout -b "$CP_BRANCH_NAME"
 echo "some content" > pr14.txt
 git add pr14.txt
 git commit -m "Revert PR #16"
 git checkout main
-git merge revert-pr-16 --no-ff -m "Merge pull request #19 from Expensify/revert-pr-16"
-git branch -d revert-pr-16
-PR_19_MERGE_COMMIT="$(git log -1 --format='%H')"
+git merge $CP_BRANCH_NAME --no-ff -m "Merge pull request #19 from Expensify/$CP_BRANCH_NAME"
 info "Merged PR #19 into main"
 
-# Assert that PR 16 is reverted on main
-info "Asserting that PR #16 is revert on main"
+info "Asserting that PR #16 is reverted on main"
 git checkout main
 assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Prepended content"
 assert_string_contains_substring "$(cat pr14.txt)" "some content"
@@ -434,25 +432,28 @@ assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Appended content"
 
 info "Bumping version to 1.1.4 on main..."
 git checkout main
-git checkout -b version-bump
+VERSION_BUMP_BRANCH_NAME="version-bump"
+git checkout -b $VERSION_BUMP_BRANCH_NAME
 npm --no-git-tag-version version 1.1.4 -m "Update version to 1.1.4"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 git checkout main
-git merge version-bump --no-ff -m "Merge pull request #20 from Expensify/version-bump"
-git branch -d version-bump
+git merge $VERSION_BUMP_BRANCH_NAME --no-ff -m "Merge pull request #20 from Expensify/$VERSION_BUMP_BRANCH_NAME"
 info "Merged PR #20 into main"
-VERSION_BUMP_MERGE_COMMIT="$(git log -1 --format='%H')"
 success "Bumped version to 1.1.4 on main!"
 
 info "Cherry picking PR #19 (revert PR) and the version bump to staging..."
+CP_MERGE_BASE=$(git merge-base staging $CP_BRANCH_NAME)
+VERSION_BUMP_MERGE_BASE=$(git merge-base staging $VERSION_BUMP_BRANCH_NAME)
+COMMON_MERGE_BASE=$(git merge-base "$CP_MERGE_BASE" "$VERSION_BUMP_MERGE_BASE")
+git checkout -b cherry-pick-staging-19 "$COMMON_MERGE_BASE"
+git merge --no-edit -Xtheirs $CP_BRANCH_NAME  || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
+git merge --no-edit -Xtheirs $VERSION_BUMP_BRANCH_NAME || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
 git checkout staging
-git checkout -b cherry-pick-staging-19
-git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_19_MERGE_COMMIT"
-git cherry-pick -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
-git checkout staging
-git merge cherry-pick-staging-19 --no-ff -m "Merge pull request #19 from Expensify/cherry-pick-staging-19"
+git merge --no-edit -Xtheirs cherry-pick-staging-19 || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
 git branch -d cherry-pick-staging-19
+git branch -d $CP_BRANCH_NAME
+git branch -d $VERSION_BUMP_BRANCH_NAME
 info "Merged PR #21 into staging"
 success "Successfully cherry-picked PR #19 (revert PR) to staging!"
 
@@ -479,7 +480,7 @@ git merge pr-22 --no-ff -m "Merge pull request #22 from Expensify/pr-22"
 git branch -d pr-22
 success "Merged PR #22 into main!"
 
-# Assert that prepended content, original content, and appended content are present on main
+info "Asserting that prepended content, original content, and appended content are present on main"
 git checkout main
 assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
 assert_string_contains_substring "$(cat pr14.txt)" "some content"
@@ -511,7 +512,7 @@ git checkout staging
 git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
-# Assert that prepended content, original content, and appended content are present on staging
+info "Asserting that prepended content, original content, and appended content are present on staging"
 git checkout staging
 assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
 assert_string_contains_substring "$(cat pr14.txt)" "some content"
