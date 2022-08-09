@@ -64,8 +64,8 @@ This is the pattern where we queue the request to be sent when the user is onlin
 This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. 
 When the user is online, the feature should just look like it succeeds immediately (we don't want the offline UI to flicker on and off when the user is online).
 When the user is offline:
-- Things pending to be created or updated will be shown greyed out (0.6 opacity)
-- Things pending to be deleted will have strikethrough
+- Things pending to be created or updated will be shown greyed out (0.5 opacity)
+- Things pending to be deleted will be shown greyed out and have strikethrough
 
 **Used when…**
 - the user needs feedback that data will be sent to the server later
