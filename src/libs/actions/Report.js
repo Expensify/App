@@ -1470,7 +1470,7 @@ function renameReport(reportID, reportName) {
  * Update the policy room name.
  *
  * @param {Object} policyRoomReport
- * @param {*} reportName The updated reportName
+ * @param {String} reportName The updated reportName
  */
 function updatePolicyRoomName(policyRoomReport, reportName) {
     const reportID = policyRoomReport.reportID;
