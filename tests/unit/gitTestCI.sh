@@ -375,12 +375,8 @@ git merge pr-17 --no-ff -m "Merge pull request #17 from Expensify/pr-17"
 git branch -d pr-17
 success "Merged PR #17 into main!"
 
-# Assert that prepended content, original content, and appended content are present on main and staging
+info "Asserting that prepended content, original content, and appended content are present on main"
 git checkout main
-assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
-assert_string_contains_substring "$(cat pr14.txt)" "some content"
-assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
-git checkout staging
 assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
 assert_string_contains_substring "$(cat pr14.txt)" "some content"
 assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
@@ -411,6 +407,12 @@ git checkout staging
 git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
+info "Asserting that prepended content, original content, and appended content are present on staging"
+git checkout staging
+assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat pr14.txt)" "some content"
+assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
+
 info "Reverting PR #16 and cherry-picking the revert to staging..."
 git checkout main
 git checkout -b revert-pr-16
@@ -424,6 +426,7 @@ PR_19_MERGE_COMMIT="$(git log -1 --format='%H')"
 info "Merged PR #19 into main"
 
 # Assert that PR 16 is reverted on main
+info "Asserting that PR #16 is revert on main"
 git checkout main
 assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Prepended content"
 assert_string_contains_substring "$(cat pr14.txt)" "some content"
@@ -436,7 +439,7 @@ npm --no-git-tag-version version 1.1.4 -m "Update version to 1.1.4"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 git checkout main
-git merge version-bump --no-ff "Merge pull request #20 from Expensify/version-bump"
+git merge version-bump --no-ff -m "Merge pull request #20 from Expensify/version-bump"
 git branch -d version-bump
 info "Merged PR #20 into main"
 VERSION_BUMP_MERGE_COMMIT="$(git log -1 --format='%H')"
@@ -453,7 +456,7 @@ git branch -d cherry-pick-staging-19
 info "Merged PR #21 into staging"
 success "Successfully cherry-picked PR #19 (revert PR) to staging!"
 
-# Assert that PR 16 is reverted on staging
+info "Asserting that PR #16 is reverted on staging"
 git checkout staging
 assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Prepended content"
 assert_string_contains_substring "$(cat pr14.txt)" "some content"
@@ -489,7 +492,7 @@ npm --no-git-tag-version version 1.1.5 -m "Update version to 1.1.5"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 git checkout main
-git merge version-bump --no-ff "Merge pull request #23 from Expensify/version-bump"
+git merge version-bump --no-ff -m "Merge pull request #23 from Expensify/version-bump"
 git branch -d version-bump
 info "Merged PR #23 into main"
 success "Bumped version to 1.1.5 on main!"
