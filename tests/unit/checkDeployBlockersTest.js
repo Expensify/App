@@ -28,12 +28,14 @@ beforeAll(() => {
 
     // Mock octokit module
     const mocktokit = {
-        issues: {
-            get: mockGetIssue,
-            listComments: mockListComments,
-        },
+        rest: {
+            issues: {
+                get: mockGetIssue,
+                listComments: mockListComments,
+            },
+        }
     };
-    GithubUtils.octokitInternalRest = mocktokit;
+    GithubUtils.internalOctokit = mocktokit;
 });
 
 let baseComments = [];

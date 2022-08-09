@@ -3,6 +3,7 @@ const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
+const {composePaginateRest} = require("@octokit/plugin-paginate-rest");
 
 const GITHUB_OWNER = 'Expensify';
 const APP_REPO = 'App';
@@ -26,22 +27,15 @@ const INTERNAL_QA_LABEL = 'InternalQA';
 const POLL_RATE = 10000;
 
 class GithubUtils {
-    /**
-     * Either give an existing instance of Octokit or create a new one
-     *
-     * @readonly
-     * @static
-     * @memberof GithubUtils
-     */
-    static get octokitRest() {
-        if (this.octokitInternalRest) {
-            return this.octokitInternalRest;
+    static get octokit() {
+        if (this.internalOctokit) {
+            return this.internalOctokit;
         }
         const OctokitThrottled = GitHub.plugin(throttling);
         const token = core.getInput('GITHUB_TOKEN', {required: true});
 
         // Save a copy of octokit used in this class
-        this.octokit = new OctokitThrottled(getOctokitOptions(token, {
+        this.internalOctokit = new OctokitThrottled(getOctokitOptions(token, {
             throttle: {
                 onRateLimit: (retryAfter, options) => {
                     console.warn(
@@ -62,8 +56,18 @@ class GithubUtils {
                 },
             },
         }));
-        this.octokitInternalRest = this.octokit.rest;
-        return this.octokitInternalRest;
+        return this.internalOctokit;
+    }
+
+    /**
+     * Either give an existing instance of Octokit or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get octokitRest() {
+        return this.octokit.rest;
     }
 
     /**
@@ -328,7 +332,7 @@ class GithubUtils {
      */
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
-        return this.octokitRest.paginate(this.octokitRest.pulls.list, {
+        return composePaginateRest(this.octokit, this.octokitRest.pulls.list, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             state: 'all',
@@ -464,7 +468,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.octokit.paginate(this.octokitRest.issues.listEvents, {
+        return composePaginateRest(this.octokit, this.octokitRest.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,
