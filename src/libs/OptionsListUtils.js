@@ -12,8 +12,6 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 
-const memoizedOrderBy = memoizeOne(lodashOrderBy);
-
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -117,8 +115,6 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
     return personalDetailsForLogins;
 }
 
-const memoizedGetPersonalDetailsForLogins = memoizeOne(getPersonalDetailsForLogins);
-
 /**
  * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
  * to be used in isSearchStringMatch.
@@ -182,8 +178,6 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     return _.unique(searchTerms).join(' ');
 }
 
-const memoizedGetSearchText = memoizeOne(getSearchText);
-
 /**
  * Determines whether a report has a draft comment.
  *
@@ -214,7 +208,7 @@ function createOption(logins, personalDetails, report, reportsWithDraft, {
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const personalDetailMap = memoizedGetPersonalDetailsForLogins(logins, personalDetails);
+    const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
@@ -273,7 +267,7 @@ function createOption(logins, personalDetails, report, reportsWithDraft, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: memoizedGetSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
+        searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
@@ -285,8 +279,6 @@ function createOption(logins, personalDetails, report, reportsWithDraft, {
         isPolicyExpenseChat,
     };
 }
-
-const memoizedCreateOption = memoizeOne(createOption);
 
 /**
  * Searches for a match when provided with a value
@@ -341,10 +333,6 @@ function isCurrentUser(userDetails) {
     return result;
 }
 
-// We are storing a map of logins in the format {[login]: [login]} so that the memoized functions looking for an array with a login in it
-// treat this like the same argument (because it will use the same reference). Memoization for personalDetails won't work properly without this.
-const loginArrayMap = {};
-
 /**
  * Build the options
  *
@@ -396,7 +384,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     }
 
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    let orderedReports = memoizedOrderBy(reports, sortProperty, sortDirection);
+    let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
 
     // Move the archived Rooms to the last
     orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
@@ -461,33 +449,26 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(memoizedCreateOption(logins, personalDetails, report, reportsWithDraft, {
+        allReportOptions.push(createOption(logins, personalDetails, report, reportsWithDraft, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
-    let allPersonalDetailsOptions = _.map(personalDetails, (personalDetail) => {
-        // We want to use the same argument reference when creating the personalDetails option as memoization won't work properly
-        // if we passed [personalDetail.login] directly (that would be a new argument since we'd initialize a new array)
-        if (!loginArrayMap[personalDetail.login]) {
-            loginArrayMap[personalDetail.login] = [personalDetail.login];
-        }
-        return memoizedCreateOption(
-            loginArrayMap[personalDetail.login],
-            personalDetails,
-            reportMapForLogins[personalDetail.login],
-            reportsWithDraft,
-            {
-                showChatPreviewLine,
-                forcePolicyNamePreview,
-            },
-        );
-    });
+    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => createOption(
+        [personalDetail.login],
+        personalDetails,
+        reportMapForLogins[personalDetail.login],
+        reportsWithDraft,
+        {
+            showChatPreviewLine,
+            forcePolicyNamePreview,
+        },
+    ));
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-        allPersonalDetailsOptions = memoizedOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
     }
 
     // Always exclude already selected options and the currently logged in user
@@ -545,20 +526,20 @@ function getOptions(reports, personalDetails, activeReportID, {
     // If we are prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
     if (prioritizeReportsWithDraftComments) {
-        const sortedDraftReports = memoizedOrderBy(draftReportOptions, ['text'], ['asc']);
+        const sortedDraftReports = lodashOrderBy(draftReportOptions, ['text'], ['asc']);
         recentReportOptions = sortedDraftReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing IOUs the user owes, add them before the normal recent report options and reports
     // with draft comments.
     if (prioritizeIOUDebts) {
-        const sortedIOUReports = memoizedOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
+        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
         recentReportOptions = sortedIOUReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
     if (prioritizePinnedReports) {
-        const sortedPinnedReports = memoizedOrderBy(pinnedReportOptions, ['text'], ['asc']);
+        const sortedPinnedReports = lodashOrderBy(pinnedReportOptions, ['text'], ['asc']);
         recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
@@ -600,7 +581,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        userToInvite = memoizedCreateOption([login], personalDetails, null, reportsWithDraft, {
+        userToInvite = createOption([login], personalDetails, null, reportsWithDraft, {
             showChatPreviewLine,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
@@ -611,7 +592,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
         recentReportOptions.push(...personalDetailsOptions);
         personalDetailsOptions = [];
-        recentReportOptions = memoizedOrderBy(recentReportOptions, [(option) => {
+        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
             if (option.isChatRoom || option.isArchivedRoom) {
                 return 3;
             }
