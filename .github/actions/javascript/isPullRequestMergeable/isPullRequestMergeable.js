@@ -13,7 +13,7 @@ const run = function () {
     let isMergeable = false;
     let mergeabilityResolved = false;
     console.log(`Checking the mergeability of PR #${pullRequestNumber}`);
-    return GithubUtils.octokit.pulls.get({
+    return GithubUtils.octokitRest.pulls.get({
         owner: GithubUtils.GITHUB_OWNER,
         repo: GithubUtils.APP_REPO,
         pull_number: pullRequestNumber,
@@ -23,12 +23,12 @@ const run = function () {
             () => !mergeabilityResolved && retryCount < MAX_RETRIES,
             _.throttle(
                 () => Promise.all([
-                    GithubUtils.octokit.pulls.get({
+                    GithubUtils.octokitRest.pulls.get({
                         owner: GithubUtils.GITHUB_OWNER,
                         repo: GithubUtils.APP_REPO,
                         pull_number: pullRequestNumber,
                     }),
-                    GithubUtils.octokit.checks.listForRef({
+                    GithubUtils.octokitRest.checks.listForRef({
                         owner: GithubUtils.GITHUB_OWNER,
                         repo: GithubUtils.APP_REPO,
                         ref: headRef,

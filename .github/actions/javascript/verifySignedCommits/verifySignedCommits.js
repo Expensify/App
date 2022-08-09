@@ -5,7 +5,7 @@ const GitHubUtils = require('../../../libs/GithubUtils');
 
 const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request.number;
 
-GitHubUtils.octokit.pulls.listCommits({
+GitHubUtils.octokitRest.pulls.listCommits({
     owner: GitHubUtils.GITHUB_OWNER,
     repo: GitHubUtils.APP_REPO,
     pull_number: PR_NUMBER,
