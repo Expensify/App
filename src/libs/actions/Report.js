@@ -1482,7 +1482,7 @@ function updatePolicyRoomName(policyRoomReport, reportName) {
             value: {
                 reportName,
                 pendingFields: {
-                    reportName: 'update',
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
