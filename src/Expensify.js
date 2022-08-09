@@ -21,6 +21,7 @@ import ConfirmModal from './components/ConfirmModal';
 import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
+import NetworkConnection from './libs/NetworkConnection';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -91,6 +92,9 @@ class Expensify extends PureComponent {
             isOnyxMigrated: false,
             isSplashShown: true,
         };
+
+        // Used for the offline indicator appearing when someone is offline
+        NetworkConnection.subscribeToNetInfo();
     }
 
     componentDidMount() {
