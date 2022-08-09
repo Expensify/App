@@ -321,6 +321,199 @@ info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.1.0' '1.1.1')
 assert_equal "$output" "[ '11' ]"
 
+success "Scenario #5 completed successfully!"
+
+
+title "Scenario #6: Cherry-picking a revert"
+
+info "Creating PR #14 and merging it to main..."
+git checkout main
+git checkout -b pr-14
+echo "some content" >> pr14.txt
+git add pr14.txt
+git commit -m "Create pr14.txt"
+git checkout main
+git merge pr-14 --no-ff -m "Merge pull request #14 from Expensify/pr-14"
+git branch -d pr-14
+success "Merged PR #14 into main!"
+
+info "Bumping version to 1.1.2 on main..."
+git checkout main
+git checkout -b version-bump
+npm --no-git-tag-version version 1.1.2 -m "Update version to 1.1.2"
+git add package.json package-lock.json
+git commit -m "Update version to $(cat package.json | jq -r .version)"
+git checkout main
+git merge version-bump --no-ff -m "Merge pull request #15 from Expensify/version-bump"
+info "Merged PR #15 into main"
+git branch -d version-bump
+success "Bumped version to 1.1.2 on main!"
+
+info "Merging main into staging..."
+git checkout staging
+git checkout -b update-staging-from-main
+git merge --no-edit -Xtheirs main || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
+git checkout staging
+git merge update-staging-from-main --no-ff -m "Merge pull request #16 from Expensify/update-staging-from-main"
+git branch -d update-staging-from-main
+success "Merged main into staging!"
+
+info "Tagging staging..."
+git checkout staging
+git tag "$(print_version)"
+success "Successfully tagged version $(print_version) on staging"
+
+info "Creating PR #17 and merging it to main..."
+git checkout main
+git checkout -b pr-17
+echo "Prepended content\n\n$(cat pr14.txt)" > pr14.txt
+echo "\nAppended content\n" >> pr14.txt
+git add pr14.txt
+git commit -m "Prepend and append content to pr14.txt"
+git checkout main
+git merge pr-17 --no-ff -m "Merge pull request #17 from Expensify/pr-17"
+git branch -d pr-17
+success "Merged PR #17 into main!"
+
+# Assert that prepended content, original content, and appended content are present on main and staging
+git checkout main
+assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat pr14.txt)" "some content"
+assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
+git checkout staging
+assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat pr14.txt)" "some content"
+assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
+
+info "Bumping version to 1.1.3 on main..."
+git checkout main
+git checkout -b version-bump
+npm --no-git-tag-version version 1.1.3 -m "Update version to 1.1.3"
+git add package.json package-lock.json
+git commit -m "Update version to $(cat package.json | jq -r .version)"
+git checkout main
+git merge version-bump --no-ff -m "Merge pull request #18 from Expensify/version-bump"
+info "Merged PR #18 into main"
+git branch -d version-bump
+success "Bumped version to 1.1.3 on main!"
+
+info "Merging main into staging..."
+git checkout staging
+git checkout -b update-staging-from-main
+git merge --no-edit -Xtheirs main || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
+git checkout staging
+git merge update-staging-from-main --no-ff -m "Merge pull request #19 from Expensify/update-staging-from-main"
+git branch -d update-staging-from-main
+success "Merged main into staging!"
+
+info "Tagging staging..."
+git checkout staging
+git tag "$(print_version)"
+success "Successfully tagged version $(print_version) on staging"
+
+info "Reverting PR #16 and cherry-picking the revert to staging..."
+git checkout main
+git checkout -b revert-pr-16
+echo "some content" > pr14.txt
+git add pr14.txt
+git commit -m "Revert PR #16"
+git checkout main
+git merge revert-pr-16 --no-ff -m "Merge pull request #19 from Expensify/revert-pr-16"
+git branch -d revert-pr-16
+PR_19_MERGE_COMMIT="$(git log -1 --format='%H')"
+info "Merged PR #19 into main"
+
+# Assert that PR 16 is reverted on main
+git checkout main
+assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat pr14.txt)" "some content"
+assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Appended content"
+
+info "Bumping version to 1.1.4 on main..."
+git checkout main
+git checkout -b version-bump
+npm --no-git-tag-version version 1.1.4 -m "Update version to 1.1.4"
+git add package.json package-lock.json
+git commit -m "Update version to $(print_version)"
+git checkout main
+git merge version-bump --no-ff "Merge pull request #20 from Expensify/version-bump"
+git branch -d version-bump
+info "Merged PR #20 into main"
+VERSION_BUMP_MERGE_COMMIT="$(git log -1 --format='%H')"
+success "Bumped version to 1.1.4 on main!"
+
+info "Cherry picking PR #19 (revert PR) and the version bump to staging..."
+git checkout staging
+git checkout -b cherry-pick-staging-19
+git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_19_MERGE_COMMIT"
+git cherry-pick -x --mainline 1 "$VERSION_BUMP_MERGE_COMMIT"
+git checkout staging
+git merge cherry-pick-staging-19 --no-ff -m "Merge pull request #19 from Expensify/cherry-pick-staging-19"
+git branch -d cherry-pick-staging-19
+info "Merged PR #21 into staging"
+success "Successfully cherry-picked PR #19 (revert PR) to staging!"
+
+# Assert that PR 16 is reverted on staging
+git checkout staging
+assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat pr14.txt)" "some content"
+assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Appended content"
+
+info "Tagging the new version on staging..."
+git checkout staging
+git tag "$(print_version)"
+success "Created tag $(print_version)"
+
+info "Repeating PR #17 (previously reverted)..."
+git checkout main
+git checkout -b pr-22
+echo "Prepended content\n\n$(cat pr14.txt)" > pr14.txt
+echo "\nAppended content\n" >> pr14.txt
+git add pr14.txt
+git commit -m "Prepend and append content to pr14.txt"
+git checkout main
+git merge pr-22 --no-ff -m "Merge pull request #22 from Expensify/pr-22"
+git branch -d pr-22
+success "Merged PR #22 into main!"
+
+# Assert that prepended content, original content, and appended content are present on main
+git checkout main
+assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat pr14.txt)" "some content"
+assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
+
+info "Bumping version to 1.1.5 on main..."
+git checkout main
+git checkout -b version-bump
+npm --no-git-tag-version version 1.1.5 -m "Update version to 1.1.5"
+git add package.json package-lock.json
+git commit -m "Update version to $(print_version)"
+git checkout main
+git merge version-bump --no-ff "Merge pull request #23 from Expensify/version-bump"
+git branch -d version-bump
+info "Merged PR #23 into main"
+success "Bumped version to 1.1.5 on main!"
+
+info "Merging main into staging..."
+git checkout staging
+git checkout -b update-staging-from-main
+git merge --no-edit -Xtheirs main || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
+git checkout staging
+git merge update-staging-from-main --no-ff -m "Merge pull request #24 from Expensify/update-staging-from-main"
+git branch -d update-staging-from-main
+success "Merged main into staging!"
+
+info "Tagging staging..."
+git checkout staging
+git tag "$(print_version)"
+success "Successfully tagged version $(print_version) on staging"
+
+# Assert that prepended content, original content, and appended content are present on staging
+git checkout staging
+assert_string_contains_substring "$(cat pr14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat pr14.txt)" "some content"
+assert_string_contains_substring "$(cat pr14.txt)" "Appended content"
+
 success "Scenario #6 completed successfully!"
 
 ### Cleanup

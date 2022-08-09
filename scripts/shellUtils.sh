@@ -30,3 +30,21 @@ function assert_equal {
     success "Assertion passed: $1 is equal to $1"
   fi
 }
+
+function assert_string_contains_substring {
+  if [[ "$1" != *"$2"* ]]; then
+    error "Assertion failed: \"$1\" does not contain substring \"$2\""
+    exit 1
+  else
+    success "Assertion passed: \"$1\" contains substring \"$2\""
+  fi
+}
+
+function assert_string_doesnt_contain_substring {
+  if [[ "$1" == *"$2"* ]]; then
+    error "Assertion failed: \"$1\" contains substring \"$2\""
+    exit 1
+  else
+    success "Assertion passed: \"$1\" does not contain substring \"$2\""
+  fi
+}
