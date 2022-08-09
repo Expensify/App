@@ -30,7 +30,7 @@ const propTypes = {
     formState: PropTypes.shape({
 
         /** Controls the loading state of the form */
-        isSubmitting: PropTypes.bool,
+        isLoading: PropTypes.bool,
 
         /** Server side error message */
         serverErrorMessage: PropTypes.string,
@@ -45,7 +45,7 @@ const propTypes = {
 
 const defaultProps = {
     formState: {
-        isSubmitting: false,
+        isLoading: false,
         serverErrorMessage: '',
     },
     draftValues: {},
@@ -77,7 +77,7 @@ class Form extends React.Component {
 
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
-        if (this.props.formState.isSubmitting) {
+        if (this.props.formState.isLoading) {
             return;
         }
 
@@ -92,7 +92,7 @@ class Form extends React.Component {
         }
 
         // Set loading state and call submit handler
-        FormActions.setIsSubmitting(this.props.formID, true);
+        FormActions.setIsLoading(this.props.formID, true);
         this.props.onSubmit(this.inputValues);
     }
 
@@ -188,7 +188,7 @@ class Form extends React.Component {
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
-                            isLoading={this.props.formState.isSubmitting}
+                            isLoading={this.props.formState.isLoading}
                             message={this.props.formState.serverErrorMessage}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {

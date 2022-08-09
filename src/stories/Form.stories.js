@@ -33,7 +33,7 @@ const story = {
 const Template = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
+    FormActions.setIsLoading(args.formID, args.formState.isLoading);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
@@ -131,7 +131,7 @@ const WithNativeEventHandler = (args) => {
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
+    FormActions.setIsLoading(args.formID, args.formState.isLoading);
     FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
@@ -192,11 +192,11 @@ const defaultArgs = {
     onSubmit: (values) => {
         setTimeout(() => {
             alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
-            FormActions.setIsSubmitting('TestForm', false);
+            FormActions.setIsLoading('TestForm', false);
         }, 1000);
     },
     formState: {
-        isSubmitting: false,
+        isLoading: false,
         serverErrorMessage: '',
     },
     draftValues: {
@@ -212,8 +212,8 @@ const defaultArgs = {
 };
 
 Default.args = defaultArgs;
-Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
-ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
+Loading.args = {...defaultArgs, formState: {isLoading: true}};
+ServerError.args = {...defaultArgs, formState: {isLoading: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
 InputError.args = {
     ...defaultArgs,
     draftValues: {

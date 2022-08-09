@@ -171,7 +171,7 @@ function validate(values) {
 function onSubmit(values) {
     setTimeout(() => {
         alert(`Form submitted!`);
-        FormActions.setIsSubmitting('TestForm', false);
+        FormActions.setIsLoading('TestForm', false);
     }, 1000);
 }
 
