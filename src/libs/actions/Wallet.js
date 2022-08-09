@@ -7,6 +7,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
+import * as API from "../API";
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -351,8 +352,37 @@ function updateCurrentStep(currentStep) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
-function answerQuestionsForWallet() {
-    
+/**
+ * @param {String} idologyAnswers
+ */
+function answerQuestionsForWallet(idologyAnswers) {
+    API.write('AnswerQuestionsForWallet',
+        {
+            idologyAnswers,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                },
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+        });
 }
 
 export {
