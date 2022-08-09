@@ -15,7 +15,6 @@ import ROUTES from '../../ROUTES';
 import * as User from './User';
 import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
-import DateUtils from '../DateUtils';
 
 /**
  * Deletes a debit card
@@ -193,35 +192,24 @@ function addPaymentCard(params) {
         isP2PDebitCard: true,
         password: params.password,
     }, {
-        optimisticData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                value: {isLoading: true},
+        optimisticData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: true},
+        }],
+        successData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        }],
+        failureData: [{
+            onyxMethod: 'merge',
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {
+                isLoading: false,
+                error: Localize.translateLocal('addDebitCardPage.error.genericFailureMessage'),
             },
-        ],
-        successData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                value: {isLoading: false},
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-
-                // TODO: We use serverErrorMessage in Form. Are we changing this?
-                // TODO: We end up with two errors, one from the front-end and one from the API
-                value: {
-                    isLoading: false,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('addDebitCardPage.error.genericFailureMessage'),
-                    },
-                },
-            },
-        ],
+        }],
     });
 }
 
@@ -231,7 +219,7 @@ function addPaymentCard(params) {
 function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
         isLoading: false,
-        serverErrorMessage: null,
+        error: null,
     });
 }
 

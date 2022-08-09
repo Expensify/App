@@ -34,7 +34,7 @@ const Template = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
+    FormActions.setErrorMessage(args.formID, args.formState.error);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
@@ -132,7 +132,7 @@ const WithNativeEventHandler = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
+    FormActions.setErrorMessage(args.formID, args.formState.error);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
@@ -197,7 +197,7 @@ const defaultArgs = {
     },
     formState: {
         isLoading: false,
-        serverErrorMessage: '',
+        error: '',
     },
     draftValues: {
         routingNumber: '00001',
@@ -213,7 +213,7 @@ const defaultArgs = {
 
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isLoading: true}};
-ServerError.args = {...defaultArgs, formState: {isLoading: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
+ServerError.args = {...defaultArgs, formState: {isLoading: false, error: 'There was an unexpected error. Please try again later.'}};
 InputError.args = {
     ...defaultArgs,
     draftValues: {
