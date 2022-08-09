@@ -769,6 +769,9 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
+    BRICK_ROAD_INDICATOR_STATUS: {
+        ERROR: 'error',
+    },
 };
 
 export default CONST;
