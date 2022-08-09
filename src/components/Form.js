@@ -33,7 +33,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Server side error message */
-        serverErrorMessage: PropTypes.string,
+        error: PropTypes.string,
     }),
 
     /** Contains draft values for each input in the form */
@@ -46,7 +46,7 @@ const propTypes = {
 const defaultProps = {
     formState: {
         isLoading: false,
-        serverErrorMessage: '',
+        error: '',
     },
     draftValues: {},
 };
@@ -101,7 +101,7 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        FormActions.setServerErrorMessage(this.props.formID, '');
+        FormActions.setErrorMessage(this.props.formID, '');
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
@@ -187,9 +187,9 @@ class Form extends React.Component {
                         {this.childrenWrapperWithProps(this.props.children)}
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
                             isLoading={this.props.formState.isLoading}
-                            message={this.props.formState.serverErrorMessage}
+                            message={this.props.formState.error}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
