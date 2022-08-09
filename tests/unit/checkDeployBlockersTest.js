@@ -33,7 +33,7 @@ beforeAll(() => {
             listComments: mockListComments,
         },
     };
-    GithubUtils.octokitInternal = mocktokit;
+    GithubUtils.octokitInternalRest = mocktokit;
 });
 
 let baseComments = [];

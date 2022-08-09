@@ -4,7 +4,7 @@
 const core = require('@actions/core');
 const _ = require('underscore');
 const run = require('../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys');
-const GitHubUtils = require('../../.github/libs/GithubUtils');
+const GithubUtils = require('../../.github/libs/GithubUtils');
 
 // Lower poll rate to speed up tests
 const TEST_POLL_RATE = 1;
@@ -48,8 +48,8 @@ beforeAll(() => {
             listWorkflowRuns: mockListWorkflowRuns,
         },
     };
-    GitHubUtils.octokitInternal = mocktokit;
-    GitHubUtils.POLL_RATE = TEST_POLL_RATE;
+    GithubUtils.octokitInternalRest = mocktokit;
+    GithubUtils.POLL_RATE = TEST_POLL_RATE;
 });
 
 beforeEach(() => {

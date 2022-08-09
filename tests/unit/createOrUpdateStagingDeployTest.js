@@ -39,7 +39,7 @@ beforeAll(() => {
         },
         paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
     };
-    GithubUtils.octokitInternal = mocktokit;
+    GithubUtils.octokitInternalRest = mocktokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;

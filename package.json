@@ -126,6 +126,7 @@
     "@octokit/core": "4.0.4",
     "@octokit/plugin-paginate-rest": "3.1.0",
     "@octokit/plugin-throttling": "4.1.0",
+    "@octokit/rest": "18.3.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "@storybook/addon-a11y": "^6.5.9",
     "@storybook/addon-essentials": "^6.5.9",
