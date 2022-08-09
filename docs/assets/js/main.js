@@ -70,6 +70,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
+    // Back button doesn't exist on all the pages
     const backButton = document.getElementById('back-button');
     if (backButton) {
         backButton.addEventListener('click', navigateBack);
