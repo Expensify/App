@@ -538,6 +538,10 @@ function updateCurrentStep(currentStep) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
+function answerQuestionsForWallet() {
+    
+}
+
 export {
     openOnfidoFlow,
     activateWallet,
