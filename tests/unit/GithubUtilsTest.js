@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-const {Octokit} = require('@octokit/core');
+const {Octokit} = require('@octokit/rest');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
 beforeEach(() => {

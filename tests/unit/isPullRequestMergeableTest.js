@@ -35,7 +35,7 @@ beforeAll(() => {
             listForRef: mockListChecks,
         },
     };
-    GithubUtils.octokitInternal = mocktokit;
+    GithubUtils.octokitInternalRest = mocktokit;
 });
 
 afterEach(() => {
