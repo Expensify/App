@@ -1470,9 +1470,9 @@ function renameReport(reportID, reportName) {
  * Update the policy room name.
  *
  * @param {Object} policyRoomReport
- * @param {String} reportName The updated reportName
+ * @param {String} policyRoomName The updated name for the policy room
  */
-function updatePolicyRoomName(policyRoomReport, reportName) {
+function updatePolicyRoomName(policyRoomReport, policyRoomName) {
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
     const optimisticData = [
@@ -1480,7 +1480,7 @@ function updatePolicyRoomName(policyRoomReport, reportName) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportName,
+                reportName: policyRoomName,
                 pendingFields: {
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -1509,7 +1509,7 @@ function updatePolicyRoomName(policyRoomReport, reportName) {
             },
         },
     ];
-    API.write('UpdatePolicyRoomName', {reportID, reportName}, {optimisticData, successData, failureData});
+    API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
 }
 
 /**
