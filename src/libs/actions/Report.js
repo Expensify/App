@@ -931,8 +931,16 @@ function addActions(reportID, text = '', file) {
         DateUtils.setTimezoneUpdated();
     }
 
+    const successData = [];
+    if (text) {
+        optimisticReportActions[reportCommentAction.clientID] = {pendingAction: null};
+    }
+    if (file) {
+        optimisticReportActions[attachmentAction.clientID] = {pendingAction: null};
+    }
     API.write(commandName, parameters, {
         optimisticData,
+        successData,
     });
 }
 
