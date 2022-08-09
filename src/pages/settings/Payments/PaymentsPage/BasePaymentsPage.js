@@ -32,6 +32,8 @@ import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
+import Icon from '../../../../components/Icon';
+import colors from '../../../../styles/colors';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -259,6 +261,7 @@ class BasePaymentsPage extends React.Component {
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
         const shouldShowMakeDefaultButton = !this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected;
+        const errorMessage = !_.isEmpty(this.props.userWallet.errors) ? _.last(_.values(this.props.userWallet.errors)) : '';
 
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
@@ -433,6 +436,16 @@ class BasePaymentsPage extends React.Component {
                     shouldShowCancelButton
                     danger
                 />
+                {
+                    !_.isEmpty(errorMessage) && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3, styles.ml3]}>
+                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                                <Text style={styles.mutedTextLabel}>{errorMessage}</Text>
+                            </View>
+                        </View>
+                    )
+                }
             </ScreenWrapper>
         );
     }

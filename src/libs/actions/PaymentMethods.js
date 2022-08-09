@@ -154,6 +154,7 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
                 value: {
                     walletLinkedAccountID: bankAccountID || fundID,
                     walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                    errors: {},
                 },
             },
         ],
