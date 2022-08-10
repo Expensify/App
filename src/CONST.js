@@ -777,6 +777,7 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
+    REMOVE_KEYBOARD_SPACE: -30,
 };
 
 export default CONST;
