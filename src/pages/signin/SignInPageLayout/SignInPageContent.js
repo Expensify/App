@@ -46,33 +46,11 @@ const SignInPageContent = props => (
             !props.isSmallScreenWidth && styles.ph6,
         ]}
     >
-<<<<<<< HEAD
-        <SignInPageForm style={[
-            styles.flex1,
-            styles.alignSelfStretch,
-            props.isSmallScreenWidth && styles.signInPageNarrowContentContainer,
-            props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
-        ]}
-        >
-            <LoginKeyboardAvoidingView
-                behavior="position"
-                contentContainerStyle={[
-                    props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
-                    !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
-                    styles.mb3,
-                    StyleUtils.getModalPaddingStyles({
-                        shouldAddBottomSafeAreaPadding: true,
-                        modalContainerStylePaddingBottom: 20,
-                        safeAreaPaddingBottom: props.insets.bottom,
-                    }),
-                ]}
-=======
         <View style={[styles.flex1, styles.flexRow]}>
             <View style={[
                 styles.flex1,
                 props.isSmallScreenWidth && styles.signInPageNarrowContentContainer,
             ]}
->>>>>>> f5f076a13bb4a991dbeaf32a8f7a7b0625e8a3cc
             >
                 <SignInPageForm style={[
                     styles.flex1,
@@ -84,7 +62,7 @@ const SignInPageContent = props => (
                         behavior="position"
                         contentContainerStyle={[
                             props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
-                            !props.isMediumScreenWidth ? styles.signInPageWideLeftContentMargin : {},
+                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
                             styles.mb3,
                             StyleUtils.getModalPaddingStyles({
                                 shouldAddBottomSafeAreaPadding: true,
