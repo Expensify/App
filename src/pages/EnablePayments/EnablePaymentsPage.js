@@ -21,10 +21,16 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
 import withLocalize from '../../components/withLocalize';
+import PropTypes from "prop-types";
 
 const propTypes = {
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
+
+
+    additionalDetails: PropTypes.shape({
+        errorCode: PropTypes.string,
+    }),
 
     ...userWalletPropTypes,
 };
@@ -32,6 +38,10 @@ const propTypes = {
 const defaultProps = {
     // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
+
+    additionalDetails: {
+        errorCode: '',
+    },
 };
 
 class EnablePaymentsPage extends React.Component {
@@ -56,7 +66,7 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (this.props.userWallet.shouldShowFailedKYC) {
+        if (this.props.additionalDetails.errorCode === 'kycFailed') {
             return (
                 <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
                     <HeaderWithCloseButton
@@ -96,6 +106,9 @@ export default compose(
         },
         walletAdditionalDetailsDraft: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
+        },
+        additionalDetails: {
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
         },
     }),
     withNetwork(),
