@@ -17,6 +17,7 @@ const defaultAnimation = {
         springDamping: 200,
     },
 };
+
 class BaseKeyboardSpacer extends PureComponent {
     constructor(props) {
         super(props);
