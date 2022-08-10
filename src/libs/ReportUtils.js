@@ -318,6 +318,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasMultipleParticipants
+        && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected;
