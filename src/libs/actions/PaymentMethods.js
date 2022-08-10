@@ -204,9 +204,7 @@ function addPaymentCard(params) {
         failureData: [{
             onyxMethod: 'merge',
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-            value: {
-                isLoading: false,
-            },
+            value: {isLoading: false},
         }],
     });
 }
