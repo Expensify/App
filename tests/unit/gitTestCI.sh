@@ -69,11 +69,11 @@ function cherry_pick {
   SOURCE_BRANCH="pr-$1"
   SOURCE_HEAD=$(git show-ref --verify "refs/heads/$SOURCE_BRANCH" | grep -o '^\S*')
   SOURCE_MERGE_COMMIT=$(git log --merges --format="%H %P" | grep "$SOURCE_HEAD" | grep -o '^\S*')
-  SOURCE_MERGE_BASE=$(git merge-base staging "$SOURCE_BRANCH")
+  SOURCE_MERGE_BASE=$(git merge-base staging "$SOURCE_MERGE_COMMIT")
 
   VERSION_BUMP_HEAD=$(git show-ref --verify refs/heads/version-bump | grep -o '^\S*')
   VERSION_BUMP_MERGE_COMMIT=$(git log --merges --format="%H %P" | grep "$VERSION_BUMP_HEAD" | grep -o '^\S*')
-  VERSION_BUMP_MERGE_BASE=$(git merge-base staging version-bump)
+  VERSION_BUMP_MERGE_BASE=$(git merge-base staging "$VERSION_BUMP_MERGE_COMMIT")
 
   CP_BRANCH="cherry-pick-staging-$1"
   CP_MERGE_BASE=$(git merge-base "$SOURCE_MERGE_BASE" "$VERSION_BUMP_MERGE_BASE")
