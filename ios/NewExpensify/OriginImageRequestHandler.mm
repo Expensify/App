@@ -4,6 +4,9 @@
 //
 //  Created by ntdiary on 2022/8/8.
 //
+//  Use this handler to parse images uri returned by react-native-image-picker
+//  instead of the default `RCTImageLoader.mm`
+//  See https://github.com/facebook/react-native/issues/33760#issuecomment-1196562161
 
 #import <Foundation/Foundation.h>
 #import <ReactCommon/RCTTurboModule.h>
@@ -30,14 +33,20 @@ RCT_EXPORT_MODULE()
   _fileQueue = nil;
 }
 
+/**
+ * Only used for parsing the png/jpg image in the application home directory
+ */
 - (BOOL)canHandleRequest:(NSURLRequest *)request
 {
-  NSLog(@"home path is %@", NSHomeDirectory());
   return [request.URL.scheme caseInsensitiveCompare:@"file"] == NSOrderedSame
   && RCTIsLocalAssetURL(request.URL)
   && !RCTIsBundleAssetURL(request.URL);
 }
 
+
+/**
+ * Send a network request and call the delegate with the response data.
+ */
 - (NSOperation *)sendRequest:(NSURLRequest *)request
                 withDelegate:(id<RCTURLRequestDelegate>)delegate
 {
@@ -89,17 +98,27 @@ RCT_EXPORT_MODULE()
   return op;
 }
 
+/**
+ * Cancel the request
+ */
 - (void)cancelRequest:(NSOperation *)op
 {
   [op cancel];
 }
 
+/**
+ * Should return nullptr. This method may be used later to support C++ TurboModules.
+ * See https://reactnative.dev/docs/new-architecture-app-modules-ios
+ */
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
   return nullptr;
 }
 
+/**
+ * Should have higher priority than RCTImageLoader.mm
+ */
 - (float)handlerPriority
 {
   return 4;
