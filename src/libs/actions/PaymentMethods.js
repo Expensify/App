@@ -191,17 +191,17 @@ function addPaymentCard(params) {
         password: params.password,
     }, {
         optimisticData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {isLoading: true},
         }],
         successData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {isLoading: false},
         }],
         failureData: [{
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {isLoading: false},
         }],
