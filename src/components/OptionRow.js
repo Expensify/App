@@ -207,7 +207,7 @@ const OptionRow = (props) => {
                                 </View>
                             ) : null}
                             {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                <View style={[[styles.alignItemsCenter, styles.justifyContentCenter]]}>
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={colors.red}
