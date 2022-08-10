@@ -498,10 +498,12 @@ function hasSafeAreas(windowWidth, windowHeight) {
 /**
  * Get variable keyboard height as style
  * @param {Number} keyboardHeight
- * @returns {Number}
+ * @returns {Object}
  */
-function getKeyboardHeight(keyboardHeight) {
-    return keyboardHeight;
+function getHeight(keyboardHeight) {
+    return {
+        height: keyboardHeight,
+    };
 }
 export {
     getAvatarSize,
@@ -534,5 +536,5 @@ export {
     getReportListAnimationStyle,
     convertToLTR,
     hasSafeAreas,
-    getKeyboardHeight,
+    getHeight,
 };
