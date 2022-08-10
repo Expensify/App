@@ -158,6 +158,7 @@ class ReportScreen extends React.Component {
 
     /**
      * When reports change there's a brief time content is not ready to be displayed
+     * It Should show the loader if it's the first time we are opening the report
      *
      * @returns {Boolean}
      */
