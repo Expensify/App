@@ -93,7 +93,7 @@ class BaseKeyboardSpacer extends PureComponent {
         return (
             <View
                 style={[
-                    {height: StyleUtils.getKeyboardHeight(this.state.keyboardSpace)},
+                    StyleUtils.getHeight(this.state.keyboardSpace),
                     this.props.style,
                 ]}
             />
