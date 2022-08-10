@@ -65,7 +65,6 @@ const FormAlertWithSubmitButton = props => (
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
                 isLoading={props.isLoading}
-                style={[styles.mb6]}
             />
         ))}
     </FormAlertWrapper>
