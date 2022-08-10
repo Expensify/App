@@ -130,7 +130,7 @@ jobs:
         run: echo "::set-output name=SHOULD_AUTOMERGE::${{ fromJSON(steps.isMainPullRequestMergeable.outputs.IS_MERGEABLE) && fromJSON(steps.isStagingPullRequestMergeable.outputs.IS_MERGEABLE) && fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}"
 
       - name: Auto-assign PRs if either is not mergeable or if the bundle versions are mismatched
-        if: ${{ !fromJSON(steps.checkForAutomerge.outputs.IS_MERGEABLE) }}
+        if: ${{ !fromJSON(steps.checkForAutomerge.outputs.SHOULD_AUTOMERGE) }}
         run: |
           gh pr edit ${{ steps.createMainPullRequest.outputs.PR_NUMBER }} --add-label "Engineering,Hourly"
           gh pr edit ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }} --add-label "Engineering,Hourly"
