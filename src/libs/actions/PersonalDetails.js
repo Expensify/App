@@ -329,7 +329,11 @@ function setAvatar(file) {
                 return;
             }
 
-            const {avatar, avatarThumbnail} = response;
+            let {avatar, avatarThumbnail} = response;
+
+            // TODO: remove the following 2 lines once https://github.com/Expensify/Web-Expensify/pull/34469 is merged, also change above access to const
+            avatar = avatar || response.s3url;
+            avatarThumbnail = avatarThumbnail || response.s3url;
             setPersonalDetails({avatar, avatarThumbnail, avatarUploading: false}, false);
         });
 }
