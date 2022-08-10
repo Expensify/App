@@ -8,7 +8,10 @@ import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
+import bankAccountPropTypes from './bankAccountPropTypes';
+import cardPropTypes from './cardPropTypes';
 import * as Policy from '../libs/actions/Policy';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
     /** URL for the avatar */
@@ -22,12 +25,20 @@ const propTypes = {
 
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
+    bankAccountList: {},
+    cardList: {},
 };
 
 const AvatarWithIndicator = (props) => {
@@ -39,6 +50,7 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
+    const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -47,7 +59,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {hasPolicyMemberError && (
+                {(hasPolicyMemberError || hasPaymentMethodError) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -62,5 +74,11 @@ AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 export default withOnyx({
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+    },
+    bankAccountList: {
+        key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    cardList: {
+        key: ONYXKEYS.CARD_LIST,
     },
 })(AvatarWithIndicator);
