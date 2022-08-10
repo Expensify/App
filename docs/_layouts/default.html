@@ -24,7 +24,7 @@
     <div id="lhn">
 
         <div class="lhn-header">
-            <div class="header-button" onclick="toggleHeaderMenu()">
+            <div id="header-button">
                 <i id="angle-up-icon" class="fa-solid fa-angle-up icon hide"></i>
                 <i id="bars-icon" class="fa-solid fa-bars icon"></i>
             </div>
@@ -41,7 +41,7 @@
             {% when "send-money" %}
                 {% include send-money-lhn.html %}
             {% else %}
-                <div onclick="navigateBack()" class="icon-with-link">
+                <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
                     <div class="link">Back</div>
                 </div>
