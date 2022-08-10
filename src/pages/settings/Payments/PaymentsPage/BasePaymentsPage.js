@@ -2,7 +2,7 @@ import React from 'react';
 import {
     View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
 } from 'react-native';
-import withOnyx from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
