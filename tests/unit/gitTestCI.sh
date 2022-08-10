@@ -65,20 +65,35 @@ function update_protected_branch {
 # @param $1 – the number of a PR to "cherry-pick" to staging
 function cherry_pick {
   info "Cherry picking PR #$1 and the version bump to staging..."
+
   SOURCE_BRANCH="pr-$1"
-  CP_BRANCH="cherry-pick-staging-$1"
+  SOURCE_HEAD=$(git show-ref --verify "refs/heads/$SOURCE_BRANCH" | grep -o '^\S*')
+  SOURCE_MERGE_COMMIT=$(git log --merges --format="%H %P" | grep "$SOURCE_HEAD" | grep -o '^\S*')
   SOURCE_MERGE_BASE=$(git merge-base staging "$SOURCE_BRANCH")
+
+  VERSION_BUMP_HEAD=$(git show-ref --verify refs/heads/version-bump | grep -o '^\S*')
+  VERSION_BUMP_MERGE_COMMIT=$(git log --merges --format="%H %P" | grep "$VERSION_BUMP_HEAD" | grep -o '^\S*')
   VERSION_BUMP_MERGE_BASE=$(git merge-base staging version-bump)
+
+  CP_BRANCH="cherry-pick-staging-$1"
   CP_MERGE_BASE=$(git merge-base "$SOURCE_MERGE_BASE" "$VERSION_BUMP_MERGE_BASE")
   git checkout -b "$CP_BRANCH" "$CP_MERGE_BASE"
-  git merge --no-edit -Xtheirs "$SOURCE_BRANCH" || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
-  git merge --no-edit -Xtheirs version-bump || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
+
+  git cherry-pick -x --mainline 1 -Xtheirs "$SOURCE_MERGE_COMMIT"
+  git cherry-pick -x --mainline 1 -Xtheirs "$VERSION_BUMP_MERGE_COMMIT"
+
+  git checkout main
+  git merge --no-ff --no-edit "$CP_BRANCH" -m "Merge pull request #$((++PR_COUNT)) from Expensify/$CP_BRANCH" || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
+  info "Merged PR #$PR_COUNT into main"
+
   git checkout staging
   git merge --no-ff --no-edit -Xtheirs "$CP_BRANCH" -m "Merge pull request #$((++PR_COUNT)) from Expensify/$CP_BRANCH" || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
+  info "Merged PR #$PR_COUNT into staging"
+
   git branch -d "$CP_BRANCH"
+  git checkout main
   git branch -d "$SOURCE_BRANCH"
   git branch -d version-bump
-  info "Merged PR #$1 into staging"
   success "Successfully cherry-picked PR #$1 to staging!"
 }
 
@@ -235,12 +250,12 @@ assert_file_doesnt_exist "PR_$PREVIOUS_PR.txt"
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.3')
-assert_equal "$output" "[ '7', '5', '1' ]"
+assert_equal "$output" "[ '8', '5', '1' ]"
 
 # Verify output for deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.0.3"
 output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.0.3')
-assert_equal "$output" "[ '7', '5' ]"
+assert_equal "$output" "[ '8', '5' ]"
 
 success "Scenario #3 completed successfully!"
 
@@ -257,7 +272,7 @@ assert_file_doesnt_exist "PR_4.txt"
 # Verify output for release body and production deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.3')
-assert_equal "$output" "[ '7', '5', '1' ]"
+assert_equal "$output" "[ '8', '5', '1' ]"
 
 success "Scenario #4A completed successfully!"
 
@@ -272,7 +287,7 @@ assert_string_contains_substring "$(cat PR_4.txt)" "Changes from PR #4"
 # Verify output for new checklist and staging deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.0"
 output=$(node "$getPullRequestsMergedBetween" '1.0.3' '1.1.0')
-assert_equal "$output" "[ '4' ]"
+assert_equal "$output" "[ '7', '4' ]"
 
 success "Scenario #4B completed successfully!"
 
@@ -305,12 +320,12 @@ assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$PREVIOUS
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.0.3' '1.1.1')
-assert_equal "$output" "[ '11', '4' ]"
+assert_equal "$output" "[ '12', '7', '4' ]"
 
 # Verify output for deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.1.0' '1.1.1')
-assert_equal "$output" "[ '11' ]"
+assert_equal "$output" "[ '12' ]"
 
 success "Scenario #5 completed successfully!"
 
@@ -387,13 +402,12 @@ assert_string_doesnt_contain_substring "$(cat $FILE_NAME)" "Appended content"
 PREVIOUS_PR=$PR_COUNT
 bump_version '1.1.4' --keep-version-branch
 cherry_pick "$PREVIOUS_PR"
-
 tag_staging
 
 info "Asserting that PR is reverted on staging"
-assert_string_doesnt_contain_substring "$(cat PR_14.txt)" "Prepended content"
-assert_string_contains_substring "$(cat PR_14.txt)" "some content"
-assert_string_doesnt_contain_substring "$(cat PR_14.txt)" "Appended content"
+assert_string_doesnt_contain_substring "$(cat $FILE_NAME)" "Prepended content"
+assert_string_contains_substring "$(cat $FILE_NAME)" "some content"
+assert_string_doesnt_contain_substring "$(cat $FILE_NAME)" "Appended content"
 
 info "Repeating previously reverted PR..."
 git checkout main
