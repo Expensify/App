@@ -9,6 +9,7 @@ import Tooltip from './Tooltip';
 import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
 import * as Policy from '../libs/actions/Policy';
+import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 
 const propTypes = {
     /** URL for the avatar */
@@ -22,12 +23,16 @@ const propTypes = {
 
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
+
+    /** The user's wallet (coming from Onyx) */
+    userwallet: PropTypes.objectOf(userWalletPropTypes),
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
+    userwallet: {},
 };
 
 const AvatarWithIndicator = (props) => {
@@ -65,6 +70,6 @@ export default withOnyx({
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
     },
     userwallet: {
-        key: ONYXKEYS.USER_WALLET
-    }
+        key: ONYXKEYS.USER_WALLET,
+    },
 })(AvatarWithIndicator);

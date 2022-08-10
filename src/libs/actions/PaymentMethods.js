@@ -349,6 +349,13 @@ function clearAddPaymentMethodError(paymentList, paymentMethodID) {
     });
 }
 
+/**
+ * Clear any error(s) related to the user's wallet
+ */
+function clearWalletError() {
+    Onyx.merge(ONYXKEYS.USER_WALLET, {errors: null});
+}
+
 export {
     deleteDebitCard,
     deletePayPalMe,
@@ -368,4 +375,5 @@ export {
     hasPaymentMethodError,
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
+    clearWalletError,
 };
