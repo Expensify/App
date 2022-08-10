@@ -446,7 +446,7 @@ class BasePaymentsPage extends React.Component {
                     danger
                 />
                 {
-                    <OfflineWithFeedback onClose={() => this.dismissError()} errors={this.props.userWallet.errors} errorStyle={styles.ph6}>
+                    <OfflineWithFeedback onClose={() => this.dismissError()} errors={this.props.userWallet.errors} errorStyle={[styles.ph6, styles.pv2]}>
                     </OfflineWithFeedback>
                 }
             </ScreenWrapper>
