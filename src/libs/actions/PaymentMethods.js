@@ -300,13 +300,6 @@ function deletePaymentCard(fundID) {
                 value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.CARD_LIST}`,
-                value: {[fundID]: {pendingAction: false}},
-            },
-        ],
     });
 }
 
