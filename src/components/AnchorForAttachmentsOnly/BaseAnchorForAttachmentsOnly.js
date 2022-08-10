@@ -1,6 +1,6 @@
 import React from 'react';
 import {Pressable} from 'react-native';
-import {propTypes, defaultProps} from './anchorForAttachmentsOnlyPropTypes';
+import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPropTypes';
 import AttachmentView from '../AttachmentView';
 import fileDownload from '../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
@@ -50,8 +50,7 @@ class BaseAnchorForAttachmentsOnly extends React.Component {
     }
 }
 
-BaseAnchorForAttachmentsOnly.propTypes = propTypes;
-BaseAnchorForAttachmentsOnly.defaultProps = defaultProps;
-BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
+BaseAnchorForAttachmentsOnly.propTypes = anchorForAttachmentsOnlyPropTypes.propTypes;
+BaseAnchorForAttachmentsOnly.defaultProps = anchorForAttachmentsOnlyPropTypes.defaultProps;
 
 export default BaseAnchorForAttachmentsOnly;
