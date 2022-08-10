@@ -34,6 +34,8 @@ jobs:
     needs: [validateActor, createNewVersion]
     if: ${{ always() && fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
+    env:
+      NEW_VERSION: ${{ github.event.inputs.NEW_VERSION || needs.createNewVersion.outputs.NEW_VERSION }}
     steps:
       # Version: 2.3.4
       - name: Checkout staging branch
@@ -53,18 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-
-      - name: Save correct NEW_VERSION to env
-        env:
-          NEW_VERSION: ${{ github.event.inputs.NEW_VERSION }}
-        run: |
-          if [ -z "$NEW_VERSION" ]; then
-            echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}" >> "$GITHUB_ENV"
-            echo "New version is ${{ env.NEW_VERSION }}"
-          else
-            echo "NEW_VERSION=${{ github.event.inputs.NEW_VERSION }}" >> "$GITHUB_ENV"
-            echo "New version is ${{ env.NEW_VERSION }}"
-          fi;
 
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
