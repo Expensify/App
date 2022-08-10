@@ -17,6 +17,9 @@ const propTypes = {
     /** Listen for window resize event on web and desktop */
     shouldListenForResize: PropTypes.bool,
 
+    /** Wrapped components should be disabled, and not in spinner/loading state */
+    isDisabled: PropTypes.bool,
+
     ...userWalletPropTypes,
 };
 
@@ -25,6 +28,7 @@ const defaultProps = {
     userWallet: {},
     popoverPlacement: 'top',
     shouldListenForResize: false,
+    isDisabled: false,
 };
 
 export {propTypes, defaultProps};
