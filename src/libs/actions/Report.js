@@ -733,12 +733,11 @@ function createOptimisticReport(participantList) {
 }
 
 /**
- * @param {Number} reportID
  * @param {String} [text]
  * @param {File} [file]
  * @returns {Object}
  */
-function buildOptimisticReportAction(reportID, text, file) {
+function buildOptimisticReportAction(text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -816,7 +815,7 @@ function addActions(reportID, text = '', file) {
     let commandName = 'AddComment';
 
     if (text) {
-        const reportComment = buildOptimisticReportAction(reportID, text);
+        const reportComment = buildOptimisticReportAction(text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -825,7 +824,7 @@ function addActions(reportID, text = '', file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = buildOptimisticReportAction(reportID, '', file);
+        const attachment = buildOptimisticReportAction('', file);
         attachmentAction = attachment.reportAction;
     }
 
