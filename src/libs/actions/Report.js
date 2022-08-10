@@ -1524,7 +1524,7 @@ Onyx.connect({
  * @param {string} searchText
  */
 
-function searchReports(searchText) {
+function searchChats(searchText) {
     if (searchText.trim === '') {
         return;
     }
@@ -1566,5 +1566,5 @@ export {
     openReport,
     openPaymentDetailsPage,
     createOptimisticReport,
-    searchReports,
+    searchChats,
 };

@@ -80,7 +80,7 @@ class SearchPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.reports === prevProps.reports) {
+        if (_.isEqual(this.props.reports, prevProps.reports)) {
             return;
         }
         this.updateOptions();
@@ -129,7 +129,7 @@ class SearchPage extends Component {
     }
 
     searchServerData() {
-        Report.searchReports(this.state.searchValue.trim());
+        Report.searchChats(this.state.searchValue.trim());
     }
 
     updateOptions() {
