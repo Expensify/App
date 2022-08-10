@@ -17,8 +17,6 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as ReportActions from '../../../libs/actions/ReportActions';
 
 const propTypes = {
     /** Personal details of all the users */
@@ -139,22 +137,15 @@ class ReportActionsList extends React.Component {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
-            <OfflineWithFeedback
-                onClose={() => ReportActions.deleteClientAction(this.props.report.reportID, item.action.clientID)}
-                pendingAction={item.action.pendingAction}
-                errors={item.action.errors}
-                errorStyle={styles.ml10}
-            >
-                <ReportActionItem
-                    reportID={this.props.report.reportID}
-                    action={item.action}
-                    displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
-                    shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                    isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
-                    hasOutstandingIOU={this.props.report.hasOutstandingIOU}
-                    index={index}
-                />
-            </OfflineWithFeedback>
+            <ReportActionItem
+                reportID={this.props.report.reportID}
+                action={item.action}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
+                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
+                isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
+                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                index={index}
+            />
         );
     }
 
