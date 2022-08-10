@@ -62,9 +62,8 @@ class BaseTextInput extends Component {
 
         if (this.props.shouldDelayFocus) {
             setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            this.input.focus();
         }
+        this.input.focus();
     }
 
     componentDidUpdate() {
