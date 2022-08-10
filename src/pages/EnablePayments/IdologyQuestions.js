@@ -4,18 +4,17 @@ import PropTypes from 'prop-types';
 import {
     View,
 } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import CONST from '../../CONST';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import compose from "../../libs/compose";
-import {withOnyx} from "react-native-onyx";
-import ONYXKEYS from "../../ONYXKEYS";
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -110,7 +109,7 @@ class IdologyQuestions extends React.Component {
                     }
                 }
 
-                let idologyAnswers = {
+                const idologyAnswers = {
                     answers,
                     idNumber: this.props.idNumber,
                 };

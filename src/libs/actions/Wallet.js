@@ -7,7 +7,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
-import * as API from "../API";
+import * as API from '../API';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
