@@ -124,6 +124,7 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 ## Web
 
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
+
 ---
 
 # App Structure and Conventions
