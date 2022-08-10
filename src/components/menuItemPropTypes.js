@@ -10,6 +10,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     wrapperStyle: stylePropTypes,
 
+    /** Used to apply offline styles to child text components */
+    style: stylePropTypes,
+
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 
