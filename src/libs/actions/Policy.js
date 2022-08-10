@@ -421,7 +421,10 @@ function uploadAvatar(policyID, file) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 // Update the policy with the new avatar as soon as we get it
-                const {avatar} = response;
+                let {avatar} = response;
+
+                // TODO: remove the following line once https://github.com/Expensify/Web-Expensify/pull/34469 is merged, also change above access to const
+                avatar = avatar || response.s3url;
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatar, isAvatarUploading: false});
                 update(policyID, {avatar}, true);
                 return;
