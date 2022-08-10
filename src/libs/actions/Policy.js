@@ -90,7 +90,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
-        // avatarUrl will be nested within the key "value"
+        // avatar will be nested within the key "value"
         avatar: fullPolicyOrPolicySummary.avatar
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
             || fullPolicyOrPolicySummary.avatarURL
