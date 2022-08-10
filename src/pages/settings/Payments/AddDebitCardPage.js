@@ -202,7 +202,6 @@ class DebitCardPage extends Component {
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
 
-// export default withLocalize(DebitCardPage);
 export default compose(
     withLocalize,
     withOnyx({
