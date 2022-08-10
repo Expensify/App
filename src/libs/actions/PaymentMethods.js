@@ -325,11 +325,11 @@ function hasPaymentMethodError(bankList, cardList) {
 
 /**
  * Clears the error for the specified payment item
- * @param {String} paymentList The onyx key for the provided payment method
+ * @param {String} paymentListKey The onyx key for the provided payment method
  * @param {String} paymentMethodID
  */
-function clearDeletePaymentMethodError(paymentList, paymentMethodID) {
-    Onyx.merge(paymentList, {
+function clearDeletePaymentMethodError(paymentListKey, paymentMethodID) {
+    Onyx.merge(paymentListKey, {
         [paymentMethodID]: {
             pendingAction: null,
             errors: null,
@@ -339,11 +339,11 @@ function clearDeletePaymentMethodError(paymentList, paymentMethodID) {
 
 /**
  * If there was a failure adding a payment method, clearing it removes the payment method from the list entirely
- * @param {String} paymentList The onyx key for the provided payment method
+ * @param {String} paymentListKey The onyx key for the provided payment method
  * @param {String} paymentMethodID
  */
-function clearAddPaymentMethodError(paymentList, paymentMethodID) {
-    Onyx.merge(paymentList, {
+function clearAddPaymentMethodError(paymentListKey, paymentMethodID) {
+    Onyx.merge(paymentListKey, {
         [paymentMethodID]: null,
     });
 }
