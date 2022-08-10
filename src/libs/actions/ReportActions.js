@@ -132,16 +132,16 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
 }
 
 /**
- * @param {Array<string>} excludedReportIDs Reports that we have already loaded and there is no need to return
+ * @param {Array<string>} reportIDListToExclude Reports that we have already loaded and there is no need to return
  * them from the server again
  * @param {string} searchOption
  */
 
-function searchReports(excludedReportIDs, searchOption) {
+function searchReports(reportIDListToExclude, searchOption) {
     if (searchOption.trim === '') {
         return;
     }
-    API.read('Report_TextSearch', {excludedReportIDList: excludedReportIDs.join(','), searchOption}, {
+    API.read('Report_TextSearch', {reportIDListToExclude: reportIDListToExclude.join(','), searchOption}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_SERVER_SEARCH_REPORT_DATA,
