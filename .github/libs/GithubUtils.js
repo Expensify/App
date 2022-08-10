@@ -288,7 +288,7 @@ class GithubUtils {
 
                 // Deploy blockers
                 if (!_.isEmpty(deployBlockers)) {
-                    issueBody += '\r\n\r\n\r\n**Deploy Blockers:**';
+                    issueBody += '\r\n\r\n**Deploy Blockers:**';
                     _.each(sortedDeployBlockers, (URL) => {
                         issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n- [x] ' : '\r\n- [ ] ';
                         issueBody += URL;
