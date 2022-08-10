@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import {createRef} from 'react';
 import lodashGet from 'lodash/get';
+import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -311,6 +312,17 @@ function dismissSuccessfulTransferBalancePage() {
     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
+/**
+ * Looks through each payment method to see if there is an existing error
+ * @param {*} bankList 
+ * @param {*} cardList 
+ */
+function hasPaymentMethodError(bankList, cardList) {
+    const combinedPaymentMethods = lodashMerge(bankList, cardList);
+    return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
+
+}
+
 export {
     deleteDebitCard,
     deletePayPalMe,
@@ -327,4 +339,5 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     cleanLocalReimbursementData,
+    hasPaymentMethodError,
 };
