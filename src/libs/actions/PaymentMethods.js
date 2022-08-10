@@ -85,21 +85,21 @@ function openPaymentsPage() {
     const onyxData = {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                 value: true,
             },
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                 value: false,
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                 value: false,
             },

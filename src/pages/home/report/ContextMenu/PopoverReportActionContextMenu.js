@@ -124,6 +124,7 @@ class PopoverReportActionContextMenu extends React.Component {
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
+        this.contextMenuTargetNode = nativeEvent.target;
 
         // Singleton behaviour of ContextMenu creates race conditions when user requests multiple contextMenus.
         // But it is possible that every new request registers new callbacks thus instanceID is used to corelate those callbacks
@@ -222,6 +223,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection={this.state.selection}
                 reportID={this.state.reportID}
                 reportAction={this.state.reportAction}
+                anchor={this.contextMenuTargetNode}
             />
         );
     }
@@ -293,6 +295,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}
+                        anchor={this.contextMenuTargetNode}
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal
