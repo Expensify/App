@@ -848,3 +848,17 @@ We love React and learning about all the new features that are regularly being a
 - `createRef()` - Use a callback ref instead
 - Class properties - Use an anonymous arrow function when calling a method or bind your method in the `constructor()`
 - Static getters and setters - Use props directly or create a method that computes some value
+
+# Onyx Best Practices
+
+[Onyx Documentation](https://github.com/expensify/react-native-onyx)
+
+## Collection Keys
+
+Our potentially larger collections of data (reports, policies, etc) are typically stored under collection keys. Collection keys let us group together individual keys vs. storing arrays with multiple objects. In general, **do not add a new collection key if it can be avoided**. There is most likely a more logical place to put the state. And failing to associate a state property with it's logical owner is something we consider to be an anti-pattern (unnecessary data structure adds complexity for no value).
+
+For example, if you are storing a boolean value that could be associated with a `report` object under a new collection key it is better to associate this information with the report itself and not create a new collection key.
+
+**Exception:** There are some [gotchas](https://github.com/expensify/react-native-onyx#merging-data) when working with complex nested array values in Onyx. So, this could be another valid reason to break a property off of it's parent object (e.g. `reportActions` are easier to work with as a separate collection).
+
+If you're not sure whether something should have a collection key reach out in [`#expensify-open-source`](https://expensify.slack.com/archives/C01GTK53T8Q) for additional feedback.
