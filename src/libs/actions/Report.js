@@ -650,9 +650,7 @@ function fetchActions(reportID) {
  * @param {Number} reportID
  */
 function fetchInitialActions(reportID) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, true);
     fetchActions(reportID)
-        .finally(() => Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, false));
 }
 
 /**
