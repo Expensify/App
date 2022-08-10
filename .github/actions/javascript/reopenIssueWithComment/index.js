@@ -321,7 +321,7 @@ class GithubUtils {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x]' : '\r\n  - [ ]';
-                        issueBody += ` ${URL}`;
+                        issueBody += ` ${URL}\r\n`;
                     });
                 }
 
