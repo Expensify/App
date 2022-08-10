@@ -44,8 +44,8 @@ class DebitCardPage extends Component {
         this.validate = this.validate.bind(this);
     }
 
-    componentDidUpdate() {
-        if (!this.props.formData.setupComplete) {
+    componentDidUpdate(prevProps) {
+        if (prevProps.formData.setupComplete || !this.props.formData.setupComplete) {
             return;
         }
 
