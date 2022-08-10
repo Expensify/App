@@ -13,9 +13,6 @@ import canUseTouchScreen from '../libs/canUseTouchscreen';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
-/**
- * Text based component that is passed a URL to open onPress
- */
 const propTypes = {
     /** The URL to open */
     href: PropTypes.string,
@@ -38,7 +35,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    /** Press handler for the link */
+    /** Press handler for the link, when not passed, default href is used to create a link like behaviour */
     onPress: PropTypes.func,
 
     ...windowDimensionsPropTypes,
@@ -57,53 +54,51 @@ const defaultProps = {
 /*
  * This is a default anchor component for regular links.
  */
-class BaseAnchorForCommentsOnly extends React.Component {
-    render() {
-        let linkRef;
-        const rest = _.omit(this.props, _.keys(propTypes));
-        const linkProps = {};
-        if (_.isFunction(this.props.onPress)) {
-            linkProps.onPress = this.props.onPress;
-        } else {
-            linkProps.href = this.props.href;
-        }
-        const defaultTextStyle = canUseTouchScreen() || this.props.isSmallScreenWidth ? {} : styles.userSelectText;
+const BaseAnchorForCommentsOnly = (props) => {
+    let linkRef;
+    const rest = _.omit(props, _.keys(propTypes));
+    const linkProps = {};
+    if (_.isFunction(props.onPress)) {
+        linkProps.onPress = props.onPress;
+    } else {
+        linkProps.href = props.href;
+    }
+    const defaultTextStyle = canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
 
-        return (
-            <PressableWithSecondaryInteraction
-                inline
-                onSecondaryInteraction={
+    return (
+        <PressableWithSecondaryInteraction
+            inline
+            onSecondaryInteraction={
                         (event) => {
                             ReportActionContextMenu.showContextMenu(
-                                Str.isValidEmail(this.props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                Str.isValidEmail(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                 event,
-                                this.props.href,
+                                props.href,
                                 lodashGet(linkRef, 'current'),
                             );
                         }
                     }
-            >
-                <Tooltip text={Str.isValidEmail(this.props.displayName) ? '' : this.props.href}>
-                    <Text
-                        ref={el => linkRef = el}
-                        style={StyleSheet.flatten([this.props.style, defaultTextStyle])}
-                        accessibilityRole="link"
-                        hrefAttrs={{
-                            rel: this.props.rel,
-                            target: this.props.target,
-                        }}
+        >
+            <Tooltip text={Str.isValidEmail(props.displayName) ? '' : props.href}>
+                <Text
+                    ref={el => linkRef = el}
+                    style={StyleSheet.flatten([props.style, defaultTextStyle])}
+                    accessibilityRole="link"
+                    hrefAttrs={{
+                        rel: props.rel,
+                        target: props.target,
+                    }}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...linkProps}
+                    {...linkProps}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...rest}
-                    >
-                        {this.props.children}
-                    </Text>
-                </Tooltip>
-            </PressableWithSecondaryInteraction>
-        );
-    }
-}
+                    {...rest}
+                >
+                    {props.children}
+                </Text>
+            </Tooltip>
+        </PressableWithSecondaryInteraction>
+    );
+};
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;
