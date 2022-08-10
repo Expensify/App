@@ -1,33 +1,14 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-let isCloseAccountModalOpen;
-Onyx.connect({
-    key: ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN,
-    callback: flag => isCloseAccountModalOpen = flag,
-});
-
 /**
- * Set CloseAccount flag to show modal
+ * Clear CloseAccount error message to hide modal
  */
-function showCloseAccountModal() {
-    if (isCloseAccountModalOpen) {
-        return;
-    }
-    Onyx.set(ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN, true);
-}
-
-/**
-* Unset CloseAccount flag to hide modal
- */
-function hideCloseAccountModal() {
-    if (!isCloseAccountModalOpen) {
-        return;
-    }
-    Onyx.set(ONYXKEYS.IS_CLOSE_ACCOUNT_MODAL_OPEN, false);
+function clearError() {
+    Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT, {error: ''});
 }
 
 export {
-    showCloseAccountModal,
-    hideCloseAccountModal,
+    // eslint-disable-next-line import/prefer-default-export
+    clearError,
 };

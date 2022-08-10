@@ -28,6 +28,7 @@ import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProv
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
+import SelectionScraper from '../../../libs/SelectionScraper';
 import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 
@@ -98,13 +99,13 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
      */
-    showPopover(event, selection) {
+    showPopover(event) {
         // Block menu on the message being Edited
         if (this.props.draftMessage) {
             return;
         }
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
