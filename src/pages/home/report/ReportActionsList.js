@@ -141,21 +141,15 @@ class ReportActionsList extends React.Component {
         const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.newMarkerSequenceNumber;
         return (
-            <OfflineWithFeedback
-                onClose={() => {}}
-                pendingAction={item.action.pendingAction}
-                errors={item.action.errors}
-            >
-                <ReportActionItem
-                    reportID={this.props.report.reportID}
-                    action={item.action}
-                    displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
-                    shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                    isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
-                    hasOutstandingIOU={this.props.report.hasOutstandingIOU}
-                    index={index}
-                />
-            </OfflineWithFeedback>
+            <ReportActionItem
+                reportID={this.props.report.reportID}
+                action={item.action}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
+                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
+                isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
+                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                index={index}
+            />
         );
     }
 
