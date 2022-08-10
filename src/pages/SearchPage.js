@@ -16,8 +16,10 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import * as ReportActions from '../libs/actions/ReportActions';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import Text from '../components/Text';
 
 const propTypes = {
     /* Onyx Props */
@@ -27,6 +29,8 @@ const propTypes = {
 
     /** All of the personal details for everyone */
     personalDetails: personalDetailsPropType.isRequired,
+
+    reportsServerSearchDataLoading: PropTypes.bool.isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.shape({
@@ -54,6 +58,7 @@ class SearchPage extends Component {
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
+        this.debouncedSearchServerData = _.debounce(this.searchServerData.bind(this), 300);
 
         const {
             recentReports,
@@ -78,8 +83,18 @@ class SearchPage extends Component {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
+    componentDidUpdate(prevProps) {
+        if (this.props.reports === prevProps.reports) {
+            return;
+        }
+        this.updateOptions();
+    }
+
     onChangeText(searchValue = '') {
-        this.setState({searchValue}, this.debouncedUpdateOptions);
+        this.setState({searchValue}, () => {
+            this.debouncedUpdateOptions();
+            this.debouncedSearchServerData();
+        });
     }
 
     /**
@@ -115,6 +130,14 @@ class SearchPage extends Component {
         }
 
         return sections;
+    }
+
+    searchServerData() {
+        const reportIdsToIgnore = _.chain(this.props.reports)
+            .filter()
+            .map(report => report.reportID)
+            .value();
+        ReportActions.searchReports(reportIdsToIgnore, this.state.searchValue.trim());
     }
 
     updateOptions() {
@@ -175,6 +198,7 @@ class SearchPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            {this.props.reportsServerSearchDataLoading && <Text>Loading reports from server!</Text>}
                             <OptionsSelector
                                 sections={sections}
                                 value={this.state.searchValue}
@@ -205,6 +229,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        reportsServerSearchDataLoading: {
+            key: ONYXKEYS.IS_LOADING_SERVER_SEARCH_REPORT_DATA,
         },
         session: {
             key: ONYXKEYS.SESSION,

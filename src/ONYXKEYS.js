@@ -161,6 +161,9 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    // Is server side report search loading?
+    IS_LOADING_SERVER_SEARCH_REPORT_DATA: 'isLoadingServerSearchReportData',
+
     // Is policy data loading?
     IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
 
