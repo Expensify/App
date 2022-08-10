@@ -33,7 +33,7 @@ beforeAll(() => {
                 get: mockGetIssue,
                 listComments: mockListComments,
             },
-        }
+        },
     };
     GithubUtils.internalOctokit = mocktokit;
 });
