@@ -171,7 +171,7 @@ class PaymentMethodList extends Component {
      */
     dismissError(item) {
         if (item.pendingAction === 'delete') {
-            
+
         }
     }
 
@@ -196,7 +196,7 @@ class PaymentMethodList extends Component {
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
             return (
-                <OfflineWithFeedback>
+                <OfflineWithFeedback onClose={() => console.log('cleared')} pendingAction={item.pendingAction} errors={item.errors}>
                     <MenuItem
                         onPress={item.onPress}
                         title={item.title}
