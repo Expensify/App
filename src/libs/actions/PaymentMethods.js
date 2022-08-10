@@ -295,16 +295,16 @@ function deletePaymentCard(fundID) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.CARD_LIST}`,
-                value: {[fundID]: {isPendingDelete: true}},
+                value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.CARD_LIST}`,
-                value: {[fundID]: {isPendingDelete: false}},
+                value: {[fundID]: {pendingAction: false}},
             },
         ],
     });
