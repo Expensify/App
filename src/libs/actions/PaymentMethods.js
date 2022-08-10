@@ -314,38 +314,38 @@ function dismissSuccessfulTransferBalancePage() {
 
 /**
  * Looks through each payment method to see if there is an existing error
- * @param {Object} bankList 
- * @param {Object} cardList 
+ * @param {Object} bankList
+ * @param {Object} cardList
+ * @returns {Boolean}
  */
 function hasPaymentMethodError(bankList, cardList) {
     const combinedPaymentMethods = lodashMerge(bankList, cardList);
     return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
-
 }
 
 /**
  * Clears the error for the specified payment item
  * @param {String} paymentList The onyx key for the provided payment method
- * @param {String} paymentMethodID 
+ * @param {String} paymentMethodID
  */
 function clearDeletePaymentMethodError(paymentList, paymentMethodID) {
     Onyx.merge(paymentList, {
         [paymentMethodID]: {
             pendingAction: null,
             errors: null,
-        }
-    })
+        },
+    });
 }
 
 /**
  * If there was a failure adding a payment method, clearing it removes the payment method from the list entirely
  * @param {String} paymentList The onyx key for the provided payment method
- * @param {String} paymentMethodID 
+ * @param {String} paymentMethodID
  */
 function clearAddPaymentMethodError(paymentList, paymentMethodID) {
     Onyx.merge(paymentList, {
         [paymentMethodID]: null,
-    })
+    });
 }
 
 export {
