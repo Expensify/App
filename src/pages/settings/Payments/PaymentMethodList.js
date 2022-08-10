@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -18,6 +19,7 @@ import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -167,11 +169,15 @@ class PaymentMethodList extends Component {
 
     /**
      * Dismisses the error on the payment method
-     * @param {*} item 
+     * @param {*} item
      */
     dismissError(item) {
+        const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
+        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID']) : lodashGet(item, ['accountData', 'cardID']);
         if (item.pendingAction === 'delete') {
-
+            PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
+        } else {
+            PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
         }
     }
 
@@ -195,8 +201,9 @@ class PaymentMethodList extends Component {
      */
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
+            console.log(item);
             return (
-                <OfflineWithFeedback onClose={() => console.log('cleared')} pendingAction={item.pendingAction} errors={item.errors} errorStyle={styles.ph6}>
+                <OfflineWithFeedback onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors} errorStyle={styles.ph6}>
                     <MenuItem
                         onPress={item.onPress}
                         title={item.title}
