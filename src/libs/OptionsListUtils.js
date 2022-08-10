@@ -643,7 +643,7 @@ function getOptions(reports, personalDetails, activeReportID, {
  * @param {Array<String>} betas
  * @returns {Object}
  */
-function getSearchOptions(
+function calculateSearchOptions(
     reports,
     personalDetails,
     searchValue = '',
@@ -665,6 +665,8 @@ function getSearchOptions(
         prioritizeIOUDebts: false,
     });
 }
+
+const getSearchOptions = memoizeOne(calculateSearchOptions);
 
 /**
  * Build the IOUConfirmation options for showing MyPersonalDetail
