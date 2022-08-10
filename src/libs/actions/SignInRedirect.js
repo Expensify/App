@@ -16,12 +16,19 @@ Onyx.connect({
     callback: val => currentPreferredLocale = val,
 });
 
+let currentIsOffline;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: val => currentIsOffline = val.isOffline,
+});
+
 /**
  * @param {String} errorMessage
  */
 function clearStorageAndRedirect(errorMessage) {
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
+    const isOffline = currentIsOffline;
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
     Onyx.clear()
@@ -31,6 +38,9 @@ function clearStorageAndRedirect(errorMessage) {
             }
             if (activeClients && activeClients.length > 0) {
                 Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+            }
+            if (isOffline) {
+                Onyx.set(ONYXKEYS.NETWORK, {isOffline});
             }
 
             // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
