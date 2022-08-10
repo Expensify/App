@@ -40,16 +40,11 @@ jobs:
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
           ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 0
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Create branch for new pull request
-        run: |
-          git checkout -b ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          git push --set-upstream origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
@@ -79,31 +74,38 @@ jobs:
           USER: OSBotify
           TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
 
-      - name: Cherry-pick the version-bump to new branch
+      - name: Create branch for new pull request
         run: |
-          git fetch
-          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
+          SOURCE_MERGE_BASE=$(git merge-base staging ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }})
+          VERSION_BUMP_MERGE_BASE=$(git merge-base staging ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }})
+          CP_MERGE_BASE=$(git merge-base "$SOURCE_MERGE_BASE" "$VERSION_BUMP_MERGE_BASE")
+          git checkout -b ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }} "$CP_MERGE_BASE"
+          git push --set-upstream origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
-      - name: Cherry-pick the merge commit of target PR to new branch
-        id: cherryPick
-        run: |
-          echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
-          if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
-            echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
-            echo "::set-output name=SHOULD_AUTOMERGE::true"
-          else
-            echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
-            git --no-pager diff --name-only --diff-filter=U
-            git add .
-            GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
-            echo "::set-output name=SHOULD_AUTOMERGE::false"
-          fi
+      - name: Cherry-pick the version-bump to new branch
+        run: git cherry-pick -S -x --mainline 1 -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
+
+      - name: Cherry-pick the merge commit of target PR to the new branch
+        run: git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}
 
       - name: Push changes to CP branch
         run: git push
 
-      - name: Create Pull Request
-        id: createPullRequest
+      - name: Create main pull request
+        id: createMainPullRequest
+        run: |
+          gh pr create \
+            --title "🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to main 🍒" \
+            --body "This pull request is needed so that this cherry-pick becomes a common ancestor for both main and staging. More details in https://github.com/Expensify/App/pull/10316" \
+            --label "automerge" \
+            --base "main"
+          sleep 5
+          echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Create staging pull request
+        id: createStagingPullRequest
         run: |
           gh pr create \
             --title "🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
@@ -115,66 +117,74 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - name: Check if main pull request is mergeable
+        id: isMainPullRequestMergeable
+        uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          PULL_REQUEST_NUMBER: ${{ steps.createMainPullRequest.outputs.PR_NUMBER }}
+
+      - name: Check if staging pull request is mergeable
+        id: isStagingPullRequestMergeable
+        uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          PULL_REQUEST_NUMBER: ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }}
+
       - name: Check if ShortVersionString is up to date
         id: isShortVersionStringUpdated
         uses: Expensify/App/.github/actions/javascript/checkBundleVersionStringMatch@main
 
-      - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
-        run: gh pr edit --add-label "Engineering,Hourly"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check if the PRs can be auto-merged
+        id: checkForAutomerge
+        run: echo "::set-output name=SHOULD_AUTOMERGE::${{ fromJSON(steps.isMainPullRequestMergeable.outputs.IS_MERGEABLE) && fromJSON(steps.isStagingPullRequestMergeable.outputs.IS_MERGEABLE) && fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}"
 
-      - name: Assign the PR to the deployer
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
-        run: gh pr edit --add-assignee ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: If PR has merge conflicts, comment with instructions for assignee
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
+      - name: Auto-assign PRs if either is not mergeable or if the bundle versions are mismatched
+        if: ${{ !fromJSON(steps.checkForAutomerge.outputs.IS_MERGEABLE) }}
         run: |
-          gh pr comment --body \
-          "This pull request has merge conflicts and can not be automatically merged. :disappointed:
-           Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
-           **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving."
+          gh pr edit ${{ steps.createMainPullRequest.outputs.PR_NUMBER }} --add-label "Engineering,Hourly"
+          gh pr edit ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }} --add-label "Engineering,Hourly"
+          gh pr edit ${{ steps.createMainPullRequest.outputs.PR_NUMBER }} --add-assignee ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
+          gh pr edit ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }} --add-assignee ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
+          gh pr comment ${{ steps.createMainPullRequest.outputs.PR_NUMBER }} --body \
+            "This pull request has an [associated mate against the staging branch](#${{ steps.createStagingPullRequest.outputs.PR_NUMBER }}) which had conflicts and could not be automatically merged. :disappointed:
+             Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge. _Only after doing that_, merge this PR."
+          gh pr comment ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }} --body \
+            "This pull request has merge conflicts and can not be automatically merged. :disappointed:
+             Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge."
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: If PR has a bundle version mismatch, comment with the instructions for assignee
         if: ${{ !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
         run: |
-          gh pr comment --body \
-          "The CFBundleShortVersionString value in this PR is not compatible with the CFBundleVersion, so cherry picking it will result in an iOS deploy failure.
-           Please manually resolve the mismatch, push your changes, and then request another reviewer to review and merge.
-           **Important:** This mismatch can be caused by a failed Update Protected Branch workflow followed by a manual CP, but please confirm the cause of the mismatch before updating any version numbers."
+          gh pr comment ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }} --body \
+            "The CFBundleShortVersionString value in this PR is not compatible with the CFBundleVersion, so cherry picking it will result in an iOS deploy failure.
+             Please manually resolve the mismatch, push your changes, and then request another reviewer to review and merge.
+             **Important:** This mismatch can be caused by a failed Update Protected Branch workflow followed by a manual CP, but please confirm the cause of the mismatch before updating any version numbers."
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Auto-approve the PR
+      - name: Auto-approve the PRs
         # Important: only auto-approve if there was no merge conflict!
-        if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
-        run: gh pr review --approve
+        if: ${{ fromJSON(steps.checkForAutomerge.outputs.SHOULD_AUTOMERGE) }}
+        run: |
+          gh pr review ${{ steps.createMainPullRequest.outputs.PR_NUMBER }} --approve
+          gh pr review ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }} --approve
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check if pull request is mergeable
-        id: isPullRequestMergeable
-        uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
-
       - name: Auto-merge the PR
-        # Important: only auto-merge if there was no merge conflict and the PR is mergable (not blocked by a missing status check)!
-        if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) && fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
-        run: gh pr merge ${{ steps.createPullRequest.outputs.pr_number }} --merge --delete-branch
+        if: ${{ fromJSON(steps.checkForAutomerge.outputs.SHOULD_AUTOMERGE) }}
+        run: |
+          gh pr merge ${{ steps.createMainPullRequest.outputs.PR_NUMBER }} --merge --delete-branch
+          gh pr merge ${{ steps.createStagingPullRequest.outputs.PR_NUMBER }} --merge --delete-branch
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: 'Announces a CP failure in the #announce Slack room'
         uses: 8398a7/action-slack@v3
-        if: ${{ failure() || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+        if: ${{ failure() || !fromJSON(steps.checkForAutomerge.outputs.SHOULD_AUTOMERGE) }}
         with:
           status: custom
           custom_payload: |
