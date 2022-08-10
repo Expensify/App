@@ -20,20 +20,27 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
+import PropTypes from "prop-types";
 
 const propTypes = {
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
-    /** The user's wallet */
-    userWallet: userWalletPropTypes,
 
-    ...withLocalizePropTypes,
+    additionalDetails: PropTypes.shape({
+        errorCode: PropTypes.string,
+    }),
+
+    ...userWalletPropTypes,
 };
 
 const defaultProps = {
     userWallet: {},
+
+    additionalDetails: {
+        errorCode: '',
+    },
 };
 
 class EnablePaymentsPage extends React.Component {
@@ -54,7 +61,7 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
+        if (this.props.additionalDetails.errorCode === 'kycFailed') {
             return (
                 <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
                     <HeaderWithCloseButton
@@ -99,6 +106,9 @@ export default compose(
         },
         walletAdditionalDetailsDraft: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
+        },
+        additionalDetails: {
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
         },
     }),
     withNetwork(),

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {
     View,
 } from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -164,7 +164,7 @@ class IdologyQuestions extends React.Component {
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(this.state.errorMessage || this.props.additionalDetails.errorCode)}
+                        isAlertVisible={Boolean(this.state.errorMessage || this.props.additionalDetails.errors)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
