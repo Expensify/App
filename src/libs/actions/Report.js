@@ -650,7 +650,7 @@ function fetchActions(reportID) {
  * @param {Number} reportID
  */
 function fetchInitialActions(reportID) {
-    fetchActions(reportID)
+    fetchActions(reportID);
 }
 
 /**
