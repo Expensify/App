@@ -356,9 +356,10 @@ function updateCurrentStep(currentStep) {
  * @param {String} idologyAnswers
  */
 function answerQuestionsForWallet(idologyAnswers) {
+    const answers = JSON.stringify(idologyAnswers);
     API.write('AnswerQuestionsForWallet',
         {
-            idologyAnswers,
+            answers,
         },
         {
             optimisticData: [{
