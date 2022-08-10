@@ -2,7 +2,7 @@ import React from 'react';
 import {
     View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
 } from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
@@ -34,6 +34,7 @@ import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import Icon from '../../../../components/Icon';
 import colors from '../../../../styles/colors';
+import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -258,6 +259,13 @@ class BasePaymentsPage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     }
 
+     /**
+     * Dismisses the error on the user's wallet
+     */
+    dismissError() {
+        Onyx.merge(ONYXKEYS.USER_WALLET, {errors: null});
+    }
+
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
         const shouldShowMakeDefaultButton = !this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected;
@@ -438,14 +446,8 @@ class BasePaymentsPage extends React.Component {
                     danger
                 />
                 {
-                    !_.isEmpty(errorMessage) && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3, styles.ml3]}>
-                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                                <Text style={styles.mutedTextLabel}>{errorMessage}</Text>
-                            </View>
-                        </View>
-                    )
+                    <OfflineWithFeedback onClose={() => this.dismissError()} errors={this.props.userWallet.errors} errorStyle={styles.ph6}>
+                    </OfflineWithFeedback>
                 }
             </ScreenWrapper>
         );
