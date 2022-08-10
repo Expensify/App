@@ -35,6 +35,8 @@ const propTypes = {
 
     additionalDetails: PropTypes.shape({
         isLoading: PropTypes.bool,
+        errors: PropTypes.arrayOf(PropTypes.string),
+        errorCode: PropTypes.string,
     }),
 };
 
@@ -43,6 +45,8 @@ const defaultProps = {
     idNumber: '',
     additionalDetails: {
         isLoading: false,
+        errors: [],
+        errorCode: '',
     },
 };
 
@@ -160,12 +164,12 @@ class IdologyQuestions extends React.Component {
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(this.state.errorMessage)}
+                        isAlertVisible={Boolean(this.state.errorMessage || this.props.additionalDetails.errorCode)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
-                        message={this.state.errorMessage}
+                        message={_.isEmpty(this.props.additionalDetails.errors) ? this.props.additionalDetails.errors.find(x=>x!==undefined) : this.state.errorMessage : }
                         isLoading={this.props.additionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
