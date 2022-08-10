@@ -483,6 +483,18 @@ function convertToLTR(text) {
     return `\u2066${text}`;
 }
 
+/**
+ * Return fade in/out animation style for confirm button in AttachmentModal.
+ *
+ * @param {Animated.Value} fadeAnimation
+ * @returns {Object}
+ */
+function getAttachmentModalConfirmButtonAnimationStyle(fadeAnimation) {
+    return {
+        opacity: fadeAnimation,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -513,4 +525,5 @@ export {
     getPaddingLeft,
     getReportListAnimationStyle,
     convertToLTR,
+    getAttachmentModalConfirmButtonAnimationStyle,
 };

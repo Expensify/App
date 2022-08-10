@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
@@ -284,7 +285,7 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <Animated.View style={{opacity: this.state.confirmButtonFadeAnimation}}>
+                        <Animated.View style={StyleUtils.getAttachmentModalConfirmButtonAnimationStyle(this.state.confirmButtonFadeAnimation)}>
                             <Button
                                 success
                                 style={[styles.buttonConfirm]}
