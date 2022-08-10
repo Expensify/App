@@ -134,7 +134,7 @@
     "@storybook/react": "^6.5.9",
     "@storybook/theming": "^6.5.9",
     "@svgr/webpack": "^5.5.0",
-    "@testing-library/jest-native": "^3.4.2",
+    "@testing-library/jest-native": "^4.0.6",
     "@testing-library/react-native": "^7.0.2",
     "@vercel/ncc": "^0.27.0",
     "@welldone-software/why-did-you-render": "^6.2.0",
