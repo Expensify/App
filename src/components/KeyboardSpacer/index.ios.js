@@ -7,13 +7,6 @@ import BaseKeyboardSpacer from './BaseKeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import * as StyleUtils from '../../styles/StyleUtils';
 
-const defaultProps = {
-    keyboardShowMethod: '',
-    keyboardHideMethod: '',
-    iOSAnimated: false,
-    topSpacing: {},
-};
-
 const KeyboardSpacer = props => (
     <BaseKeyboardSpacer
         style={props.style}
@@ -25,7 +18,6 @@ const KeyboardSpacer = props => (
 );
 
 KeyboardSpacer.propTypes = windowDimensionsPropTypes;
-KeyboardSpacer.defaultProps = defaultProps;
 KeyboardSpacer.displayName = 'KeyboardSpacer';
 
 export default withWindowDimensions(KeyboardSpacer);
