@@ -38,8 +38,14 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Additional styles to add after local styles. Applied to Pressable portion of button */
+    /** Additional styles to add after local styles. Applied to the parent container */
     style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
+    /** Additional styles to add after local styles.  Applied to the error text portion */
+    errorStyle: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
@@ -50,6 +56,7 @@ const defaultProps = {
     pendingAction: null,
     errors: null,
     style: [],
+    errorStyle: [],
 };
 
 /**
@@ -97,7 +104,7 @@ const OfflineWithFeedback = (props) => {
                 </View>
             )}
             {hasErrors && (
-                <View style={styles.offlineFeedback.error}>
+                <View style={[styles.offlineFeedback.error, props.errorStyle]}>
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>

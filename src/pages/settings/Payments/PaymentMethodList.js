@@ -196,7 +196,7 @@ class PaymentMethodList extends Component {
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
             return (
-                <OfflineWithFeedback onClose={() => console.log('cleared')} pendingAction={item.pendingAction} errors={item.errors}>
+                <OfflineWithFeedback onClose={() => console.log('cleared')} pendingAction={item.pendingAction} errors={item.errors} errorStyle={styles.ph6}>
                     <MenuItem
                         onPress={item.onPress}
                         title={item.title}
