@@ -1088,7 +1088,7 @@ function openReport(reportID) {
  * @param {Number} oldestActionSequenceNumber
  */
 function readOldestAction(reportID, oldestActionSequenceNumber) {
-    API.read('ReadOldestAction',
+    API.write('ReadOldestAction',
         {
             reportID,
             reportActionsOffset: oldestActionSequenceNumber,
