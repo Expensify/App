@@ -22,6 +22,7 @@ import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -181,12 +182,18 @@ class WorkspaceReimburseView extends React.Component {
                             />
                         </View>
                         <View style={[styles.unitCol]}>
-                            <Picker
-                                label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                items={this.unitItems}
-                                value={this.state.unitValue}
-                                onInputChange={value => this.setUnit(value)}
-                            />
+                            <OfflineWithFeedback
+                                errors={lodashGet(this.props, 'policy.customUnits.distance.errors')}
+                                pendingAction={lodashGet(this.props, 'policy.customUnits.distance.pendingAction')}
+                                onClose={() => Policy.removeUnitError(this.policyID)}
+                            >
+                                <Picker
+                                    label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
+                                    items={this.unitItems}
+                                    value={this.state.unitValue}
+                                    onInputChange={value => this.setUnit(value)}
+                                />
+                            </OfflineWithFeedback>
                         </View>
                     </View>
                 </Section>
