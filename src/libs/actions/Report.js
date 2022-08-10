@@ -1528,7 +1528,7 @@ function searchChats(searchText) {
     if (searchText.trim === '') {
         return;
     }
-    API.read('Report_TextSearch', {searchText});
+    API.read('SearchForChats', {searchText});
 }
 
 export {
