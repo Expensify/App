@@ -773,15 +773,7 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
-    BRICK_ROAD_INDICATOR_STATUS: {
-        ERROR: 'error',
-    },
-    REPORT_DETAILS_MENU_ITEM: {
-        MEMBERS: 'member',
-        SETTINGS: 'settings',
-        INVITE: 'invite',
-        LEAVE_ROOM: 'leaveRoom',
-    },
+    REMOVE_KEYBOARD_SPACE: -30,
 };
 
 export default CONST;
