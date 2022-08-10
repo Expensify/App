@@ -25,7 +25,9 @@ const AnchorRenderer = (props) => {
     const attrHref = htmlAttribs.href || '';
     const internalNewExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
-    const internalExpensifyPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL) && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
+    const internalExpensifyPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL)
+                                    && !attrHref.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL)
+                                    && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
 
     const navigateToLink = () => {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation

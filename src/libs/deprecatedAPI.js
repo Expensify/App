@@ -136,18 +136,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} parameters.forceNetworkRequest
- * @returns {Promise}
- */
-function GetAccountStatus(parameters) {
-    const commandName = 'GetAccountStatus';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
  */
@@ -338,27 +326,6 @@ function SetNameValuePair(parameters) {
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
     requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.message
- * @returns {Promise}
- */
-function User_Delete(parameters) {
-    const commandName = 'User_Delete';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @returns {Promise}
- */
-function User_ReopenAccount(parameters) {
-    const commandName = 'User_ReopenAccount';
-    requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -727,7 +694,6 @@ export {
     DeleteLogin,
     DeleteBankAccount,
     Get,
-    GetAccountStatus,
     GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,
@@ -749,9 +715,7 @@ export {
     SetPassword,
     UpdatePolicy,
     User_SignUp,
-    User_Delete,
     User_IsUsingExpensifyCard,
-    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     User_FixAccount,
