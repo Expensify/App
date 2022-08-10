@@ -325,7 +325,7 @@ function hasPaymentMethodError(bankList, cardList) {
 
 /**
  * Clears the error for the specified payment item
- * @param {Object} paymentList 
+ * @param {String} paymentList The onyx key for the provided payment method
  * @param {String} paymentMethodID 
  */
 function clearDeletePaymentMethodError(paymentList, paymentMethodID) {
@@ -339,7 +339,7 @@ function clearDeletePaymentMethodError(paymentList, paymentMethodID) {
 
 /**
  * If there was a failure adding a payment method, clearing it removes the payment method from the list entirely
- * @param {Object} paymentList 
+ * @param {String} paymentList The onyx key for the provided payment method
  * @param {String} paymentMethodID 
  */
 function clearAddPaymentMethodError(paymentList, paymentMethodID) {
