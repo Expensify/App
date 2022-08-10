@@ -8,7 +8,6 @@ import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
 import * as ReportUtils from '../ReportUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as API from '../API';
 
 /**
  * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
@@ -131,38 +130,8 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
     return action.actorAccountID === currentUserAccountID;
 }
 
-/**
- * @param {Array<string>} reportIDListToExclude Reports that we have already loaded and there is no need to return
- * them from the server again
- * @param {string} searchOption
- */
-
-function searchReports(reportIDListToExclude, searchOption) {
-    if (searchOption.trim === '') {
-        return;
-    }
-    API.read('Report_TextSearch', {reportIDListToExclude: reportIDListToExclude.join(','), searchOption}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_SERVER_SEARCH_REPORT_DATA,
-            value: true,
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_SERVER_SEARCH_REPORT_DATA,
-            value: false,
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_SERVER_SEARCH_REPORT_DATA,
-            value: false,
-        }],
-    });
-}
-
 export {
     isReportMissingActions,
-    searchReports,
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,

@@ -1582,6 +1582,17 @@ Onyx.connect({
     },
 });
 
+/**
+ * @param {string} searchText
+ */
+
+function searchReports(searchText) {
+    if (searchText.trim === '') {
+        return;
+    }
+    API.read('Report_TextSearch', {searchText});
+}
+
 export {
     fetchAllReports,
     fetchOrCreateChatReport,
@@ -1617,4 +1628,5 @@ export {
     openReport,
     openPaymentDetailsPage,
     createOptimisticReport,
+    searchReports,
 };
