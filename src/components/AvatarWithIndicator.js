@@ -27,14 +27,15 @@ const propTypes = {
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
     /** The user's wallet (coming from Onyx) */
-    userwallet: PropTypes.objectOf(userWalletPropTypes),
+    ...userWalletPropTypes,
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
-    userwallet: {},
+    // eslint-disable-next-line react/default-props-match-prop-types
+    userWallet: {},
 };
 
 const AvatarWithIndicator = (props) => {
