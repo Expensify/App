@@ -205,7 +205,6 @@ function addPaymentCard(params) {
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {
                 isLoading: false,
-                error: Localize.translateLocal('addDebitCardPage.error.genericFailureMessage'),
             },
         }],
     });
