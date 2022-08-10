@@ -436,7 +436,7 @@ describe('GithubUtils', () => {
         ));
 
         test('Test no resolved deploy blockers', () => (
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, [], baseDeployBlockerList)
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${allVerifiedExpectedOutput}`
@@ -445,14 +445,14 @@ describe('GithubUtils', () => {
                         + `${lineBreak}${openCheckbox}${baseDeployBlockerList[1]}`
                         + `${lineBreak}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
-                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
-                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                        + `${lineBreak}${openCheckbox}${firebaseVerification}${lineBreak}`
+                        + `${lineBreak}${ccApplauseLeads}`,
                     );
                 })
         ));
 
         test('Test some resolved deploy blockers', () => (
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, [], baseDeployBlockerList, [baseDeployBlockerList[0]])
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]])
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${allVerifiedExpectedOutput}`
