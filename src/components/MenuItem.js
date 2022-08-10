@@ -14,6 +14,8 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
+import colors from '../styles/colors';
+import variables from '../styles/variables';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -40,6 +42,7 @@ const defaultProps = {
     onPress: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
+    brickRoadIndicator: undefined,
 };
 
 const MenuItem = props => (
@@ -119,7 +122,6 @@ const MenuItem = props => (
                 </View>
                 <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
                     {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
-
                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                     {(props.subtitle || props.subtitle === 0) && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
@@ -128,6 +130,16 @@ const MenuItem = props => (
                             >
                                 {props.subtitle}
                             </Text>
+                        </View>
+                    )}
+                    {props.brickRoadIndicator && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Expensicons.DotIndicator}
+                                fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                            />
                         </View>
                     )}
                     {props.shouldShowRightIcon && (

@@ -88,7 +88,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        User.setPreferredSkinTone(skinTone);
+        User.updatePreferredSkinTone(skinTone);
     }
 
     /**

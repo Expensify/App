@@ -19,7 +19,6 @@ import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
@@ -66,20 +65,19 @@ class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-
+        const currentUserDetails = this.props.currentUserPersonalDetails || {};
         this.state = {
-            firstName: this.props.currentUserPersonalDetails.firstName,
+            firstName: currentUserDetails.firstName || '',
             hasFirstNameError: false,
-            lastName: this.props.currentUserPersonalDetails.lastName,
+            lastName: currentUserDetails.lastName || '',
             hasLastNameError: false,
-            pronouns: this.props.currentUserPersonalDetails.pronouns,
+            pronouns: currentUserDetails.pronouns || '',
             hasPronounError: false,
-            hasSelfSelectedPronouns: !_.isEmpty(this.props.currentUserPersonalDetails.pronouns) && !this.props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(this.props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            hasSelfSelectedPronouns: !_.isEmpty(currentUserDetails.pronouns) && !currentUserDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            selectedTimezone: lodashGet(currentUserDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(currentUserDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
-            avatar: {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))},
+            avatar: {uri: currentUserDetails.avatar || ReportUtils.getDefaultAvatar(currentUserDetails.login)},
             isAvatarChanged: false,
         };
 
@@ -88,6 +86,7 @@ class ProfilePage extends Component {
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
         this.updateAvatar = this.updateAvatar.bind(this);
+        this.deleteAvatar = this.deleteAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -130,7 +129,7 @@ class ProfilePage extends Component {
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
             // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== this.props.currentUserPersonalDetails.login) && !_.isEmpty(logins[type])
+            if ((login !== lodashGet(this.props.currentUserPersonalDetails, 'login')) && !_.isEmpty(logins[type])
                 && (logins[type].validatedDate || !currentLogin.validatedDate)) {
                 return logins;
             }
@@ -153,7 +152,15 @@ class ProfilePage extends Component {
      * @param {Object} avatar
      */
     updateAvatar(avatar) {
-        this.setState({avatar: _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)} : avatar, isAvatarChanged: true});
+        this.setState({avatar, isAvatarChanged: true});
+    }
+
+    /**
+     * Replaces the user's current avatar image with a default avatar.
+     */
+    deleteAvatar() {
+        PersonalDetails.deleteAvatar();
+        this.setState({avatar: {uri: ReportUtils.getDefaultAvatar(lodashGet(this.props.currentUserPersonalDetails, 'login'))}});
     }
 
     /**
@@ -165,27 +172,22 @@ class ProfilePage extends Component {
         }
 
         // Check if the user has modified their avatar
-        if ((this.props.currentUserPersonalDetails.avatar !== this.state.avatar.uri) && this.state.isAvatarChanged) {
-            // If the user removed their profile photo, replace it accordingly with the default avatar
-            if (this.state.avatar.uri.includes('/images/avatars/avatar')) {
-                PersonalDetails.deleteAvatar(this.state.avatar.uri);
-            } else {
-                PersonalDetails.setAvatar(this.state.avatar);
-            }
+        if ((lodashGet(this.props.currentUserPersonalDetails, 'avatar') !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+            PersonalDetails.setAvatar(this.state.avatar);
 
             // Reset the changed state
             this.setState({isAvatarChanged: false});
         }
 
-        PersonalDetails.setPersonalDetails({
-            firstName: this.state.firstName.trim(),
-            lastName: this.state.lastName.trim(),
-            pronouns: this.state.pronouns.trim(),
-            timezone: {
+        PersonalDetails.updateProfile(
+            this.state.firstName.trim(),
+            this.state.lastName.trim(),
+            this.state.pronouns.trim(),
+            {
                 automatic: this.state.isAutomaticTimezone,
                 selected: this.state.selectedTimezone,
             },
-        }, true);
+        );
     }
 
     validateInputs() {
@@ -208,110 +210,109 @@ class ProfilePage extends Component {
         }));
 
         // Disables button if none of the form values have changed
-        const isButtonDisabled = (this.props.currentUserPersonalDetails.firstName === this.state.firstName.trim())
-            && (this.props.currentUserPersonalDetails.lastName === this.state.lastName.trim())
-            && (this.props.currentUserPersonalDetails.timezone.selected === this.state.selectedTimezone)
-            && (this.props.currentUserPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && (this.props.currentUserPersonalDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged || this.props.currentUserPersonalDetails.avatarUploading);
+        const currentUserDetails = this.props.currentUserPersonalDetails || {};
+        const isButtonDisabled = (currentUserDetails.firstName === this.state.firstName.trim())
+            && (currentUserDetails.lastName === this.state.lastName.trim())
+            && (lodashGet(currentUserDetails, 'timezone.selected') === this.state.selectedTimezone)
+            && (lodashGet(currentUserDetails, 'timezone.automatic') === this.state.isAutomaticTimezone)
+            && (currentUserDetails.pronouns === this.state.pronouns.trim())
+            && (!this.state.isAvatarChanged || currentUserDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('common.profile')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.profile')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <AvatarWithImagePicker
+                        isUploading={currentUserDetails.avatarUploading}
+                        isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
+                        avatarURL={this.state.avatar.uri}
+                        onImageSelected={this.updateAvatar}
+                        onImageRemoved={this.deleteAvatar}
+                        anchorPosition={styles.createMenuPositionProfile}
+                        size={CONST.AVATAR_SIZE.LARGE}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <AvatarWithImagePicker
-                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
-                            isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
-                            avatarURL={this.state.avatar.uri}
-                            onImageSelected={this.updateAvatar}
-                            onImageRemoved={this.updateAvatar}
-                            anchorPosition={styles.createMenuPositionProfile}
-                            size={CONST.AVATAR_SIZE.LARGE}
+                    <Text style={[styles.mt6, styles.mb6]}>
+                        {this.props.translate('profilePage.tellUsAboutYourself')}
+                    </Text>
+                    <FullNameInputRow
+                        firstName={this.state.firstName}
+                        firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
+                        lastName={this.state.lastName}
+                        lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
+                        onChangeFirstName={firstName => this.setState({firstName})}
+                        onChangeLastName={lastName => this.setState({lastName})}
+                        style={[styles.mt4, styles.mb4]}
+                    />
+                    <View style={styles.mb6}>
+                        <Picker
+                            label={this.props.translate('profilePage.preferredPronouns')}
+                            onInputChange={(pronouns) => {
+                                const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                this.setState({
+                                    pronouns: hasSelfSelectedPronouns ? '' : pronouns,
+                                    hasSelfSelectedPronouns,
+                                });
+                            }}
+                            items={pronounsList}
+                            placeholder={{
+                                value: '',
+                                label: this.props.translate('profilePage.selectYourPronouns'),
+                            }}
+                            value={pronounsPickerValue}
                         />
-                        <Text style={[styles.mt6, styles.mb6]}>
-                            {this.props.translate('profilePage.tellUsAboutYourself')}
-                        </Text>
-                        <FullNameInputRow
-                            firstName={this.state.firstName}
-                            firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
-                            lastName={this.state.lastName}
-                            lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
-                            onChangeFirstName={firstName => this.setState({firstName})}
-                            onChangeLastName={lastName => this.setState({lastName})}
-                            style={[styles.mt4, styles.mb4]}
+                        {this.state.hasSelfSelectedPronouns && (
+                            <View style={styles.mt2}>
+                                <TextInput
+                                    value={this.state.pronouns}
+                                    onChangeText={pronouns => this.setState({pronouns})}
+                                    placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                    errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
+                                />
+                            </View>
+                        )}
+                    </View>
+                    <LoginField
+                        label={this.props.translate('profilePage.emailAddress')}
+                        type="email"
+                        login={this.state.logins.email}
+                    />
+                    <LoginField
+                        label={this.props.translate('common.phoneNumber')}
+                        type="phone"
+                        login={this.state.logins.phone}
+                    />
+                    <View style={styles.mb3}>
+                        <Picker
+                            label={this.props.translate('profilePage.timezone')}
+                            onInputChange={selectedTimezone => this.setState({selectedTimezone})}
+                            items={timezones}
+                            isDisabled={this.state.isAutomaticTimezone}
+                            value={this.state.selectedTimezone}
                         />
-                        <View style={styles.mb6}>
-                            <Picker
-                                label={this.props.translate('profilePage.preferredPronouns')}
-                                onInputChange={(pronouns) => {
-                                    const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
-                                    this.setState({
-                                        pronouns: hasSelfSelectedPronouns ? '' : pronouns,
-                                        hasSelfSelectedPronouns,
-                                    });
-                                }}
-                                items={pronounsList}
-                                placeholder={{
-                                    value: '',
-                                    label: this.props.translate('profilePage.selectYourPronouns'),
-                                }}
-                                value={pronounsPickerValue}
-                            />
-                            {this.state.hasSelfSelectedPronouns && (
-                                <View style={styles.mt2}>
-                                    <TextInput
-                                        value={this.state.pronouns}
-                                        onChangeText={pronouns => this.setState({pronouns})}
-                                        placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                        errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        <LoginField
-                            label={this.props.translate('profilePage.emailAddress')}
-                            type="email"
-                            login={this.state.logins.email}
-                        />
-                        <LoginField
-                            label={this.props.translate('common.phoneNumber')}
-                            type="phone"
-                            login={this.state.logins.phone}
-                        />
-                        <View style={styles.mb3}>
-                            <Picker
-                                label={this.props.translate('profilePage.timezone')}
-                                onInputChange={selectedTimezone => this.setState({selectedTimezone})}
-                                items={timezones}
-                                isDisabled={this.state.isAutomaticTimezone}
-                                value={this.state.selectedTimezone}
-                            />
-                        </View>
-                        <CheckboxWithLabel
-                            label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                            isChecked={this.state.isAutomaticTimezone}
-                            onInputChange={this.setAutomaticTimezone}
-                        />
-                    </ScrollView>
-                    <FixedFooter>
-                        <Button
-                            success
-                            isDisabled={isButtonDisabled}
-                            onPress={this.updatePersonalDetails}
-                            style={[styles.w100]}
-                            text={this.props.translate('common.save')}
-                            pressOnEnter
-                        />
-                    </FixedFooter>
-                </KeyboardAvoidingView>
+                    </View>
+                    <CheckboxWithLabel
+                        label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
+                        isChecked={this.state.isAutomaticTimezone}
+                        onInputChange={this.setAutomaticTimezone}
+                    />
+                </ScrollView>
+                <FixedFooter>
+                    <Button
+                        success
+                        isDisabled={isButtonDisabled}
+                        onPress={this.updatePersonalDetails}
+                        style={[styles.w100]}
+                        text={this.props.translate('common.save')}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }

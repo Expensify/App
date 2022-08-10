@@ -12,10 +12,6 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
-    // A key that is set while we are still waiting for the initial round of reports to load. Once set it should not be
-    // false unless we sign out. If there are reports in storage when the app inits this will be `true`.
-    INITIAL_REPORT_DATA_LOADED: 'initialReportDataLoaded',
-
     // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
     IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
 
@@ -27,9 +23,6 @@ export default {
 
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
-
-    // What the active route is for our navigator. Global route that determines what views to display.
-    CURRENT_URL: 'currentURL',
 
     // Stores current date
     CURRENT_DATE: 'currentDate',
@@ -86,11 +79,11 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
-    // SDK token used to communicate with Plaid API
-    PLAID_LINK_TOKEN: 'plaidLinkToken',
+    // Plaid data (access tokens, bank accounts ...)
+    PLAID_DATA: 'plaidData',
 
-    // List of bank accounts returned by Plaid
-    PLAID_BANK_ACCOUNTS: 'plaidBankAccounts',
+    // Token needed to initialize Plaid link
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
 
     // Collection Keys
     COLLECTION: {
@@ -103,6 +96,9 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
+        IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions_',
+        IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions_',
+        POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
     // Indicates which locale should be used
@@ -135,6 +131,9 @@ export default {
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',
 
+    // Stores information about the active personal bank account being set up
+    PERSONAL_BANK_ACCOUNT: 'personalBankAccount',
+
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
@@ -159,9 +158,6 @@ export default {
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
 
-    // Are report actions loading?
-    IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
-
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
@@ -177,17 +173,14 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
-    // Is close acount modal open?
-    IS_CLOSE_ACCOUNT_MODAL_OPEN: 'isCloseAccountModalOpen',
+    // Data related to user closing their account (loading status and error message)
+    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
     // The policyID of the last workspace whose settings were accessed by the user
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
-
-    // Validating Email?
-    USER_SIGN_UP: 'userSignUp',
 
     // List of Form ids
     FORMS: {
