@@ -166,9 +166,14 @@ git merge "$BRANCH_NAME" --no-ff -m "Merge pull request #$PR_COUNT from Expensif
 git branch -d "$BRANCH_NAME"
 success "Merged PR #$PR_COUNT to main"
 
+assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$PR_COUNT"
+PREVIOUS_PR=$PR_COUNT
+
 bump_version '1.0.2'
 update_protected_branch 'staging'
 tag_staging
+
+assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$PREVIOUS_PR"
 
 # Verify output for checklist and deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
@@ -194,12 +199,18 @@ info "Merged PR #$PR_COUNT into main"
 git branch -d "$BRANCH_NAME"
 success "Created PR #$PR_COUNT and merged it to main!"
 
+assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$PR_COUNT"
+git checkout staging
+assert_string_doesnt_contain_substring "$(cat $FILE_NAME)" "Changes from PR #$PR_COUNT"
+
 success "Scenario #2 completed successfully!"
 
 
 title "Scenario #3: Merge a pull request with the checklist locked and CP it to staging"
 
-info "Creating PR #$((++PR_COUNT)) and merging it into main..."
+PREVIOUS_PR=$PR_COUNT
+CP_PR=$((++PR_COUNT))
+info "Creating PR #$PR_COUNT and merging it into main..."
 git checkout main
 BRANCH_NAME="pr-$PR_COUNT"
 FILE_NAME="PR_$PR_COUNT.txt"
@@ -212,9 +223,14 @@ git merge "$BRANCH_NAME" --no-ff -m "Merge pull request #$PR_COUNT from Expensif
 info "Merged PR #$PR_COUNT into main"
 success "Created PR #$PR_COUNT and merged it to main!"
 
+assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$CP_PR"
+
 bump_version '1.0.3' --keep-version-branch
 cherry_pick 5
 tag_staging
+
+assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$CP_PR"
+assert_file_doesnt_exist "PR_$PREVIOUS_PR.txt"
 
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
@@ -234,6 +250,10 @@ title "Scenario #4A: Run the production deploy"
 
 update_protected_branch 'production'
 
+assert_string_contains_substring "$(cat PR_1.txt)" "Changes from PR #1"
+assert_string_contains_substring "$(cat PR_5.txt)" "Changes from PR #5"
+assert_file_doesnt_exist "PR_4.txt"
+
 # Verify output for release body and production deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.3')
@@ -246,6 +266,8 @@ title "Scenario #4B: Run the staging deploy and create a new checklist"
 bump_version '1.1.0'
 update_protected_branch 'staging'
 tag_staging
+
+assert_string_contains_substring "$(cat PR_4.txt)" "Changes from PR #4"
 
 # Verify output for new checklist and staging deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.0"
@@ -271,9 +293,14 @@ info "Merged PR #$PR_COUNT into main"
 git branch -d "$BRANCH_NAME"
 success "Created PR #$PR_COUNT and merged it into main!"
 
+assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$PR_COUNT"
+PREVIOUS_PR=$PR_COUNT
+
 bump_version '1.1.1'
 update_protected_branch 'staging'
 tag_staging
+
+assert_string_contains_substring "$(cat $FILE_NAME)" "Changes from PR #$PREVIOUS_PR"
 
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.1"
@@ -303,9 +330,13 @@ git merge "$BRANCH_NAME" --no-ff -m "Merge pull request #$PR_COUNT from Expensif
 git branch -d $BRANCH_NAME
 success "Merged PR #$PR_COUNT into main!"
 
+assert_string_contains_substring "$(cat $FILE_NAME)" "some content"
+
 bump_version '1.1.2'
 update_protected_branch 'staging'
 tag_staging
+
+assert_string_contains_substring "$(cat $FILE_NAME)" "some content"
 
 info "Creating PR #$((++PR_COUNT)) and merging it to main..."
 git checkout main
@@ -353,16 +384,16 @@ assert_string_doesnt_contain_substring "$(cat $FILE_NAME)" "Prepended content"
 assert_string_contains_substring "$(cat $FILE_NAME)" "some content"
 assert_string_doesnt_contain_substring "$(cat $FILE_NAME)" "Appended content"
 
+PREVIOUS_PR=$PR_COUNT
 bump_version '1.1.4' --keep-version-branch
-cherry_pick "$PR_COUNT"
-
-info "Asserting that PR is reverted on staging"
-git checkout staging
-assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Prepended content"
-assert_string_contains_substring "$(cat pr14.txt)" "some content"
-assert_string_doesnt_contain_substring "$(cat pr14.txt)" "Appended content"
+cherry_pick "$PREVIOUS_PR"
 
 tag_staging
+
+info "Asserting that PR is reverted on staging"
+assert_string_doesnt_contain_substring "$(cat PR_14.txt)" "Prepended content"
+assert_string_contains_substring "$(cat PR_14.txt)" "some content"
+assert_string_doesnt_contain_substring "$(cat PR_14.txt)" "Appended content"
 
 info "Repeating previously reverted PR..."
 git checkout main
@@ -388,7 +419,6 @@ update_protected_branch 'staging'
 tag_staging
 
 info "Asserting that prepended content, original content, and appended content are present on staging"
-git checkout staging
 assert_string_contains_substring "$(cat $FILE_NAME)" "Prepended content"
 assert_string_contains_substring "$(cat $FILE_NAME)" "some content"
 assert_string_contains_substring "$(cat $FILE_NAME)" "Appended content"

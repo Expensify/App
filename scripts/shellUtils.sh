@@ -48,3 +48,12 @@ function assert_string_doesnt_contain_substring {
     success "Assertion passed: \"$1\" does not contain substring \"$2\""
   fi
 }
+
+function assert_file_doesnt_exist {
+  if [[ -f "$1" ]]; then
+    error "Assertion failed: File $1 exists"
+    exit 1
+  else
+    success "Assertion passed: File $1 does not exist"
+  fi
+}
