@@ -19,6 +19,8 @@ import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -37,6 +39,9 @@ const propTypes = {
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -114,6 +119,10 @@ class LoginForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
+        if (this.props.network.isOffline) {
+            return;
+        }
+
         const login = this.state.login.trim();
         if (!login) {
             this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
@@ -198,4 +207,5 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
+    withNetwork(),
 )(LoginForm);
