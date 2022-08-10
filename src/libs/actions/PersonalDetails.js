@@ -262,6 +262,48 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+function updateProfile(firstName, lastName, pronouns, timezone) {
+    const myPersonalDetails = personalDetails[currentUserEmail];
+    API.write('UpdateProfile', {
+        // 'details' is an old param that will be removed in https://github.com/Expensify/Expensify/issues/220321
+        details: JSON.stringify({firstName, lastName, pronouns}),
+        firstName,
+        lastName,
+        pronouns,
+        timezone: JSON.stringify(timezone),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    pronouns,
+                    timezone,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName: myPersonalDetails.firstName,
+                    lastName: myPersonalDetails.lastName,
+                    pronouns: myPersonalDetails.pronouns,
+                    timezone: myPersonalDetails.timeZone,
+                    displayName: myPersonalDetails.displayName,
+                },
+            },
+        }],
+    });
+}
+
 /**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
@@ -295,14 +337,30 @@ function setAvatar(file) {
 
 /**
  * Replaces the user's avatar image with a default avatar
- *
- * @param {String} defaultAvatarURL
  */
-function deleteAvatar(defaultAvatarURL) {
-    // We don't want to save the default avatar URL in the backend since we don't want to allow
-    // users the option of removing the default avatar, instead we'll save an empty string
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: defaultAvatarURL});
+function deleteAvatar() {
+    const defaultAvatar = ReportUtils.getDefaultAvatar(currentUserEmail);
+
+    API.write('DeleteUserAvatar', {}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: defaultAvatar,
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
+                },
+            },
+        }],
+    });
 }
 
 export {
@@ -315,4 +373,5 @@ export {
     openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
+    updateProfile,
 };

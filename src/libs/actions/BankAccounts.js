@@ -85,7 +85,7 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     loading: false,
                     error: '',
-                    success: Localize.translateLocal('paymentsPage.addBankAccountSuccess'),
+                    shouldShowSuccess: true,
                 },
             },
         ],
