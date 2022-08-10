@@ -120,7 +120,7 @@ const InitialSettingsPage = (props) => {
             translationKey: 'common.payments',
             icon: Expensicons.Wallet,
             action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-            brickRoadIndicator: PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) ? 'error' : null,
+            brickRoadIndicator: PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) ? 'error' : null,
         },
         {
             translationKey: 'initialSettingsPage.about',
