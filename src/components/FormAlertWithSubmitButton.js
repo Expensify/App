@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
+import OfflineIndicator from './OfflineIndicator';
 
 const propTypes = {
     /** Text for the button */
@@ -44,19 +45,21 @@ const defaultProps = {
 
 const FormAlertWithSubmitButton = props => (
     <FormAlertWrapper
-        containerStyles={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}
+        containerStyles={[styles.mh5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
         onFixTheErrorsPressed={props.onFixTheErrorsPressed}
     >
         {isOffline => (isOffline ? (
-            <Button
-                success
-                isDisabled
-                text={props.buttonText}
-                style={[styles.mb3]}
-            />
+            <>
+                <Button
+                    success
+                    isDisabled
+                    text={props.buttonText}
+                />
+                <OfflineIndicator containerStyles={[styles.mv1]} />
+            </>
         ) : (
             <Button
                 success
@@ -65,6 +68,7 @@ const FormAlertWithSubmitButton = props => (
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
                 isLoading={props.isLoading}
+                style={[styles.mb6]}
             />
         ))}
     </FormAlertWrapper>
