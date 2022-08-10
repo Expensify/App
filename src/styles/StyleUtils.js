@@ -484,27 +484,17 @@ function convertToLTR(text) {
 }
 
 /**
- * Checks to see if the iOS device has safe areas or not
+ * Return fade in/out animation style for confirm button in AttachmentModal.
  *
- * @param {Number} windowWidth
- * @param {Number} windowHeight
- * @returns {Boolean}
- */
-function hasSafeAreas(windowWidth, windowHeight) {
-    const heightsIphonesWithNotches = [812, 896, 844, 926];
-    return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
-}
-
-/**
- * Get variable keyboard height as style
- * @param {Number} keyboardHeight
+ * @param {Animated.Value} fadeAnimation
  * @returns {Object}
  */
-function getHeight(keyboardHeight) {
+function getAttachmentModalConfirmButtonAnimationStyle(fadeAnimation) {
     return {
-        height: keyboardHeight,
+        opacity: fadeAnimation,
     };
 }
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -535,6 +525,5 @@ export {
     getPaddingLeft,
     getReportListAnimationStyle,
     convertToLTR,
-    hasSafeAreas,
-    getHeight,
+    getAttachmentModalConfirmButtonAnimationStyle,
 };
