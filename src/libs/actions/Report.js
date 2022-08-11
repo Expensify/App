@@ -1521,11 +1521,10 @@ Onyx.connect({
 });
 
 /**
- * @param {string} searchText
+ * @param {String} searchText
  */
-
 function searchChats(searchText) {
-    if (searchText.trim === '') {
+    if (searchText.trim() === '') {
         return;
     }
     API.read('SearchForChats', {searchText});
