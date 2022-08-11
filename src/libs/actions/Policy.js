@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
@@ -475,6 +476,72 @@ function setCustomUnit(policyID, values) {
 
 /**
  * @param {String} policyID
+ * @param {Object} currentCustomUnits
+ * @param {Object} values
+ */
+function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    distance: {
+                        // customUnitID: values.id, // @TODO reconcile customUnitID vs id
+                        customUnitID: '628e77618f113',
+                        // name: values.name,
+                        name: 'Distance',
+                        attributes: values.attributes,
+                        pendingAction: 'update',
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    distance: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    distance: {
+                        // id: currentCustomUnits.id,
+                        id: '628e77618f113',
+                        // name: currentCustomUnits.name,
+                        name: 'Distance',
+                        value: currentCustomUnits.value,
+                        errors: {
+                            // <current_microtime>: '<some generic error>',
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceCustomUnit', {
+        policyID,
+        customUnit: JSON.stringify(values),
+    }, {optimisticData, successData, failureData});
+}
+
+/**
+ * @param {String} policyID
  * @param {String} customUnitID
  * @param {Object} values
  */
@@ -590,6 +657,7 @@ export {
     createAndNavigate,
     createAndGetPolicyList,
     setCustomUnit,
+    updateWorkspaceCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,

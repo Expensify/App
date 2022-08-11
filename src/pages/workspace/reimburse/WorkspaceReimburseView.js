@@ -99,12 +99,11 @@ class WorkspaceReimburseView extends React.Component {
 
     setUnit(value) {
         this.setState({unitValue: value});
-
-        Policy.setCustomUnit(this.props.policyID, {
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnit, {
             customUnitID: this.state.unitID,
             customUnitName: this.state.unitName,
             attributes: {unit: value},
-        }, null);
+        });
     }
 
     debounceUpdateOnCursorMove(event) {
