@@ -44,11 +44,12 @@ const propTypes = {
         PropTypes.object,
     ]),
 
-    /** Additional styles to add after local styles.  Applied to the error text portion */
-    errorStyle: PropTypes.oneOfType([
+    /** Additional style object for the error row */
+    errorRowStyles: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
+
     ...withLocalizePropTypes,
 };
 
