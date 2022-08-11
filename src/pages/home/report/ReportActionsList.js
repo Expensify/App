@@ -17,7 +17,6 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Personal details of all the users */

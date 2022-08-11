@@ -1265,13 +1265,40 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         },
     ];
 
+    // On Success clear the pendingAction state
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    // On Error clear the pendingAction state and revert the message
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    ...originalReportAction,
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
     const parameters = {
         reportID,
         sequenceNumber,
         reportComment: htmlForEditedComment,
         reportActionID: originalReportAction.reportActionID,
     };
-    API.write('UpdateComment', parameters, {optimisticData});
+    API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
 
 /**
