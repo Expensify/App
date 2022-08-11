@@ -1404,8 +1404,6 @@ function renameReport(reportID, reportName) {
 }
 
 /**
- * Update the policy room name.
- *
  * @param {Object} policyRoomReport
  * @param {String} policyRoomName The updated name for the policy room
  */
@@ -1450,8 +1448,6 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
 }
 
 /**
- * Clear policy room name errors.
- *
  * @param {Number} reportID The reportID of the policy room.
  */
 function clearPolicyRoomNameErrors(reportID) {
