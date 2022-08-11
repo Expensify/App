@@ -1377,33 +1377,6 @@ function createPolicyRoom(policyID, reportName, visibility) {
 }
 
 /**
- * Renames a user created Policy Room.
- * @param {String} reportID
- * @param {String} reportName
- */
-function renameReport(reportID, reportName) {
-    Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
-    DeprecatedAPI.RenameReport({reportID, reportName})
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
-                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
-                return;
-            }
-
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Growl.error(response.message);
-                return;
-            }
-
-            Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
-
-            // Update the report name so that the LHN and header display the updated name
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
-        })
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
-}
-
-/**
  * @param {Object} policyRoomReport
  * @param {String} policyRoomName The updated name for the policy room
  */
@@ -1605,7 +1578,6 @@ export {
     setReportWithDraft,
     fetchInitialActions,
     createPolicyRoom,
-    renameReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
