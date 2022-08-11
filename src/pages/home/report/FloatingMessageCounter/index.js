@@ -33,7 +33,7 @@ const defaultProps = {
     onClick: () => {},
 };
 
-const MARKER_INACTIVE_TRANSLATE_Y = -30;
+const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
 class FloatingMessageCounter extends PureComponent {
@@ -83,7 +83,7 @@ class FloatingMessageCounter extends PureComponent {
                             small
                             onPress={this.props.onClick}
                             ContentComponent={() => (
-                                <View style={[styles.flexRow]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                     <Icon small src={Expensicons.DownArrow} fill={themeColors.textReversed} />
                                     <Text
                                         selectable={false}
