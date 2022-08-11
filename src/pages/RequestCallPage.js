@@ -221,7 +221,7 @@ class RequestCallPage extends Component {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
-        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(CONST.FORM_CHARACTER_LIMIT, [this.state.firstName, this.state.lastName]);
+        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimit(CONST.FORM_CHARACTER_LIMIT, [this.state.firstName.trim(), this.state.lastName.trim()]);
         this.setState({
             hasFirstNameError,
             hasLastNameError,
