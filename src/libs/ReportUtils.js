@@ -528,7 +528,7 @@ function generateReportID() {
  * @returns {Boolean}
  */
 function hasReportNameError(report) {
-    return _.isEmpty(lodashGet(report, 'errorFields.reportName', {})) ? '' : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
 }
 
 export {
