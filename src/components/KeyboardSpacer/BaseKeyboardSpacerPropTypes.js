@@ -7,9 +7,6 @@ const propTypes = {
     /** Callback to update the value of keybaord status along with current height. */
     onToggle: PropTypes.func,
 
-    /** Any additional styles to pass to the keyboard container. */
-    style: PropTypes.arrayOf(PropTypes.object),
-
     /** iOS uses LayoutAnimation.Types[event.easing]. */
     iOSAnimated: PropTypes.bool,
 

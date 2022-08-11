@@ -7,9 +7,8 @@ import {StatusBar} from 'react-native';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const KeyboardSpacer = props => (
+const KeyboardSpacer = () => (
     <BaseKeyboardSpacer
-        style={props.style}
         topSpacing={StatusBar.currentHeight}
         keyboardShowMethod="keyboardDidShow"
         keyboardHideMethod="keyboardDidHide"

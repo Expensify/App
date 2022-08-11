@@ -10,8 +10,7 @@ import CONST from '../../CONST';
 
 const KeyboardSpacer = props => (
     <BaseKeyboardSpacer
-        style={props.style}
-        topSpacing={StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight) ? CONST.REMOVE_KEYBOARD_SPACE : 0}
+        topSpacing={StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight) ? CONST.IOS_KEYBOARD_SPACE_OFFSET : 0}
         keyboardShowMethod="keyboardWillShow"
         keyboardHideMethod="keyboardWillHide"
         iOSAnimated
