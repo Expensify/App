@@ -269,7 +269,7 @@ class RequestCallPage extends Component {
         const phoneNumberError = this.getPhoneNumberError();
         const phoneExtensionError = this.getPhoneExtensionError();
 
-        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(CONST.FORM_CHARACTER_LIMIT, [this.state.firstName, this.state.lastName]);
+        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimit(CONST.FORM_CHARACTER_LIMIT, [this.state.firstName.trim(), this.state.lastName.trim()]);
         this.setState({
             hasFirstNameError,
             hasLastNameError,
