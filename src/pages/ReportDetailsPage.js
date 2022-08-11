@@ -162,7 +162,7 @@ class ReportDetailsPage extends Component {
                             && item.translationKey === 'common.settings'
                         )
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : null;
+                            : '';
                         return (
                             <MenuItem
                                 key={keyTitle}
