@@ -1151,9 +1151,8 @@ function deleteReportComment(reportID, reportAction) {
             }],
         },
     };
-
     const optimisticReport = {
-        lastMessageText: ReportActions.getLastVisibleMessageTextz(reportID, {
+        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
             [sequenceNumber]: {
                 ...reportAction,
             },
@@ -1178,6 +1177,19 @@ function deleteReportComment(reportID, reportAction) {
             value: optimisticReport,
         },
     ];
+    // On Error clear the pendingAction state and revert the message
+    // const failureData = [
+    //     {
+    //         onyxMethod: CONST.ONYX.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+    //         value: {
+    //             [sequenceNumber]: {
+    //                 ...originalReportAction,
+    //                 pendingAction: null,
+    //             },
+    //         },
+    //     },
+    // ];
 
     const parameters = {
         reportID,
@@ -1295,6 +1307,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parameters = {
         reportID,
         sequenceNumber,
+        clientID: originalReportAction.clientID,
         reportComment: htmlForEditedComment,
         reportActionID: originalReportAction.reportActionID,
     };
