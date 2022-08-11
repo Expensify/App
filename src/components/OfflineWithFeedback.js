@@ -45,7 +45,10 @@ const propTypes = {
     ]),
 
     /** Additional style object for the error row */
-    errorRowStyles: PropTypes.arrayOf(PropTypes.object),
+    errorRowStyles: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     ...withLocalizePropTypes,
 };
