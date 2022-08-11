@@ -20,6 +20,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
+import CONST from '../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -156,6 +157,12 @@ class ReportDetailsPage extends Component {
                     </View>
                     {_.map(this.menuItems, (item) => {
                         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+                        const brickRoadIndicator = (
+                            ReportUtils.hasReportNameError(this.props.report)
+                            && item.translationKey === 'common.settings'
+                        )
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : null;
                         return (
                             <MenuItem
                                 key={keyTitle}
@@ -166,6 +173,7 @@ class ReportDetailsPage extends Component {
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
+                                brickRoadIndicator={brickRoadIndicator}
                             />
                         );
                     })}
