@@ -99,7 +99,7 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions_',
+        POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
     // Indicates which locale should be used
