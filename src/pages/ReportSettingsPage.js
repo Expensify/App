@@ -261,7 +261,6 @@ class ReportSettingsPage extends Component {
                                             style={[styles.ml2, styles.flex1]}
                                             textStyles={[styles.label]}
                                             innerStyles={[styles.ph5]}
-                                            isLoading={this.props.isLoadingRenamePolicyRoom}
                                             isDisabled={shouldDisableRename}
                                         />
                                     )}
@@ -315,9 +314,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        isLoadingRenamePolicyRoom: {
-            key: ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
