@@ -117,22 +117,8 @@ class ReportSettingsPage extends Component {
         };
 
         this.setRoomNameInputRef = this.setRoomNameInputRef.bind(this);
-        this.onDismissRoomNameError = this.onDismissRoomNameError.bind(this);
+        this.resetToPreviousName = this.resetToPreviousName.bind(this);
         this.validateAndRenameReport = this.validateAndRenameReport.bind(this);
-    }
-
-    /**
-     * When the user dismisses the error updating the policy room name,
-     * reset the report name to the previously saved name and clear errors.
-     */
-    onDismissRoomNameError() {
-        this.setState({newRoomName: this.props.report.reportName});
-
-        // Reset the input's value back to the previously saved report name
-        if (this.roomNameInputRef) {
-            this.roomNameInputRef.value = this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '');
-        }
-        Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
     /**
@@ -142,6 +128,20 @@ class ReportSettingsPage extends Component {
      */
     setRoomNameInputRef(el) {
         this.roomNameInputRef = el;
+    }
+
+    /**
+     * When the user dismisses the error updating the policy room name,
+     * reset the report name to the previously saved name and clear errors.
+     */
+    resetToPreviousName() {
+        this.setState({newRoomName: this.props.report.reportName});
+
+        // Reset the input's value back to the previously saved report name
+        if (this.roomNameInputRef) {
+            this.roomNameInputRef.value = this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '');
+        }
+        Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
     validateAndRenameReport() {
@@ -227,7 +227,7 @@ class ReportSettingsPage extends Component {
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
                                 errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
-                                onClose={this.onDismissRoomNameError}
+                                onClose={this.resetToPreviousName}
                             >
                                 <View style={[styles.flexRow]}>
                                     <View style={[styles.flex3]}>
