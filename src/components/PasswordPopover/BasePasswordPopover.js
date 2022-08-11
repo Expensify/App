@@ -1,5 +1,6 @@
 import {TouchableOpacity, View} from 'react-native';
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import Popover from '../Popover';
@@ -11,11 +12,15 @@ import KeyboardSpacer from '../KeyboardSpacer';
 import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
 
 const propTypes = {
+    /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
+    shouldDelayFocus: PropTypes.bool,
+
     ...passwordPopoverPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    shouldDelayFocus: false,
     ...passwordPopoverDefaultProps,
 };
 
