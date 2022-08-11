@@ -7,7 +7,7 @@ const emojisTrie = new Trie();
 // Inserting all emojis into the Trie object
 for (let i = 0; i < emojis.length; i++) {
     if (emojis[i].name) {
-        emojisTrie.add(emojis[i].name, emojis[i].code);
+        emojisTrie.add(emojis[i].name, {code: emojis[i].code});
     }
 }
 
