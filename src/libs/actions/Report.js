@@ -1194,6 +1194,7 @@ function deleteReportComment(reportID, reportAction) {
 
     const parameters = {
         reportID,
+        clientID: reportAction.clientID,
         sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
