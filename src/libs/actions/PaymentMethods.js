@@ -153,11 +153,11 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
  *
  * @param {Object} params
  */
-function addBillingCard(params) {
+function addPaymentCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    DeprecatedAPI.AddBillingCard({
+    API.write('AddPaymentCard', {
         cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
@@ -167,36 +167,23 @@ function addBillingCard(params) {
         currency: CONST.CURRENCY.USD,
         isP2PDebitCard: true,
         password: params.password,
-    }).then(((response) => {
-        let serverErrorMessage = '';
-        if (response.jsonCode === 200) {
-            const cardObject = {
-                additionalData: {
-                    isBillingCard: false,
-                    isP2PDebitCard: true,
-                },
-                addressName: params.nameOnCard,
-                addressState: params.addressState,
-                addressStreet: params.addressStreet,
-                addressZip: params.addressZipCode,
-                cardMonth,
-                cardNumber: CardUtils.maskCardNumber(params.cardNumber),
-                cardYear,
-                currency: 'USD',
-                fundID: lodashGet(response, 'fundID', ''),
-            };
-            Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
-            Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            continueSetup();
-        } else {
-            serverErrorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
-        }
-
-        Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-            isSubmitting: false,
-            serverErrorMessage,
-        });
-    }));
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: true},
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        }],
+    });
 }
 
 /**
@@ -204,8 +191,8 @@ function addBillingCard(params) {
  */
 function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-        isSubmitting: false,
-        serverErrorMessage: null,
+        isLoading: false,
+        error: null,
     });
 }
 
@@ -307,9 +294,9 @@ export {
     deletePayPalMe,
     deletePaymentCard,
     getPaymentMethods,
+    addPaymentCard,
     openPaymentsPage,
     makeDefaultPaymentMethod,
-    addBillingCard,
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
