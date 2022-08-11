@@ -1,11 +1,37 @@
 /**
  * @jest-environment node
  */
-const {Octokit} = require('@octokit/rest');
+const core = require('@actions/core');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
-beforeEach(() => {
-    GithubUtils.octokitInternal = new Octokit();
+const mockGetInput = jest.fn();
+const mockListIssues = jest.fn();
+
+beforeAll(() => {
+    // Mock core module
+    core.getInput = mockGetInput;
+
+    // Mock octokit module
+    const moctokit = {
+        rest: {
+            issues: {
+                create: jest.fn().mockImplementation(arg => Promise.resolve({
+                    data: {
+                        ...arg,
+                        html_url: 'https://github.com/Expensify/App/issues/29',
+                    },
+                })),
+                listForRepo: mockListIssues,
+            },
+        },
+        paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
+    };
+    GithubUtils.internalOctokit = moctokit;
+});
+
+afterEach(() => {
+    mockGetInput.mockClear();
+    mockListIssues.mockClear();
 });
 
 describe('GithubUtils', () => {
@@ -330,11 +356,13 @@ describe('GithubUtils', () => {
         ];
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
-                repos: {
-                    listTags: jest.fn().mockResolvedValue({data: mockTags}),
-                },
-                pulls: {
-                    list: jest.fn().mockResolvedValue({data: mockPRs}),
+                rest: {
+                    repos: {
+                        listTags: jest.fn().mockResolvedValue({data: mockTags}),
+                    },
+                    pulls: {
+                        list: jest.fn().mockResolvedValue({data: mockPRs}),
+                    },
                 },
                 paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
             }),
@@ -342,7 +370,7 @@ describe('GithubUtils', () => {
 
         const octokit = mockGithub().getOctokit();
         const githubUtils = class extends GithubUtils { };
-        githubUtils.octokitInternal = octokit;
+        githubUtils.internalOctokit = octokit;
         const tag = '1.0.2-12';
         const basePRList = [
             'https://github.com/Expensify/App/pull/2',
