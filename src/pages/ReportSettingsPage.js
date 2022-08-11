@@ -117,7 +117,7 @@ class ReportSettingsPage extends Component {
 
         this.setRoomNameInputRef = this.setRoomNameInputRef.bind(this);
         this.resetToPreviousName = this.resetToPreviousName.bind(this);
-        this.validateAndRenameReport = this.validateAndRenameReport.bind(this);
+        this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
     }
 
     /**
@@ -143,7 +143,7 @@ class ReportSettingsPage extends Component {
         Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
-    validateAndRenameReport() {
+    validateAndUpdatePolicyRoomName() {
         if (!this.validate()) {
             return;
         }
@@ -252,7 +252,7 @@ class ReportSettingsPage extends Component {
                                             large
                                             success={!shouldDisableRename}
                                             text={this.props.translate('common.save')}
-                                            onPress={this.validateAndRenameReport}
+                                            onPress={this.validateAndUpdatePolicyRoomName}
                                             style={[styles.ml2, styles.flex1]}
                                             textStyles={[styles.label]}
                                             innerStyles={[styles.ph5]}
