@@ -777,7 +777,7 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
-    REMOVE_KEYBOARD_SPACE: -30,
+    IOS_KEYBOARD_SPACE_OFFSET: -30,
 };
 
 export default CONST;
