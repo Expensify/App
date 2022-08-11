@@ -1524,7 +1524,7 @@ Onyx.connect({
  * @param {String} searchText
  */
 function searchChats(searchText) {
-    if (searchText.trim() === '') {
+    if (searchText === '') {
         return;
     }
     API.read('SearchForChats', {searchText});
