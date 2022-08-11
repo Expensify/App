@@ -19,11 +19,15 @@ const propTypes = {
 
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
+
+    /** Should the button be disabled */
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
     onButtonPress: () => {},
     onDropdownPress: () => {},
+    isDisabled: false,
     isLoading: false,
 };
 
@@ -33,6 +37,7 @@ const ButtonWithDropdown = props => (
             success
             onPress={props.onButtonPress}
             text={props.buttonText}
+            isDisabled={props.isDisabled}
             isLoading={props.isLoading}
             shouldRemoveRightBorderRadius
             style={[styles.flex1]}
@@ -40,6 +45,7 @@ const ButtonWithDropdown = props => (
         />
         <Button
             success
+            isDisabled={props.isDisabled}
             style={[styles.buttonDropdown]}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius

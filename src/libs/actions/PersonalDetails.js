@@ -269,8 +269,6 @@ function setPersonalDetails(details, shouldGrowl) {
 function updateProfile(firstName, lastName, pronouns, timezone) {
     const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
-        // 'details' is an old param that will be removed in https://github.com/Expensify/Expensify/issues/220321
-        details: JSON.stringify({firstName, lastName, pronouns}),
         firstName,
         lastName,
         pronouns,
