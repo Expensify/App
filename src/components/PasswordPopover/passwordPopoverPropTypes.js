@@ -18,15 +18,11 @@ const propTypes = {
 
     /** The text that should be displayed in the submit button */
     submitButtonText: PropTypes.string,
-
-    /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
-    shouldDelayFocus: PropTypes.bool,
 };
 
 const defaultProps = {
     onSubmit: () => {},
     submitButtonText: '',
-    shouldDelayFocus: false,
 };
 
 export {propTypes, defaultProps};
