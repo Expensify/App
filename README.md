@@ -65,7 +65,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into CORS errors like (in the browser dev console)
    ```sh
-   Access to fetch at 'https://www.expensify.com/api?command=GetAccountStatus' from origin 'http://localhost:8080' has been blocked by CORS policy
+   Access to fetch at 'https://www.expensify.com/api?command=BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
    ```
    You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
 
@@ -121,6 +121,10 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
+## Web
+
+To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
+
 ---
 
 # App Structure and Conventions
@@ -164,7 +168,7 @@ That action will then call `Onyx.merge()` to [set default data and a loading sta
 
 ```js
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
     Authentication.Authenticate({
         ...defaultParams,
         password,
@@ -177,7 +181,7 @@ function signIn(password, twoFactorAuthCode) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message});
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 ```
@@ -188,7 +192,7 @@ Keeping our `Onyx.merge()` out of the view layer and in actions helps organize t
 // Bad
 validateAndSubmitForm() {
     // validate...
-    this.setState({loading: true});
+    this.setState({isLoading: true});
     signIn()
         .then((response) => {
             if (result.jsonCode === 200) {
@@ -198,7 +202,7 @@ validateAndSubmitForm() {
             this.setState({error: response.message});
         })
         .finally(() => {
-            this.setState({loading: false});
+            this.setState({isLoading: false});
         });
 }
 

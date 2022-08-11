@@ -26,15 +26,6 @@ Request.use(Middleware.Retry);
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
- * @param {Object} parameters
- * @returns {Promise}
- */
-function AddBillingCard(parameters) {
-    const commandName = 'User_AddBillingCard';
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken
  * @param {String} parameters.password
@@ -96,17 +87,6 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.fundID
- * @returns {Promise}
- */
-function DeleteFund(parameters) {
-    const commandName = 'DeleteFund';
-    requireParameters(['fundID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -132,18 +112,6 @@ function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} parameters.forceNetworkRequest
- * @returns {Promise}
- */
-function GetAccountStatus(parameters) {
-    const commandName = 'GetAccountStatus';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -338,17 +306,6 @@ function SetNameValuePair(parameters) {
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
     requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @returns {Promise}
- */
-function User_ReopenAccount(parameters) {
-    const commandName = 'User_ReopenAccount';
-    requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -705,7 +662,6 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    AddBillingCard,
     BankAccount_SetupWithdrawal,
     BankAccount_Validate,
     ChangePassword,
@@ -713,11 +669,9 @@ export {
     CreateLogin,
     CreatePolicyRoom,
     RenameReport,
-    DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
     Get,
-    GetAccountStatus,
     GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,
@@ -740,7 +694,6 @@ export {
     UpdatePolicy,
     User_SignUp,
     User_IsUsingExpensifyCard,
-    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     User_FixAccount,

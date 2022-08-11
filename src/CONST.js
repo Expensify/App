@@ -777,6 +777,9 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
+    BRICK_ROAD_INDICATOR_STATUS: {
+        ERROR: 'error',
+    },
     IOS_KEYBOARD_SPACE_OFFSET: -30,
 };
 

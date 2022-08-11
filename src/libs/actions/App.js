@@ -11,7 +11,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import * as Report from './Report';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import NetworkConnection from '../NetworkConnection';
@@ -39,18 +38,21 @@ Onyx.connect({
 let myPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val[currentUserEmail],
-});
-
-const allPolicies = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!val || !key) {
+    callback: (val) => {
+        if (!val || !currentUserEmail) {
             return;
         }
 
-        allPolicies[key] = {...allPolicies[key], ...val};
+        myPersonalDetails = val[currentUserEmail];
+    },
+});
+
+let policyIDList = [];
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (policies) => {
+        policyIDList = _.compact(_.pluck(policies, 'id'));
     },
 });
 
@@ -99,37 +101,31 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- * @returns {Promise}
  */
 function getAppData() {
     BankAccounts.fetchUserWallet();
-
-    // We should update the syncing indicator when personal details and reports are both done fetching.
-    return Promise.all([
-        Report.fetchAllReports(true),
-    ]);
-}
-
-/**
- * Gets a comma separated list of locally stored policy ids
- *
- * @param {Array} policies
- * @return {String}
- */
-function getPolicyIDList(policies) {
-    return _.chain(policies)
-        .filter(Boolean)
-        .map(policy => policy.id)
-        .join(',');
 }
 
 /**
  * Fetches data needed for app initialization
- * @param {Array} policies
  */
-function openApp(policies) {
-    API.read('OpenApp', {
-        policyIDList: getPolicyIDList(policies),
+function openApp() {
+    API.read('OpenApp', {policyIDList}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 
@@ -137,8 +133,22 @@ function openApp(policies) {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {
-        policyIDList: getPolicyIDList(allPolicies),
+    API.read('ReconnectApp', {policyIDList}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 

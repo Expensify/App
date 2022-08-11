@@ -393,7 +393,6 @@ export default {
         deleteAccount: 'Eliminar cuenta',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
         deleteBankAccountSuccess: 'Cuenta bancaria eliminada correctamente',
-        deleteDebitCardSuccess: 'Tarjeta de débito eliminada correctamente',
         deletePayPalSuccess: 'PayPal.me eliminada correctamente',
         error: {
             notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como tu método de pago predeterminado.',
@@ -497,11 +496,9 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
+        weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor revisa tu ${loginType}`,
         resendLink: 'Reenviar enlace',
         validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
-        unvalidatedAccount: 'Esta cuenta existe pero no está validada, por favor busca el enlace mágico en tu bandeja de entrada',
-        newAccount: ({login, loginType}) => `¡Bienvenido ${login}, es genial ver una cara nueva por aquí! En tu ${loginType} encontrarás un enlace para validar tu cuenta, por favor, revísalo`,
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -523,7 +520,7 @@ export default {
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
-        verifyingAccount: 'Verificando cuenta',
+        validatingAccount: 'Verificando cuenta',
     },
     stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {
