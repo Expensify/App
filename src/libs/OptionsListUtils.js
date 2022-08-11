@@ -191,18 +191,26 @@ function hasReportDraftComment(report, reportsWithDraft = {}) {
 }
 
 /**
+ * If the report or the report actions have errors, return
+ * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
+ *
  * @param {Object} report
  * @param {Object} reportActions
  * @returns {String}
  */
 function getBrickRoadIndicatorStatusForReport(report, reportActions) {
+    const errors = lodashGet(report, 'errors', {});
+    const errorFields = lodashGet(report, 'errorFields', {});
     const reportID = lodashGet(report, 'reportID');
     const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
-    if (_.isEmpty(reportsActions)) {
+
+    const hasFieldErrors = _.some(errorFields, fieldErrors => !_.isEmpty(fieldErrors));
+    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
+
+    if (_.isEmpty(errors) && !hasFieldErrors && !hasReportActionErrors) {
         return '';
     }
-
-    return _.find(reportsActions, action => !_.isEmpty(action.errors)) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
 }
 
 /**
