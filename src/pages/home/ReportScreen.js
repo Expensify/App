@@ -57,6 +57,9 @@ const propTypes = {
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Flag to check if the report actions data are loading */
+        isLoadingReportActions: PropTypes.bool,
     }),
 
     /** Array of report actions for this report */
@@ -70,9 +73,6 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** Flag to check if the report actions data are loading */
-    isLoadingReportActions: PropTypes.bool,
 
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(PropTypes.shape({
@@ -96,11 +96,12 @@ const defaultProps = {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
+        isLoadingReportActions: false,
     },
     isLoadingReportData: false,
     isComposerFullSize: false,
     betas: [],
-    isLoadingReportActions: false,
+    policies: {},
 };
 
 /**
@@ -289,10 +290,6 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isLoadingReportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_REPORT_ACTIONS}${getReportID(route)}`,
-        initWithStoredValues: false,
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
