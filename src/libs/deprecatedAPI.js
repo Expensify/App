@@ -96,17 +96,6 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.fundID
- * @returns {Promise}
- */
-function DeleteFund(parameters) {
-    const commandName = 'DeleteFund';
-    requireParameters(['fundID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -690,7 +679,6 @@ export {
     CreateLogin,
     CreatePolicyRoom,
     RenameReport,
-    DeleteFund,
     DeleteLogin,
     DeleteBankAccount,
     Get,

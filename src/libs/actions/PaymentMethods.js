@@ -14,28 +14,6 @@ import * as User from './User';
 import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
 
-/**
- * Deletes a debit card
- *
- * @param {Number} fundID
- *
- * @returns {Promise}
- */
-function deleteDebitCard(fundID) {
-    return DeprecatedAPI.DeleteFund({fundID})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
-                Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
-            } else {
-                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-            }
-        })
-        .catch(() => {
-            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-        });
-}
-
 function deletePayPalMe() {
     User.deletePaypalMeAddress();
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
@@ -311,9 +289,23 @@ function dismissSuccessfulTransferBalancePage() {
     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
+function deletePaymentCard(fundID) {
+    API.write('DeletePaymentCard', {
+        fundID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.CARD_LIST}`,
+                value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
+    });
+}
+
 export {
-    deleteDebitCard,
     deletePayPalMe,
+    deletePaymentCard,
     getPaymentMethods,
     openPaymentsPage,
     makeDefaultPaymentMethod,
