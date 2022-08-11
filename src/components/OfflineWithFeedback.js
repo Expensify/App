@@ -44,11 +44,9 @@ const propTypes = {
         PropTypes.object,
     ]),
 
-    /** Additional styles to add after local styles.  Applied to the error text portion */
-    errorStyle: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    /** Additional style object for the error row */
+    errorRowStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
@@ -56,7 +54,7 @@ const defaultProps = {
     pendingAction: null,
     errors: null,
     style: [],
-    errorStyle: [],
+    errorRowStyles: [],
 };
 
 /**
@@ -104,7 +102,7 @@ const OfflineWithFeedback = (props) => {
                 </View>
             )}
             {hasErrors && (
-                <View style={[styles.offlineFeedback.error, props.errorStyle]}>
+                <View style={[styles.offlineFeedback.error, ...props.errorRowStyles]}>
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>

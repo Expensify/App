@@ -20,6 +20,7 @@ import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
+import Log from '../../../libs/Log';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -169,12 +170,18 @@ class PaymentMethodList extends Component {
 
     /**
      * Dismisses the error on the payment method
-     * @param {*} item
+     * @param {Object} item
      */
     dismissError(item) {
         const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
-        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID']) : lodashGet(item, ['accountData', 'cardID']);
-        if (item.pendingAction === 'delete') {
+        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'cardID'], '');
+
+        if (!paymentID) {
+            Log.info('Unable to clear payment method error: ', item);
+            return;
+        }
+
+        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
         } else {
             PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
@@ -202,7 +209,7 @@ class PaymentMethodList extends Component {
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
             return (
-                <OfflineWithFeedback onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors} errorStyle={styles.ph6}>
+                <OfflineWithFeedback onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors} errorRowStyles={styles.ph6}>
                     <MenuItem
                         onPress={item.onPress}
                         title={item.title}

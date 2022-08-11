@@ -62,7 +62,7 @@ const SignInPageContent = props => (
                         behavior="position"
                         contentContainerStyle={[
                             props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
-                            !props.isMediumScreenWidth ? styles.signInPageWideLeftContentMargin : {},
+                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
                             styles.mb3,
                             StyleUtils.getModalPaddingStyles({
                                 shouldAddBottomSafeAreaPadding: true,
