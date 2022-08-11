@@ -958,7 +958,6 @@ export default {
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         createRoom: 'Crea una sala de chat',
-        policyRoomRenamed: '¡Espacio de trabajo renombrado!',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
         pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',

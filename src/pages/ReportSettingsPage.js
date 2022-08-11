@@ -20,7 +20,6 @@ import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
-import Growl from '../libs/Growl';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 
 const propTypes = {
@@ -146,10 +145,6 @@ class ReportSettingsPage extends Component {
 
     validateAndRenameReport() {
         if (!this.validate()) {
-            return;
-        }
-        if (this.props.report.reportName === this.state.newRoomName) {
-            Growl.success(this.props.translate('newRoomPage.policyRoomRenamed'));
             return;
         }
         Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
