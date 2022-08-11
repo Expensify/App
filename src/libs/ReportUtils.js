@@ -317,12 +317,12 @@ function hasExpensifyEmails(emails) {
  * @return {Boolean}
  */
 function canShowReportRecipientLocalTime(personalDetails, report) {
-    const reportParticipants = lodashGet(report, 'participants', []);
-    const hasMultipleParticipants = reportParticipants.length > 1;
-    const reportRecipient = personalDetails[reportParticipants[0]];
+    const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
+    const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+    const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
+    const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    return !hasExpensifyEmails(reportParticipants)
-        && !hasMultipleParticipants
+    return !hasMultipleParticipants
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected;
@@ -464,11 +464,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
     let formattedName;
-    if (isDefaultRoom(report)) {
-        formattedName = `#${report.reportName}`;
-    }
-
-    if (isUserCreatedPolicyRoom(report)) {
+    if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
@@ -514,6 +510,19 @@ function navigateToDetailsPage(report) {
     Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
 }
 
+/**
+ * Generate a random reportID between 98000000 (the number of reports before the switch from sequential to random)
+ * and the maximum safe integer of js (53 bits aka 9,007,199,254,740,991)
+ *
+ * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
+ * this is more than random enough for our needs.
+ *
+ * @returns {Number}
+ */
+function generateReportID() {
+    return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -542,4 +551,5 @@ export {
     getDisplayNamesWithTooltips,
     getReportName,
     navigateToDetailsPage,
+    generateReportID,
 };

@@ -14,6 +14,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
@@ -31,16 +32,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc */
-        cardName: PropTypes.string,
-
-        /** The masked credit card number */
-        cardNumber: PropTypes.string,
-
-        /** The ID of the card in the cards DB */
-        cardID: PropTypes.number,
-    })),
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
@@ -116,8 +108,8 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     getFilteredPaymentMethods() {
-        // Hide the billing card from the payments menu for now because you can't make it your default method, or delete it
-        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
+        // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
+        const filteredCardList = _.filter(this.props.cardList, card => card.additionalData.isP2PDebitCard);
 
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 

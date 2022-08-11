@@ -1,5 +1,5 @@
 import {PermissionsAndroid} from 'react-native';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from './FileUtils';
 
 /**

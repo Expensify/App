@@ -66,7 +66,7 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool.isRequired,
 
     /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool,
+    isLoadingMoreReportActions: PropTypes.bool,
 
     /** Are we waiting for more report data? */
     isLoadingReportData: PropTypes.bool,
@@ -87,7 +87,7 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
-    isLoadingReportActions: false,
+    isLoadingMoreReportActions: false,
     isLoadingReportData: false,
 };
 
@@ -156,15 +156,15 @@ class ReportActionsView extends React.Component {
         }
 
         // If the new marker has changed places, update the component.
-        if (nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
+        if (lodashGet(nextProps.report, 'newMarkerSequenceNumber') !== lodashGet(this.props.report, 'newMarkerSequenceNumber')) {
             return true;
         }
 
-        if (nextProps.network.isOffline !== this.props.network.isOffline) {
+        if (lodashGet(nextProps.network, 'isOffline') !== lodashGet(this.props.network, 'isOffline')) {
             return true;
         }
 
-        if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
+        if (nextProps.isLoadingMoreReportActions !== this.props.isLoadingMoreReportActions) {
             return true;
         }
 
@@ -188,7 +188,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
+        if (lodashGet(this.props.report, 'hasOutstandingIOU') !== lodashGet(nextProps.report, 'hasOutstandingIOU')) {
             return true;
         }
 
@@ -275,7 +275,7 @@ class ReportActionsView extends React.Component {
     }
 
     fetchData() {
-        Report.fetchActions(this.props.reportID);
+        Report.fetchInitialActions(this.props.reportID);
     }
 
     /**
@@ -284,7 +284,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.isLoadingReportActions) {
+        if (this.props.isLoadingMoreReportActions) {
             return;
         }
 
@@ -299,8 +299,8 @@ class ReportActionsView extends React.Component {
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
-        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.fetchActionsWithLoadingState(this.props.reportID, offset);
+        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        Report.readOldestAction(this.props.reportID, oldestActionSequenceNumber);
     }
 
     scrollToBottomAndMarkReportAsRead() {
@@ -431,7 +431,7 @@ class ReportActionsView extends React.Component {
                             onLayout={this.recordTimeToMeasureItemLayout}
                             sortedReportActions={this.sortedReportActions}
                             mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                            isLoadingReportActions={this.props.isLoadingReportActions}
+                            isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
                         />
                         <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
@@ -457,8 +457,8 @@ export default compose(
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
-        isLoadingReportActions: {
-            key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
+        isLoadingMoreReportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
             initWithStoredValues: false,
         },
     }),

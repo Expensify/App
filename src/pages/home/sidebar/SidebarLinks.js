@@ -4,6 +4,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import memoizeOne from 'memoize-one';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -27,6 +28,7 @@ import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import networkPropTypes from '../../../components/networkPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -58,7 +60,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
+    currentUserPersonalDetails: PropTypes.shape({
         /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
@@ -78,9 +80,6 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    /** Whether we have the necessary report data to load the sidebar */
-    initialReportDataLoaded: PropTypes.bool,
-
     // Whether we are syncing app data
     isSyncingData: PropTypes.bool,
 
@@ -91,14 +90,39 @@ const defaultProps = {
     reports: {},
     reportsWithDraft: {},
     personalDetails: {},
-    myPersonalDetails: {
+    currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    initialReportDataLoaded: false,
     isSyncingData: false,
 };
+
+/**
+ * @param {Object} nextUnreadReports
+ * @param {Object} unreadReports
+ * @returns {Boolean}
+ */
+function checkForNewUnreadReports(nextUnreadReports, unreadReports) {
+    return nextUnreadReports.length > 0
+            && _.some(nextUnreadReports,
+                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
+}
+const memoizeCheckForNewUnreadReports = memoizeOne(checkForNewUnreadReports);
+
+/**
+ * @param {Object} reportsObject
+ * @returns {Array}
+ */
+function getUnreadReports(reportsObject) {
+    const reports = _.values(reportsObject);
+    if (reports.length === 0) {
+        return [];
+    }
+    const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
+    return unreadReports;
+}
+const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
 
 class SidebarLinks extends React.Component {
     static getRecentReports(props) {
@@ -109,17 +133,10 @@ class SidebarLinks extends React.Component {
             activeReportID,
             props.priorityMode,
             props.betas,
+            props.reportsWithDraft,
+            props.reportActions,
         );
         return sidebarOptions.recentReports;
-    }
-
-    static getUnreadReports(reportsObject) {
-        const reports = _.values(reportsObject);
-        if (reports.length === 0) {
-            return [];
-        }
-        const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
-        return unreadReports;
     }
 
     /**
@@ -154,11 +171,8 @@ class SidebarLinks extends React.Component {
         }
 
         // If any reports have new unread messages, re-order the list
-        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps.reports || {});
-        const hasNewUnreadReports = nextUnreadReports.length > 0
-            && _.some(nextUnreadReports,
-                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
-        if (hasNewUnreadReports) {
+        const nextUnreadReports = memoizeGetUnreadReports(nextProps.reports || {});
+        if (memoizeCheckForNewUnreadReports(nextUnreadReports, unreadReports)) {
             return true;
         }
 
@@ -172,6 +186,7 @@ class SidebarLinks extends React.Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             activeReport: {
                 reportID: props.currentlyViewedReportID,
@@ -180,7 +195,7 @@ class SidebarLinks extends React.Component {
             },
             orderedReports: [],
             priorityMode: props.priorityMode,
-            unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
+            unreadReports: memoizeGetUnreadReports(props.reports || {}),
         };
     }
 
@@ -230,7 +245,7 @@ class SidebarLinks extends React.Component {
                 hasDraftHistory,
                 lastMessageTimestamp,
             },
-            unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
+            unreadReports: memoizeGetUnreadReports(nextProps.reports || {}),
         };
     }
 
@@ -240,7 +255,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         // Wait until the reports and personalDetails are actually loaded before displaying the LHN
-        if (!this.props.initialReportDataLoaded || _.isEmpty(this.props.personalDetails)) {
+        if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
@@ -287,7 +302,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatar}
+                            source={this.props.currentUserPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                             isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                             tooltipText={this.props.translate('common.settings')}
@@ -326,6 +341,7 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -333,17 +349,11 @@ export default compose(
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        initialReportDataLoaded: {
-            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
@@ -354,6 +364,9 @@ export default compose(
         },
         reportsWithDraft: {
             key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
+        },
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         },
     }),
 )(SidebarLinks);
