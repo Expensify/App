@@ -51,6 +51,9 @@ const propTypes = {
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Are we loading more report actions? */
+        isLoadingMoreReportActions: PropTypes.bool,
     }),
 
     /** Array of report actions for this report */
@@ -65,9 +68,6 @@ const propTypes = {
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
-    /** Are we loading more report actions? */
-    isLoadingMoreReportActions: PropTypes.bool,
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -81,10 +81,10 @@ const defaultProps = {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
+        isLoadingMoreReportActions: false,
     },
     reportActions: {},
     session: {},
-    isLoadingMoreReportActions: false,
 };
 
 class ReportActionsView extends React.Component {
@@ -155,7 +155,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextProps.isLoadingMoreReportActions !== this.props.isLoadingMoreReportActions) {
+        if (nextProps.report.isLoadingMoreReportActions !== this.props.report.isLoadingMoreReportActions) {
             return true;
         }
 
@@ -266,7 +266,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.isLoadingMoreReportActions) {
+        if (this.props.report.isLoadingMoreReportActions) {
             return;
         }
 
@@ -401,7 +401,7 @@ class ReportActionsView extends React.Component {
                             onLayout={this.recordTimeToMeasureItemLayout}
                             sortedReportActions={this.sortedReportActions}
                             mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                            isLoadingMoreReportActions={this.props.isLoadingMoreReportActions}
+                            isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
                         />
                         <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
@@ -423,10 +423,10 @@ export default compose(
     withDrawerState,
     withLocalize,
     withNetwork(),
+
     withOnyx({
-        isLoadingMoreReportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
-            initWithStoredValues: false,
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(ReportActionsView);

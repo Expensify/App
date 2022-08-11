@@ -1036,18 +1036,24 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
-                value: true,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingMoreReportActions: true,
+                },
             }],
             successData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
-                value: false,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingMoreReportActions: false,
+                },
             }],
             failureData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
-                value: false,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingMoreReportActions: false,
+                },
             }],
         });
 }
