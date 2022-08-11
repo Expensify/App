@@ -174,7 +174,7 @@ class ReportActionsList extends React.Component {
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
-            <Animated.View style={StyleUtils.getReportListAnimationStyle(this.state.fadeInAnimation)}>
+            <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}

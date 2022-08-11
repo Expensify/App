@@ -285,7 +285,7 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <Animated.View style={StyleUtils.getAttachmentModalConfirmButtonAnimationStyle(this.state.confirmButtonFadeAnimation)}>
+                        <Animated.View style={StyleUtils.fade(this.state.confirmButtonFadeAnimation)}>
                             <Button
                                 success
                                 style={[styles.buttonConfirm]}
