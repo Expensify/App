@@ -16,7 +16,6 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
 import DateUtils from '../DateUtils';
-import * as ReportUtils from '../ReportUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -287,6 +286,60 @@ function removeMembers(members, policyID) {
 }
 
 /**
+ * Adds members to the specified workspace/policyID
+ *
+ * @param {Array<String>} memberLogins
+ * @param {String} welcomeNote
+ * @param {String} policyID
+ */
+function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const logins = _.map(memberLogins, memberLogin => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: membersListKey,
+
+            // Convert to object with each key containing {pendingAction: ‘add’}
+            value: _.object(logins, Array(logins.length).fill({pendingAction: 'add'})),
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: membersListKey,
+
+            // Convert to object with each key clearing pendingAction. We don’t
+            // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
+            value: _.object(logins, Array(logins.length).fill({pendingAction: null})),
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: membersListKey,
+
+            // Convert to object with each key containing the error. We don’t
+            // need to remove the members since that is handled by onClose of OfflineWithFeedback.
+            value: _.object(logins, Array(logins.length).fill({
+                errors: {
+                    [DateUtils.getMicroseconds()]: 'some generic error',
+                },
+            })),
+        },
+    ];
+
+    API.write('AddMembersToWorkspace', {
+        employees: JSON.stringify(_.map(logins, login => ({email: login}))),
+        welcomeNote,
+        policyID,
+    }, {optimisticData, successData, failureData});
+}
+
+/**
  * Merges the passed in login into the specified policy
  *
  * @param {Array<String>} logins
@@ -294,9 +347,14 @@ function removeMembers(members, policyID) {
  * @param {String} policyID
  */
 function invite(logins, welcomeNote, policyID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        alertMessage: '',
-    });
+    // addMembersToWorkspace(logins, welcomeNote, policyID);
+    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
+
+    // Make a shallow copy to preserve original data, and concat the login
+    const policy = _.clone(allPolicies[key]);
+    policy.employeeList = [...policy.employeeList, ...newEmployeeList];
+    policy.alertMessage = '';
 
     // Optimistically add the user to the policy
     const newEmployeeLogins = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
@@ -1035,6 +1093,7 @@ export {
     loadFullPolicy,
     removeMembers,
     invite,
+    addMembersToWorkspace,
     isAdminOfFreePolicy,
     setWorkspaceErrors,
     clearCustomUnitErrors,
