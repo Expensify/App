@@ -65,6 +65,12 @@ jobs:
         env:
           VERSION: ${{ env.VERSION_CODE }}
 
+      - name: Archive Android sourcemaps
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-sourcemap
+          path: android/app/build/generated/sourcemaps/react/release/*.map
+
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: 8398a7/action-slack@v3
@@ -161,6 +167,12 @@ jobs:
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
+      - name: Archive iOS sourcemaps
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-sourcemap
+          path: main.jsbundle.map
 
       - name: Set iOS version in ENV
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -325,9 +337,6 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
-
-      - name: Fetch tags
-        run: git fetch --tags
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"

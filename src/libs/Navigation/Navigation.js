@@ -5,16 +5,11 @@ import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
-import CustomActions from './CustomActions';
+import DeprecatedCustomActions from './DeprecatedCustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import CONST from '../../CONST';
-
-let resolveNavigationIsReadyPromise;
-let navigationIsReadyPromise = new Promise((resolve) => {
-    resolveNavigationIsReadyPromise = resolve;
-});
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -156,7 +151,7 @@ function navigate(route = ROUTES.HOME) {
     }
 
     if (isDrawerRoute(route)) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(route));
+        navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
         return;
     }
 
@@ -177,7 +172,7 @@ function dismissModal(shouldOpenDrawer = false) {
         ? shouldOpenDrawer
         : false;
 
-    CustomActions.navigateBackToRootDrawer();
+    DeprecatedCustomActions.navigateBackToRootDrawer();
     if (normalizedShouldOpenDrawer) {
         openDrawer();
     }
@@ -207,23 +202,6 @@ function isActiveRoute(routePath) {
     return getActiveRoute().substring(1) === routePath;
 }
 
-/**
- * @returns {Promise}
- */
-function isNavigationReady() {
-    return navigationIsReadyPromise;
-}
-
-function setIsNavigationReady() {
-    resolveNavigationIsReadyPromise();
-}
-
-function resetIsNavigationReady() {
-    navigationIsReadyPromise = new Promise((resolve) => {
-        resolveNavigationIsReadyPromise = resolve;
-    });
-}
-
 export default {
     canNavigate,
     navigate,
@@ -234,9 +212,6 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
-    isNavigationReady,
-    setIsNavigationReady,
-    resetIsNavigationReady,
 };
 
 export {

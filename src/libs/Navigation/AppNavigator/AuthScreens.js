@@ -3,6 +3,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -31,23 +32,33 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
-import Timers from '../../Timers';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
 import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
+
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
 
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
         if (!val) {
             return;
         }
 
-        const timezone = lodashGet(val, 'timezone', {});
+        const timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -75,10 +86,10 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     ...windowDimensionsPropTypes,
+
+    /** The current path as reported by the NavigationContainer */
+    currentPath: PropTypes.string.isRequired,
 };
 
 class AuthScreens extends React.Component {
@@ -104,24 +115,10 @@ class AuthScreens extends React.Component {
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        App.getAppData(false);
+        App.getAppData();
         App.openApp();
 
         App.fixAccountAndReloadData();
-        App.setUpPoliciesAndNavigate(this.props.session);
-
-        // Refresh the personal details, timezone and betas every 30 minutes
-        // There is no pusher event that sends updated personal details data yet
-        // See https://github.com/Expensify/ReactNativeChat/issues/468
-        this.interval = Timers.register(setInterval(() => {
-            if (this.props.network.isOffline) {
-                return;
-            }
-            PersonalDetails.fetchPersonalDetails();
-            User.getUserDetails();
-            User.getBetas();
-        }, 1000 * 60 * 30));
-
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -139,6 +136,11 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        // we perform this check here instead of componentDidUpdate to skip an unnecessary re-render
+        if (this.props.currentPath !== nextProps.currentPath) {
+            App.setUpPoliciesAndNavigate(nextProps.session, nextProps.currentPath);
+        }
+
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
@@ -321,7 +323,6 @@ class AuthScreens extends React.Component {
 AuthScreens.propTypes = propTypes;
 export default compose(
     withWindowDimensions,
-    withNetwork(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

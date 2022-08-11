@@ -13,6 +13,16 @@ function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessage
 
 /**
  * Set the current fields with errors.
+ * @param {Object} errorFields
+ */
+function setPersonalBankAccountFormValidationErrorFields(errorFields) {
+    // We set 'errorFields' to null first because we don't have a way yet to replace a specific property without merging it
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields: null});
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields});
+}
+
+/**
+ * Set the current fields with errors.
  *
  * @param {String} errors
  */
@@ -20,6 +30,14 @@ function setBankAccountFormValidationErrors(errors) {
     // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
+}
+
+/**
+ * Clear validation messages from reimbursement account
+ */
+function resetReimbursementAccount() {
+    setBankAccountFormValidationErrors({});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {successRoute: null});
 }
 
 /**
@@ -34,5 +52,7 @@ function showBankAccountFormValidationError(error) {
 export {
     showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
+    setPersonalBankAccountFormValidationErrorFields,
     showBankAccountFormValidationError,
+    resetReimbursementAccount,
 };

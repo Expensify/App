@@ -2,6 +2,7 @@ import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
@@ -9,7 +10,8 @@ import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import AvatarWithIndicator from '../../components/AvatarWithIndicator';
+import Tooltip from '../../components/Tooltip';
+import Avatar from '../../components/Avatar';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -19,25 +21,14 @@ import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
+import * as App from '../../libs/actions/App';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import * as Policy from '../../libs/actions/Policy';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Display name of the current user from their personal details */
-        displayName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-    }),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -60,6 +51,9 @@ const propTypes = {
         role: PropTypes.string,
     })),
 
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
+
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
@@ -70,26 +64,25 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    myPersonalDetails: {},
     session: {},
     policies: {},
     userWallet: {
         currentBalance: 0,
     },
     betas: [],
+    policyMembers: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const defaultMenuItems = [
     {
         translationKey: 'common.profile',
         icon: Expensicons.Profile,
-        action: () => {
-            DateUtils.updateTimezone();
-            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-        },
+        action: () => { App.openProfile(); },
     },
     {
         translationKey: 'common.preferences',
@@ -127,7 +120,7 @@ const InitialSettingsPage = (props) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
-    if (_.isEmpty(props.myPersonalDetails)) {
+    if (_.isEmpty(props.currentUserPersonalDetails)) {
         return null;
     }
 
@@ -142,6 +135,7 @@ const InitialSettingsPage = (props) => {
             iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -158,22 +152,23 @@ const InitialSettingsPage = (props) => {
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
-                            <AvatarWithIndicator
-                                size={CONST.AVATAR_SIZE.LARGE}
-                                source={props.myPersonalDetails.avatar}
-                                isActive={props.network.isOffline === false}
-                                tooltipText={props.myPersonalDetails.displayName}
-                            />
+                            <Tooltip text={props.currentUserPersonalDetails.displayName}>
+                                <Avatar
+                                    imageStyles={[styles.avatarLarge]}
+                                    source={props.currentUserPersonalDetails.avatar}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                />
+                            </Tooltip>
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
                             <Text style={[styles.displayName]} numberOfLines={1}>
-                                {props.myPersonalDetails.displayName
-                                    ? props.myPersonalDetails.displayName
+                                {props.currentUserPersonalDetails.displayName
+                                    ? props.currentUserPersonalDetails.displayName
                                     : Str.removeSMSDomain(props.session.email)}
                             </Text>
                         </Pressable>
-                        {props.myPersonalDetails.displayName && (
+                        {props.currentUserPersonalDetails.displayName && (
                             <Text
                                 style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
@@ -197,6 +192,7 @@ const InitialSettingsPage = (props) => {
                                 shouldShowRightIcon
                                 badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
                                 fallbackIcon={item.fallbackIcon}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         );
                     })}
@@ -212,16 +208,16 @@ InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
-    withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
