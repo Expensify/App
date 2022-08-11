@@ -5,6 +5,7 @@ import {windowDimensionsPropTypes} from '../../../../components/withWindowDimens
 import networkPropTypes from '../../../../components/networkPropTypes';
 import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../../components/cardPropTypes';
+import userWalletPropTypes from '../../../EnablePayments/userWalletPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -20,10 +21,7 @@ const propTypes = {
     shouldListenForResize: PropTypes.bool,
 
     /** The user's wallet account */
-    userWallet: PropTypes.shape({
-        /** The user's current wallet balance */
-        currentBalance: PropTypes.number,
-    }),
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,

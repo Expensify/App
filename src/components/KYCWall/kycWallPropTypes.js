@@ -20,11 +20,11 @@ const propTypes = {
     /** Wrapped components should be disabled, and not in spinner/loading state */
     isDisabled: PropTypes.bool,
 
-    ...userWalletPropTypes,
+    /** The user's wallet */
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 };
 
 const defaultProps = {
-    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
     popoverPlacement: 'top',
     shouldListenForResize: false,
