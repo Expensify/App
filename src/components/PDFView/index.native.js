@@ -1,26 +1,15 @@
 import React, {Component} from 'react';
 import {TouchableWithoutFeedback, View} from 'react-native';
 import PDF from 'react-native-pdf';
-import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import PDFPasswordForm from './PDFPasswordForm';
-import {propTypes as pdfViewPropTypes, defaultProps as pdfViewDefaultProps} from './pdfViewPropTypes';
+import * as pdfViewPropTypes from './pdfViewPropTypes';
+import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
-
-const propTypes = {
-    ...pdfViewPropTypes,
-
-    /** Notify parent that a PDF load attempt is in progress */
-    onAttemptPdfLoad: PropTypes.func,
-};
-
-const defaultProps = {
-    ...pdfViewDefaultProps,
-    onAttemptPdfLoad: () => {},
-};
+import withKeyboardState from '../withKeyboardState';
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -36,7 +25,7 @@ const defaultProps = {
  * so that PDFPasswordForm doesn't bounce when react-native-pdf/PDF
  * is (temporarily) rendered.
  */
-class BasePDFViewNative extends Component {
+class PDFView extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -49,6 +38,12 @@ class BasePDFViewNative extends Component {
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPdfLoadWithPassword = this.attemptPdfLoadWithPassword.bind(this);
         this.finishPdfLoad = this.finishPdfLoad.bind(this);
+    }
+
+    componentDidUpdate() {
+        // Alert the parent component that it may be necessary to adjust the UI
+        // to accommodate the keyboard.
+        this.props.onAvoidKeyboard(this.props.isShown);
     }
 
     /**
@@ -90,8 +85,6 @@ class BasePDFViewNative extends Component {
      * @param {String} password Password submitted via PDFPasswordForm
      */
     attemptPdfLoadWithPassword(password) {
-        this.props.onAttemptPdfLoad();
-
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
@@ -121,6 +114,7 @@ class BasePDFViewNative extends Component {
         const touchableStyles = [
             styles.flex1,
             this.props.style,
+            styles.w100,
         ];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
@@ -164,7 +158,10 @@ class BasePDFViewNative extends Component {
     }
 }
 
-BasePDFViewNative.propTypes = propTypes;
-BasePDFViewNative.defaultProps = defaultProps;
+PDFView.propTypes = pdfViewPropTypes.propTypes;
+PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default withWindowDimensions(BasePDFViewNative);
+export default compose(
+    withWindowDimensions,
+    withKeyboardState,
+)(PDFView);
