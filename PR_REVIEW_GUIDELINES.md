@@ -1,1 +1,1 @@
-This file has been moved [here](./docs/PR_REVIEW_GUIDELINES.md).
+This file has been moved [here](contributingGuides/PR_REVIEW_GUIDELINES.md).

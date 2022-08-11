@@ -42,15 +42,9 @@ const propTypes = {
 
         /** Selected Currency Code of the current IOU */
         selectedCurrencyCode: PropTypes.string,
-    }),
+    }).isRequired,
 
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    },
 };
 
 class IOUAmountPage extends React.Component {
@@ -134,6 +128,16 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Adds a leading zero to the amount if user entered just the decimal separator
+     *
+     * @param {String} amount - Changed amount from user input
+     * @returns {String}
+     */
+    addLeadingZero(amount) {
+        return amount === '.' ? '0.' : amount;
+    }
+
+    /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
@@ -151,7 +155,7 @@ class IOUAmountPage extends React.Component {
         }
 
         this.setState((prevState) => {
-            const amount = `${prevState.amount}${key}`;
+            const amount = this.addLeadingZero(`${prevState.amount}${key}`);
             return this.validateAmount(amount) ? {amount: this.stripCommaFromAmount(amount)} : prevState;
         });
     }
@@ -164,7 +168,7 @@ class IOUAmountPage extends React.Component {
      */
     updateAmount(text) {
         this.setState((prevState) => {
-            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
+            const amount = this.addLeadingZero(this.replaceAllDigits(text, this.props.fromLocaleDigit));
             return this.validateAmount(amount)
                 ? {amount: this.stripCommaFromAmount(amount)}
                 : prevState;
@@ -222,7 +226,7 @@ class IOUAmountPage extends React.Component {
                         placeholder={this.props.numberFormat(0)}
                         preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
+                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
@@ -248,7 +252,6 @@ class IOUAmountPage extends React.Component {
 }
 
 IOUAmountPage.propTypes = propTypes;
-IOUAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -20,13 +22,21 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import * as PolicyActions from '../../libs/actions/Policy';
 import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
+
+    /** The employee list of this policy (coming from Onyx) */
+    policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
-const defaultProps = fullPolicyDefaultProps;
+const defaultProps = {
+    ...fullPolicyDefaultProps,
+    policyMemberList: {},
+};
 
 class WorkspaceInitialPage extends React.Component {
     constructor(props) {
@@ -70,6 +80,7 @@ class WorkspaceInitialPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
+        const hasMembersError = PolicyActions.hasPolicyMemberError(this.props.policyMemberList);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
@@ -105,6 +116,7 @@ class WorkspaceInitialPage extends React.Component {
                 translationKey: 'workspace.common.members',
                 icon: Expensicons.Users,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
+                error: hasMembersError,
             },
             {
                 translationKey: 'workspace.common.bankAccount',
@@ -202,6 +214,7 @@ class WorkspaceInitialPage extends React.Component {
                                 iconRight={item.iconRight}
                                 onPress={() => item.action()}
                                 shouldShowRightIcon
+                                brickRoadIndicator={item.error ? 'error' : null}
                             />
                         ))}
                     </View>
@@ -228,4 +241,9 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 export default compose(
     withLocalize,
     withFullPolicy,
+    withOnyx({
+        policyMemberList: {
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
+        },
+    }),
 )(WorkspaceInitialPage);

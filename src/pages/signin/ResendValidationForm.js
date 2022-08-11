@@ -14,6 +14,9 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import * as ReportUtils from '../../libs/ReportUtils';
+import OfflineIndicator from '../../components/OfflineIndicator';
+import networkPropTypes from '../../components/networkPropTypes';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,13 +34,10 @@ const propTypes = {
 
         /** Whether or not the account is validated */
         validated: PropTypes.bool,
-
-        /** Whether or not the account is closed */
-        closed: PropTypes.bool,
-
-        /** Whether or not the account already exists */
-        accountExists: PropTypes.bool,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -73,9 +73,7 @@ class ResendValidationForm extends React.Component {
             formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
         });
 
-        if (this.props.account.closed) {
-            Session.reopenAccount();
-        } else if (!this.props.account.validated) {
+        if (!this.props.account.validated) {
             Session.resendValidationLink();
         } else {
             Session.resetPassword();
@@ -87,27 +85,10 @@ class ResendValidationForm extends React.Component {
     }
 
     render() {
-        const isNewAccount = !this.props.account.accountExists;
-        const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated;
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
-        let message = '';
 
-        if (isNewAccount) {
-            message = this.props.translate('resendValidationForm.newAccount', {
-                login,
-                loginType,
-            });
-        } else if (this.props.account.validateCodeExpired) {
-            message = this.props.translate('resendValidationForm.validationCodeFailedMessage');
-        } else if (isOldUnvalidatedAccount) {
-            message = this.props.translate('resendValidationForm.unvalidatedAccount');
-        } else {
-            message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
-                login,
-            });
-        }
         return (
             <>
                 <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
@@ -123,7 +104,7 @@ class ResendValidationForm extends React.Component {
                 </View>
                 <View style={[styles.mv5]}>
                     <Text>
-                        {message}
+                        {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (
@@ -143,8 +124,10 @@ class ResendValidationForm extends React.Component {
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
+                        isDisabled={this.props.network.isOffline}
                     />
                 </View>
+                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }
@@ -155,6 +138,7 @@ ResendValidationForm.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},

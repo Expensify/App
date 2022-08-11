@@ -60,7 +60,7 @@ const AppDownloadLinksPage = (props) => {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
+     * @param {String} [selection] - Copied content.
      */
     const showPopover = (event, selection) => {
         ReportActionContextMenu.showContextMenu(

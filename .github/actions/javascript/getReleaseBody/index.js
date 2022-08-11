@@ -185,6 +185,7 @@ class GithubUtils {
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
+                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
                 isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
                 isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
                 tag,
@@ -219,8 +220,7 @@ class GithubUtils {
                 isAccessible: match[4] === 'x',
             }),
         );
-        const internalQAPRList = this.getStagingDeployCashInternalQA(issue);
-        return _.sortBy(_.union(PRList, internalQAPRList), 'number');
+        return _.sortBy(PRList, 'number');
     }
 
     /**
@@ -265,7 +265,7 @@ class GithubUtils {
         const internalQAPRs = _.map(
             [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[2],
+                url: match[2].split('-')[0].trim(),
                 number: Number.parseInt(match[3], 10),
                 isResolved: match[1] === 'x',
                 isAccessible: false,
@@ -283,6 +283,7 @@ class GithubUtils {
      * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
+     * @param {Array} [resolvedInternalQAPRs] - The list of Internal QA PR URLs which have been resolved.
      * @param {Boolean} [isTimingDashboardChecked]
      * @param {Boolean} [isFirebaseChecked]
      * @returns {Promise}
@@ -294,6 +295,7 @@ class GithubUtils {
         accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
+        resolvedInternalQAPRs = [],
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
     ) {
@@ -305,6 +307,11 @@ class GithubUtils {
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
+                // The format of this map is following:
+                // {
+                //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
+                //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
+                // }
                 const internalQAPRMap = _.reduce(
                     _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
                     (map, pr) => {
@@ -349,11 +356,13 @@ class GithubUtils {
                     });
                 }
 
+                // Internal QA PR list
                 if (!_.isEmpty(internalQAPRMap)) {
+                    console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `\r\n${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` -${assigneeMentions}`;
                     });

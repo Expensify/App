@@ -3,8 +3,8 @@
  * keyboard allowing the user to see what they are typing.
  */
 import _ from 'underscore';
-import ReactNativeKeyboardSpacer from 'react-native-keyboard-spacer';
 import React from 'react';
+import ReactNativeKeyboardSpacer from './KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
