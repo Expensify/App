@@ -3,6 +3,7 @@ import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import Onyx from 'react-native-onyx';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
@@ -11,6 +12,12 @@ import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
+import * as Environment from './libs/Environment/Environment';
+
+// For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
+if (window && Environment.isDevelopment()) {
+    window.Onyx = Onyx;
+}
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
