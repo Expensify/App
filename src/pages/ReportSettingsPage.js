@@ -224,24 +224,24 @@ class ReportSettingsPage extends Component {
                     </View>
                     {shouldShowRoomName && (
                         <View style={styles.mt4}>
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex3]}>
-                                    {shouldDisableRename ? (
-                                        <View>
-                                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
-                                                {this.props.translate('newRoomPage.roomName')}
-                                            </Text>
-                                            <Text numberOfLines={1} style={[styles.optionAlternateText]}>
-                                                {this.state.newRoomName}
-                                            </Text>
-                                        </View>
-                                    )
-                                        : (
-                                            <OfflineWithFeedback
-                                                pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
-                                                errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
-                                                onClose={this.onDismissRoomNameError}
-                                            >
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
+                                errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
+                                onClose={this.onDismissRoomNameError}
+                            >
+                                <View style={[styles.flexRow]}>
+                                    <View style={[styles.flex3]}>
+                                        {shouldDisableRename ? (
+                                            <View>
+                                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                                    {this.props.translate('newRoomPage.roomName')}
+                                                </Text>
+                                                <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                                    {this.state.newRoomName}
+                                                </Text>
+                                            </View>
+                                        )
+                                            : (
                                                 <RoomNameInput
                                                     ref={this.setRoomNameInputRef}
                                                     initialValue={this.state.newRoomName}
@@ -250,23 +250,23 @@ class ReportSettingsPage extends Component {
                                                     onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
                                                     disabled={shouldDisableRename}
                                                 />
-                                            </OfflineWithFeedback>
-                                        )}
+                                            )}
+                                    </View>
+                                    {!shouldDisableRename && (
+                                        <Button
+                                            large
+                                            success={!shouldDisableRename}
+                                            text={this.props.translate('common.save')}
+                                            onPress={this.validateAndRenameReport}
+                                            style={[styles.ml2, styles.flex1]}
+                                            textStyles={[styles.label]}
+                                            innerStyles={[styles.ph5]}
+                                            isLoading={this.props.isLoadingRenamePolicyRoom}
+                                            isDisabled={shouldDisableRename}
+                                        />
+                                    )}
                                 </View>
-                                {!shouldDisableRename && (
-                                    <Button
-                                        large
-                                        success={!shouldDisableRename}
-                                        text={this.props.translate('common.save')}
-                                        onPress={this.validateAndRenameReport}
-                                        style={[styles.ml2, styles.flex1]}
-                                        textStyles={[styles.label]}
-                                        innerStyles={[styles.ph5]}
-                                        isLoading={this.props.isLoadingRenamePolicyRoom}
-                                        isDisabled={shouldDisableRename}
-                                    />
-                                )}
-                            </View>
+                            </OfflineWithFeedback>
                         </View>
                     )}
                     {linkedWorkspace && (
