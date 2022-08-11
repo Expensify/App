@@ -777,6 +777,9 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
+    BRICK_ROAD_INDICATOR_STATUS: {
+        ERROR: 'error',
+    },
 
     PDF_PASSWORD_FORM: {
         // Constants for password-related error responses received from react-pdf.

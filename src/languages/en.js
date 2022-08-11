@@ -393,7 +393,6 @@ export default {
         deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deleteBankAccountSuccess: 'Bank account successfully deleted',
-        deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',

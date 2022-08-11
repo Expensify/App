@@ -67,11 +67,11 @@ hr {
     display: inline-block;
     width: 24px;
     height: 2px;
-    margin: 0 0 15px;
+    margin: 0 0 16px;
 }
 
 strong {
-    font-family: "GTAmericaExp-Bold", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-weight: bold;
 }
 
 em {
@@ -84,7 +84,6 @@ a {
 
     &:hover {
         color: $color-blueHover;
-        text-decoration: underline;
     }
 }
 
@@ -95,9 +94,15 @@ h4,
 h5,
 h6 {
     color: $color-dark;
-    font-family: "GTAmericaExp-Regular";
     font-weight: bold;
     padding-bottom: 12px;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
     margin-top: 20px;
 }
 
@@ -197,7 +202,7 @@ textarea {
             padding: 24px;
         }
 
-        .header-button {
+        #header-button {
             position: absolute;
             display: none;
 
@@ -223,15 +228,12 @@ textarea {
         display: grid;
         grid-template-columns: 40px auto;
         cursor: pointer;
+    }
 
-        &.selected {
-            cursor: auto;
-
-            span {
-                font-weight: bold;
-                color: $color-dark;
-            }
-        }
+    .selected {
+        cursor: auto;
+        font-weight: bold;
+        color: $color-dark;
     }
 
     .hide {
@@ -246,6 +248,13 @@ textarea {
     margin-left: 420px;
     padding: 52px 68px;
     box-sizing: border-box;
+
+    @media screen and (min-width: 1600px) {
+        /* Center content area for bigger screens */
+        margin-left: calc(420px + (100vw - 1000px - 420px)/2);
+        padding: 52px 0;
+        max-width: 1000px;
+    }
 
     @media screen and (max-width: 1024px) {
         margin-left: 320px;
@@ -279,7 +288,6 @@ textarea {
 
     &:hover {
         color: $color-blueHover;
-        text-decoration: underline;
     }
 }
 
@@ -331,22 +339,51 @@ textarea {
 .card {
     display: flex;
     flex-wrap: nowrap;
-    border-radius: 15px;
+    border-radius: 16px;
     border: 1px solid $color-gray2;
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
+    $border-amount-darken: 15%;
+    color: $color-dark;
+
+    &:hover {
+        border-color: darken($color-gray2, $border-amount-darken);
+        color: $color-dark;
+    }
+
+    &.send-money {
+        border-color: $color-blue;
+        border-width: 1.5px;
+
+        &:hover {
+            border-color: darken($color-blue, $border-amount-darken);
+        }
+    }
+
+    &.request-money {
+        border-color: $color-green;
+        border-width: 1.5px;
+
+        &:hover {
+            border-color: darken($color-green, $border-amount-darken);
+        }
+    }
 
     .left-icon {
         display: flex;
         align-items: center;
-        padding-right: 15px;
+        padding-right: 28px;
+
+        img {
+            width: 32px;
+        }
     }
 
     .right-icon {
         display: flex;
         align-items: center;
-        padding-left: 15px;
+        padding-left: 16px;
     }
 
     .body {
@@ -357,7 +394,8 @@ textarea {
     }
 
     .description {
-        margin-top: 15px;
+        margin-top: 16px;
+        font-weight: normal;
     }
 }
 
@@ -368,6 +406,26 @@ textarea {
 
     &.fa-angle-right {
         padding-left: 4px;
+    }
+}
+
+.homepage {
+    h1 {
+        padding-bottom: 20px;
+
+        @media screen and (max-width: 800px) {
+            margin-top: 0;
+            padding-top: 8px;
+        }
+    }
+    h2  {
+        padding-bottom: 24px;
+    }
+    p {
+        margin-bottom: 20px;
+    }
+    .cards-group {
+        padding-bottom: 32px;
     }
 }
 
