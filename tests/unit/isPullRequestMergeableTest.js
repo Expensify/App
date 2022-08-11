@@ -27,7 +27,7 @@ beforeAll(() => {
     core.setOutput = mockSetOutput;
 
     // Mock octokit module
-    const mocktokit = {
+    const moctokit = {
         rest: {
             pulls: {
                 get: mockGetPullRequest,
@@ -37,7 +37,7 @@ beforeAll(() => {
             },
         },
     };
-    GithubUtils.internalOctokit = mocktokit;
+    GithubUtils.internalOctokit = moctokit;
 });
 
 afterEach(() => {

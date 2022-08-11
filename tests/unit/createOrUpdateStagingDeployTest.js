@@ -16,7 +16,7 @@ beforeAll(() => {
     core.getInput = mockGetInput;
 
     // Mock octokit module
-    const mocktokit = {
+    const moctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation(arg => Promise.resolve({
@@ -41,7 +41,7 @@ beforeAll(() => {
         },
         paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
     };
-    GithubUtils.internalOctokit = mocktokit;
+    GithubUtils.internalOctokit = moctokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;

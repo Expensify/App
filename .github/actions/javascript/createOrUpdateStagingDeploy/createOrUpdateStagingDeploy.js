@@ -16,14 +16,14 @@ const run = function () {
 
     // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
     return Promise.all([
-        GithubUtils.octokitRest.issues.listForRepo({
+        GithubUtils.octokit.issues.listForRepo({
             log: console,
             owner: GithubUtils.GITHUB_OWNER,
             repo: GithubUtils.APP_REPO,
             labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
             state: 'all',
         }),
-        GithubUtils.octokitRest.issues.listForRepo({
+        GithubUtils.octokit.issues.listForRepo({
             log: console,
             owner: GithubUtils.GITHUB_OWNER,
             repo: GithubUtils.APP_REPO,
@@ -148,7 +148,7 @@ const run = function () {
             };
 
             if (shouldCreateNewStagingDeployCash) {
-                return GithubUtils.octokitRest.issues.create({
+                return GithubUtils.octokit.issues.create({
                     ...defaultPayload,
                     title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
                     labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
@@ -156,7 +156,7 @@ const run = function () {
                 });
             }
 
-            return GithubUtils.octokitRest.issues.update({
+            return GithubUtils.octokit.issues.update({
                 ...defaultPayload,
                 issue_number: currentStagingDeployCashData.number,
             });
