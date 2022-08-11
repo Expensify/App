@@ -25,14 +25,13 @@ const propTypes = {
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
     /** The user's wallet (coming from Onyx) */
-    ...userWalletPropTypes,
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
-    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
 };
 
@@ -45,7 +44,7 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
-    const hasWalletError = !_.isEmpty(props.userwallet.errors);
+    const hasWalletError = !_.isEmpty(props.userWallet.errors);
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -70,7 +69,7 @@ export default withOnyx({
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
     },
-    userwallet: {
+    userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
 })(AvatarWithIndicator);
