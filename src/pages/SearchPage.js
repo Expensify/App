@@ -53,10 +53,25 @@ class SearchPage extends Component {
 
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
+        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
         this.debouncedSearchServerData = _.debounce(this.searchServerData.bind(this), 300);
+
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getSearchOptions(
+            props.reports,
+            props.personalDetails,
+            '',
+            props.betas,
+        );
 
         this.state = {
             searchValue: '',
+            recentReports,
+            personalDetails,
+            userToInvite,
         };
     }
 
@@ -64,40 +79,47 @@ class SearchPage extends Component {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(this.props.reports, prevProps.reports)) {
+            return;
+        }
+        this.updateOptions();
+    }
+
     onChangeText(searchValue = '') {
-        this.setState({searchValue}, this.debouncedSearchServerData());
+        this.setState({searchValue}, () => {
+            this.debouncedUpdateOptions();
+            this.debouncedSearchServerData();
+        });
     }
 
     /**
      * Returns the sections needed for the OptionsSelector
      *
-     * @param {Array<Object>} recentReports
-     * @param {Array<Object>} personalDetails
-     * @param {Object} userToInvite
      * @returns {Array}
      */
-    getSections(recentReports, personalDetails, userToInvite) {
+    getSections() {
         const sections = [];
-        if (recentReports.length > 0) {
+        if (this.state.recentReports.length > 0) {
             sections.push(({
-                data: recentReports,
+                data: this.state.recentReports,
                 shouldShow: true,
                 indexOffset: 0,
             }));
         }
 
-        if (personalDetails.length > 0) {
+        if (this.state.personalDetails.length > 0) {
             sections.push(({
-                data: personalDetails,
+                data: this.state.personalDetails,
                 shouldShow: true,
-                indexOffset: recentReports.length,
+                indexOffset: this.state.recentReports.length,
             }));
         }
 
-        if (userToInvite) {
+        if (this.state.userToInvite) {
             sections.push(({
                 undefined,
-                data: [userToInvite],
+                data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset: 0,
             }));
@@ -108,6 +130,24 @@ class SearchPage extends Component {
 
     searchServerData() {
         Report.searchChats(this.state.searchValue.trim());
+    }
+
+    updateOptions() {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getSearchOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.state.searchValue.trim(),
+            this.props.betas,
+        );
+        this.setState({
+            userToInvite,
+            recentReports,
+            personalDetails,
+        });
     }
 
     /**
@@ -135,20 +175,10 @@ class SearchPage extends Component {
     }
 
     render() {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.state.searchValue.trim(),
-            this.props.betas,
-        );
-        const sections = this.getSections(recentReports, personalDetails, userToInvite);
+        const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (recentReports.length + personalDetails.length) !== 0,
-            Boolean(userToInvite),
+            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
+            Boolean(this.state.userToInvite),
             this.state.searchValue,
         );
         return (
