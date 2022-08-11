@@ -954,7 +954,6 @@ export default {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         createRoom: 'Create Room',
-        policyRoomRenamed: 'Policy room renamed!',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
         pleaseEnterRoomName: 'Please enter a room name',
