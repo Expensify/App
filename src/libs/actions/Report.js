@@ -661,79 +661,6 @@ function fetchInitialActions(reportID) {
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @returns {Promise}
  */
-function fetchAllReports(
-    shouldRecordHomePageTiming = false,
-) {
-    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
-    return DeprecatedAPI.Get({
-        returnValueList: 'chatList',
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return;
-            }
-
-            // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            const reportIDs = _.filter(String(response.chatList).split(','), _.identity);
-
-            // Get all the chat reports if they have any, otherwise create one with concierge
-            if (reportIDs.length > 0) {
-                // return fetchChatReportsByIDs(reportIDs);
-                const simplifiedReports = {};
-                return ReportActions.getChats({reportIDList: reportIDs})
-                    .then((chats) => {
-                        // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
-                        // variable called simplifiedReports which hold the participants (minus the current user) for each report.
-                        // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
-                        // personal details of all the participants and even link up their avatars to report icons.
-                        const reportIOUData = {};
-                        _.each(chats.reportList, (report) => {
-                            const simplifiedReport = getSimplifiedReportObject(report);
-                            simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
-                        });
-
-                        _.each(chats.iouReportList, (iouReportObject) => {
-                            if (!iouReportObject) {
-                                return;
-                            }
-
-                            const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-                            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
-                            reportIOUData[iouReportKey] = getSimplifiedIOUReport(iouReportObject, iouReportObject.chatReportID);
-                            simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
-                            simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
-                        });
-
-                        // We use mergeCollection such that it updates the collection in one go.
-                        // Any withOnyx subscribers to this key will also receive the complete updated props just once
-                        // than updating props for each report and re-rendering had merge been used.
-                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
-                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
-
-                        // Fetch the personal details if there are any
-                        PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
-                        return simplifiedReports;
-                    });
-            }
-
-            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
-        })
-        .then((returnedReports) => {
-            returnedReports = returnedReports.reportList;
-            Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
-
-            // If at this point the user still doesn't have a Concierge report, create it for them.
-            // This means they were a participant in reports before their account was created (e.g. default rooms)
-            const hasConciergeChat = _.some(returnedReports, report => ReportUtils.isConciergeChatReport(report));
-            if (!hasConciergeChat) {
-                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
-            }
-
-            if (shouldRecordHomePageTiming) {
-                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-            }
-        });
-}
 
 /**
  * Creates an optimistic report with a randomly generated reportID and as much information as we currently have
@@ -1557,7 +1484,6 @@ Onyx.connect({
 });
 
 export {
-    fetchAllReports,
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
