@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
 import * as CollectionUtils from '../CollectionUtils';
 import CONST from '../../CONST';
 import * as ReportUtils from '../ReportUtils';
@@ -119,14 +118,6 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * Calls API command GetChats
- * @return {Promise}
- */
-function getChats() {
-    return API.makeRequestWithSideEffects('GetChats');
-}
-
-/**
  * @param {Number} reportID
  * @param {Number} sequenceNumber
  * @param {Number} currentUserAccountID
@@ -154,7 +145,6 @@ export {
     dangerouslyGetReportActionsMaxSequenceNumber,
     getDeletedCommentsCount,
     getLastVisibleMessageText,
-    getChats,
     isFromCurrentUser,
     deleteClientAction,
 };
