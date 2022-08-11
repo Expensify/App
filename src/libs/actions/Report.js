@@ -1239,6 +1239,7 @@ function deleteReportComment(reportID, reportAction) {
             value: optimisticReport,
         },
     ];
+
     // On Error clear the pendingAction state and revert the message
     // const failureData = [
     //     {
