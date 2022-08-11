@@ -167,7 +167,8 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.isLoadingReportActions;
+        // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
+        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
         return !getReportID(this.props.route) || isLoadingInitialReportActions;
     }
 
