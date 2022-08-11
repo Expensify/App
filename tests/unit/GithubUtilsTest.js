@@ -12,7 +12,7 @@ beforeAll(() => {
     core.getInput = mockGetInput;
 
     // Mock octokit module
-    const mocktokit = {
+    const moctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation(arg => Promise.resolve({
@@ -26,7 +26,7 @@ beforeAll(() => {
         },
         paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
     };
-    GithubUtils.internalOctokit = mocktokit;
+    GithubUtils.internalOctokit = moctokit;
 });
 
 afterEach(() => {
@@ -129,17 +129,17 @@ describe('GithubUtils', () => {
                 PRList: [],
             };
 
-            GithubUtils.octokitRest.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
             return GithubUtils.getStagingDeployCash().then(data => expect(data).toStrictEqual(bareExpectedResponse));
         });
 
         test('Test finding an open issue successfully', () => {
-            GithubUtils.octokitRest.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]});
             return GithubUtils.getStagingDeployCash().then(data => expect(data).toStrictEqual(baseExpectedResponse));
         });
 
         test('Test finding an open issue successfully and parsing with deploy blockers', () => {
-            GithubUtils.octokitRest.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
             return GithubUtils.getStagingDeployCash()
                 .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
@@ -148,7 +148,7 @@ describe('GithubUtils', () => {
             const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
             modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replace(/\r/g, '');
 
-            GithubUtils.octokitRest.issues.listForRepo = jest.fn().mockResolvedValue({
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({
                 data: [modifiedIssueWithDeployBlockers],
             });
             return GithubUtils.getStagingDeployCash()
@@ -159,19 +159,19 @@ describe('GithubUtils', () => {
             const noBodyIssue = baseIssue;
             noBodyIssue.body = '';
 
-            GithubUtils.octokitRest.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]});
             return GithubUtils.getStagingDeployCash()
                 .catch(e => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue with correct data.')));
         });
 
         test('Test finding more than one issue', () => {
-            GithubUtils.octokitRest.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]});
             return GithubUtils.getStagingDeployCash()
                 .catch(e => expect(e).toEqual(new Error('Found more than one StagingDeployCash issue.')));
         });
 
         test('Test finding no issues', () => {
-            GithubUtils.octokitRest.issues.listForRepo = jest.fn().mockResolvedValue({data: []});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []});
             return GithubUtils.getStagingDeployCash()
                 .catch(e => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
         });

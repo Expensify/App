@@ -27,7 +27,7 @@ beforeAll(() => {
     core.setOutput = mockSetOutput;
 
     // Mock octokit module
-    const mocktokit = {
+    const moctokit = {
         rest: {
             issues: {
                 get: mockGetIssue,
@@ -35,7 +35,7 @@ beforeAll(() => {
             },
         },
     };
-    GithubUtils.internalOctokit = mocktokit;
+    GithubUtils.internalOctokit = moctokit;
 });
 
 let baseComments = [];

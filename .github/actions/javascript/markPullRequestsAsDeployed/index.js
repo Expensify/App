@@ -94,7 +94,7 @@ function commentPR(PR, message) {
 const run = function () {
     if (isProd) {
         // First find the deployer (who closed the last deploy checklist)?
-        return GithubUtils.octokitRest.issues.listForRepo({
+        return GithubUtils.octokit.issues.listForRepo({
             owner: GithubUtils.GITHUB_OWNER,
             repo: GithubUtils.APP_REPO,
             labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
@@ -110,14 +110,14 @@ const run = function () {
     }
 
     // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokitRest.repos.listTags({
+    return GithubUtils.octokit.repos.listTags({
         owner: GithubUtils.GITHUB_OWNER,
         repo: GithubUtils.APP_REPO,
         per_page: 100,
     })
         .then(({data}) => {
             const tagSHA = _.find(data, tag => tag.name === version).commit.sha;
-            return GithubUtils.octokitRest.git.getCommit({
+            return GithubUtils.octokit.git.getCommit({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
                 commit_sha: tagSHA,
@@ -128,7 +128,7 @@ const run = function () {
             _.reduce(prList, (promise, PR) => promise
 
                 // Then, for each PR, find out who merged it and determine the deployer
-                .then(() => GithubUtils.octokitRest.pulls.get({
+                .then(() => GithubUtils.octokit.pulls.get({
                     owner: GithubUtils.GITHUB_OWNER,
                     repo: GithubUtils.APP_REPO,
                     pull_number: PR,
@@ -244,10 +244,12 @@ const INTERNAL_QA_LABEL = 'InternalQA';
 const POLL_RATE = 10000;
 
 class GithubUtils {
-    static get octokit() {
-        if (this.internalOctokit) {
-            return this.internalOctokit;
-        }
+    /**
+     * Initialize internal octokit
+     *
+     * @private
+     */
+    static initOctokit() {
         const Octokit = GitHub.plugin(throttling, paginateRest);
         const token = core.getInput('GITHUB_TOKEN', {required: true});
 
@@ -273,18 +275,36 @@ class GithubUtils {
                 },
             },
         }));
-        return this.internalOctokit;
     }
 
     /**
-     * Either give an existing instance of Octokit or create a new one
+     * Either give an existing instance of Octokit rest or create a new one
      *
      * @readonly
      * @static
      * @memberof GithubUtils
      */
-    static get octokitRest() {
-        return this.octokit.rest;
+    static get octokit() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.rest;
+        }
+        this.initOctokit();
+        return this.internalOctokit.rest;
+    }
+
+    /**
+     * Either give an existing instance of Octokit paginate or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get paginate() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.paginate;
+        }
+        this.initOctokit();
+        return this.internalOctokit.paginate;
     }
 
     /**
@@ -293,7 +313,7 @@ class GithubUtils {
      * @returns {Promise}
      */
     static getStagingDeployCash() {
-        return this.octokitRest.issues.listForRepo({
+        return this.octokit.issues.listForRepo({
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             labels: STAGING_DEPLOY_CASH_LABEL,
@@ -549,7 +569,7 @@ class GithubUtils {
      */
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
-        return this.octokit.paginate(this.octokitRest.pulls.list, {
+        return this.paginate(this.octokit.pulls.list, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             state: 'all',
@@ -576,7 +596,7 @@ class GithubUtils {
      */
     static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
-        return this.octokitRest.issues.createComment({
+        return this.octokit.issues.createComment({
             owner: GITHUB_OWNER,
             repo,
             issue_number: number,
@@ -592,7 +612,7 @@ class GithubUtils {
      */
     static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
-        return this.octokitRest.actions.listWorkflowRuns({
+        return this.octokit.actions.listWorkflowRuns({
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             workflow_id: workflow,
@@ -685,7 +705,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.octokit.paginate(this.octokitRest.issues.listEvents, {
+        return this.octokit.paginate(this.octokit.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,
