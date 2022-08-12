@@ -423,10 +423,4 @@ export default compose(
     withDrawerState,
     withLocalize,
     withNetwork(),
-
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-    }),
 )(ReportActionsView);
