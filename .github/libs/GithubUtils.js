@@ -128,7 +128,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:.*\r?\n)+)\r?\n\r?\n\*/) || [];
+        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n/) || [];
         if (PRListSection.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
@@ -155,7 +155,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:.*\r?\n)+)/) || [];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) || [];
         if (deployBlockerSection.length !== 2) {
             return [];
         }
