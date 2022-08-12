@@ -53,12 +53,12 @@ class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            unitID: lodashGet(props, 'policy.customUnit.id', ''),
-            unitName: lodashGet(props, 'policy.customUnit.name', ''),
-            unitValue: lodashGet(props, 'policy.customUnit.value', 'mi'),
-            rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
-            rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
+            unitID: lodashGet(props, 'policy.customUnits.distance.customUnitID', ''),
+            unitName: lodashGet(props, 'policy.customUnits.distance.name', ''),
+            unitValue: lodashGet(props, 'policy.customUnits.distance.attributes.value', 'mi'),
+            rateID: lodashGet(props, 'policy.customUnits.rate.id', ''),
+            rateName: lodashGet(props, 'policy.customUnits.rate.name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnits.rate.value', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -99,12 +99,10 @@ class WorkspaceReimburseView extends React.Component {
 
     setUnit(value) {
         this.setState({unitValue: value});
-        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnit, {
-            distance: {
-                customUnitID: this.state.unitID,
-                name: this.state.unitName,
-                attributes: {unit: value},
-            },
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnits.distance, {
+            customUnitID: this.state.unitID,
+            name: this.state.unitName,
+            attributes: {unit: value},
         });
     }
 

@@ -537,17 +537,17 @@ function setCustomUnit(policyID, values) {
 
 /**
  * @param {String} policyID
- * @param {Object} currentCustomUnits
- * @param {Object} values
+ * @param {Object} currentCustomUnit
+ * @param {Object} values The new custom unit values
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    distance: {
+                    [values.name]: {
                         // customUnitID: values.customUnitID,
                         customUnitID: '628e77618f113',
                         // name: values.name,
@@ -566,7 +566,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    distance: {
+                    [values.name]: {
                         pendingAction: null,
                     },
                 },
@@ -580,12 +580,10 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    distance: {
-                        // customUnitID: currentCustomUnits.customUnitID,
-                        customUnitID: '628e77618f113',
-                        // name: currentCustomUnits.name,
-                        name: 'Distance',
-                        attributes: currentCustomUnits.attributes,
+                    [currentCustomUnit.name]: {
+                        customUnitID: currentCustomUnit.customUnitID,
+                        name: currentCustomUnit.name,
+                        attributes: currentCustomUnit.attributes,
                         errors: {
                             // <current_microtime>: '<some generic error>',
                         },
@@ -597,7 +595,9 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
-        customUnits: JSON.stringify(values),
+        customUnits: JSON.stringify({
+            [values.name]: values,
+        }),
     }, {optimisticData, successData, failureData});
 }
 
