@@ -6,6 +6,7 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
+import stylePropTypes from '../styles/stylePropTypes';
 import Text from './Text';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
@@ -39,16 +40,10 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** Additional styles to add after local styles. Applied to the parent container */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: stylePropTypes,
 
     /** Additional style object for the error row */
-    errorRowStyles: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    errorRowStyles: stylePropTypes,
 
     ...withLocalizePropTypes,
 };
