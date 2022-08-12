@@ -128,7 +128,7 @@ class ReportSettingsPage extends Component {
 
         // Reset the input's value back to the previously saved report name
         if (this.roomNameInputRef) {
-            this.roomNameInputRef.value = this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '');
+            this.roomNameInputRef.setNativeProps({text: this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '')});
         }
         Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
