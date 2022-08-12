@@ -1207,10 +1207,6 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            message: [{
-                html: '',
-                text: '',
-            }],
         },
     };
     const optimisticReport = {
@@ -1240,19 +1236,38 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
+    // On Success remove the message content and pendingAction state
+    const successData = {
+        [sequenceNumber]: {
+            pendingAction: null,
+            message: [{
+                html: '',
+                text: '',
+            }],
+        },
+    };
+
     // On Error clear the pendingAction state and revert the message
-    // const failureData = [
-    //     {
-    //         onyxMethod: CONST.ONYX.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-    //         value: {
-    //             [sequenceNumber]: {
-    //                 ...originalReportAction,
-    //                 pendingAction: null,
-    //             },
-    //         },
-    //     },
-    // ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    message: reportAction.message,
+                    pendingAction: null,
+                },
+            },
+        },
+        // {
+        //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        //     value: {
+        //         lastMessageText:
+        //         unreadActionCount:
+        //     }
+        // }
+    ];
 
     const parameters = {
         reportID,
@@ -1260,7 +1275,7 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
-    API.write('DeleteComment', parameters, {optimisticData});
+    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 
     // If all fails Reverse Optimistic Response:
     // reportActionsToMerge[sequenceNumber] = {
