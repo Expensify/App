@@ -115,18 +115,8 @@ class ReportSettingsPage extends Component {
             errors: {},
         };
 
-        this.setRoomNameInputRef = this.setRoomNameInputRef.bind(this);
         this.resetToPreviousName = this.resetToPreviousName.bind(this);
         this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
-    }
-
-    /**
-     * Set the room name input ref
-     *
-     * @param {Element} el
-     */
-    setRoomNameInputRef(el) {
-        this.roomNameInputRef = el;
     }
 
     /**
@@ -238,7 +228,7 @@ class ReportSettingsPage extends Component {
                                         )
                                             : (
                                                 <RoomNameInput
-                                                    ref={this.setRoomNameInputRef}
+                                                    ref={el => this.roomNameInputRef = el}
                                                     initialValue={this.state.newRoomName}
                                                     policyID={linkedWorkspace && linkedWorkspace.id}
                                                     errorText={this.state.errors.newRoomName}
