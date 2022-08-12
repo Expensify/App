@@ -7,6 +7,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
+import * as API from '../API';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -317,6 +318,40 @@ function activateWallet(currentStep, parameters) {
 }
 
 /**
+ * Complete the "Accept Terms" step of the wallet activation flow.
+ *
+ * @param {Object} parameters
+ * @param {Boolean} parameters.hasAcceptedTerms
+ */
+function acceptWalletTerms(parameters) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                shouldShowWalletActivationSuccess: true,
+            },
+        },
+    ];
+
+    // ??
+    const successData = [];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                shouldShowWalletActivationSuccess: false,
+                shouldShowFailedKYC: true,
+            },
+        },
+    ];
+
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
+}
+
+/**
  * Fetches information about a user's Expensify Wallet
  *
  * @typedef {Object} UserWallet
@@ -361,4 +396,5 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    acceptWalletTerms,
 };
