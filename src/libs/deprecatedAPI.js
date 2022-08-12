@@ -26,15 +26,6 @@ Request.use(Middleware.Retry);
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
- * @param {Object} parameters
- * @returns {Promise}
- */
-function AddBillingCard(parameters) {
-    const commandName = 'User_AddBillingCard';
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken
  * @param {String} parameters.password
@@ -91,17 +82,6 @@ function CreateLogin(parameters) {
         'partnerUserID',
         'partnerUserSecret',
     ], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.fundID
- * @returns {Promise}
- */
-function DeleteFund(parameters) {
-    const commandName = 'DeleteFund';
-    requireParameters(['fundID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -505,18 +485,6 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.bankAccountID
- * @param {String} parameters.ownerEmail
- * @returns {Promise}
- */
-function DeleteBankAccount(parameters) {
-    const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -682,7 +650,6 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    AddBillingCard,
     BankAccount_SetupWithdrawal,
     BankAccount_Validate,
     ChangePassword,
@@ -690,9 +657,7 @@ export {
     CreateLogin,
     CreatePolicyRoom,
     RenameReport,
-    DeleteFund,
     DeleteLogin,
-    DeleteBankAccount,
     Get,
     GetStatementPDF,
     GetIOUReport,
