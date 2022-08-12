@@ -320,8 +320,8 @@ function activateWallet(currentStep, parameters) {
 /**
  * Creates an identity check by calling Onfido's API with data returned from the SDK
  *
- * The API will always return the updated userWallet in the response as a convenience so we can avoid calling
- * Get&returnValueList=userWallet after we call Wallet_Activate.
+ * The API will always return the updated userWallet in the response as a convenience so we can avoid an additional
+ * API request to fetch the userWallet after we call VerifyIdentity
  *
  * @param {Object} parameters
  * @param {String} [parameters.onfidoData] - JSON string
@@ -334,7 +334,7 @@ function verifyIdentity(parameters) {
     }, {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: true,
@@ -343,7 +343,7 @@ function verifyIdentity(parameters) {
                 },
             },
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER_WALLET,
                 value: {
                     shouldShowFailedKYC: false,
@@ -352,7 +352,7 @@ function verifyIdentity(parameters) {
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: false,
@@ -362,7 +362,7 @@ function verifyIdentity(parameters) {
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: false,
