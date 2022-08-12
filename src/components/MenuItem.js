@@ -42,7 +42,7 @@ const defaultProps = {
     onPress: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
-    brickRoadIndicator: null,
+    brickRoadIndicator: '',
 };
 
 const MenuItem = props => (
