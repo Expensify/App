@@ -138,7 +138,7 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {props.brickRoadIndicator && (
-                            <View style={[[styles.alignItemsCenter, styles.justifyContentCenter]]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}

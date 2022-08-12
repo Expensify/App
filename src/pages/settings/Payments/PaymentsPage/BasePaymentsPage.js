@@ -249,7 +249,7 @@ class BasePaymentsPage extends React.Component {
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.deleteDebitCard(this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.deletePaymentCard(this.state.selectedPaymentMethod.fundID);
         }
     }
 

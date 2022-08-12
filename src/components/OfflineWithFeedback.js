@@ -45,7 +45,10 @@ const propTypes = {
     ]),
 
     /** Additional style object for the error row */
-    errorRowStyles: PropTypes.arrayOf(PropTypes.object),
+    errorRowStyles: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     ...withLocalizePropTypes,
 };
@@ -102,7 +105,7 @@ const OfflineWithFeedback = (props) => {
                 </View>
             )}
             {hasErrors && (
-                <View style={[styles.offlineFeedback.error, ...props.errorRowStyles]}>
+                <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>
