@@ -125,7 +125,7 @@ class TermsStep extends React.Component {
                             }
 
                             this.setState({error: false});
-                            BankAccounts.activateWallet(CONST.WALLET.STEP.TERMS, {
+                            BankAccounts.acceptWalletTerms({
                                 hasAcceptedTerms: this.state.hasAcceptedDisclosure
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                             });
