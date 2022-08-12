@@ -69,16 +69,17 @@ function getSimplifiedEmployeeList(employeeList) {
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
     const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
-    const customUnitValue = lodashGet(customUnit, 'attributes.unit', 'mi');
     const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
-    const customUnitSimplified = customUnit && {
-        id: customUnit.customUnitID,
-        name: customUnit.name,
-        value: customUnitValue,
-        rate: {
-            id: customUnitRate.customUnitRateID,
-            name: customUnitRate.name,
-            value: Number(customUnitRate.rate),
+    const customUnitsSimplified = customUnit && {
+        distance: {
+            customUnitID: customUnit.customUnitID,
+            name: customUnit.name,
+            attributes: customUnit.attributes,
+            rate: {
+                id: customUnitRate.customUnitRateID,
+                name: customUnitRate.name,
+                value: Number(customUnitRate.rate),
+            },
         },
     };
     return {
@@ -93,7 +94,8 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
-        customUnit: customUnitSimplified,
+        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
+        customUnits: customUnitsSimplified,
     };
 }
 
