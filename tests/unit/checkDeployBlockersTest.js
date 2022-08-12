@@ -27,13 +27,15 @@ beforeAll(() => {
     core.setOutput = mockSetOutput;
 
     // Mock octokit module
-    const mocktokit = {
-        issues: {
-            get: mockGetIssue,
-            listComments: mockListComments,
+    const moctokit = {
+        rest: {
+            issues: {
+                get: mockGetIssue,
+                listComments: mockListComments,
+            },
         },
     };
-    GithubUtils.octokitInternal = mocktokit;
+    GithubUtils.internalOctokit = moctokit;
 });
 
 let baseComments = [];
