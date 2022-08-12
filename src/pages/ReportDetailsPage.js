@@ -173,8 +173,6 @@ class ReportDetailsPage extends Component {
                                 subtitle={item.subtitle}
                                 icon={item.icon}
                                 onPress={item.action}
-                                iconStyles={item.iconStyles}
-                                iconFill={item.iconFill}
                                 shouldShowRightIcon
                                 brickRoadIndicator={brickRoadIndicator}
                             />
