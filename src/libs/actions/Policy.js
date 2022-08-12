@@ -487,7 +487,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
             value: {
                 customUnits: {
                     distance: {
-                        // customUnitID: values.id, // @TODO reconcile customUnitID vs id
+                        // customUnitID: values.customUnitID,
                         customUnitID: '628e77618f113',
                         // name: values.name,
                         name: 'Distance',
@@ -520,11 +520,11 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
             value: {
                 customUnits: {
                     distance: {
-                        // id: currentCustomUnits.id,
-                        id: '628e77618f113',
+                        // customUnitID: currentCustomUnits.customUnitID,
+                        customUnitID: '628e77618f113',
                         // name: currentCustomUnits.name,
                         name: 'Distance',
-                        value: currentCustomUnits.value,
+                        attributes: currentCustomUnits.attributes,
                         errors: {
                             // <current_microtime>: '<some generic error>',
                         },
@@ -536,7 +536,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnits, values) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
-        customUnit: JSON.stringify(values),
+        customUnits: JSON.stringify(values),
     }, {optimisticData, successData, failureData});
 }
 
