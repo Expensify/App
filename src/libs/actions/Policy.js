@@ -541,17 +541,16 @@ function setCustomUnit(policyID, values) {
  * @param {Object} values The new custom unit values
  */
 function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
+    const customUnitKey = values.name.toLowerCase();
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.name]: {
-                        // customUnitID: values.customUnitID,
-                        customUnitID: '628e77618f113',
-                        // name: values.name,
-                        name: 'Distance',
+                    [customUnitKey]: {
+                        customUnitID: values.customUnitID,
+                        name: values.name,
                         attributes: values.attributes,
                         pendingAction: 'update',
                     },
@@ -566,7 +565,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.name]: {
+                    [customUnitKey]: {
                         pendingAction: null,
                     },
                 },
@@ -580,7 +579,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [currentCustomUnit.name]: {
+                    [customUnitKey]: {
                         customUnitID: currentCustomUnit.customUnitID,
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
@@ -596,7 +595,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
         customUnits: JSON.stringify({
-            [values.name]: values,
+            [customUnitKey]: values,
         }),
     }, {optimisticData, successData, failureData});
 }
