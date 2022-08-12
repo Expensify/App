@@ -81,7 +81,8 @@ When the user is offline:
 - When dismissing the error, the onClose prop will be called, there we need to call an action that either:
   - If the pendingAction was `delete`, it removes the data altogether
   - Otherwise, it would clear the errors and pendingAction properties from the data
-- We also need to show a Red Brick Road (RBR) guiding the user to the error. We need to manually do this for each piece of data using pattern B. Some common components like `MenuItem` already have a prop for it (`brickRoadIndicator`)
+- We also need to show a Red Brick Road (RBR) guiding the user to the error. We need to manually do this for each piece of data using pattern B Optimistic WITH Feedback. Some common components like `MenuItem` already have a prop for it (`brickRoadIndicator`)
+  - A Brick Road is the pattern of guiding members towards places that require their attention by following a series of UI elements that have the same color
 
 # C - Blocking Form UI Pattern
 This pattern greys out the submit button on a form and does not allow the form to be submitted. We also show a "You appear offline" message near the bottom of the screen. Importantly, we _do_ let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
