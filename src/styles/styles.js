@@ -2405,7 +2405,6 @@ const styles = {
         },
         text: {
             color: themeColors.textSupporting,
-            flex: 1,
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
         },
