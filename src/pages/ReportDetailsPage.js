@@ -74,6 +74,7 @@ class ReportDetailsPage extends Component {
 
         // All nonarchived chats should let you see their members
         this.menuItems.push({
+            key: 'members',
             translationKey: 'common.members',
             icon: Expensicons.Users,
             subtitle: props.report.participants.length,
@@ -82,6 +83,7 @@ class ReportDetailsPage extends Component {
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             this.menuItems.push({
+                key: 'settings',
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
                 action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
@@ -90,11 +92,13 @@ class ReportDetailsPage extends Component {
 
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
             this.menuItems.push({
+                key: 'invite',
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
                 action: () => { /* Placeholder for when inviting other users is built in */ },
             },
             {
+                key: 'leaveRoom',
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
                 action: () => { /* Placeholder for when leaving rooms is built in */ },
@@ -156,17 +160,16 @@ class ReportDetailsPage extends Component {
                         </View>
                     </View>
                     {_.map(this.menuItems, (item) => {
-                        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
                         const brickRoadIndicator = (
                             ReportUtils.hasReportNameError(this.props.report)
-                            && item.translationKey === 'common.settings'
+                            && item.key === 'settings'
                         )
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : '';
                         return (
                             <MenuItem
-                                key={keyTitle}
-                                title={keyTitle}
+                                key={item.key}
+                                title={this.props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
                                 onPress={item.action}
