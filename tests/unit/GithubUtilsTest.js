@@ -25,7 +25,7 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n\r\n- [ ] https://github.com/Expensify/App/pull/21\r\n- [x] https://github.com/Expensify/App/pull/22\r\n- [ ] https://github.com/Expensify/App/pull/23\r\n\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/21\r\n- [x] https://github.com/Expensify/App/pull/22\r\n- [ ] https://github.com/Expensify/App/pull/23\r\n\r\n',
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
@@ -362,7 +362,7 @@ describe('GithubUtils', () => {
         ];
 
         // eslint-disable-next-line max-len
-        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
+        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
         const openCheckbox = '- [ ] ';
         const closedCheckbox = '- [x] ';
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';

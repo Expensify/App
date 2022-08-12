@@ -96,7 +96,7 @@ const baseIssueList = [
     'https://github.com/Expensify/App/issues/12',
 ];
 // eslint-disable-next-line max-len
-const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
+const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
@@ -167,10 +167,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                 html_url: 'https://github.com/Expensify/App/issues/29',
                 assignees: [GithubUtils.APPLAUSE_BOT],
                 body: `${baseExpectedOutput()}`
-                    + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                    + `${openCheckbox}${basePRList[5]}`
                     + `${lineBreak}${openCheckbox}${basePRList[6]}`
                     + `${lineBreak}${openCheckbox}${basePRList[7]}`
-                    + `${lineBreak}${deployerVerificationsHeader}`
+                    + `${lineBreakDouble}${deployerVerificationsHeader}`
                     + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                     + `${lineBreak}${openCheckbox}${firebaseVerification}`
                     + `${lineBreakDouble}${ccApplauseLeads}`,
@@ -281,7 +281,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
                     body: `${baseExpectedOutput('1.0.2-2')}`
-                        + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                        + `${openCheckbox}${basePRList[5]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${openCheckbox}${basePRList[7]}`
                         + `${lineBreak}${openCheckbox}${basePRList[8]}`
@@ -354,7 +354,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
                     body: `${baseExpectedOutput('1.0.2-1')}`
-                        + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                        + `${openCheckbox}${basePRList[5]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${openCheckbox}${basePRList[7]}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
