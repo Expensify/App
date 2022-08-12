@@ -5,7 +5,7 @@ const propTypes = {
     /** The URL of the attachment */
     source: PropTypes.string,
 
-    /** Filename in case of attachments, anchor text in case of URLs or emails. */
+    /** Filename for attachments. */
     displayName: PropTypes.string,
 
     /** Any additional styles to apply */
