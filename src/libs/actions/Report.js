@@ -1392,6 +1392,9 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
                 pendingFields: {
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errorFields: {
+                    reportName: null,
+                },
             },
         },
     ];
