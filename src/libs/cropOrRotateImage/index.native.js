@@ -1,4 +1,4 @@
-import RNImageManipulator from '@oguzhnatly/react-native-image-manipulator';
+import RNImageManipulator from 'react-native-image-manipulator';
 import RNFetchBlob from 'react-native-blob-util';
 
 /**

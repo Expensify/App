@@ -462,7 +462,7 @@ PODS:
     - React-Core
   - react-native-flipper (0.146.1):
     - React-Core
-  - react-native-image-manipulator (1.0.5):
+  - react-native-image-manipulator (1.0.6):
     - React
   - react-native-image-picker (4.8.5):
     - React-Core
@@ -684,7 +684,7 @@ DEPENDENCIES:
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-flipper (from `../node_modules/react-native-flipper`)
-  - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
+  - react-native-image-manipulator (from `../node_modules/react-native-image-manipulator`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -825,7 +825,7 @@ EXTERNAL SOURCES:
   react-native-flipper:
     :path: "../node_modules/react-native-flipper"
   react-native-image-manipulator:
-    :path: "../node_modules/@oguzhnatly/react-native-image-manipulator"
+    :path: "../node_modules/react-native-image-manipulator"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
@@ -966,7 +966,7 @@ SPEC CHECKSUMS:
   react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
   react-native-document-picker: 772d04a4bc5c35da9abe27b08ac271420ae3f9ef
   react-native-flipper: 4bfe0a324e663f1ae2f76ad0da75673de6895efe
-  react-native-image-manipulator: db28c0cc09d89e740974c9bb2f13175eb48f1ef2
+  react-native-image-manipulator: 46f80d70ad259ee28e512ad28d0ceddceb437814
   react-native-image-picker: 24a36044140202085113ce99b57bf52c62dc339e
   react-native-netinfo: ebbcd8fbe1a0ce7035e43cd18c5a545dcb93dd08
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
