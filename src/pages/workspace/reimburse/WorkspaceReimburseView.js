@@ -184,7 +184,7 @@ class WorkspaceReimburseView extends React.Component {
                             <OfflineWithFeedback
                                 errors={lodashGet(this.props, 'policy.customUnits.distance.errors')}
                                 pendingAction={lodashGet(this.props, 'policy.customUnits.distance.pendingAction')}
-                                onClose={() => Policy.removeUnitError(this.policyID)}
+                                onClose={() => Policy.removeUnitError(this.props.policyID)}
                             >
                                 <Picker
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
