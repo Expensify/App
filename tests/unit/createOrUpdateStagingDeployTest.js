@@ -99,13 +99,13 @@ const baseIssueList = [
 const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
-const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
+const deployerVerificationsHeader = '**Deployer verifications:**';
 // eslint-disable-next-line max-len
 const timingDashboardVerification = 'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
 // eslint-disable-next-line max-len
 const firebaseVerification = 'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.';
 const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
-const deployBlockerHeader = '\r\n**Deploy Blockers:**';
+const deployBlockerHeader = '**Deploy Blockers:**';
 const lineBreak = '\r\n';
 const lineBreakDouble = '\r\n\r\n';
 
@@ -118,9 +118,9 @@ describe('createOrUpdateStagingDeployCash', () => {
         html_url: 'https://github.com/Expensify/App/issues/29',
         // eslint-disable-next-line max-len
         body: `${baseExpectedOutput('1.0.1-0')}`
-            + `${lineBreak}${closedCheckbox}${basePRList[0]}`
+            + `${closedCheckbox}${basePRList[0]}`
             + `${lineBreak}${closedCheckbox}${basePRList[1]}`
-            + `${lineBreak}${closedCheckbox}${basePRList[2]}`
+            + `${lineBreak}${closedCheckbox}${basePRList[2]}${lineBreak}`
             + `${lineBreakDouble}${deployBlockerHeader}`
             + `${lineBreak}${closedCheckbox}${basePRList[0]}`
             + `${lineBreak}${closedCheckbox}${basePRList[3]}`
@@ -186,14 +186,14 @@ describe('createOrUpdateStagingDeployCash', () => {
             labels: [LABELS.STAGING_DEPLOY_CASH],
             // eslint-disable-next-line max-len
             body: `${baseExpectedOutput()}`
-                + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                + `${openCheckbox}${basePRList[5]}`
                 + `${lineBreak}${closedCheckbox}${basePRList[6]}`
-                + `${lineBreak}${openCheckbox}${basePRList[7]}`
+                + `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}`
                 + `${lineBreakDouble}${deployBlockerHeader}`
                 + `${lineBreak}${openCheckbox}${basePRList[5]}`
                 + `${lineBreak}${openCheckbox}${basePRList[8]}`
-                + `${lineBreak}${closedCheckbox}${basePRList[9]}`
-                + `${lineBreak}${deployerVerificationsHeader}`
+                + `${lineBreak}${closedCheckbox}${basePRList[9]}${lineBreak}`
+                + `${lineBreakDouble}${deployerVerificationsHeader}`
                 + `${lineBreak}${closedCheckbox}${timingDashboardVerification}`
                 + `${lineBreak}${closedCheckbox}${firebaseVerification}`
                 + `${lineBreakDouble}${ccApplauseLeads}`,
@@ -285,14 +285,14 @@ describe('createOrUpdateStagingDeployCash', () => {
                         + `${lineBreak}${closedCheckbox}${basePRList[6]}`
                         + `${lineBreak}${openCheckbox}${basePRList[7]}`
                         + `${lineBreak}${openCheckbox}${basePRList[8]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[9]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[9]}${lineBreak}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${openCheckbox}${basePRList[5]}`
                         + `${lineBreak}${openCheckbox}${basePRList[8]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[9]}`
                         + `${lineBreak}${openCheckbox}${basePRList[10]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[11]}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${basePRList[11]}${lineBreak}`
+                        + `${lineBreakDouble}${deployerVerificationsHeader}`
 
                         // Note: these will be unchecked with a new app version, and that's intentional
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
@@ -356,14 +356,14 @@ describe('createOrUpdateStagingDeployCash', () => {
                     body: `${baseExpectedOutput('1.0.2-1')}`
                         + `${openCheckbox}${basePRList[5]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[7]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${openCheckbox}${basePRList[5]}`
                         + `${lineBreak}${openCheckbox}${basePRList[8]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[9]}`
                         + `${lineBreak}${openCheckbox}${baseIssueList[0]}`
-                        + `${lineBreak}${openCheckbox}${baseIssueList[1]}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreak}${openCheckbox}${baseIssueList[1]}${lineBreak}`
+                        + `${lineBreakDouble}${deployerVerificationsHeader}`
                         + `${lineBreak}${closedCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${closedCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,

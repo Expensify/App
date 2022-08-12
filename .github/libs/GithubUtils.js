@@ -272,30 +272,35 @@ class GithubUtils {
                         issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
                 // Internal QA PR list
                 if (!_.isEmpty(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
-                    issueBody += '\r\n\r\n\r\n**Internal QA:**';
+                    issueBody += '\r\n\r\n\r\n**Internal QA:**\r\n';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` -${assigneeMentions}`;
+                        issueBody += '\r\n';
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
                 // Deploy blockers
                 if (!_.isEmpty(deployBlockers)) {
-                    issueBody += '\r\n\r\n**Deploy Blockers:**';
+                    issueBody += '**Deploy Blockers:**\r\n';
                     _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n- [x] ' : '\r\n- [ ] ';
+                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
+                        issueBody += '\r\n';
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
-                issueBody += '\r\n\r\n**Deployer verifications:**';
+                issueBody += '**Deployer verifications:**';
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
