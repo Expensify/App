@@ -67,8 +67,7 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
-    /** If we need to show a brick road indicator or not. For now only value allowed is 'error' or '',
-     * but we will add 'success' later for manual requests */
+    /** The type of brick road indicator to show. */
     brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
 };
 
