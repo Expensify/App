@@ -472,18 +472,6 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.bankAccountID
- * @param {String} parameters.ownerEmail
- * @returns {Promise}
- */
-function DeleteBankAccount(parameters) {
-    const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -657,7 +645,6 @@ export {
     CreatePolicyRoom,
     RenameReport,
     DeleteLogin,
-    DeleteBankAccount,
     Get,
     GetStatementPDF,
     GetIOUReport,
