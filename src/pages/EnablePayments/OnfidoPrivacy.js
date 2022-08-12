@@ -56,7 +56,7 @@ class OnfidoPrivacy extends React.Component {
         const errors = lodashGet(this.props, 'walletOnfidoData.errors', {});
         let onfidoError = _.isEmpty(errors) ? '' : _.last(_.values(errors));
         const onfidoFixableErrors = lodashGet(this.props, 'walletOnfidoData.fixableErrors', []);
-        onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n ${onfidoFixableErrors.join('\n')}` : '';
+        onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
         return (
             <View style={[styles.mb5, styles.flex1, styles.justifyContentBetween]}>
@@ -92,7 +92,6 @@ class OnfidoPrivacy extends React.Component {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
-                            isMessageHtml
                             isLoading={this.props.walletOnfidoData.loading}
                             buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
                         />
