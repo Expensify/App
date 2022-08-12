@@ -379,7 +379,7 @@ describe('GithubUtils', () => {
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}`
-                + `${lineBreak}${closedCheckbox}${basePRList[2]}`
+                + `${closedCheckbox}${basePRList[2]}`
                 + `${lineBreak}${closedCheckbox}${basePRList[0]}`
                 + `${lineBreak}${closedCheckbox}${basePRList[1]}`
                 + `${lineBreak}${closedCheckbox}${basePRList[5]}`
@@ -391,7 +391,7 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${openCheckbox}${basePRList[2]}`
                         + `${lineBreak}${openCheckbox}${basePRList[0]}`
                         + `${lineBreak}${openCheckbox}${basePRList[1]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[5]}`
@@ -409,7 +409,7 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${openCheckbox}${basePRList[2]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[0]}`
                         + `${lineBreak}${openCheckbox}${basePRList[1]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[5]}`
@@ -443,7 +443,7 @@ describe('GithubUtils', () => {
                         + `${lineBreak}${deployBlockerHeader}`
                         + `${lineBreak}${openCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${openCheckbox}${baseDeployBlockerList[1]}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreakDouble}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}${lineBreak}`
                         + `${lineBreak}${ccApplauseLeads}`,
@@ -459,7 +459,7 @@ describe('GithubUtils', () => {
                         + `${lineBreak}${deployBlockerHeader}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${openCheckbox}${baseDeployBlockerList[1]}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreakDouble}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
@@ -472,7 +472,7 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreak}${closedCheckbox}${basePRList[2]}`
+                        + `${closedCheckbox}${basePRList[2]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[0]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[1]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[5]}`
@@ -480,7 +480,7 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
                         + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[1]}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreakDouble}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
@@ -493,15 +493,15 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${openCheckbox}${basePRList[2]}`
                         + `${lineBreak}${openCheckbox}${basePRList[0]}`
                         + `${lineBreak}${openCheckbox}${basePRList[1]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[5]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreakDouble}${internalQAHeader}`
+                        + `${lineBreak}${internalQAHeader}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreakDouble}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
@@ -514,15 +514,15 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreak}${openCheckbox}${basePRList[2]}`
+                        + `${openCheckbox}${basePRList[2]}`
                         + `${lineBreak}${openCheckbox}${basePRList[0]}`
                         + `${lineBreak}${openCheckbox}${basePRList[1]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[5]}`
                         + `${lineBreak}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreakDouble}${internalQAHeader}`
+                        + `${lineBreak}${internalQAHeader}`
                         + `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
                         + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
-                        + `${lineBreak}${deployerVerificationsHeader}`
+                        + `${lineBreakDouble}${deployerVerificationsHeader}`
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,

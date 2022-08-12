@@ -169,7 +169,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 body: `${baseExpectedOutput()}`
                     + `${openCheckbox}${basePRList[5]}`
                     + `${lineBreak}${openCheckbox}${basePRList[6]}`
-                    + `${lineBreak}${openCheckbox}${basePRList[7]}`
+                    + `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}`
                     + `${lineBreakDouble}${deployerVerificationsHeader}`
                     + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                     + `${lineBreak}${openCheckbox}${firebaseVerification}`
