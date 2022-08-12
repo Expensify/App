@@ -1,13 +1,8 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
-import * as ReimbursementAccount from './ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../Growl';
 import * as Localize from '../Localize';
-import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -70,7 +65,7 @@ function addPersonalBankAccount(account, password) {
     const onyxData = {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: true,
@@ -80,18 +75,18 @@ function addPersonalBankAccount(account, password) {
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: false,
                     error: '',
-                    success: Localize.translateLocal('paymentsPage.addBankAccountSuccess'),
+                    shouldShowSuccess: true,
                 },
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: false,
@@ -104,36 +99,23 @@ function addPersonalBankAccount(account, password) {
     API.write(commandName, parameters, onyxData);
 }
 
-/**
- * Deletes a bank account
- *
- * @param {Number} bankAccountID
- */
-function deleteBankAccount(bankAccountID) {
-    const reimbursementBankAccountId = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-
-    // Early return as DeleteBankAccount API is called inside `resetFreePlanBankAccount`
-    if (reimbursementBankAccountId === bankAccountID) {
-        ReimbursementAccount.resetFreePlanBankAccount();
-        return;
-    }
-    DeprecatedAPI.DeleteBankAccount({
+function deletePaymentBankAccount(bankAccountID) {
+    API.write('DeletePaymentBankAccount', {
         bankAccountID,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            ReimbursementAccount.deleteFromBankAccountList(bankAccountID);
-            Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
-        } else {
-            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-        }
-    }).catch(() => {
-        Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
     });
 }
 
 export {
     addPersonalBankAccount,
-    deleteBankAccount,
+    deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
 };

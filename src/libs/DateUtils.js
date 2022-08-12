@@ -162,6 +162,15 @@ function setTimezoneUpdated() {
 }
 
 /**
+ * Get the UNIX timestamp in microseconds, with millisecond precision.
+ *
+ * @returns {Number}
+ */
+function getMicroseconds() {
+    return Date.now() * CONST.MICROSECONDS_PER_MS;
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -173,6 +182,7 @@ const DateUtils = {
     getCurrentTimezone,
     canUpdateTimezone,
     setTimezoneUpdated,
+    getMicroseconds,
 };
 
 export default DateUtils;

@@ -3,6 +3,7 @@ const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
+const {paginateRest} = require('@octokit/plugin-paginate-rest');
 
 const GITHUB_OWNER = 'Expensify';
 const APP_REPO = 'App';
@@ -27,19 +28,16 @@ const POLL_RATE = 10000;
 
 class GithubUtils {
     /**
-     * Either give an existing instance of Octokit or create a new one
+     * Initialize internal octokit
      *
-     * @readonly
-     * @static
-     * @memberof GithubUtils
+     * @private
      */
-    static get octokit() {
-        if (this.octokitInternal) {
-            return this.octokitInternal;
-        }
-        const OctokitThrottled = GitHub.plugin(throttling);
+    static initOctokit() {
+        const Octokit = GitHub.plugin(throttling, paginateRest);
         const token = core.getInput('GITHUB_TOKEN', {required: true});
-        this.octokitInternal = new OctokitThrottled(getOctokitOptions(token, {
+
+        // Save a copy of octokit used in this class
+        this.internalOctokit = new Octokit(getOctokitOptions(token, {
             throttle: {
                 onRateLimit: (retryAfter, options) => {
                     console.warn(
@@ -60,7 +58,36 @@ class GithubUtils {
                 },
             },
         }));
-        return this.octokitInternal;
+    }
+
+    /**
+     * Either give an existing instance of Octokit rest or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get octokit() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.rest;
+        }
+        this.initOctokit();
+        return this.internalOctokit.rest;
+    }
+
+    /**
+     * Either give an existing instance of Octokit paginate or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get paginate() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.paginate;
+        }
+        this.initOctokit();
+        return this.internalOctokit.paginate;
     }
 
     /**
@@ -325,7 +352,7 @@ class GithubUtils {
      */
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
-        return this.octokit.paginate(this.octokit.pulls.list, {
+        return this.paginate(this.octokit.pulls.list, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             state: 'all',

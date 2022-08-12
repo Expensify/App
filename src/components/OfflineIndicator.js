@@ -17,11 +17,8 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Additional styles to add after local styles. */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    /** Optional styles for container element that will override the default styling for the offline indicator */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
@@ -30,7 +27,14 @@ const propTypes = {
 };
 
 const defaultProps = {
-    style: [],
+    containerStyles: [],
+};
+
+const setStyles = (containerStyles, isSmallScreenWidth) => {
+    if (containerStyles.length) {
+        return containerStyles;
+    }
+    return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
 };
 
 const OfflineIndicator = (props) => {
@@ -40,18 +44,18 @@ const OfflineIndicator = (props) => {
 
     return (
         <View style={[
-            props.isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator,
+            setStyles(props.containerStyles, props.isSmallScreenWidth),
             styles.flexRow,
             styles.alignItemsCenter,
             ...StyleUtils.parseStyleAsArray(props.style),
         ]}
         >
             <Icon
-                src={Expensicons.Offline}
-                width={variables.iconSizeExtraSmall}
-                height={variables.iconSizeExtraSmall}
+                src={Expensicons.OfflineCloud}
+                width={variables.iconSizeSmall}
+                height={variables.iconSizeSmall}
             />
-            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>
                 {props.translate('common.youAppearToBeOffline')}
             </Text>
         </View>

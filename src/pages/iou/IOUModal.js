@@ -148,24 +148,27 @@ class IOUModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        const wasCreatingIOUTransaction = lodashGet(prevProps, 'iou.creatingIOUTransaction');
+        const iouError = lodashGet(this.props, 'iou.error');
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             PersonalDetails.openIOUModalPage();
         }
 
         // Successfully close the modal if transaction creation has ended and there is no error
-        if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
+        if (wasCreatingIOUTransaction && !lodashGet(this.props, 'iou.creatingIOUTransaction') && !iouError) {
             Navigation.dismissModal();
         }
 
         // If transaction fails, handling it here
-        if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {
+        if (wasCreatingIOUTransaction && iouError === true) {
             // Navigating to Enter Amount Page
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({currentStepIndex: 0});
         }
 
-        if (prevProps.iou.selectedCurrencyCode !== this.props.iou.selectedCurrencyCode) {
-            IOU.setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
+        const currentSelectedCurrencyCode = lodashGet(this.props, 'iou.selectedCurrencyCode');
+        if (lodashGet(prevProps, 'iou.selectedCurrencyCode') !== currentSelectedCurrencyCode) {
+            IOU.setIOUSelectedCurrency(currentSelectedCurrencyCode);
         }
     }
 

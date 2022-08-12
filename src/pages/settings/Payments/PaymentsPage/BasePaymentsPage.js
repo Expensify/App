@@ -28,7 +28,6 @@ import ConfirmPopover from '../../../../components/ConfirmPopover';
 import AddPaymentMethodMenu from '../../../../components/AddPaymentMethodMenu';
 import CONST from '../../../../CONST';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
@@ -200,7 +199,7 @@ class BasePaymentsPage extends React.Component {
     }
 
     fetchData() {
-        PaymentMethods.getPaymentMethods();
+        PaymentMethods.openPaymentsPage();
     }
 
     /**
@@ -247,9 +246,9 @@ class BasePaymentsPage extends React.Component {
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
             PaymentMethods.deletePayPalMe();
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
+            BankAccounts.deletePaymentBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.deleteDebitCard(this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.deletePaymentCard(this.state.selectedPaymentMethod.fundID);
         }
     }
 
@@ -291,6 +290,7 @@ class BasePaymentsPage extends React.Component {
                                             icon={Expensicons.Transfer}
                                             onPress={triggerKYCFlow}
                                             shouldShowRightIcon
+                                            disabled={this.props.network.isOffline}
                                         />
                                     )}
                                 </KYCWall>
@@ -432,19 +432,6 @@ class BasePaymentsPage extends React.Component {
                     }}
                     shouldShowCancelButton
                     danger
-                />
-                <ConfirmModal
-                    title={this.props.translate('paymentsPage.allSet')}
-                    onConfirm={PaymentMethods.dismissWalletConfirmModal}
-                    isVisible={this.props.walletTransfer.shouldShowConfirmModal}
-                    prompt={this.props.translate('paymentsPage.transferConfirmText', {
-                        amount: this.props.numberFormat(
-                            this.props.walletTransfer.transferAmount / 100,
-                            {style: 'currency', currency: 'USD'},
-                        ),
-                    })}
-                    confirmText={this.props.translate('paymentsPage.gotIt')}
-                    shouldShowCancelButton={false}
                 />
             </ScreenWrapper>
         );

@@ -95,16 +95,16 @@ describe('actions/Report', () => {
                 clientID = resultAction.sequenceNumber;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction.isLoading).toEqual(true);
+                expect(resultAction.pendingAction).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
                 const actionWithoutLoading = {...resultAction};
-                delete actionWithoutLoading.isLoading;
+                delete actionWithoutLoading.pendingAction;
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: 'merge',
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
@@ -116,7 +116,7 @@ describe('actions/Report', () => {
                         },
                     },
                     {
-                        onyxMethod: 'merge',
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             [clientID]: null,
@@ -137,7 +137,7 @@ describe('actions/Report', () => {
                 const resultAction = reportActions[ACTION_ID];
 
                 // Verify that our action is no longer in the loading state
-                expect(resultAction.isLoading).not.toBeDefined();
+                expect(resultAction.pendingAction).not.toBeDefined();
             });
     });
 
@@ -204,7 +204,6 @@ describe('actions/Report', () => {
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         const REPORT_ID = 1;
-
         let report;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
