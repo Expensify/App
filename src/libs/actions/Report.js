@@ -1197,6 +1197,7 @@ function deleteReportComment(reportID, reportAction) {
                 },
             },
         },
+
         // {
         //     onyxMethod: CONST.ONYX.METHOD.MERGE,
         //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
