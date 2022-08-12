@@ -199,15 +199,15 @@ function hasReportDraftComment(report, reportsWithDraft = {}) {
  * @returns {String}
  */
 function getBrickRoadIndicatorStatusForReport(report, reportActions) {
-    const errors = lodashGet(report, 'errors', {});
-    const errorFields = lodashGet(report, 'errorFields', {});
+    const reportErrors = lodashGet(report, 'errors', {});
+    const reportErrorFields = lodashGet(report, 'errorFields', {});
     const reportID = lodashGet(report, 'reportID');
     const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
 
-    const hasFieldErrors = _.some(errorFields, fieldErrors => !_.isEmpty(fieldErrors));
+    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
     const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
 
-    if (_.isEmpty(errors) && !hasFieldErrors && !hasReportActionErrors) {
+    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
         return '';
     }
     return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
