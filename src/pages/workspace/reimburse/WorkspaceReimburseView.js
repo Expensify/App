@@ -55,10 +55,10 @@ class WorkspaceReimburseView extends React.Component {
         this.state = {
             unitID: lodashGet(props, 'policy.customUnits.distance.customUnitID', ''),
             unitName: lodashGet(props, 'policy.customUnits.distance.name', ''),
-            unitValue: lodashGet(props, 'policy.customUnits.distance.attributes.value', 'mi'),
-            rateID: lodashGet(props, 'policy.customUnits.rate.id', ''),
-            rateName: lodashGet(props, 'policy.customUnits.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnits.rate.value', 0) / 100),
+            unitValue: lodashGet(props, 'policy.customUnits.distance.attributes.unit', 'mi'),
+            rateID: lodashGet(props, 'policy.customUnits.distance.rate.id', ''),
+            rateName: lodashGet(props, 'policy.customUnits.distance.rate.name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnits.distance.rate.value', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
