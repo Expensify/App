@@ -15,12 +15,16 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
+    /** handles press events like toggling attachment arrows natively */
+    onPress: PropTypes.func,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     sourceURL: '',
     style: {},
+    onPress: () => {},
 };
 
 /**
@@ -31,7 +35,7 @@ const defaultProps = {
  */
 
 const PDFView = props => (
-    <TouchableWithoutFeedback style={[styles.flex1, props.style]}>
+    <TouchableWithoutFeedback onPress={props.onPress} style={[styles.flex1, props.style]}>
         <PDF
             activityIndicator={<FullScreenLoadingIndicator />}
             source={{uri: props.sourceURL}}

@@ -28,6 +28,9 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
+    /** Function for native pdf to handle toggling arrows */
+    onPDFPress: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +40,7 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
+    onPDFPress: () => {},
 };
 
 const AttachmentView = (props) => {
@@ -46,6 +50,7 @@ const AttachmentView = (props) => {
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         return (
             <PDFView
+                onPress={props.onPDFPress}
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}
             />

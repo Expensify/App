@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'lodash';
-import Str from 'expensify-common/lib/str';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
@@ -39,6 +38,7 @@ class AttachmentCarousel extends React.Component {
         super(props);
 
         this.canUseTouchScreen = canUseTouchScreen();
+        this.onPressShowArrow = this.onPressShowArrow.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.handleArrowPress = this.handleArrowPress.bind(this);
         this.onShowArrow = this.onShowArrow.bind(this);
@@ -98,6 +98,16 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
+     * Helper to provide a check for touchscreens
+     */
+    onPressShowArrow() {
+        if (!this.canUseTouchScreen) {
+            return;
+        }
+        this.onShowArrow(!this.state.showArrows);
+    }
+
+    /**
      * Helps to navigate between next/previous attachments
      * @param {Object} attachmentItem
      * @returns {Object}
@@ -154,7 +164,7 @@ class AttachmentCarousel extends React.Component {
                 onMouseEnter={() => this.onShowArrow(true)}
                 onMouseLeave={() => this.onShowArrow(false)}
             >
-                {(this.state.showArrows || Str.isPDF(this.state.sourceURL)) && (
+                {this.state.showArrows && (
                     <>
                         <Button
                             medium
@@ -183,7 +193,7 @@ class AttachmentCarousel extends React.Component {
                     onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.showArrows)}
                     onSwipeHorizontal={this.cycleThroughAttachments}
                 >
-                    <AttachmentView sourceURL={this.state.sourceURL} file={this.state.file} />
+                    <AttachmentView onPDFPress={this.onPressShowArrow} sourceURL={this.state.sourceURL} file={this.state.file} />
                 </SwipeableView>
             </View>
 
