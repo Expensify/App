@@ -8,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
