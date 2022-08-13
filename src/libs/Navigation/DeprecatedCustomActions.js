@@ -3,10 +3,8 @@ import {
     CommonActions, StackActions, DrawerActions, getStateFromPath,
 } from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import {Dimensions} from 'react-native';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
-import variables from '../../styles/variables';
 
 /**
  * @returns {Object}
@@ -18,6 +16,7 @@ function getActiveState() {
 
 /**
  * Go back to the Main Drawer
+ * @deprecated
  * @param {Object} navigationRef
  */
 function navigateBackToRootDrawer() {
@@ -66,14 +65,12 @@ function getScreenNameFromState(state) {
  *
  * More context here: https://github.com/react-navigation/react-navigation/issues/9744
  *
+ * @deprecated
  * @param {String} route
  * @returns {Function}
  */
 function pushDrawerRoute(route) {
     return (currentState) => {
-        const initialDimensions = Dimensions.get('window');
-        const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-
         // Parse the state, name, and params from the new route we want to navigate to.
         const newStateFromRoute = getStateFromPath(route, linkingConfig.config);
         const newScreenName = getScreenNameFromState(newStateFromRoute);
@@ -108,17 +105,12 @@ function pushDrawerRoute(route) {
         // Force drawer to close
         // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
         const hasDrawerhistory = _.find(state.history || [], h => h.type === 'drawer');
-        if (isSmallScreenWidth && (!hasDrawerhistory || currentState.type !== 'drawer')) {
+        if (!hasDrawerhistory || currentState.type !== 'drawer') {
             history.push({
                 type: 'drawer',
 
                 // If current state is not from drawer navigator then always use closed status to close the drawer
                 status: currentState.type !== 'drawer' || currentState.default === 'open' ? 'closed' : 'open',
-            });
-        } else {
-            history.push({
-                type: 'route',
-                name: newScreenName,
             });
         }
 

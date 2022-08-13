@@ -32,7 +32,6 @@ import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
-import OfflineIndicator from '../../../../components/OfflineIndicator';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -200,7 +199,7 @@ class BasePaymentsPage extends React.Component {
     }
 
     fetchData() {
-        PaymentMethods.getPaymentMethods();
+        PaymentMethods.openPaymentsPage();
     }
 
     /**
@@ -247,9 +246,9 @@ class BasePaymentsPage extends React.Component {
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
             PaymentMethods.deletePayPalMe();
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
+            BankAccounts.deletePaymentBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.deleteDebitCard(this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.deletePaymentCard(this.state.selectedPaymentMethod.fundID);
         }
     }
 
@@ -434,7 +433,6 @@ class BasePaymentsPage extends React.Component {
                     shouldShowCancelButton
                     danger
                 />
-                <OfflineIndicator containerStyles={[styles.ml5, styles.mv3]} />
             </ScreenWrapper>
         );
     }
