@@ -2031,13 +2031,13 @@ const styles = {
     },
 
     leftAttachmentArrow: {
-        zIndex: 22,
+        zIndex: 23,
         position: 'absolute',
         left: 32,
     },
 
     rightAttachmentArrow: {
-        zIndex: 22,
+        zIndex: 23,
         position: 'absolute',
         right: 32,
     },

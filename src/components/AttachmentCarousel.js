@@ -38,48 +38,30 @@ class AttachmentCarousel extends React.Component {
         super(props);
 
         this.canUseTouchScreen = canUseTouchScreen();
+        this.makeAndSetArrowState = this.makeAndSetArrowState.bind(this);
         this.onPressShowArrow = this.onPressShowArrow.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.handleArrowPress = this.handleArrowPress.bind(this);
         this.onShowArrow = this.onShowArrow.bind(this);
 
-        let page;
-        const actionsArr = _.values(props.reportActions);
-        const attachments = _.reduce(actionsArr, (attachmentsAccumulator, reportAction) => {
-            if (reportAction.originalMessage && reportAction.originalMessage.html) {
-                const matchesIt = reportAction.originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
-                const matches = [...matchesIt];
-                if (matches.length === 2) {
-                    const [src, name] = matches;
-                    if (src[2].includes(props.sourceURL)) {
-                        page = attachmentsAccumulator.length;
-                    }
-                    const url = src[2].replace(
-                        CONFIG.EXPENSIFY.EXPENSIFY_URL,
-                        CONFIG.EXPENSIFY.URL_API_ROOT,
-                    );
-                    attachmentsAccumulator.push({sourceURL: url, file: {name: name[2]}});
-                }
-            }
-            return attachmentsAccumulator;
-        }, []);
-        const {sourceURL, file} = this.getAttachment(attachments[page]);
-        this.state = {
-            page,
-            attachments,
-            sourceURL,
-            file,
-            showArrows: this.canUseTouchScreen,
-            isBackDisabled: page === 0,
-            isForwardDisabled: page === attachments.length - 1,
-        };
+        this.state = {showArrows: this.canUseTouchScreen};
     }
 
     componentDidMount() {
+        this.makeAndSetArrowState();
         if (this.canUseTouchScreen) {
             return;
         }
         document.addEventListener('keydown', this.handleArrowPress);
+    }
+
+    componentDidUpdate(prevProps) {
+        const prevReportSize = _.size(prevProps.reportActions);
+        const currReportSize = _.size(this.props.reportActions);
+        if (prevReportSize === currReportSize) {
+            return;
+        }
+        this.makeAndSetArrowState();
     }
 
     componentWillUnmount() {
@@ -122,6 +104,42 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
+     * this will be called to set up an attachment array and finding an index
+     */
+    makeAndSetArrowState() {
+        let page;
+        const actionsArr = _.values(this.props.reportActions);
+        const attachments = _.reduce(actionsArr, (attachmentsAccumulator, reportAction) => {
+            if (reportAction.originalMessage && reportAction.originalMessage.html) {
+                const matchesIt = reportAction.originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
+                const matches = [...matchesIt];
+                if (matches.length === 2) {
+                    const [src, name] = matches;
+                    if ((this.state.sourceURL && src[2].includes(this.state.sourceURL))
+                        || (!this.state.sourceURL && src[2].includes(this.props.sourceURL))) {
+                        page = attachmentsAccumulator.length;
+                    }
+                    const url = src[2].replace(
+                        CONFIG.EXPENSIFY.EXPENSIFY_URL,
+                        CONFIG.EXPENSIFY.URL_API_ROOT,
+                    );
+                    attachmentsAccumulator.push({sourceURL: url, file: {name: name[2]}});
+                }
+            }
+            return attachmentsAccumulator;
+        }, []);
+        const {sourceURL, file} = this.getAttachment(attachments[page]);
+        this.setState({
+            page,
+            attachments,
+            sourceURL,
+            file,
+            isBackDisabled: page === 0,
+            isForwardDisabled: page === attachments.length - 1,
+        });
+    }
+
+    /**
      * increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
     */
@@ -158,6 +176,10 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
+        if (!this.state.sourceURL) {
+            return null;
+        }
+
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer]}
@@ -186,15 +208,18 @@ class AttachmentCarousel extends React.Component {
                         />
                     </>
                 )}
+
                 <SwipeableView
                     isAnimated
+                    styles={[styles.attachmentModalArrowsContainer]}
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
                     onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.showArrows)}
                     onSwipeHorizontal={this.cycleThroughAttachments}
                 >
-                    <AttachmentView onPDFPress={this.onPressShowArrow} sourceURL={this.state.sourceURL} file={this.state.file} />
+                    <AttachmentView onPDFPress={() => this.onShowArrow(!this.state.showArrows)} sourceURL={this.state.sourceURL} file={this.state.file} />
                 </SwipeableView>
+
             </View>
 
         );
@@ -207,6 +232,10 @@ AttachmentCarousel.defaultProps = defaultProps;
 export default withOnyx({
     reportActions: {
         key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
-        canEvict: true,
+        canEvict: false,
+    },
+    isLoadingInitialReportActions: {
+        key: ({reportId}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportId}`,
+        initWithStoredValues: false,
     },
 })(AttachmentCarousel);
