@@ -30,6 +30,9 @@ const ActivateStep = props => (
             onBackButtonPress={() => Navigation.goBack()}
         />
         <View style={[styles.mh5, styles.flex1]}>
+            {props.userWallet.shouldShowWalletActivationSuccess && (
+                <Text>TODO</Text>
+            )}
             {props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && (
                 <Text>{props.translate('activateStep.activated')}</Text>
             )}
