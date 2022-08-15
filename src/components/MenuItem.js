@@ -124,41 +124,28 @@ const MenuItem = (props) => {
                                 </Text>
                             )}
                         </View>
-                    </View>
-                    <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]} />}
-                        {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                        {(props.subtitle || props.subtitle === 0) && (
-                            <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, props.style]}
-                                >
-                                    {props.subtitle}
-                                </Text>
-                            </View>
-                        )}
-                        {props.brickRoadIndicator && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
-                                />
-                            </View>
-                        )}
-                        {props.shouldShowRightIcon && (
-                            <View style={styles.popoverMenuIcon}>
-                                <Icon
-                                    src={props.iconRight}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
-                                />
-                            </View>
-                        )}
-                        {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
-                    </View>
-                </>
-            )}
+                    {Boolean(props.brickRoadIndicator) && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Expensicons.DotIndicator}
+                                fill={props.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? colors.red : colors.green}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                            />
+                        </View>
+                    )}
+                    {props.shouldShowRightIcon && (
+                        <View style={styles.popoverMenuIcon}>
+                            <Icon
+                                src={props.iconRight}
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
+                            />
+                        </View>
+                    )}
+                    {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
+                </View>
+            </>
+        )}
         </Pressable>
     );
 };
