@@ -1378,6 +1378,8 @@ function createPolicyRoom(policyID, reportName, visibility) {
 
 /**
  * @param {Object} policyRoomReport
+ * @param {Number} policyRoomReport.reportID
+ * @param {String} policyRoomReport.reportName
  * @param {String} policyRoomName The updated name for the policy room
  */
 function updatePolicyRoomName(policyRoomReport, policyRoomName) {
