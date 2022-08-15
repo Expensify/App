@@ -505,7 +505,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
                 customUnits: {
                     [customUnitKey]: {
                         pendingAction: null,
-                        // errors: null,
+                        errors: null,
                     },
                 },
             },
