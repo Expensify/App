@@ -175,7 +175,7 @@ class WorkspaceReimburseView extends React.Component {
                         pendingAction={lodashGet(this.props, 'policy.customUnits.distance.pendingAction')}
                         onClose={() => Policy.removeUnitError(this.props.policyID)}
                     >
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
                             <View style={[styles.rateCol]}>
                                 <TextInput
                                     label={this.props.translate('workspace.reimburse.trackDistanceRate')}
