@@ -11,7 +11,7 @@ import Section from '../../../components/Section';
 import Button from '../../../components/Button';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import navigateToBankAccountRoute from '../WorkSpaceUtils';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -31,7 +31,7 @@ const WorkspaceTravelNoVBAView = props => (
             </View>
             <Button
                 text={props.translate('workspace.common.bankAccount')}
-                onPress={() => navigateToBankAccountRoute(props.reimbursementAccount, props.policyID)}
+                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.reimbursementAccount, props.policyID)}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
                 iconStyles={[styles.mr5]}

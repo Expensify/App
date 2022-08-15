@@ -9,7 +9,7 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import Section from '../../../components/Section';
 import Button from '../../../components/Button';
-import navigateToBankAccountRoute from '../WorkSpaceUtils';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -37,7 +37,7 @@ const WorkspaceCardNoVBAView = props => (
         />
         <Button
             text={props.translate('workspace.common.bankAccount')}
-            onPress={() => navigateToBankAccountRoute(props.reimbursementAccount, props.policyID)}
+            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.reimbursementAccount, props.policyID)}
             icon={Expensicons.Bank}
             style={[styles.mt6]}
             iconStyles={[styles.mr5]}

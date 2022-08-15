@@ -20,7 +20,7 @@ import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
-import navigateToBankAccountRoute from '../WorkSpaceUtils';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -200,7 +200,7 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                         <Button
                             text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => navigateToBankAccountRoute(this.props.reimbursementAccount, this.props.policyID)}
+                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.reimbursementAccount, this.props.policyID)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
                             iconStyles={[styles.mr5]}

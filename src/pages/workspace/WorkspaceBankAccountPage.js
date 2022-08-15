@@ -50,10 +50,10 @@ class WorkspaceBankAccountPage extends React.Component {
     }
 
     componentDidMount() {
-
-        if (!this.getShouldShowPage()) {
-            this.navigateToBankAccountRoute();
+        if (this.getShouldShowPage()) {
+            return;
         }
+        this.navigateToBankAccountRoute();
     }
 
     componentWillUnmount() {
