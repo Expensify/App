@@ -22,12 +22,19 @@ const propTypes = {
 
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
+
+    /** The list of this user's policies (coming from Onyx) */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The ID of the policy */
+        ID: PropTypes.string,
+    })),
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
+    policies: {},
 };
 
 const AvatarWithIndicator = (props) => {
