@@ -27,23 +27,18 @@ const propTypes = {
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
-    /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
-
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** The user's wallet (coming from Onyx) */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    /** The list of this user's policies (coming from Onyx) */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The ID of the policy */
+        ID: PropTypes.string,
+    })),
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
-    bankAccountList: {},
-    cardList: {},
-    userWallet: {},
+    policies: {},
 };
 
 const AvatarWithIndicator = (props) => {
