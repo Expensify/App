@@ -537,7 +537,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
                         errors: {
-                            // <current_microtime>: '<some generic error>',
+                            [Date.now()]: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
                         },
                     },
                 },
