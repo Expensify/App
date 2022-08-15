@@ -475,34 +475,6 @@ function hideWorkspaceAlertMessage(policyID) {
 
 /**
  * @param {String} policyID
- * @param {Object} values
- */
-function setCustomUnit(policyID, values) {
-    DeprecatedAPI.Policy_CustomUnit_Update({
-        policyID: policyID.toString(),
-        customUnit: JSON.stringify(values),
-        lastModified: null,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {
-                customUnit: {
-                    id: values.customUnitID,
-                    name: values.name,
-                    value: values.attributes.unit,
-                },
-            });
-        }).catch(() => {
-            // Show the user feedback
-            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-        });
-}
-
-/**
- * @param {String} policyID
  * @param {Object} currentCustomUnit
  * @param {Object} values The new custom unit values
  */
@@ -685,7 +657,6 @@ export {
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
-    setCustomUnit,
     updateWorkspaceCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
