@@ -56,11 +56,6 @@ class WorkspaceBankAccountPage extends React.Component {
         this.navigateToBankAccountRoute();
     }
 
-    componentWillUnmount() {
-        if (!this.unsubscribe) {
-            return;
-        }
-
     }
 
     /**
