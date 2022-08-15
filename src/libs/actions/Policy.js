@@ -455,6 +455,18 @@ function removeUnitError(policyID) {
 }
 
 /**
+ * Checks if we have any errors stored within the policy custom units.
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function hasCustomUnitsError(policy) {
+    if (!policy || !policy.customUnits || !policy.customUnits.distance || !policy.customUnits.distance.errors) {
+        return false;
+    }
+    return !_.isEmpty(policy.customUnits.distance.errors);
+}
+
+/**
  * @param {String} policyID
  */
 function hideWorkspaceAlertMessage(policyID) {
@@ -521,7 +533,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
                 customUnits: {
                     [customUnitKey]: {
                         pendingAction: null,
-                        errors: null,
+                        // errors: null,
                     },
                 },
             },
@@ -668,6 +680,7 @@ export {
     update,
     setWorkspaceErrors,
     removeUnitError,
+    hasCustomUnitsError,
     hideWorkspaceAlertMessage,
     deletePolicy,
     createAndNavigate,

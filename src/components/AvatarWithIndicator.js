@@ -39,6 +39,9 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
+    const hasCustomUnitsError = _.some(props.policies, policy => Policy.hasCustomUnitsError(policy));
+    const shouldShowIndicator = hasPolicyMemberError || hasCustomUnitsError;
+
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -47,7 +50,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {hasPolicyMemberError && (
+                {shouldShowIndicator && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -62,5 +65,8 @@ AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 export default withOnyx({
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(AvatarWithIndicator);
