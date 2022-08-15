@@ -146,8 +146,9 @@ const MenuItem = (props) => {
                 </View>
             </>
         )}
-    </Pressable>
-);
+        </Pressable>
+    );
+};
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
