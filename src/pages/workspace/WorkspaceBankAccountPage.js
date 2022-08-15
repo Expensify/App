@@ -56,8 +56,6 @@ class WorkspaceBankAccountPage extends React.Component {
         this.navigateToBankAccountRoute();
     }
 
-    }
-
     /**
      * If we have an open bank account or no bank account at all then we will immediately redirect the user to /bank-account to display the next step
      *
