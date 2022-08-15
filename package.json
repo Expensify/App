@@ -115,7 +115,7 @@
     "urbanairship-react-native": "^14.3.1"
   },
   "devDependencies": {
-    "@actions/core": "^1.2.6",
+    "@actions/core": "^1.9.1",
     "@actions/github": "5.0.3",
     "@babel/core": "^7.11.1",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
