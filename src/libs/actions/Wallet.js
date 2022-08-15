@@ -189,7 +189,7 @@ function updatePersonalDetails(personalDetails) {
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                 value: {
                     isLoading: true,
-                    error: '',
+                    errors: [],
                 },
             },
         ],
@@ -199,7 +199,6 @@ function updatePersonalDetails(personalDetails) {
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                 value: {
                     isLoading: false,
-                    error: '',
                 },
             },
         ],
