@@ -1,9 +1,9 @@
 name: Update Protected Branch
-description: Update a protected branch
+description: Create, approve, and merge a pull request against a protected branch
 
 inputs:
   TARGET_BRANCH:
-    description: The target branch to update.
+    description: The target branch to update. This becomes the base branch of the pull request.
     required: true
   SOURCE_BRANCH:
     description: If updating main, you must also provide a head branch to update main with.
@@ -23,7 +23,7 @@ runs:
       if: ${{ !contains(fromJSON('["main", "staging", "production"]'), inputs.TARGET_BRANCH) }}
       shell: bash
       run: |
-        echo "Target branch must be one of ['main', 'staging', 'production']"
+        echo "Target branch must be one of ['main', 'staging', 'production]"
         exit 1
 
     # If updating main, SOURCE_BRANCH must not be empty
@@ -69,9 +69,21 @@ runs:
       shell: bash
       run: echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
+    - name: Create temporary branch to resolve conflicts
+      if: ${{ contains(fromJSON('["staging", "production"]'), inputs.TARGET_BRANCH) }}
+      shell: bash
+      run: |
+        git checkout ${{ inputs.TARGET_BRANCH }}
+        BRANCH_NAME=update-${{ inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
+        git checkout -b "$BRANCH_NAME"
+        git merge -Xtheirs ${{ env.SOURCE_BRANCH }} || {
+          git diff --name-only --diff-filter=U | xargs git rm;
+          git -c core.editor=true merge --continue;
+        }
+        git push --set-upstream origin "$BRANCH_NAME"
+
     - name: Create Pull Request
       id: createPullRequest
-      if: ${{ inputs.TARGET_BRANCH == 'main' }}
       shell: bash
       run: |
         gh pr create \
@@ -99,14 +111,12 @@ runs:
       run: exit 1
 
     - name: Auto-approve the PR
-      if: ${{ inputs.TARGET_BRANCH == 'main' }}
       shell: bash
       run: gh pr review --approve
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
     - name: Check if pull request is mergeable
-      if: ${{ inputs.TARGET_BRANCH == 'main' }}
       id: isPullRequestMergeable
       uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
       with:
@@ -114,7 +124,7 @@ runs:
         PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
 
     - name: Leave comment if PR is not mergeable
-      if: ${{ inputs.TARGET_BRANCH == 'main' && !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+      if: ${{ !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
       shell: bash
       run: |
         gh pr comment --body \
@@ -124,24 +134,12 @@ runs:
         GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
 
     - name: Fail workflow if PR is not mergeable
-      if: ${{ inputs.TARGET_BRANCH == 'main' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+      if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
       shell: bash
       run: exit 1
 
     - name: Auto-merge the PR
-      if: ${{ inputs.TARGET_BRANCH == 'main' }}
       shell: bash
       run: gh pr merge ${{ steps.createPullRequest.outputs.PR_NUMBER }} --merge --delete-branch
-      env:
-        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
-
-    - name: Delete staging/production and replace it with contents of main/staging
-      if: ${{ inputs.TARGET_BRANCH != 'main' }}
-      shell: bash
-      run: |
-        git checkout ${{ env.SOURCE_BRANCH }}
-        git branch -D ${{ inputs.TARGET_BRANCH }}
-        git checkout -b ${{ inputs.TARGET_BRANCH }}
-        git push --force origin ${{ inputs.TARGET_BRANCH }}
       env:
         GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
