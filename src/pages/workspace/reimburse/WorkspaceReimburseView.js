@@ -170,34 +170,34 @@ class WorkspaceReimburseView extends React.Component {
                     <View style={[styles.mv4]}>
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <View style={[styles.rateCol]}>
-                            <TextInput
-                                label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                placeholder={this.state.outputCurrency}
-                                onChangeText={value => this.setRate(value)}
-                                value={this.state.rateValue}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                onKeyPress={this.debounceUpdateOnCursorMove}
-                            />
-                        </View>
-                        <View style={[styles.unitCol]}>
-                            <OfflineWithFeedback
-                                errors={lodashGet(this.props, 'policy.customUnits.distance.errors')}
-                                pendingAction={lodashGet(this.props, 'policy.customUnits.distance.pendingAction')}
-                                onClose={() => Policy.removeUnitError(this.props.policyID)}
-                            >
+                    <OfflineWithFeedback
+                        errors={lodashGet(this.props, 'policy.customUnits.distance.errors')}
+                        pendingAction={lodashGet(this.props, 'policy.customUnits.distance.pendingAction')}
+                        onClose={() => Policy.removeUnitError(this.props.policyID)}
+                    >
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <View style={[styles.rateCol]}>
+                                <TextInput
+                                    label={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                    placeholder={this.state.outputCurrency}
+                                    onChangeText={value => this.setRate(value)}
+                                    value={this.state.rateValue}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                    onKeyPress={this.debounceUpdateOnCursorMove}
+                                />
+                            </View>
+                            <View style={[styles.unitCol]}>
                                 <Picker
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                     items={this.unitItems}
                                     value={this.state.unitValue}
                                     onInputChange={value => this.setUnit(value)}
                                 />
-                            </OfflineWithFeedback>
+                            </View>
                         </View>
-                    </View>
+                    </OfflineWithFeedback>
                 </Section>
 
                 {!this.props.hasVBA && (
