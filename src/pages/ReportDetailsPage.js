@@ -162,7 +162,7 @@ class ReportDetailsPage extends Component {
                     {_.map(this.menuItems, (item) => {
                         const brickRoadIndicator = (
                             ReportUtils.hasReportNameError(this.props.report)
-                            && item.key === 'settings'
+                            && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
                         )
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : '';
