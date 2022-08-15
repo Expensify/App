@@ -1035,8 +1035,7 @@ function openReport(reportID) {
             reportID,
         },
         {
-            optimisticData: [
-                {
+            optimisticData: [{
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
@@ -1044,8 +1043,7 @@ function openReport(reportID) {
                         lastVisitedTimestamp: Date.now(),
                         unreadActionCount: 0,
                     },
-                },
-            ],
+                }],
             successData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
