@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import {createRef} from 'react';
 import lodashGet from 'lodash/get';
+import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -276,6 +277,42 @@ function dismissSuccessfulTransferBalancePage() {
     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
+/**
+ * Looks through each payment method to see if there is an existing error
+ * @param {Object} bankList
+ * @param {Object} cardList
+ * @returns {Boolean}
+ */
+function hasPaymentMethodError(bankList, cardList) {
+    const combinedPaymentMethods = lodashMerge(bankList, cardList);
+    return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
+}
+
+/**
+ * Clears the error for the specified payment item
+ * @param {String} paymentListKey The onyx key for the provided payment method
+ * @param {String} paymentMethodID
+ */
+function clearDeletePaymentMethodError(paymentListKey, paymentMethodID) {
+    Onyx.merge(paymentListKey, {
+        [paymentMethodID]: {
+            pendingAction: null,
+            errors: null,
+        },
+    });
+}
+
+/**
+ * If there was a failure adding a payment method, clearing it removes the payment method from the list entirely
+ * @param {String} paymentListKey The onyx key for the provided payment method
+ * @param {String} paymentMethodID
+ */
+function clearAddPaymentMethodError(paymentListKey, paymentMethodID) {
+    Onyx.merge(paymentListKey, {
+        [paymentMethodID]: null,
+    });
+}
+
 function deletePaymentCard(fundID) {
     API.write('DeletePaymentCard', {
         fundID,
@@ -306,4 +343,7 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     cleanLocalReimbursementData,
+    hasPaymentMethodError,
+    clearDeletePaymentMethodError,
+    clearAddPaymentMethodError,
 };
