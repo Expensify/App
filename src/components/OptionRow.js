@@ -23,6 +23,7 @@ import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -205,6 +206,16 @@ const OptionRow = (props) => {
                                     </Text>
                                 </View>
                             ) : null}
+                            {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={colors.red}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                    />
+                                </View>
+                            )}
                             {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                         </View>
                     </View>
@@ -295,6 +306,10 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.backgroundColor !== nextProps.backgroundColor) {
+        return false;
+    }
+
+    if (prevProps.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator) {
         return false;
     }
 
