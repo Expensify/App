@@ -524,6 +524,14 @@ function generateReportID() {
     return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasReportNameError(report) {
+    return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -553,4 +561,5 @@ export {
     getReportName,
     navigateToDetailsPage,
     generateReportID,
+    hasReportNameError,
 };
