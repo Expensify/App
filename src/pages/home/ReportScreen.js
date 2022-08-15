@@ -308,4 +308,5 @@ export default compose(
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-    }))(ReportScreen);
+    }),
+)(ReportScreen);
