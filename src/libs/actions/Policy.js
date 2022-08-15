@@ -14,6 +14,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import DateUtils from '../DateUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -537,7 +538,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
                         errors: {
-                            [Date.now()]: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
+                            [DateUtils.getMicroseconds()]: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
                         },
                     },
                 },
