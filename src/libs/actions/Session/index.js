@@ -403,11 +403,16 @@ function cleanupSession() {
 }
 
 function clearAccountMessages() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        error: '',
+        success: '',
+        errors: [],
+        isLoading: false,
+    });
 }
 
 /**
- * Calls change password and signs if if successful. Otherwise, we request a new magic link
+ * Calls change password and signs if successful. Otherwise, we request a new magic link
  * if we know the account email. Otherwise or finally we redirect to the root of the nav.
  * @param {String} authToken
  * @param {String} password
