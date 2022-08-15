@@ -191,7 +191,6 @@ function updatePersonalDetails(personalDetails) {
                     isLoading: true,
                     error: '',
                 },
-
             },
         ],
         successData: [
@@ -202,7 +201,6 @@ function updatePersonalDetails(personalDetails) {
                     isLoading: false,
                     error: '',
                 },
-
             },
         ],
         failureData: [
@@ -212,7 +210,6 @@ function updatePersonalDetails(personalDetails) {
                 value: {
                     isLoading: false,
                 },
-
             },
         ],
     });
