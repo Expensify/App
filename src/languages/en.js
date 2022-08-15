@@ -392,8 +392,6 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deleteBankAccountSuccess: 'Bank account successfully deleted',
-        deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
@@ -958,7 +956,6 @@ export default {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         createRoom: 'Create Room',
-        policyRoomRenamed: 'Policy room renamed!',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
         pleaseEnterRoomName: 'Please enter a room name',

@@ -246,9 +246,9 @@ class BasePaymentsPage extends React.Component {
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
             PaymentMethods.deletePayPalMe();
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
+            BankAccounts.deletePaymentBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.deleteDebitCard(this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.deletePaymentCard(this.state.selectedPaymentMethod.fundID);
         }
     }
 

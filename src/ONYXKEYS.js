@@ -12,10 +12,6 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
-    // A key that is set while we are still waiting for the initial round of reports to load. Once set it should not be
-    // false unless we sign out. If there are reports in storage when the app inits this will be `true`.
-    INITIAL_REPORT_DATA_LOADED: 'initialReportDataLoaded',
-
     // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
     IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
 
@@ -170,9 +166,6 @@ export default {
 
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
-
-    // Are we loading the rename policy room command
-    IS_LOADING_RENAME_POLICY_ROOM: 'isLoadingRenamePolicyRoom',
 
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
