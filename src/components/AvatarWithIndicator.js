@@ -55,8 +55,9 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
-    const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
-    const hasWalletError = !_.isEmpty(props.userWallet.errors);
+    const hasCustomUnitsError = _.some(props.policies, policy => Policy.hasCustomUnitsError(policy));
+    const shouldShowIndicator = hasPolicyMemberError || hasCustomUnitsError;
+
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -65,7 +66,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {(hasPolicyMemberError || hasPaymentMethodError || hasWalletError) && (
+                {shouldShowIndicator && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -81,10 +82,7 @@ export default withOnyx({
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
     },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(AvatarWithIndicator);
