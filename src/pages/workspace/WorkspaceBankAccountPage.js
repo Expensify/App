@@ -61,7 +61,6 @@ class WorkspaceBankAccountPage extends React.Component {
             return;
         }
 
-        this.unsubscribe();
     }
 
     /**
