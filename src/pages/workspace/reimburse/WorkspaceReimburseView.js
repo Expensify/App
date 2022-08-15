@@ -200,7 +200,7 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                         <Button
                             text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.reimbursementAccount, this.props.policyID)}
+                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policyID)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
                             iconStyles={[styles.mr5]}

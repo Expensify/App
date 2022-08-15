@@ -122,7 +122,7 @@ class WorkspaceInitialPage extends React.Component {
             {
                 translationKey: 'workspace.common.bankAccount',
                 icon: Expensicons.Bank,
-                action: () => ReimbursementAccount.navigateToBankAccountRoute(this.props.reimbursementAccount, policy.id),
+                action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
             },
         ];
 

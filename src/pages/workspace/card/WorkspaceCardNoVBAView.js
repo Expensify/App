@@ -37,7 +37,7 @@ const WorkspaceCardNoVBAView = props => (
         />
         <Button
             text={props.translate('workspace.common.bankAccount')}
-            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.reimbursementAccount, props.policyID)}
+            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
             icon={Expensicons.Bank}
             style={[styles.mt6]}
             iconStyles={[styles.mr5]}
