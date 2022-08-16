@@ -909,7 +909,7 @@ export default {
         title: 'Request a call',
         subtitle: 'Need help?',
         description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
-        extension: 'Extension (Optional)',
+        phoneNumberExtension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         callButton: 'Call',
@@ -924,7 +924,7 @@ export default {
             guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
         },
         error: {
-            phoneExtension: 'Please enter a valid phone extension number',
+            phoneNumberExtension: 'Please enter a valid phone extension number',
             firstName: 'Please provide your first name so our guides know how to address you!',
             lastName: 'Please provide your last name so our guides know how to address you!',
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',

@@ -911,7 +911,7 @@ export default {
         title: 'Llámame por teléfono',
         subtitle: '¿Necesitas ayuda?',
         description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
-        extension: 'Extensión (Opcional)',
+        phoneNumberExtension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         callButton: 'Llamar',
@@ -926,7 +926,7 @@ export default {
             guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
         },
         error: {
-            phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
+            phoneNumberExtension: 'Por favor, introduzca una extensión telefónica válida',
             firstName: 'Por favor ingresa tu nombre!',
             lastName: 'Por favor ingresa tu apellido!',
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',

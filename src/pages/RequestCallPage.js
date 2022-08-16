@@ -153,7 +153,7 @@ class RequestCallPage extends Component {
             firstName: values.firstName,
             lastName: values.lastName,
             phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber),
-            phoneNumberExtension: values.phoneExtension,
+            phoneNumberExtension: values.phoneNumberExtension,
         });
     }
 
@@ -235,8 +235,8 @@ class RequestCallPage extends Component {
             errors.phoneNumber = this.props.translate('common.error.phoneNumber');
         }
 
-        if (!_.isEmpty(values.extension) && !ValidationUtils.isPositiveInteger(values.extension)) {
-            errors.extension = this.props.translate('requestCallPage.error.phoneExtension');
+        if (!_.isEmpty(values.phoneNumberExtension) && !ValidationUtils.isPositiveInteger(values.phoneNumberExtension)) {
+            errors.phoneNumberExtension = this.props.translate('requestCallPage.error.phoneNumberExtension');
         }
 
         return errors;
@@ -301,8 +301,8 @@ class RequestCallPage extends Component {
                                 placeholder="2109400803"
                             />
                             <TextInput
-                                inputID="extension"
-                                label={this.props.translate('requestCallPage.extension')}
+                                inputID="phoneNumberExtension"
+                                label={this.props.translate('requestCallPage.phoneNumberExtension')}
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 autoCompleteType="off"
                                 autoCorrect={false}
