@@ -399,6 +399,7 @@ const styles = {
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmallFont,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -406,6 +407,7 @@ const styles = {
 
     buttonMediumText: {
         fontSize: variables.fontSizeLabel,
+        lineHeight: variables.lineHeightLabelFont,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -413,6 +415,7 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.lineHeightNormalFont,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -420,6 +423,7 @@ const styles = {
 
     buttonExtraLargeText: {
         fontSize: variables.fontSizeMedium,
+        lineHeight: variables.lineHeightMediumFont,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
