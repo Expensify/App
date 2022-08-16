@@ -52,15 +52,7 @@ class BaseKeyboardSpacer extends PureComponent {
             return;
         }
 
-        let animationConfig = defaultAnimation;
-        if (this.props.iOSAnimated) {
-            animationConfig = LayoutAnimation.create(
-                event.duration,
-                LayoutAnimation.Types[event.easing],
-                LayoutAnimation.Properties.opacity,
-            );
-        }
-        LayoutAnimation.configureNext(animationConfig);
+        LayoutAnimation.configureNext(defaultAnimation);
         const screenHeight = Dimensions.get('window').height;
         const keyboardSpace = (screenHeight - event.endCoordinates.screenY) + this.props.topSpacing;
         this.setState({
@@ -73,16 +65,8 @@ class BaseKeyboardSpacer extends PureComponent {
      *
      * @param {Object} [event] - A Keyboard Event.
      */
-    resetKeyboardSpace(event) {
-        let animationConfig = defaultAnimation;
-        if (this.props.iOSAnimated) {
-            animationConfig = LayoutAnimation.create(
-                event.duration,
-                LayoutAnimation.Types[event.easing],
-                LayoutAnimation.Properties.opacity,
-            );
-        }
-        LayoutAnimation.configureNext(animationConfig);
+    resetKeyboardSpace() {
+        LayoutAnimation.configureNext(defaultAnimation);
 
         this.setState({
             keyboardSpace: 0,
