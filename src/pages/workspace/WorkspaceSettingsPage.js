@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -21,6 +22,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -138,14 +140,20 @@ class WorkspaceSettingsPage extends React.Component {
                             onImageRemoved={this.removeAvatar}
                         />
 
-                        <TextInput
-                            label={this.props.translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4]}
-                            onChangeText={name => this.setState({name})}
-                            value={this.state.name}
-                            hasError={!this.state.name.trim().length}
-                            errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
-                        />
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(this.props.policy, 'pendingFields.name')}
+                            errors={lodashGet(this.props.policy, 'errorFields.name')}
+                            onClose={Policy.clearWorkspaceNameErrors}
+                        >
+                            <TextInput
+                                label={this.props.translate('workspace.editor.nameInputLabel')}
+                                containerStyles={[styles.mt4]}
+                                onChangeText={name => this.setState({name})}
+                                value={this.state.name}
+                                hasError={!this.state.name.trim().length}
+                                errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
+                            />
+                        </OfflineWithFeedback>
 
                         <View style={[styles.mt4]}>
                             <Picker
