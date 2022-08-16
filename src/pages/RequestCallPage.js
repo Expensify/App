@@ -61,7 +61,7 @@ const propTypes = {
 
     /** Used to track state for the request call form */
     requestCallForm: PropTypes.shape({
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
 
         /** Error message to display from Server */
         error: PropTypes.string,
@@ -127,6 +127,9 @@ class RequestCallPage extends Component {
         Inbox.clearDidRequestCallSucceed();
     }
 
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     */
     onSubmit(values) {
         if (this.isBlockedFromConcierge) {
             return;
