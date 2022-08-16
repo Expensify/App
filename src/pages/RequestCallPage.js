@@ -102,8 +102,7 @@ class RequestCallPage extends Component {
         super(props);
         this.name = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
         this.isWeekend = moment().day() === 0 || moment().day() === 6;
-        // this.isBlockedFromConcierge = User.isBlockedFromConcierge(props.blockedFromConcierge);
-        this.isBlockedFromConcierge = true;
+        this.isBlockedFromConcierge = User.isBlockedFromConcierge(props.blockedFromConcierge);
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
@@ -301,13 +300,13 @@ class RequestCallPage extends Component {
                                 placeholder="100"
                                 containerStyles={[styles.mt4]}
                             />
-                            <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
-                            {this.isBlockedFromConcierge && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                            {this.isBlockedFromConcierge ? (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
                                     <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
                                     <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
                                 </View>
-                            )}
+                            )
+                                : <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>}
                         </Form>
                     )}
             </ScreenWrapper>
