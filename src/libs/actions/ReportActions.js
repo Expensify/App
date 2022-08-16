@@ -102,12 +102,19 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
 /**
  * @param {Number} reportID
  * @param {String} clientID
+ * @param {Number} sequenceNumber
  */
 function deleteClientAction(reportID, clientID, sequenceNumber) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [clientID]: null,
-        [sequenceNumber]: null,
-    });
+    if (clientID) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [clientID]: null,
+        });
+    }
+    if (sequenceNumber) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [sequenceNumber]: null,
+        });
+    }
 }
 
 export {
