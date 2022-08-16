@@ -214,14 +214,20 @@ class RequestCallPage extends Component {
 
         if (_.isEmpty(values.firstName)) {
             errors.firstName = this.props.translate('requestCallPage.error.firstName');
-        } else if (ValidationUtils.doesFailCharacterLimit(50, [values.firstName])[0]) {
-            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
         }
 
         if (_.isEmpty(values.lastName)) {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
-        } else if (ValidationUtils.doesFailCharacterLimit(50, [values.lastName])[0]) {
-            errors.firstName = this.props.translate('requestCallPage.error.lastNameLength');
+        }
+
+        const [firstNameLengthError, lastNameLengthError] = ValidationUtils.doesFailCharacterLimit(50, [values.firstName, values.lastName]);
+
+        if (firstNameLengthError) {
+            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
+        }
+
+        if (lastNameLengthError) {
+            errors.lastName = this.props.translate('requestCallPage.error.lastNameLength');
         }
 
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
