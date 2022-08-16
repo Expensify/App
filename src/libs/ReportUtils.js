@@ -323,6 +323,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasMultipleParticipants
+        && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected;
@@ -525,6 +526,14 @@ function generateReportID() {
     return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasReportNameError(report) {
+    return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -554,4 +563,5 @@ export {
     getReportName,
     navigateToDetailsPage,
     generateReportID,
+    hasReportNameError,
 };

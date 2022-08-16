@@ -191,18 +191,42 @@ function hasReportDraftComment(report, reportsWithDraft = {}) {
 }
 
 /**
+ * If the report or the report actions have errors, return
+ * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
+ *
+ * @param {Object} report
+ * @param {Object} reportActions
+ * @returns {String}
+ */
+function getBrickRoadIndicatorStatusForReport(report, reportActions) {
+    const reportErrors = lodashGet(report, 'errors', {});
+    const reportErrorFields = lodashGet(report, 'errorFields', {});
+    const reportID = lodashGet(report, 'reportID');
+    const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+
+    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
+    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
+
+    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
+        return '';
+    }
+    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+}
+
+/**
  * Creates a report list option
  *
  * @param {Array<String>} logins
  * @param {Object} personalDetails
  * @param {Object} report
  * @param {Object} reportsWithDraft
+ * @param {Object} reportActions
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(logins, personalDetails, report, reportsWithDraft, {
+function createOption(logins, personalDetails, report, reportsWithDraft, reportActions = {}, {
     showChatPreviewLine = false,
     forcePolicyNamePreview = false,
 }) {
@@ -252,6 +276,7 @@ function createOption(logins, personalDetails, report, reportsWithDraft, {
     return {
         text: reportName,
         alternateText,
+        brickRoadIndicator: getBrickRoadIndicatorStatusForReport(report, reportActions),
         icons: ReportUtils.getIcons(report, personalDetails, policies, lodashGet(personalDetail, ['avatar'])),
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
@@ -345,6 +370,7 @@ function isCurrentUser(userDetails) {
  */
 function getOptions(reports, personalDetails, activeReportID, {
     reportsWithDraft = {},
+    reportActions = {},
     betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
@@ -449,7 +475,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(createOption(logins, personalDetails, report, reportsWithDraft, {
+        allReportOptions.push(createOption(logins, personalDetails, report, reportsWithDraft, reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
@@ -460,6 +486,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         personalDetails,
         reportMapForLogins[personalDetail.login],
         reportsWithDraft,
+        reportActions,
         {
             showChatPreviewLine,
             forcePolicyNamePreview,
@@ -581,7 +608,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        userToInvite = createOption([login], personalDetails, null, reportsWithDraft, {
+        userToInvite = createOption([login], personalDetails, null, reportsWithDraft, reportActions, {
             showChatPreviewLine,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
@@ -744,9 +771,10 @@ function getMemberInviteOptions(
  * @param {String} priorityMode
  * @param {Array<String>} betas
  * @param {Object} reportsWithDraft
+ * @param {Object} reportActions
  * @returns {Object}
  */
-function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportsWithDraft) {
+function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportsWithDraft, reportActions) {
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
@@ -767,6 +795,7 @@ function calculateSidebarOptions(reports, personalDetails, activeReportID, prior
         prioritizePinnedReports: true,
         ...sideBarOptions,
         reportsWithDraft,
+        reportActions,
     });
 }
 

@@ -14,7 +14,7 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml'],
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
         // 50 megabytes in bytes
         MAX_SIZE: 52428800,
@@ -539,6 +539,10 @@ const CONST = {
             },
         },
         ERROR: {
+            // If these get updated, we need to update the codes on the Web side too
+            SSN: 'ssnError',
+            KBA: 'kbaNeeded',
+            KYC: 'kycFailed',
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
@@ -776,6 +780,15 @@ const CONST = {
         ADD: 'add',
         DELETE: 'delete',
         UPDATE: 'update',
+    },
+    BRICK_ROAD_INDICATOR_STATUS: {
+        ERROR: 'error',
+    },
+    REPORT_DETAILS_MENU_ITEM: {
+        MEMBERS: 'member',
+        SETTINGS: 'settings',
+        INVITE: 'invite',
+        LEAVE_ROOM: 'leaveRoom',
     },
 };
 
