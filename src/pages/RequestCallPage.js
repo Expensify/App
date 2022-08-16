@@ -13,8 +13,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
-import FullNameInputRow from '../components/FullNameInputRow';
-import FixedFooter from '../components/FixedFooter';
 import Icon from '../components/Icon';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
@@ -29,11 +27,9 @@ import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
-import FormElement from '../components/FormElement';
 import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
-import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import Form from '../components/Form';
 
 const propTypes = {
@@ -107,24 +103,12 @@ class RequestCallPage extends Component {
         super(props);
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
         this.state = {
-            firstName,
-            hasFirstNameError: false,
-            lastName,
-            phoneNumber: this.getPhoneNumber(props.loginList) || '',
-            phoneExtension: '',
-            phoneExtensionError: '',
-            hasLastNameError: false,
-            phoneNumberError: '',
             onTheWeekend: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
-        this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
-        this.getPhoneExtensionError = this.getPhoneExtensionError.bind(this);
-        this.validateInputs = this.validateInputs.bind(this);
-        this.validatePhoneInput = this.validatePhoneInput.bind(this);
-        this.validatePhoneExtensionInput = this.validatePhoneExtensionInput.bind(this);
+        this.validate = this.validate.bind(this);
 
         Inbox.clearDidRequestCallSucceed();
     }
@@ -146,10 +130,6 @@ class RequestCallPage extends Component {
     }
 
     onSubmit() {
-        if (!this.validateInputs()) {
-            return;
-        }
-
         const policyForCall = _.find(this.props.policies, (policy) => {
             if (!policy) {
                 return;
@@ -181,33 +161,7 @@ class RequestCallPage extends Component {
      */
     getPhoneNumber(loginList) {
         const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
-        return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
-    }
-
-    /**
-     * Gets proper phone number error message depending on phoneNumber input value.
-     * @returns {String}
-     */
-    getPhoneNumberError() {
-        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
-        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
-            return this.props.translate('common.error.phoneNumber');
-        }
-        return '';
-    }
-
-    /**
-     * Gets the phone extension error message depending on the phoneExtension input value.
-     * @returns {String}
-     */
-    getPhoneExtensionError() {
-        if (_.isEmpty(this.state.phoneExtension)) {
-            return '';
-        }
-        if (!ValidationUtils.isPositiveInteger(this.state.phoneExtension)) {
-            return this.props.translate('requestCallPage.error.phoneExtension');
-        }
-        return '';
+        return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : '';
     }
 
     getWaitTimeMessageKey(minutes) {
@@ -249,35 +203,38 @@ class RequestCallPage extends Component {
         Inbox.openRequestCallPage();
     }
 
-    validatePhoneInput() {
-        this.setState({phoneNumberError: this.getPhoneNumberError()});
-    }
-
-    validatePhoneExtensionInput() {
-        this.setState({phoneExtensionError: this.getPhoneExtensionError()});
-    }
-
     /**
-     * Checks for input errors, returns true if everything is valid, false otherwise.
+     * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    validateInputs() {
-        const firstOrLastNameEmpty = _.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim());
-        if (firstOrLastNameEmpty) {
-            Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
+    validate(values) {
+        const errors = {};
+
+        if (_.isEmpty(values.firstName)) {
+            errors.firstName = this.props.translate('requestCallPage.growlMessageEmptyName');
         }
 
-        const phoneNumberError = this.getPhoneNumberError();
-        const phoneExtensionError = this.getPhoneExtensionError();
+        if (ValidationUtils.doesFailCharacterLimit(50, [values.firstName])[0]) {
+            // errors.firstName = this.props.translate('requestCallPage.')
+        }
 
-        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimit(50, [this.state.firstName, this.state.lastName]);
-        this.setState({
-            hasFirstNameError,
-            hasLastNameError,
-            phoneNumberError,
-            phoneExtensionError,
-        });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(phoneExtensionError) && !hasFirstNameError && !hasLastNameError;
+        if (_.isEmpty(values.lastName)) {
+            errors.lastName = this.props.translate('requestCallPage.growlMessageEmptyName');
+        }
+
+        if (ValidationUtils.doesFailCharacterLimit(50, [values.lastName])[0]) {
+            // errors.firstName = this.props.translate('requestCallPage.')
+        }
+        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
+        if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
+            errors.phoneNumber = this.props.translate('common.error.phoneNumber');
+        }
+
+        if (!_.isEmpty(values.extension) && !ValidationUtils.isPositiveInteger(values.phoneExtension)) {
+            errors.extension = this.props.translate('requestCallPage.error.phoneExtension');
+        }
+
+        return errors;
     }
 
     render() {
@@ -306,7 +263,7 @@ class RequestCallPage extends Component {
                             </Section>
                             <Form
                                 formID={ONYXKEYS.FORMS.REQUEST_CALL_FORM}
-                                validate={() => {}}
+                                validate={this.validate}
                                 onSubmit={this.onSubmit}
                                 submitButtonText={this.props.translate('requestCallPage.callMe')}
                                 style={[styles.flexGrow1, styles.mh5]}
@@ -315,6 +272,7 @@ class RequestCallPage extends Component {
                                     <View style={styles.flex1}>
                                         <TextInput
                                             inputID="firstName"
+                                            defaultValue={this.firstName}
                                             label={this.props.translate('common.firstName')}
                                             name="fname"
                                             placeholder={this.props.translate('profilePage.john')}
@@ -323,6 +281,7 @@ class RequestCallPage extends Component {
                                     <View style={[styles.flex1, styles.ml2]}>
                                         <TextInput
                                             inputID="lastName"
+                                            defaultValue={this.lastName}
                                             label={this.props.translate('common.lastName')}
                                             name="lname"
                                             placeholder={this.props.translate('profilePage.doe')}
@@ -331,6 +290,7 @@ class RequestCallPage extends Component {
                                 </View>
                                 <TextInput
                                     inputID="phoneNumber"
+                                    defaultValue={this.getPhoneNumber(this.props.loginList)}
                                     label={this.props.translate('common.phoneNumber')}
                                     name="phone"
                                     keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
