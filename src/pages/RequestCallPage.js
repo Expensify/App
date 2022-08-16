@@ -235,7 +235,7 @@ class RequestCallPage extends Component {
             errors.phoneNumber = this.props.translate('common.error.phoneNumber');
         }
 
-        if (!_.isEmpty(values.extension) && !ValidationUtils.isPositiveInteger(values.phoneExtension)) {
+        if (!_.isEmpty(values.extension) && !ValidationUtils.isPositiveInteger(values.extension)) {
             errors.extension = this.props.translate('requestCallPage.error.phoneExtension');
         }
 
