@@ -321,7 +321,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body.match(/pull requests:\*\*(?:\r?\n)*((?:.*\r?\n(?:\s+-\s.*\r?\n)+\r?\n)+)/) || [];
+        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) || [];
         if (PRListSection.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
@@ -329,12 +329,11 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const PRList = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[([ x])] QA\\s+- \\[([ x])] Accessibility`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[1],
-                number: Number.parseInt(match[2], 10),
-                isVerified: match[3] === 'x',
-                isAccessible: match[4] === 'x',
+                url: match[2],
+                number: Number.parseInt(match[3], 10),
+                isVerified: match[1] === 'x',
             }),
         );
         return _.sortBy(PRList, 'number');
@@ -349,7 +348,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:.*\r?\n)+)/) || [];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) || [];
         if (deployBlockerSection.length !== 2) {
             return [];
         }
@@ -371,7 +370,7 @@ class GithubUtils {
      * @private
      *
      * @param {Object} issue
-     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     static getStagingDeployCashInternalQA(issue) {
         let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) || [];
@@ -385,7 +384,6 @@ class GithubUtils {
                 url: match[2].split('-')[0].trim(),
                 number: Number.parseInt(match[3], 10),
                 isResolved: match[1] === 'x',
-                isAccessible: false,
             }),
         );
         return _.sortBy(internalQAPRs, 'number');
@@ -397,7 +395,6 @@ class GithubUtils {
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
      * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
-     * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
      * @param {Array} [resolvedInternalQAPRs] - The list of Internal QA PR URLs which have been resolved.
@@ -409,7 +406,6 @@ class GithubUtils {
         tag,
         PRList,
         verifiedPRList = [],
-        accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
         resolvedInternalQAPRs = [],
@@ -446,7 +442,6 @@ class GithubUtils {
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
-                const accessibleOrNoQAPRs = _.union(accessiblePRList, noQAPRs);
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
@@ -465,36 +460,40 @@ class GithubUtils {
 
                 // PR list
                 if (!_.isEmpty(sortedPRList)) {
-                    issueBody += '\r\n**This release contains changes from the following pull requests:**';
+                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
-                        issueBody += `\r\n\r\n- ${URL}`;
-                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
-                        issueBody += _.contains(accessibleOrNoQAPRs, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
+                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]';
+                        issueBody += ` ${URL}\r\n`;
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
                 // Internal QA PR list
                 if (!_.isEmpty(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
-                    issueBody += '\r\n\r\n\r\n**Internal QA:**';
+                    issueBody += '**Internal QA:**\r\n';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` -${assigneeMentions}`;
+                        issueBody += '\r\n';
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
                 // Deploy blockers
                 if (!_.isEmpty(deployBlockers)) {
-                    issueBody += '\r\n\r\n\r\n**Deploy Blockers:**';
+                    issueBody += '**Deploy Blockers:**\r\n';
                     _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n- [x] ' : '\r\n- [ ] ';
+                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
+                        issueBody += '\r\n';
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
-                issueBody += '\r\n\r\n**Deployer verifications:**';
+                issueBody += '**Deployer verifications:**';
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
