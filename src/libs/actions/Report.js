@@ -625,15 +625,14 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 }
 
 /**
- * Get the actions of a report
+ * Get the initial actions of a report
  *
  * @param {Number} reportID
- * @returns {Promise}
  */
-function fetchActions(reportID) {
+function fetchInitialActions(reportID) {
     const reportActionsOffset = -1;
 
-    return DeprecatedAPI.Report_GetHistory({
+    DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
         reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
@@ -642,15 +641,6 @@ function fetchActions(reportID) {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
         });
-}
-
-/**
- * Get the initial actions of a report
- *
- * @param {Number} reportID
- */
-function fetchInitialActions(reportID) {
-    fetchActions(reportID);
 }
 
 /**
