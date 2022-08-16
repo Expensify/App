@@ -88,7 +88,7 @@ const propTypes = {
 
 const defaultProps = {
     requestCallForm: {
-        loading: false,
+        isLoading: false,
     },
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
@@ -213,15 +213,15 @@ class RequestCallPage extends Component {
         const errors = {};
 
         if (_.isEmpty(values.firstName)) {
-            errors.firstName = this.props.translate('requestCallPage.growlMessageEmptyName');
+            errors.firstName = this.props.translate('requestCallPage.error.firstName');
         } else if (ValidationUtils.doesFailCharacterLimit(50, [values.firstName])[0]) {
-            // errors.firstName = this.props.translate('requestCallPage.')
+            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
         }
 
         if (_.isEmpty(values.lastName)) {
-            errors.lastName = this.props.translate('requestCallPage.growlMessageEmptyName');
+            errors.lastName = this.props.translate('requestCallPage.error.lastName');
         } else if (ValidationUtils.doesFailCharacterLimit(50, [values.lastName])[0]) {
-            // errors.firstName = this.props.translate('requestCallPage.')
+            errors.firstName = this.props.translate('requestCallPage.error.lastNameLength');
         }
 
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);

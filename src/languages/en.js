@@ -912,7 +912,6 @@ export default {
         extension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
         blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
@@ -926,6 +925,10 @@ export default {
         },
         error: {
             phoneExtension: 'Please enter a valid phone extension number',
+            firstName: 'Please provide your first name so our guides know how to address you!',
+            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
+            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
     },
     requestCallConfirmationScreen: {
