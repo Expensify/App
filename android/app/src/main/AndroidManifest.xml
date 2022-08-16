@@ -29,16 +29,16 @@
       <activity
         android:name=".bootsplash.BootSplashActivity"
         android:theme="@style/BootTheme"
-        android:exported="false"
+        android:exported="true"
         android:launchMode="singleTask">
 
-        <intent-filter>
+        <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
 
         <!-- Custom URI handlers. Used to intercept Urban Airship deep links. -->
-        <intent-filter>
+        <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.VIEW"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
@@ -46,7 +46,7 @@
         </intent-filter>
 
         <!-- Web URL handlers. Used to intercept web links. -->
-        <intent-filter>
+        <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.VIEW"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
