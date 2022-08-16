@@ -1425,9 +1425,14 @@ const styles = {
     },
 
     textInputComposeSpacing: {
-        paddingVertical: 6,
+        paddingVertical: 4,
         ...flex.flexRow,
         flex: 1,
+    },
+
+    inputComposerPadding: {
+        flex: 4,
+        paddingVertical: 4,
     },
 
     chatItemSubmitButton: {
