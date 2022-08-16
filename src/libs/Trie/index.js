@@ -16,7 +16,6 @@ class Trie {
     */
     add(word, metaData, node = this.root, containChar) {
         if (word.length === 0 && !containChar) {
-            // throw new Error('Cannot insert empty word into Trie :', word);
             throw new Error('Cannot insert empty word into Trie :', word);
         }
         if (word.length === 0) {
