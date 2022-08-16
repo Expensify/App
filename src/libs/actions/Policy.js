@@ -387,7 +387,7 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 errorFields: {
                     avatarURL: null,
