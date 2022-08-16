@@ -464,7 +464,7 @@ PODS:
     - React-Core
   - react-native-image-manipulator (1.0.5):
     - React
-  - react-native-image-picker (4.7.3):
+  - react-native-image-picker (4.8.5):
     - React-Core
   - react-native-netinfo (8.3.0):
     - React-Core
@@ -553,7 +553,7 @@ PODS:
     - React-Core
   - RNCClipboard (1.5.1):
     - React-Core
-  - RNCPicker (2.3.1):
+  - RNCPicker (2.4.3):
     - React-Core
   - RNDateTimePicker (3.5.2):
     - React-Core
@@ -967,7 +967,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 772d04a4bc5c35da9abe27b08ac271420ae3f9ef
   react-native-flipper: 4bfe0a324e663f1ae2f76ad0da75673de6895efe
   react-native-image-manipulator: db28c0cc09d89e740974c9bb2f13175eb48f1ef2
-  react-native-image-picker: ae1202414bd5c37c00b2a701daa5b6194a06b7d9
+  react-native-image-picker: 24a36044140202085113ce99b57bf52c62dc339e
   react-native-netinfo: ebbcd8fbe1a0ce7035e43cd18c5a545dcb93dd08
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-plaid-link-sdk: 9e0ebdaed648a237b36d5f6f6292b5147af92da7
@@ -990,7 +990,7 @@ SPEC CHECKSUMS:
   ReactCommon: 8f67bd7e0a6afade0f20718f859dc8c2275f2e83
   RNCAsyncStorage: 19af8f3e136504e0450e7f85cfb46fc38da87ec9
   RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
-  RNCPicker: f6c760d4b314585ff35165d8640d7917ae30afb1
+  RNCPicker: a99807a74d9cd65c394f6e2a6c843a377b355b4d
   RNDateTimePicker: c9911be59b1f8670b9f244b85af3a7c295e175ed
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNFBAnalytics: 8ba84c2d31c64374d054c8621b998f25145ffddc
