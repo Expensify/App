@@ -26,15 +26,6 @@ Request.use(Middleware.Retry);
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
- * @param {Object} parameters
- * @returns {Promise}
- */
-function AddBillingCard(parameters) {
-    const commandName = 'User_AddBillingCard';
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken
  * @param {String} parameters.password
@@ -494,18 +485,6 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.bankAccountID
- * @param {String} parameters.ownerEmail
- * @returns {Promise}
- */
-function DeleteBankAccount(parameters) {
-    const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -632,19 +611,6 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
- * Renames a user-created policy room
- * @param {Object} parameters
- * @param {String} parameters.reportID
- * @param {String} parameters.reportName
- * @return {Promise}
- */
-function RenameReport(parameters) {
-    const commandName = 'RenameReport';
-    requireParameters(['reportID', 'reportName'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -671,16 +637,13 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    AddBillingCard,
     BankAccount_SetupWithdrawal,
     BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
-    RenameReport,
     DeleteLogin,
-    DeleteBankAccount,
     Get,
     GetStatementPDF,
     GetIOUReport,

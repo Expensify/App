@@ -1393,30 +1393,66 @@ function createPolicyRoom(policyID, reportName, visibility) {
 }
 
 /**
- * Renames a user created Policy Room.
- * @param {String} reportID
- * @param {String} reportName
+ * @param {Object} policyRoomReport
+ * @param {Number} policyRoomReport.reportID
+ * @param {String} policyRoomReport.reportName
+ * @param {String} policyRoomName The updated name for the policy room
  */
-function renameReport(reportID, reportName) {
-    Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, true);
-    DeprecatedAPI.RenameReport({reportID, reportName})
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
-                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnRenameError'));
-                return;
-            }
+function updatePolicyRoomName(policyRoomReport, policyRoomName) {
+    const reportID = policyRoomReport.reportID;
+    const previousName = policyRoomReport.reportName;
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: policyRoomName,
+                pendingFields: {
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    reportName: null,
+                },
+            },
+        },
+    ];
+    const successData = [
+        {
 
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Growl.error(response.message);
-                return;
-            }
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    reportName: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
 
-            Growl.success(Localize.translateLocal('newRoomPage.policyRoomRenamed'));
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: previousName,
+            },
+        },
+    ];
+    API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
+}
 
-            // Update the report name so that the LHN and header display the updated name
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportName});
-        })
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM, false));
+/**
+ * @param {Number} reportID The reportID of the policy room.
+ */
+function clearPolicyRoomNameErrors(reportID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        errorFields: {
+            reportName: null,
+        },
+        pendingFields: {
+            reportName: null,
+        },
+    });
 }
 
 /**
@@ -1563,7 +1599,6 @@ export {
     setReportWithDraft,
     fetchInitialActions,
     createPolicyRoom,
-    renameReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
@@ -1571,4 +1606,6 @@ export {
     openReport,
     openPaymentDetailsPage,
     createOptimisticReport,
+    updatePolicyRoomName,
+    clearPolicyRoomNameErrors,
 };

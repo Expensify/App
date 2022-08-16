@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import {createRef} from 'react';
 import lodashGet from 'lodash/get';
+import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -153,11 +154,11 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
  *
  * @param {Object} params
  */
-function addBillingCard(params) {
+function addPaymentCard(params) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
-    DeprecatedAPI.AddBillingCard({
+    API.write('AddPaymentCard', {
         cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
@@ -167,36 +168,23 @@ function addBillingCard(params) {
         currency: CONST.CURRENCY.USD,
         isP2PDebitCard: true,
         password: params.password,
-    }).then(((response) => {
-        let serverErrorMessage = '';
-        if (response.jsonCode === 200) {
-            const cardObject = {
-                additionalData: {
-                    isBillingCard: false,
-                    isP2PDebitCard: true,
-                },
-                addressName: params.nameOnCard,
-                addressState: params.addressState,
-                addressStreet: params.addressStreet,
-                addressZip: params.addressZipCode,
-                cardMonth,
-                cardNumber: CardUtils.maskCardNumber(params.cardNumber),
-                cardYear,
-                currency: 'USD',
-                fundID: lodashGet(response, 'fundID', ''),
-            };
-            Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
-            Growl.show(Localize.translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            continueSetup();
-        } else {
-            serverErrorMessage = response.message ? response.message : Localize.translateLocal('addDebitCardPage.error.genericFailureMessage');
-        }
-
-        Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-            isSubmitting: false,
-            serverErrorMessage,
-        });
-    }));
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: true},
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        }],
+    });
 }
 
 /**
@@ -204,8 +192,8 @@ function addBillingCard(params) {
  */
 function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-        isSubmitting: false,
-        serverErrorMessage: null,
+        isLoading: false,
+        error: null,
     });
 }
 
@@ -289,6 +277,42 @@ function dismissSuccessfulTransferBalancePage() {
     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
+/**
+ * Looks through each payment method to see if there is an existing error
+ * @param {Object} bankList
+ * @param {Object} cardList
+ * @returns {Boolean}
+ */
+function hasPaymentMethodError(bankList, cardList) {
+    const combinedPaymentMethods = lodashMerge(bankList, cardList);
+    return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
+}
+
+/**
+ * Clears the error for the specified payment item
+ * @param {String} paymentListKey The onyx key for the provided payment method
+ * @param {String} paymentMethodID
+ */
+function clearDeletePaymentMethodError(paymentListKey, paymentMethodID) {
+    Onyx.merge(paymentListKey, {
+        [paymentMethodID]: {
+            pendingAction: null,
+            errors: null,
+        },
+    });
+}
+
+/**
+ * If there was a failure adding a payment method, clearing it removes the payment method from the list entirely
+ * @param {String} paymentListKey The onyx key for the provided payment method
+ * @param {String} paymentMethodID
+ */
+function clearAddPaymentMethodError(paymentListKey, paymentMethodID) {
+    Onyx.merge(paymentListKey, {
+        [paymentMethodID]: null,
+    });
+}
+
 function deletePaymentCard(fundID) {
     API.write('DeletePaymentCard', {
         fundID,
@@ -307,9 +331,9 @@ export {
     deletePayPalMe,
     deletePaymentCard,
     getPaymentMethods,
+    addPaymentCard,
     openPaymentsPage,
     makeDefaultPaymentMethod,
-    addBillingCard,
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
@@ -319,4 +343,7 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     cleanLocalReimbursementData,
+    hasPaymentMethodError,
+    clearDeletePaymentMethodError,
+    clearAddPaymentMethodError,
 };
