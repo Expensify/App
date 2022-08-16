@@ -62,7 +62,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "dotenv": "^8.2.0",
-    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#dfc17a33907dd487610cf1eeb6212f4d89b96b6f",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#e0ec0b9abca4d7b417ba0b016f8725856cfeeece",
     "fbjs": "^3.0.2",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
