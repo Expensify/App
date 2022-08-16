@@ -25,6 +25,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import * as User from '../libs/actions/User';
 import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
@@ -101,6 +102,7 @@ class RequestCallPage extends Component {
         super(props);
         this.name = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
         this.isWeekend = moment().day() === 0 || moment().day() === 6;
+        this.isBlockedFromConcierge = User.isBlockedFromConcierge(props.blockedFromConcierge);
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
@@ -126,6 +128,10 @@ class RequestCallPage extends Component {
     }
 
     onSubmit(values) {
+        if (this.isBlockedFromConcierge) {
+            return;
+        }
+
         const policyForCall = _.find(this.props.policies, (policy) => {
             if (!policy) {
                 return;
@@ -228,8 +234,6 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        // const isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge);
-        const isBlockedFromConcierge = true;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -297,7 +301,7 @@ class RequestCallPage extends Component {
                                     containerStyles={[styles.mt4]}
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>
-                                {isBlockedFromConcierge && (
+                                {this.isBlockedFromConcierge && (
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                                         <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
                                         <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
