@@ -43,7 +43,7 @@ const defaultProps = {
     onPress: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
-    brickRoadIndicator: undefined,
+    brickRoadIndicator: '',
 };
 
 const MenuItem = (props) => {
@@ -137,7 +137,7 @@ const MenuItem = (props) => {
                                 </Text>
                             </View>
                         )}
-                        {props.brickRoadIndicator && (
+                        {Boolean(props.brickRoadIndicator) && (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
@@ -147,7 +147,7 @@ const MenuItem = (props) => {
                                 />
                             </View>
                         )}
-                        {props.shouldShowRightIcon && (
+                        {Boolean(props.shouldShowRightIcon) && (
                             <View style={styles.popoverMenuIcon}>
                                 <Icon
                                     src={props.iconRight}

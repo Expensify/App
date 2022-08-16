@@ -174,7 +174,7 @@ class PaymentMethodList extends Component {
      */
     dismissError(item) {
         const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
-        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'cardID'], '');
+        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
         if (!paymentID) {
             Log.info('Unable to clear payment method error: ', item);
@@ -209,7 +209,12 @@ class PaymentMethodList extends Component {
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
             return (
-                <OfflineWithFeedback onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors} errorRowStyles={[styles.ph6]}>
+                <OfflineWithFeedback
+                    onClose={() => this.dismissError(item)}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    errorRowStyles={styles.ph6}
+                >
                     <MenuItem
                         onPress={item.onPress}
                         title={item.title}

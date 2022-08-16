@@ -497,7 +497,7 @@ class ReportActionCompose extends React.Component {
 
         return (
             <View style={[
-                shouldShowReportRecipientLocalTime && !this.props.network.isOffline && styles.chatItemComposeWithFirstRow,
+                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
                 this.props.isComposerFullSize && styles.chatItemFullComposeRow,
             ]}
             >

@@ -88,17 +88,17 @@ const defaultProps = {
 };
 
 const InitialSettingsPage = (props) => {
-    const walletBalance = props.numberFormat(
-        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-        {style: 'currency', currency: 'USD'},
-    );
-
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
     if (_.isEmpty(props.currentUserPersonalDetails)) {
         return null;
     }
+
+    const walletBalance = props.numberFormat(
+        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+        {style: 'currency', currency: 'USD'},
+    );
 
     const defaultMenuItems = [
         {
