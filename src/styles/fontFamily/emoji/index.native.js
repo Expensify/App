@@ -1,3 +1,3 @@
-const EMOJI_TEXT_FONT = 'GTAmericaExp-Regular';
+const emojiFont = 'GTAmericaExp-Regular';
 
-export default EMOJI_TEXT_FONT;
+export default emojiFont;
