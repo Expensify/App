@@ -514,6 +514,17 @@ function updateWorkspaceName(policyID, name) {
 }
 
 /**
+ * @param {String} policyID The id of the workspace / policy
+ */
+function clearWorkspaceNameErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            name: null,
+        },
+    });
+}
+
+/**
  * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
  *
  * @param {String} policyID
@@ -772,4 +783,5 @@ export {
     clearAddMemberError,
     hasPolicyMemberError,
     updateWorkspaceName,
+    clearWorkspaceNameErrors,
 };
