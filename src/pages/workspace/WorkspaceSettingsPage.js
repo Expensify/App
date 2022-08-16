@@ -82,9 +82,8 @@ class WorkspaceSettingsPage extends React.Component {
         }
         const name = this.state.name.trim();
         const outputCurrency = this.state.currency;
-
-        // Send the API call with new settings values, the avatar has been updated when uploaded
-        Policy.update(this.props.policy.id, {name, outputCurrency}, true);
+        Policy.updateWorkspaceName(this.props.policy.id, name);
+        Policy.update(this.props.policy.id, {outputCurrency}, true);
     }
 
     validate() {
