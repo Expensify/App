@@ -1,126 +1,84 @@
-import React, {PureComponent} from 'react';
-import {
-    View, StyleSheet, Animated,
-} from 'react-native';
+import _ from 'underscore';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import Avatar from './Avatar';
-import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import ONYXKEYS from '../ONYXKEYS';
+import policyMemberPropType from '../pages/policyMemberPropType';
+import bankAccountPropTypes from './bankAccountPropTypes';
+import cardPropTypes from './cardPropTypes';
+import * as Policy from '../libs/actions/Policy';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
-    /** Is user active? */
-    isActive: PropTypes.bool,
-
     /** URL for the avatar */
     source: PropTypes.string.isRequired,
 
     /** Avatar size */
     size: PropTypes.string,
 
-    // Whether we show the sync indicator
-    isSyncing: PropTypes.bool,
-
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
 
-    ...withLocalizePropTypes,
+    /** The employee list of all policies (coming from Onyx) */
+    policiesMemberList: PropTypes.objectOf(policyMemberPropType),
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
 };
 
 const defaultProps = {
-    isActive: false,
     size: 'default',
-    isSyncing: false,
     tooltipText: '',
+    policiesMemberList: {},
+    bankAccountList: {},
+    cardList: {},
 };
 
-class AvatarWithIndicator extends PureComponent {
-    constructor(props) {
-        super(props);
+const AvatarWithIndicator = (props) => {
+    const isLarge = props.size === 'large';
+    const indicatorStyles = [
+        styles.alignItemsCenter,
+        styles.justifyContentCenter,
+        isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
+    ];
 
-        this.animation = new SpinningIndicatorAnimation();
-    }
-
-    componentDidMount() {
-        if (!this.props.isSyncing) {
-            return;
-        }
-
-        this.animation.start();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.isSyncing && this.props.isSyncing) {
-            this.animation.start();
-        } else if (prevProps.isSyncing && !this.props.isSyncing) {
-            this.animation.stop();
-        }
-    }
-
-    componentWillUnmount() {
-        this.animation.stop();
-    }
-
-    /**
-     * Returns user status as text
-     *
-     * @returns {String}
-     */
-    userStatus() {
-        if (this.props.isSyncing) {
-            return this.props.translate('profilePage.syncing');
-        }
-
-        if (this.props.isActive) {
-            return this.props.translate('profilePage.online');
-        }
-
-        if (!this.props.isActive) {
-            return this.props.translate('profilePage.offline');
-        }
-    }
-
-    render() {
-        const indicatorStyles = [
-            styles.alignItemsCenter,
-            styles.justifyContentCenter,
-            this.props.size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
-            this.props.isActive ? styles.statusIndicatorOnline : styles.statusIndicatorOffline,
-            this.animation.getSyncingStyles(),
-        ];
-
-        return (
-            <View
-                style={[this.props.size === 'large' ? styles.avatarLarge : styles.sidebarAvatar]}
-            >
-                <Tooltip text={this.props.tooltipText}>
-                    <Avatar
-                        imageStyles={[this.props.size === 'large' ? styles.avatarLarge : null]}
-                        source={this.props.source}
-                        size={this.props.size}
-                    />
-                </Tooltip>
-                <Tooltip text={this.userStatus()} absolute>
-                    <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
-                        {this.props.isSyncing && (
-                            <Icon
-                                src={Expensicons.Sync}
-                                fill={themeColors.textReversed}
-                                width={6}
-                                height={6}
-                            />
-                        )}
-                    </Animated.View>
-                </Tooltip>
-            </View>
-        );
-    }
-}
+    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
+    const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
+    return (
+        <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
+            <Tooltip text={props.tooltipText}>
+                <Avatar
+                    imageStyles={[isLarge ? styles.avatarLarge : null]}
+                    source={props.source}
+                    size={props.size}
+                />
+                {(hasPolicyMemberError || hasPaymentMethodError) && (
+                    <View style={StyleSheet.flatten(indicatorStyles)} />
+                )}
+            </Tooltip>
+        </View>
+    );
+};
 
 AvatarWithIndicator.defaultProps = defaultProps;
 AvatarWithIndicator.propTypes = propTypes;
-export default withLocalize(AvatarWithIndicator);
+AvatarWithIndicator.displayName = 'AvatarWithIndicator';
+
+export default withOnyx({
+    policiesMemberList: {
+        key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+    },
+    bankAccountList: {
+        key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    cardList: {
+        key: ONYXKEYS.CARD_LIST,
+    },
+})(AvatarWithIndicator);

@@ -124,12 +124,14 @@ class ReportActionCompose extends React.Component {
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.comment = props.comment;
-        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.addAttachment = this.addAttachment.bind(this);
+
+        this.comment = props.comment;
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -448,6 +450,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * @param {Object} file
+     */
+    addAttachment(file) {
+        const comment = this.prepareCommentAndResetComposer();
+        Report.addAttachment(this.props.reportID, file, comment);
+        this.setTextInputShouldClear(false);
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -485,7 +496,11 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <View style={[
+                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+                this.props.isComposerFullSize && styles.chatItemFullComposeRow,
+            ]}
+            >
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -500,11 +515,7 @@ class ReportActionCompose extends React.Component {
                 >
                     <AttachmentModal
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
-                        onConfirm={(file) => {
-                            const comment = this.prepareCommentAndResetComposer();
-                            Report.addAttachment(this.props.reportID, file, comment);
-                            this.setTextInputShouldClear(false);
-                        }}
+                        onConfirm={this.addAttachment}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -572,9 +583,7 @@ class ReportActionCompose extends React.Component {
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
-                                                                onPicked: (file) => {
-                                                                    displayFileInModal({file});
-                                                                },
+                                                                onPicked: displayFileInModal,
                                                             });
                                                         },
                                                     },
@@ -616,7 +625,7 @@ class ReportActionCompose extends React.Component {
                                                 return;
                                             }
 
-                                            displayFileInModal({file});
+                                            displayFileInModal(file);
                                             this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
@@ -624,7 +633,7 @@ class ReportActionCompose extends React.Component {
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={file => displayFileInModal({file})}
+                                        onPasteFile={displayFileInModal}
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
@@ -668,8 +677,8 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <OfflineIndicator />
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                    {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>

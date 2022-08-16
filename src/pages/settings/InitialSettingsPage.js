@@ -2,6 +2,7 @@ import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
@@ -9,7 +10,8 @@ import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import AvatarWithIndicator from '../../components/AvatarWithIndicator';
+import Tooltip from '../../components/Tooltip';
+import Avatar from '../../components/Avatar';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -19,17 +21,17 @@ import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
+import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import * as Policy from '../../libs/actions/Policy';
+import policyMemberPropType from '../policyMemberPropType';
+import * as PaymentMethods from '../../libs/actions/PaymentMethods';
+import bankAccountPropTypes from '../../components/bankAccountPropTypes';
+import cardPropTypes from '../../components/cardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -52,11 +54,20 @@ const propTypes = {
         role: PropTypes.string,
     })),
 
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
+
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
         currentBalance: PropTypes.number,
     }),
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -72,57 +83,56 @@ const defaultProps = {
         currentBalance: 0,
     },
     betas: [],
+    policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const defaultMenuItems = [
-    {
-        translationKey: 'common.profile',
-        icon: Expensicons.Profile,
-        action: () => {
-            DateUtils.updateTimezone();
-            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-        },
-    },
-    {
-        translationKey: 'common.preferences',
-        icon: Expensicons.Gear,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
-    },
-    {
-        translationKey: 'initialSettingsPage.security',
-        icon: Expensicons.Lock,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
-    },
-    {
-        translationKey: 'common.payments',
-        icon: Expensicons.Wallet,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-    },
-    {
-        translationKey: 'initialSettingsPage.about',
-        icon: Expensicons.Info,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
-    },
-    {
-        translationKey: 'initialSettingsPage.signOut',
-        icon: Expensicons.Exit,
-        action: Session.signOutAndRedirectToSignIn,
-    },
-];
-
 const InitialSettingsPage = (props) => {
-    const walletBalance = props.numberFormat(
-        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-        {style: 'currency', currency: 'USD'},
-    );
-
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
     if (_.isEmpty(props.currentUserPersonalDetails)) {
         return null;
     }
+
+    const walletBalance = props.numberFormat(
+        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+        {style: 'currency', currency: 'USD'},
+    );
+
+    const defaultMenuItems = [
+        {
+            translationKey: 'common.profile',
+            icon: Expensicons.Profile,
+            action: () => { App.openProfile(); },
+        },
+        {
+            translationKey: 'common.preferences',
+            icon: Expensicons.Gear,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
+        },
+        {
+            translationKey: 'initialSettingsPage.security',
+            icon: Expensicons.Lock,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
+        },
+        {
+            translationKey: 'common.payments',
+            icon: Expensicons.Wallet,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
+            brickRoadIndicator: PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) ? 'error' : null,
+        },
+        {
+            translationKey: 'initialSettingsPage.about',
+            icon: Expensicons.Info,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
+        },
+        {
+            translationKey: 'initialSettingsPage.signOut',
+            icon: Expensicons.Exit,
+            action: Session.signOutAndRedirectToSignIn,
+        },
+    ];
 
     // Add free policies (workspaces) to the list of menu items
     const menuItems = _.chain(props.policies)
@@ -135,6 +145,7 @@ const InitialSettingsPage = (props) => {
             iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -151,12 +162,13 @@ const InitialSettingsPage = (props) => {
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
-                            <AvatarWithIndicator
-                                size={CONST.AVATAR_SIZE.LARGE}
-                                source={props.currentUserPersonalDetails.avatar}
-                                isActive={props.network.isOffline === false}
-                                tooltipText={props.currentUserPersonalDetails.displayName}
-                            />
+                            <Tooltip text={props.currentUserPersonalDetails.displayName}>
+                                <Avatar
+                                    imageStyles={[styles.avatarLarge]}
+                                    source={props.currentUserPersonalDetails.avatar}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                />
+                            </Tooltip>
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
@@ -190,6 +202,7 @@ const InitialSettingsPage = (props) => {
                                 shouldShowRightIcon
                                 badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
                                 fallbackIcon={item.fallbackIcon}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         );
                     })}
@@ -205,7 +218,6 @@ InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         session: {
@@ -214,11 +226,20 @@ export default compose(
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
         },
     }),
 )(InitialSettingsPage);
