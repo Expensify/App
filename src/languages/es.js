@@ -914,7 +914,6 @@ export default {
         extension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
         blockedFromConcierge: 'Debido a sus interacciones pasadas con nuestro equipo, la llamada no puede ser agendada en este momento.',
@@ -928,6 +927,10 @@ export default {
         },
         error: {
             phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
+            firstName: 'Por favor ingresa tu nombre!',
+            lastName: 'Por favor ingresa tu apellido!',
+            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
+            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
