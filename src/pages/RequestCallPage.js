@@ -15,7 +15,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import Icon from '../components/Icon';
 import CONST from '../CONST';
-import Growl from '../libs/Growl';
 import * as Inbox from '../libs/actions/Inbox';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
 import TextInput from '../components/TextInput';
@@ -26,7 +25,6 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
-import * as User from '../libs/actions/User';
 import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
@@ -101,10 +99,8 @@ const defaultProps = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
-        this.state = {
-            onTheWeekend: false,
-        };
+        this.name = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
+        this.isWeekend = moment().day() === 0 || moment().day() === 6;
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
@@ -129,7 +125,7 @@ class RequestCallPage extends Component {
         Inbox.clearDidRequestCallSucceed();
     }
 
-    onSubmit() {
+    onSubmit(values) {
         const policyForCall = _.find(this.props.policies, (policy) => {
             if (!policy) {
                 return;
@@ -145,10 +141,10 @@ class RequestCallPage extends Component {
         Inbox.requestCall({
             taskID: this.props.route.params.taskID,
             policyID: policyForCall.id,
-            firstName: this.state.firstName,
-            lastName: this.state.lastName,
-            phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
-            phoneNumberExtension: this.state.phoneExtension,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            phoneNumber: LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber),
+            phoneNumberExtension: values.phoneExtension,
         });
     }
 
@@ -185,7 +181,7 @@ class RequestCallPage extends Component {
 
     getWaitTimeMessage() {
         let waitTimeKey = 'requestCallPage.waitTime.weekend';
-        if (!this.state.onTheWeekend) {
+        if (!this.isWeekend) {
             waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
         }
         return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
@@ -193,10 +189,7 @@ class RequestCallPage extends Component {
 
     fetchData() {
         // If it is the weekend don't check the wait time
-        if (moment().day() === 0 || moment().day() === 6) {
-            this.setState({
-                onTheWeekend: true,
-            });
+        if (this.isWeekend) {
             return;
         }
 
@@ -212,19 +205,16 @@ class RequestCallPage extends Component {
 
         if (_.isEmpty(values.firstName)) {
             errors.firstName = this.props.translate('requestCallPage.growlMessageEmptyName');
-        }
-
-        if (ValidationUtils.doesFailCharacterLimit(50, [values.firstName])[0]) {
+        } else if (ValidationUtils.doesFailCharacterLimit(50, [values.firstName])[0]) {
             // errors.firstName = this.props.translate('requestCallPage.')
         }
 
         if (_.isEmpty(values.lastName)) {
             errors.lastName = this.props.translate('requestCallPage.growlMessageEmptyName');
-        }
-
-        if (ValidationUtils.doesFailCharacterLimit(50, [values.lastName])[0]) {
+        } else if (ValidationUtils.doesFailCharacterLimit(50, [values.lastName])[0]) {
             // errors.firstName = this.props.translate('requestCallPage.')
         }
+
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
         if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             errors.phoneNumber = this.props.translate('common.error.phoneNumber');
@@ -272,7 +262,7 @@ class RequestCallPage extends Component {
                                     <View style={styles.flex1}>
                                         <TextInput
                                             inputID="firstName"
-                                            defaultValue={this.firstName}
+                                            defaultValue={this.name.firstName}
                                             label={this.props.translate('common.firstName')}
                                             name="fname"
                                             placeholder={this.props.translate('profilePage.john')}
@@ -281,7 +271,7 @@ class RequestCallPage extends Component {
                                     <View style={[styles.flex1, styles.ml2]}>
                                         <TextInput
                                             inputID="lastName"
-                                            defaultValue={this.lastName}
+                                            defaultValue={this.name.lastName}
                                             label={this.props.translate('common.lastName')}
                                             name="lname"
                                             placeholder={this.props.translate('profilePage.doe')}
