@@ -13,6 +13,8 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import DateUtils from '../DateUtils';
+import * as API from '../API';
 
 const allPolicies = {};
 Onyx.connect({
@@ -407,6 +409,62 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
+ * @param {String} policyID The id of the workspace / policy
+ * @param {String} name The new workspace name
+ */
+function updateWorkspaceName(policyID, name) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+
+                // Clear errorFields.name in case the user didn't dismiss the error
+                errorFields: {
+                    name: null,
+                },
+                name,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    name: null,
+                },
+                errorFields: {
+                    name: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    name: null,
+                },
+                errorFields: {
+                    name: {
+                        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem updating your workspace name.',
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceName', {policyID, workspaceName: name}, {optimisticData, successData, failureData});
+}
+
+/**
  * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
  *
  * @param {String} policyID
@@ -596,4 +654,5 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    updateWorkspaceName,
 };
