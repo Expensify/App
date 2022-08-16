@@ -13,7 +13,6 @@ const KeyboardSpacer = props => (
         topSpacing={StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight) ? CONST.IOS_KEYBOARD_SPACE_OFFSET : 0}
         keyboardShowMethod="keyboardWillShow"
         keyboardHideMethod="keyboardWillHide"
-        iOSAnimated
     />
 );
 
