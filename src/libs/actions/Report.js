@@ -1030,7 +1030,7 @@ function updateLastReadActionID(reportID, sequenceNumber, manuallyMarked = false
  * @param {Number} reportID
  */
 function openReport(reportID) {
-    API.read('OpenReport',
+    API.write('OpenReport',
         {
             reportID,
         },
@@ -1069,7 +1069,7 @@ function openReport(reportID) {
  * @param {Number} oldestActionSequenceNumber
  */
 function readOldestAction(reportID, oldestActionSequenceNumber) {
-    API.write('ReadOldestAction',
+    API.read('ReadOldestAction',
         {
             reportID,
             reportActionsOffset: oldestActionSequenceNumber,
