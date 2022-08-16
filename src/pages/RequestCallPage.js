@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
@@ -329,7 +329,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
         },
         requestCallForm: {
-            key: ONYXKEYS.REQUEST_CALL_FORM,
+            key: ONYXKEYS.FORMS.REQUEST_CALL_FORM,
             initWithStoredValues: false,
         },
         inboxCallUserWaitTime: {
