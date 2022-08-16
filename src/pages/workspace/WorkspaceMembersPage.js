@@ -233,7 +233,7 @@ class WorkspaceMembersPage extends React.Component {
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
                             text={this.props.translate('workspace.people.error.cannotRemove')}
                         />
-                        <View style={[styles.flex1, styles.collapsibleSectionBorder, styles.borderTop]}>
+                        <View style={[styles.flex1, styles.collapsibleSectionBorder, styles.borderTop ]}>
                             <OptionRow
                                 onSelectRow={() => this.toggleUser(item.login)}
                                 forceTextUnreadStyle
