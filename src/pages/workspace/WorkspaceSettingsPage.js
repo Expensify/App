@@ -141,14 +141,20 @@ class WorkspaceSettingsPage extends React.Component {
                             />
                         </OfflineWithFeedback>
 
-                        <TextInput
-                            label={this.props.translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4]}
-                            onChangeText={name => this.setState({name})}
-                            value={this.state.name}
-                            hasError={!this.state.name.trim().length}
-                            errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
-                        />
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(this.props.policy, 'pendingFields.name')}
+                            errors={lodashGet(this.props.policy, 'errorFields.name')}
+                            onClose={Policy.clearWorkspaceNameErrors}
+                        >
+                            <TextInput
+                                label={this.props.translate('workspace.editor.nameInputLabel')}
+                                containerStyles={[styles.mt4]}
+                                onChangeText={name => this.setState({name})}
+                                value={this.state.name}
+                                hasError={!this.state.name.trim().length}
+                                errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
+                            />
+                        </OfflineWithFeedback>
 
                         <View style={[styles.mt4]}>
                             <Picker
