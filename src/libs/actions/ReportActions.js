@@ -102,9 +102,14 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
         //     setLocalLastRead(reportID, lastReadSequenceNumbers[reportID]);
         // }
 
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: getLastVisibleMessageText(reportID),
-        });
+/**
+ * @param {Number} reportID
+ * @param {String} clientID
+ */
+function deleteClientAction(reportID, clientID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [clientID]: null,
+        [sequenceNumber]: null,
     });
 }
 
