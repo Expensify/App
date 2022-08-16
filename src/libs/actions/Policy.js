@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
@@ -13,6 +14,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import DateUtils from '../DateUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -378,6 +380,55 @@ function updateLocalPolicyValues(policyID, values) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
+function deleteWorkspaceAvatar(policyID) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                errorFields: {
+                    avatarURL: null,
+                },
+                avatarURL: '',
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: null,
+                },
+                errorFields: {
+                    avatarURL: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: null,
+                },
+                errorFields: {
+                    avatarURL: {
+                        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
+                    },
+                },
+            },
+        },
+    ];
+    API.write('DeleteWorkspaceAvatar', {policyID}, {optimisticData, successData, failureData});
+}
+
 /**
  * Sets the name of the policy
  *
@@ -596,4 +647,5 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    deleteWorkspaceAvatar,
 };
