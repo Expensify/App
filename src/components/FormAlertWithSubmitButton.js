@@ -31,9 +31,6 @@ const propTypes = {
 
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
-
-    /** Whether or not to pressOnEnter */
-    pressOnEnter: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -43,7 +40,6 @@ const defaultProps = {
     containerStyles: [],
     isLoading: false,
     onFixTheErrorsPressed: () => {},
-    pressOnEnter: true,
 };
 
 const FormAlertWithSubmitButton = props => (
@@ -64,7 +60,7 @@ const FormAlertWithSubmitButton = props => (
         ) : (
             <Button
                 success
-                pressOnEnter={props.pressOnEnter}
+                pressOnEnter
                 text={props.buttonText}
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}

@@ -192,7 +192,6 @@ class LoginForm extends React.Component {
                                 message={error}
                                 isAlertVisible={!_.isEmpty(error)}
                                 containerStyles={[styles.mh0]}
-                                pressOnEnter={this.props.isVisible}
                             />
                         </View>
                     )
