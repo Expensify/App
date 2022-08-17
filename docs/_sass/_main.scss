@@ -85,6 +85,10 @@ a {
     &:hover {
         color: $color-blueHover;
     }
+
+    img {
+        display: block;
+    }
 }
 
 h1,
@@ -140,6 +144,11 @@ button {
     &.success {
         background-color: $color-green;
         color: $color-white;
+
+        &:hover {
+            background-color: desaturate($color-green, 15%);
+            cursor: pointer;
+        }
     }
 }
 
@@ -183,7 +192,7 @@ button {
 
     #lhn-content {
         height: calc(100% - 150px);
-        padding-right: 24px;
+        padding-right: 44px;
         padding-bottom: 44px;
         padding-left: 44px;
         overflow: auto;
@@ -493,5 +502,20 @@ button {
         display: block;
         margin-left: auto;
         margin-right: auto;
+    }
+}
+
+#floating-concierge-button {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+
+    img {
+        width: 4rem;
+        height: 4rem;
+
+        &:hover {
+            filter: saturate(2);
+        }
     }
 }
