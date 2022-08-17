@@ -119,7 +119,7 @@ class WorkspaceSettingsPage extends React.Component {
                         <OfflineWithFeedback
                             pendingAction={lodashGet(this.props.policy, 'pendingFields.avatarURL', null)}
                             errors={lodashGet(this.props.policy, 'errorFields.avatarURL', null)}
-                            onClose={() => {}}
+                            onClose={() => Policy.clearAvatarErrors(this.props.policy.ID)}
                         >
                             <AvatarWithImagePicker
                                 isUploading={this.props.policy.isAvatarUploading}
