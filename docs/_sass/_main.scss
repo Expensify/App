@@ -379,7 +379,7 @@ button {
 
     @mixin card-border($border-color, $border-width: 1.5px) {
         border-color: $border-color;
-        border-width: 1.5px;
+        border-width: $border-width;
         border-style: solid;
 
         &.hover {
