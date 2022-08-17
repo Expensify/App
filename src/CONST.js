@@ -790,6 +790,9 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
+
+    MAX_64BIT_TOP_HALF: 9223372036,
+    MAX_64BIT_BOTTOM_HALF: 854775807,
 };
 
 export default CONST;
