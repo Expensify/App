@@ -55,10 +55,8 @@
         </div>
 
 
-        <!-- Concierge button anchored at the bottom of the LHN-->
-        <a id="floating-concierge-button" href="{{ MAIN_SITE_URL }}/concierge" target="_blank">
-            <img src="/assets/images/concierge-avatar.svg" alt="Chat with concierge" />
-        </a>
+        <!-- Concierge button anchored at the bottom of the LHN (rendered on wider screens) -->
+        {% include floating-concierge-button.html id="floating-concierge-button-lhn" %}
     </div>
 
     <div id="content-area">
