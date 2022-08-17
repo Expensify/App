@@ -130,6 +130,19 @@ textarea {
     color: $color-dark;
 }
 
+button {
+    border-radius: 12px;
+    padding: 12px;
+    font-family: "GTAmericaExp-Bold", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+
+    &.success {
+        background-color: $color-green;
+        color: $color-white;
+    }
+}
+
 #logo {
     width: 240px;
     padding: 80px;
@@ -373,6 +386,10 @@ textarea {
 
     &.request-money {
         @include card-border($color-green);
+    }
+
+    &.get-help {
+        @include card-border($color-pink);
     }
 
     .left-icon {
