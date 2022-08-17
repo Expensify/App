@@ -25,9 +25,6 @@ export default function () {
     // Setup Flipper plugins when on dev
     if (__DEV__) {
         require('flipper-plugin-bridgespy-client');
-        const RNAsyncStorageFlipper = require('rn-async-storage-flipper').default;
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-        RNAsyncStorageFlipper(AsyncStorage);
     }
 
     Performance.setupPerformanceObserver();
