@@ -505,8 +505,27 @@ button {
     }
 }
 
-#floating-concierge-button {
-    position: absolute;
+@media screen and (max-width: 800px) {
+    #floating-concierge-button-lhn {
+        display: none;
+    }
+
+    .floating-concierge-button {
+        position: fixed;
+    }
+}
+
+@media screen and (min-width: 800px) {
+    #floating-concierge-button-global {
+        display: none;
+    }
+
+    .floating-concierge-button {
+        position: absolute;
+    }
+}
+
+.floating-concierge-button {
     bottom: 2rem;
     right: 2rem;
 
