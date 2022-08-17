@@ -242,7 +242,6 @@ class ReportScreen extends React.Component {
                         )
                         : (
                             <ReportActionsView
-                                reportID={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}

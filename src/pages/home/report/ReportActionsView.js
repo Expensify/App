@@ -31,13 +31,13 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
-    /** The ID of the report actions will be created for */
-    reportID: PropTypes.number.isRequired,
-
     /* Onyx Props */
 
     /** The report currently being looked at */
     report: PropTypes.shape({
+        /** The ID of the report actions will be created for */
+        reportID: PropTypes.number,
+
         /** Number of actions unread */
         unreadActionCount: PropTypes.number,
 
@@ -52,7 +52,7 @@ const propTypes = {
 
         /** Are we loading more report actions? */
         isLoadingMoreReportActions: PropTypes.bool,
-    }),
+    }).isRequired,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -75,12 +75,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: {
-        unreadActionCount: 0,
-        maxSequenceNumber: 0,
-        hasOutstandingIOU: false,
-        isLoadingMoreReportActions: false,
-    },
     reportActions: {},
     session: {},
 };
@@ -118,15 +112,15 @@ class ReportActionsView extends React.Component {
                 return;
             }
 
-            Report.openReport(this.props.reportID);
+            Report.openReport(this.props.report.reportID);
         });
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
         if (!this.props.report.reportID) {
-            Report.fetchChatReportsByIDs([this.props.reportID], true);
+            Report.fetchChatReportsByIDs([this.props.report.reportID], true);
         }
-        Report.subscribeToReportTypingEvents(this.props.reportID);
+        Report.subscribeToReportTypingEvents(this.props.report.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
@@ -134,7 +128,7 @@ class ReportActionsView extends React.Component {
             ReportScrollManager.scrollToBottom();
         });
 
-        Report.openReport(this.props.reportID);
+        Report.openReport(this.props.report.reportID);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -187,7 +181,7 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         if (lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline')) {
             if (this.getIsReportFullyVisible()) {
-                Report.openReport(this.props.reportID);
+                Report.openReport(this.props.report.reportID);
             } else {
                 this.fetchData();
             }
@@ -223,14 +217,14 @@ class ReportActionsView extends React.Component {
             // When the last action changes, record the max action
             // This will make the NEW marker line go away if you receive comments in the same chat you're looking at
             if (isReportFullyVisible) {
-                Report.readNewestAction(this.props.reportID);
+                Report.readNewestAction(this.props.report.reportID);
             }
         }
 
         // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
         if (isReportFullyVisible && reportBecomeVisible) {
             this.updateNewMarkerPosition(this.props.report.unreadActionCount);
-            Report.openReport(this.props.reportID);
+            Report.openReport(this.props.report.reportID);
         }
     }
 
@@ -243,7 +237,7 @@ class ReportActionsView extends React.Component {
             this.appStateChangeListener.remove();
         }
 
-        Report.unsubscribeFromReportChannel(this.props.reportID);
+        Report.unsubscribeFromReportChannel(this.props.report.reportID);
     }
 
     /**
@@ -255,7 +249,7 @@ class ReportActionsView extends React.Component {
     }
 
     fetchData() {
-        Report.fetchInitialActions(this.props.reportID);
+        Report.fetchInitialActions(this.props.report.reportID);
     }
 
     /**
@@ -280,13 +274,13 @@ class ReportActionsView extends React.Component {
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
         const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.reportID, oldestActionSequenceNumber);
+        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
     scrollToBottomAndMarkReportAsRead() {
         ReportScrollManager.scrollToBottom();
-        Report.readNewestAction(this.props.reportID);
-        Report.setNewMarkerPosition(this.props.reportID, 0);
+        Report.readNewestAction(this.props.report.reportID);
+        Report.setNewMarkerPosition(this.props.report.reportID, 0);
     }
 
     /**
@@ -298,7 +292,7 @@ class ReportActionsView extends React.Component {
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
         const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : this.props.report.lastReadSequenceNumber + 1;
-        Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
+        Report.setNewMarkerPosition(this.props.report.reportID, oldestUnreadSequenceNumber);
     }
 
     /**
