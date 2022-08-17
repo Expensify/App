@@ -66,7 +66,7 @@ class ProfilePage extends Component {
         super(props);
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-        this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar', ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login))};
+        this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar};
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
             logins: this.getLogins(props.loginList),
