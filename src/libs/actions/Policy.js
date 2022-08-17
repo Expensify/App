@@ -429,6 +429,17 @@ function deleteWorkspaceAvatar(policyID) {
     API.write('DeleteWorkspaceAvatar', {policyID}, {optimisticData, successData, failureData});
 }
 
+function clearAvatarErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyID}`, {
+        errorFields: {
+            avatarURL: null,
+        },
+        pendingFields: {
+            avatarURL: null,
+        },
+    });
+}
+
 /**
  * Sets the name of the policy
  *
@@ -648,4 +659,5 @@ export {
     clearAddMemberError,
     hasPolicyMemberError,
     deleteWorkspaceAvatar,
+    clearAvatarErrors,
 };
