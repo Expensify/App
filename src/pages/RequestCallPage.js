@@ -100,9 +100,6 @@ const defaultProps = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        this.name = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(props.currentUserPersonalDetails);
-        this.isWeekend = moment().day() === 0 || moment().day() === 6;
-        this.isBlockedFromConcierge = User.isBlockedFromConcierge(props.blockedFromConcierge);
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
@@ -131,7 +128,7 @@ class RequestCallPage extends Component {
      * @param {Object} values - form input values passed by the Form component
      */
     onSubmit(values) {
-        if (this.isBlockedFromConcierge) {
+        if (User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
             return;
         }
 
@@ -190,15 +187,19 @@ class RequestCallPage extends Component {
 
     getWaitTimeMessage() {
         let waitTimeKey = 'requestCallPage.waitTime.weekend';
-        if (!this.isWeekend) {
+        if (!this.isWeekend()) {
             waitTimeKey = this.getWaitTimeMessageKey(this.props.inboxCallUserWaitTime);
         }
         return `${this.props.translate(waitTimeKey, {minutes: this.props.inboxCallUserWaitTime})} ${this.props.translate('requestCallPage.waitTime.guides')}`;
     }
 
+    isWeekend() {
+        return moment().day() === 0 || moment().day() === 6;
+    }
+
     fetchData() {
         // If it is the weekend don't check the wait time
-        if (this.isWeekend) {
+        if (this.isWeekend()) {
             return;
         }
 
@@ -243,6 +244,8 @@ class RequestCallPage extends Component {
     }
 
     render() {
+        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -275,7 +278,7 @@ class RequestCallPage extends Component {
                                 <View style={styles.flex1}>
                                     <TextInput
                                         inputID="firstName"
-                                        defaultValue={this.name.firstName}
+                                        defaultValue={firstName}
                                         label={this.props.translate('common.firstName')}
                                         name="fname"
                                         placeholder={this.props.translate('profilePage.john')}
@@ -284,7 +287,7 @@ class RequestCallPage extends Component {
                                 <View style={[styles.flex1, styles.ml2]}>
                                     <TextInput
                                         inputID="lastName"
-                                        defaultValue={this.name.lastName}
+                                        defaultValue={lastName}
                                         label={this.props.translate('common.lastName')}
                                         name="lname"
                                         placeholder={this.props.translate('profilePage.doe')}
@@ -309,7 +312,7 @@ class RequestCallPage extends Component {
                                 placeholder="100"
                                 containerStyles={[styles.mt4]}
                             />
-                            {this.isBlockedFromConcierge ? (
+                            {User.isBlockedFromConcierge(this.props.blockedFromConcierge) ? (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
                                     <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
                                     <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
