@@ -143,7 +143,7 @@ class WorkspaceSettingsPage extends React.Component {
                         <OfflineWithFeedback
                             pendingAction={lodashGet(this.props.policy, 'pendingFields.name')}
                             errors={lodashGet(this.props.policy, 'errorFields.name')}
-                            onClose={Policy.clearWorkspaceNameErrors}
+                            onClose={() => Policy.clearWorkspaceNameErrors(this.props.policy.id)}
                         >
                             <TextInput
                                 label={this.props.translate('workspace.editor.nameInputLabel')}
