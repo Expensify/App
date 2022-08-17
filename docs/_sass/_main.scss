@@ -349,34 +349,30 @@ textarea {
     display: flex;
     flex-wrap: nowrap;
     border-radius: 16px;
-    border: 1px solid $color-gray2;
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
     $border-amount-darken: 15%;
     color: $color-dark;
 
-    &:hover {
-        border-color: darken($color-gray2, $border-amount-darken);
-        color: $color-dark;
+    @mixin card-border($border-color, $border-width: 1.5px) {
+        border-color: $border-color;
+        border-width: 1.5px;
+        border-style: solid;
+
+        &.hover {
+            border-color: darken($border-color, $border-amount-darken);
+        }
     }
 
-    &.send-money {
-        border-color: $color-blue;
-        border-width: 1.5px;
+    @include card-border($color-gray2, 1px);
 
-        &:hover {
-            border-color: darken($color-blue, $border-amount-darken);
-        }
+    &.send-money {
+        @include card-border($color-blue);
     }
 
     &.request-money {
-        border-color: $color-green;
-        border-width: 1.5px;
-
-        &:hover {
-            border-color: darken($color-green, $border-amount-darken);
-        }
+        @include card-border($color-green);
     }
 
     .left-icon {
