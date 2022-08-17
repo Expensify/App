@@ -3,8 +3,8 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GitUtils = require('../../../libs/GitUtils');
+const GithubUtils = require('../../../libs/GithubUtils');
 
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const inputTag = core.getInput('TAG', {required: true});
 
 const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
@@ -18,13 +18,13 @@ const itemToFetch = isProductionDeploy ? 'release' : 'tag';
  */
 function getTagsOrReleases(fetchReleases) {
     if (fetchReleases) {
-        return octokit.repos.listReleases({
+        return GithubUtils.octokit.repos.listReleases({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
         });
     }
 
-    return octokit.repos.listTags({
+    return GithubUtils.octokit.repos.listTags({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
     });
