@@ -181,16 +181,22 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
-                <View style={[styles.mt5]}>
-                    <FormAlertWithSubmitButton
-                        buttonText={this.props.translate('common.continue')}
-                        isLoading={this.props.account.isLoading}
-                        onSubmit={this.validateAndSubmitForm}
-                        message={error}
-                        isAlertVisible={!_.isEmpty(error)}
-                        containerStyles={[styles.mh0]}
-                    />
-                </View>
+                { // We need to unmount the submit button when the component is not visible so that the Enter button
+                  // key handler gets unsubscribed and does not conflict with the Password Form
+                    this.props.isVisible && (
+                        <View style={[styles.mt5]}>
+                            <FormAlertWithSubmitButton
+                                buttonText={this.props.translate('common.continue')}
+                                isLoading={this.props.account.isLoading}
+                                onSubmit={this.validateAndSubmitForm}
+                                message={error}
+                                isAlertVisible={!_.isEmpty(error)}
+                                containerStyles={[styles.mh0]}
+                                pressOnEnter={this.props.isVisible}
+                            />
+                        </View>
+                    )
+                }
                 <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
