@@ -156,15 +156,15 @@ class ProfilePage extends Component {
             this.setState({isAvatarChanged: false});
         }
 
-        PersonalDetails.setPersonalDetails({
-            firstName: values.firstName.trim(),
-            lastName: values.lastName.trim(),
-            pronouns: (this.state.hasSelfSelectedPronouns) ? values.selfSelectedPronoun.trim() : values.pronouns.trim(),
-            timezone: {
+        PersonalDetails.updateProfile(
+            values.firstName.trim(),
+            values.lastName.trim(),
+            (this.state.hasSelfSelectedPronouns) ? values.selfSelectedPronoun.trim() : values.pronouns.trim(),
+            {
                 automatic: values.isAutomaticTimezone,
                 selected: values.timezone,
             },
-        });
+        );
     }
 
     /**
