@@ -2,7 +2,6 @@ import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
@@ -26,7 +25,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
-import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
@@ -102,21 +101,16 @@ class InitialSettingsPage extends React.Component {
     // Add free policies (workspaces) to the list of menu items
     const menuItems = _.chain(props.policies)
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-        .map((policy) => {
-            const shouldShowErrorIndicator = Policy.hasCustomUnitsError(policy)
-                || Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {}));
-
-            return {
-                title: policy.name,
-                icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
-                iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
-                iconFill: themeColors.iconReversed,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: shouldShowErrorIndicator ? 'error' : null,
-            };
-        })
+        .map(policy => ({
+            title: policy.name,
+            icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
+            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+            iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
+            iconFill: themeColors.iconReversed,
+            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+            brickRoadIndicator: PolicyUtils.getWorkspaceBrickRoadIndicatorStatus(policy, props.policyMembers),
+        }))
         .value();
     menuItems.push(...defaultMenuItems);
 

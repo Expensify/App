@@ -1,5 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 
 /**
 * Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
@@ -23,7 +25,16 @@ function policyHasError(policy) {
     return !_.isEmpty(errors) || hasFieldErrors;
 }
 
+function getWorkspaceBrickRoadIndicatorStatus(policy, policyMembers) {
+    const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
+    if (hasPolicyMemberError(policyMemberList) || policyHasError(policy)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    return '';
+}
+
 export {
     hasPolicyMemberError,
     policyHasError,
+    getWorkspaceBrickRoadIndicatorStatus,
 };
