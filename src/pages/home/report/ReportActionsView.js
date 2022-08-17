@@ -36,7 +36,7 @@ const propTypes = {
     /** The report currently being looked at */
     report: PropTypes.shape({
         /** The ID of the report actions will be created for */
-        reportID: PropTypes.number,
+        reportID: PropTypes.number.isRequired,
 
         /** Number of actions unread */
         unreadActionCount: PropTypes.number,
