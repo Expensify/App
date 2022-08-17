@@ -12,7 +12,6 @@ import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
-import policyHasError from '../libs/PolicyUtils';
 
 const propTypes = {
     /** URL for the avatar */
@@ -56,7 +55,7 @@ const AvatarWithIndicator = (props) => {
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => PolicyUtils.hasPolicyMemberError(policyMembers));
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
-    const hasPolicyError = _.some(props.policies, policy => policyHasError(policy));
+    const hasAnyPolicyError = _.some(props.policies, policy => PolicyUtils.hasPolicyError(policy));
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -65,7 +64,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {(hasPolicyMemberError || hasPaymentMethodError || hasPolicyError) && (
+                {(hasPolicyMemberError || hasPaymentMethodError || hasAnyPolicyError) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>

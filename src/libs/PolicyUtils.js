@@ -18,7 +18,7 @@ function hasPolicyMemberError(policyMemberList) {
  * @param {Object} policy
  * @return {Boolean}
  */
-function policyHasError(policy) {
+function hasPolicyError(policy) {
     const errors = lodashGet(policy, 'errors', {});
     const errorFields = lodashGet(policy, 'errorFields', {});
     const hasFieldErrors = _.some(errorFields, fieldErrors => !_.isEmpty(fieldErrors));
@@ -27,7 +27,7 @@ function policyHasError(policy) {
 
 function getWorkspaceBrickRoadIndicatorStatus(policy, policyMembers) {
     const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
-    if (hasPolicyMemberError(policyMemberList) || policyHasError(policy)) {
+    if (hasPolicyMemberError(policyMemberList) || hasPolicyError(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return '';
@@ -35,6 +35,6 @@ function getWorkspaceBrickRoadIndicatorStatus(policy, policyMembers) {
 
 export {
     hasPolicyMemberError,
-    policyHasError,
+    hasPolicyError,
     getWorkspaceBrickRoadIndicatorStatus,
 };
