@@ -104,10 +104,9 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
     _.each(logins, (login) => {
         let personalDetail = personalDetails[login];
         if (!personalDetail) {
-            const displayName = Str.removeSMSDomain(login);
             personalDetail = {
                 login,
-                displayName,
+                displayName: Str.removeSMSDomain(login),
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
