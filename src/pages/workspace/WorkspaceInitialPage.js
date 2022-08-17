@@ -21,6 +21,7 @@ import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import * as PolicyActions from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
@@ -76,8 +77,11 @@ class WorkspaceInitialPage extends React.Component {
 
     render() {
         const policy = this.props.policy;
-        const hasMembersError = PolicyActions.hasPolicyMemberError(this.props.policyMemberList);
-        const hasCustomUnitsError = PolicyActions.hasCustomUnitsError(this.props.policy);
+        if (_.isEmpty(policy)) {
+            return <FullScreenLoadingIndicator />;
+        }
+
+        const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
