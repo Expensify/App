@@ -58,6 +58,8 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
             accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
             accountData: _.extend({}, bankAccount, {icon}),
             isDefault,
+            errors: bankAccount.errors,
+            pendingAction: bankAccount.pendingAction,
         });
     });
 
@@ -77,6 +79,8 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', 
             accountType: CONST.PAYMENT_METHODS.DEBIT_CARD,
             accountData: _.extend({}, card, {icon}),
             isDefault,
+            errors: card.errors,
+            pendingAction: card.pendingAction,
         });
     });
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -11,7 +12,9 @@ import Text from '../../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
-    ...userWalletPropTypes,
+
+    /** The user's wallet */
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 };
 
 const defaultProps = {

@@ -1,10 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ActivityIndicator, View, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
@@ -104,24 +103,16 @@ class WorkspacePageWithSections extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                {this.props.reimbursementAccount.loading ? (
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <ActivityIndicator color={themeColors.spinner} size="large" />
+                <ScrollView
+                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                >
+                    <View style={[styles.w100, styles.flex1]}>
+
+                        {this.props.children(hasVBA, policyID, isUsingECard)}
+
                     </View>
-                ) : (
-                    <>
-                        <ScrollView
-                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                        >
-                            <View style={[styles.w100, styles.flex1]}>
-
-                                {this.props.children(hasVBA, policyID, isUsingECard)}
-
-                            </View>
-                        </ScrollView>
-                        {this.props.footer}
-                    </>
-                )}
+                </ScrollView>
+                {this.props.footer}
             </ScreenWrapper>
         );
     }

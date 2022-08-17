@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -20,17 +21,19 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
-import withLocalize from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
-    ...userWalletPropTypes,
+    /** The user's wallet */
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
 };
 
@@ -56,7 +59,7 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (this.props.userWallet.shouldShowFailedKYC) {
+        if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
             return (
                 <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
                     <HeaderWithCloseButton
