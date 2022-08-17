@@ -49,7 +49,7 @@ const SignInPageContent = props => (
         <View style={[styles.flex1, styles.flexRow]}>
             <View style={[
                 styles.flex1,
-                props.isSmallScreenWidth && styles.signInPageNarrowContentContainer,
+                styles.signInPageNarrowContentContainer,
             ]}
             >
                 <SignInPageForm style={[
