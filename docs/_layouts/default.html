@@ -56,9 +56,9 @@
 
 
         <!-- Concierge button anchored at the bottom of the LHN-->
-        <div class="floating-concierge-button">
-            <!-- Floating button content -->
-        </div>
+        <a id="floating-concierge-button" href="{{ MAIN_SITE_URL }}/concierge">
+            <img src="/assets/images/concierge-avatar.svg" alt="Chat with concierge" />
+        </a>
     </div>
 
     <div id="content-area">
@@ -75,17 +75,15 @@
         </div>
 
         <!-- Concierge button at the bottom of the page -->
-        <div class="footer-concierge-button">
-            <a class="card get-help" href="{{ MAIN_SITE_URL }}/concierge">
-                <div class="body">
-                    <div class="title">Didn't find what you were looking for?</div>
-                    <div class="description">Concierge is here to answer all your questions.</div>
-                </div>
-                <div class="right-icon">
-                    <button class="success">Send a message</button>
-                </div>
-            </a>
-        </div>
+        <a class="card get-help" href="{{ MAIN_SITE_URL }}/concierge">
+            <div class="body">
+                <div class="title">Didn't find what you were looking for?</div>
+                <div class="description">Concierge is here to answer all your questions.</div>
+            </div>
+            <div class="right-icon">
+                <button class="success">Send a message</button>
+            </div>
+        </a>
     </div>
     {% endif %}
 
