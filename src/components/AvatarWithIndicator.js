@@ -12,7 +12,8 @@ import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 import * as Policy from '../libs/actions/Policy';
-import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import policyHasError from '../libs/PolicyUtils';
 
 const propTypes = {
     /** URL for the avatar */
@@ -23,6 +24,9 @@ const propTypes = {
 
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
+
+    /** All the user's policies */
+    policies: PropTypes.objectOf(PropTypes.object),
 
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
@@ -46,6 +50,7 @@ const propTypes = {
 const defaultProps = {
     size: 'default',
     tooltipText: '',
+    policies: {},
     policiesMemberList: {},
     policies: {},
 };
@@ -59,9 +64,8 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
-    const hasCustomUnitsError = _.some(props.policies, policy => Policy.hasCustomUnitsError(policy));
-    const shouldShowIndicator = hasPolicyMemberError || hasCustomUnitsError;
-
+    const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
+    const hasPolicyError = _.some(props.policies, policy => policyHasError(policy));
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -70,7 +74,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {shouldShowIndicator && (
+                {(hasPolicyMemberError || hasPaymentMethodError || hasPolicyError) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -83,6 +87,9 @@ AvatarWithIndicator.propTypes = propTypes;
 AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 
 export default withOnyx({
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
     },
