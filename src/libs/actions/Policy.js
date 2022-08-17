@@ -430,7 +430,7 @@ function deleteWorkspaceAvatar(policyID) {
 }
 
 function clearAvatarErrors(policyID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
             avatarURL: null,
         },
