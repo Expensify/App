@@ -773,7 +773,18 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
-    IOS_KEYBOARD_SPACE_OFFSET: -30,
+    BRICK_ROAD_INDICATOR_STATUS: {
+        ERROR: 'error',
+    },
+    REPORT_DETAILS_MENU_ITEM: {
+        MEMBERS: 'member',
+        SETTINGS: 'settings',
+        INVITE: 'invite',
+        LEAVE_ROOM: 'leaveRoom',
+    },
+
+    MAX_64BIT_TOP_HALF: 9223372036,
+    MAX_64BIT_BOTTOM_HALF: 854775807,
 };
 
 export default CONST;
