@@ -21,6 +21,7 @@ import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import * as PolicyActions from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
@@ -80,7 +81,7 @@ class WorkspaceInitialPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        const hasMembersError = PolicyActions.hasPolicyMemberError(this.props.policyMemberList);
+        const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',

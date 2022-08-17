@@ -10,7 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
-import * as Policy from '../libs/actions/Policy';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import policyHasError from '../libs/PolicyUtils';
 
@@ -54,7 +54,7 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
+    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => PolicyUtils.hasPolicyMemberError(policyMembers));
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
     const hasPolicyError = _.some(props.policies, policy => policyHasError(policy));
     return (
