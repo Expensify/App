@@ -13,7 +13,7 @@ module.exports = ({config}) => {
     config.resolve.alias = {
         'react-native-config': 'react-web-config',
         'react-native$': '@expensify/react-native-web',
-        'react-native-web$': '@expensify/react-native-web',
+        'react-native-web': '@expensify/react-native-web',
         '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.js'),
     };
 
