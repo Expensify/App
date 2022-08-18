@@ -227,13 +227,7 @@ class BasePaymentsPage extends React.Component {
 
     makeDefaultPaymentMethod(password) {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(
-            this.props.bankAccountList,
-            this.props.cardList,
-            '',
-            this.props.userWallet,
-        );
-        const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
+        const previousPaymentMethod = _.find(this.props.paymentMethodList, method => method.isDefault);
         const previousPaymentMethodID = lodashGet(previousPaymentMethod, 'methodID');
         const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'accountType');
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
@@ -457,11 +451,8 @@ export default compose(
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
+        paymentMethodList: {
+            key: ONYXKEYS.PAYMENT_METHOD_LIST,
         },
     }),
 )(BasePaymentsPage);
