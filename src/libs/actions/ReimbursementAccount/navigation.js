@@ -104,7 +104,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
  * @param {String} policyID
  */
 function navigateToBankAccountRoute(policyID) {
-    const achData = {...store.getReimbursementAccountInSetup()};
+    const achData = store.getReimbursementAccountInSetup();
     const state = lodashGet(achData, 'state');
     const isShowPage = lodashGet(achData, 'bankAccountID') && state !== BankAccount.STATE.OPEN;
     if (isShowPage) {
