@@ -11,7 +11,7 @@ runs:
 
     - uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version: '16'
         cache: npm
 
     - name: Install node packages
