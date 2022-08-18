@@ -214,6 +214,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
+                                    && this.props.action.pendingAction !== 'delete'
                                 }
                                 draftMessage={this.props.draftMessage}
                             />
