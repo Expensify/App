@@ -159,6 +159,7 @@
     "eslint-config-expensify": "2.0.29",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-jest": "^24.1.0",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-storybook": "^0.5.13",
     "flipper-plugin-bridgespy-client": "^0.1.9",
     "html-webpack-plugin": "^4.3.0",
