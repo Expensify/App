@@ -1252,17 +1252,16 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
-    const htmlForEditedComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
-    const textForEditedComment = parser.htmlToText(htmlForEditedComment);
+    const htmlForNewComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
     //  Delete the comment if it's empty
-    if (_.isEmpty(htmlForEditedComment)) {
+    if (_.isEmpty(htmlForNewComment)) {
         deleteReportComment(reportID, originalReportAction);
         return;
     }
 
     // Skip the Edit if message is not changed
-    if (originalReportAction.message[0].html === htmlForEditedComment.trim()) {
+    if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
         return;
     }
 
@@ -1273,8 +1272,8 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [{
                 isEdited: true,
-                html: htmlForEditedComment,
-                text: textForEditedComment,
+                html: htmlForNewComment,
+                text: textForNewComment,
             }],
         },
     };
@@ -1283,7 +1282,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const highestSequenceNumber = getMaxSequenceNumber(reportID);
     const optimisticReport = {};
     if (sequenceNumber === highestSequenceNumber) {
-        optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForEditedComment);
+        optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForNewComment);
     }
 
     const optimisticData = [
@@ -1325,7 +1324,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parameters = {
         reportID,
         sequenceNumber,
-        reportComment: htmlForEditedComment,
+        reportComment: htmlForNewComment,
         reportActionID: originalReportAction.reportActionID,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
