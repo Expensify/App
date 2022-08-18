@@ -61,13 +61,28 @@ This is the pattern where we queue the request to be sent when the user is onlin
 **How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failData as we don't care what response comes back at all.
 
 # B - Optimistic WITH Feedback Pattern
-This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. When the user is online, the feature should just look like it succeeds immediately (we dont want the offline UI to flicker on and off when the user is online).
+This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. 
+When the user is online, the feature should just look like it succeeds immediately (we don't want the offline UI to flicker on and off when the user is online).
+When the user is offline:
+- Things pending to be created or updated will be shown greyed out (0.5 opacity)
+- Things pending to be deleted will be shown greyed out and have strikethrough
 
 **Used when…**
 - the user needs feedback that data will be sent to the server later
   This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
-**How to implement:** Use API.write() to implement this pattern. Optimistic data should include some pending state for the action that is reflected in the UI. Success/failure data should revert the pending state and/or set a failure state accordingly.
+**How to implement:** 
+- Use API.write() to implement this pattern 
+- Optimistic data should include `pendingAction` ([with these possible values](https://github.com/Expensify/App/blob/15f7fa622805ee2971808d6bc67181c4715f0c62/src/CONST.js#L775-L779))
+- To ensure the UI is shown as described above, you should enclose the components that contain the data that was added/updated/deleted with the OfflineWithFeedback component
+
+**Handling errors:**
+- The OfflineWithFeedback component already handles showing errors too, as long as you pass the error field in the errors prop
+- When dismissing the error, the onClose prop will be called, there we need to call an action that either:
+  - If the pendingAction was `delete`, it removes the data altogether
+  - Otherwise, it would clear the errors and pendingAction properties from the data
+- We also need to show a Red Brick Road (RBR) guiding the user to the error. We need to manually do this for each piece of data using pattern B Optimistic WITH Feedback. Some common components like `MenuItem` already have a prop for it (`brickRoadIndicator`)
+  - A Brick Road is the pattern of guiding members towards places that require their attention by following a series of UI elements that have the same color
 
 # C - Blocking Form UI Pattern
 This pattern greys out the submit button on a form and does not allow the form to be submitted. We also show a "You appear offline" message near the bottom of the screen. Importantly, we _do_ let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
