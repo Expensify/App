@@ -22,6 +22,6 @@ function rand64() {
 
     // Pad the right with zeros
     const rightString = right.toString().padStart(9, '0');
-  
+
     return left + rightString;
 }
