@@ -38,7 +38,7 @@ These instructions should get you set up ready to work on New Expensify 🙌
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
 ## Recommended `node` setup
-In order to have more consistent builds, we use a strict `node` and `npm` version as defined in the `package.json` `engines` field and `.nvmrc` file. Automatic nvm version switching can be used for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash).
+In order to have more consistent builds, we use a strict `node` and `npm` version as defined in the `package.json` `engines` field and `.nvmrc` file. `npm install` will fail if you do not use the version defined, so it is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
