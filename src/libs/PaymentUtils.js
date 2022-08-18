@@ -26,6 +26,41 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
 }
 
 /**
+ * Get the PaymentMethod list with icons
+ * @param {Array} paymentMethodList
+ * @returns {Array<PaymentMethod>}
+ */
+function formatPaymentMethods2(paymentMethodList) {
+    const paymentMethods = [...paymentMethodList];
+    _.each(paymentMethods, (paymentMethod, index) => {
+        switch (paymentMethod.accountType) {
+            case CONST.PAYMENT_METHODS.BANK_ACCOUNT: {
+                const {icon, iconSize} = getBankIcon(lodashGet(paymentMethod, 'additionalData.bankName', ''));
+                paymentMethods[index].icon = icon;
+                paymentMethods[index].iconSize = iconSize;
+                break;
+            }
+            case CONST.PAYMENT_METHODS.DEBIT_CARD: {
+                const {icon, iconSize} = getBankIcon(paymentMethod.accountData.bank, true);
+                paymentMethods[index].icon = icon;
+                paymentMethods[index].iconSize = iconSize;
+                break;
+            }
+            case CONST.PAYMENT_METHODS.PAYPAL: {
+                paymentMethods[index].icon = Expensicons.PayPal;
+                break;
+            }
+            default: {
+                paymentMethods[index].icon = '';
+                paymentMethods[index].iconSize = '';
+                break;
+            }
+        }
+    });
+    return paymentMethods;
+}
+
+/**
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
@@ -119,4 +154,5 @@ export {
     hasExpensifyPaymentMethod,
     formatPaymentMethods,
     calculateWalletTransferBalanceFee,
+    formatPaymentMethods2,
 };
