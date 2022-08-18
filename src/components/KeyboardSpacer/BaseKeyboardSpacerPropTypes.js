@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** Top Spacing is used when there requirement of additional height to view. */
+    /** Top Spacing is used when there is a requirement of additional height to view. */
     topSpacing: PropTypes.number,
 
     /** Callback to update the value of keyboard status along with keyboard height + top spacing. */
