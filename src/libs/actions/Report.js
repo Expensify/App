@@ -1325,7 +1325,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parameters = {
         reportID,
         sequenceNumber,
-        clientID: originalReportAction.clientID,
         reportComment: htmlForEditedComment,
         reportActionID: originalReportAction.reportActionID,
     };
