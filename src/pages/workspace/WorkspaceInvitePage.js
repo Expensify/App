@@ -202,7 +202,8 @@ class WorkspaceInvitePage extends React.Component {
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
         const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Navigation.goBack()
     }
 
     /**
