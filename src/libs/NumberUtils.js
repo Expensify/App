@@ -1,5 +1,9 @@
 import CONST from "../CONST";
 
+/**
+ * Generates a random positive 64 bit integer by randomly generating the left half and right half and concatenating them
+ * @returns {string} randomly generated 64 bit string
+ */
 function rand64() {
     // Max 64-bit signed:
     // 9,223,372,036,854,775,807
