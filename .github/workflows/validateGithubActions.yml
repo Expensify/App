@@ -10,7 +10,7 @@ jobs:
     if: github.actor != 'OSBotify'
     runs-on: ubuntu-latest
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
 
       # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
       # because that would be a sign that the PR author did not rebuild the Github Actions
