@@ -42,6 +42,9 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** List of members on this policy */
+    memberList: PropTypes.arrayOf(PropTypes.object),
+
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -263,7 +266,7 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
+        const policyEmployeeList = _.keys(this.props.memberList);
         const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
         const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
@@ -352,6 +355,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        memberList: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${route.params.policyID}`,
         },
     }),
 )(WorkspaceMembersPage);
