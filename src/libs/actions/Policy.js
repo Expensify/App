@@ -341,59 +341,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 }
 
 /**
- * Merges the passed in login into the specified policy
- *
- * @param {Array<String>} logins
- * @param {String} welcomeNote
- * @param {String} policyID
- */
-function invite(logins, welcomeNote, policyID) {
-    addMembersToWorkspace(logins, welcomeNote, policyID);
-    // const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    // const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
-    //
-    // // Make a shallow copy to preserve original data, and concat the login
-    // const policy = _.clone(allPolicies[key]);
-    // policy.employeeList = [...policy.employeeList, ...newEmployeeList];
-    // policy.alertMessage = '';
-    //
-    // // Optimistically add the user to the policy
-    // Onyx.merge(key, policy);
-    //
-    // // Make the API call to merge the login into the policy
-    // DeprecatedAPI.Policy_Employees_Merge({
-    //     employees: JSON.stringify(_.map(logins, login => ({email: login}))),
-    //     welcomeNote,
-    //     policyID,
-    // })
-    //     .then((data) => {
-    //         // Save the personalDetails for the invited user in Onyx and fetch the latest policyExpenseChats
-    //         if (data.jsonCode === 200) {
-    //             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
-    //             Navigation.goBack();
-    //             if (!_.isEmpty(data.policyExpenseChatIDs)) {
-    //                 Report.fetchChatReportsByIDs(data.policyExpenseChatIDs);
-    //             }
-    //             return;
-    //         }
-    //
-    //         // If the operation failed, undo the optimistic addition
-    //         const policyDataWithoutLogin = _.clone(allPolicies[key]);
-    //         policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
-    //
-    //         // Show the user feedback that the addition failed
-    //         policyDataWithoutLogin.alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
-    //         if (data.jsonCode === 402) {
-    //             policyDataWithoutLogin.alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
-    //         }
-    //
-    //         Onyx.set(key, policyDataWithoutLogin);
-    //     });
-}
-
-/**
- * Updates a workspace avatar image
- *
+ * Sets local values for the policy
  * @param {String} policyID
  * @param {File|Object} file
  */
@@ -1091,7 +1039,6 @@ export {
     getPolicyList,
     loadFullPolicy,
     removeMembers,
-    invite,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     setWorkspaceErrors,
