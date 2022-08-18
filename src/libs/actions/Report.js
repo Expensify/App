@@ -1272,7 +1272,6 @@ function deleteReportComment(reportID, reportAction) {
 
     const parameters = {
         reportID,
-        clientID: reportAction.clientID,
         sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
@@ -1343,7 +1342,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForEditedComment);
     }
 
-    // List of optmistic data to change
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1356,8 +1354,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             value: optimisticReport,
         },
     ];
-
-    // On Success clear the pendingAction state
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1369,8 +1365,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             },
         },
     ];
-
-    // On Error clear the pendingAction state and revert the message
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
