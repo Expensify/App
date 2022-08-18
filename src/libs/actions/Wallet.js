@@ -395,9 +395,6 @@ function acceptWalletTerms(parameters) {
         },
     ];
 
-    // ??
-    const successData = [];
-
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -409,7 +406,7 @@ function acceptWalletTerms(parameters) {
         },
     ];
 
-    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, failureData});
 }
 
 /**
