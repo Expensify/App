@@ -46,11 +46,4 @@ const WorkspaceTravelNoVBAView = props => (
 WorkspaceTravelNoVBAView.propTypes = propTypes;
 WorkspaceTravelNoVBAView.displayName = 'WorkspaceTravelNoVBAView';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    }),
-)(WorkspaceTravelNoVBAView);
+export default withLocalize(WorkspaceTravelNoVBAView);

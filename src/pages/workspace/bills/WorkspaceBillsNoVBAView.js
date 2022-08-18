@@ -49,11 +49,4 @@ const WorkspaceBillsNoVBAView = props => (
 WorkspaceBillsNoVBAView.propTypes = propTypes;
 WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    }),
-)(WorkspaceBillsNoVBAView);
+export default withLocalize(WorkspaceBillsNoVBAView);
