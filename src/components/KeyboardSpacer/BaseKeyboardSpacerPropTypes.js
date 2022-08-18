@@ -7,11 +7,12 @@ const propTypes = {
     /** Callback to update the value of keyboard status along with keyboard height + top spacing. */
     onToggle: PropTypes.func,
 
-    /** Platform specific keyboard event to show/hide keyboard https://reactnative.dev/docs/keyboard#addlistener */
-    /** Pass event name for keyboardShow since iOS and android both has different event to show keyboard. */
+    /** Platform specific keyboard event to show keyboard https://reactnative.dev/docs/keyboard#addlistener */
+    /** Pass keyboardShow event name as a param, since iOS and android both have different event names show keyboard. */
     keyboardShowMethod: PropTypes.string,
 
-    /** Pass event name for keyboardHide since iOS and android both has different event to hide keyboard. */
+    /** Platform specific keyboard event to hide keyboard https://reactnative.dev/docs/keyboard#addlistener */
+    /** Pass keyboardHide event name as a param, since iOS and android both have different event names show keyboard. */
     keyboardHideMethod: PropTypes.string,
 };
 
