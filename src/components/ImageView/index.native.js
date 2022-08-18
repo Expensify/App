@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
     View, InteractionManager, PanResponder,
 } from 'react-native';
-import Image from 'react-native-fast-image';
+import Image from '@pieter-pot/react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
 import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
