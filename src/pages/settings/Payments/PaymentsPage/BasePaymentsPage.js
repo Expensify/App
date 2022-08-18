@@ -31,7 +31,6 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
-import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 
 class BasePaymentsPage extends React.Component {
@@ -227,7 +226,9 @@ class BasePaymentsPage extends React.Component {
 
     makeDefaultPaymentMethod(password) {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const previousPaymentMethod = _.find(this.props.paymentMethodList, method => method.isDefault);
+        const paymentMethods = _.filter(this.props.paymentMethodList, paymentMethod => paymentMethod.accountType !== CONST.PAYMENT_METHODS.PAYPAL);
+
+        const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
         const previousPaymentMethodID = lodashGet(previousPaymentMethod, 'methodID');
         const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'accountType');
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
