@@ -8,7 +8,10 @@ export default PropTypes.shape({
     description: PropTypes.string,
 
     /** The bankAccountID in the bankAccounts db */
-    methodID: PropTypes.number,
+    methodID: PropTypes.oneOfType([
+        PropTypes.number,
+        PropTypes.string,
+    ]),
 
     /** The unique key for the payment method */
     key: PropTypes.string,
