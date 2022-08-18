@@ -260,29 +260,21 @@ function removeMembers(members, policyID) {
     if (members.length === 0) {
         return;
     }
-
-    const employeeListUpdate = {};
-    _.each(members, login => employeeListUpdate[login] = null);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
-
-    // Make the API call to remove a login from the policy
-    DeprecatedAPI.Policy_Employees_Remove({
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: 'There was a priblem removing that workspace member'}})),
+    }];
+    API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    })
-        .then((data) => {
-            if (data.jsonCode === 200) {
-                return;
-            }
-
-            // Rollback removal on failure
-            _.each(members, login => employeeListUpdate[login] = {});
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
-
-            // Show the user feedback that the removal failed
-            const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
-        });
+    }, {optimisticData, failureData});
 }
 
 /**
@@ -735,21 +727,14 @@ function updateLastAccessedWorkspace(policyID) {
 function subscribeToPolicyEvents() {
     _.each(allPolicies, (policy) => {
         const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
-        Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
-            // Refetch the policy expense chats to update their state and their actions to get the archive reason
-            if (!_.isEmpty(policyExpenseChatIDs)) {
-                Report.fetchChatReportsByIDs(policyExpenseChatIDs);
-                _.each(policyExpenseChatIDs, (reportID) => {
-                    Report.reconnect(reportID);
-                });
-            }
-
+        Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, defaultRoomChatIDs}) => {
             // Remove the default chats if we are one of the users getting removed
-            if (removedEmails.includes(sessionEmail) && !_.isEmpty(defaultRoomChatIDs)) {
-                _.each(defaultRoomChatIDs, (chatID) => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatID}`, null);
-                });
+            if (!removedEmails.includes(sessionEmail) || _.isEmpty(defaultRoomChatIDs)) {
+                return;
             }
+            _.each(defaultRoomChatIDs, (chatID) => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatID}`, null);
+            });
         });
     });
 }
