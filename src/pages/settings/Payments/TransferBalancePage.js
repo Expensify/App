@@ -116,7 +116,6 @@ class TransferBalancePage extends React.Component {
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
         const paymentMethods = _.filter(this.props.paymentMethodList, paymentMethod => paymentMethod.accountType !== CONST.PAYMENT_METHODS.PAYPAL);
 
-
         const filteredMethods = _.filter(paymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
             const account = _.first(filteredMethods);

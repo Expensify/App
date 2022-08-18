@@ -14,8 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
-import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -96,7 +94,7 @@ class PaymentMethodList extends Component {
         const filteredPaymentMethods = _.filter(
             this.props.paymentMethodList, paymentMethod => !(paymentMethod.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD
                 && paymentMethod.accountData.additionalData
-                && paymentMethod.accountData.additionalData.isP2PDebitCard)
+                && paymentMethod.accountData.additionalData.isP2PDebitCard),
         );
 
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods2(filteredPaymentMethods);
