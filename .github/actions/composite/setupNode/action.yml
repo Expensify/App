@@ -9,7 +9,7 @@ runs:
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-node@09ba51f18e18a3756fea1f54d09c6745c064491d
+    - uses: actions/setup-node@v3
       with:
         node-version-file: '.nvmrc'
         cache: npm
