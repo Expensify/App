@@ -6,6 +6,7 @@ import networkPropTypes from '../../../../components/networkPropTypes';
 import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../../components/cardPropTypes';
 import userWalletPropTypes from '../../../EnablePayments/userWalletPropTypes';
+import paymentMethodPropTypes from '../../../../components/paymentMethodPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -32,6 +33,9 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** List of payment methods */
+    paymentMethodList: PropTypes.arrayOf(paymentMethodPropTypes),
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -45,8 +49,7 @@ const defaultProps = {
     isLoadingPaymentMethods: true,
     shouldListenForResize: false,
     userWallet: {},
-    bankAccountList: {},
-    cardList: {},
+    paymentMethodList: [],
 };
 
 export {propTypes, defaultProps};

@@ -30,32 +30,14 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** User's paypal.me username if they have one */
-    payPalMeUsername: PropTypes.string,
-
-    /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
-
-    /** List of bank payment methods */
-    paymentMethodList: PropTypes.objectOf(paymentMethodPropTypes),
-
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    /** List of payment methods */
+    paymentMethodList: PropTypes.arrayOf(paymentMethodPropTypes),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
     /** Type to filter the payment Method list */
     filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
-
-    /** User wallet props */
-    userWallet: PropTypes.shape({
-        /** The ID of the linked account */
-        walletLinkedAccountID: PropTypes.number,
-
-        /** The type of the linked account (debitCard or bankAccount) */
-        walletLinkedAccountType: PropTypes.string,
-    }),
 
     /** Type of active/highlighted payment method */
     actionPaymentMethodType: PropTypes.oneOf([..._.values(CONST.PAYMENT_METHODS), '']),
@@ -70,14 +52,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    payPalMeUsername: '',
-    bankAccountList: {},
-    paymentMethodList: {},
-    cardList: {},
-    userWallet: {
-        walletLinkedAccountID: 0,
-        walletLinkedAccountType: '',
-    },
+    paymentMethodList: [],
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
@@ -287,18 +262,6 @@ PaymentMethodList.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
-        },
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
         paymentMethodList: {
             key: ONYXKEYS.PAYMENT_METHOD_LIST,
         },
