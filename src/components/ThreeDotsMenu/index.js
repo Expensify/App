@@ -21,6 +21,7 @@ const propTypes = {
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
     /** Any additional styles to pass to the icon container. */
+    // eslint-disable-next-line react/forbid-prop-types
     iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** The fill color to pass into the icon. */

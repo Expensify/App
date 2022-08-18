@@ -33,6 +33,7 @@ const propTypes = {
     iconFill: PropTypes.string,
 
     /** Any additional styles to pass to the icon container. */
+    // eslint-disable-next-line react/forbid-prop-types
     iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
@@ -78,9 +79,11 @@ const propTypes = {
     ]),
 
     /** Additional button styles. Specific to the OpacityView of button */
+    // eslint-disable-next-line react/forbid-prop-types
     innerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Additional text styles */
+    // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether we should use the success theme color */

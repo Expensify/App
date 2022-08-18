@@ -13,6 +13,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Styles that should be passed to touchable container */
+    // eslint-disable-next-line react/forbid-prop-types
     styles: PropTypes.arrayOf(PropTypes.object),
 };
 

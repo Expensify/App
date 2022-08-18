@@ -18,6 +18,7 @@ const propTypes = {
     }),
 
     /** Styles of the amount */
+    // eslint-disable-next-line react/forbid-prop-types
     balanceStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,

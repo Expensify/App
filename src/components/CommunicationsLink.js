@@ -15,6 +15,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Styles to be assigned to Container */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Decides Tap behaviour. */

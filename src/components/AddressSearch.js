@@ -45,6 +45,7 @@ const propTypes = {
     onInputChange: PropTypes.func.isRequired,
 
     /** Customize the TextInput container */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** A map of inputID key names */
