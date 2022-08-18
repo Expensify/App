@@ -21,6 +21,7 @@ import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
+import paymentMethodPropTypes from '../../../components/paymentMethodPropTypes';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -34,6 +35,9 @@ const propTypes = {
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of bank payment methods */
+    paymentMethodList: PropTypes.objectOf(paymentMethodPropTypes),
 
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
@@ -68,6 +72,7 @@ const propTypes = {
 const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: {},
+    paymentMethodList: {},
     cardList: {},
     userWallet: {
         walletLinkedAccountID: 0,
@@ -113,9 +118,13 @@ class PaymentMethodList extends Component {
      */
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = _.filter(this.props.cardList, card => card.additionalData.isP2PDebitCard);
+        const filteredPaymentMethods = _.filter(
+            this.props.paymentMethodList, paymentMethod => !(paymentMethod.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD
+                && paymentMethod.accountData.additionalData
+                && paymentMethod.accountData.additionalData.isP2PDebitCard)
+        );
 
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods2(filteredPaymentMethods);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -289,6 +298,9 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        paymentMethodList: {
+            key: ONYXKEYS.PAYMENT_METHOD_LIST,
         },
     }),
 )(PaymentMethodList);
