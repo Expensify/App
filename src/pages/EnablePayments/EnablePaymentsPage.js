@@ -27,7 +27,6 @@ const propTypes = {
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
-
     additionalDetails: PropTypes.shape({
         errorCode: PropTypes.string,
     }),
