@@ -394,18 +394,28 @@ function acceptWalletTerms(parameters) {
         },
     ];
 
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_TERMS,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
-                shouldShowWalletActivationSuccess: false,
+                shouldShowWalletActivationSuccess: null,
                 shouldShowFailedKYC: true,
             },
         },
     ];
 
-    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, failureData});
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
 }
 
 /**

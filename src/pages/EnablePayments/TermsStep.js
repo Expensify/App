@@ -2,6 +2,8 @@ import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -19,8 +21,11 @@ import LongTermsForm from './TermsPage/LongTermsForm';
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: PropTypes.shape({
-        /** Whether or not the information is currently loading */
+        /** Whether the information is currently loading */
         loading: PropTypes.bool,
+
+        /** Any additional error message to show */
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
     ...withLocalizePropTypes,
 };
@@ -28,6 +33,7 @@ const propTypes = {
 const defaultProps = {
     walletTerms: {
         loading: false,
+        errors: null,
     },
 };
 
@@ -63,6 +69,7 @@ class TermsStep extends React.Component {
     }
 
     render() {
+        const errors = lodashGet(this.props, 'walletTerms.errors', {});
         return (
             <>
                 <HeaderWithCloseButton
@@ -111,6 +118,11 @@ class TermsStep extends React.Component {
                             {this.props.translate('common.error.acceptedTerms')}
                         </Text>
                     )}
+                    {!_.isEmpty(errors) && (
+                        <Text style={[styles.formError, styles.mb2]}>
+                            {_.last(_.values(errors))}
+                        </Text>
+                    )}
                     <Button
                         success
                         style={[styles.mv4]}
@@ -143,7 +155,6 @@ export default compose(
     withOnyx({
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
-            initWithStoredValues: false,
         },
     }),
 )(TermsStep);
