@@ -26,6 +26,9 @@ import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as Policy from '../../libs/actions/Policy';
 import policyMemberPropType from '../policyMemberPropType';
+import * as PaymentMethods from '../../libs/actions/PaymentMethods';
+import bankAccountPropTypes from '../../components/bankAccountPropTypes';
+import cardPropTypes from '../../components/cardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -60,6 +63,12 @@ const propTypes = {
         currentBalance: PropTypes.number,
     }),
 
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
+
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -78,51 +87,52 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const defaultMenuItems = [
-    {
-        translationKey: 'common.profile',
-        icon: Expensicons.Profile,
-        action: () => { App.openProfile(); },
-    },
-    {
-        translationKey: 'common.preferences',
-        icon: Expensicons.Gear,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
-    },
-    {
-        translationKey: 'initialSettingsPage.security',
-        icon: Expensicons.Lock,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
-    },
-    {
-        translationKey: 'common.payments',
-        icon: Expensicons.Wallet,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-    },
-    {
-        translationKey: 'initialSettingsPage.about',
-        icon: Expensicons.Info,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
-    },
-    {
-        translationKey: 'initialSettingsPage.signOut',
-        icon: Expensicons.Exit,
-        action: Session.signOutAndRedirectToSignIn,
-    },
-];
-
 const InitialSettingsPage = (props) => {
-    const walletBalance = props.numberFormat(
-        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-        {style: 'currency', currency: 'USD'},
-    );
-
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
     if (_.isEmpty(props.currentUserPersonalDetails)) {
         return null;
     }
+
+    const walletBalance = props.numberFormat(
+        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+        {style: 'currency', currency: 'USD'},
+    );
+
+    const defaultMenuItems = [
+        {
+            translationKey: 'common.profile',
+            icon: Expensicons.Profile,
+            action: () => { App.openProfile(); },
+        },
+        {
+            translationKey: 'common.preferences',
+            icon: Expensicons.Gear,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
+        },
+        {
+            translationKey: 'initialSettingsPage.security',
+            icon: Expensicons.Lock,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
+        },
+        {
+            translationKey: 'common.payments',
+            icon: Expensicons.Wallet,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
+            brickRoadIndicator: PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) ? 'error' : null,
+        },
+        {
+            translationKey: 'initialSettingsPage.about',
+            icon: Expensicons.Info,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
+        },
+        {
+            translationKey: 'initialSettingsPage.signOut',
+            icon: Expensicons.Exit,
+            action: Session.signOutAndRedirectToSignIn,
+        },
+    ];
 
     // Add free policies (workspaces) to the list of menu items
     const menuItems = _.chain(props.policies)
@@ -224,6 +234,12 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
         },
     }),
 )(InitialSettingsPage);

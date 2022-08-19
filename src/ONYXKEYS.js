@@ -96,8 +96,6 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions_',
-        IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
@@ -166,9 +164,6 @@ export default {
 
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
-
-    // Are we loading the rename policy room command
-    IS_LOADING_RENAME_POLICY_ROOM: 'isLoadingRenamePolicyRoom',
 
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
