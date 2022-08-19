@@ -460,10 +460,8 @@ function removeUnitError(policyID) {
  * @returns {Boolean}
  */
 function hasCustomUnitsError(policy) {
-    if (!policy || !policy.customUnits || !policy.customUnits.distance || !policy.customUnits.distance.errors) {
-        return false;
-    }
-    return !_.isEmpty(policy.customUnits.distance.errors);
+    const errors = lodashGet(policy, ['customUnits', 'Distance', 'errors'], '');
+    return !_.isEmpty(errors);
 }
 
 /**
