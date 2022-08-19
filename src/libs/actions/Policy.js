@@ -69,20 +69,24 @@ function getSimplifiedEmployeeList(employeeList) {
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
-    const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
-    const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
-    const customUnitsSimplified = customUnit && {
-        distance: {
-            customUnitID: customUnit.customUnitID,
-            name: customUnit.name,
-            attributes: customUnit.attributes,
-            rate: {
-                id: customUnitRate.customUnitRateID,
-                name: customUnitRate.name,
-                value: Number(customUnitRate.rate),
-            },
-        },
-    };
+    const customUnits = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {});
+
+    // Update custom units data to be keyed by name
+    const customUnitsUpdated = {};
+    _.forEach(customUnits, (unit) => {
+        const updatedUnit = {...unit};
+
+        // Rate data massaging is temporary and will be addressed in a subsequent PR
+        if (unit.rates) {
+            updatedUnit.rate = {
+                id: unit.rates[0].customUnitRateID,
+                name: unit.rates[0].name,
+                value: Number(unit.rates[0].rate),
+            };
+        }
+        customUnitsUpdated[unit.name] = updatedUnit;
+    });
+
     return {
         isFromFullPolicy,
         id: fullPolicyOrPolicySummary.id,
@@ -96,7 +100,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
-        customUnits: customUnitsSimplified,
+        customUnits: customUnitsUpdated,
     };
 }
 
@@ -447,7 +451,7 @@ function setWorkspaceErrors(policyID, errors) {
 function removeUnitError(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
-            distance: {
+            Distance: {
                 errors: null,
             },
         },
