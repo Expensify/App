@@ -326,16 +326,15 @@ function removeMembers(members, policyID) {
  * @param {String} policyID
  */
 function invite(logins, welcomeNote, policyID) {
-    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
-
-    // Make a shallow copy to preserve original data, and concat the login
-    const policy = _.clone(allPolicies[key]);
-    policy.employeeList = [...policy.employeeList, ...newEmployeeList];
-    policy.alertMessage = '';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        alertMessage: '',
+    });
 
     // Optimistically add the user to the policy
-    Onyx.merge(key, policy);
+    const newEmployeeLogins = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
+    const employeeUpdate = {};
+    _.each(newEmployeeLogins, login => employeeUpdate[login] = defaultEmployeeListEntry());
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeUpdate);
 
     // Make the API call to merge the login into the policy
     DeprecatedAPI.Policy_Employees_Merge({
@@ -355,16 +354,15 @@ function invite(logins, welcomeNote, policyID) {
             }
 
             // If the operation failed, undo the optimistic addition
-            const policyDataWithoutLogin = _.clone(allPolicies[key]);
-            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
+            _.each(newEmployeeLogins, login => employeeUpdate[login] = null);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeUpdate);
 
             // Show the user feedback that the addition failed
-            policyDataWithoutLogin.alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
+            let alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
             if (data.jsonCode === 402) {
-                policyDataWithoutLogin.alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
+                alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
-
-            Onyx.set(key, policyDataWithoutLogin);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage});
         });
 }
 
