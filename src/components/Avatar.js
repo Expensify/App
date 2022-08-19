@@ -15,6 +15,7 @@ const propTypes = {
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Extra styles to pass to Image */
+    // eslint-disable-next-line react/forbid-prop-types
     imageStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Extra styles to pass to View wrapper */
