@@ -103,7 +103,7 @@ class InitialSettingsPage extends React.Component {
     const menuItems = _.chain(props.policies)
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map((policy) => {
-            const showShouldIndicator = Policy.hasCustomUnitsError(policy)
+            const shouldShowErrorIndicator = Policy.hasCustomUnitsError(policy)
                 || Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {}));
 
             return {
@@ -114,7 +114,7 @@ class InitialSettingsPage extends React.Component {
                 iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: showShouldIndicator ? 'error' : null,
+                brickRoadIndicator: shouldShowErrorIndicator ? 'error' : null,
             };
         })
         .value();
