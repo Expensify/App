@@ -24,6 +24,7 @@ const propTypes = {
     children: PropTypes.node,
 
     /** Customize the Section container */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
