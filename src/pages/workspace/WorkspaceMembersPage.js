@@ -265,7 +265,7 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
-        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
+        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         const data = _.chain(policyMemberList)
             .map(email => this.props.personalDetails[email])
             .filter()
