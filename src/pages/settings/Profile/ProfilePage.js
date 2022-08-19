@@ -141,6 +141,12 @@ class ProfilePage extends Component {
     /**
      * Submit form to update personal details
      * @param {Object} values
+     * @param {String} values.firstName
+     * @param {String} values.lastName
+     * @param {String} values.pronouns
+     * @param {Boolean} values.isAutomaticTimezone
+     * @param {String} values.timezone
+     * @param {String} values.selfSelectedPronoun
      */
     updatePersonalDetails(values) {
         // Check if the user has modified their avatar
