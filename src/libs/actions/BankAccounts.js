@@ -29,6 +29,7 @@ export {
     fetchOnfidoToken,
     activateWallet,
     fetchUserWallet,
+    verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
 
