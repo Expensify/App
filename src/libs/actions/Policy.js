@@ -486,14 +486,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                customUnits: {
-                    [values.name]: {
-                        customUnitID: values.customUnitID,
-                        name: values.name,
-                        attributes: values.attributes,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
+                customUnits: {...values, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
