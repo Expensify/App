@@ -10,6 +10,6 @@ jobs:
     if: github.actor != 'OSBotify'
     runs-on: ubuntu-latest
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
 
       - run: ./.github/scripts/verifyPodfile.sh

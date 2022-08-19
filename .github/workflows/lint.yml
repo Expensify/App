@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
 
       - run: npm run lint
         env:
