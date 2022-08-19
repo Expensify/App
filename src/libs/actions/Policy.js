@@ -527,9 +527,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
-        customUnits: JSON.stringify({
-            [values.name]: values,
-        }),
+        customUnit: JSON.stringify(values),
     }, {optimisticData, successData, failureData});
 }
 
