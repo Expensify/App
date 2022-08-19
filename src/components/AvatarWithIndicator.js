@@ -30,7 +30,7 @@ const propTypes = {
     /** The list of this user's policies (coming from Onyx) */
     policies: PropTypes.objectOf(PropTypes.shape({
         /** The ID of the policy */
-        ID: PropTypes.string,
+        id: PropTypes.string,
     })),
 
     /** List of bank accounts */
