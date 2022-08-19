@@ -1,5 +1,6 @@
 @import 'colors';
 @import 'fonts';
+@import 'mixins';
 
 * {
     margin: 0;
@@ -378,18 +379,7 @@ button {
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
-    $border-amount-darken: 15%;
     color: $color-dark;
-
-    @mixin card-border($border-color, $border-width: 1.5px) {
-        border-color: $border-color;
-        border-width: $border-width;
-        border-style: solid;
-
-        &.hover {
-            border-color: darken($border-color, $border-amount-darken);
-        }
-    }
 
     @include card-border($color-gray2, 1px);
 
