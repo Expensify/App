@@ -521,14 +521,12 @@ button {
     }
 }
 
-@media screen and (max-width: 800px) {
-    #floating-concierge-button-lhn {
-        display: none;
-    }
+#floating-concierge-button-lhn {
+    display: none;
+}
 
-    .floating-concierge-button {
-        position: fixed;
-    }
+.floating-concierge-button {
+    position: fixed;
 }
 
 @media screen and (min-width: 801px) {
