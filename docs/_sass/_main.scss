@@ -149,6 +149,10 @@ button {
             background-color: desaturate($color-green, 15%);
             cursor: pointer;
         }
+
+        @media screen and (max-width: 800px) {
+            width: 100%;
+        }
     }
 }
 
@@ -362,14 +366,14 @@ button {
     column-gap: 4%;
     padding-bottom: 20px;
 
-    @media screen and (min-width: 800px) {
+    @media screen and (min-width: 1120px) {
         grid-template-columns: 48% 48%;
     }
 }
 
 .card {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     border-radius: 16px;
     padding: 28px;
     font-weight: bold;
@@ -401,6 +405,11 @@ button {
         @include card-border($color-pink);
     }
 
+    .row {
+        display: flex;
+        flex-basis:100%;
+    }
+
     .left-icon {
         display: flex;
         align-items: center;
@@ -415,6 +424,17 @@ button {
         display: flex;
         align-items: center;
         padding-left: 16px;
+    }
+
+    .submit-button {
+        display: flex;
+        align-items: center;
+        padding-left: 16px;
+
+        @media screen and (max-width: 1120px) {
+            margin-top: 16px;
+            padding-left: 0;
+        }
     }
 
     .body {
@@ -496,7 +516,7 @@ button {
         font-size: 20px;
     }
 
-    #icon {
+    .icon {
         width: 76px;
         padding: 28px;
         display: block;
