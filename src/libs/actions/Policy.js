@@ -542,14 +542,13 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {Object} values The new custom unit values
  */
 function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
-    const customUnitKey = values.name.toLowerCase();
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [customUnitKey]: {
+                    [values.name]: {
                         customUnitID: values.customUnitID,
                         name: values.name,
                         attributes: values.attributes,
@@ -566,7 +565,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [customUnitKey]: {
+                    [values.name]: {
                         pendingAction: null,
                         errors: null,
                     },
@@ -581,7 +580,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [customUnitKey]: {
+                    [values.name]: {
                         customUnitID: currentCustomUnit.customUnitID,
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
@@ -597,7 +596,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
         customUnits: JSON.stringify({
-            [customUnitKey]: values,
+            [values.name]: values,
         }),
     }, {optimisticData, successData, failureData});
 }
