@@ -831,6 +831,7 @@ export default {
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
             unlockNoVBACopy: 'Conecta una cuenta bancaria para reembolsar online a los miembros de tu espacio de trabajo.',
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
+            updateCustomUnitError: '(Waiting on translation)',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',

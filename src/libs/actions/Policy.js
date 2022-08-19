@@ -517,7 +517,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
                         errors: {
-                            [DateUtils.getMicroseconds()]: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
                         },
                     },
                 },
