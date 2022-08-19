@@ -31,11 +31,14 @@
 These instructions should get you set up ready to work on New Expensify 🙌
 
 ## Getting Started
-1. Install `node` & `npm`: `brew install node`
+1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
+
+## Recommended `node` setup
+In order to have more consistent builds, we use a strict `node` and `npm` version as defined in the `package.json` `engines` field and `.nvmrc` file. `npm install` will fail if you do not use the version defined, so it is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
@@ -48,7 +51,6 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
-
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
@@ -92,7 +94,6 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-
 
 ----
 
