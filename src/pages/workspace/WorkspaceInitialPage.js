@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -82,11 +83,13 @@ class WorkspaceInitialPage extends React.Component {
         }
 
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
+        const hasSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.name', {}));
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
                 icon: Expensicons.Gear,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+                brickRoadIndicator: hasSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             },
             {
                 translationKey: 'workspace.common.card',
@@ -117,7 +120,7 @@ class WorkspaceInitialPage extends React.Component {
                 translationKey: 'workspace.common.members',
                 icon: Expensicons.Users,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
-                error: hasMembersError,
+                brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             },
             {
                 translationKey: 'workspace.common.bankAccount',
@@ -215,7 +218,7 @@ class WorkspaceInitialPage extends React.Component {
                                 iconRight={item.iconRight}
                                 onPress={() => item.action()}
                                 shouldShowRightIcon
-                                brickRoadIndicator={item.error ? 'error' : null}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         ))}
                     </View>
