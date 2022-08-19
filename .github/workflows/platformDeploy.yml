@@ -31,7 +31,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
         with:
@@ -95,7 +95,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -130,7 +130,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
         with:
@@ -208,7 +208,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup python
         run: sudo apt-get install python3-setuptools
@@ -336,7 +336,7 @@ jobs:
     if: ${{ always() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-npm-8
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
