@@ -70,7 +70,7 @@ There are 3 main components in the hub page: 1. Stage title, 2. Row of Card butt
 
     <a class="card" href="/articles/request-money/SmartScan">
         <div class="body">
-            <h3>SmartScan</h3>
+            <h3 class="title">SmartScan</h3>
         </div>
         <div class="right-icon">
             <i class="fa-solid fa-angle-right icon"></i>
@@ -79,7 +79,7 @@ There are 3 main components in the hub page: 1. Stage title, 2. Row of Card butt
 
     <a class="card" href="/articles/request-money/AnotherArticle">
         <div class="body">
-            <h3>Another Article</h3>
+            <h3 class="title">Another Article</h3>
         </div>
         <div class="right-icon">
             <i class="fa-solid fa-angle-right icon"></i>
@@ -121,7 +121,7 @@ In order to add a new Card button in the respective hub page ([send-money/index.
 ```html
 <a class="card" href="/articles/request-money/SmartScan">
     <div class="body">
-        <h3>SmartScan</h3>
+        <h3 class="title">SmartScan</h3>
     </div>
     <div class="right-icon">
         <i class="fa-solid fa-angle-right icon"></i>
