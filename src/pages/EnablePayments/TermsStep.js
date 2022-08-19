@@ -21,9 +21,6 @@ import LongTermsForm from './TermsPage/LongTermsForm';
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: PropTypes.shape({
-        /** Whether the information is currently loading */
-        loading: PropTypes.bool,
-
         /** Any additional error message to show */
         errors: PropTypes.objectOf(PropTypes.string),
     }),
@@ -32,7 +29,6 @@ const propTypes = {
 
 const defaultProps = {
     walletTerms: {
-        loading: false,
         errors: null,
     },
 };
@@ -127,7 +123,6 @@ class TermsStep extends React.Component {
                         success
                         style={[styles.mv4]}
                         text={this.props.translate('termsStep.enablePayments')}
-                        isLoading={this.props.walletTerms.loading}
                         onPress={() => {
                             if (!this.state.hasAcceptedDisclosure
                                 || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
