@@ -694,7 +694,8 @@ export default {
     },
     activateStep: {
         headerTitle: 'Habilitar pagos',
-        activated: 'Su billetera Expensify está lista para usar.',
+        activatedTitle: 'Billetera Expensify lista!',
+        activatedMessage: 'Enhorabuena, tu billetera Expensify está lista para usar.',
         checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
     },
     companyStep: {

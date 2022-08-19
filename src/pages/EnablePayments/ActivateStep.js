@@ -46,7 +46,10 @@ class ActivateStep extends React.Component {
                     />
                     <View style={[styles.ph5]}>
                         <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
-                            {this.props.translate('activateStep.activated')}
+                            {this.props.translate('activateStep.activatedTitle')}
+                        </Text>
+                        <Text style={[styles.mt3, styles.textAlignCenter]}>
+                            {this.props.translate('activateStep.activatedMessage')}
                         </Text>
                     </View>
                 </View>
