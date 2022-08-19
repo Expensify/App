@@ -22,7 +22,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import PropTypes from "prop-types";
 
 const propTypes = {
     /** Information about the network from Onyx */
