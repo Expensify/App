@@ -36,10 +36,10 @@ Onyx.connect({
 const defaultEmployeeListEntry = () => ({pendingAction: null});
 
 /**
- * Simplifies the employeeList response into an object containing an array of emails
+ * Simplifies the employeeList response into an object mapping employee email to a default employee list entry
  *
  * @param {Object} employeeList
- * @returns {Array}
+ * @returns {Object}
  */
 function getSimplifiedEmployeeList(employeeList) {
     const employeeListEmails = _.chain(employeeList)
