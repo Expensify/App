@@ -522,25 +522,25 @@ button {
 
 #floating-concierge-button-lhn {
     display: none;
-}
-
-.floating-concierge-button {
-    position: fixed;
+    @include breakpoint($breakpoint-tablet) {
+        display: block;
+    }
 }
 
 @include breakpoint($breakpoint-tablet) {
     #floating-concierge-button-global {
         display: none;
     }
-
-    .floating-concierge-button {
-        position: absolute;
-    }
 }
 
 .floating-concierge-button {
     bottom: 2rem;
     right: 2rem;
+
+    position: fixed;
+    @include breakpoint($breakpoint-tablet) {
+        position: absolute;
+    }
 
     img {
         width: 4rem;
