@@ -211,17 +211,14 @@ button {
             display: block;
         }
 
-        height: calc(100% - 100px);
-        padding-right: 24px;
-        padding-bottom: 24px;
-        padding-left: 24px;
         display: none;
+        height: calc(100% - 100px);
+        padding: 0 24px 24px 24px;
 
         @include breakpoint($breakpoint-tablet) {
+            display: block;
             height: calc(100% - 150px);
-            padding-right: 44px;
-            padding-bottom: 44px;
-            padding-left: 44px;
+            padding: 0 44px 44px 44px;
         }
 
         &.expanded {
