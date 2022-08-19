@@ -33,14 +33,18 @@ const propTypes = {
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
-        customUnit: PropTypes.shape({
-            id: PropTypes.string,
-            name: PropTypes.string,
-            value: PropTypes.string,
-            rate: PropTypes.shape({
-                id: PropTypes.string,
+        customUnits: PropTypes.shape({
+            Distance: PropTypes.shape({
+                customUnitID: PropTypes.string,
                 name: PropTypes.string,
-                value: PropTypes.number,
+                attributes: PropTypes.shape({
+                    unit: PropTypes.string,
+                }),
+                rate: PropTypes.shape({
+                    id: PropTypes.string,
+                    name: PropTypes.string,
+                    value: PropTypes.number,
+                }),
             }),
         }),
         outputCurrency: PropTypes.string,
