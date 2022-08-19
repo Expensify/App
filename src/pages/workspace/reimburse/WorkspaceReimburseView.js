@@ -53,12 +53,12 @@ class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            unitID: lodashGet(props, 'policy.customUnits.distance.customUnitID', ''),
-            unitName: lodashGet(props, 'policy.customUnits.distance.name', ''),
-            unitValue: lodashGet(props, 'policy.customUnits.distance.attributes.unit', 'mi'),
-            rateID: lodashGet(props, 'policy.customUnits.distance.rate.id', ''),
-            rateName: lodashGet(props, 'policy.customUnits.distance.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnits.distance.rate.value', 0) / 100),
+            unitID: lodashGet(props, 'policy.customUnits.Distance.customUnitID', ''),
+            unitName: lodashGet(props, 'policy.customUnits.Distance.name', ''),
+            unitValue: lodashGet(props, 'policy.customUnits.Distance.attributes.unit', 'mi'),
+            rateID: lodashGet(props, 'policy.customUnits.Distance.rate.id', ''),
+            rateName: lodashGet(props, 'policy.customUnits.Distance.rate.name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnits.Distance.rate.value', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -102,7 +102,7 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
         this.setState({unitValue: value});
-        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnits.distance, {
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnits.Distance, {
             customUnitID: this.state.unitID,
             name: this.state.unitName,
             attributes: {unit: value},
@@ -171,8 +171,8 @@ class WorkspaceReimburseView extends React.Component {
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
                     <OfflineWithFeedback
-                        errors={lodashGet(this.props, 'policy.customUnits.distance.errors')}
-                        pendingAction={lodashGet(this.props, 'policy.customUnits.distance.pendingAction')}
+                        errors={lodashGet(this.props, 'policy.customUnits.Distance.errors')}
+                        pendingAction={lodashGet(this.props, 'policy.customUnits.Distance.pendingAction')}
                         onClose={() => Policy.removeUnitError(this.props.policyID)}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
