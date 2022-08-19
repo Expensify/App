@@ -43,7 +43,7 @@ export default {
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
 
-    /** This is a utility route used to go to the users concierge chat, or the sign-in page if the user's not authenticated */
+    /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
 
     IOU_REQUEST,
