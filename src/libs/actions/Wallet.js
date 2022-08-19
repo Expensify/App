@@ -189,7 +189,7 @@ function updatePersonalDetails(personalDetails) {
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                 value: {
                     isLoading: true,
-                    errors: [],
+                    errors: null,
                 },
             },
         ],
@@ -398,8 +398,8 @@ function verifyIdentity(parameters) {
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: true,
-                    errors: {},
-                    fixableErrors: [],
+                    errors: null,
+                    fixableErrors: null,
                 },
             },
             {
@@ -416,7 +416,7 @@ function verifyIdentity(parameters) {
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
                     loading: false,
-                    errors: {},
+                    errors: null,
                 },
             },
         ],
