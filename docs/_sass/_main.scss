@@ -444,8 +444,14 @@ button {
         flex-grow: 2;
     }
 
-    .description {
-        margin-top: 16px;
+    h3 {
+        padding: 0;
+        margin: 0;
+    }
+
+    p.description {
+        padding: 0;
+        margin: 16px 0 0 0;
         font-weight: normal;
     }
 }
