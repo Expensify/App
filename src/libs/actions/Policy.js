@@ -492,7 +492,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
                         customUnitID: values.customUnitID,
                         name: values.name,
                         attributes: values.attributes,
-                        pendingAction: 'update',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
