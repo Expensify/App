@@ -13,7 +13,6 @@ import Performance from '../Performance';
 import Timing from './Timing';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
-import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
@@ -255,12 +254,6 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-// When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => {
-    getAppData();
-    reconnectApp();
-});
-
 export {
     setLocale,
     setSidebarLoaded,
@@ -269,4 +262,5 @@ export {
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
+    reconnectApp,
 };

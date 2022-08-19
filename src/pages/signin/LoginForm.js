@@ -18,6 +18,9 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import OfflineIndicator from '../../components/OfflineIndicator';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -36,6 +39,9 @@ const propTypes = {
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -113,6 +119,10 @@ class LoginForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
+        if (this.props.network.isOffline) {
+            return;
+        }
+
         const login = this.state.login.trim();
         if (!login) {
             this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
@@ -171,16 +181,22 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
-                <View style={[styles.mt5]}>
-                    <FormAlertWithSubmitButton
-                        buttonText={this.props.translate('common.continue')}
-                        isLoading={this.props.account.isLoading}
-                        onSubmit={this.validateAndSubmitForm}
-                        message={error}
-                        isAlertVisible={!_.isEmpty(error)}
-                        containerStyles={[styles.mh0]}
-                    />
-                </View>
+                { // We need to unmount the submit button when the component is not visible so that the Enter button
+                  // key handler gets unsubscribed and does not conflict with the Password Form
+                    this.props.isVisible && (
+                        <View style={[styles.mt5]}>
+                            <FormAlertWithSubmitButton
+                                buttonText={this.props.translate('common.continue')}
+                                isLoading={this.props.account.isLoading}
+                                onSubmit={this.validateAndSubmitForm}
+                                message={error}
+                                isAlertVisible={!_.isEmpty(error)}
+                                containerStyles={[styles.mh0]}
+                            />
+                        </View>
+                    )
+                }
+                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }
@@ -196,4 +212,5 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
+    withNetwork(),
 )(LoginForm);
