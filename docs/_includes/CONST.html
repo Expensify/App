@@ -3,3 +3,5 @@
 {% else %}
     {% assign MAIN_SITE_URL = "http://localhost:8080" %}
 {% endif %}
+
+{% capture CONCIERGE_CHAT_URL %}{{MAIN_SITE_URL}}/concierge{% endcapture %}
