@@ -138,8 +138,8 @@ const InitialSettingsPage = (props) => {
     const menuItems = _.chain(props.policies)
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map((policy) => {
-            const showShouldIndicator = Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {}))
-                || Policy.hasCustomUnitsError(policy);
+            const showShouldIndicator = Policy.hasCustomUnitsError(policy)
+                || Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {}));
 
             return {
                 title: policy.name,
