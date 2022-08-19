@@ -190,6 +190,7 @@ function updatePersonalDetails(personalDetails) {
                 value: {
                     isLoading: true,
                     errors: null,
+                    errorFields: null,
                 },
             },
         ],
