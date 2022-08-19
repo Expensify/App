@@ -146,14 +146,16 @@ function create(name = '') {
             Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
 
             // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
-                id: response.policyID,
-                type: response.policy.type,
-                name: response.policy.name,
-                role: CONST.POLICY.ROLE.ADMIN,
-                outputCurrency: response.policy.outputCurrency,
-            });
+            return Promise.all(
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                    id: response.policyID,
+                    type: response.policy.type,
+                    name: response.policy.name,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: response.policy.outputCurrency,
+                }),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${response.policyID}`, getSimplifiedEmployeeList(response.policy.employeeList)),
+            );
         })
         .then(() => Promise.resolve(lodashGet(res, 'policyID')));
 }
