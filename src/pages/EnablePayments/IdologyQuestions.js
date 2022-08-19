@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {
     View,
 } from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -169,7 +169,7 @@ class IdologyQuestions extends React.Component {
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
-                        message={_.isEmpty(this.props.additionalDetails.errors) ? this.props.additionalDetails.errors.find(x=>x!==undefined) : this.state.errorMessage : }
+                        message={_.isEmpty(this.props.additionalDetails.errors) ? _.find(this.props.additionalDetails.errors, error => error !== undefined) : this.state.errorMessage}
                         isLoading={this.props.additionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
