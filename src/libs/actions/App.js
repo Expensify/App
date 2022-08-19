@@ -11,10 +11,8 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import * as Report from './Report';
 import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
-import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
@@ -48,15 +46,12 @@ Onyx.connect({
     },
 });
 
-const allPolicies = {};
+let policyIDList = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        allPolicies[key] = {...allPolicies[key], ...val};
+    waitForCollectionCallback: true,
+    callback: (policies) => {
+        policyIDList = _.compact(_.pluck(policies, 'id'));
     },
 });
 
@@ -105,37 +100,31 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- * @returns {Promise}
  */
 function getAppData() {
     BankAccounts.fetchUserWallet();
-
-    // We should update the syncing indicator when personal details and reports are both done fetching.
-    return Promise.all([
-        Report.fetchAllReports(true),
-    ]);
-}
-
-/**
- * Gets a comma separated list of locally stored policy ids
- *
- * @param {Array} policies
- * @return {String}
- */
-function getPolicyIDList(policies) {
-    return _.chain(policies)
-        .filter(Boolean)
-        .map(policy => policy.id)
-        .join(',');
 }
 
 /**
  * Fetches data needed for app initialization
- * @param {Array} policies
  */
-function openApp(policies) {
-    API.read('OpenApp', {
-        policyIDList: getPolicyIDList(policies),
+function openApp() {
+    API.read('OpenApp', {policyIDList}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 
@@ -143,8 +132,22 @@ function openApp(policies) {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {
-        policyIDList: getPolicyIDList(allPolicies),
+    API.read('ReconnectApp', {policyIDList}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 
@@ -251,12 +254,6 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-// When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => {
-    getAppData();
-    reconnectApp();
-});
-
 export {
     setLocale,
     setSidebarLoaded,
@@ -265,4 +262,5 @@ export {
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
+    reconnectApp,
 };

@@ -155,6 +155,66 @@ function buildIdologyError(idologyErrors) {
 }
 
 /**
+ * Validates a user's provided details against a series of checks
+ *
+ * @param {Object} personalDetails
+ */
+function updatePersonalDetails(personalDetails) {
+    if (!personalDetails) {
+        return;
+    }
+    const firstName = personalDetails.legalFirstName || '';
+    const lastName = personalDetails.legalLastName || '';
+    const dob = personalDetails.dob || '';
+    const addressStreet = personalDetails.addressStreet || '';
+    const addressCity = personalDetails.addressCity || '';
+    const addressState = personalDetails.addressState || '';
+    const addressZip = personalDetails.addressZip || '';
+    const ssn = personalDetails.ssn || '';
+    const phoneNumber = personalDetails.phoneNumber || '';
+    API.write('UpdatePersonalDetailsForWallet', {
+        firstName,
+        lastName,
+        dob,
+        addressStreet,
+        addressCity,
+        addressState,
+        addressZip,
+        ssn,
+        phoneNumber,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                    errors: [],
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
  * This action can be called repeatedly with different steps until an Expensify Wallet has been activated.
  *
  * Possible steps:
@@ -397,4 +457,5 @@ export {
     buildIdologyError,
     updateCurrentStep,
     answerQuestionsForWallet,
+    updatePersonalDetails,
 };
