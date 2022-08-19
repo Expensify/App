@@ -33,6 +33,8 @@ Onyx.connect({
     },
 });
 
+const defaultEmployeeListEntry = () => ({pendingAction: null});
+
 /**
  * Simplifies the employeeList response into an object containing an array of emails
  *
@@ -46,7 +48,9 @@ function getSimplifiedEmployeeList(employeeList) {
         .unique()
         .value();
 
-    return employeeListEmails;
+    const result = {};
+    _.each(employeeListEmails, email => result[email] = defaultEmployeeListEntry());
+    return result;
 }
 
 /**
@@ -92,7 +96,6 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
-        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
         customUnit: customUnitSimplified,
     };
 }
@@ -259,10 +262,8 @@ function loadFullPolicy(policyID) {
                 return;
             }
 
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`],
-                ...getSimplifiedPolicyObject(policy, true),
-            });
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy, true));
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, getSimplifiedEmployeeList(lodashGet(policy, 'value.employeeList', {})));
         });
 }
 
