@@ -294,14 +294,9 @@ function removeMembers(members, policyID) {
         return;
     }
 
-    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-
-    // Make a shallow copy to preserve original data and remove the members
-    const policy = _.clone(allPolicies[key]);
-    policy.employeeList = _.without(policy.employeeList, ...members);
-
-    // Optimistically remove the members from the policy
-    Onyx.set(key, policy);
+    const employeeListUpdate = {};
+    _.each(members, login => employeeListUpdate[login] = null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
 
     // Make the API call to remove a login from the policy
     DeprecatedAPI.Policy_Employees_Remove({
@@ -312,9 +307,10 @@ function removeMembers(members, policyID) {
             if (data.jsonCode === 200) {
                 return;
             }
-            const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
-            policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...members];
-            Onyx.set(key, policyDataWithMembersRemoved);
+
+            // Rollback removal on failure
+            _.each(members, login => employeeListUpdate[login] = defaultEmployeeListEntry());
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
 
             // Show the user feedback that the removal failed
             const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
