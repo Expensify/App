@@ -183,11 +183,11 @@ button {
 
     @include breakpoint($breakpoint-tablet) {
         width: 320px;
+        height: 100%;
     }
 
     @include breakpoint($breakpoint-desktop) {
         width: 420px;
-        height: 100%;
     }
 
     ul,
@@ -520,27 +520,25 @@ button {
     }
 }
 
+#floating-concierge-button-global {
+    position: fixed;
+    display: block;
+    @include breakpoint($breakpoint-tablet) {
+        display: none;
+    }
+}
+
 #floating-concierge-button-lhn {
+    position: absolute;
     display: none;
     @include breakpoint($breakpoint-tablet) {
         display: block;
     }
 }
 
-@include breakpoint($breakpoint-tablet) {
-    #floating-concierge-button-global {
-        display: none;
-    }
-}
-
 .floating-concierge-button {
     bottom: 2rem;
     right: 2rem;
-
-    position: fixed;
-    @include breakpoint($breakpoint-tablet) {
-        position: absolute;
-    }
 
     img {
         width: 4rem;
