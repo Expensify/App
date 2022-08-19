@@ -97,7 +97,7 @@ class PaymentMethodList extends Component {
                 && paymentMethod.accountData.additionalData.isP2PDebitCard),
         );
 
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods2(filteredPaymentMethods);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(filteredPaymentMethods);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
