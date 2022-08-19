@@ -169,6 +169,12 @@ class ProfilePage extends Component {
 
     /**
      * @param {Object} values - An object containing the value of each inputID
+     * @param {String} values.firstName
+     * @param {String} values.lastName
+     * @param {String} values.pronouns
+     * @param {Boolean} values.isAutomaticTimezone
+     * @param {String} values.timezone
+     * @param {String} values.selfSelectedPronoun
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
