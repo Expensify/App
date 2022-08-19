@@ -872,6 +872,7 @@ export default {
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
+            updateNameError: 'Sorry, there was an unexpected problem updating your workspace name.',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },

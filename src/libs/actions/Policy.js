@@ -454,7 +454,7 @@ function updateWorkspaceName(policyID, name) {
                 },
                 errorFields: {
                     name: {
-                        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem updating your workspace name.',
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.updateNameError'),
                     },
                 },
             },
