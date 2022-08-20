@@ -1,0 +1,1 @@
+export default localizedSeparator => localizedSeparator;
