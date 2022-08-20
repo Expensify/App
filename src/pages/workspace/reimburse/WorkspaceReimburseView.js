@@ -22,6 +22,7 @@ import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -77,19 +78,29 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getRateDisplayValue(value) {
-        const numValue = parseFloat(value);
+        const numValue = this.getNumericValue(value);
         if (Number.isNaN(numValue)) {
             return '';
+        }
+        return numValue.toString().replace('.', this.props.toLocaleDigit('.')).substring(0, value.length);
+    }
+
+    getNumericValue(value) {
+        const numValue = parseFloat(value.toString().replace(this.props.toLocaleDigit('.'), '.'));
+        if (Number.isNaN(numValue)) {
+            return NaN;
         }
 
         return numValue.toFixed(3);
     }
 
     setRate(value) {
-        const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
+        const decimalSeparator = this.props.toLocaleDigit('.');
+        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
+        const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
 
         this.setState(prevState => ({
-            rateValue: !isInvalidRateValue ? value : prevState.rateValue,
+            rateValue: !isInvalidRateValue ? this.getRateDisplayValue(value) : prevState.rateValue,
         }), () => {
             // Set the corrected value with a delay and sync to the server
             this.updateRateValueDebounced(this.state.rateValue);
@@ -115,20 +126,16 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     updateRateValue(value) {
-        const numValue = parseFloat(value);
+        const numValue = this.getNumericValue(value);
 
         if (_.isNaN(numValue)) {
             return;
         }
 
-        this.setState({
-            rateValue: numValue.toFixed(3),
-        });
-
         Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
             customUnitRateID: this.state.rateID,
             name: this.state.rateName,
-            rate: numValue.toFixed(3) * 100,
+            rate: numValue * 100,
         }, null);
     }
 
