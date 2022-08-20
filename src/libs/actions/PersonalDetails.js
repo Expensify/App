@@ -285,6 +285,15 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                     }),
                 },
             },
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM,
+            value: {isLoading: true},
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM,
+            value: {isLoading: false},
         }],
         failureData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -298,6 +307,10 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                     displayName: myPersonalDetails.displayName,
                 },
             },
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM,
+            value: {isLoading: false},
         }],
     });
 }
