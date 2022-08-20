@@ -96,6 +96,7 @@ class CheckboxWithLabel extends React.Component {
                         shouldSaveDraft={this.props.shouldSaveDraft}
                     />
                     <TouchableOpacity
+                        focusable={false}
                         onPress={this.toggleCheckbox}
                         style={[
                             styles.ml3,
