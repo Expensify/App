@@ -95,11 +95,11 @@ function Logging(response, request) {
                 // This error seems to only throw on dev when localhost:8080 tries to access the production web server. It's unclear whether this can happen on production or if
                 // it's a sign that the web server is down.
                 Log.hmmm('[Network] Error: Gateway Timeout error', {message: error.message, status: error.status});
-            } else if (request.command === 'Push_Authenticate') {
-                // Push_Authenticate requests can return with fetch errors and no message. It happens because we return a non 200 header like 403 Forbidden.
+            } else if (request.command === 'AuthenticatePusher') {
+                // AuthenticatePusher requests can return with fetch errors and no message. It happens because we return a non 200 header like 403 Forbidden.
                 // This is common to see if we are subscribing to a bad channel related to something the user shouldn't be able to access. There's no additional information
                 // we can get about these requests.
-                Log.hmmm('[Network] Error: Push_Authenticate', {message: error.message, status: error.status});
+                Log.hmmm('[Network] Error: AuthenticatePusher', {message: error.message, status: error.status});
             } else if (error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED) {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.

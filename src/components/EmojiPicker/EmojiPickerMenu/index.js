@@ -86,8 +86,10 @@ class EmojiPickerMenu extends Component {
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
+        this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
 
         this.currentScrollOffset = 0;
+        this.firstNonHeaderIndex = 0;
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -98,6 +100,7 @@ class EmojiPickerMenu extends Component {
                 start: 0,
                 end: 0,
             },
+            isFocused: false,
         };
     }
 
@@ -110,6 +113,7 @@ class EmojiPickerMenu extends Component {
             this.props.forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
+        this.setFirstNonHeaderIndex(this.emojis);
     }
 
     componentWillUnmount() {
@@ -126,6 +130,14 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * Find and store index of the first emoji item
+     * @param {Array} filteredEmojis
+     */
+    setFirstNonHeaderIndex(filteredEmojis) {
+        this.firstNonHeaderIndex = _.findIndex(filteredEmojis, item => !item.spacer && !item.header);
+    }
+
+    /**
      * Setup and attach keypress/mouse handlers for highlight navigation.
      */
     setupEventHandlers() {
@@ -135,6 +147,10 @@ class EmojiPickerMenu extends Component {
 
         this.keyDownHandler = (keyBoardEvent) => {
             if (keyBoardEvent.key.startsWith('Arrow')) {
+                if (!this.state.isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
+                    keyBoardEvent.preventDefault();
+                }
+
                 // Move the highlight when arrow keys are pressed
                 this.highlightAdjacentEmoji(keyBoardEvent.key);
                 return;
@@ -211,10 +227,12 @@ class EmojiPickerMenu extends Component {
      * @param {String} arrowKey
      */
     highlightAdjacentEmoji(arrowKey) {
-        const firstNonHeaderIndex = this.state.filteredEmojis.length === this.emojis.length ? this.numColumns : 0;
+        if (this.state.filteredEmojis.length === 0) {
+            return;
+        }
 
         // Arrow Down and Arrow Right enable arrow navigation when search is focused
-        if (this.searchInput && this.searchInput.isFocused() && this.state.filteredEmojis.length) {
+        if (this.searchInput && this.searchInput.isFocused()) {
             if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowRight') {
                 return;
             }
@@ -239,7 +257,7 @@ class EmojiPickerMenu extends Component {
         // If nothing is highlighted and an arrow key is pressed
         // select the first emoji
         if (this.state.highlightedIndex === -1) {
-            this.setState({highlightedIndex: firstNonHeaderIndex});
+            this.setState({highlightedIndex: this.firstNonHeaderIndex});
             this.scrollToHighlightedIndex();
             return;
         }
@@ -270,7 +288,7 @@ class EmojiPickerMenu extends Component {
                 break;
             case 'ArrowLeft':
                 move(-1,
-                    () => this.state.highlightedIndex - 1 < firstNonHeaderIndex,
+                    () => this.state.highlightedIndex - 1 < this.firstNonHeaderIndex,
                     () => {
                         // Reaching start of the list, arrow left set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -283,7 +301,7 @@ class EmojiPickerMenu extends Component {
             case 'ArrowUp':
                 move(
                     -this.numColumns,
-                    () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex,
+                    () => this.state.highlightedIndex - this.numColumns < this.firstNonHeaderIndex,
                     () => {
                         // Reaching start of the list, arrow up set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -353,6 +371,7 @@ class EmojiPickerMenu extends Component {
                 headerIndices: this.unfilteredHeaderIndices,
                 highlightedIndex: -1,
             });
+            this.setFirstNonHeaderIndex(this.emojis);
             return;
         }
 
@@ -367,6 +386,7 @@ class EmojiPickerMenu extends Component {
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
+        this.setFirstNonHeaderIndex(newFilteredEmojiList);
     }
 
     /**
@@ -386,7 +406,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        User.setPreferredSkinTone(skinTone);
+        User.updatePreferredSkinTone(skinTone);
     }
 
     /**
@@ -439,12 +459,14 @@ class EmojiPickerMenu extends Component {
                             placeholder={this.props.translate('common.search')}
                             placeholderTextColor={themeColors.textSupporting}
                             onChangeText={this.filterEmojis}
-                            style={styles.textInput}
+                            style={[styles.textInput, this.state.isFocused && styles.borderColorFocus]}
                             defaultValue=""
                             ref={el => this.searchInput = el}
                             autoFocus
                             selectTextOnFocus={this.state.selectTextOnFocus}
                             onSelectionChange={this.onSelectionChange}
+                            onFocus={() => this.setState({isFocused: true})}
+                            onBlur={() => this.setState({isFocused: false})}
                         />
                     </View>
                 )}

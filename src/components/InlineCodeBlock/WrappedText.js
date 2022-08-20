@@ -24,9 +24,11 @@ const propTypes = {
     children: PropTypes.string.isRequired,
 
     /** Style to be applied to Text */
+    // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Style for each word(Token) in the text, remember that token also includes whitespaces among words */
+    // eslint-disable-next-line react/forbid-prop-types
     wordStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
@@ -36,6 +38,10 @@ const defaultProps = {
 };
 
 const WrappedText = (props) => {
+    if (!_.isString(props.children)) {
+        return null;
+    }
+
     const textMatrix = getTextMatrix(props.children);
     return (
         <>

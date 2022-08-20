@@ -15,12 +15,10 @@ function isAuthTokenRequired(command) {
         'Log',
         'Graphite_Timer',
         'Authenticate',
-        'GetAccountStatus',
+        'BeginSignIn',
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
-        'ResetPassword',
-        'User_ReopenAccount',
         'ValidateEmail',
     ], command);
 }

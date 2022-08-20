@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -11,9 +10,7 @@ import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
-import FixedFooter from '../../../../components/FixedFooter';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const propTypes = {
@@ -26,7 +23,7 @@ const propTypes = {
     /** Callback to add participants in IOUModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    /** Selected participants from IOUMOdal with login */
+    /** Selected participants from IOUModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -128,7 +125,7 @@ class IOUParticipantsSplit extends Component {
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
             }));
         }
 
@@ -216,7 +213,7 @@ class IOUParticipantsSplit extends Component {
                                 this.props.personalDetails,
                                 this.props.betas,
                                 searchValue,
-                                [],
+                                this.props.participants,
                                 CONST.EXPENSIFY_EMAILS,
                             );
                             this.setState({
@@ -227,22 +224,13 @@ class IOUParticipantsSplit extends Component {
                             });
                         }}
                         headerMessage={headerMessage}
-                        disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
-                        shouldDelayFocus
+                        shouldShowConfirmButton
+                        confirmButtonText={this.props.translate('common.next')}
+                        onConfirmSelection={this.finalizeParticipants}
                     />
                 </View>
-                {lodashGet(this.props, 'participants', []).length > 0 && (
-                    <FixedFooter>
-                        <Button
-                            success
-                            style={[styles.w100]}
-                            onPress={this.finalizeParticipants}
-                            text={this.props.translate('common.next')}
-                        />
-                    </FixedFooter>
-                )}
             </>
         );
     }

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
@@ -19,7 +20,7 @@ import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
-import Growl from '../libs/Growl';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Route params */
@@ -48,10 +49,16 @@ const propTypes = {
 
         /** The current user's notification preference for this report */
         notificationPreference: PropTypes.string,
+
+        /** Access setting e.g. whether the report is "restricted" */
+        visibility: PropTypes.string,
+
+        /** Linked policy's ID */
+        policyID: PropTypes.string,
     }).isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
+    reports: PropTypes.objectOf(PropTypes.shape({
         /** The report name */
         reportName: PropTypes.string,
 
@@ -60,7 +67,7 @@ const propTypes = {
 
         /** ID of the policy */
         policyID: PropTypes.string,
-    }).isRequired,
+    })).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -74,6 +81,13 @@ const propTypes = {
 
 const defaultProps = {
     ...fullPolicyDefaultProps,
+    report: {
+        reportID: 0,
+        reportName: '',
+        policyID: '',
+        notificationPreference: '',
+        visibility: '',
+    },
 };
 
 class ReportSettingsPage extends Component {
@@ -94,23 +108,36 @@ class ReportSettingsPage extends Component {
             },
         };
 
+        this.roomNameInputRef = null;
+
         this.state = {
             newRoomName: this.props.report.reportName,
             errors: {},
         };
 
-        this.validateAndRenameReport = this.validateAndRenameReport.bind(this);
+        this.resetToPreviousName = this.resetToPreviousName.bind(this);
+        this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
     }
 
-    validateAndRenameReport() {
+    /**
+     * When the user dismisses the error updating the policy room name,
+     * reset the report name to the previously saved name and clear errors.
+     */
+    resetToPreviousName() {
+        this.setState({newRoomName: this.props.report.reportName});
+
+        // Reset the input's value back to the previously saved report name
+        if (this.roomNameInputRef) {
+            this.roomNameInputRef.setNativeProps({text: this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '')});
+        }
+        Report.clearPolicyRoomNameErrors(this.props.report.reportID);
+    }
+
+    validateAndUpdatePolicyRoomName() {
         if (!this.validate()) {
             return;
         }
-        if (this.props.report.reportName === this.state.newRoomName) {
-            Growl.success(this.props.translate('newRoomPage.policyRoomRenamed'));
-            return;
-        }
-        Report.renameReport(this.props.report.reportID, this.state.newRoomName);
+        Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
     }
 
     validate() {
@@ -161,7 +188,7 @@ class ReportSettingsPage extends Component {
                     title={this.props.translate('common.settings')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
@@ -171,6 +198,7 @@ class ReportSettingsPage extends Component {
                                 onInputChange={(notificationPreference) => {
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
+                                        this.props.report.notificationPreference,
                                         notificationPreference,
                                     );
                                 }}
@@ -181,42 +209,48 @@ class ReportSettingsPage extends Component {
                     </View>
                     {shouldShowRoomName && (
                         <View style={styles.mt4}>
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex3]}>
-                                    {shouldDisableRename ? (
-                                        <View>
-                                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
-                                                {this.props.translate('newRoomPage.roomName')}
-                                            </Text>
-                                            <Text numberOfLines={1} style={[styles.optionAlternateText]}>
-                                                {this.state.newRoomName}
-                                            </Text>
-                                        </View>
-                                    )
-                                        : (
-                                            <RoomNameInput
-                                                initialValue={this.state.newRoomName}
-                                                policyID={linkedWorkspace && linkedWorkspace.id}
-                                                errorText={this.state.errors.newRoomName}
-                                                onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
-                                                disabled={shouldDisableRename}
-                                            />
-                                        )}
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
+                                errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
+                                onClose={this.resetToPreviousName}
+                            >
+                                <View style={[styles.flexRow]}>
+                                    <View style={[styles.flex3]}>
+                                        {shouldDisableRename ? (
+                                            <View>
+                                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                                    {this.props.translate('newRoomPage.roomName')}
+                                                </Text>
+                                                <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                                    {this.state.newRoomName}
+                                                </Text>
+                                            </View>
+                                        )
+                                            : (
+                                                <RoomNameInput
+                                                    ref={el => this.roomNameInputRef = el}
+                                                    initialValue={this.state.newRoomName}
+                                                    policyID={linkedWorkspace && linkedWorkspace.id}
+                                                    errorText={this.state.errors.newRoomName}
+                                                    onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
+                                                    disabled={shouldDisableRename}
+                                                />
+                                            )}
+                                    </View>
+                                    {!shouldDisableRename && (
+                                        <Button
+                                            large
+                                            success={!shouldDisableRename}
+                                            text={this.props.translate('common.save')}
+                                            onPress={this.validateAndUpdatePolicyRoomName}
+                                            style={[styles.ml2, styles.flex1]}
+                                            textStyles={[styles.label]}
+                                            innerStyles={[styles.ph5]}
+                                            isDisabled={shouldDisableRename}
+                                        />
+                                    )}
                                 </View>
-                                {!shouldDisableRename && (
-                                    <Button
-                                        large
-                                        success={!shouldDisableRename}
-                                        text={this.props.translate('common.save')}
-                                        onPress={this.validateAndRenameReport}
-                                        style={[styles.ml2, styles.flex1]}
-                                        textStyles={[styles.label]}
-                                        innerStyles={[styles.ph5]}
-                                        isLoading={this.props.isLoadingRenamePolicyRoom}
-                                        isDisabled={shouldDisableRename}
-                                    />
-                                )}
-                            </View>
+                            </OfflineWithFeedback>
                         </View>
                     )}
                     {linkedWorkspace && (
@@ -265,9 +299,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        isLoadingRenamePolicyRoom: {
-            key: ONYXKEYS.IS_LOADING_RENAME_POLICY_ROOM,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

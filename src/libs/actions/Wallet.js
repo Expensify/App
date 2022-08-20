@@ -7,6 +7,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
+import * as API from '../API';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -154,12 +155,72 @@ function buildIdologyError(idologyErrors) {
 }
 
 /**
+ * Validates a user's provided details against a series of checks
+ *
+ * @param {Object} personalDetails
+ */
+function updatePersonalDetails(personalDetails) {
+    if (!personalDetails) {
+        return;
+    }
+    const firstName = personalDetails.legalFirstName || '';
+    const lastName = personalDetails.legalLastName || '';
+    const dob = personalDetails.dob || '';
+    const addressStreet = personalDetails.addressStreet || '';
+    const addressCity = personalDetails.addressCity || '';
+    const addressState = personalDetails.addressState || '';
+    const addressZip = personalDetails.addressZip || '';
+    const ssn = personalDetails.ssn || '';
+    const phoneNumber = personalDetails.phoneNumber || '';
+    API.write('UpdatePersonalDetailsForWallet', {
+        firstName,
+        lastName,
+        dob,
+        addressStreet,
+        addressCity,
+        addressState,
+        addressZip,
+        ssn,
+        phoneNumber,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                    errors: [],
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
  * This action can be called repeatedly with different steps until an Expensify Wallet has been activated.
  *
  * Possible steps:
  *
- *     - OnfidoStep - Creates an identity check by calling Onfido's API (via Web-Secure) with data returned from the SDK
  *     - AdditionalDetailsStep - Validates a user's provided details against a series of checks
+ *     - OnfidoStep - Creates an identity check by calling Onfido's API with data returned from the SDK
  *     - TermsStep - Ensures that a user has agreed to all of the terms and conditions
  *
  * The API will always return the updated userWallet in the response as a convenience so we can avoid calling
@@ -361,4 +422,5 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    updatePersonalDetails,
 };
