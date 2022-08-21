@@ -244,7 +244,7 @@ class ValidationStep extends React.Component {
                             text={this.props.translate('validationStep.letsChatCTA')}
                             onPress={Report.navigateToConciergeChat}
                             icon={Expensicons.ChatBubble}
-                            style={[styles.mt4, styles.mh3]}
+                            style={[styles.mt4, styles.buttonCTA]}
                             iconStyles={[styles.mr5]}
                             shouldShowRightIcon
                             large

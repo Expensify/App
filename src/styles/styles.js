@@ -456,6 +456,11 @@ const styles = {
         borderBottomLeftRadius: 0,
     },
 
+    buttonCTA: {
+        paddingVertical: 6,
+        ...spacing.mh4,
+    },
+
     buttonConfirm: {
         margin: 20,
     },

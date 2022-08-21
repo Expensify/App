@@ -227,7 +227,7 @@ class BankAccountStep extends React.Component {
                             text={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                             disabled={this.props.isPlaidDisabled || !validated}
-                            style={[styles.mt5, styles.mh3]}
+                            style={[styles.mt5, styles.buttonCTA]}
                             iconStyles={[styles.mr5]}
                             shouldShowRightIcon
                             success
