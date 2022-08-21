@@ -122,10 +122,10 @@ class WorkspaceBankAccountPage extends React.Component {
                             text={this.props.translate('workspace.bankAccount.continueWithSetup')}
                             onPress={this.navigateToBankAccountRoute}
                             icon={Expensicons.Bank}
-                            style={[styles.mh3, styles.mt2]}
+                            style={[styles.mt2, styles.buttonCTA]}
                             iconStyles={[styles.mr5]}
                             shouldShowRightIcon
-                            extraLarge
+                            large
                             success
                         />
                         <MenuItem
