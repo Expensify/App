@@ -34,7 +34,7 @@ const WorkspaceTravelNoVBAView = props => (
                 style={[styles.mt4]}
                 iconStyles={[styles.mr5]}
                 shouldShowRightIcon
-                extraLarge
+                large
                 success
             />
         </Section>

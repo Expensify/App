@@ -206,7 +206,7 @@ class WorkspaceReimburseView extends React.Component {
                             style={[styles.mt4]}
                             iconStyles={[styles.mr5]}
                             shouldShowRightIcon
-                            extraLarge
+                            large
                             success
                         />
                     </Section>

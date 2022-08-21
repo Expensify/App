@@ -231,7 +231,7 @@ class BankAccountStep extends React.Component {
                             iconStyles={[styles.mr5]}
                             shouldShowRightIcon
                             success
-                            extraLarge
+                            large
                         />
                         {this.props.error && (
                             <Text style={[styles.formError, styles.mh5]}>
