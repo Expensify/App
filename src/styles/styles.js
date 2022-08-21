@@ -387,16 +387,6 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    buttonExtraLarge: {
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeExtraLarge,
-        paddingTop: 12,
-        paddingRight: 18,
-        paddingBottom: 12,
-        paddingLeft: 18,
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         fontFamily: fontFamily.GTA_BOLD,
@@ -413,13 +403,6 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonExtraLargeText: {
-        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
