@@ -78,15 +78,33 @@ class WorkspaceBankAccountPage extends React.Component {
     render() {
         return (
             <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.bankAccount')}
-                        subtitle={lodashGet(this.props.policy, 'name')}
-                        onCloseButtonPress={Navigation.dismissModal}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                        shouldShowBackButton
+                <HeaderWithCloseButton
+                    title={this.props.translate('workspace.common.bankAccount')}
+                    subtitle={policyName}
+                    onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                    shouldShowBackButton
+                />
+                <ScrollView style={styles.flex1}>
+                    <Section
+                        title={this.props.translate('workspace.bankAccount.almostDone')}
+                        icon={Illustrations.BankArrowPink}
+                    >
+                        <Text>
+                            {this.props.translate('workspace.bankAccount.youreAlmostDone')}
+                        </Text>
+                    </Section>
+                    <Button
+                        text={this.props.translate('workspace.bankAccount.continueWithSetup')}
+                        onPress={this.navigateToBankAccountRoute}
+                        icon={Expensicons.Bank}
+                        style={[styles.mh3, styles.mt2]}
+                        iconStyles={[styles.mr5]}
+                        shouldShowRightIcon
+                        large
+                        success
                     />
                     <ScrollView style={styles.flex1}>
                         <Section
