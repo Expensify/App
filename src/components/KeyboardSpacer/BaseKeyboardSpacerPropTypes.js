@@ -9,18 +9,16 @@ const propTypes = {
 
     /** Platform specific keyboard event to show keyboard https://reactnative.dev/docs/keyboard#addlistener */
     /** Pass keyboardShow event name as a param, since iOS and android both have different event names show keyboard. */
-    keyboardShowMethod: PropTypes.string,
+    keyboardShowMethod: PropTypes.string.isRequired,
 
     /** Platform specific keyboard event to hide keyboard https://reactnative.dev/docs/keyboard#addlistener */
     /** Pass keyboardHide event name as a param, since iOS and android both have different event names show keyboard. */
-    keyboardHideMethod: PropTypes.string,
+    keyboardHideMethod: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
     topSpacing: 0,
     onToggle: () => null,
-    style: [],
-    iOSAnimated: false,
 };
 
 export {propTypes, defaultProps};
