@@ -96,14 +96,10 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         formData.append(key, val);
     });
 
-    let apiRoot = CONFIG.IS_IN_STAGING ? CONST.STAGING_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
+    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (shouldUseSecure) {
-        apiRoot = CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL;
-    }
-
-    if (shouldUseSecure && CONFIG.IS_IN_STAGING && useStagingServer) {
-        apiRoot = CONST.STAGING_SECURE_URL;
+    if (CONFIG.IS_IN_STAGING) {
+        apiRoot = shouldUseSecure && useStagingServer ? CONST.STAGING_SECURE_URL : CONST.STAGING_URL;
     }
 
     return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
