@@ -29,6 +29,7 @@ export {
     fetchOnfidoToken,
     activateWallet,
     fetchUserWallet,
+    verifyIdentity,
 } from './Wallet';
 
 function clearPersonalBankAccount() {
