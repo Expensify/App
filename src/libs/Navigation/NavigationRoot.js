@@ -1,11 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {getPathFromState, NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import Log from '../Log';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 
@@ -27,37 +26,6 @@ const propTypes = {
 };
 
 class NavigationRoot extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            currentPath: '',
-        };
-
-        this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
-    }
-
-    /**
-     * Intercept state changes and perform different logic
-     * @param {NavigationState} state
-     */
-    parseAndStoreRoute(state) {
-        if (!state) {
-            return;
-        }
-
-        const currentPath = getPathFromState(state, linkingConfig.config);
-
-        // Don't log the route transitions from OldDot because they contain authTokens
-        if (currentPath.includes('/transition')) {
-            Log.info('Navigating from transition link from OldDot using short lived authToken');
-        } else {
-            Log.info('Navigating to route', false, {path: currentPath});
-        }
-
-        this.setState({currentPath});
-    }
-
     render() {
         return (
             <NavigationContainer
@@ -76,7 +44,7 @@ class NavigationRoot extends Component {
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
+                <AppNavigator authenticated={this.props.authenticated} />
             </NavigationContainer>
         );
     }

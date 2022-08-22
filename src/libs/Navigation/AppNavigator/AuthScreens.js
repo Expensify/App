@@ -3,7 +3,6 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -87,10 +86,6 @@ const modalScreenListeners = {
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-
-    /** The current path as reported by the NavigationContainer */
-    // eslint-disable-next-line react/no-unused-prop-types
-    currentPath: PropTypes.string.isRequired,
 };
 
 class AuthScreens extends React.Component {
