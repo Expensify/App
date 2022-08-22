@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
@@ -8,7 +9,7 @@ import HttpsError from './Errors/HttpsError';
 let shouldUseSecureStaging = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
+    callback: val => shouldUseSecureStaging = lodashGet(val, 'shouldUseSecureStaging', true),
 });
 
 let shouldFailAllRequests = false;
@@ -94,9 +95,14 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
         formData.append(key, val);
     });
-    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (shouldUseSecure && shouldUseSecureStaging) {
+    let apiRoot = CONFIG.IS_IN_STAGING ? CONST.STAGING_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
+
+    if (shouldUseSecure) {
+        apiRoot = CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL;
+    }
+
+    if (shouldUseSecure && CONFIG.IS_IN_STAGING && shouldUseSecureStaging) {
         apiRoot = CONST.STAGING_SECURE_URL;
     }
 
