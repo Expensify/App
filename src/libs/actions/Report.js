@@ -1602,7 +1602,6 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
-    fetchInitialActions,
     createPolicyRoom,
     setIsComposerFullSize,
     markCommentAsUnread,
