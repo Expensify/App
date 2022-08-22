@@ -29,6 +29,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
+import * as Wallet from '../../libs/actions/Wallet';
 
 const propTypes = {
     /* Onyx Props */

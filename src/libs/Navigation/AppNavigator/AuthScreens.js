@@ -102,10 +102,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => {
-            App.getAppData();
-            App.reconnectApp();
-        });
+        NetworkConnection.onReconnect(() => App.reconnectApp());
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -119,7 +116,6 @@ class AuthScreens extends React.Component {
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        App.getAppData();
         App.openApp();
 
         App.fixAccountAndReloadData();
