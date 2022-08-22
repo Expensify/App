@@ -89,6 +89,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     /** The current path as reported by the NavigationContainer */
+    // eslint-disable-next-line react/no-unused-prop-types
     currentPath: PropTypes.string.isRequired,
 };
 
@@ -121,7 +122,7 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
         App.getAppData();
         App.openApp();
-
+        App.setUpPoliciesAndNavigate(this.props.session);
         App.fixAccountAndReloadData();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -140,11 +141,6 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        // we perform this check here instead of componentDidUpdate to skip an unnecessary re-render
-        if (this.props.currentPath !== nextProps.currentPath) {
-            App.setUpPoliciesAndNavigate(nextProps.session, nextProps.currentPath);
-        }
-
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
