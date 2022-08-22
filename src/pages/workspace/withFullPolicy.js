@@ -60,6 +60,19 @@ const fullPolicyPropTypes = {
 
         /** A list of emails for the employees on the policy */
         employeeList: PropTypes.arrayOf(PropTypes.string),
+
+        /** Errors on the policy keyed by microtime */
+        errors: PropTypes.objectOf(PropTypes.string),
+
+        /** Error objects keyed by field name containing errors keyed by microtime
+         * E.x
+         * {
+         *     name: {
+         *        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem updating your workspace name.',
+         *     }
+         * }
+        */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 };
 
