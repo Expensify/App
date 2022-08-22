@@ -8,7 +8,6 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
@@ -17,6 +16,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -66,6 +66,7 @@ class TermsStep extends React.Component {
 
     render() {
         const errors = lodashGet(this.props, 'walletTerms.errors', {});
+        const errorMessage = this.state.error ? this.props.translate('common.error.acceptedTerms') : (_.last(_.values(errors)) || '');
         return (
             <>
                 <HeaderWithCloseButton
@@ -109,21 +110,9 @@ class TermsStep extends React.Component {
                             </>
                         )}
                     />
-                    {this.state.error && (
-                        <Text style={[styles.formError, styles.mb2]}>
-                            {this.props.translate('common.error.acceptedTerms')}
-                        </Text>
-                    )}
-                    {!_.isEmpty(errors) && (
-                        <Text style={[styles.formError, styles.mb2]}>
-                            {_.last(_.values(errors))}
-                        </Text>
-                    )}
-                    <Button
-                        success
-                        style={[styles.mv4]}
-                        text={this.props.translate('termsStep.enablePayments')}
-                        onPress={() => {
+                    <FormAlertWithSubmitButton
+                        buttonText={this.props.translate('termsStep.enablePayments')}
+                        onSubmit={() => {
                             if (!this.state.hasAcceptedDisclosure
                                 || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
                                 this.setState({error: true});
@@ -136,6 +125,9 @@ class TermsStep extends React.Component {
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                             });
                         }}
+                        message={errorMessage}
+                        isAlertVisible={this.state.error || !_.isEmpty(errors)}
+                        containerStyles={[styles.mh0, styles.mv4]}
                     />
                 </ScrollView>
             </>
