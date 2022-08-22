@@ -30,7 +30,7 @@ const propTypes = {
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
         isSubscribedToNewsletter: PropTypes.bool,
-        shouldUseSecureStaging: PropTypes.bool,
+        useStagingServer: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,

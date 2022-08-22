@@ -19,7 +19,7 @@ const propTypes = {
     /** User object in Onyx */
     user: PropTypes.shape({
         /** Whether we should use the staging version of the secure API server */
-        shouldUseSecureStaging: PropTypes.bool,
+        useStagingServer: PropTypes.bool,
     }),
 
     /** Network object in Onyx */
@@ -28,7 +28,7 @@ const propTypes = {
 
 const defaultProps = {
     user: {
-        shouldUseSecureStaging: false,
+        useStagingServer: false,
     },
 };
 
@@ -40,10 +40,10 @@ const TestToolMenu = props => (
 
         {/* Option to switch from using the staging secure endpoint or the production secure endpoint.
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
-        <TestToolRow title="Use Secure Staging Server">
+        <TestToolRow title="Use Staging Server">
             <Switch
-                isOn={lodashGet(props, 'user.shouldUseSecureStaging', true)}
-                onToggle={() => User.setShouldUseSecureStaging(!props.user.shouldUseSecureStaging)}
+                isOn={lodashGet(props, 'user.useStagingServer', true)}
+                onToggle={() => User.setUseStagingServer(!props.user.useStagingServer)}
             />
         </TestToolRow>
 
