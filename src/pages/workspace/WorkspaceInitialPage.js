@@ -79,13 +79,7 @@ class WorkspaceInitialPage extends React.Component {
 
     render() {
         const policy = this.props.policy;
-        if (_.isEmpty(policy)) {
-            return <FullScreenLoadingIndicator />;
-        }
-
-        const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
-        const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
-            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatarURL', {}));
+        const hasMembersError = PolicyActions.hasPolicyMemberError(this.props.policyMemberList);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
