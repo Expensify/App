@@ -20,7 +20,7 @@ The most important concept to keep in mind while reading this document is that w
 <hr />
 Example: Pinning a chat
 
-When a user clicks the pin button <img style="height: 10px; width: 10px;" src="./assets/images/pin.svg"/> on a chat, two things should happen.
+When a user clicks the pin button <img style="height: 10px; width: 10px;" src="../assets/images/pin.svg"/> on a chat, two things should happen.
 
 1. **API Request:** We send a request to the API to ensure the change is saved in the database. This way the chat is pinned on all the user's devices, and will remain pinned even if they leave the app and come back.
 
