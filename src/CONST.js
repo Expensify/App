@@ -790,6 +790,7 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
+    IOS_KEYBOARD_SPACE_OFFSET: -30,
 };
 
 export default CONST;
