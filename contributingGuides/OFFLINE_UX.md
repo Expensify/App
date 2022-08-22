@@ -50,6 +50,8 @@ There’s no specific UI for this case. The feature either looks totally normal 
 
 **How to implement:** Use [`API.read()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L53-L55).
 
+**Example:** The `About` page.
+
 ### A - Optimistic Without Feedback Pattern
 
 This is the pattern where we queue the request to be sent when the user is online and we continue as if the request succeeded.
@@ -60,6 +62,8 @@ This is the pattern where we queue the request to be sent when the user is onlin
 
 **How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failData as we don't care what response comes back at all.
 
+**Example:** Pinning a chat.
+
 ### B - Optimistic WITH Feedback Pattern
 This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. 
 When the user is online, the feature should just look like it succeeds immediately (we don't want the offline UI to flicker on and off when the user is online).
@@ -68,8 +72,7 @@ When the user is offline:
 - Things pending to be deleted will be shown greyed out and have strikethrough
 
 **Used when…**
-- the user needs feedback that data will be sent to the server later
-  This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
+- The user needs feedback that data will be sent to the server later. This is a minority use case at the moment, but INCREDIBLY HELPFUL for the user, so proceed with cautious optimism.
 
 **How to implement:** 
 - Use API.write() to implement this pattern 
@@ -84,6 +87,8 @@ When the user is offline:
 - We also need to show a Red Brick Road (RBR) guiding the user to the error. We need to manually do this for each piece of data using pattern B Optimistic WITH Feedback. Some common components like `MenuItem` already have a prop for it (`brickRoadIndicator`)
   - A Brick Road is the pattern of guiding members towards places that require their attention by following a series of UI elements that have the same color
 
+**Example:** Sending a chat message.
+
 ### C - Blocking Form UI Pattern
 This pattern greys out the submit button on a form and does not allow the form to be submitted. We also show a "You appear offline" message near the bottom of the screen. Importantly, we _do_ let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
 
@@ -95,16 +100,20 @@ This pattern greys out the submit button on a form and does not allow the form t
 
 **How to implement:** Use the `<FormAlertWithSubmitButton/>` component. This pattern should use the `API.write()` method.
 
+**Example:** Inviting new memebers to a workspace.
+
 ### D - Full Page Blocking UI Pattern
 This pattern blocks the user from interacting with an entire page.
 
 **Used when…**
-- blocking READ is being performed. This occurs when the data that a user sees cannot be stale data and the data can only be displayed after fetching it from the server (eg. Plaid's list of bank accounts)
+- blocking READ is being performed. This occurs when the data that a user sees cannot be stale data and the data can only be displayed after fetching it from the server
 - the app is offline and the data cannot be fetched
 - an error occurs when fetching the data and the user needs instructions on what to do next
   This should only be used in the most extreme cases when all other options have been completely and utterly exhausted
 
 **How to implement:** Wrap the component you're working on in a `<FullPageOfflineBlockingView>` component.
+
+**Example:** Getting the list of bank accounts the user owns from Plaid (an external service).
 
 ## UX Pattern Flow Chart
 
