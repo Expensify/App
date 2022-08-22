@@ -22,15 +22,15 @@ class PDFView extends Component {
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPdfLoad = this.attemptPdfLoad.bind(this);
-        this.avoidKeyboardOnSmallScreens = this.avoidKeyboardOnSmallScreens.bind(this);
+        this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
     }
 
     componentDidUpdate(prevProps) {
         // If window height has changed update keyboard state and alert parent.
         if (this.props.windowHeight < prevProps.windowHeight) {
-            this.avoidKeyboardOnSmallScreens(true);
+            this.toggleKeyboardOnSmallScreens(true);
         } else if (this.props.windowHeight > prevProps.windowHeight) {
-            this.avoidKeyboardOnSmallScreens(false);
+            this.toggleKeyboardOnSmallScreens(false);
         }
     }
 
@@ -83,16 +83,15 @@ class PDFView extends Component {
     }
 
     /**
-     * On small screens notify parent that the UI should be updated to
-     * accommodate the keyboard.
+     * On small screens notify parent that the keyboard has opened or closed.
      *
-     * @param {Boolean} shouldAvoid If true update UI to accommodate keyboard
+     * @param {Boolean} isKeyboardOpen True if keyboard is open
      */
-    avoidKeyboardOnSmallScreens(shouldAvoid) {
+    toggleKeyboardOnSmallScreens(isKeyboardOpen) {
         if (!this.props.isSmallScreenWidth) {
             return;
         }
-        this.props.onAvoidKeyboard(shouldAvoid);
+        this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
     render() {

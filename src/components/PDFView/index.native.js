@@ -41,9 +41,7 @@ class PDFView extends Component {
     }
 
     componentDidUpdate() {
-        // Alert the parent component that it may be necessary to adjust the UI
-        // to accommodate the keyboard.
-        this.props.onAvoidKeyboard(this.props.isShown);
+        this.props.onToggleKeyboard(this.props.isShown);
     }
 
     /**

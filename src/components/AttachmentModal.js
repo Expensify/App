@@ -278,7 +278,7 @@ class AttachmentModal extends PureComponent {
                             <AttachmentView
                                 sourceURL={sourceURL}
                                 file={this.state.file}
-                                onAvoidKeyboard={this.updateConfirmButtonVisibility}
+                                onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         )}
                     </View>
