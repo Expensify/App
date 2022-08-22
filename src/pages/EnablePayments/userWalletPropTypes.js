@@ -11,7 +11,15 @@ export default PropTypes.shape({
         /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
         shouldShowFailedKYC: PropTypes.bool,
 
-        /** Whether we should show the ActivateStep view success view after the user finished the KYC flow */
-        shouldShowWalletActivationSuccess: PropTypes.bool,
-    }),
-};
+    /** Error code returned by the server */
+    errorCode: PropTypes.string,
+
+    /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
+    shouldShowFailedKYC: PropTypes.bool,
+
+    /** Status of wallet - e.g. SILVER or GOLD */
+    tierName: PropTypes.string,
+
+    /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
+    shouldShowWalletActivationSuccess: PropTypes.bool,
+});
