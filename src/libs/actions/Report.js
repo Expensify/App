@@ -628,25 +628,6 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 }
 
 /**
- * Get the initial actions of a report
- *
- * @param {Number} reportID
- */
-function fetchInitialActions(reportID) {
-    const reportActionsOffset = -1;
-
-    DeprecatedAPI.Report_GetHistory({
-        reportID,
-        reportActionsOffset,
-        reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
-    })
-        .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-        });
-}
-
-/**
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
@@ -1038,6 +1019,39 @@ function openReport(reportID) {
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
                     unreadActionCount: 0,
+                },
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: false,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: false,
+                },
+            }],
+        });
+}
+
+/**
+ * Get the latest report history without marking the report as read.
+ *
+ * @param {Number} reportID
+ */
+function reconnect(reportID) {
+    API.write('ReconnectToReport',
+        {reportID},
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: true,
                 },
             }],
             successData: [{
@@ -1601,7 +1615,7 @@ export {
     fetchIOUReportByID,
     addComment,
     addAttachment,
-    updateLastReadActionID,
+    reconnect,
     updateNotificationPreference,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
