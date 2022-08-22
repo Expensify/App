@@ -162,7 +162,7 @@
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-storybook": "^0.5.13",
     "flipper-plugin-bridgespy-client": "^0.1.9",
-    "html-webpack-plugin": "^4.3.0",
+    "html-webpack-plugin": "^5.5.0",
     "jest": "^26.6.3",
     "jest-circus": "^26.6.3",
     "jest-cli": "^26.6.3",
@@ -181,7 +181,7 @@
     "webpack": "^4.44.1",
     "webpack-bundle-analyzer": "^4.4.0",
     "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.3",
+    "webpack-dev-server": "^4.0.0",
     "webpack-merge": "^5.1.1"
   },
   "engines": {
