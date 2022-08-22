@@ -1,13 +1,12 @@
 import PropTypes from 'prop-types';
+import stylePropTypes from '../../styles/stylePropTypes';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     /** URL to full-sized image */
     sourceURL: PropTypes.string,
 
-    /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    style: stylePropTypes,
 
     /** Notify parent that the keyboard has opened or closed */
     onToggleKeyboard: PropTypes.func,
