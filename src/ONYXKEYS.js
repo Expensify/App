@@ -150,9 +150,6 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // Stores values for the request call form
-    REQUEST_CALL_FORM: 'requestCallForm',
-
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
 
@@ -180,5 +177,6 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+        REQUEST_CALL_FORM: 'requestCallForm',
     },
 };
