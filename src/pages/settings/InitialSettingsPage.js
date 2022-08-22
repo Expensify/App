@@ -89,8 +89,30 @@ const defaultProps = {
 };
 
 class InitialSettingsPage extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.getWalletBalance = this.getWalletBalance.bind(this);
+    }
+
     componentDidMount() {
         Wallet.openInitialSettingsPage();
+    }
+
+    /**
+     * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
+     * @returns {Number} the user wallet balance
+     */
+    getWalletBalance(isPaymentItem) {
+        return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
+            ? this.props.numberFormat(
+                this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+                {style: 'currency', currency: 'USD'},
+            ) : undefined;
+    }
+
+    openProfileSettings() {
+        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
     }
 
     render() {
@@ -100,11 +122,6 @@ class InitialSettingsPage extends React.Component {
         if (_.isEmpty(this.props.currentUserPersonalDetails)) {
             return null;
         }
-
-        const walletBalance = this.props.numberFormat(
-            this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-            {style: 'currency', currency: 'USD'},
-        );
 
         const defaultMenuItems = [
             {
@@ -156,8 +173,6 @@ class InitialSettingsPage extends React.Component {
             .value();
         menuItems.push(...defaultMenuItems);
 
-        const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -206,7 +221,7 @@ class InitialSettingsPage extends React.Component {
                                     iconStyles={item.iconStyles}
                                     iconFill={item.iconFill}
                                     shouldShowRightIcon
-                                    badgeText={(isPaymentItem && Permissions.canUseWallet(this.props.betas)) ? walletBalance : undefined}
+                                    badgeText={this.getWalletBalance(isPaymentItem)}
                                     fallbackIcon={item.fallbackIcon}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                 />
