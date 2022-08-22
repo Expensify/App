@@ -1,17 +1,17 @@
-#### Offline UX Patterns
+# Offline UX Patterns
 
-### Contents
+## Contents
 * [Motivation & Philosophy](#motivation-&-philosophy)
-* [UX Pattern Flowchart](#ux-pattern-flowchart)
-* [Answering Questions on the Flow Chart](#answering-questions-on-the-flowchart)
 * [Description of the Patterns](#description-of-the-patterns)
     - [None - No Offline Behavior](#none---no-offline-behavior)
     - [A - Optimistic Without Feedback](#a---optimistic-without-feedback)
     - [B - Optimistic With Feedback](#b---optimistic-with-feedback)
     - [C - Blocking Form](#c---blocking-form)
     - [D - Full Page Blocking](#d---full-page-blocking)
+* [UX Pattern Flowchart](#ux-pattern-flowchart)
+    - [Answering Questions on the Flow Chart](#answering-questions-on-the-flowchart)
 
-### Motivation & Philosophy
+## Motivation & Philosophy
 
 Understanding the offline behavior of our app is vital to becoming a productive contributor to the Expensify codebase. Our mission is to support our users in every possible environment, and often our app is used in places where a stable internet connection is not guaranteed.
 
@@ -38,9 +38,9 @@ The example we just looked at is nice and simple, but some actions should not us
 
 To handle problems like this, we have developed offline UX patterns and guidance on when to use them. Every feature of this application should fit into one of these patterns.
 
-### Descriptions of the UX Patterns
+## Descriptions of the UX Patterns
 
-# None - No Offline Behavior
+### None - No Offline Behavior
 
 There’s no specific UI for this case. The feature either looks totally normal and works as expected (because it doesn’t need the server to function) or the feature looks like it did whenever connection was lost.
 
@@ -50,7 +50,7 @@ There’s no specific UI for this case. The feature either looks totally normal 
 
 **How to implement:** Use [`API.read()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L53-L55).
 
-# A - Optimistic Without Feedback Pattern
+### A - Optimistic Without Feedback Pattern
 
 This is the pattern where we queue the request to be sent when the user is online and we continue as if the request succeeded.
 
@@ -60,7 +60,7 @@ This is the pattern where we queue the request to be sent when the user is onlin
 
 **How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failData as we don't care what response comes back at all.
 
-# B - Optimistic WITH Feedback Pattern
+### B - Optimistic WITH Feedback Pattern
 This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. 
 When the user is online, the feature should just look like it succeeds immediately (we don't want the offline UI to flicker on and off when the user is online).
 When the user is offline:
@@ -84,7 +84,7 @@ When the user is offline:
 - We also need to show a Red Brick Road (RBR) guiding the user to the error. We need to manually do this for each piece of data using pattern B Optimistic WITH Feedback. Some common components like `MenuItem` already have a prop for it (`brickRoadIndicator`)
   - A Brick Road is the pattern of guiding members towards places that require their attention by following a series of UI elements that have the same color
 
-# C - Blocking Form UI Pattern
+### C - Blocking Form UI Pattern
 This pattern greys out the submit button on a form and does not allow the form to be submitted. We also show a "You appear offline" message near the bottom of the screen. Importantly, we _do_ let the user fill out the form fields. That data gets saved locally so they don’t have to fill it out again once online.
 
 **Used when…**
@@ -95,7 +95,7 @@ This pattern greys out the submit button on a form and does not allow the form t
 
 **How to implement:** Use the `<FormAlertWithSubmitButton/>` component. This pattern should use the `API.write()` method.
 
-# D - Full Page Blocking UI Pattern
+### D - Full Page Blocking UI Pattern
 This pattern blocks the user from interacting with an entire page.
 
 **Used when…**
@@ -106,7 +106,7 @@ This pattern blocks the user from interacting with an entire page.
 
 **How to implement:** Wrap the component you're working on in a `<FullPageOfflineBlockingView>` component.
 
-### UX Pattern Flow Chart
+## UX Pattern Flow Chart
 
 The following flowchart can be used to determine which UX pattern should be used.
 
