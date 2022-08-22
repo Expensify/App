@@ -88,130 +88,136 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const InitialSettingsPage = (props) => {
-    // On the very first sign in or after clearing storage these
-    // details will not be present on the first render so we'll just
-    // return nothing for now.
-    if (_.isEmpty(props.currentUserPersonalDetails)) {
-        return null;
+class InitialSettingsPage extends React.Component {
+    componentDidMount() {
+        Wallet.openInitialSettingsPage();
     }
 
-    const walletBalance = props.numberFormat(
-        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-        {style: 'currency', currency: 'USD'},
-    );
+    render() {
+        // On the very first sign in or after clearing storage these
+        // details will not be present on the first render so we'll just
+        // return nothing for now.
+        if (_.isEmpty(this.props.currentUserPersonalDetails)) {
+            return null;
+        }
 
-    const defaultMenuItems = [
-        {
-            translationKey: 'common.profile',
-            icon: Expensicons.Profile,
-            action: () => { App.openProfile(); },
-        },
-        {
-            translationKey: 'common.preferences',
-            icon: Expensicons.Gear,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
-        },
-        {
-            translationKey: 'initialSettingsPage.security',
-            icon: Expensicons.Lock,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
-        },
-        {
-            translationKey: 'common.payments',
-            icon: Expensicons.Wallet,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-            brickRoadIndicator: PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) ? 'error' : null,
-        },
-        {
-            translationKey: 'initialSettingsPage.about',
-            icon: Expensicons.Info,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
-        },
-        {
-            translationKey: 'initialSettingsPage.signOut',
-            icon: Expensicons.Exit,
-            action: Session.signOutAndRedirectToSignIn,
-        },
-    ];
+        const walletBalance = this.props.numberFormat(
+            this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+            {style: 'currency', currency: 'USD'},
+        );
 
-    // Add free policies (workspaces) to the list of menu items
-    const menuItems = _.chain(props.policies)
-        .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-        .map(policy => ({
-            title: policy.name,
-            icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
-            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-            iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
-            iconFill: themeColors.iconReversed,
-            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
-        }))
-        .value();
-    menuItems.push(...defaultMenuItems);
+        const defaultMenuItems = [
+            {
+                translationKey: 'common.profile',
+                icon: Expensicons.Profile,
+                action: () => { App.openProfile(); },
+            },
+            {
+                translationKey: 'common.preferences',
+                icon: Expensicons.Gear,
+                action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
+            },
+            {
+                translationKey: 'initialSettingsPage.security',
+                icon: Expensicons.Lock,
+                action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
+            },
+            {
+                translationKey: 'common.payments',
+                icon: Expensicons.Wallet,
+                action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
+            },
+            {
+                translationKey: 'initialSettingsPage.about',
+                icon: Expensicons.Info,
+                action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
+            },
+            {
+                translationKey: 'initialSettingsPage.signOut',
+                icon: Expensicons.Exit,
+                action: Session.signOutAndRedirectToSignIn,
+            },
+        ];
 
-    const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+        // Add free policies (workspaces) to the list of menu items
+        const menuItems = _.chain(this.props.policies)
+            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .map(policy => ({
+                title: policy.name,
+                icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
+                iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+                iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
+                iconFill: themeColors.iconReversed,
+                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(this.props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
+            }))
+            .value();
+        menuItems.push(...defaultMenuItems);
 
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate('common.settings')}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <ScrollView style={[styles.settingsPageBackground]}>
-                <View style={styles.w100}>
-                    <View style={styles.pageWrapper}>
-                        <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
-                            <Tooltip text={props.currentUserPersonalDetails.displayName}>
-                                <Avatar
-                                    imageStyles={[styles.avatarLarge]}
-                                    source={props.currentUserPersonalDetails.avatar}
-                                    size={CONST.AVATAR_SIZE.LARGE}
+        const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+
+        return (
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.settings')}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <ScrollView style={[styles.settingsPageBackground]}>
+                    <View style={styles.w100}>
+                        <View style={styles.pageWrapper}>
+                            <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
+                                <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
+                                    <Avatar
+                                        imageStyles={[styles.avatarLarge]}
+                                        source={this.props.currentUserPersonalDetails.avatar}
+                                        size={CONST.AVATAR_SIZE.LARGE}
+                                    />
+                                </Tooltip>
+                            </Pressable>
+
+                            <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
+                                <Text style={[styles.displayName]} numberOfLines={1}>
+                                    {this.props.currentUserPersonalDetails.displayName
+                                        ? this.props.currentUserPersonalDetails.displayName
+                                        : Str.removeSMSDomain(this.props.session.email)}
+                                </Text>
+                            </Pressable>
+                            {this.props.currentUserPersonalDetails.displayName && (
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.mt1]}
+                                    numberOfLines={1}
+                                >
+                                    {Str.removeSMSDomain(this.props.session.email)}
+                                </Text>
+                            )}
+                        </View>
+                        {_.map(menuItems, (item, index) => {
+                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+                            const isPaymentItem = item.translationKey === 'common.payments';
+                            return (
+                                <MenuItem
+                                    key={`${keyTitle}_${index}`}
+                                    title={keyTitle}
+                                    icon={item.icon}
+                                    iconType={item.iconType}
+                                    onPress={item.action}
+                                    iconStyles={item.iconStyles}
+                                    iconFill={item.iconFill}
+                                    shouldShowRightIcon
+                                    badgeText={(isPaymentItem && Permissions.canUseWallet(this.props.betas)) ? walletBalance : undefined}
+                                    fallbackIcon={item.fallbackIcon}
+                                    brickRoadIndicator={item.brickRoadIndicator}
                                 />
-                            </Tooltip>
-                        </Pressable>
-
-                        <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
-                            <Text style={[styles.displayName]} numberOfLines={1}>
-                                {props.currentUserPersonalDetails.displayName
-                                    ? props.currentUserPersonalDetails.displayName
-                                    : Str.removeSMSDomain(props.session.email)}
-                            </Text>
-                        </Pressable>
-                        {props.currentUserPersonalDetails.displayName && (
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mt1]}
-                                numberOfLines={1}
-                            >
-                                {Str.removeSMSDomain(props.session.email)}
-                            </Text>
-                        )}
+                            );
+                        })}
                     </View>
-                    {_.map(menuItems, (item, index) => {
-                        const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;
-                        const isPaymentItem = item.translationKey === 'common.payments';
-                        return (
-                            <MenuItem
-                                key={`${keyTitle}_${index}`}
-                                title={keyTitle}
-                                icon={item.icon}
-                                iconType={item.iconType}
-                                onPress={item.action}
-                                iconStyles={item.iconStyles}
-                                iconFill={item.iconFill}
-                                shouldShowRightIcon
-                                badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
-                                fallbackIcon={item.fallbackIcon}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                            />
-                        );
-                    })}
-                </View>
-            </ScrollView>
-        </ScreenWrapper>
-    );
-};
+                </ScrollView>
+            </ScreenWrapper>
+        );
+    }
+}
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
