@@ -211,7 +211,7 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * In order to gracefully hide/show the confirm button on Android when the keyboard
+     * In order to gracefully hide/show the confirm button when the keyboard
      * opens/closes, apply an animation to fade the confirm button out/in. And since
      * we're only updating the opacity of the confirm button, we must also conditionally
      * disable it.
