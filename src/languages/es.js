@@ -485,7 +485,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
-        cannotGetAccountDetails: 'No se pueden obtener los detalles de la cuenta. Por favor inténtalo de nuevo.',
+        cannotGetAccountDetails: 'No se pudo obtener el detalle de la cuenta, por favor inténtalo de nuevo.',
     },
     personalDetails: {
         error: {
