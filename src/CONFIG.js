@@ -52,6 +52,7 @@ export default {
         CONCIERGE_URL: conciergeUrl,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
+    IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
