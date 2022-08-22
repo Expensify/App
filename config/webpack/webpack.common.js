@@ -11,7 +11,7 @@ const includeModules = [
     'react-native-animatable',
     'react-native-reanimated',
     'react-native-picker-select',
-    'react-native-web',
+    '@expensify/react-native-web',
     'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
@@ -56,6 +56,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
+                {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
@@ -150,7 +151,8 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     resolve: {
         alias: {
             'react-native-config': 'react-web-config',
-            'react-native$': 'react-native-web',
+            'react-native$': '@expensify/react-native-web',
+            'react-native-web': '@expensify/react-native-web',
             'react-content-loader/native': 'react-content-loader',
         },
 

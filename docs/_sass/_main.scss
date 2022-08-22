@@ -130,6 +130,15 @@ textarea {
     color: $color-dark;
 }
 
+#logo {
+    width: 240px;
+    padding: 80px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    align-content: center;
+}
+
 #lhn {
     width: 420px;
     height: 100%;
@@ -429,20 +438,40 @@ textarea {
     }
 }
 
-.coming-soon {
-    overflow: hidden;
+.centered-content {
+    width: 500px;
+    height: 240px;
+    text-align: center;
+    font-size: larger;
+    position: absolute;
+    top: calc((100vh - 240px)/2);
+    right: calc((100vw - 500px)/2);
+
+    &.with-lhn {
+        right: calc((100vw - 420px - 500px)/2);
+    }
+
+    @media screen and (max-width: 1024px) {
+        &.with-lhn {
+            right: calc((100vw - 320px - 500px)/2);
+        }
+    }
+
+    @media screen and (max-width: 800px) {
+        width: 380px;
+        right: calc((100vw - 380px)/2);
+
+        &.with-lhn {
+            right: calc((100vw - 380px)/2);
+        }
+    }
+
+    div {
+        margin-top: 8px;
+    }
 
     strong {
         font-size: 20px;
-    }
-
-    #logo {
-        width: 240px;
-        padding: 80px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        align-content: center;
     }
 
     #icon {
@@ -451,26 +480,5 @@ textarea {
         display: block;
         margin-left: auto;
         margin-right: auto;
-    }
-
-    #centered-content {
-        width: 500px;
-        height: 250px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        align-content: center;
-        text-align: center;
-        padding-top: 22.5vh;
-        font-size: larger;
-
-        @media screen and (max-width: 800px) {
-            width: 380px;
-            padding-top: 15vh;
-        }
-
-        div {
-            margin-top: 8px;
-        }
     }
 }

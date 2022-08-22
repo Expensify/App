@@ -485,18 +485,6 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.bankAccountID
- * @param {String} parameters.ownerEmail
- * @returns {Promise}
- */
-function DeleteBankAccount(parameters) {
-    const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -623,19 +611,6 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
- * Renames a user-created policy room
- * @param {Object} parameters
- * @param {String} parameters.reportID
- * @param {String} parameters.reportName
- * @return {Promise}
- */
-function RenameReport(parameters) {
-    const commandName = 'RenameReport';
-    requireParameters(['reportID', 'reportName'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -668,9 +643,7 @@ export {
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
-    RenameReport,
     DeleteLogin,
-    DeleteBankAccount,
     Get,
     GetStatementPDF,
     GetIOUReport,

@@ -134,6 +134,7 @@ class PDFView extends Component {
                 {this.state.shouldAttemptPdfLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
+                            trustAllCerts={false}
                             activityIndicator={<FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
