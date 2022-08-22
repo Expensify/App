@@ -126,32 +126,24 @@ The following flowchart can be used to determine which UX pattern should be used
 The numbers in this section correlate to the numbers in each decision box above (the diamond shapes).
 
 1. Does the feature interact with the server?
-
-If you're changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES. Note: Sometimes you may see requests that happen to fire at the same time as the feature you're working on, so be sure to double check.
+  - If you're changing an existing feature, you can open the network tab of dev tools to see if any network requests are being made when you use the feature. If network requests are being made, the answer to this question is YES. Note: Sometimes you may see requests that happen to fire at the same time as the feature you're working on, so be sure to double check.
 If you're making a new feature, think about whether any data would need to be retrieved or stored from anywhere other than the local device. If data needs to be stored to or retrieved from the server, then the answer is YES.
 
 2. What type of request is being made?
-
-If there's new data being saved on the server, you're making a WRITE request. If you're retrieving existing data from the server, you're making a READ request. If both things are happening, that's a WRITE request.
+  - If there's new data being saved on the server, you're making a WRITE request. If you're retrieving existing data from the server, you're making a READ request. If both things are happening, that's a WRITE request.
 
 3. Is it OK for the user to see stale data?
-
-Example: The payment method list. We don't want the user to see a payment method that we no longer support, not even while the payment methods are being loaded from the server (or while the user is offline). Therefore, we answer NO, which leads us to the blocking UI. This way the user won't see stale data while we load the payment methods.
+  - Example: The payment method list. We don't want the user to see a payment method that we no longer support, not even while the payment methods are being loaded from the server (or while the user is offline). Therefore, we answer NO, which leads us to the blocking UI. This way the user won't see stale data while we load the payment methods.
 
 4. Is the UI a form?
-
-An easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out form inputs, answer YES to this question.
+  - An easy way to tell if something is a form is to try and find a submit button. If a submit button is present or if the user is filling out form inputs, answer YES to this question.
 
 5. Can the server response be anticipated?
-
-Answer NO if there is data coming back from the server that we can't know (example: a list of bank accounts from Plaid, input validation that the server must perform). Answer YES if we can know what the response from the server would be.
+  - Answer NO if there is data coming back from the server that we can't know (example: a list of bank accounts from Plaid, input validation that the server must perform). Answer YES if we can know what the response from the server would be.
 
 6. Is there validation done on the server that can't be done on the front end?
-
-If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is YES (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
-
-This question can be tricky, so if you're unsure, please ask a question in the #expensify-open-source slack room and tag @contributor-management-engineering.
+  - If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is YES (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
+  - This question can be tricky, so if you're unsure, please ask a question in the #expensify-open-source slack room and tag @contributor-management-engineering.
 
 7. Does the user need to know if the action was successful?
-
-Think back to the pinning example from above: the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider sending a payment request to another user. In this example, the user needs to know if their request was actually sent, so our answer is YES.
+  - Think back to the pinning example from above: the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider sending a payment request to another user. In this example, the user needs to know if their request was actually sent, so our answer is YES.
