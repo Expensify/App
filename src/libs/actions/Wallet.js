@@ -19,23 +19,36 @@ import * as API from '../API';
  * @param {String} dob
  */
 function fetchOnfidoToken(firstName, lastName, dob) {
-    // Use Onyx.set() since we are resetting the Onfido flow completely.
-    Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
-    DeprecatedAPI.Wallet_GetOnfidoSDKToken(firstName, lastName, dob)
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
-                Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
-                    applicantID: apiResult.applicantID,
-                    sdkToken: apiResult.sdkToken,
+    API.read('OpenOnfidoFlow', {firstName, lastName, dob}, {
+        optimisticData: [
+            {
+                // Use Onyx.set() since we are resetting the Onfido flow completely.
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
                     loading: false,
-                    hasAcceptedPrivacyPolicy: true,
-                });
-                return;
-            }
-
-            Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED});
-        });
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+    });
 }
 
 /**
