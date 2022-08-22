@@ -39,6 +39,7 @@ const propTypes = {
     onPreviewPressed: PropTypes.func,
 
     /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /* Onyx Props */
