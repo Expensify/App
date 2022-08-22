@@ -248,10 +248,6 @@ class ReportActionsView extends React.Component {
         return Visibility.isVisible() && !isSidebarCoveringReportView;
     }
 
-    fetchData() {
-        Report.fetchInitialActions(this.props.report.reportID);
-    }
-
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
