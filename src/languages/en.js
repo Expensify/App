@@ -264,6 +264,7 @@ export default {
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
+        deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
     },
