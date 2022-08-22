@@ -41,11 +41,11 @@ class OnfidoPrivacy extends React.Component {
     constructor(props) {
         super(props);
 
-        this.fetchOnfidoToken = this.fetchOnfidoToken.bind(this);
+        this.openOnfidoFlow = this.openOnfidoFlow.bind(this);
     }
 
-    fetchOnfidoToken() {
-        BankAccounts.fetchOnfidoToken(
+    openOnfidoFlow() {
+        BankAccounts.openOnfidoFlow(
             this.props.walletAdditionalDetailsDraft.legalFirstName,
             this.props.walletAdditionalDetailsDraft.legalLastName,
             this.props.walletAdditionalDetailsDraft.dob,
@@ -87,7 +87,7 @@ class OnfidoPrivacy extends React.Component {
                         </View>
                         <FormAlertWithSubmitButton
                             isAlertVisible={Boolean(onfidoError)}
-                            onSubmit={this.fetchOnfidoToken}
+                            onSubmit={this.openOnfidoFlow}
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}

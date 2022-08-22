@@ -18,7 +18,7 @@ import * as API from '../API';
  * @param {String} lastName
  * @param {String} dob
  */
-function fetchOnfidoToken(firstName, lastName, dob) {
+function openOnfidoFlow(firstName, lastName, dob) {
     API.read('OpenOnfidoFlow', {firstName, lastName, dob}, {
         optimisticData: [
             {
@@ -483,7 +483,7 @@ function updateCurrentStep(currentStep) {
 }
 
 export {
-    fetchOnfidoToken,
+    openOnfidoFlow,
     activateWallet,
     fetchUserWallet,
     setAdditionalDetailsErrors,
