@@ -168,6 +168,9 @@ class IOUAmountPage extends React.Component {
                 this.setState((prevState) => {
                     const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
                     const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
+                    if (!this.validateAmount(amount)) {
+                        return prevState;
+                    }
                     const selection = this.getNewSelection(prevState.selection, prevState.amount.length, amount.length);
                     return {amount, selection};
                 });
