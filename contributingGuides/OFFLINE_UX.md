@@ -1,15 +1,15 @@
 # Offline UX Patterns
 
 ## Contents
-* [Motivation & Philosophy](#motivation-&-philosophy)
-* [Description of the Patterns](#description-of-the-patterns)
+* [Motivation & Philosophy](#motivation--philosophy)
+* [Description of the Patterns](#descriptions-of-the-ux-patterns)
     - [None - No Offline Behavior](#none---no-offline-behavior)
-    - [A - Optimistic Without Feedback](#a---optimistic-without-feedback)
-    - [B - Optimistic With Feedback](#b---optimistic-with-feedback)
-    - [C - Blocking Form](#c---blocking-form)
-    - [D - Full Page Blocking](#d---full-page-blocking)
-* [UX Pattern Flowchart](#ux-pattern-flowchart)
-    - [Answering Questions on the Flow Chart](#answering-questions-on-the-flowchart)
+    - [A - Optimistic Without Feedback](#a---optimistic-without-feedback-pattern)
+    - [B - Optimistic With Feedback](#b---optimistic-with-feedback-pattern)
+    - [C - Blocking Form](#c---blocking-form-ui-pattern)
+    - [D - Full Page Blocking](#d---full-page-blocking-ui-pattern)
+* [UX Pattern Flowchart](#ux-pattern-flow-chart)
+    - [Answering Questions on the Flow Chart](#answering-questions-on-the-flow-chart)
 
 ## Motivation & Philosophy
 
