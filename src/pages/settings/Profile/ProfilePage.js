@@ -259,7 +259,6 @@ class ProfilePage extends Component {
                                     label={this.props.translate('common.firstName')}
                                     defaultValue={this.props.currentUserPersonalDetails.firstName}
                                     placeholder={this.props.translate('profilePage.john')}
-                                    shouldSaveDraft
                                 />
                             </View>
                             <View style={[styles.flex1, styles.ml2]}>
@@ -269,7 +268,6 @@ class ProfilePage extends Component {
                                     label={this.props.translate('common.lastName')}
                                     defaultValue={this.props.currentUserPersonalDetails.lastName}
                                     placeholder={this.props.translate('profilePage.doe')}
-                                    shouldSaveDraft
                                 />
                             </View>
                         </View>
@@ -283,7 +281,6 @@ class ProfilePage extends Component {
                                     label: this.props.translate('profilePage.selectYourPronouns'),
                                 }}
                                 defaultValue={pronounsPickerValue}
-                                shouldSaveDraft
                             />
                             {this.state.hasSelfSelectedPronouns && (
                                 <View style={styles.mt2}>
@@ -291,7 +288,6 @@ class ProfilePage extends Component {
                                         inputID="selfSelectedPronoun"
                                         defaultValue={this.pronouns}
                                         placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                        shouldSaveDraft
                                     />
                                 </View>
                             )}
@@ -316,14 +312,12 @@ class ProfilePage extends Component {
                                 isDisabled={this.state.isAutomaticTimezone}
                                 defaultValue={this.state.selectedTimezone}
                                 value={this.state.selectedTimezone}
-                                shouldSaveDraft
                             />
                         </View>
                         <CheckboxWithLabel
                             inputID="isAutomaticTimezone"
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             defaultValue={this.state.isAutomaticTimezone}
-                            shouldSaveDraft
                         />
                     </Form>
                 </KeyboardAvoidingView>
