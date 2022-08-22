@@ -19,7 +19,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import * as PolicyActions from '../../libs/actions/Policy';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -28,15 +28,6 @@ import policyMemberPropType from '../policyMemberPropType';
 const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/invite */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
 
     /** The employee list of this policy (coming from Onyx) */
     policyMemberList: PropTypes.objectOf(policyMemberPropType),
@@ -247,12 +238,10 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
+    withFullPolicy,
     withOnyx({
         policyMemberList: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${route.params.policyID}`,
-        },
-        policy: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
         },
     }),
 )(WorkspaceInitialPage);
