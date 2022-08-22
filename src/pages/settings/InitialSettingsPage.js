@@ -93,6 +93,8 @@ class InitialSettingsPage extends React.Component {
         super(props);
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
+        this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
+        this.getMenuItems = this.getMenuItems.bind(this);
     }
 
     componentDidMount() {
@@ -111,19 +113,12 @@ class InitialSettingsPage extends React.Component {
             ) : undefined;
     }
 
-    openProfileSettings() {
-        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-    }
-
-    render() {
-        // On the very first sign in or after clearing storage these
-        // details will not be present on the first render so we'll just
-        // return nothing for now.
-        if (_.isEmpty(this.props.currentUserPersonalDetails)) {
-            return null;
-        }
-
-        const defaultMenuItems = [
+    /**
+     * Retuns a list of default menu items
+     * @returns {Array} the default menu items
+     */
+    getDefaultMenuItems() {
+        return ([
             {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
@@ -155,9 +150,14 @@ class InitialSettingsPage extends React.Component {
                 icon: Expensicons.Exit,
                 action: Session.signOutAndRedirectToSignIn,
             },
-        ];
+        ]);
+    }
 
-        // Add free policies (workspaces) to the list of menu items
+    /**
+     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
+     * @returns {Array} the menu item list
+     */
+    getMenuItems() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .map(policy => ({
@@ -171,7 +171,22 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(this.props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
             }))
             .value();
-        menuItems.push(...defaultMenuItems);
+        menuItems.push(...this.getDefaultMenuItems());
+
+        return menuItems;
+    }
+
+    openProfileSettings() {
+        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    }
+
+    render() {
+        // On the very first sign in or after clearing storage these
+        // details will not be present on the first render so we'll just
+        // return nothing for now.
+        if (_.isEmpty(this.props.currentUserPersonalDetails)) {
+            return null;
+        }
 
         return (
             <ScreenWrapper>
@@ -182,7 +197,7 @@ class InitialSettingsPage extends React.Component {
                 <ScrollView style={[styles.settingsPageBackground]}>
                     <View style={styles.w100}>
                         <View style={styles.pageWrapper}>
-                            <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
+                            <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
                                 <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
                                     <Avatar
                                         imageStyles={[styles.avatarLarge]}
@@ -192,7 +207,7 @@ class InitialSettingsPage extends React.Component {
                                 </Tooltip>
                             </Pressable>
 
-                            <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
+                            <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
                                 <Text style={[styles.displayName]} numberOfLines={1}>
                                     {this.props.currentUserPersonalDetails.displayName
                                         ? this.props.currentUserPersonalDetails.displayName
@@ -208,7 +223,7 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(menuItems, (item, index) => {
+                        {_.map(this.getMenuItems(), (item, index) => {
                             const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
                             const isPaymentItem = item.translationKey === 'common.payments';
                             return (
