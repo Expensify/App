@@ -77,7 +77,7 @@ When the user is offline:
 - To ensure the UI is shown as described above, you should enclose the components that contain the data that was added/updated/deleted with the OfflineWithFeedback component
 
 **Handling errors:**
-- The OfflineWithFeedback component already handles showing errors too, as long as you pass the error field in the errors prop
+- The [OfflineWithFeedback component](https://github.com/Expensify/App/blob/main/src/components/OfflineWithFeedback.js) already handles showing errors too, as long as you pass the error field in the [errors prop](https://github.com/Expensify/App/blob/128ea378f2e1418140325c02f0b894ee60a8e53f/src/components/OfflineWithFeedback.js#L29-L31)
 - When dismissing the error, the onClose prop will be called, there we need to call an action that either:
   - If the pendingAction was `delete`, it removes the data altogether
   - Otherwise, it would clear the errors and pendingAction properties from the data
