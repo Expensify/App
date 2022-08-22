@@ -380,6 +380,10 @@ function updateLocalPolicyValues(policyID, values) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
+/**
+ * Deletes the avatar image for the workspace
+ * @param {String} policyID
+ */
 function deleteWorkspaceAvatar(policyID) {
     const optimisticData = [
         {
@@ -420,7 +424,7 @@ function deleteWorkspaceAvatar(policyID) {
                 },
                 errorFields: {
                     avatarURL: {
-                        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
                     },
                 },
             },
@@ -429,6 +433,10 @@ function deleteWorkspaceAvatar(policyID) {
     API.write('DeleteWorkspaceAvatar', {policyID}, {optimisticData, successData, failureData});
 }
 
+/**
+ * Clear error and pending fields for the workspace avatar
+ * @param {String} policyID
+ */
 function clearAvatarErrors(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
