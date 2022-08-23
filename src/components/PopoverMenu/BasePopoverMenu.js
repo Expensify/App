@@ -59,7 +59,7 @@ class BasePopoverMenu extends PureComponent {
     }
 
     onModalHide() {
-        this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
+        this.updateFocusedIndex(-1);
         this.props.onMenuHide();
     }
 
