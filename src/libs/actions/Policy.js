@@ -13,6 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import * as API from '../API';
 
 const allPolicies = {};
 Onyx.connect({
@@ -22,7 +23,7 @@ Onyx.connect({
             return;
         }
 
-        allPolicies[key] = {...allPolicies[key], ...val};
+        allPolicies[key] = val;
     },
 });
 let sessionEmail = '';
@@ -170,31 +171,63 @@ function createAndNavigate(name = '') {
 }
 
 /**
- * Delete the policy
+ * Delete the workspace
  *
- * @param {String} [policyID]
- * @returns {Promise}
+ * @param {String} policyID
  */
-function deletePolicy(policyID) {
-    return DeprecatedAPI.Policy_Delete({policyID})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
+function deleteWorkspace(policyID) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                'pendingAction': 'delete',
+            },
+        },
+    ];
 
-            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
+    // We don't need success data since the push notification will update     
+    // the onyxData for all connected clients.
+    const failureData = [];
+    const successData = [];
+    // const failureData = [
+    //     {
+    //         onyxMethod: 'merge',
+    //         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    //         value: {
+    //             'pendingAction': null,
+    //             'errors': {
+    //                 <current_microtime>: '<some generic error>',
+    //             }
+    //         },
+    //     },
+    // ];
 
-            // Removing the workspace data from Onyx as well
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
-        })
-        .then(() => Report.fetchAllReports(false))
-        .then(() => {
-            Navigation.goBack();
-            return Promise.resolve();
-        });
+    API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
+
+    // const optimisticData = [{
+    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+    //     key: ONYXKEYS.ACCOUNT,
+    //     value: {isLoading: true},
+    // }];
+    // const successData = [{
+    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+    //     key: ONYXKEYS.ACCOUNT,
+    //     value: {
+    //         isLoading: false,
+    //         message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+    //     },
+    // }];
+    // const failureData = [{
+    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+    //     key: ONYXKEYS.ACCOUNT,
+    //     value: {
+    //         isLoading: false,
+    //         message: '',
+    //     },
+    // }];
+
+    // API.read('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -544,7 +577,7 @@ function subscribeToPolicyEvents() {
  * @param {String} policyID
  * @param {String} memberEmail
  */
-function clearDeleteMemberError(policyID, memberEmail) {
+ function clearDeleteMemberError(policyID, memberEmail) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
         [memberEmail]: {
             pendingAction: null,
@@ -562,6 +595,18 @@ function clearDeleteMemberError(policyID, memberEmail) {
 function clearAddMemberError(policyID, memberEmail) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
         [memberEmail]: null,
+    });
+}
+
+/**
+ * Removes an error after trying to delete a workspace
+ *
+ * @param {String} policyID
+ */
+function clearDeleteWorkspaceError(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        pendingAction: null,
+        errors: null,
     });
 }
 
@@ -586,7 +631,8 @@ export {
     update,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
-    deletePolicy,
+    deleteWorkspace,
+    clearDeleteWorkspaceError,
     createAndNavigate,
     createAndGetPolicyList,
     setCustomUnit,

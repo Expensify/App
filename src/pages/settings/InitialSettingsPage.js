@@ -29,6 +29,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -86,6 +87,20 @@ const defaultProps = {
     policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
+
+/**
+ * Dismisses the errors on one item
+ *
+ * @param {string} policyID
+ * @param {string} pendingAction
+ */
+function dismissWorkspaceError(policyID, pendingAction) {
+    if (pendingAction === 'delete') {
+        Policy.clearDeleteWorkspaceError(policyID);
+        return;
+    }
+    throw new Error('Not implemented');
+}
 
 const InitialSettingsPage = (props) => {
     // On the very first sign in or after clearing storage these
@@ -146,6 +161,9 @@ const InitialSettingsPage = (props) => {
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
             brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
+            pendingAction: policy.pendingAction,
+            errors: policy.errors,
+            dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -190,20 +208,23 @@ const InitialSettingsPage = (props) => {
                     {_.map(menuItems, (item, index) => {
                         const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;
                         const isPaymentItem = item.translationKey === 'common.payments';
+                        const doNothing = () => {};
                         return (
-                            <MenuItem
-                                key={`${keyTitle}_${index}`}
-                                title={keyTitle}
-                                icon={item.icon}
-                                iconType={item.iconType}
-                                onPress={item.action}
-                                iconStyles={item.iconStyles}
-                                iconFill={item.iconFill}
-                                shouldShowRightIcon
-                                badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
-                                fallbackIcon={item.fallbackIcon}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                            />
+                            <OfflineWithFeedback onClose={item.dismissError || doNothing} pendingAction={item.pendingAction} errors={item.errors}>
+                                <MenuItem
+                                    key={`${keyTitle}_${index}`}
+                                    title={keyTitle}
+                                    icon={item.icon}
+                                    iconType={item.iconType}
+                                    onPress={item.action}
+                                    iconStyles={item.iconStyles}
+                                    iconFill={item.iconFill}
+                                    shouldShowRightIcon
+                                    badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
+                                    fallbackIcon={item.fallbackIcon}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                />
+                            </OfflineWithFeedback>
                         );
                     })}
                 </View>
