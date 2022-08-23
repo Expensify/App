@@ -63,7 +63,7 @@ class BasePopoverMenu extends PureComponent {
         if (!this.unsubscribeEnterKey) {
             return;
         }
-        this.unsubscribeEscapeKey();
+        this.unsubscribeEnterKey();
     }
 
     /**
