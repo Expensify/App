@@ -123,6 +123,7 @@ function navigate(route = ROUTES.HOME) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
+        Log.hmmm('[Navigation] Container not yet ready, storing route as pending');
         pendingRoute = route;
         return;
     }
@@ -199,6 +200,7 @@ function goToPendingRoute() {
     if (_.isEmpty(pendingRoute)) {
         return;
     }
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
     navigate(pendingRoute);
     pendingRoute = '';
 }
