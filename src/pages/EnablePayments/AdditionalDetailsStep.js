@@ -3,9 +3,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {
-    View, KeyboardAvoidingView,
-} from 'react-native';
+import {View} from 'react-native';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -13,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -30,6 +27,7 @@ import FormHelper from '../../libs/FormHelper';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -38,13 +36,13 @@ const propTypes = {
     /** Stores additional information about the additional details step e.g. loading state and errors with fields */
     walletAdditionalDetails: PropTypes.shape({
         /** Are we waiting for a response? */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
 
         /** Which field needs attention? */
         errorFields: PropTypes.objectOf(PropTypes.bool),
 
         /** Any additional error message to show */
-        additionalErrorMessage: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Questions returned by Idology */
         questions: PropTypes.arrayOf(PropTypes.shape({
@@ -56,8 +54,8 @@ const propTypes = {
         /** ExpectID ID number related to those questions */
         idNumber: PropTypes.string,
 
-        /** If we should ask for the full SSN (when LexisNexis failed retrieving the first 5 from the last 4) */
-        shouldAskForFullSSN: PropTypes.bool,
+        /** Error code to determine additional behavior */
+        errorCode: PropTypes.string,
     }),
 
     /** Stores the personal details typed by the user */
@@ -67,11 +65,11 @@ const propTypes = {
 const defaultProps = {
     walletAdditionalDetails: {
         errorFields: {},
-        loading: false,
-        additionalErrorMessage: '',
+        isLoading: false,
+        errors: {},
         questions: [],
         idNumber: '',
-        shouldAskForFullSSN: false,
+        errorCode: '',
     },
     walletAdditionalDetailsDraft: {
         legalFirstName: '',
@@ -189,7 +187,7 @@ class AdditionalDetailsStep extends React.Component {
             errors.phoneNumber = true;
         }
 
-        if (this.props.walletAdditionalDetails.shouldAskForFullSSN) {
+        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
                 errors.ssnFull9 = true;
             }
@@ -213,13 +211,11 @@ class AdditionalDetailsStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-
-        BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-            personalDetails: {
-                ...this.props.walletAdditionalDetailsDraft,
-                phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
-            },
-        });
+        const personalDetails = {
+            ...this.props.walletAdditionalDetailsDraft,
+            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
+        };
+        Wallet.updatePersonalDetails(personalDetails);
     }
 
     /**
@@ -254,150 +250,149 @@ class AdditionalDetailsStep extends React.Component {
     render() {
         if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
             return (
-                <ScreenWrapper>
-                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
-                        <HeaderWithCloseButton
-                            title={this.props.translate('additionalDetailsStep.headerTitle')}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
-                        />
-                        <IdologyQuestions
-                            questions={this.props.walletAdditionalDetails.questions}
-                            idNumber={this.props.walletAdditionalDetails.idNumber}
-                        />
-                    </KeyboardAvoidingView>
+                <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+                    <HeaderWithCloseButton
+                        title={this.props.translate('additionalDetailsStep.headerTitle')}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
+                    />
+                    <IdologyQuestions
+                        questions={this.props.walletAdditionalDetails.questions}
+                        idNumber={this.props.walletAdditionalDetails.idNumber}
+                    />
                 </ScreenWrapper>
             );
         }
 
+        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
         const isErrorVisible = _.size(this.getErrors()) > 0
-            || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
-        const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
+            || !_.isEmpty(errors);
+        const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
 
         return (
-            <ScreenWrapper>
-                <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
-                    <HeaderWithCloseButton
-                        title={this.props.translate('additionalDetailsStep.headerTitle')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <View style={[styles.flex1]}>
-                        <View style={[styles.ph5]}>
-                            <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
-                            <TextLink
-                                style={styles.mb3}
-                                href="https://use.expensify.com/usa-patriot-act"
-                            >
-                                {this.props.translate('additionalDetailsStep.helpLink')}
-                            </TextLink>
-                        </View>
-                        <FormScrollView ref={el => this.form = el}>
-                            <View style={[styles.mh5, styles.mb5]}>
-                                <View style={styles.mt4}>
-                                    <TextInput
-                                        containerStyles={[styles.mt4]}
-                                        label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                                        onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
-                                        value={this.props.walletAdditionalDetailsDraft.legalFirstName || firstName}
-                                        errorText={this.getErrorText('legalFirstName')}
-                                    />
-                                    <TextInput
-                                        containerStyles={[styles.mt4]}
-                                        label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                                        onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
-                                        value={this.props.walletAdditionalDetailsDraft.legalLastName || lastName}
-                                        errorText={this.getErrorText('legalLastName')}
-                                    />
-                                    <AddressSearch
-                                        label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
-                                        value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
-                                        containerStyles={[styles.mt4]}
-                                        onInputChange={(values) => {
-                                            const renamedFields = {
-                                                street: 'addressStreet',
-                                                state: 'addressState',
-                                                zipCode: 'addressZip',
-                                                city: 'addressCity',
-                                            };
-                                            _.each(values, (value, inputKey) => {
-                                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                                this.clearErrorAndSetValue(renamedInputKey, value);
-                                            });
-                                        }}
-                                        errorText={this.getErrorText('addressStreet')}
-                                        hint={this.props.translate('common.noPO')}
-                                    />
-                                    {this.props.walletAdditionalDetailsDraft.addressStreet ? (
-                                        <>
-                                            {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
-                                            {/** We'll autofill them when the user selects a full address from the google autocomplete */}
-                                            <TextInput
-                                                containerStyles={[styles.mt4]}
-                                                label={this.props.translate(this.fieldNameTranslationKeys.addressCity)}
-                                                onChangeText={val => this.clearErrorAndSetValue('addressCity', val)}
-                                                value={this.props.walletAdditionalDetailsDraft.addressCity || ''}
-                                                errorText={this.getErrorText('addressCity')}
-                                            />
-                                            <TextInput
-                                                containerStyles={[styles.mt4]}
-                                                label={this.props.translate(this.fieldNameTranslationKeys.addressState)}
-                                                onChangeText={val => this.clearErrorAndSetValue('addressState', val)}
-                                                value={this.props.walletAdditionalDetailsDraft.addressState || ''}
-                                                errorText={this.getErrorText('addressState')}
-                                            />
-                                            <TextInput
-                                                containerStyles={[styles.mt4]}
-                                                label={this.props.translate(this.fieldNameTranslationKeys.addressZip)}
-                                                onChangeText={val => this.clearErrorAndSetValue('addressZip', val)}
-                                                value={this.props.walletAdditionalDetailsDraft.addressZip || ''}
-                                                errorText={this.getErrorText('addressZip')}
-                                            />
-                                        </>
-                                    ) : null}
-                                </View>
-                                <TextInput
-                                    containerStyles={[styles.mt4]}
-                                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                                    onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
-                                    placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                                    errorText={this.getErrorText('phoneNumber')}
-                                />
-                                <DatePicker
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                    onInputChange={val => this.clearDateErrorsAndSetValue(val)}
-                                    defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
-                                    placeholder={this.props.translate('common.dob')}
-                                    errorText={this.getErrorText('dob') || this.getErrorText('age')}
-                                    maximumDate={new Date()}
-                                />
-                                <TextInput
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                    onChangeText={val => this.clearSSNErrorAndSetValue(val)}
-                                    value={this.props.walletAdditionalDetailsDraft.ssn || ''}
-                                    errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
-                                    maxLength={shouldAskForFullSSN ? 9 : 4}
-                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                />
-                            </View>
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={isErrorVisible}
-                                onSubmit={this.activateWallet}
-                                onFixTheErrorsLinkPressed={() => {
-                                    this.form.scrollTo({y: 0, animated: true});
-                                }}
-                                message={this.props.walletAdditionalDetails.additionalErrorMessage}
-                                isLoading={this.props.walletAdditionalDetails.loading}
-                                buttonText={this.props.translate('common.saveAndContinue')}
-                            />
-                        </FormScrollView>
+            <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+                <HeaderWithCloseButton
+                    title={this.props.translate('additionalDetailsStep.headerTitle')}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View style={[styles.flex1]}>
+                    <View style={[styles.ph5]}>
+                        <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
+                        <TextLink
+                            style={styles.mb3}
+                            href="https://use.expensify.com/usa-patriot-act"
+                        >
+                            {this.props.translate('additionalDetailsStep.helpLink')}
+                        </TextLink>
                     </View>
-                </KeyboardAvoidingView>
+                    <FormScrollView ref={el => this.form = el}>
+                        <View style={[styles.mh5, styles.mb5]}>
+                            <View style={styles.mt4}>
+                                <TextInput
+                                    containerStyles={[styles.mt4]}
+                                    label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
+                                    onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
+                                    value={this.props.walletAdditionalDetailsDraft.legalFirstName || firstName}
+                                    errorText={this.getErrorText('legalFirstName')}
+                                />
+                                <TextInput
+                                    containerStyles={[styles.mt4]}
+                                    label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
+                                    onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
+                                    value={this.props.walletAdditionalDetailsDraft.legalLastName || lastName}
+                                    errorText={this.getErrorText('legalLastName')}
+                                />
+                                <AddressSearch
+                                    label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
+                                    value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
+                                    containerStyles={[styles.mt4]}
+                                    onInputChange={(values) => {
+                                        const renamedFields = {
+                                            street: 'addressStreet',
+                                            state: 'addressState',
+                                            zipCode: 'addressZip',
+                                            city: 'addressCity',
+                                        };
+                                        _.each(values, (value, inputKey) => {
+                                            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                            this.clearErrorAndSetValue(renamedInputKey, value);
+                                        });
+                                    }}
+                                    errorText={this.getErrorText('addressStreet')}
+                                    hint={this.props.translate('common.noPO')}
+                                />
+                                {this.props.walletAdditionalDetailsDraft.addressStreet ? (
+                                    <>
+                                        {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
+                                        {/** We'll autofill them when the user selects a full address from the google autocomplete */}
+                                        <TextInput
+                                            containerStyles={[styles.mt4]}
+                                            label={this.props.translate(this.fieldNameTranslationKeys.addressCity)}
+                                            onChangeText={val => this.clearErrorAndSetValue('addressCity', val)}
+                                            value={this.props.walletAdditionalDetailsDraft.addressCity || ''}
+                                            errorText={this.getErrorText('addressCity')}
+                                        />
+                                        <TextInput
+                                            containerStyles={[styles.mt4]}
+                                            label={this.props.translate(this.fieldNameTranslationKeys.addressState)}
+                                            onChangeText={val => this.clearErrorAndSetValue('addressState', val)}
+                                            value={this.props.walletAdditionalDetailsDraft.addressState || ''}
+                                            errorText={this.getErrorText('addressState')}
+                                        />
+                                        <TextInput
+                                            containerStyles={[styles.mt4]}
+                                            label={this.props.translate(this.fieldNameTranslationKeys.addressZip)}
+                                            onChangeText={val => this.clearErrorAndSetValue('addressZip', val)}
+                                            value={this.props.walletAdditionalDetailsDraft.addressZip || ''}
+                                            errorText={this.getErrorText('addressZip')}
+                                        />
+                                    </>
+                                ) : null}
+                            </View>
+                            <TextInput
+                                containerStyles={[styles.mt4]}
+                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
+                                onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
+                                value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
+                                placeholder={this.props.translate('common.phoneNumberPlaceholder')}
+                                errorText={this.getErrorText('phoneNumber')}
+                            />
+                            <DatePicker
+                                containerStyles={[styles.mt4]}
+                                label={this.props.translate(this.fieldNameTranslationKeys.dob)}
+                                onInputChange={val => this.clearDateErrorsAndSetValue(val)}
+                                defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
+                                placeholder={this.props.translate('common.dob')}
+                                errorText={this.getErrorText('dob') || this.getErrorText('age')}
+                                maximumDate={new Date()}
+                            />
+                            <TextInput
+                                containerStyles={[styles.mt4]}
+                                label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                                onChangeText={val => this.clearSSNErrorAndSetValue(val)}
+                                value={this.props.walletAdditionalDetailsDraft.ssn || ''}
+                                errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
+                                maxLength={shouldAskForFullSSN ? 9 : 4}
+                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            />
+                        </View>
+                        <FormAlertWithSubmitButton
+                            isAlertVisible={isErrorVisible}
+                            onSubmit={this.activateWallet}
+                            onFixTheErrorsLinkPressed={() => {
+                                this.form.scrollTo({y: 0, animated: true});
+                            }}
+                            message={errorMessage}
+                            isLoading={this.props.walletAdditionalDetails.isLoading}
+                            buttonText={this.props.translate('common.saveAndContinue')}
+                        />
+                        <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
+                    </FormScrollView>
+                </View>
             </ScreenWrapper>
         );
     }
