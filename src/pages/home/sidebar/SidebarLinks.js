@@ -52,9 +52,6 @@ const propTypes = {
         unreadActionCount: PropTypes.number,
     })),
 
-    /** Reports having a draft */
-    reportsWithDraft: PropTypes.objectOf(PropTypes.bool),
-
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
@@ -87,7 +84,6 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
-    reportsWithDraft: {},
     personalDetails: {},
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
@@ -132,7 +128,6 @@ class SidebarLinks extends React.Component {
             activeReportID,
             props.priorityMode,
             props.betas,
-            props.reportsWithDraft,
             props.reportActions,
         );
         return sidebarOptions.recentReports;
@@ -189,7 +184,7 @@ class SidebarLinks extends React.Component {
         this.state = {
             activeReport: {
                 reportID: props.currentlyViewedReportID,
-                hasDraftHistory: lodashGet(props.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${props.currentlyViewedReportID}`, false),
+                hasDraftHistory: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.hasDraft`, false),
                 lastMessageTimestamp: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.lastMessageTimestamp`, 0),
             },
             orderedReports: [],
@@ -213,7 +208,7 @@ class SidebarLinks extends React.Component {
         } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
             hasDraftHistory = true;
         } else {
-            hasDraftHistory = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
+            hasDraftHistory = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.hasDraft`, false);
         }
 
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
@@ -359,9 +354,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        reportsWithDraft: {
-            key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
