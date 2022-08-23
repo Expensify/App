@@ -874,7 +874,6 @@ export default {
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             save: 'Guardar',
-            updateNameError: 'Lo sentimos, ocurrió un error inesperado al intentar actualizar el nombre del espacio de trabajo.',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
         },
