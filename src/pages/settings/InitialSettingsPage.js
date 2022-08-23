@@ -30,7 +30,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
-import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -96,14 +96,26 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class InitialSettingsPage extends React.Component {
-    constructor(props) {
-        super(props);
+/**
+ * Dismisses the errors on one item
+ *
+ * @param {string} policyID
+ * @param {string} pendingAction
+ */
+function dismissWorkspaceError(policyID, pendingAction) {
+    if (pendingAction === 'delete') {
+        Policy.clearDeleteWorkspaceError(policyID);
+        return;
+    }
+    throw new Error('Not implemented');
+}
 
-        this.getWalletBalance = this.getWalletBalance.bind(this);
-        this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItemsList = this.getMenuItemsList.bind(this);
-        this.getMenuItem = this.getMenuItem.bind(this);
+const InitialSettingsPage = (props) => {
+    // On the very first sign in or after clearing storage these
+    // details will not be present on the first render so we'll just
+    // return nothing for now.
+    if (_.isEmpty(props.currentUserPersonalDetails)) {
+        return null;
     }
 
     const walletBalance = props.numberFormat(
@@ -156,7 +168,10 @@ class InitialSettingsPage extends React.Component {
             iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
             fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-            brickRoadIndicator: PolicyUtils.getWorkspaceBrickRoadIndicatorStatus(policy, props.policyMembers),
+            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
+            pendingAction: policy.pendingAction,
+            errors: policy.errors,
+            dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -328,11 +343,33 @@ class InitialSettingsPage extends React.Component {
                         </View>
                         {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
                     </View>
-                </ScrollView>
-            </ScreenWrapper>
-        );
-    }
-}
+                    {_.map(menuItems, (item, index) => {
+                        const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;
+                        const isPaymentItem = item.translationKey === 'common.payments';
+                        const doNothing = () => {};
+                        return (
+                            <OfflineWithFeedback onClose={item.dismissError || doNothing} pendingAction={item.pendingAction} errors={item.errors}>
+                                <MenuItem
+                                    key={`${keyTitle}_${index}`}
+                                    title={keyTitle}
+                                    icon={item.icon}
+                                    iconType={item.iconType}
+                                    onPress={item.action}
+                                    iconStyles={item.iconStyles}
+                                    iconFill={item.iconFill}
+                                    shouldShowRightIcon
+                                    badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
+                                    fallbackIcon={item.fallbackIcon}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                />
+                            </OfflineWithFeedback>
+                        );
+                    })}
+                </View>
+            </ScrollView>
+        </ScreenWrapper>
+    );
+};
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;

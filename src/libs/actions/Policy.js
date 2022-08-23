@@ -15,7 +15,6 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
-import DateUtils from '../DateUtils';
 import * as API from '../API';
 
 const allPolicies = {};
@@ -26,7 +25,7 @@ Onyx.connect({
             return;
         }
 
-        allPolicies[key] = {...allPolicies[key], ...val};
+        allPolicies[key] = val;
     },
 });
 let sessionEmail = '';
@@ -108,32 +107,115 @@ function updateAllPolicies(policyCollection) {
 }
 
 /**
- * Delete the policy
+ * Merges the passed in login into the specified policy
  *
- * @param {String} [policyID]
+ * @param {String} [name]
+ * @param {Boolean} [shouldAutomaticallyReroute]
  * @returns {Promise}
  */
-function deletePolicy(policyID) {
-    return DeprecatedAPI.Policy_Delete({policyID})
+function create(name = '') {
+    Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
+    let res = null;
+    return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
+            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
+                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
                 return;
             }
+            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnCreate'), CONST.GROWL.SUCCESS, 3000);
+            res = response;
 
-            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
+            // Fetch the default reports and the policyExpenseChat reports on the policy
+            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
 
-            // Removing the workspace data from Onyx and local array as well
-            delete allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
+            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
+                id: response.policyID,
+                type: response.policy.type,
+                name: response.policy.name,
+                role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: response.policy.outputCurrency,
+            });
         })
-        .then(() => Report.fetchAllReports(false))
-        .then(() => {
-            Navigation.goBack();
-            return Promise.resolve();
-        });
+        .then(() => Promise.resolve(lodashGet(res, 'policyID')));
+}
+
+/**
+ * @param {String} policyID
+ */
+function navigateToPolicy(policyID) {
+    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
+}
+
+/**
+ * @param {String} [name]
+ */
+function createAndNavigate(name = '') {
+    create(name).then(navigateToPolicy);
+}
+
+/**
+ * Delete the workspace
+ *
+ * @param {String} policyID
+ */
+function deleteWorkspace(policyID) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                'pendingAction': 'delete',
+            },
+        },
+    ];
+
+    // We don't need success data since the push notification will update     
+    // the onyxData for all connected clients.
+    const failureData = [];
+    const successData = [];
+    // const failureData = [
+    //     {
+    //         onyxMethod: 'merge',
+    //         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    //         value: {
+    //             'pendingAction': null,
+    //             'errors': {
+    //                 <current_microtime>: '<some generic error>',
+    //             }
+    //         },
+    //     },
+    // ];
+
+    API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
+
+    // const optimisticData = [{
+    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+    //     key: ONYXKEYS.ACCOUNT,
+    //     value: {isLoading: true},
+    // }];
+    // const successData = [{
+    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+    //     key: ONYXKEYS.ACCOUNT,
+    //     value: {
+    //         isLoading: false,
+    //         message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+    //     },
+    // }];
+    // const failureData = [{
+    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+    //     key: ONYXKEYS.ACCOUNT,
+    //     value: {
+    //         isLoading: false,
+    //         message: '',
+    //     },
+    // }];
+
+    // API.read('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -703,7 +785,7 @@ function subscribeToPolicyEvents() {
  * @param {String} policyID
  * @param {String} memberEmail
  */
-function clearDeleteMemberError(policyID, memberEmail) {
+ function clearDeleteMemberError(policyID, memberEmail) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
         [memberEmail]: {
             pendingAction: null,
@@ -725,8 +807,22 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
- * Generate a policy name based on an email and policy list.
- * @returns {String}
+ * Removes an error after trying to delete a workspace
+ *
+ * @param {String} policyID
+ */
+function clearDeleteWorkspaceError(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        pendingAction: null,
+        errors: null,
+    });
+}
+
+/**
+* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
+ * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * @param {Object} policyMemberList
+ * @returns {Boolean}
  */
 function generateDefaultWorkspaceName() {
     const emailParts = sessionEmail.split('@');
@@ -974,9 +1070,12 @@ export {
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
-    deletePolicy,
-    updateWorkspaceCustomUnit,
-    updateCustomUnitRate,
+    deleteWorkspace,
+    clearDeleteWorkspaceError,
+    createAndNavigate,
+    createAndGetPolicyList,
+    setCustomUnit,
+    setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
     clearDeleteMemberError,
