@@ -462,6 +462,18 @@ function getPaddingLeft(paddingLeft) {
 }
 
 /**
+ * Get animated opacity for report chat list
+ * @param {Animated.Value} fadeInAnimation
+ * @returns {Object}
+ */
+function getReportListAnimationStyle(fadeInAnimation) {
+    return {
+        ...styles.flex1,
+        opacity: fadeInAnimation,
+    };
+}
+
+/**
  * Android only - convert RTL text to a LTR text using Unicode controls.
  * https://www.w3.org/International/questions/qa-bidi-unicode-controls
  * @param {String} text
@@ -471,6 +483,28 @@ function convertToLTR(text) {
     return `\u2066${text}`;
 }
 
+/**
+ * Checks to see if the iOS device has safe areas or not
+ *
+ * @param {Number} windowWidth
+ * @param {Number} windowHeight
+ * @returns {Boolean}
+ */
+function hasSafeAreas(windowWidth, windowHeight) {
+    const heightsIphonesWithNotches = [812, 896, 844, 926];
+    return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
+}
+
+/**
+ * Get variable keyboard height as style
+ * @param {Number} keyboardHeight
+ * @returns {Object}
+ */
+function getHeight(keyboardHeight) {
+    return {
+        height: keyboardHeight,
+    };
+}
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -499,5 +533,8 @@ export {
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
+    getReportListAnimationStyle,
     convertToLTR,
+    hasSafeAreas,
+    getHeight,
 };

@@ -6,6 +6,7 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
+import stylePropTypes from '../styles/stylePropTypes';
 import Text from './Text';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
@@ -38,11 +39,12 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    /** Additional styles to add after local styles. Applied to the parent container */
+    style: stylePropTypes,
+
+    /** Additional style object for the error row */
+    errorRowStyles: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -50,6 +52,7 @@ const defaultProps = {
     pendingAction: null,
     errors: null,
     style: [],
+    errorRowStyles: [],
 };
 
 /**
@@ -97,7 +100,7 @@ const OfflineWithFeedback = (props) => {
                 </View>
             )}
             {hasErrors && (
-                <View style={styles.offlineFeedback.error}>
+                <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>
@@ -124,6 +127,7 @@ const OfflineWithFeedback = (props) => {
 
 OfflineWithFeedback.propTypes = propTypes;
 OfflineWithFeedback.defaultProps = defaultProps;
+OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default compose(
     withLocalize,
