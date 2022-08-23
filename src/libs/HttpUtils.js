@@ -46,6 +46,15 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
             }
 
             if (!response.ok) {
+                // Expensify site is down or something temporary like a Bad Gateway or unknown error occurred
+                if (response.status === 504 || response.status === 502 || response.status === 520) {
+                    throw new HttpsError({
+                        message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                        status: response.status,
+                        title: 'Issue connecting to Expensify site',
+                    });
+                }
+
                 throw new HttpsError({
                     message: response.statusText,
                     status: response.status,
@@ -59,9 +68,8 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
             if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
                 throw new HttpsError({
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
-                    type: CONST.ERROR_TYPE.SOCKET,
+                    status: CONST.JSON_CODE.EXP_ERROR,
                     title: CONST.ERROR_TITLE.SOCKET,
-                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
                 });
             }
             return response;

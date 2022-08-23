@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
@@ -17,9 +16,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import Button from '../components/Button';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
-import FixedFooter from '../components/FixedFooter';
 import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
@@ -57,9 +53,8 @@ class NewChatPage extends Component {
         super(props);
 
         this.toggleOption = this.toggleOption.bind(this);
+        this.createChat = this.createChat.bind(this);
         this.createGroup = this.createGroup.bind(this);
-        this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
-        this.createNewChat = this.createNewChat.bind(this);
         this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
         const {
@@ -95,7 +90,7 @@ class NewChatPage extends Component {
             sections.push({
                 title: undefined,
                 data: this.state.selectedOptions,
-                shouldShow: true,
+                shouldShow: !_.isEmpty(this.state.selectedOptions),
                 indexOffset: 0,
             });
 
@@ -134,19 +129,6 @@ class NewChatPage extends Component {
         }
 
         return sections;
-    }
-
-    /**
-     * Once all our options are selected this method will call the API and  create new chat between all selected users
-     * and the currently logged in user
-     */
-    createGroup() {
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
-        if (userLogins.length < 1) {
-            return;
-        }
-
-        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
     /**
@@ -193,22 +175,29 @@ class NewChatPage extends Component {
     }
 
     /**
-     * Creates a new chat with the option
+     * Creates a new 1:1 chat with the option and the current user,
+     * or navigates to the existing chat if one with those participants already exists.
+     *
      * @param {Object} option
      */
-    createNewChat(option) {
+    createChat(option) {
         Report.fetchOrCreateChatReport([
             this.props.session.email,
             option.login,
         ]);
     }
 
-    toggleGroupOptionOrCreateChat(option) {
-        if (this.props.isGroupChat) {
-            return this.toggleOption(option);
+    /**
+     * Creates a new group chat with all the selected options and the current user,
+     * or navigates to the existing chat if one with those participants already exists.
+     */
+    createGroup() {
+        const userLogins = _.pluck(this.state.selectedOptions, 'login');
+        if (userLogins.length < 1) {
+            return;
         }
 
-        this.createNewChat(option);
+        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
     render() {
@@ -221,9 +210,9 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper>
+            <ScreenWrapper keyboardAvoidingViewBehavior="height">
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <HeaderWithCloseButton
                             title={this.props.isGroupChat
                                 ? this.props.translate('sidebarScreen.newGroup')
@@ -233,53 +222,43 @@ class NewChatPage extends Component {
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
-                                <>
-                                    <OptionsSelector
-                                        canSelectMultipleOptions={this.props.isGroupChat}
-                                        sections={sections}
-                                        selectedOptions={this.state.selectedOptions}
-                                        value={this.state.searchValue}
-                                        onSelectRow={this.toggleGroupOptionOrCreateChat}
-                                        onChangeText={(searchValue = '') => {
-                                            const {
-                                                recentReports,
-                                                personalDetails,
-                                                userToInvite,
-                                            } = OptionsListUtils.getNewChatOptions(
-                                                this.props.reports,
-                                                this.props.personalDetails,
-                                                this.props.betas,
-                                                searchValue,
-                                                [],
-                                                this.props.isGroupChat ? this.excludedGroupEmails : [],
-                                            );
-                                            this.setState({
-                                                searchValue,
-                                                userToInvite,
-                                                recentReports,
-                                                personalDetails,
-                                            });
-                                        }}
-                                        headerMessage={headerMessage}
-                                        disableArrowKeysActions
-                                        hideAdditionalOptionStates
-                                        forceTextUnreadStyle
-                                        shouldFocusOnSelectRow={this.props.isGroupChat}
-                                    />
-                                    {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
-                                        <FixedFooter>
-                                            <Button
-                                                success
-                                                onPress={this.createGroup}
-                                                style={[styles.w100]}
-                                                text={this.props.translate('newChatPage.createGroup')}
-                                            />
-                                        </FixedFooter>
-                                    )}
-                                </>
+                                <OptionsSelector
+                                    canSelectMultipleOptions={this.props.isGroupChat}
+                                    sections={sections}
+                                    selectedOptions={this.state.selectedOptions}
+                                    value={this.state.searchValue}
+                                    onSelectRow={option => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
+                                    onChangeText={(searchValue = '') => {
+                                        const {
+                                            recentReports,
+                                            personalDetails,
+                                            userToInvite,
+                                        } = OptionsListUtils.getNewChatOptions(
+                                            this.props.reports,
+                                            this.props.personalDetails,
+                                            this.props.betas,
+                                            searchValue,
+                                            [],
+                                            this.props.isGroupChat ? this.excludedGroupEmails : [],
+                                        );
+                                        this.setState({
+                                            searchValue,
+                                            userToInvite,
+                                            recentReports,
+                                            personalDetails,
+                                        });
+                                    }}
+                                    headerMessage={headerMessage}
+                                    hideAdditionalOptionStates
+                                    forceTextUnreadStyle
+                                    shouldFocusOnSelectRow={this.props.isGroupChat}
+                                    shouldShowConfirmButton={this.props.isGroupChat}
+                                    confirmButtonText={this.props.translate('newChatPage.createGroup')}
+                                    onConfirmSelection={this.props.isGroupChat ? this.createGroup : () => {}}
+                                />
                             )}
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );

@@ -77,17 +77,9 @@ class LoginField extends Component {
     render() {
         let note;
         if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
-            // No phone number
-            if (!this.props.login.partnerUserID) {
-                note = this.props.translate('loginField.addYourPhoneToSettleViaVenmo');
-
             // Has unvalidated phone number
-            } else if (!this.props.login.validatedDate) {
+            if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
                 note = this.props.translate('loginField.numberHasNotBeenValidated');
-
-            // Has verified phone number
-            } else {
-                note = this.props.translate('loginField.useYourPhoneToSettleViaVenmo');
             }
 
         // Has unvalidated email

@@ -31,14 +31,24 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
-contextMenu();
+// Add the Paste and Match Style command to the context menu
+contextMenu({
+    append: (defaultActions, parameters) => [
+        new MenuItem({
+            // Only enable the menu item for Editable context which supports paste
+            visible: parameters.isEditable && parameters.editFlags.canPaste,
+            role: 'pasteAndMatchStyle',
+            accelerator: 'CmdOrCtrl+Shift+V',
+        }),
+    ],
+});
 
-// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
+// Send all Console logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 _.assign(console, log.functions);
 
@@ -47,6 +57,7 @@ _.assign(console, log.functions);
 // until it detects that it has been upgraded to the correct version.
 
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
+const APP_DOMAIN = __DEV__ ? `http://localhost:${port}` : 'app://-';
 
 let expectedUpdateVersion;
 for (let i = 0; i < process.argv.length; i++) {
@@ -159,18 +170,19 @@ const mainWindow = (() => {
                     details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
                     callback({requestHeaders: details.requestHeaders});
                 });
-
-                // Modify access-control-allow-origin header for the response
-                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    details.responseHeaders['access-control-allow-origin'] = ['app://-'];
-                    callback({responseHeaders: details.responseHeaders});
-                });
-            } else {
-                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    details.responseHeaders['access-control-allow-origin'] = [`http://localhost:${process.env.PORT}`];
-                    callback({responseHeaders: details.responseHeaders});
-                });
             }
+
+            // Modify access-control-allow-origin header and CSP for the response
+            webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                details.responseHeaders['access-control-allow-origin'] = [APP_DOMAIN];
+                if (details.responseHeaders['content-security-policy']) {
+                    details.responseHeaders['content-security-policy'] = _.map(
+                        details.responseHeaders['content-security-policy'],
+                        value => (value.startsWith('frame-ancestors') ? `${value} ${APP_DOMAIN}` : value),
+                    );
+                }
+                callback({responseHeaders: details.responseHeaders});
+            });
             /* eslint-enable */
 
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
@@ -198,6 +210,13 @@ const mainWindow = (() => {
                     accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                     click: () => { browserWindow.webContents.goForward(); },
                 }],
+            }));
+
+            // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
+            const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
+            editMenu.submenu.insert(6, new MenuItem({
+                role: 'pasteAndMatchStyle',
+                accelerator: 'CmdOrCtrl+Shift+V',
             }));
 
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');

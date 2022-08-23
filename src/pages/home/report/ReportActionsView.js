@@ -3,7 +3,6 @@ import {
     Keyboard,
     AppState,
 } from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -22,7 +21,6 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
-import ONYXKEYS from '../../../ONYXKEYS';
 import {withNetwork} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
@@ -33,13 +31,13 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
-    /** The ID of the report actions will be created for */
-    reportID: PropTypes.number.isRequired,
-
     /* Onyx Props */
 
     /** The report currently being looked at */
     report: PropTypes.shape({
+        /** The ID of the report actions will be created for */
+        reportID: PropTypes.number.isRequired,
+
         /** Number of actions unread */
         unreadActionCount: PropTypes.number,
 
@@ -51,7 +49,10 @@ const propTypes = {
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
-    }),
+
+        /** Are we loading more report actions? */
+        isLoadingMoreReportActions: PropTypes.bool,
+    }).isRequired,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -62,11 +63,8 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
-    /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool,
-
-    /** Are we waiting for more report data? */
-    isLoadingReportData: PropTypes.bool,
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -77,15 +75,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: {
-        unreadActionCount: 0,
-        maxSequenceNumber: 0,
-        hasOutstandingIOU: false,
-    },
     reportActions: {},
     session: {},
-    isLoadingReportActions: false,
-    isLoadingReportData: false,
 };
 
 class ReportActionsView extends React.Component {
@@ -112,25 +103,24 @@ class ReportActionsView extends React.Component {
         this.updateMessageCounterCount = this.updateMessageCounterCount.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToBottomAndUpdateLastRead = this.scrollToBottomAndUpdateLastRead.bind(this);
-        this.updateNewMarkerAndMarkReadOnce = _.once(this.updateNewMarkerAndMarkRead.bind(this));
+        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
     }
 
     componentDidMount() {
         this.appStateChangeListener = AppState.addEventListener('change', () => {
-            if (!Visibility.isVisible() || this.props.isDrawerOpen) {
+            if (!this.getIsReportFullyVisible()) {
                 return;
             }
 
-            Report.updateLastReadActionID(this.props.reportID);
+            Report.openReport(this.props.report.reportID);
         });
 
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
         if (!this.props.report.reportID) {
-            Report.fetchChatReportsByIDs([this.props.reportID], true);
+            Report.fetchChatReportsByIDs([this.props.report.reportID], true);
         }
-        Report.subscribeToReportTypingEvents(this.props.reportID);
+        Report.subscribeToReportTypingEvents(this.props.report.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
@@ -138,11 +128,7 @@ class ReportActionsView extends React.Component {
             ReportScrollManager.scrollToBottom();
         });
 
-        if (!this.props.isLoadingReportData) {
-            this.updateNewMarkerAndMarkReadOnce();
-        }
-
-        this.fetchData();
+        Report.openReport(this.props.report.reportID);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -153,19 +139,15 @@ class ReportActionsView extends React.Component {
         }
 
         // If the new marker has changed places, update the component.
-        if (nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
+        if (lodashGet(nextProps.report, 'newMarkerSequenceNumber') !== lodashGet(this.props.report, 'newMarkerSequenceNumber')) {
             return true;
         }
 
-        if (nextProps.network.isOffline !== this.props.network.isOffline) {
+        if (lodashGet(nextProps.network, 'isOffline') !== lodashGet(this.props.network, 'isOffline')) {
             return true;
         }
 
-        if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
-            return true;
-        }
-
-        if (!nextProps.isLoadingReportData && this.props.isLoadingReportData) {
+        if (nextProps.report.isLoadingMoreReportActions !== this.props.report.isLoadingMoreReportActions) {
             return true;
         }
 
@@ -185,7 +167,11 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
+        if (lodashGet(this.props.report, 'hasOutstandingIOU') !== lodashGet(nextProps.report, 'hasOutstandingIOU')) {
+            return true;
+        }
+
+        if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
             return true;
         }
 
@@ -193,14 +179,12 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            this.fetchData();
-        }
-
-        // Update the last read action for the report currently in view when report data finishes loading.
-        // This report should now be up-to-date and since it is in view we mark it as read.
-        if (!this.props.isLoadingReportData && prevProps.isLoadingReportData) {
-            this.updateNewMarkerAndMarkReadOnce();
+        if (lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline')) {
+            if (this.getIsReportFullyVisible()) {
+                Report.openReport(this.props.report.reportID);
+            } else {
+                this.fetchData();
+            }
         }
 
         // The last sequenceNumber of the same report has changed.
@@ -208,9 +192,7 @@ class ReportActionsView extends React.Component {
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
 
         // Record the max action when window is visible and the sidebar is not covering the report view on a small screen
-        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
-        const shouldRecordMaxAction = Visibility.isVisible() && !isSidebarCoveringReportView;
-
+        const isReportFullyVisible = this.getIsReportFullyVisible();
         const sidebarClosed = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
         const screenSizeIncreased = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
         const reportBecomeVisible = sidebarClosed || screenSizeIncreased;
@@ -225,7 +207,7 @@ class ReportActionsView extends React.Component {
                 // Only update the unread count when the floating message counter is visible
                 // Otherwise counter will be shown on scrolling up from the bottom even if user have read those messages
                 if (this.state.isFloatingMessageCounterVisible) {
-                    this.updateMessageCounterCount(!shouldRecordMaxAction);
+                    this.updateMessageCounterCount(!isReportFullyVisible);
                 }
 
                 // Show new floating message counter when there is a new message
@@ -234,15 +216,15 @@ class ReportActionsView extends React.Component {
 
             // When the last action changes, record the max action
             // This will make the NEW marker line go away if you receive comments in the same chat you're looking at
-            if (shouldRecordMaxAction) {
-                Report.updateLastReadActionID(this.props.reportID);
+            if (isReportFullyVisible) {
+                Report.readNewestAction(this.props.report.reportID);
             }
         }
 
         // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
-        if (shouldRecordMaxAction && reportBecomeVisible) {
+        if (isReportFullyVisible && reportBecomeVisible) {
             this.updateNewMarkerPosition(this.props.report.unreadActionCount);
-            Report.updateLastReadActionID(this.props.reportID);
+            Report.openReport(this.props.report.reportID);
         }
     }
 
@@ -255,11 +237,19 @@ class ReportActionsView extends React.Component {
             this.appStateChangeListener.remove();
         }
 
-        Report.unsubscribeFromReportChannel(this.props.reportID);
+        Report.unsubscribeFromReportChannel(this.props.report.reportID);
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    getIsReportFullyVisible() {
+        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        return Visibility.isVisible() && !isSidebarCoveringReportView;
     }
 
     fetchData() {
-        Report.fetchActions(this.props.reportID);
+        Report.fetchInitialActions(this.props.report.reportID);
     }
 
     /**
@@ -268,7 +258,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.isLoadingReportActions) {
+        if (this.props.report.isLoadingMoreReportActions) {
             return;
         }
 
@@ -283,18 +273,14 @@ class ReportActionsView extends React.Component {
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
         // case just get everything starting from 0.
-        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.fetchActionsWithLoadingState(this.props.reportID, offset);
+        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
-    /**
-     * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
-     * items have been rendered. If the number of actions has changed since it was last rendered, then
-     * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
-     */
-    scrollToBottomAndUpdateLastRead() {
+    scrollToBottomAndMarkReportAsRead() {
         ReportScrollManager.scrollToBottom();
-        Report.updateLastReadActionID(this.props.reportID);
+        Report.readNewestAction(this.props.report.reportID);
+        Report.setNewMarkerPosition(this.props.report.reportID, 0);
     }
 
     /**
@@ -305,8 +291,8 @@ class ReportActionsView extends React.Component {
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
-        const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : Report.getLastReadSequenceNumber(this.props.report.reportID) + 1;
-        Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
+        const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : this.props.report.lastReadSequenceNumber + 1;
+        Report.setNewMarkerPosition(this.props.report.reportID, oldestUnreadSequenceNumber);
     }
 
     /**
@@ -336,18 +322,6 @@ class ReportActionsView extends React.Component {
             this.updateNewMarkerPosition(messageCounterCount);
             return {messageCounterCount};
         });
-    }
-
-    /**
-     * Update NEW marker and mark report as read
-     */
-    updateNewMarkerAndMarkRead() {
-        this.updateNewMarkerPosition(this.props.report.unreadActionCount);
-
-        // Only mark as read if the report is open
-        if (!this.props.isDrawerOpen) {
-            Report.updateLastReadActionID(this.props.reportID);
-        }
     }
 
     /**
@@ -405,22 +379,26 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <FloatingMessageCounter
-                    active={this.state.isFloatingMessageCounterVisible}
-                    count={this.state.messageCounterCount}
-                    onClick={this.scrollToBottomAndUpdateLastRead}
-                    onClose={this.hideFloatingMessageCounter}
-                />
-                <ReportActionsList
-                    report={this.props.report}
-                    onScroll={this.trackScroll}
-                    onLayout={this.recordTimeToMeasureItemLayout}
-                    sortedReportActions={this.sortedReportActions}
-                    mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
-                    isLoadingReportActions={this.props.isLoadingReportActions}
-                    loadMoreChats={this.loadMoreChats}
-                />
-                <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                {!this.props.isComposerFullSize && (
+                    <>
+                        <FloatingMessageCounter
+                            active={this.state.isFloatingMessageCounterVisible}
+                            count={this.state.messageCounterCount}
+                            onClick={this.scrollToBottomAndMarkReportAsRead}
+                            onClose={this.hideFloatingMessageCounter}
+                        />
+                        <ReportActionsList
+                            report={this.props.report}
+                            onScroll={this.trackScroll}
+                            onLayout={this.recordTimeToMeasureItemLayout}
+                            sortedReportActions={this.sortedReportActions}
+                            mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                            isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                            loadMoreChats={this.loadMoreChats}
+                        />
+                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    </>
+                )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>
@@ -437,13 +415,4 @@ export default compose(
     withDrawerState,
     withLocalize,
     withNetwork(),
-    withOnyx({
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        isLoadingReportActions: {
-            key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
-            initWithStoredValues: false,
-        },
-    }),
 )(ReportActionsView);

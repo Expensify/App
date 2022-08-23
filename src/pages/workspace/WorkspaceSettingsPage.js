@@ -15,21 +15,15 @@ import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Picker from '../../components/Picker';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import TextInput from '../../components/TextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
-
     ...fullPolicyPropTypes,
-
     ...withLocalizePropTypes,
 };
 
@@ -54,18 +48,6 @@ class WorkspaceSettingsPage extends React.Component {
         this.validate = this.validate.bind(this);
     }
 
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
     /**
      * @returns {Object[]}
      */
@@ -75,10 +57,6 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
-    }
-
-    fetchData() {
-        PersonalDetails.getCurrencyList();
     }
 
     removeAvatar() {
@@ -118,73 +96,71 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
-        if (_.isEmpty(this.props.policy)) {
-            return <FullScreenLoadingIndicator />;
-        }
-
         return (
-            <WorkspacePageWithSections
-                headerText={this.props.translate('workspace.common.settings')}
-                route={this.props.route}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
-                footer={(
-                    <FixedFooter style={[styles.w100]}>
-                        <Button
-                            success
-                            isLoading={this.props.policy.isPolicyUpdating}
-                            text={this.props.translate('workspace.editor.save')}
-                            onPress={this.submit}
-                            pressOnEnter
-                        />
-                    </FixedFooter>
-                )}
-            >
-                {hasVBA => (
-                    <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
-                        <AvatarWithImagePicker
-                            isUploading={this.props.policy.isAvatarUploading}
-                            avatarURL={this.state.previewAvatarURL}
-                            size={CONST.AVATAR_SIZE.LARGE}
-                            DefaultAvatar={() => (
-                                <Icon
-                                    src={Expensicons.Workspace}
-                                    height={80}
-                                    width={80}
-                                    fill={defaultTheme.iconSuccessFill}
-                                />
-                            )}
-                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                            style={[styles.mb3]}
-                            anchorPosition={{top: 172, right: 18}}
-                            isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                            onImageSelected={this.uploadAvatar}
-                            onImageRemoved={this.removeAvatar}
-                        />
-
-                        <TextInput
-                            label={this.props.translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4]}
-                            onChangeText={name => this.setState({name})}
-                            value={this.state.name}
-                            hasError={!this.state.name.trim().length}
-                            errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
-                        />
-
-                        <View style={[styles.mt4]}>
-                            <Picker
-                                label={this.props.translate('workspace.editor.currencyInputLabel')}
-                                onInputChange={currency => this.setState({currency})}
-                                items={this.getCurrencyItems()}
-                                value={this.state.currency}
-                                isDisabled={hasVBA}
+            <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                <WorkspacePageWithSections
+                    headerText={this.props.translate('workspace.common.settings')}
+                    route={this.props.route}
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
+                    footer={(
+                        <FixedFooter style={[styles.w100]}>
+                            <Button
+                                success
+                                isLoading={this.props.policy.isPolicyUpdating}
+                                text={this.props.translate('workspace.editor.save')}
+                                onPress={this.submit}
+                                pressOnEnter
                             />
+                        </FixedFooter>
+                    )}
+                >
+                    {hasVBA => (
+                        <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
+                            <AvatarWithImagePicker
+                                isUploading={this.props.policy.isAvatarUploading}
+                                avatarURL={this.state.previewAvatarURL}
+                                size={CONST.AVATAR_SIZE.LARGE}
+                                DefaultAvatar={() => (
+                                    <Icon
+                                        src={Expensicons.Workspace}
+                                        height={80}
+                                        width={80}
+                                        fill={defaultTheme.iconSuccessFill}
+                                    />
+                                )}
+                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                style={[styles.mb3]}
+                                anchorPosition={{top: 172, right: 18}}
+                                isUsingDefaultAvatar={!this.state.previewAvatarURL}
+                                onImageSelected={this.uploadAvatar}
+                                onImageRemoved={this.removeAvatar}
+                            />
+
+                            <TextInput
+                                label={this.props.translate('workspace.editor.nameInputLabel')}
+                                containerStyles={[styles.mt4]}
+                                onChangeText={name => this.setState({name})}
+                                value={this.state.name}
+                                hasError={!this.state.name.trim().length}
+                                errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
+                            />
+
+                            <View style={[styles.mt4]}>
+                                <Picker
+                                    label={this.props.translate('workspace.editor.currencyInputLabel')}
+                                    onInputChange={currency => this.setState({currency})}
+                                    items={this.getCurrencyItems()}
+                                    value={this.state.currency}
+                                    isDisabled={hasVBA}
+                                />
+                            </View>
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                                {this.props.translate('workspace.editor.currencyInputHelpText')}
+                            </Text>
                         </View>
-                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
-                            {this.props.translate('workspace.editor.currencyInputHelpText')}
-                        </Text>
-                    </View>
-                )}
-            </WorkspacePageWithSections>
+                    )}
+                </WorkspacePageWithSections>
+            </FullPageNotFoundView>
         );
     }
 }

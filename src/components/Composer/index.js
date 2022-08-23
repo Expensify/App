@@ -8,6 +8,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
+import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
+import getNumberOfLines from '../../libs/ComposerUtils/index';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -63,6 +65,12 @@ const propTypes = {
         end: PropTypes.number,
     }),
 
+    /** Whether the full composer can be opened */
+    isFullComposerAvailable: PropTypes.bool,
+
+    /** Allow the full composer to be opened */
+    setIsFullComposerAvailable: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -86,6 +94,8 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
+    isFullComposerAvailable: false,
+    setIsFullComposerAvailable: () => {},
 };
 
 const IMAGE_EXTENSIONS = {
@@ -97,6 +107,8 @@ const IMAGE_EXTENSIONS = {
     'image/tiff': 'tiff',
     'image/webp': 'webp',
 };
+
+const COPY_DROP_EFFECT = 'copy';
 
 /**
  * Enable Markdown parsing.
@@ -155,7 +167,8 @@ class Composer extends React.Component {
             this.setState({numberOfLines: 1});
             this.props.onClear();
         }
-        if (prevProps.defaultValue !== this.props.defaultValue) {
+        if (prevProps.defaultValue !== this.props.defaultValue
+            || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
             this.updateNumberOfLines();
         }
 
@@ -179,22 +192,6 @@ class Composer extends React.Component {
     }
 
     /**
-     * Calculates the max number of lines the text input can have
-     *
-     * @param {Number} lineHeight
-     * @param {Number} paddingTopAndBottom
-     * @param {Number} scrollHeight
-     *
-     * @returns {Number}
-     */
-    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
-        const maxLines = this.props.maxLines;
-        let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
-        newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
-        return newNumberOfLines;
-    }
-
-    /**
      * Handles all types of drag-N-drop events on the composer
      *
      * @param {Object} e native Event
@@ -202,13 +199,15 @@ class Composer extends React.Component {
     dragNDropListener(e) {
         let isOriginComposer = false;
         const handler = () => {
+            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
             switch (e.type) {
                 case 'dragover':
                     e.preventDefault();
+                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragOver(e, isOriginComposer);
                     break;
                 case 'dragenter':
-                    e.dataTransfer.dropEffect = 'copy';
+                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragEnter(e, isOriginComposer);
                     break;
                 case 'dragleave':
@@ -244,6 +243,10 @@ class Composer extends React.Component {
         try {
             document.execCommand('insertText', false, markdownText);
             this.updateNumberOfLines();
+
+            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
+            this.textInput.blur();
+            this.textInput.focus();
         // eslint-disable-next-line no-empty
         } catch (e) {}
     }
@@ -328,16 +331,21 @@ class Composer extends React.Component {
      * divide by line height to get the total number of rows for the textarea.
      */
     updateNumberOfLines() {
-        const computedStyle = window.getComputedStyle(this.textInput);
-        const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
-            + parseInt(computedStyle.paddingTop, 10);
+        // Hide the composer expand button so we can get an accurate reading of
+        // the height of the text input
+        this.props.setIsFullComposerAvailable(false);
 
         // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
+            const computedStyle = window.getComputedStyle(this.textInput);
+            const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
+            + parseInt(computedStyle.paddingTop, 10);
+            const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
-                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
+                numberOfLines,
             });
         });
     }

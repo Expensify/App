@@ -18,16 +18,24 @@ const Template = args => <Banner {...args} />;
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const InfoBanner = Template.bind({});
 InfoBanner.args = {
-    html: 'This is an informational banner',
+    text: 'This is an informational banner',
 };
 
 const HTMLBanner = Template.bind({});
 HTMLBanner.args = {
-    html: 'This is a informational banner containing <strong><em>HTML</em></strong>',
+    text: 'This is a informational banner containing <strong><em>HTML</em></strong>',
+    shouldRenderHTML: true,
+};
+
+const BannerWithLink = Template.bind({});
+BannerWithLink.args = {
+    text: 'This is a informational banner containing <a href="https://new.expensify.com/settings">internal Link</a> and <a href=" https://google.com">public link</a>',
+    shouldRenderHTML: true,
 };
 
 export default story;
 export {
     InfoBanner,
     HTMLBanner,
+    BannerWithLink,
 };

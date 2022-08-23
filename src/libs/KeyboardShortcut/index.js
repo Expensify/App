@@ -84,6 +84,12 @@ function bindHandlerToKeydownEvent(event) {
             return true;
         }
 
+        // Determine if the event should bubble before executing the callback (which may have side-effects)
+        let shouldBubble = callback.shouldBubble || false;
+        if (_.isFunction(callback.shouldBubble)) {
+            shouldBubble = callback.shouldBubble();
+        }
+
         if (_.isFunction(callback.callback)) {
             callback.callback(event);
         }
@@ -92,10 +98,6 @@ function bindHandlerToKeydownEvent(event) {
         }
 
         // If the event should not bubble, short-circuit the loop
-        let shouldBubble = callback.shouldBubble || false;
-        if (_.isFunction(callback.shouldBubble)) {
-            shouldBubble = callback.shouldBubble();
-        }
         return shouldBubble;
     });
 }
@@ -138,7 +140,7 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
  * @param {String} descriptionKey Translation key for shortcut description
- * @param {String|Array<String>} [modifiers] Can either be shift or control
+ * @param {Array<String>} [modifiers] Can either be shift or control
  * @param {Boolean} [captureOnInputs] Should we capture the event on inputs too?
  * @param {Boolean|Function} [shouldBubble] Should the event bubble?
  * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.

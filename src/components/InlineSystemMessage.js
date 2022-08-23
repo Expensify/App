@@ -9,7 +9,11 @@ import Icon from './Icon';
 
 const propTypes = {
     /** Error to display */
-    message: PropTypes.string.isRequired,
+    message: PropTypes.string,
+};
+
+const defaultProps = {
+    message: '',
 };
 
 const InlineSystemMessage = (props) => {
@@ -25,5 +29,6 @@ const InlineSystemMessage = (props) => {
 };
 
 InlineSystemMessage.propTypes = propTypes;
+InlineSystemMessage.defaultProps = defaultProps;
 InlineSystemMessage.displayName = 'InlineSystemMessage';
 export default InlineSystemMessage;

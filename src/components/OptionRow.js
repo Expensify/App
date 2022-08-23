@@ -23,6 +23,7 @@ import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -62,6 +63,8 @@ const propTypes = {
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
 
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -77,6 +80,7 @@ const defaultProps = {
     onSelectRow: () => {},
     isDisabled: false,
     optionIsFocused: false,
+    style: null,
 };
 
 const OptionRow = (props) => {
@@ -86,12 +90,12 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = props.mode === CONST.OPTION_MODE.COMPACT
+    const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, ...textUnreadStyle];
-    const alternateTextStyle = props.mode === CONST.OPTION_MODE.COMPACT
+        : [styles.optionDisplayName, ...textUnreadStyle], props.style);
+    const alternateTextStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
     const contentContainerStyles = props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
@@ -99,13 +103,13 @@ const OptionRow = (props) => {
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
-        styles.sidebarInnerRowSmall,
+        styles.optionRowCompact,
         styles.justifyContentCenter,
     ] : [
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
-        styles.sidebarInnerRow,
+        styles.optionRow,
         styles.justifyContentCenter,
     ]);
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor
@@ -202,6 +206,16 @@ const OptionRow = (props) => {
                                     </Text>
                                 </View>
                             ) : null}
+                            {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={colors.red}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                    />
+                                </View>
+                            )}
                             {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                         </View>
                     </View>
@@ -292,6 +306,10 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.backgroundColor !== nextProps.backgroundColor) {
+        return false;
+    }
+
+    if (prevProps.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator) {
         return false;
     }
 

@@ -191,6 +191,7 @@ class ValidationStep extends React.Component {
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <ReimbursementAccountForm
+                        reimbursementAccount={this.props.reimbursementAccount}
                         onSubmit={this.submit}
                     >
                         <View style={[styles.mb2]}>

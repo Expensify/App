@@ -190,7 +190,7 @@ function deletePolicy(policyID) {
             // Removing the workspace data from Onyx as well
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
         })
-        .then(() => Report.fetchAllReports(false, true))
+        .then(() => Report.fetchAllReports(false))
         .then(() => {
             Navigation.goBack();
             return Promise.resolve();
@@ -238,7 +238,6 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
-        .then(Navigation.isNavigationReady)
         .then(() => {
             Navigation.dismissModal();
             navigateToPolicy(newPolicyID);
@@ -518,20 +517,14 @@ function updateLastAccessedWorkspace(policyID) {
  * Subscribe to public-policyEditor-[policyID] events.
  */
 function subscribeToPolicyEvents() {
-    _.each(allPolicies, (policy, key) => {
+    _.each(allPolicies, (policy) => {
         const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
         Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
-            const policyWithoutEmployee = _.clone(policy);
-            policyWithoutEmployee.employeeList = _.without(policy.employeeList, ...removedEmails);
-
-            // Remove the members from the policy
-            Onyx.set(key, policyWithoutEmployee);
-
             // Refetch the policy expense chats to update their state and their actions to get the archive reason
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
                 _.each(policyExpenseChatIDs, (reportID) => {
-                    Report.fetchActions(reportID);
+                    Report.fetchInitialActions(reportID);
                 });
             }
 
@@ -543,6 +536,43 @@ function subscribeToPolicyEvents() {
             }
         });
     });
+}
+
+/**
+ * Removes an error after trying to delete a member
+ *
+ * @param {String} policyID
+ * @param {String} memberEmail
+ */
+function clearDeleteMemberError(policyID, memberEmail) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
+        [memberEmail]: {
+            pendingAction: null,
+            errors: null,
+        },
+    });
+}
+
+/**
+ * Removes an error after trying to add a member
+ *
+ * @param {String} policyID
+ * @param {String} memberEmail
+ */
+function clearAddMemberError(policyID, memberEmail) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
+        [memberEmail]: null,
+    });
+}
+
+/**
+* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
+ * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * @param {Object} policyMemberList
+ * @returns {Boolean}
+ */
+function hasPolicyMemberError(policyMemberList) {
+    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
 export {
@@ -563,4 +593,7 @@ export {
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
+    clearDeleteMemberError,
+    clearAddMemberError,
+    hasPolicyMemberError,
 };

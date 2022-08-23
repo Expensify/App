@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -169,17 +168,29 @@ function isChatRoom(report) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Object} policies
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report));
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE);
     }
 
     return _.last(sortedReports);
@@ -306,12 +317,13 @@ function hasExpensifyEmails(emails) {
  * @return {Boolean}
  */
 function canShowReportRecipientLocalTime(personalDetails, report) {
-    const reportParticipants = lodashGet(report, 'participants', []);
-    const hasMultipleParticipants = reportParticipants.length > 1;
-    const reportRecipient = personalDetails[reportParticipants[0]];
+    const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
+    const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+    const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
+    const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    return !hasExpensifyEmails(reportParticipants)
-        && !hasMultipleParticipants
+    return !hasMultipleParticipants
+        && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected;
@@ -335,7 +347,7 @@ function formatReportLastMessageText(lastMessageText) {
 function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    const loginHashBucket = (parseInt(md5(login.toLowerCase()).substring(0, 4), 16) % 8) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
@@ -453,11 +465,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  */
 function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
     let formattedName;
-    if (isDefaultRoom(report)) {
-        formattedName = `#${report.reportName}`;
-    }
-
-    if (isUserCreatedPolicyRoom(report)) {
+    if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
@@ -504,39 +512,24 @@ function navigateToDetailsPage(report) {
 }
 
 /**
- * Get the text explaining why a report was archived.
+ * Generate a random reportID between 98000000 (the number of reports before the switch from sequential to random)
+ * and the maximum safe integer of js (53 bits aka 9,007,199,254,740,991)
  *
- * @param {Object} report
- * @param {Object} reportActions
- * @param {Object} personalDetails
- * @param {Object} policies
- * @returns {String|null}
+ * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
+ * this is more than random enough for our needs.
+ *
+ * @returns {Number}
  */
-function getArchivedText(report, reportActions, personalDetails, policies) {
-    if (!isArchivedRoom(report)) {
-        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);
-    }
+function generateReportID() {
+    return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
+}
 
-    const reportClosedAction = lodashFindLast(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-    if (!reportClosedAction) {
-        return Localize.translateLocal(`reportArchiveReasons.${CONST.REPORT.ARCHIVE_REASON.DEFAULT}`);
-    }
-
-    const archiveReason = lodashGet(reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    let displayName = lodashGet(personalDetails, `${report.ownerEmail}.displayName`, report.ownerEmail);
-    let oldDisplayName;
-    if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
-        const newLogin = reportClosedAction.originalMessage.newLogin;
-        const oldLogin = reportClosedAction.originalMessage.oldLogin;
-        displayName = lodashGet(personalDetails, `${newLogin}.displayName`, newLogin);
-        oldDisplayName = lodashGet(personalDetails, `${oldLogin}.displayName`, oldLogin);
-    }
-
-    return Localize.translateLocal(`reportArchiveReasons.${archiveReason}`, {
-        displayName: `<strong>${displayName}</strong>`,
-        oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-        policyName: `<strong>${getPolicyName(report, policies)}</strong>`,
-    });
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasReportNameError(report) {
+    return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
 }
 
 export {
@@ -553,6 +546,7 @@ export {
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,
+    getPolicyType,
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
@@ -566,5 +560,6 @@ export {
     getDisplayNamesWithTooltips,
     getReportName,
     navigateToDetailsPage,
-    getArchivedText,
+    generateReportID,
+    hasReportNameError,
 };

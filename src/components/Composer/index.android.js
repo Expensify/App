@@ -1,16 +1,11 @@
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
-
-/**
- * On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
- * the way of the view
- * On Android, the selection prop is required on the TextInput but this prop has issues on IOS
- * https://github.com/facebook/react-native/issues/29063
- */
+import * as ComposerUtils from '../../libs/ComposerUtils';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -29,6 +24,25 @@ const propTypes = {
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 
+    /** Selection Object */
+    selection: PropTypes.shape({
+        start: PropTypes.number,
+        end: PropTypes.number,
+    }),
+
+    /** Whether the full composer can be opened */
+    isFullComposerAvailable: PropTypes.bool,
+
+    /** Allow the full composer to be opened */
+    setIsFullComposerAvailable: PropTypes.func,
+
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
+    /** General styles to apply to the text input */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
+
 };
 
 const defaultProps = {
@@ -37,9 +51,24 @@ const defaultProps = {
     autoFocus: false,
     isDisabled: false,
     forwardedRef: null,
+    selection: {
+        start: 0,
+        end: 0,
+    },
+    isFullComposerAvailable: false,
+    setIsFullComposerAvailable: () => {},
+    style: null,
 };
 
 class Composer extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            propStyles: StyleSheet.flatten(this.props.style),
+        };
+    }
+
     componentDidMount() {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -67,17 +96,19 @@ class Composer extends React.Component {
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                maxHeight={CONST.COMPOSER_MAX_HEIGHT}
+                maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
+                onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
-                editable={!this.props.isDisabled}
+                textAlignVertical="center"
+                style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
+                editable={!this.props.isDisabled}
             />
         );
     }
 }
 
-Composer.displayName = 'Composer';
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
