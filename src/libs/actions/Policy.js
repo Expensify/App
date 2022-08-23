@@ -411,22 +411,24 @@ function update(policyID, values, shouldGrowl = false) {
 /**
  * @param {String} policyID The id of the workspace / policy
  * @param {String} name The new workspace name
+ * @param {String} currency The new workspace currency
  */
-function updateWorkspaceName(policyID, name) {
+function updateWorkspaceGeneralSettings(policyID, name, currency) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
 
-                // Clear errorFields.name in case the user didn't dismiss the error
+                // Clear errorFields in case the user didn't dismiss the error
                 errorFields: {
-                    name: null,
+                    generalSettings: null,
                 },
                 name,
+                currency,
             },
         },
     ];
@@ -436,10 +438,10 @@ function updateWorkspaceName(policyID, name) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    name: null,
+                    generalSettings: null,
                 },
                 errorFields: {
-                    name: null,
+                    generalSettings: null,
                 },
             },
         },
@@ -450,18 +452,18 @@ function updateWorkspaceName(policyID, name) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    name: null,
+                    generalSettings: null,
                 },
                 errorFields: {
-                    name: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.updateNameError'),
+                    generalSettings: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
                     },
                 },
             },
         },
     ];
 
-    API.write('UpdateWorkspaceName', {policyID, workspaceName: name}, {optimisticData, successData, failureData});
+    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, outputCurrency: currency}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -654,6 +656,6 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    updateWorkspaceName,
+    updateWorkspaceGeneralSettings,
     clearWorkspaceNameErrors,
 };
