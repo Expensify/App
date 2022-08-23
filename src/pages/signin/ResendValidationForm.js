@@ -50,7 +50,7 @@ class ResendValidationForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
 
         this.state = {
             formSuccess: '',
@@ -65,23 +65,12 @@ class ResendValidationForm extends React.Component {
         clearTimeout(this.successMessageTimer);
     }
 
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
-    validateAndSubmitForm() {
-        this.setState({
-            formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
-        });
-
-        if (!this.props.account.validated) {
-            Session.resendValidationLink();
-        } else {
+    onSubmit() {
+        if (this.props.account.validated) {
             Session.resetPassword();
+            return;
         }
-
-        this.successMessageTimer = setTimeout(() => {
-            this.setState({formSuccess: ''});
-        }, 5000);
+        Session.resendValidationLink();
     }
 
     render() {
@@ -107,9 +96,9 @@ class ResendValidationForm extends React.Component {
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
-                {!_.isEmpty(this.state.formSuccess) && (
-                    <Text style={[styles.formSuccess]}>
-                        {this.state.formSuccess}
+                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
                     </Text>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
@@ -123,7 +112,7 @@ class ResendValidationForm extends React.Component {
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
-                        onPress={this.validateAndSubmitForm}
+                        onPress={this.onSubmit}
                         isDisabled={this.props.network.isOffline}
                     />
                 </View>

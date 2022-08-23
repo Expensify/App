@@ -85,16 +85,33 @@ function signOutAndRedirectToSignIn() {
 }
 
 /**
- * Resend the validation link to the user that is validating their account
+ * Request a validation link to be sent to the email of the user that is validating their account
  *
  * @param {String} [login]
  */
 function resendValidationLink(login = credentials.login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
-    DeprecatedAPI.ResendValidateCode({email: login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        });
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {isLoading: true},
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+        },
+    }];
+
+    API.read('RequestAccountValidationLink', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
