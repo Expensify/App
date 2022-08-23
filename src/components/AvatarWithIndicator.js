@@ -26,7 +26,7 @@ const propTypes = {
     tooltipText: PropTypes.string,
 
     /** All the user's policies */
-    policies: PropTypes.objectOf(fullPolicyPropTypes),
+    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
 
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
