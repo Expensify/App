@@ -38,7 +38,7 @@ class BasePopoverMenu extends PureComponent {
     }
 
     componentDidMount() {
-        if (!this.props.enableArrowKeysActions) {
+        if (!this.props.enableArrowKeysActions && !this.props.isVisible) {
             return;
         }
 
