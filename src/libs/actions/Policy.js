@@ -40,15 +40,12 @@ Onyx.connect({
  * @returns {Object}
  */
 function getSimplifiedEmployeeList(employeeList) {
-    const employeeListEmails = _.chain(employeeList)
+    return _.chain(employeeList)
         .pluck('email')
         .flatten()
         .unique()
+        .reduce((map, email) => ({...map, [email]: {}}), {})
         .value();
-
-    const result = {};
-    _.each(employeeListEmails, email => result[email] = {});
-    return result;
 }
 
 /**
