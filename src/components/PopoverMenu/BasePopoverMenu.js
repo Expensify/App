@@ -59,7 +59,6 @@ class BasePopoverMenu extends PureComponent {
     }
 
     onModalHide() {
-        this.removeKeyboardShorcuts();
         this.updateFocusedIndex(-1);
         this.props.onMenuHide();
     }
