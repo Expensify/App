@@ -50,7 +50,7 @@ class BasePopoverMenu extends PureComponent {
                 return;
             }
             this.props.onItemSelected(this.props.menuItems[this.state.focusedIndex]);
-            this.updateFocusedIndex(-1);
+            this.updateFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
@@ -59,8 +59,7 @@ class BasePopoverMenu extends PureComponent {
     }
 
     onModalHide() {
-        this.removeKeyboardShorcuts();
-        this.updateFocusedIndex(-1);
+        this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
         this.props.onMenuHide();
     }
 
