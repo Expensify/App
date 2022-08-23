@@ -35,8 +35,6 @@ class BasePopoverMenu extends PureComponent {
             focusedIndex: -1,
         };
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
-        this.removeKeyboardShorcuts = this.removeKeyboardShorcuts.bind(this);
-        this.onModalHide = this.onModalHide.bind(this);
     }
 
     componentDidMount() {
@@ -55,15 +53,6 @@ class BasePopoverMenu extends PureComponent {
     }
 
     componentWillUnmount() {
-        this.removeKeyboardShorcuts();
-    }
-
-    onModalHide() {
-        this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
-        this.props.onMenuHide();
-    }
-
-    removeKeyboardShorcuts() {
         if (!this.unsubscribeEnterKey) {
             return;
         }
@@ -86,7 +75,10 @@ class BasePopoverMenu extends PureComponent {
                 anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={this.onModalHide}
+                onModalHide={() => {
+                    this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
+                    this.props.onMenuHide();
+                }}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
                 disableAnimation={this.props.disableAnimation}
