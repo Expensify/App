@@ -199,7 +199,6 @@ function deletePolicy(policyID) {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
-    console.log('in getPolicyList, which gets policySummaryList (deprecated)');
     Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
     DeprecatedAPI.GetPolicySummaryList()
         .then((data) => {
@@ -238,7 +237,6 @@ function createAndGetPolicyList() {
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
-    console.log('in loadFullPolicy, calling deprecated API GetFullPolicy');
     DeprecatedAPI.GetFullPolicy(policyID)
         .then((data) => {
             if (data.jsonCode !== 200) {
@@ -473,7 +471,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
                 customUnits: {
                     [values.customUnitID]: {
                         ...values,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
