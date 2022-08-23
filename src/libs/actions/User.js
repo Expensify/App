@@ -215,6 +215,7 @@ function setSecondaryLoginAndNavigate(login, password) {
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
+
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     API.write('ValidateLogin', {
@@ -226,7 +227,7 @@ function validateLogin(accountID, validateCode) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
-                    isLoading: true,
+                    isLoading: false,
                 },
             },
         ],
