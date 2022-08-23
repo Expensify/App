@@ -51,10 +51,6 @@ class ResendValidationForm extends React.Component {
         super(props);
 
         this.onSubmit = this.onSubmit.bind(this);
-
-        this.state = {
-            formSuccess: '',
-        };
     }
 
     componentWillUnmount() {
@@ -77,6 +73,13 @@ class ResendValidationForm extends React.Component {
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
+        const error = _.chain(this.props.account.errors || [])
+            .keys()
+            .sortBy()
+            .reverse()
+            .map(key => this.props.account.errors[key])
+            .first()
+            .value();
 
         return (
             <>
@@ -96,9 +99,9 @@ class ResendValidationForm extends React.Component {
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
-                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                {error && (
                     <Text style={[styles.formError]}>
-                        {this.props.account.error}
+                        {error}
                     </Text>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
