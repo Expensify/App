@@ -285,32 +285,6 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                     }),
                 },
             },
-        }, {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM,
-            value: {isLoading: true},
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM,
-            value: {isLoading: false},
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    firstName: myPersonalDetails.firstName,
-                    lastName: myPersonalDetails.lastName,
-                    pronouns: myPersonalDetails.pronouns,
-                    timezone: myPersonalDetails.timeZone,
-                    displayName: myPersonalDetails.displayName,
-                },
-            },
-        }, {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM,
-            value: {isLoading: false},
         }],
     });
 }
