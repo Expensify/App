@@ -7,6 +7,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import * as PaymentMethods from './PaymentMethods';
 import * as Localize from '../Localize';
+import * as API from '../API';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -151,6 +152,67 @@ function buildIdologyError(idologyErrors) {
     const errorStart = Localize.translateLocal('additionalDetailsStep.weCouldNotVerify');
     const errorEnd = Localize.translateLocal('additionalDetailsStep.pleaseFixIt');
     return `${errorStart} ${Localize.arrayToString(errorsTranslated)}. ${errorEnd}`;
+}
+
+/**
+ * Validates a user's provided details against a series of checks
+ *
+ * @param {Object} personalDetails
+ */
+function updatePersonalDetails(personalDetails) {
+    if (!personalDetails) {
+        return;
+    }
+    const firstName = personalDetails.legalFirstName || '';
+    const lastName = personalDetails.legalLastName || '';
+    const dob = personalDetails.dob || '';
+    const addressStreet = personalDetails.addressStreet || '';
+    const addressCity = personalDetails.addressCity || '';
+    const addressState = personalDetails.addressState || '';
+    const addressZip = personalDetails.addressZip || '';
+    const ssn = personalDetails.ssn || '';
+    const phoneNumber = personalDetails.phoneNumber || '';
+    API.write('UpdatePersonalDetailsForWallet', {
+        firstName,
+        lastName,
+        dob,
+        addressStreet,
+        addressCity,
+        addressState,
+        addressZip,
+        ssn,
+        phoneNumber,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                    errorFields: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
 }
 
 /**
@@ -317,6 +379,62 @@ function activateWallet(currentStep, parameters) {
 }
 
 /**
+ * Creates an identity check by calling Onfido's API with data returned from the SDK
+ *
+ * The API will always return the updated userWallet in the response as a convenience so we can avoid an additional
+ * API request to fetch the userWallet after we call VerifyIdentity
+ *
+ * @param {Object} parameters
+ * @param {String} [parameters.onfidoData] - JSON string
+ */
+function verifyIdentity(parameters) {
+    const onfidoData = parameters.onfidoData;
+
+    API.write('VerifyIdentity', {
+        onfidoData,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: true,
+                    errors: null,
+                    fixableErrors: null,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    shouldShowFailedKYC: false,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: false,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    loading: false,
+                    hasAcceptedPrivacyPolicy: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
  * Fetches information about a user's Expensify Wallet
  *
  * @typedef {Object} UserWallet
@@ -361,4 +479,6 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    updatePersonalDetails,
+    verifyIdentity,
 };

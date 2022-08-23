@@ -11,7 +11,7 @@ runs:
 
     - uses: actions/setup-node@09ba51f18e18a3756fea1f54d09c6745c064491d
       with:
-        node-version: 14.19.3
+        node-version-file: '.nvmrc'
         cache: npm
 
     - name: Install node packages

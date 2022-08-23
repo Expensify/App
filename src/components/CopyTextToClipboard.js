@@ -15,6 +15,7 @@ const propTypes = {
     text: PropTypes.string.isRequired,
 
     /** Styles to apply to the text */
+    // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
