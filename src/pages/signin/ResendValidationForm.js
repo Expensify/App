@@ -47,26 +47,12 @@ const defaultProps = {
 };
 
 class ResendValidationForm extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.onSubmit = this.onSubmit.bind(this);
-    }
-
     componentWillUnmount() {
         if (!this.successMessageTimer) {
             return;
         }
 
         clearTimeout(this.successMessageTimer);
-    }
-
-    onSubmit() {
-        if (this.props.account.validated) {
-            Session.resetPassword();
-            return;
-        }
-        Session.resendValidationLink();
     }
 
     render() {
@@ -114,7 +100,7 @@ class ResendValidationForm extends React.Component {
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
-                        onPress={this.onSubmit}
+                        onPress={this.props.account.validated ? Session.resetPassword : Session.resendValidationLink}
                         isDisabled={this.props.network.isOffline}
                     />
                 </View>
