@@ -38,7 +38,7 @@ class BasePopoverMenu extends PureComponent {
     }
 
     componentDidMount() {
-        if (!this.props.enableArrowKeysActions && !this.props.isVisible) {
+        if (!this.props.shouldEnableArrowKeysActions && !this.props.isVisible) {
             return;
         }
 
@@ -63,7 +63,7 @@ class BasePopoverMenu extends PureComponent {
      * @param {Number} index
      */
     updateFocusedIndex(index) {
-        if (!this.props.enableArrowKeysActions) {
+        if (!this.props.shouldEnableArrowKeysActions) {
             return;
         }
         this.setState({focusedIndex: index});
