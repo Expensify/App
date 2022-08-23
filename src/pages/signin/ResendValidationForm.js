@@ -17,6 +17,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -73,13 +74,7 @@ class ResendValidationForm extends React.Component {
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
-        const error = _.chain(this.props.account.errors || [])
-            .keys()
-            .sortBy()
-            .reverse()
-            .map(key => this.props.account.errors[key])
-            .first()
-            .value();
+        const error = ErrorUtils.getLatestErrorMessage(this.props.account);
 
         return (
             <>
@@ -99,14 +94,14 @@ class ResendValidationForm extends React.Component {
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
-                {!this.props.account.message && error && (
-                    <Text style={[styles.formError]}>
-                        {error}
-                    </Text>
-                )}
                 {this.props.account.message && (
                     <Text style={[styles.formSuccess]}>
                         {this.props.account.message}
+                    </Text>
+                )}
+                {!this.props.account.message && error && (
+                    <Text style={[styles.formError]}>
+                        {error}
                     </Text>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
