@@ -33,8 +33,6 @@ Onyx.connect({
     },
 });
 
-const defaultEmployeeListEntry = () => ({pendingAction: null});
-
 /**
  * Simplifies the employeeList response into an object mapping employee email to a default employee list entry
  *
@@ -49,7 +47,7 @@ function getSimplifiedEmployeeList(employeeList) {
         .value();
 
     const result = {};
-    _.each(employeeListEmails, email => result[email] = defaultEmployeeListEntry());
+    _.each(employeeListEmails, email => result[email] = {});
     return result;
 }
 
@@ -309,7 +307,7 @@ function removeMembers(members, policyID) {
             }
 
             // Rollback removal on failure
-            _.each(members, login => employeeListUpdate[login] = defaultEmployeeListEntry());
+            _.each(members, login => employeeListUpdate[login] = {});
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
 
             // Show the user feedback that the removal failed
@@ -333,7 +331,7 @@ function invite(logins, welcomeNote, policyID) {
     // Optimistically add the user to the policy
     const newEmployeeLogins = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
     const employeeUpdate = {};
-    _.each(newEmployeeLogins, login => employeeUpdate[login] = defaultEmployeeListEntry());
+    _.each(newEmployeeLogins, login => employeeUpdate[login] = {});
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeUpdate);
 
     // Make the API call to merge the login into the policy
