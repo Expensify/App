@@ -470,7 +470,12 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                customUnits: {...values, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                customUnits: {
+                    [values.customUnitID]: {
+                        ...values,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+                    },
+                },
             },
         },
     ];
@@ -481,7 +486,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.name]: {
+                    [values.customUnitID]: {
                         pendingAction: null,
                         errors: null,
                     },
@@ -496,7 +501,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.name]: {
+                    [currentCustomUnit.customUnitID]: {
                         customUnitID: currentCustomUnit.customUnitID,
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
