@@ -33,8 +33,8 @@ const propTypes = {
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
-        customUnits: PropTypes.shape({
-            Distance: PropTypes.shape({
+        customUnits: PropTypes.shape(PropTypes.objectOf(
+            PropTypes.shape({
                 customUnitID: PropTypes.string,
                 name: PropTypes.string,
                 attributes: PropTypes.shape({
@@ -46,7 +46,7 @@ const propTypes = {
                     value: PropTypes.number,
                 }),
             }),
-        }),
+        )),
         outputCurrency: PropTypes.string,
     }).isRequired,
 
@@ -56,13 +56,15 @@ const propTypes = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
+        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+
         this.state = {
-            unitID: lodashGet(props, 'policy.customUnits.Distance.customUnitID', ''),
-            unitName: lodashGet(props, 'policy.customUnits.Distance.name', ''),
-            unitValue: lodashGet(props, 'policy.customUnits.Distance.attributes.unit', 'mi'),
-            rateID: lodashGet(props, 'policy.customUnits.Distance.rate.id', ''),
-            rateName: lodashGet(props, 'policy.customUnits.Distance.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnits.Distance.rate.value', 0) / 100),
+            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+            unitName: lodashGet(distanceCustomUnit, 'name', ''),
+            unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+            rateID: lodashGet(distanceCustomUnit, 'rate.id', ''),
+            rateName: lodashGet(distanceCustomUnit, 'rate.name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rate.value', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -106,7 +108,7 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
         this.setState({unitValue: value});
-        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnits.Distance, {
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnits[this.state.unitID], {
             customUnitID: this.state.unitID,
             name: this.state.unitName,
             attributes: {unit: value},
@@ -175,8 +177,8 @@ class WorkspaceReimburseView extends React.Component {
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
                     <OfflineWithFeedback
-                        errors={lodashGet(this.props, 'policy.customUnits.Distance.errors')}
-                        pendingAction={lodashGet(this.props, 'policy.customUnits.Distance.pendingAction')}
+                        errors={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'])}
+                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])}
                         onClose={() => Policy.removeUnitError(this.props.policyID)}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
