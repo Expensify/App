@@ -38,12 +38,10 @@ export default function () {
                     }
                 });
 
-                const mergeObject = _.reduce(reportIDsWithDrafts, (finalMergeObject, reportID) => {
-                    return {
-                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {hasDraft: true},
-                        ...finalMergeObject,
-                    };
-                }, {});
+                const mergeObject = _.reduce(reportIDsWithDrafts, (finalMergeObject, reportID) => ({
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {hasDraft: true},
+                    ...finalMergeObject,
+                }), {});
 
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, mergeObject)
