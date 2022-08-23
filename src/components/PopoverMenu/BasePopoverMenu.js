@@ -77,8 +77,9 @@ class BasePopoverMenu extends PureComponent {
                                 iconHeight={item.iconHeight}
                                 title={item.text}
                                 description={item.description}
-                                focused={this.state.focusedIndex === menuIndex}
                                 onPress={() => this.props.onItemSelected(item)}
+                                onFocus={() => this.updateFocusedIndex(menuIndex)}
+                                focused={this.state.focusedIndex === menuIndex}
                             />
                         ))}
                     </ArrowKeyFocusManager>
