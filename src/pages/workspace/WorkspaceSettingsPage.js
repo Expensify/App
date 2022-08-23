@@ -84,8 +84,7 @@ class WorkspaceSettingsPage extends React.Component {
         }
         const name = this.state.name.trim();
         const outputCurrency = this.state.currency;
-        Policy.updateWorkspaceName(this.props.policy.id, name);
-        Policy.update(this.props.policy.id, {outputCurrency}, true);
+        Policy.updateWorkspaceGeneralSettings(this.prop.policy.id, name, outputCurrency);
     }
 
     validate() {
