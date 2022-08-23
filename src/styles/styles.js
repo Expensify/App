@@ -1110,18 +1110,6 @@ const styles = {
         width: '100%',
     },
 
-    focusedPopoverMenuItem: {
-        borderColor: themeColors.borderFocus,
-    },
-
-    unfocusedPopoverMenuItem: {
-        borderWidth: 1,
-        borderRadius: 0,
-        borderRightWidth: 0,
-        borderLeftWidth: 0,
-        borderColor: 'transparent',
-    },
-
     popoverMenuIcon: {
         width: variables.componentSizeNormal,
         height: variables.componentSizeNormal,
