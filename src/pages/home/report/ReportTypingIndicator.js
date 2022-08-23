@@ -74,16 +74,13 @@ class ReportTypingIndicator extends React.Component {
 
             default:
                 return (
-                    <Text
-                        style={[
-                            styles.chatItemComposeSecondaryRowSubText,
-                            styles.chatItemComposeSecondaryRowOffset,
-                        ]}
-                        numberOfLines={1}
-                    >
-                        {this.props.translate('reportTypingIndicator.multipleUsers')}
-                        {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                    </Text>
+                    <TextWithEllipsis
+                        leadingText={this.props.translate('reportTypingIndicator.multipleUsers')}
+                        trailingText={` ${this.props.translate('reportTypingIndicator.areTyping')}`}
+                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
+                        wrapperStyle={[styles.chatItemComposeSecondaryRow]}
+                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+                    />
                 );
         }
     }
