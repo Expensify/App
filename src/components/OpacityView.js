@@ -10,6 +10,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     // Array of style objects
+    // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
 };
 

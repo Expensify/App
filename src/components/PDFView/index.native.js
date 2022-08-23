@@ -33,6 +33,7 @@ const defaultProps = {
 const PDFView = props => (
     <TouchableWithoutFeedback style={[styles.flex1, props.style]}>
         <PDF
+            trustAllCerts={false}
             activityIndicator={<FullScreenLoadingIndicator />}
             source={{uri: props.sourceURL}}
             style={[

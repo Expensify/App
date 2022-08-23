@@ -2372,9 +2372,6 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-    },
-
-    peopleRowOfflineFeedback: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
@@ -2417,7 +2414,6 @@ const styles = {
         },
         text: {
             color: themeColors.textSupporting,
-            flex: 1,
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
         },
