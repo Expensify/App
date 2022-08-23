@@ -490,11 +490,12 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
+ * @param {Number} customUnitID
  */
-function removeUnitError(policyID) {
+function removeUnitError(policyID, customUnitID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
-            Distance: {
+            [customUnitID]: {
                 errors: null,
             },
         },
@@ -507,8 +508,8 @@ function removeUnitError(policyID) {
  * @returns {Boolean}
  */
 function hasCustomUnitsError(policy) {
-    const errors = lodashGet(policy, ['customUnits', 'Distance', 'errors'], '');
-    return !_.isEmpty(errors);
+    const unitsWithErrors = _.filter(lodashGet(policy, 'customUnits', {}), customUnit => (lodashGet(customUnit, 'errors', null)));
+    return !_.isEmpty(unitsWithErrors);
 }
 
 /**

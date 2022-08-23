@@ -179,7 +179,7 @@ class WorkspaceReimburseView extends React.Component {
                     <OfflineWithFeedback
                         errors={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'])}
                         pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])}
-                        onClose={() => Policy.removeUnitError(this.props.policyID)}
+                        onClose={() => Policy.removeUnitError(this.props.policyID, this.state.unitID)}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
                             <View style={[styles.rateCol]}>
