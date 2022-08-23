@@ -11,7 +11,7 @@ import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 
 let isLoggedIn = false;
-let pendingRoute = '';
+let pendingRoute = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -123,7 +123,7 @@ function navigate(route = ROUTES.HOME) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
-        Log.hmmm('[Navigation] Container not yet ready, storing route as pending');
+        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
         pendingRoute = route;
         return;
     }
@@ -197,12 +197,12 @@ function isActiveRoute(routePath) {
  * but the NavigationContainer was not ready when navigate() was called
  */
 function goToPendingRoute() {
-    if (_.isEmpty(pendingRoute)) {
+    if (pendingRoute === false) {
         return;
     }
     Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
     navigate(pendingRoute);
-    pendingRoute = '';
+    pendingRoute = false;
 }
 
 export default {
