@@ -436,6 +436,7 @@ function removeUnitError(policyID, customUnitID) {
         customUnits: {
             [customUnitID]: {
                 errors: null,
+                pendingAction: null,
             },
         },
     });
