@@ -435,6 +435,47 @@ function verifyIdentity(parameters) {
 }
 
 /**
+ * Complete the "Accept Terms" step of the wallet activation flow.
+ *
+ * @param {Object} parameters
+ * @param {Boolean} parameters.hasAcceptedTerms
+ */
+function acceptWalletTerms(parameters) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                shouldShowWalletActivationSuccess: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_TERMS,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                shouldShowWalletActivationSuccess: null,
+                shouldShowFailedKYC: true,
+            },
+        },
+    ];
+
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
+}
+
+/**
  * Fetches information about a user's Expensify Wallet
  *
  * @typedef {Object} UserWallet
@@ -481,4 +522,5 @@ export {
     updateCurrentStep,
     updatePersonalDetails,
     verifyIdentity,
+    acceptWalletTerms,
 };
