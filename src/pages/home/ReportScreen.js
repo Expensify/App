@@ -5,7 +5,6 @@ import {Keyboard, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
-import DrawerStatusContext from '@react-navigation/drawer/lib/module/utils/DrawerStatusContext';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -27,7 +26,6 @@ import addViewportResizeListener from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -60,6 +58,9 @@ const propTypes = {
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Flag to check if the report actions data are loading */
+        isLoadingReportActions: PropTypes.bool,
     }),
 
     /** Array of report actions for this report */
@@ -70,9 +71,6 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** Flag to check if the initial report actions data are loading */
-    isLoadingInitialReportActions: PropTypes.bool,
 
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(PropTypes.shape({
@@ -85,8 +83,6 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -99,10 +95,10 @@ const defaultProps = {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
+        isLoadingReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],
-    isLoadingInitialReportActions: false,
     policies: {},
 };
 
@@ -146,7 +142,6 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
-        clearTimeout(this.loadingTimerId);
         this.removeViewportResizeListener();
     }
 
@@ -163,11 +158,14 @@ class ReportScreen extends React.Component {
 
     /**
      * When reports change there's a brief time content is not ready to be displayed
+     * It Should show the loader if it's the first time we are opening the report
      *
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
+        // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
+        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions;
     }
 
     /**
@@ -195,10 +193,6 @@ class ReportScreen extends React.Component {
 
     render() {
         if (!this.props.isSidebarLoaded) {
-            return null;
-        }
-
-        if (this.props.isSmallScreenWidth && this.context === 'open') {
             return null;
         }
 
@@ -240,7 +234,6 @@ class ReportScreen extends React.Component {
                         )
                         : (
                             <ReportActionsView
-                                reportID={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
@@ -276,12 +269,10 @@ class ReportScreen extends React.Component {
     }
 }
 
-ReportScreen.contextType = DrawerStatusContext;
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
@@ -302,10 +293,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isLoadingInitialReportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${getReportID(route)}`,
-            initWithStoredValues: false,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
