@@ -99,9 +99,14 @@ class ResendValidationForm extends React.Component {
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
-                {error && (
+                {!this.props.account.message && error && (
                     <Text style={[styles.formError]}>
                         {error}
+                    </Text>
+                )}
+                {this.props.account.message && (
+                    <Text style={[styles.formSuccess]}>
+                        {this.props.account.message}
                     </Text>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>

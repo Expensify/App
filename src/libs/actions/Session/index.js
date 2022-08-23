@@ -108,6 +108,7 @@ function resendValidationLink(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
+            message: '',
         },
     }];
 
