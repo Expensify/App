@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import compose from '../../../libs/compose';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -21,7 +24,17 @@ import Form from '../../../components/Form';
 
 const propTypes = {
     /* Onyx Props */
+    formData: PropTypes.shape({
+        setupComplete: PropTypes.boolean,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    formData: {
+        setupComplete: false,
+    },
 };
 
 class DebitCardPage extends Component {
@@ -29,6 +42,14 @@ class DebitCardPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.formData.setupComplete || !this.props.formData.setupComplete) {
+            return;
+        }
+
+        PaymentMethods.continueSetup();
     }
 
     /**
@@ -96,7 +117,7 @@ class DebitCardPage extends Component {
                 <Form
                     formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                     validate={this.validate}
-                    onSubmit={PaymentMethods.addBillingCard}
+                    onSubmit={PaymentMethods.addPaymentCard}
                     submitButtonText={this.props.translate('common.save')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
@@ -179,5 +200,13 @@ class DebitCardPage extends Component {
 }
 
 DebitCardPage.propTypes = propTypes;
+DebitCardPage.defaultProps = defaultProps;
 
-export default withLocalize(DebitCardPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        formData: {
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+        },
+    }),
+)(DebitCardPage);

@@ -177,10 +177,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
-        if (e && e.key === 'Enter' && !e.shiftKey) {
+        if (!e || VirtualKeyboard.shouldAssumeIsOpen()) {
+            return;
+        }
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
-        } else if (e && e.key === 'Escape') {
+        } else if (e.key === 'Escape') {
             e.preventDefault();
             this.deleteDraft();
         }

@@ -22,6 +22,10 @@ const propTypes = {
 
     /** Contents to display inside the section */
     children: PropTypes.node,
+
+    /** Customize the Section container */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -29,13 +33,14 @@ const defaultProps = {
     children: null,
     icon: null,
     IconComponent: null,
+    containerStyles: [],
 };
 
 const Section = (props) => {
     const IconComponent = props.IconComponent;
     return (
         <>
-            <View style={styles.pageWrapper}>
+            <View style={[styles.pageWrapper, ...props.containerStyles]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.h1]}>{props.title}</Text>

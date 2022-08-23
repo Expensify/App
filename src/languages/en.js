@@ -392,8 +392,6 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deleteBankAccountSuccess: 'Bank account successfully deleted',
-        deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
@@ -694,7 +692,8 @@ export default {
     },
     activateStep: {
         headerTitle: 'Enable payments',
-        activated: 'Your Expensify Wallet is ready to use.',
+        activatedTitle: 'Wallet activated!',
+        activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
         checkBackLater: 'We\'re still reviewing your information. Please check back later.',
     },
     companyStep: {
@@ -911,10 +910,9 @@ export default {
         title: 'Request a call',
         subtitle: 'Need help?',
         description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
-        extension: 'Extension (Optional)',
+        phoneNumberExtension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
         blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
@@ -927,7 +925,11 @@ export default {
             guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
         },
         error: {
-            phoneExtension: 'Please enter a valid phone extension number',
+            phoneNumberExtension: 'Please enter a valid phone extension number',
+            firstName: 'Please provide your first name so our guides know how to address you!',
+            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
+            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
     },
     requestCallConfirmationScreen: {
@@ -956,7 +958,6 @@ export default {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         createRoom: 'Create Room',
-        policyRoomRenamed: 'Policy room renamed!',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
         pleaseEnterRoomName: 'Please enter a room name',
