@@ -37,10 +37,14 @@ class ArrowKeyFocusManager extends Component {
                 return;
             }
 
-            let newFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
+            const currentFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
+            let newFocusedIndex = currentFocusedIndex;
 
             while (this.props.disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : this.props.maxIndex;
+                if (newFocusedIndex === currentFocusedIndex) { // all indexes are disabled
+                    return; // no-op
+                }
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
@@ -51,10 +55,14 @@ class ArrowKeyFocusManager extends Component {
                 return;
             }
 
-            let newFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
+            const currentFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
+            let newFocusedIndex = currentFocusedIndex;
 
             while (this.props.disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex = newFocusedIndex < this.props.maxIndex ? newFocusedIndex + 1 : 0;
+                if (newFocusedIndex === currentFocusedIndex) { // all indexes are disabled
+                    return; // no-op
+                }
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
