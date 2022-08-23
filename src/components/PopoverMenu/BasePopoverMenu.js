@@ -35,6 +35,8 @@ class BasePopoverMenu extends PureComponent {
             focusedIndex: -1,
         };
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
+        this.removeKeyboardShorcuts = this.removeKeyboardShorcuts.bind(this);
+        this.onModalHide = this.onModalHide.bind(this);
     }
 
     componentDidMount() {
@@ -44,6 +46,9 @@ class BasePopoverMenu extends PureComponent {
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnterKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (this.state.focusedIndex === -1) {
+                return;
+            }
             this.props.onItemSelected(this.props.menuItems[this.state.focusedIndex]);
             this.updateFocusedIndex(-1);
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
