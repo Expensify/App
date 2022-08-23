@@ -24,6 +24,8 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
+import variables from '../../styles/variables';
+import colors from '../../styles/colors';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -85,6 +87,7 @@ const HeaderView = (props) => {
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -146,6 +149,16 @@ const HeaderView = (props) => {
                                     </Text>
                                 )}
                             </View>
+                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={colors.red}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                    />
+                                </View>
+                            )}
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {props.report.hasOutstandingIOU && (
