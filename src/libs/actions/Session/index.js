@@ -85,7 +85,7 @@ function signOutAndRedirectToSignIn() {
 }
 
 /**
- * Request a validation link to be sent to the email of the user that is validating their account
+ * Resend the validation link to the user that is validating their account
  *
  * @param {String} [login]
  */
