@@ -83,13 +83,13 @@ class WorkspaceInitialPage extends React.Component {
         }
 
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
-        const hasSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.name', {}));
+        const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}));
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
                 icon: Expensicons.Gear,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
-                brickRoadIndicator: hasSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+                brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             },
             {
                 translationKey: 'workspace.common.card',
