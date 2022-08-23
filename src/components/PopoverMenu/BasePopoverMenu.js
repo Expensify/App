@@ -10,6 +10,7 @@ import {
     propTypes as createMenuPropTypes,
     defaultProps as defaultCreateMenuPropTypes,
 } from './popoverMenuPropTypes';
+import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import Text from '../Text';
 
 const propTypes = {
@@ -26,6 +27,21 @@ const defaultProps = {
 };
 
 class BasePopoverMenu extends PureComponent {
+    constructor(props) {
+        super(props);
+        this.state = {
+            focusedIndex: -1,
+        };
+        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
+    }
+
+    /**
+     * @param {Number} index
+     */
+    updateFocusedIndex(index) {
+        this.setState({focusedIndex: index});
+    }
+
     render() {
         return (
             <Popover
@@ -48,17 +64,24 @@ class BasePopoverMenu extends PureComponent {
                             </Text>
                         </View>
                     )}
-                    {_.map(this.props.menuItems, item => (
-                        <MenuItem
-                            key={item.text}
-                            icon={item.icon}
-                            iconWidth={item.iconWidth}
-                            iconHeight={item.iconHeight}
-                            title={item.text}
-                            description={item.description}
-                            onPress={() => this.props.onItemSelected(item)}
-                        />
-                    ))}
+                    <ArrowKeyFocusManager
+                        focusedIndex={this.state.focusedIndex}
+                        maxIndex={this.props.menuItems.length - 1}
+                        onFocusedIndexChanged={this.props.enableArrowKeysActions ? this.updateFocusedIndex : () => { }}
+                    >
+                        {_.map(this.props.menuItems, (item, menuIndex) => (
+                            <MenuItem
+                                key={item.text}
+                                icon={item.icon}
+                                iconWidth={item.iconWidth}
+                                iconHeight={item.iconHeight}
+                                title={item.text}
+                                description={item.description}
+                                focused={this.state.focusedIndex === menuIndex}
+                                onPress={() => this.props.onItemSelected(item)}
+                            />
+                        ))}
+                    </ArrowKeyFocusManager>
                 </View>
             </Popover>
         );
