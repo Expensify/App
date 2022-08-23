@@ -12,6 +12,8 @@ import {
 } from './popoverMenuPropTypes';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import Text from '../Text';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback fired when the menu is completely closed */
@@ -33,6 +35,25 @@ class BasePopoverMenu extends PureComponent {
             focusedIndex: -1,
         };
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
+    }
+
+    componentDidMount() {
+        if (!this.props.enableArrowKeysActions) {
+            return;
+        }
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            this.props.onItemSelected(this.props.menuItems[this.state.focusedIndex]);
+            this.updateFocusedIndex(-1);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+    }
+
+    componentWillUnmount() {
+        if (!this.unsubscribeEnterKey) {
+            return;
+        }
+        this.unsubscribeEscapeKey();
     }
 
     /**
@@ -78,7 +99,6 @@ class BasePopoverMenu extends PureComponent {
                                 title={item.text}
                                 description={item.description}
                                 onPress={() => this.props.onItemSelected(item)}
-                                onFocus={() => this.updateFocusedIndex(menuIndex)}
                                 focused={this.state.focusedIndex === menuIndex}
                             />
                         ))}
