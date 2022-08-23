@@ -69,24 +69,6 @@ function getSimplifiedEmployeeList(employeeList) {
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
-    const customUnits = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {});
-
-    // Update custom units data to be keyed by name
-    const customUnitsUpdated = {};
-    _.forEach(customUnits, (unit) => {
-        const updatedUnit = {...unit};
-
-        // Rate data massaging is temporary and will be addressed in a subsequent PR
-        if (unit.rates) {
-            updatedUnit.rate = {
-                id: unit.rates[0].customUnitRateID,
-                name: unit.rates[0].name,
-                value: Number(unit.rates[0].rate),
-            };
-        }
-        customUnitsUpdated[unit.name] = updatedUnit;
-    });
-
     return {
         isFromFullPolicy,
         id: fullPolicyOrPolicySummary.id,
@@ -100,7 +82,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
-        customUnits: customUnitsUpdated,
+        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
 
@@ -217,6 +199,7 @@ function deletePolicy(policyID) {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
+    console.log('in getPolicyList, which gets policySummaryList (deprecated)');
     Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
     DeprecatedAPI.GetPolicySummaryList()
         .then((data) => {
@@ -255,6 +238,7 @@ function createAndGetPolicyList() {
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
+    console.log('in loadFullPolicy, calling deprecated API GetFullPolicy');
     DeprecatedAPI.GetFullPolicy(policyID)
         .then((data) => {
             if (data.jsonCode !== 200) {
