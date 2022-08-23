@@ -10,6 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
+import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 import * as Policy from '../libs/actions/Policy';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
@@ -31,6 +32,9 @@ const propTypes = {
 
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
+
+    /** The user's wallet (coming from Onyx) */
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 };
 
 const defaultProps = {
@@ -39,6 +43,7 @@ const defaultProps = {
     policiesMemberList: {},
     bankAccountList: {},
     cardList: {},
+    userWallet: {},
 };
 
 const AvatarWithIndicator = (props) => {
@@ -51,6 +56,7 @@ const AvatarWithIndicator = (props) => {
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
+    const hasWalletError = !_.isEmpty(props.userWallet.errors);
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -59,7 +65,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {(hasPolicyMemberError || hasPaymentMethodError) && (
+                {(hasPolicyMemberError || hasPaymentMethodError || hasWalletError) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -80,5 +86,8 @@ export default withOnyx({
     },
     cardList: {
         key: ONYXKEYS.CARD_LIST,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
     },
 })(AvatarWithIndicator);
