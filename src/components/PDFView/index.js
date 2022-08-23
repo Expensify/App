@@ -145,6 +145,7 @@ class PDFView extends Component {
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
+                        onTextFieldFocused={this.toggleKeyboardOnSmallScreens}
                     />
                 )}
             </View>
