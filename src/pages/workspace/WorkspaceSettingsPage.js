@@ -104,13 +104,18 @@ class WorkspaceSettingsPage extends React.Component {
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
                     footer={(
                         <FixedFooter style={[styles.w100]}>
-                            <Button
-                                success
-                                isLoading={this.props.policy.isPolicyUpdating}
-                                text={this.props.translate('workspace.editor.save')}
-                                onPress={this.submit}
-                                pressOnEnter
-                            />
+                            <OfflineWithFeedback
+                                errors={lodashGet(this.props.policy, 'errorFields.generalSettings')}
+                                onClose={() => Policy.clearWorkspaceNameErrors(this.props.policy.id)}
+                            >
+                                <Button
+                                    success
+                                    isLoading={this.props.policy.isPolicyUpdating}
+                                    text={this.props.translate('workspace.editor.save')}
+                                    onPress={this.submit}
+                                    pressOnEnter
+                                />
+                            </OfflineWithFeedback>
                         </FixedFooter>
                     )}
                 >
@@ -137,9 +142,7 @@ class WorkspaceSettingsPage extends React.Component {
                             />
 
                             <OfflineWithFeedback
-                                pendingAction={lodashGet(this.props.policy, 'pendingFields.name')}
-                                errors={lodashGet(this.props.policy, 'errorFields.name')}
-                                onClose={() => Policy.clearWorkspaceNameErrors(this.props.policy.id)}
+                                pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}
                             >
                                 <TextInput
                                     label={this.props.translate('workspace.editor.nameInputLabel')}
@@ -149,20 +152,19 @@ class WorkspaceSettingsPage extends React.Component {
                                     hasError={!this.state.name.trim().length}
                                     errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
                                 />
+                                <View style={[styles.mt4]}>
+                                    <Picker
+                                        label={this.props.translate('workspace.editor.currencyInputLabel')}
+                                        onInputChange={currency => this.setState({currency})}
+                                        items={this.getCurrencyItems()}
+                                        value={this.state.currency}
+                                        isDisabled={hasVBA}
+                                    />
+                                </View>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                                    {this.props.translate('workspace.editor.currencyInputHelpText')}
+                                </Text>
                             </OfflineWithFeedback>
-
-                            <View style={[styles.mt4]}>
-                                <Picker
-                                    label={this.props.translate('workspace.editor.currencyInputLabel')}
-                                    onInputChange={currency => this.setState({currency})}
-                                    items={this.getCurrencyItems()}
-                                    value={this.state.currency}
-                                    isDisabled={hasVBA}
-                                />
-                            </View>
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
-                                {this.props.translate('workspace.editor.currencyInputHelpText')}
-                            </Text>
                         </View>
                     )}
                 </WorkspacePageWithSections>
