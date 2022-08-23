@@ -50,6 +50,16 @@ class BasePopoverMenu extends PureComponent {
     }
 
     componentWillUnmount() {
+        this.removeKeyboardShorcuts();
+    }
+
+    onModalHide() {
+        this.removeKeyboardShorcuts();
+        this.updateFocusedIndex(-1);
+        this.props.onMenuHide();
+    }
+
+    removeKeyboardShorcuts() {
         if (!this.unsubscribeEnterKey) {
             return;
         }
@@ -60,6 +70,9 @@ class BasePopoverMenu extends PureComponent {
      * @param {Number} index
      */
     updateFocusedIndex(index) {
+        if (!this.props.enableArrowKeysActions) {
+            return;
+        }
         this.setState({focusedIndex: index});
     }
 
@@ -69,7 +82,7 @@ class BasePopoverMenu extends PureComponent {
                 anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={this.props.onMenuHide}
+                onModalHide={this.onModalHide}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
                 disableAnimation={this.props.disableAnimation}
@@ -88,7 +101,7 @@ class BasePopoverMenu extends PureComponent {
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.focusedIndex}
                         maxIndex={this.props.menuItems.length - 1}
-                        onFocusedIndexChanged={this.props.enableArrowKeysActions ? this.updateFocusedIndex : () => { }}
+                        onFocusedIndexChanged={this.updateFocusedIndex}
                     >
                         {_.map(this.props.menuItems, (item, menuIndex) => (
                             <MenuItem
