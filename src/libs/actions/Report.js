@@ -27,6 +27,7 @@ import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as NumberUtils from '../NumberUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -753,6 +754,7 @@ function buildOptimisticReportAction(reportID, text, file) {
     return {
         commentText,
         reportAction: {
+            reportActionID: NumberUtils.rand64(),
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
@@ -838,14 +840,16 @@ function addActions(reportID, text = '', file) {
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.sequenceNumber] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+        optimisticReportActions[attachmentAction.sequenceNumber] = attachmentAction;
     }
 
     const parameters = {
         reportID,
+        reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
+        commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         clientID: lastAction.clientID,
         commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
