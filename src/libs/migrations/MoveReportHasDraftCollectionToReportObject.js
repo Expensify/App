@@ -7,7 +7,8 @@ export default function () {
     return new Promise((resolve) => {
         // Connect to the reportsWithDraft_ collection key in Onyx to get all the old data for
         // which reports have drafts.
-        // For each report that has a draft, set the hasDraft property in the report collection to true.
+        // For each report that has a draft, set the hasDraft property
+        // in the report collection to true.
         // Finally, remove the data from the old collection
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
