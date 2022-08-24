@@ -847,7 +847,8 @@ function addActions(reportID, text = '', file) {
 
     const parameters = {
         reportID,
-        reportActionID: reportCommentAction.reportActionID,
+        reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
+        commentReportActionID: reportCommentAction.reportActionID,
         reportComment: reportCommentText,
         clientID: lastAction.clientID,
         commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
