@@ -106,7 +106,7 @@ class WorkspaceSettingsPage extends React.Component {
                         <FixedFooter style={[styles.w100]}>
                             <OfflineWithFeedback
                                 errors={lodashGet(this.props.policy, 'errorFields.generalSettings')}
-                                onClose={() => Policy.clearWorkspaceNameErrors(this.props.policy.id)}
+                                onClose={() => Policy.clearWorkspaceGeneralSettingsErrors(this.props.policy.id)}
                             >
                                 <Button
                                     success
