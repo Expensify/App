@@ -123,9 +123,7 @@ class ReportActionsView extends React.Component {
             ReportScrollManager.scrollToBottom();
         });
 
-        if (this.props.report.reportID) {
-            Report.openReport(this.props.report.reportID);
-        }
+        Report.openReport(this.props.report.reportID);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -176,10 +174,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.report.reportID && this.props.report.reportID) {
-            Report.openReport(this.props.report.reportID);
-        }
-
         if (lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline')) {
             if (this.getIsReportFullyVisible()) {
                 Report.openReport(this.props.report.reportID);
