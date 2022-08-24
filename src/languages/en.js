@@ -485,7 +485,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
-        cannotGetAccountDetails: 'Cannot get account details, please try again.',
+        cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
     },
     personalDetails: {
         error: {
