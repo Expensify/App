@@ -27,6 +27,7 @@ import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as NumberUtils from '../NumberUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -753,7 +754,7 @@ function buildOptimisticReportAction(reportID, text, file) {
     return {
         commentText,
         reportAction: {
-            reportActionID: NumberUtils.rand64(), //This is pending a merge from another PR
+            reportActionID: NumberUtils.rand64(), // This is pending a merge from another PR
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
