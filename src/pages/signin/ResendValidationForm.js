@@ -100,7 +100,7 @@ class ResendValidationForm extends React.Component {
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
-                        onPress={this.props.account.validated ? Session.resetPassword : Session.resendValidationLink}
+                        onPress={() => (this.props.account.validated ? Session.resetPassword() : Session.resendValidationLink())}
                         isDisabled={this.props.network.isOffline}
                     />
                 </View>
