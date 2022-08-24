@@ -2,7 +2,7 @@ import CONST from '../CONST';
 
 /**
  * Generates a random positive 64 bit numeric string by randomly generating the left half and right half and concatenating them. Used to generate client-side ids.
- * @returns {string} randomly generated 64 bit string
+ * @returns {String} string representation of a randomly generated 64 bit signed integer
  */
 /* eslint-disable no-unused-vars */
 function rand64() {
@@ -16,7 +16,7 @@ function rand64() {
 
     // If the top is any number but the highest one, we can actually have any value for the rest
     if (left !== CONST.MAX_64BIT_LEFT_HALF) {
-        right = Math.floor(Math.random() * 1000000000);
+        right = Math.floor(Math.random() * 1_000_000_000);
     } else {
         right = Math.floor(Math.random() * (CONST.MAX_64BIT_RIGHT_HALF + 1));
     }
