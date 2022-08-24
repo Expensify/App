@@ -1,42 +1,30 @@
 import {TouchableOpacity, View} from 'react-native';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import Text from './Text';
-import Popover from './Popover';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import withWindowDimensions from './withWindowDimensions';
-import TextInput from './TextInput';
+import styles from '../../styles/styles';
+import Text from '../Text';
+import Popover from '../Popover';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import withWindowDimensions from '../withWindowDimensions';
+import TextInput from '../TextInput';
+import KeyboardSpacer from '../KeyboardSpacer';
+import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
 
 const propTypes = {
-    /** Is the popover currently showing? */
-    isVisible: PropTypes.bool.isRequired,
+    /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
+    shouldDelayFocus: PropTypes.bool,
 
-    /** Function that gets called when the user closes the modal */
-    onClose: PropTypes.func.isRequired,
-
-    /** Where the popover should be placed */
-    anchorPosition: PropTypes.shape({
-        top: PropTypes.number,
-        left: PropTypes.number,
-    }).isRequired,
-
-    /** Function that gets called when the user clicks the delete / make default button */
-    onSubmit: PropTypes.func,
-
-    /** The text that should be displayed in the submit button */
-    submitButtonText: PropTypes.string,
-
+    ...passwordPopoverPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    onSubmit: () => {},
-    submitButtonText: '',
+    shouldDelayFocus: false,
+    ...passwordPopoverDefaultProps,
 };
 
-class PasswordPopover extends Component {
+class BasePasswordPopover extends Component {
     constructor(props) {
         super(props);
 
@@ -92,6 +80,7 @@ class PasswordPopover extends Component {
                         onSubmitEditing={() => this.props.onSubmit(this.state.password)}
                         style={styles.mt3}
                         autoFocus
+                        shouldDelayFocus={this.props.shouldDelayFocus}
                     />
                     <TouchableOpacity
                         onPress={() => this.props.onSubmit(this.state.password)}
@@ -106,14 +95,15 @@ class PasswordPopover extends Component {
                         </Text>
                     </TouchableOpacity>
                 </View>
+                <KeyboardSpacer />
             </Popover>
         );
     }
 }
 
-PasswordPopover.propTypes = propTypes;
-PasswordPopover.defaultProps = defaultProps;
+BasePasswordPopover.propTypes = propTypes;
+BasePasswordPopover.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-)(PasswordPopover);
+)(BasePasswordPopover);
