@@ -33,7 +33,7 @@ const propTypes = {
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
-        customUnits: PropTypes.shape(PropTypes.objectOf(
+        customUnits: PropTypes.objectOf(
             PropTypes.shape({
                 customUnitID: PropTypes.string,
                 name: PropTypes.string,
@@ -46,7 +46,7 @@ const propTypes = {
                     value: PropTypes.number,
                 }),
             }),
-        )),
+        ),
         outputCurrency: PropTypes.string,
     }).isRequired,
 
@@ -56,6 +56,7 @@ const propTypes = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
+        console.log('props in WorkspaceReimburseView', props);
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
 
         this.state = {
