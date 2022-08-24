@@ -1,4 +1,4 @@
-const NumberUtils = require('../../src/libs/NumberUtils');
+import * as NumberUtils from '../../src/libs/NumberUtils';
 
 describe('libs/NumberUtils', () => {
     it('should generate a random 64-bit numeric string', () => {
