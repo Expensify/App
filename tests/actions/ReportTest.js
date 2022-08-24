@@ -349,9 +349,9 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [_.toArray(reportActions)[1].clientID]: null,
-                            [_.toArray(reportActions)[2].clientID]: null,
-                            [_.toArray(reportActions)[3].clientID]: null,
+                            [_.toArray(reportActions)[1].reportActionID]: null,
+                            [_.toArray(reportActions)[2].reportActionID]: null,
+                            [_.toArray(reportActions)[3].reportActionID]: null,
                             2: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
