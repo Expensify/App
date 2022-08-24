@@ -692,7 +692,8 @@ export default {
     },
     activateStep: {
         headerTitle: 'Enable payments',
-        activated: 'Your Expensify Wallet is ready to use.',
+        activatedTitle: 'Wallet activated!',
+        activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
         checkBackLater: 'We\'re still reviewing your information. Please check back later.',
     },
     companyStep: {
