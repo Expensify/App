@@ -112,7 +112,7 @@ function resendValidationLink(login = credentials.login) {
         },
     }];
 
-    API.read('RequestAccountValidationLink', {email: login}, {optimisticData, successData, failureData});
+    API.write('RequestAccountValidationLink', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
