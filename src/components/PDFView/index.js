@@ -18,6 +18,7 @@ class PDFView extends Component {
             windowWidth: Dimensions.get('window').width,
             shouldRequestPassword: false,
             isPasswordInvalid: false,
+            isKeyboardOpen: false,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
@@ -26,10 +27,12 @@ class PDFView extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If window height has changed update keyboard state and alert parent.
-        if (this.props.windowHeight < prevProps.windowHeight) {
+        // Use window height changes to toggle the keyboard. To maintain keyboard state
+        // on all platforms we also use focus/blur events. So we need to make sure here
+        // that we avoid toggling the keyboard twice.
+        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight) {
             this.toggleKeyboardOnSmallScreens(true);
-        } else if (this.props.windowHeight > prevProps.windowHeight) {
+        } else if (this.state.isKeyboardOpen && this.props.windowHeight > prevProps.windowHeight) {
             this.toggleKeyboardOnSmallScreens(false);
         }
     }
@@ -91,6 +94,7 @@ class PDFView extends Component {
         if (!this.props.isSmallScreenWidth) {
             return;
         }
+        this.setState({isKeyboardOpen});
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
