@@ -694,7 +694,8 @@ export default {
     },
     activateStep: {
         headerTitle: 'Habilitar pagos',
-        activated: 'Su billetera Expensify está lista para usar.',
+        activatedTitle: '¡Billetera  activada!',
+        activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
         checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
     },
     companyStep: {
@@ -911,10 +912,9 @@ export default {
         title: 'Llámame por teléfono',
         subtitle: '¿Necesitas ayuda?',
         description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
-        extension: 'Extensión (Opcional)',
+        phoneNumberExtension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         callButton: 'Llamar',
         callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
         blockedFromConcierge: 'Debido a sus interacciones pasadas con nuestro equipo, la llamada no puede ser agendada en este momento.',
@@ -927,7 +927,11 @@ export default {
             guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
         },
         error: {
-            phoneExtension: 'Por favor, introduzca una extensión telefónica válida',
+            phoneNumberExtension: 'Por favor, introduzca una extensión telefónica válida',
+            firstName: 'Por favor ingresa tu nombre!',
+            lastName: 'Por favor ingresa tu apellido!',
+            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
+            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
