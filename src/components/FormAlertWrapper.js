@@ -1,17 +1,9 @@
-import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withNetwork} from './OnyxProvider';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import RenderHTML from './RenderHTML';
-import TextLink from './TextLink';
-import Text from './Text';
-import colors from '../styles/colors';
 import compose from '../libs/compose';
 import networkPropTypes from './networkPropTypes';
-import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import FormAlertError from './FormAlertError';
 
