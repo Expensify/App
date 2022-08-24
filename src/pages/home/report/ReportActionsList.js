@@ -109,13 +109,13 @@ class ReportActionsList extends React.Component {
 
     /**
      * Create a unique key for Each Action in the FlatList.
-     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-     * shouldn't happen, but might be possible in some rare cases.
+     * We use the reportActionId that is now a random 64-bit int id, which should be
+     * random enought to avoid colisions
      * @param {Object} item
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.sequenceNumber}${item.action.clientID}`;
+        return `${item.action.reportActionID}`;
     }
 
     /**
