@@ -38,7 +38,7 @@ function getAuthenticateErrorMessage(response) {
 
 /**
  * @param {Object} onyxData
- * @param {Array} onyxData.errors
+ * @param {Object} onyxData.errors
  * @returns {String}
  */
 function getLatestErrorMessage(onyxData) {
