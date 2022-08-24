@@ -1,12 +1,13 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
+import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -26,6 +27,25 @@ const propTypes = {
 };
 
 class NavigationRoot extends Component {
+    /**
+     * Intercept navigation state changes and log it
+     * @param {NavigationState} state
+     */
+    parseAndLogRoute(state) {
+        if (!state) {
+            return;
+        }
+
+        const currentPath = getPathFromState(state, linkingConfig.config);
+
+        // Don't log the route transitions from OldDot because they contain authTokens
+        if (currentPath.includes('/transition')) {
+            Log.info('Navigating from transition link from OldDot using short lived authToken');
+        } else {
+            Log.info('Navigating to route', false, {path: currentPath});
+        }
+    }
+
     render() {
         return (
             <NavigationContainer
@@ -35,7 +55,7 @@ class NavigationRoot extends Component {
                         style={styles.navigatorFullScreenLoading}
                     />
                 )}
-                onStateChange={this.parseAndStoreRoute}
+                onStateChange={this.parseAndLogRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}
                 ref={Navigation.navigationRef}
