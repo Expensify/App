@@ -5,7 +5,6 @@ import {Keyboard, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
-import DrawerStatusContext from '@react-navigation/drawer/lib/module/utils/DrawerStatusContext';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -27,7 +26,6 @@ import addViewportResizeListener from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -85,8 +83,6 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -200,10 +196,6 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        if (this.props.isSmallScreenWidth && this.context === 'open') {
-            return null;
-        }
-
         // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
         if (!Permissions.canUseDefaultRooms(this.props.betas)
             && ReportUtils.isDefaultRoom(this.props.report)
@@ -277,12 +269,10 @@ class ReportScreen extends React.Component {
     }
 }
 
-ReportScreen.contextType = DrawerStatusContext;
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
