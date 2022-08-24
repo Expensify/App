@@ -13,6 +13,7 @@ import compose from '../libs/compose';
 import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import FormAlertError from './FormAlertError';
 
 const propTypes = {
     /** Wrapped child components */
@@ -54,33 +55,7 @@ const defaultProps = {
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
 const FormAlertWrapper = props => (
     <View style={props.containerStyles}>
-        {props.isAlertVisible && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                    {!_.isEmpty(props.message) && props.isMessageHtml && <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />}
-
-                    {!_.isEmpty(props.message) && !props.isMessageHtml && <Text style={styles.mutedTextLabel}>{props.message}</Text>}
-
-                    {_.isEmpty(props.message) && (
-                        <>
-                            <Text style={styles.mutedTextLabel}>
-                                {`${props.translate('common.please')} `}
-                            </Text>
-                            <TextLink
-                                style={styles.label}
-                                onPress={props.onFixTheErrorsPressed}
-                            >
-                                {props.translate('common.fixTheErrors')}
-                            </TextLink>
-                            <Text style={styles.mutedTextLabel}>
-                                {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
-                            </Text>
-                        </>
-                    )}
-                </View>
-            </View>
-        )}
+        {props.isAlertVisible && <FormAlertError message={props.message} isMessageHtml={props.isMessageHtml} />}
         {props.children(props.network.isOffline)}
     </View>
 );
