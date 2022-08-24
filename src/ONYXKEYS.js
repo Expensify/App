@@ -96,8 +96,6 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions_',
-        IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
@@ -152,9 +150,6 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // Stores values for the request call form
-    REQUEST_CALL_FORM: 'requestCallForm',
-
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
 
@@ -182,5 +177,6 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+        REQUEST_CALL_FORM: 'requestCallForm',
     },
 };

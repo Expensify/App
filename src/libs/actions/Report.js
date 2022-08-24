@@ -27,6 +27,7 @@ import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as NumberUtils from '../NumberUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -625,15 +626,14 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 }
 
 /**
- * Get the actions of a report
+ * Get the initial actions of a report
  *
  * @param {Number} reportID
- * @returns {Promise}
  */
-function fetchActions(reportID) {
+function fetchInitialActions(reportID) {
     const reportActionsOffset = -1;
 
-    return DeprecatedAPI.Report_GetHistory({
+    DeprecatedAPI.Report_GetHistory({
         reportID,
         reportActionsOffset,
         reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
@@ -642,17 +642,6 @@ function fetchActions(reportID) {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
         });
-}
-
-/**
- * Get the initial actions of a report
- *
- * @param {Number} reportID
- */
-function fetchInitialActions(reportID) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, true);
-    fetchActions(reportID)
-        .finally(() => Onyx.set(`${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportID}`, false));
 }
 
 /**
@@ -765,6 +754,7 @@ function buildOptimisticReportAction(reportID, text, file) {
     return {
         commentText,
         reportAction: {
+            reportActionID: NumberUtils.rand64(),
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
@@ -850,14 +840,16 @@ function addActions(reportID, text = '', file) {
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.sequenceNumber] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+        optimisticReportActions[attachmentAction.sequenceNumber] = attachmentAction;
     }
 
     const parameters = {
         reportID,
+        reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
+        commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         clientID: lastAction.clientID,
         commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
@@ -989,20 +981,32 @@ function deleteReportComment(reportID, reportAction) {
  * @param {Number} reportID
  */
 function openReport(reportID) {
-    const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('OpenReport',
         {
             reportID,
-            sequenceNumber,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: sequenceNumber,
+                    isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
                     unreadActionCount: 0,
+                },
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: false,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: false,
                 },
             }],
         });
@@ -1024,18 +1028,24 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
-                value: true,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingMoreReportActions: true,
+                },
             }],
             successData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
-                value: false,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingMoreReportActions: false,
+                },
             }],
             failureData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.IS_LOADING_MORE_REPORT_ACTIONS}${reportID}`,
-                value: false,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingMoreReportActions: false,
+                },
             }],
         });
 }
