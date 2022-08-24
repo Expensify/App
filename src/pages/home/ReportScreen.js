@@ -142,7 +142,6 @@ class ReportScreen extends React.Component {
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
-
         this.storeCurrentlyViewedReport();
     }
 
