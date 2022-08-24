@@ -73,7 +73,7 @@ describe('actions/Report', () => {
             callback: val => reportActions = val,
         });
 
-        let clientID;
+        let sequenceNumber;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -92,7 +92,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Store the generated clientID so that we can send it with our mock Pusher update
-                clientID = resultAction.sequenceNumber;
+                sequenceNumber = resultAction.sequenceNumber;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
                 expect(resultAction.pendingAction).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
