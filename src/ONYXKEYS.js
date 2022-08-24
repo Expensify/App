@@ -177,7 +177,6 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         REQUEST_CALL_FORM: 'requestCallForm',
     },
 };

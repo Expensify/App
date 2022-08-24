@@ -791,6 +791,7 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
+    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
 };
 
 export default CONST;
