@@ -215,7 +215,7 @@ class WorkspaceInitialPage extends React.Component {
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
                                     shouldShowRightIcon
-                                    brickRoadIndicator={item.error ? 'error' : null}
+                                    brickRoadIndicator={item.brickRoadIndicator}
                                 />
                             ))}
                         </View>
