@@ -74,7 +74,7 @@ class OnfidoStep extends React.Component {
                                 Navigation.goBack();
                             }}
                             onSuccess={(data) => {
-                                BankAccounts.activateWallet(CONST.WALLET.STEP.ONFIDO, {
+                                BankAccounts.verifyIdentity({
                                     onfidoData: JSON.stringify({
                                         ...data,
                                         applicantID: this.props.walletOnfidoData.applicantID,

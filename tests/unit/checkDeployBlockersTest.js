@@ -79,10 +79,8 @@ function mockIssue(prList, deployBlockerList) {
 **Compare Changes:** https://github.com/Expensify/App/compare/production...staging
 
 **This release contains changes from the following pull requests:**
-${_.map(prList, ({url, isQASuccess, isAccessibilitySuccess}) => `
-- ${url}
-  - ${checkbox(isQASuccess)} QA
-  - ${checkbox(isAccessibilitySuccess)} Accessibility
+${_.map(prList, ({url, isQASuccess}) => `
+- ${checkbox(isQASuccess)} ${url}
 `)}
 ${!_.isEmpty(deployBlockerList) ? `
 
@@ -97,7 +95,7 @@ cc @Expensify/applauseleads
 }
 
 describe('checkDeployBlockers', () => {
-    const allClearIssue = mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true, isAccessibilitySuccess: true}]);
+    const allClearIssue = mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}]);
 
     describe('checkDeployBlockers', () => {
         test('Test an issue with all checked items and :shipit:', () => {
@@ -130,17 +128,9 @@ describe('checkDeployBlockers', () => {
             });
         });
 
-        test('Test an issue with all QA checked but no accessibility', () => {
-            mockGetIssue.mockResolvedValue(mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true, isAccessibilitySuccess: false}]));
-            mockListComments.mockResolvedValue(baseComments);
-            return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
-            });
-        });
-
         test('Test an issue with all QA checked but not all deploy blockers', () => {
             mockGetIssue.mockResolvedValue(mockIssue(
-                [{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true, isAccessibilitySuccess: false}],
+                [{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}],
                 [{url: 'https://github.com/Expensify/App/pull/6883', isQASuccess: false}],
             ));
             mockListComments.mockResolvedValue(baseComments);
@@ -151,7 +141,7 @@ describe('checkDeployBlockers', () => {
 
         test('Test an issue with all QA checked and all deploy blockers resolved', () => {
             mockGetIssue.mockResolvedValue(mockIssue(
-                [{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true, isAccessibilitySuccess: false}],
+                [{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}],
                 [{url: 'https://github.com/Expensify/App/pull/6883', isQASuccess: true}],
             ));
             mockListComments.mockResolvedValue(baseComments);

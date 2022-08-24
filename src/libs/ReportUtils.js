@@ -347,7 +347,7 @@ function formatReportLastMessageText(lastMessageText) {
 function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    const loginHashBucket = (parseInt(md5(login.toLowerCase()).substring(0, 4), 16) % 8) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
@@ -524,6 +524,14 @@ function generateReportID() {
     return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasReportNameError(report) {
+    return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -553,4 +561,5 @@ export {
     getReportName,
     navigateToDetailsPage,
     generateReportID,
+    hasReportNameError,
 };
