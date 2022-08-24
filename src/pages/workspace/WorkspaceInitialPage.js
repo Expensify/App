@@ -80,7 +80,7 @@ class WorkspaceInitialPage extends React.Component {
         const policy = this.props.policy;
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
-        || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatarURL', {}));
+            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatarURL', {}));
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
