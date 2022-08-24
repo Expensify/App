@@ -55,6 +55,7 @@ class NavigationRoot extends Component {
             Log.info('Navigating to route', false, {path: currentPath});
         }
 
+        this.props.onReady();
         this.setState({currentPath});
     }
 
