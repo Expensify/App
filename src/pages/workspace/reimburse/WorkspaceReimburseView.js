@@ -40,11 +40,13 @@ const propTypes = {
                 attributes: PropTypes.shape({
                     unit: PropTypes.string,
                 }),
-                rate: PropTypes.shape({
-                    id: PropTypes.string,
-                    name: PropTypes.string,
-                    value: PropTypes.number,
-                }),
+                rates: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        customUnitRateID: PropTypes.string,
+                        name: PropTypes.string,
+                        rate: PropTypes.number,
+                    }),
+                ),
             }),
         ),
         outputCurrency: PropTypes.string,
@@ -56,16 +58,15 @@ const propTypes = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
-        console.log('props in WorkspaceReimburseView', props);
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
 
         this.state = {
             unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
             unitName: lodashGet(distanceCustomUnit, 'name', ''),
             unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-            rateID: lodashGet(distanceCustomUnit, 'rate.id', ''),
-            rateName: lodashGet(distanceCustomUnit, 'rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rate.value', 0) / 100),
+            rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+            rateName: lodashGet(distanceCustomUnit, 'rates[0].name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
