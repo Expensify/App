@@ -31,6 +31,9 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
+    /** The ID of the report actions will be created for */
+    reportID: PropTypes.number.isRequired,
+
     /* Onyx Props */
 
     /** The report currently being looked at */
@@ -52,7 +55,7 @@ const propTypes = {
 
         /** Are we loading more report actions? */
         isLoadingMoreReportActions: PropTypes.bool,
-    }).isRequired,
+    }),
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -75,6 +78,12 @@ const propTypes = {
 };
 
 const defaultProps = {
+    report: {
+        unreadActionCount: 0,
+        maxSequenceNumber: 0,
+        hasOutstandingIOU: false,
+        isLoadingMoreReportActions: false,
+    },
     reportActions: {},
     session: {},
 };
@@ -118,7 +127,7 @@ class ReportActionsView extends React.Component {
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
         if (!this.props.report.reportID) {
-            Report.fetchChatReportsByIDs([this.props.report.reportID], true);
+            Report.fetchChatReportsByIDs([this.props.reportID], true);
         }
         Report.subscribeToReportTypingEvents(this.props.report.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
@@ -128,7 +137,9 @@ class ReportActionsView extends React.Component {
             ReportScrollManager.scrollToBottom();
         });
 
-        Report.openReport(this.props.report.reportID);
+        if (this.props.report.reportID) {
+            Report.openReport(this.props.report.reportID);
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -179,6 +190,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.report.reportID && this.props.report.reportID) {
+            Report.openReport(this.props.report.reportID);
+        }
+
         if (lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline')) {
             if (this.getIsReportFullyVisible()) {
                 Report.openReport(this.props.report.reportID);
