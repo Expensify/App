@@ -11,7 +11,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -101,13 +100,6 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Fetches data needed for app initialization
  */
-function getAppData() {
-    BankAccounts.fetchUserWallet();
-}
-
-/**
- * Fetches data needed for app initialization
- */
 function openApp() {
     API.read('OpenApp', {policyIDList}, {
         optimisticData: [{
@@ -162,7 +154,6 @@ function fixAccountAndReloadData() {
                 return;
             }
             Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-            getAppData();
         });
 }
 
@@ -257,7 +248,6 @@ function openProfile() {
 export {
     setLocale,
     setSidebarLoaded,
-    getAppData,
     fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
     openProfile,
