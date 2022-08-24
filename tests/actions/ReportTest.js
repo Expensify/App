@@ -91,7 +91,7 @@ describe('actions/Report', () => {
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
 
-                // Store the generated clientID so that we can send it with our mock Pusher update
+                // Store the generated sequenceNumber so that we can send it with our mock Pusher update
                 sequenceNumber = resultAction.sequenceNumber;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
