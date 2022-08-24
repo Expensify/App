@@ -105,9 +105,6 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     setUnit(value) {
-        if (value === this.state.unitValue) {
-            return;
-        }
         this.setState({unitValue: value});
         Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnits[this.state.unitID], {
             customUnitID: this.state.unitID,
