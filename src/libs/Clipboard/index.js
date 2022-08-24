@@ -27,8 +27,17 @@ const setHtml = (html, text) => {
     ]);
 };
 
+/**
+ * Sets a string on the Clipboard object via react-native-web
+ *
+ * @param {String} text
+ */
+const setString = (text) => {
+    Clipboard.setString(text);
+};
+
 export default {
-    ...Clipboard,
+    setString,
     canSetHtml,
     setHtml,
 };
