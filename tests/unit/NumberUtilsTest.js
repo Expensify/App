@@ -5,9 +5,9 @@ describe('libs/NumberUtils', () => {
         const id = NumberUtils.rand64();
         expect(typeof id).toBe('string');
         // eslint-disable-next-line no-undef
-        expect(BigInt(id)).toBeLessThan(BigInt(9223372036854775807));
+        expect(BigInt(id)).toBeLessThanOrEqual(BigInt(9223372036854775807));
         // eslint-disable-next-line no-undef
-        expect(BigInt(id)).toBeGreaterThan(0);
+        expect(BigInt(id)).toBeGreaterThanOrEqual(0);
     });
 });
 
