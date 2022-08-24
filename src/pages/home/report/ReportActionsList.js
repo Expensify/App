@@ -109,7 +109,7 @@ class ReportActionsList extends React.Component {
 
     /**
      * Create a unique key for Each Action in the FlatList.
-     * We use the reportActionId that is now a random 64-bit int id, which should be
+     * We use the reportActionId that is a string representation of a random 64-bit int, which should be
      * random enought to avoid colisions
      * @param {Object} item
      * @return {String}
