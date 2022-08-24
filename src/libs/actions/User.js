@@ -229,7 +229,7 @@ function validateLogin(accountID, validateCode) {
     API.write('ValidateLogin', {
         accountID,
         validateCode,
-    }, { efaultData, defaultData, defaultData});
+    }, { defaultData, defaultData, defaultData});
     Navigation.navigate(redirectRoute);
 }
 
