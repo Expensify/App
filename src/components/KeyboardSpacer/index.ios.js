@@ -3,20 +3,31 @@
  * keyboard allowing the user to see what they are typing.
  */
 import React from 'react';
-import BaseKeyboardSpacer from './BaseKeyboardSpacer';
+import ReactNativeKeyboardSpacer from './KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
 
-const KeyboardSpacer = props => (
-    <BaseKeyboardSpacer
-        topSpacing={StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight) ? CONST.IOS_KEYBOARD_SPACE_OFFSET : 0}
-        keyboardShowMethod="keyboardWillShow"
-        keyboardHideMethod="keyboardWillHide"
-    />
-);
+const propTypes = {
+    ...windowDimensionsPropTypes,
+};
 
-KeyboardSpacer.propTypes = windowDimensionsPropTypes;
+const KeyboardSpacer = (props) => {
+    /**
+     * Checks to see if the iOS device has safe areas or not
+     *
+     * @param {Number} windowWidth
+     * @param {Number} windowHeight
+     * @returns {Boolean}
+     */
+    function hasSafeAreas(windowWidth, windowHeight) {
+        const heightsIphonesWithNotches = [812, 896, 844, 926];
+        return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
+    }
+
+    return (
+        <ReactNativeKeyboardSpacer topSpacing={hasSafeAreas(props.windowWidth, props.windowHeight) ? -30 : 0} />
+    );
+};
+
+KeyboardSpacer.propTypes = propTypes;
 KeyboardSpacer.displayName = 'KeyboardSpacer';
-
 export default withWindowDimensions(KeyboardSpacer);
