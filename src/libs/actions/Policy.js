@@ -518,7 +518,7 @@ function updateWorkspaceGeneralSettings(policyID, name, currency) {
 /**
  * @param {String} policyID The id of the workspace / policy
  */
-function clearWorkspaceNameErrors(policyID) {
+function clearWorkspaceGeneralSettingsErrors(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
             generalSettings: null,
@@ -766,5 +766,7 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     updateWorkspaceGeneralSettings,
-    clearWorkspaceNameErrors,
+    clearWorkspaceGeneralSettingsErrors,
+    deleteWorkspaceAvatar,
+    clearAvatarErrors,
 };
