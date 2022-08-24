@@ -19,4 +19,7 @@ export default PropTypes.shape({
 
     /** Status of wallet - e.g. SILVER or GOLD */
     tierName: PropTypes.string,
+
+    /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
+    shouldShowWalletActivationSuccess: PropTypes.bool,
 });
