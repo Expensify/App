@@ -133,7 +133,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        this.storeCurrentlyViewedReportAndFetchIfNeeded();
+        this.storeCurrentlyViewedReport();
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
@@ -142,7 +142,7 @@ class ReportScreen extends React.Component {
             return;
         }
 
-        this.storeCurrentlyViewedReportAndFetchIfNeeded();
+        this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
@@ -175,7 +175,7 @@ class ReportScreen extends React.Component {
     /**
      * Persists the currently viewed report id
      */
-    storeCurrentlyViewedReportAndFetchIfNeeded() {
+    storeCurrentlyViewedReport() {
         const reportIDFromPath = getReportID(this.props.route);
         if (_.isNaN(reportIDFromPath)) {
             Report.handleInaccessibleReport();
@@ -187,7 +187,8 @@ class ReportScreen extends React.Component {
         Report.updateCurrentlyViewedReportID(reportIDFromPath);
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
-        // is stored locally yet. In this case, we fetch the report and render the view once it has loaded.
+        // is not stored locally yet. In this case, we fetch the report and render the view once it has loaded or redirect if the report
+        // is no longer accessible.
         if (this.props.report.reportID) {
             return;
         }
