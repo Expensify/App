@@ -362,8 +362,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
     ];
 
     API.write('AddMembersToWorkspace', {
-        // employees: JSON.stringify(_.map(logins, login => ({email: login}))),
-        employees: JSON.stringify(logins),
+        employees: JSON.stringify(_.map(logins, login => ({email: login}))),
         welcomeNote,
         policyID,
     }, {optimisticData, successData, failureData});
