@@ -790,6 +790,9 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
+    MAX_64BIT_LEFT_HALF: 9_223_372_036,
+    MAX_64BIT_RIGHT_HALF: 854_775_807,
+    IOS_KEYBOARD_SPACE_OFFSET: -30,
 };
 
 export default CONST;
