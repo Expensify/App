@@ -753,6 +753,7 @@ function buildOptimisticReportAction(reportID, text, file) {
     return {
         commentText,
         reportAction: {
+            reportActionID: NumberUtils.rand64(), //This is pending a merge from another PR
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
@@ -838,14 +839,15 @@ function addActions(reportID, text = '', file) {
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+        optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
     const parameters = {
         reportID,
+        reportActionID: reportCommentAction.reportActionID,
         reportComment: reportCommentText,
         clientID: lastAction.clientID,
         commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
