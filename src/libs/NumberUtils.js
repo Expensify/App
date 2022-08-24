@@ -27,6 +27,7 @@ function rand64() {
     return left + rightString;
 }
 
-module.exports = {
+export {
+    // eslint-disable-next-line import/prefer-default-export
     rand64,
 };
