@@ -17,7 +17,6 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ErrorUtils from '../../libs/ErrorUtils';
-import FormAlertError from '../../components/FormAlertError';
 
 const propTypes = {
     /* Onyx Props */
@@ -86,7 +85,9 @@ class ResendValidationForm extends React.Component {
                     </Text>
                 )}
                 {!this.props.account.message && error && (
-                    <FormAlertError message={error} isMessageHtml={false} />
+                    <Text style={[styles.formError]}>
+                        {error}
+                    </Text>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => redirectToSignIn()}>
@@ -99,7 +100,7 @@ class ResendValidationForm extends React.Component {
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
-                        onPress={() => (this.props.account.validated ? Session.resetPassword() : Session.resendValidationLink())}
+                        onPress={this.props.account.validated ? Session.resetPassword : Session.resendValidationLink}
                         isDisabled={this.props.network.isOffline}
                     />
                 </View>
