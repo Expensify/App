@@ -1,14 +1,13 @@
 const NumberUtils = require('../../src/libs/NumberUtils');
 
-const result = NumberUtils.rand64();
-
-const max64 = 9223372036854775807;
-
 describe('libs/NumberUtils', () => {
     it('should generate a random 64-bit numeric string', () => {
         const id = NumberUtils.rand64();
-        expect(isNaN(result)).toBe(false);
-        expect(result > max64).toBe(false);
+        expect(Number.isNaN(id));
+        // eslint-disable-next-line no-undef
+        expect(BigInt(id)).toBeLessThan(BigInt(9223372036854775807));
+        // eslint-disable-next-line no-undef
+        expect(BigInt(id)).toBeGreaterThan(0);
     });
 });
 
