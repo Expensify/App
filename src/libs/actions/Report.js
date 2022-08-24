@@ -840,10 +840,10 @@ function addActions(reportID, text = '', file) {
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.sequenceNumber] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
+        optimisticReportActions[attachmentAction.sequenceNumber] = attachmentAction;
     }
 
     const parameters = {
