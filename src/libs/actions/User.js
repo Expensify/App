@@ -217,38 +217,19 @@ function validateLogin(accountID, validateCode) {
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
+    const defaultData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
     API.write('ValidateLogin', {
         accountID,
         validateCode,
-    }, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-    });
+    }, { efaultData, defaultData, defaultData});
     Navigation.navigate(redirectRoute);
 }
 
