@@ -210,7 +210,11 @@ const InitialSettingsPage = (props) => {
                         const isPaymentItem = item.translationKey === 'common.payments';
                         const doNothing = () => {};
                         return (
-                            <OfflineWithFeedback onClose={item.dismissError || doNothing} pendingAction={item.pendingAction} errors={item.errors}>
+                            <OfflineWithFeedback
+                                errorRowStyles={styles.ph6}
+                                onClose={item.dismissError || doNothing}
+                                pendingAction={item.pendingAction}
+                                errors={item.errors}>
                                 <MenuItem
                                     key={`${keyTitle}_${index}`}
                                     title={keyTitle}
