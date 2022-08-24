@@ -66,6 +66,11 @@ class EnablePaymentsPage extends React.Component {
                 </ScreenWrapper>
             );
         }
+        if (this.props.userWallet.shouldShowWalletActivationSuccess) {
+            return (
+                <ActivateStep userWallet={this.props.userWallet} />
+            );
+        }
 
         const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
 
