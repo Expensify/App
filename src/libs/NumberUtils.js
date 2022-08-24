@@ -26,3 +26,7 @@ function rand64() {
 
     return left + rightString;
 }
+
+module.exports = {
+    rand64,
+};
