@@ -113,5 +113,5 @@ export {
     getDeletedCommentsCount,
     getLastVisibleMessageText,
     isFromCurrentUser,
-    deleteClientAction,
+    deleteOptimisticReportAction,
 };
