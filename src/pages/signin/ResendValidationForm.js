@@ -17,6 +17,10 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import Icon from '../../components/Icon';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import colors from '../../styles/colors';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /* Onyx Props */
@@ -60,6 +64,7 @@ class ResendValidationForm extends React.Component {
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
         const error = ErrorUtils.getLatestErrorMessage(this.props.account);
+        const successMessage = this.props.account.message;
 
         return (
             <>
@@ -79,15 +84,25 @@ class ResendValidationForm extends React.Component {
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
-                {this.props.account.message && (
-                    <Text style={[styles.formSuccess]}>
-                        {this.props.account.message}
-                    </Text>
+                {successMessage && (
+                    <View style={[styles.flexRow, styles.mb5]}>
+                        <View style={styles.offlineFeedback.errorDot}>
+                            <Icon src={Expensicons.DotIndicator} fill={colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+                        </View>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {successMessage}
+                        </Text>
+                    </View>
                 )}
-                {!this.props.account.message && error && (
-                    <Text style={[styles.formError]}>
-                        {error}
-                    </Text>
+                {!successMessage && error && (
+                    <View style={[styles.flexRow, styles.mb5]}>
+                        <View style={styles.offlineFeedback.errorDot}>
+                            <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+                        </View>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {error}
+                        </Text>
+                    </View>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => redirectToSignIn()}>
