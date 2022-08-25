@@ -2,6 +2,8 @@ import React from 'react';
 import BaseScreenWrapper from './BaseScreenWrapper';
 import {defaultProps, propTypes} from './propTypes';
 
+defaultProps.keyboardAvoidingViewBehavior = 'padding';
+
 const ScreenWrapper = props => (
     <BaseScreenWrapper
         // eslint-disable-next-line react/jsx-props-no-spreading
