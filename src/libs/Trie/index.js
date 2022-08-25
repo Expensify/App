@@ -10,11 +10,12 @@ class Trie {
     * Add a word to the Trie
     * @param {String} word
     * @param {Object} [metaData]
-    * @param {TrieNode} node
+    * @param {TrieNode} newNode
     * @param {String} [containChar]
     * @returns {void}
     */
-    add(word, metaData, node = this.root, containChar) {
+    add(word, metaData, newNode = this.root, containChar) {
+        const node = newNode;
         if (word.length === 0 && !containChar) {
             throw new Error('Cannot insert empty word into Trie :', word);
         }
@@ -23,7 +24,6 @@ class Trie {
             node.setMetaData(metaData);
             return;
         } if (!node.children[word[0]]) {
-            // eslint-disable-next-line no-param-reassign
             node.children[word[0]] = new TrieNode();
             return this.add(word.substring(1), metaData, node.children[word[0]], word.charAt(0));
         }
@@ -32,17 +32,17 @@ class Trie {
 
     /**
     * Check if the word is exist in the Trie.
-    * @param {String} word
+    * @param {String} newWord
     * @returns {Object}
     */
-    isWord(word) {
+    isWord(newWord) {
+        let word = newWord;
         let node = this.root;
         while (word.length > 1) {
             if (!node.children[word[0]]) {
                 return null;
             }
             node = node.children[word[0]];
-            // eslint-disable-next-line no-param-reassign
             word = word.substring(1);
         }
         return node.children[word];
