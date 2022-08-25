@@ -419,16 +419,6 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
 }
 
 /**
- * @param {Number} reportID
- * @param {Number} sequenceNumber
- */
-function setNewMarkerPosition(reportID, sequenceNumber) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        newMarkerSequenceNumber: sequenceNumber,
-    });
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -1140,6 +1130,7 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 onyxMethod: 'merge',
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
+                    lastReadSequenceNumber: newLastReadSequenceNumber,
                     lastVisitedTimestamp: Date.now(),
                     unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                 },
@@ -1542,12 +1533,6 @@ function viewNewReportAction(reportID, action) {
         return;
     }
 
-    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the marker above the incoming message.
-    const report = lodashGet(allReports, 'reportID', {});
-    if (lodashGet(report, 'newMarkerSequenceNumber', 0) === 0 && report.unreadActionCount > 0) {
-        setNewMarkerPosition(reportID, report.lastReadSequenceNumber + 1);
-    }
-
     Log.info('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction: action,
@@ -1608,7 +1593,6 @@ export {
     addAttachment,
     reconnect,
     updateNotificationPreference,
-    setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
     subscribeToReportCommentPushNotifications,
