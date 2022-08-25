@@ -637,6 +637,14 @@ function hasPolicyMemberError(policyMemberList) {
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
+/**
+ * Returns a client generated 16 character hexadecimal value for the policyID
+ * @returns {String}
+ */
+function generatePolicyID() {
+    return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -660,4 +668,5 @@ export {
     hasPolicyMemberError,
     deleteWorkspaceAvatar,
     clearAvatarErrors,
+    generatePolicyID,
 };
