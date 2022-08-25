@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -763,6 +764,48 @@ function clearAddMemberError(policyID, memberEmail) {
     });
 }
 
+/**
+* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
+ * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * @param {Object} policyMemberList
+ * @returns {Boolean}
+ */
+function hasPolicyMemberError(policyMemberList) {
+    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
+}
+
+/**
+ * @param {String} value
+ * @returns {String}
+ */
+function capitalizeFirstLetter(value) {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+/**
+ * Generate a policy name based on the email.
+ * @param {String} email
+ * @returns {String}
+ */
+function generateDefaultWorkspaceName(email) {
+    const emailParts = email.split('@');
+    if (!emailParts && emailParts.length !== 2) {
+        return '';
+    }
+    const username = emailParts[0];
+    const domain = emailParts[1];
+
+    if (domain.toLowerCase() === CONST.SMS.DOMAIN) {
+        return 'My Group Workspace';
+    }
+
+    if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
+        return `${capitalizeFirstLetter(username)}'s Workspace`;
+    }
+
+    return `${capitalizeFirstLetter(domain.split('.')[0])}'s Workspace`;
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -784,10 +827,6 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    updateGeneralSettings,
-    clearWorkspaceGeneralSettingsErrors,
-    deleteWorkspaceAvatar,
-    updateWorkspaceAvatar,
-    clearAvatarErrors,
-    generatePolicyID,
+    hasPolicyMemberError,
+    generateDefaultWorkspaceName,
 };
