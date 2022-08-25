@@ -228,7 +228,7 @@ class BankAccountStep extends React.Component {
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                             disabled={this.props.isPlaidDisabled || !validated}
                             style={[styles.mt5, styles.buttonCTA]}
-                            iconStyles={[styles.mr5]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             success
                             large

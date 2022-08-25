@@ -235,7 +235,7 @@ class WorkspaceReimburseView extends React.Component {
                             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policyID)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
-                            iconStyles={[styles.mr5]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             large
                             success

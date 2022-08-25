@@ -34,7 +34,7 @@ const WorkspaceInvoicesNoVBAView = props => (
                 onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
-                iconStyles={[styles.mr5]}
+                iconStyles={[styles.buttonCTAIcon]}
                 shouldShowRightIcon
                 large
                 success

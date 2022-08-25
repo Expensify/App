@@ -120,7 +120,7 @@ class WorkspaceBankAccountPage extends React.Component {
                             onPress={this.navigateToBankAccountRoute}
                             icon={Expensicons.Bank}
                             style={[styles.mt2, styles.buttonCTA]}
-                            iconStyles={[styles.mr5]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             large
                             success

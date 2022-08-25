@@ -245,7 +245,7 @@ class ValidationStep extends React.Component {
                             onPress={Report.navigateToConciergeChat}
                             icon={Expensicons.ChatBubble}
                             style={[styles.mt4, styles.buttonCTA]}
-                            iconStyles={[styles.mr5]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             large
                             success

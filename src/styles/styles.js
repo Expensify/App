@@ -381,9 +381,9 @@ const styles = {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 14,
         paddingBottom: 8,
-        paddingLeft: 12,
+        paddingLeft: 14,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -459,6 +459,10 @@ const styles = {
     buttonCTA: {
         paddingVertical: 6,
         ...spacing.mh4,
+    },
+
+    buttonCTAIcon: {
+        marginRight: 22,
     },
 
     buttonConfirm: {

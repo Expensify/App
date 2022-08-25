@@ -157,7 +157,7 @@ class PaymentMethodList extends Component {
             text: this.props.translate('paymentMethodList.addPaymentMethod'),
             icon: Expensicons.CreditCard,
             style: [styles.buttonCTA],
-            iconStyles: [styles.mr4],
+            iconStyles: [styles.buttonCTAIcon],
             onPress: e => this.props.onPress(e),
             isDisabled: this.props.isLoadingPayments,
             shouldShowRightIcon: true,
