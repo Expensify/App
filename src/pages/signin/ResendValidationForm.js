@@ -50,72 +50,70 @@ const defaultProps = {
     account: {},
 };
 
-class ResendValidationForm extends React.Component {
-    render() {
-        const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
-        const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
-        const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
-        const error = ErrorUtils.getLatestErrorMessage(this.props.account);
-        const successMessage = this.props.account.message;
+const ResendValidationForm = (props) => {
+    const isSMSLogin = Str.isSMSLogin(props.credentials.login);
+    const login = isSMSLogin ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login)) : props.credentials.login;
+    const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
+    const error = ErrorUtils.getLatestErrorMessage(props.account);
+    const successMessage = props.account.message;
 
-        return (
-            <>
-                <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
-                    <Avatar
-                        source={ReportUtils.getDefaultAvatar(this.props.credentials.login)}
-                        imageStyles={[styles.mr2]}
-                    />
-                    <View style={[styles.flex1]}>
-                        <Text style={[styles.textStrong]}>
-                            {login}
-                        </Text>
-                    </View>
-                </View>
-                <View style={[styles.mv5]}>
-                    <Text>
-                        {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
+    return (
+        <>
+            <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+                <Avatar
+                    source={ReportUtils.getDefaultAvatar(props.credentials.login)}
+                    imageStyles={[styles.mr2]}
+                />
+                <View style={[styles.flex1]}>
+                    <Text style={[styles.textStrong]}>
+                        {login}
                     </Text>
                 </View>
-                {successMessage && (
-                    <View style={[styles.flexRow, styles.mb5]}>
-                        <View style={styles.offlineFeedback.errorDot}>
-                            <Icon src={Expensicons.DotIndicator} fill={colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
-                        </View>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {successMessage}
-                        </Text>
+            </View>
+            <View style={[styles.mv5]}>
+                <Text>
+                    {props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
+                </Text>
+            </View>
+            {successMessage && (
+                <View style={[styles.flexRow, styles.mb5]}>
+                    <View style={styles.offlineFeedback.errorDot}>
+                        <Icon src={Expensicons.DotIndicator} fill={colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>
-                )}
-                {!successMessage && error && (
-                    <View style={[styles.flexRow, styles.mb5]}>
-                        <View style={styles.offlineFeedback.errorDot}>
-                            <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
-                        </View>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {error}
-                        </Text>
-                    </View>
-                )}
-                <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <TouchableOpacity onPress={() => redirectToSignIn()}>
-                        <Text>
-                            {this.props.translate('common.back')}
-                        </Text>
-                    </TouchableOpacity>
-                    <Button
-                        medium
-                        success
-                        text={this.props.translate('resendValidationForm.resendLink')}
-                        isLoading={this.props.account.loading}
-                        onPress={() => (this.props.account.validated ? Session.resetPassword() : Session.resendValidationLink())}
-                        isDisabled={this.props.network.isOffline}
-                    />
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {successMessage}
+                    </Text>
                 </View>
-                <OfflineIndicator containerStyles={[styles.mv1]} />
-            </>
-        );
-    }
-}
+            )}
+            {!successMessage && error && (
+                <View style={[styles.flexRow, styles.mb5]}>
+                    <View style={styles.offlineFeedback.errorDot}>
+                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+                    </View>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {error}
+                    </Text>
+                </View>
+            )}
+            <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                <TouchableOpacity onPress={() => redirectToSignIn()}>
+                    <Text>
+                        {props.translate('common.back')}
+                    </Text>
+                </TouchableOpacity>
+                <Button
+                    medium
+                    success
+                    text={props.translate('resendValidationForm.resendLink')}
+                    isLoading={props.account.loading}
+                    onPress={() => (props.account.validated ? Session.resetPassword() : Session.resendValidationLink())}
+                    isDisabled={props.network.isOffline}
+                />
+            </View>
+            <OfflineIndicator containerStyles={[styles.mv1]} />
+        </>
+    );
+};
 
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
