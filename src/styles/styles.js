@@ -1425,7 +1425,7 @@ const styles = {
     },
 
     textInputComposeSpacing: {
-        alignSelf: "center",
+        alignSelf: 'center',
         ...flex.flexRow,
         flex: 1,
     },
