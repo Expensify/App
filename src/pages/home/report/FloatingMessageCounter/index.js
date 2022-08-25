@@ -11,14 +11,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
-    /** Count of new messages to show in the badge */
-    count: PropTypes.number,
-
     /** Whether the marker is active */
-    active: PropTypes.bool,
-
-    /** Callback to be called when user closes the badge */
-    onClose: PropTypes.func,
+    isActive: PropTypes.bool,
 
     /** Callback to be called when user clicks the marker */
     onClick: PropTypes.func,
@@ -27,9 +21,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    count: 0,
-    active: false,
-    onClose: () => {},
+    isActive: false,
     onClick: () => {},
 };
 
@@ -45,7 +37,7 @@ class FloatingMessageCounter extends PureComponent {
     }
 
     componentDidUpdate() {
-        if (this.props.active && this.props.count > 0) {
+        if (this.props.isActive && this.props.count > 0) {
             this.show();
         } else {
             this.hide();
@@ -93,23 +85,9 @@ class FloatingMessageCounter extends PureComponent {
                                             styles.textWhite,
                                         ]}
                                     >
-                                        {this.props.translate(
-                                            'newMessageCount',
-                                            {count: this.props.count},
-                                        )}
+                                        {this.props.translate('newMessages')}
                                     </Text>
                                 </View>
-                            )}
-                            shouldRemoveRightBorderRadius
-                        />
-                        <Button
-                            success
-                            small
-                            style={[styles.buttonDropdown]}
-                            onPress={this.props.onClose}
-                            shouldRemoveLeftBorderRadius
-                            ContentComponent={() => (
-                                <Icon small src={Expensicons.Close} fill={themeColors.textReversed} />
                             )}
                         />
                     </View>
