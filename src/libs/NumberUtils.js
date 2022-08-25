@@ -16,7 +16,7 @@ function rand64() {
 
     // If the top is any number but the highest one, we can actually have any value for the rest
     if (left !== CONST.MAX_64BIT_LEFT_HALF) {
-        right = Math.floor(Math.random() * 1_000_000_000);
+        right = Math.floor(Math.random() * 1000000000);
     } else {
         right = Math.floor(Math.random() * (CONST.MAX_64BIT_RIGHT_HALF + 1));
     }
