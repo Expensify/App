@@ -45,9 +45,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** List of members on this policy */
-    memberList: PropTypes.arrayOf(PropTypes.object),
-
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -378,9 +375,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        memberList: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${route.params.policyID}`,
         },
     }),
 )(WorkspaceMembersPage);
