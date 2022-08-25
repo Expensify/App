@@ -101,7 +101,7 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
 
 /**
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {String} sequenceNumber
  */
 function deleteOptimisticReportAction(reportID, sequenceNumber) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
