@@ -12,10 +12,6 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
-    // A key that is set while we are still waiting for the initial round of reports to load. Once set it should not be
-    // false unless we sign out. If there are reports in storage when the app inits this will be `true`.
-    INITIAL_REPORT_DATA_LOADED: 'initialReportDataLoaded',
-
     // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
     IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
 
@@ -27,9 +23,6 @@ export default {
 
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
-
-    // What the active route is for our navigator. Global route that determines what views to display.
-    CURRENT_URL: 'currentURL',
 
     // Stores current date
     CURRENT_DATE: 'currentDate',
@@ -103,8 +96,6 @@ export default {
         POLICY: 'policy_',
         REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        IS_LOADING_INITIAL_REPORT_ACTIONS: 'isLoadingInitialReportActions_',
-        IS_LOADING_MORE_REPORT_ACTIONS: 'isLoadingMoreReportActions_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
@@ -159,9 +150,6 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // Stores values for the request call form
-    REQUEST_CALL_FORM: 'requestCallForm',
-
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
 
@@ -173,9 +161,6 @@ export default {
 
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
-
-    // Are we loading the rename policy room command
-    IS_LOADING_RENAME_POLICY_ROOM: 'isLoadingRenamePolicyRoom',
 
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
@@ -189,11 +174,9 @@ export default {
     // The policyID of the last workspace whose settings were accessed by the user
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
-    // Validating Email?
-    USER_SIGN_UP: 'userSignUp',
-
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+        REQUEST_CALL_FORM: 'requestCallForm',
     },
 };

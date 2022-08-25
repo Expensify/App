@@ -20,6 +20,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
+import CONST from '../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -73,6 +74,7 @@ class ReportDetailsPage extends Component {
 
         // All nonarchived chats should let you see their members
         this.menuItems.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
             translationKey: 'common.members',
             icon: Expensicons.Users,
             subtitle: props.report.participants.length,
@@ -81,6 +83,7 @@ class ReportDetailsPage extends Component {
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             this.menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
                 action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
@@ -89,11 +92,13 @@ class ReportDetailsPage extends Component {
 
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
             this.menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
                 action: () => { /* Placeholder for when inviting other users is built in */ },
             },
             {
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
                 action: () => { /* Placeholder for when leaving rooms is built in */ },
@@ -155,17 +160,21 @@ class ReportDetailsPage extends Component {
                         </View>
                     </View>
                     {_.map(this.menuItems, (item) => {
-                        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+                        const brickRoadIndicator = (
+                            ReportUtils.hasReportNameError(this.props.report)
+                            && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
+                        )
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : '';
                         return (
                             <MenuItem
-                                key={keyTitle}
-                                title={keyTitle}
+                                key={item.key}
+                                title={this.props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
                                 onPress={item.action}
-                                iconStyles={item.iconStyles}
-                                iconFill={item.iconFill}
                                 shouldShowRightIcon
+                                brickRoadIndicator={brickRoadIndicator}
                             />
                         );
                     })}

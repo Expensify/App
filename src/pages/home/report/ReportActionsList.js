@@ -103,19 +103,19 @@ class ReportActionsList extends React.Component {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
         const availableHeight = this.props.windowHeight
-            - (styles.chatFooter.minHeight + variables.contentHeaderHeight);
+            - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
     /**
      * Create a unique key for Each Action in the FlatList.
-     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-     * shouldn't happen, but might be possible in some rare cases.
+     * We use the reportActionId that is a string representation of a random 64-bit int, which should be
+     * random enought to avoid colisions
      * @param {Object} item
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.sequenceNumber}${item.action.clientID}`;
+        return `${item.action.reportActionID}`;
     }
 
     /**

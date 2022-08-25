@@ -50,21 +50,21 @@ function updatePassword(oldPassword, password) {
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
+                value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
             },
         ],
         successData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {loading: false},
+                value: {isLoading: false},
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {loading: false},
+                value: {isLoading: false},
             },
         ],
     });
@@ -177,7 +177,7 @@ function updateNewsletterSubscription(isSubscribed) {
  * @returns {Promise}
  */
 function setSecondaryLoginAndNavigate(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     return DeprecatedAPI.User_SecondaryLogin_Send({
         email: login,
@@ -202,7 +202,7 @@ function setSecondaryLoginAndNavigate(login, password) {
 
         Onyx.merge(ONYXKEYS.USER, {error});
     }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
     });
 }
 
@@ -215,30 +215,22 @@ function setSecondaryLoginAndNavigate(login, password) {
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
-    DeprecatedAPI.ValidateEmail({
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+    API.write('ValidateLogin', {
         accountID,
         validateCode,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            const {email} = response;
-
-            if (isLoggedIn) {
-                getUserDetails();
-            } else {
-                // Let the user know we've successfully validated their login
-                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
-                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-            }
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-        }
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        Navigation.navigate(redirectRoute);
-    });
+    }, {optimisticData});
+    Navigation.navigate(redirectRoute);
 }
 
 /**

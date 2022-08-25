@@ -68,23 +68,23 @@ There are 3 main components in the hub page: 1. Stage title, 2. Row of Card butt
 
     <!-- 3. Card buttons -->
 
-    <div class="card" onclick="navigateTo('./request-money/SmartScan')">
+    <a class="card" href="/articles/request-money/SmartScan">
         <div class="body">
-            <div class="title">SmartScan</div>
+            <h3 class="title">SmartScan</h3>
         </div>
         <div class="right-icon">
             <i class="fa-solid fa-angle-right icon"></i>
         </div>
-    </div>
+    </a>
 
-    <div class="card" onclick="navigateTo('./request-money/AnotherArticle')">
+    <a class="card" href="/articles/request-money/AnotherArticle">
         <div class="body">
-            <div class="title">Another Article</div>
+            <h3 class="title">Another Article</h3>
         </div>
         <div class="right-icon">
             <i class="fa-solid fa-angle-right icon"></i>
         </div>
-    </div>
+    </a>
 
     <!-- More Card buttons here... -->
 
@@ -119,14 +119,14 @@ A card button is the box that contains the article title and the caret right ico
 In order to add a new Card button in the respective hub page ([send-money/index.html](https://github.com/Expensify/App/blob/main/docs/hubs/send-money.html) or [request-money/index.html](https://github.com/Expensify/App/blob/main/docs/hubs/request-money.html)) just copy and pase the following Card element:
 
 ```html
-<div class="card" onclick="navigateTo('./request-money/SmartScan')">
+<a class="card" href="/articles/request-money/SmartScan">
     <div class="body">
-        <div class="title">SmartScan</div>
+        <h3 class="title">SmartScan</h3>
     </div>
     <div class="right-icon">
         <i class="fa-solid fa-angle-right icon"></i>
     </div>
-</div>
+</a>
 ```
 
 Then replace the article title accordingly (in this case replace the value `SmartScan` with the new article title) and add a link to the relative path of the article (in this case replace `./request-money/SmartScan` accordingly to the path of the new article file without the file extension).
