@@ -344,6 +344,27 @@ function clearWalletError() {
     Onyx.merge(ONYXKEYS.USER_WALLET, {errors: null});
 }
 
+/**
+ * Clear any error(s) related to the user's wallet terms
+ */
+function clearWalletTermsError() {
+    Onyx.merge(ONYXKEYS.WALLET_TERMS, {errors: null});
+}
+
+function deletePaymentCard(fundID) {
+    API.write('DeletePaymentCard', {
+        fundID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.CARD_LIST}`,
+                value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
+    });
+}
+
 export {
     deletePayPalMe,
     deletePaymentCard,
@@ -363,4 +384,5 @@ export {
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
     clearWalletError,
+    clearWalletTermsError,
 };
