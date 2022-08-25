@@ -181,7 +181,8 @@ function deleteWorkspace(policyID) {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                'pendingAction': 'delete',
+                pendingAction: 'delete',
+                errors: null,
             },
         },
     ];
@@ -190,19 +191,6 @@ function deleteWorkspace(policyID) {
     // the onyxData for all connected clients.
     const failureData = [];
     const successData = [];
-    // const failureData = [
-    //     {
-    //         onyxMethod: 'merge',
-    //         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    //         value: {
-    //             'pendingAction': null,
-    //             'errors': {
-    //                 <current_microtime>: '<some generic error>',
-    //             }
-    //         },
-    //     },
-    // ];
-
     API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
 
     // const optimisticData = [{

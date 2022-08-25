@@ -211,12 +211,12 @@ const InitialSettingsPage = (props) => {
                         const doNothing = () => {};
                         return (
                             <OfflineWithFeedback
+                                key={`${keyTitle}_${index}`}
                                 errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
                                 onClose={item.dismissError || doNothing}
                                 pendingAction={item.pendingAction}
                                 errors={item.errors}>
                                 <MenuItem
-                                    key={`${keyTitle}_${index}`}
                                     title={keyTitle}
                                     icon={item.icon}
                                     iconType={item.iconType}
