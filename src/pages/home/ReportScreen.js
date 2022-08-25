@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Keyboard, View} from 'react-native';
+import {Keyboard, Platform, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
@@ -61,6 +61,9 @@ const propTypes = {
 
         /** Flag to check if the report actions data are loading */
         isLoadingReportActions: PropTypes.bool,
+
+        /** ID for the report */
+        reportID: PropTypes.string,
     }),
 
     /** Array of report actions for this report */
@@ -165,22 +168,31 @@ class ReportScreen extends React.Component {
     shouldShowLoader() {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        return !getReportID(this.props.route) || isLoadingInitialReportActions;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
     }
 
     /**
      * Persists the currently viewed report id
      */
     storeCurrentlyViewedReport() {
-        const reportID = getReportID(this.props.route);
-        if (_.isNaN(reportID)) {
+        const reportIDFromPath = getReportID(this.props.route);
+        if (_.isNaN(reportIDFromPath)) {
             Report.handleInaccessibleReport();
             return;
         }
 
         // Always reset the state of the composer view when the current reportID changes
         toggleReportActionComposeView(true);
-        Report.updateCurrentlyViewedReportID(reportID);
+        Report.updateCurrentlyViewedReportID(reportIDFromPath);
+
+        // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
+        // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
+        // If it doesn't exist, then we fetch the report from the API.
+        if (this.props.report.reportID) {
+            return;
+        }
+
+        Report.fetchChatReportsByIDs([reportIDFromPath], true);
     }
 
     /**
@@ -215,7 +227,10 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
+            <ScreenWrapper
+                style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
+            >
                 <HeaderView
                     reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
