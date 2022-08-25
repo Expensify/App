@@ -36,6 +36,7 @@ const defaultProps = {
     includePaddingTop: true,
     onTransitionEnd: () => {},
     modal: {},
+    keyboardAvoidingViewBehavior: 'padding',
 };
 
 export {propTypes, defaultProps};
