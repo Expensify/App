@@ -7,14 +7,11 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import stylePropTypes from '../styles/stylePropTypes';
-import Text from './Text';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
-import colors from '../styles/colors';
-import variables from '../styles/variables';
 import DotIndicatorMessage from './DotIndicatorMessage';
 
 /**

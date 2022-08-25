@@ -17,11 +17,6 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ErrorUtils from '../../libs/ErrorUtils';
-import Icon from '../../components/Icon';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import colors from '../../styles/colors';
-import variables from '../../styles/variables';
-import {DotIndicator} from '../../components/Icon/Expensicons';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 
 const propTypes = {
