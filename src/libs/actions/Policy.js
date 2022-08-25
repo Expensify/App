@@ -63,6 +63,8 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
  * @param {String} [fullPolicyOrPolicySummary.avatar]
  * @param {String} [fullPolicyOrPolicySummary.value.avatar]
+ * @param {String} [fullPolicyOrPolicySummary.avatarURL]
+ * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
  * @param {Boolean} isFromFullPolicy,
