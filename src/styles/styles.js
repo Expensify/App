@@ -2360,9 +2360,12 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         ...spacing.pv2,
+    },
+
+    peopleRowBorderBottom: {
+        borderColor: themeColors.border,
+        borderBottomWidth: 1,
     },
 
     peopleRowCell: {
