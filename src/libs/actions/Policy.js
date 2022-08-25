@@ -583,13 +583,13 @@ function capitalizeFirstLetter(value) {
  */
 function generateDefaultWorkspaceName(email) {
     const emailParts = email.split('@');
-    if (!emailParts && emailParts.length !== 2) {
+    if (!emailParts || emailParts.length !== 2) {
         return '';
     }
     const username = emailParts[0];
     const domain = emailParts[1];
 
-    if (domain.toLowerCase() === CONST.SMS.DOMAIN) {
+    if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
         return 'My Group Workspace';
     }
 
