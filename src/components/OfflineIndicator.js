@@ -18,6 +18,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** Optional styles for container element that will override the default styling for the offline indicator */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Is the window width narrow, like on a mobile device */
