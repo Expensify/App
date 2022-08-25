@@ -33,10 +33,6 @@ class ArrowKeyFocusManager extends Component {
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
 
         this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
-            if (this.props.maxIndex < 1) {
-                return;
-            }
-
             const currentFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
             let newFocusedIndex = currentFocusedIndex;
 
@@ -51,10 +47,6 @@ class ArrowKeyFocusManager extends Component {
         }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true);
 
         this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
-            if (this.props.maxIndex < 1) {
-                return;
-            }
-
             const currentFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
             let newFocusedIndex = currentFocusedIndex;
 
