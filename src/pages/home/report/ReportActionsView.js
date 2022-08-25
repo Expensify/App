@@ -176,43 +176,42 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        const isReportFullyVisible = this.getIsReportFullyVisible();
+
+        // NETWORK CHANGE DETECTED
+        // When returning from offline to online state we want to trigger a request to OpenReport which
+        // will fetch the reportActions data and mark the report as read. If the report is not fully visible
+        // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
         if (lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline')) {
-            // When returning from offline to online state we want to trigger a request to OpenReport which
-            // will fetch the reportActions data and mark the report as read. If the report is not fully visible
-            // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
-            if (this.getIsReportFullyVisible()) {
+            if (isReportFullyVisible) {
                 Report.openReport(this.props.report.reportID);
             } else {
                 Report.reconnect(this.props.report.reportID);
             }
         }
 
-        // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
-
-        // Record the max action when window is visible and the sidebar is not covering the report view on a small screen
-        const isReportFullyVisible = this.getIsReportFullyVisible();
-        const sidebarClosed = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
-        const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
         const screenSizeIncreased = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
-        const reportBecomeVisible = sidebarClosed || screenSizeIncreased;
 
+        // NEW REPORT ACTION APPEARED
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             const lastAction = CollectionUtils.lastItem(this.props.reportActions);
             const isLastActionFromCurrentUser = lodashGet(lastAction, 'actorEmail', '') === lodashGet(this.props.session, 'email', '');
+
+            // NEW REPORT ACTION APPEARED FROM CURRENT USER
             if (isLastActionFromCurrentUser) {
-                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where they are now in the list.
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+                // they are now in the list.
                 ReportScrollManager.scrollToBottom();
 
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 this.setState({newMarkerSequenceNumber: 0});
-            }
-
-            // When a new comment appears and the report is in view we use the scroll position to determine whether the report should be
-            // marked as read and the new line indicator reset. If the user is scrolled up and no new line marker is set we will set it
-            // otherwise we will do nothing so the new marker stays in it's previous position.
-            if (isReportFullyVisible) {
+            } else if (isReportFullyVisible) {
+                // NEW REPORT ACTION APPEARED FROM ANOTHER USER AND REPORT IS IN VIEW
+                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
+                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
+                // stays in it's previous position.
                 if (this.currentScrollOffset === 0) {
                     Report.readNewestAction(this.props.report.reportID);
                     this.setState({newMarkerSequenceNumber: 0});
@@ -222,8 +221,11 @@ class ReportActionsView extends React.Component {
             }
         }
 
-        // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
-        if (isReportFullyVisible && reportBecomeVisible) {
+        // REPORT PREVIOUSLY HIDDEN BY SIDEBAR/LHN OR VIEW EXPANDED FROM MOBILE TO DESKTOP LAYOUT
+        // We update the new marker position, mark the report as read, and fetch new report actions
+        const sidebarClosed = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
+        const reportBecameVisible = sidebarClosed || screenSizeIncreased;
+        if (isReportFullyVisible && reportBecameVisible) {
             this.setState({
                 newMarkerSequenceNumber: this.props.report.unreadActionCount === 0
                     ? 0
@@ -232,13 +234,16 @@ class ReportActionsView extends React.Component {
             Report.openReport(this.props.report.reportID);
         }
 
+        // REPORT PREVIOUSLY OPEN BUT USER NAVIGATED TO SIDEBAR/LHN
         // When the user swipes back on the report or navigates to the LHN the ReportActionsView doesn’t unmount and just remains hidden.
-        // But the next time we navigate to it (e.g. by swiping or tapping the same report) we want the new marker to clear.
+        // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
+        const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
         if (sidebarOpened && this.props.report.unreadActionCount === 0) {
             this.setState({newMarkerSequenceNumber: 0});
         }
 
-        // This condition checks to see if a report comment has been manually "marked as read". All other times when the lastReadSequenceNumber
+        // REPORT COMMENT MANUALLY MARKED AS UNREAD
+        // Checks to see if a report comment has been manually "marked as read". All other times when the lastReadSequenceNumber
         // changes it will be because we marked the entire report as read and there should be an unreadActionCount of 0.
         if ((prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber)
             && this.props.report.unreadActionCount > 0) {
