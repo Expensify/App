@@ -144,20 +144,6 @@ function reconnectApp() {
 }
 
 /**
- * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
- * because some migrations might create new chat reports or their change data.
- */
-function fixAccountAndReloadData() {
-    DeprecatedAPI.User_FixAccount()
-        .then((response) => {
-            if (!response.changed) {
-                return;
-            }
-            Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-        });
-}
-
-/**
  * This action runs when the Navigator is ready and the current route changes
  *
  * currentPath should be the path as reported by the NavigationContainer
@@ -248,7 +234,6 @@ function openProfile() {
 export {
     setLocale,
     setSidebarLoaded,
-    fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
