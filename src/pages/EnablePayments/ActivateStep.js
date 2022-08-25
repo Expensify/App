@@ -75,7 +75,7 @@ class ActivateStep extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.mh5, styles.flex1]}>
+                <View style={styles.flex1}>
                     {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && this.renderGoldWalletActivationStep()}
                     {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER && (
                         <Text>{this.props.translate('activateStep.checkBackLater')}</Text>
