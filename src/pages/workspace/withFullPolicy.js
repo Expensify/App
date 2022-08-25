@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
+import policyMemberPropType from '../policyMemberPropType';
 
 let previousRouteName = '';
 let previousRoutePolicyID = '';
@@ -35,7 +36,7 @@ function isPreviousRouteInSameWorkspace(routeName, policyID) {
 }
 
 const fullPolicyPropTypes = {
-    /** The full policy object for the current route (as opposed to the policy summary object) */
+    /** The policy object for the current route */
     policy: PropTypes.shape({
         /** The ID of the policy */
         id: PropTypes.string,
@@ -57,10 +58,10 @@ const fullPolicyPropTypes = {
 
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
-
-        /** A list of emails for the employees on the policy */
-        employeeList: PropTypes.arrayOf(PropTypes.string),
     }),
+
+    /** The policy member list for the current route */
+    policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const fullPolicyDefaultProps = {
@@ -98,13 +99,14 @@ export default function (WrappedComponent) {
         previousRouteName = currentRoute.name;
         previousRoutePolicyID = policyID;
 
-        const rest = _.omit(props, ['forwardedRef', 'policy']);
+        const rest = _.omit(props, ['forwardedRef', 'policy', 'policyMemberList']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 ref={props.forwardedRef}
                 policy={props.policy}
+                policyMemberList={props.policyMemberList}
             />
         );
     };
@@ -120,6 +122,9 @@ export default function (WrappedComponent) {
     return withOnyx({
         policy: {
             key: props => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
+        },
+        policyMemberList: {
+            key: props => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${getPolicyIDFromRoute(props.route)}`,
         },
     })(withFullPolicy);
 }
