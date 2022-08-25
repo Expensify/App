@@ -211,7 +211,7 @@ const InitialSettingsPage = (props) => {
                         const doNothing = () => {};
                         return (
                             <OfflineWithFeedback
-                                errorRowStyles={styles.ph6}
+                                errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
                                 onClose={item.dismissError || doNothing}
                                 pendingAction={item.pendingAction}
                                 errors={item.errors}>
