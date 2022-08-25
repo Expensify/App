@@ -264,6 +264,7 @@ export default {
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
         imageUploadFailed: 'Error al cargar la imagen',
+        deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
     },
