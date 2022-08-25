@@ -1,9 +1,6 @@
 import _ from 'underscore';
 
 class TrieNode {
-    /**
-     * Reset all attributes to default values.
-     */
     constructor() {
         this.children = {};
         this.leaf = false;
