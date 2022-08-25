@@ -6,7 +6,6 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
