@@ -91,8 +91,6 @@ class ReportActionsView extends React.Component {
                 : 0,
         };
 
-        console.log('@marcaaron state in constructor ', this.state);
-
         this.currentScrollOffset = 0;
         this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
         this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
@@ -112,11 +110,9 @@ class ReportActionsView extends React.Component {
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
             if (state === 'active' && this.props.report.unreadActionCount === 0) {
-                console.log('@marcaaron callback with active state and no unreadActionCount resetting');
                 this.setState({newMarkerSequenceNumber: 0});
             }
 
-            console.log('@marcaaron openReport called in appStateChangeListener');
             Report.openReport(this.props.report.reportID);
         });
 
