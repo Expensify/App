@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
@@ -13,6 +14,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import DateUtils from '../DateUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -371,6 +373,74 @@ function updateLocalPolicyValues(policyID, values) {
 }
 
 /**
+ * Deletes the avatar image for the workspace
+ * @param {String} policyID
+ */
+function deleteWorkspaceAvatar(policyID) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    avatarURL: null,
+                },
+                avatarURL: '',
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: null,
+                },
+                errorFields: {
+                    avatarURL: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: null,
+                },
+                errorFields: {
+                    avatarURL: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
+                    },
+                },
+            },
+        },
+    ];
+    API.write('DeleteWorkspaceAvatar', {policyID}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clear error and pending fields for the workspace avatar
+ * @param {String} policyID
+ */
+function clearAvatarErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            avatarURL: null,
+        },
+        pendingFields: {
+            avatarURL: null,
+        },
+    });
+}
+
+/**
  * Sets the name of the policy
  *
  * @param {String} policyID
@@ -596,5 +666,7 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    deleteWorkspaceAvatar,
+    clearAvatarErrors,
     generatePolicyID,
 };
