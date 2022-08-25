@@ -22,27 +22,28 @@ import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** The policy ID currently being configured */
     policyID: PropTypes.string.isRequired,
 
-    /** Does the user have a VBA in their account? */
-    hasVBA: PropTypes.bool.isRequired,
-
     /** Policy values needed in the component */
     policy: PropTypes.shape({
-        customUnit: PropTypes.shape({
-            id: PropTypes.string,
+        customUnits: PropTypes.arrayOf(PropTypes.shape({
+            customUnitID: PropTypes.string,
             name: PropTypes.string,
-            value: PropTypes.string,
-            rate: PropTypes.shape({
-                id: PropTypes.string,
-                name: PropTypes.string,
-                value: PropTypes.number,
+            attributes: PropTypes.shape({
+                unit: PropTypes.string,
             }),
-        }),
+            rate: PropTypes.arrayOf(PropTypes.shape({
+                customUnitRateID: PropTypes.string,
+                name: PropTypes.string,
+                rate: PropTypes.number,
+            })),
+        })),
         outputCurrency: PropTypes.string,
+        hasVBA: PropTypes.bool,
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -51,13 +52,18 @@ const propTypes = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
+        const distanceCustomUnit = _.chain(lodashGet(props, 'policy.customUnits', []))
+            .values()
+            .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
+            .value();
+
         this.state = {
-            unitID: lodashGet(props, 'policy.customUnit.id', ''),
-            unitName: lodashGet(props, 'policy.customUnit.name', ''),
-            unitValue: lodashGet(props, 'policy.customUnit.value', 'mi'),
-            rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
-            rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
+            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+            unitName: lodashGet(distanceCustomUnit, 'name', ''),
+            unitUnitAttribute: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+            rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+            rateName: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -74,6 +80,19 @@ class WorkspaceReimburseView extends React.Component {
 
         this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
+    }
+
+    componentDidMount() {
+        Policy.openWorkspaceReimburseView(this.props.policyID);
+    }
+
+    componentDidUpdate(prevProps) {
+        const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!reconnecting) {
+            return;
+        }
+
+        Policy.openWorkspaceReimburseView(this.props.policyID);
     }
 
     getRateDisplayValue(value) {
@@ -97,7 +116,7 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     setUnit(value) {
-        this.setState({unitValue: value});
+        this.setState({unitUnitAttribute: value});
 
         Policy.setCustomUnit(this.props.policyID, {
             customUnitID: this.state.unitID,
@@ -184,14 +203,14 @@ class WorkspaceReimburseView extends React.Component {
                             <Picker
                                 label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                 items={this.unitItems}
-                                value={this.state.unitValue}
+                                value={this.state.unitUnitAttribute}
                                 onInputChange={value => this.setUnit(value)}
                             />
                         </View>
                     </View>
                 </Section>
 
-                {!this.props.hasVBA && (
+                {!this.props.policy.hasVBA && (
                     <Section
                         title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                         icon={Illustrations.JewelBoxGreen}
@@ -211,7 +230,7 @@ class WorkspaceReimburseView extends React.Component {
                         />
                     </Section>
                 )}
-                {this.props.hasVBA && (
+                {this.props.policy.hasVBA && (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                         icon={Illustrations.BankUserGreen}
@@ -241,6 +260,7 @@ WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 export default compose(
     withFullPolicy,
     withLocalize,
+    withNetwork(),
     withOnyx({
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
@@ -67,19 +68,6 @@ function getSimplifiedEmployeeList(employeeList) {
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
-    const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
-    const customUnitValue = lodashGet(customUnit, 'attributes.unit', 'mi');
-    const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
-    const customUnitSimplified = customUnit && {
-        id: customUnit.customUnitID,
-        name: customUnit.name,
-        value: customUnitValue,
-        rate: {
-            id: customUnitRate.customUnitRateID,
-            name: customUnitRate.name,
-            value: Number(customUnitRate.rate),
-        },
-    };
     return {
         isFromFullPolicy,
         id: fullPolicyOrPolicySummary.id,
@@ -93,7 +81,6 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
-        customUnit: customUnitSimplified,
     };
 }
 
@@ -575,6 +562,10 @@ function hasPolicyMemberError(policyMemberList) {
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
+function openWorkspaceReimburseView(policyID) {
+    API.read('OpenWorkspaceReimburseView', {policyID});
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -596,4 +587,5 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    openWorkspaceReimburseView,
 };
