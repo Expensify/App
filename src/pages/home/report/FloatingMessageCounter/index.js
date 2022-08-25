@@ -37,7 +37,7 @@ class FloatingMessageCounter extends PureComponent {
     }
 
     componentDidUpdate() {
-        if (this.props.isActive && this.props.count > 0) {
+        if (this.props.isActive) {
             this.show();
         } else {
             this.hide();
