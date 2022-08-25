@@ -15,6 +15,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import colors from '../styles/colors';
 import variables from '../styles/variables';
+import DotIndicatorMessage from './DotIndicatorMessage';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -101,14 +102,7 @@ const OfflineWithFeedback = (props) => {
             )}
             {hasErrors && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <View style={styles.offlineFeedback.errorDot}>
-                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
-                    </View>
-                    <View style={styles.offlineFeedback.textContainer}>
-                        {_.map(sortedErrors, (error, i) => (
-                            <Text key={i} style={styles.offlineFeedback.text}>{error}</Text>
-                        ))}
-                    </View>
+                    <DotIndicatorMessage messages={sortedErrors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
