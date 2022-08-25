@@ -26,7 +26,7 @@ function openOnfidoFlow(firstName, lastName, dob) {
                 onyxMethod: CONST.ONYX.METHOD.SET,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: true,
+                    isLoading: true,
                 },
             },
         ],
@@ -35,7 +35,7 @@ function openOnfidoFlow(firstName, lastName, dob) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                 },
             },
         ],
@@ -44,7 +44,7 @@ function openOnfidoFlow(firstName, lastName, dob) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                 },
             },
         ],
@@ -411,7 +411,7 @@ function verifyIdentity(parameters) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: true,
+                    isLoading: true,
                     errors: null,
                     fixableErrors: null,
                 },
@@ -429,7 +429,7 @@ function verifyIdentity(parameters) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     errors: null,
                 },
             },
@@ -439,7 +439,7 @@ function verifyIdentity(parameters) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     hasAcceptedPrivacyPolicy: false,
                 },
             },

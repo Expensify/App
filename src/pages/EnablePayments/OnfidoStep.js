@@ -50,7 +50,7 @@ class OnfidoStep extends React.Component {
      */
     canShowOnfido() {
         return this.props.walletOnfidoData.hasAcceptedPrivacyPolicy
-            && !this.props.walletOnfidoData.loading
+            && !this.props.walletOnfidoData.isLoading
             && !this.props.walletOnfidoData.error
             && this.props.walletOnfidoData.sdkToken;
     }

@@ -92,12 +92,12 @@ class OnfidoPrivacy extends React.Component {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
-                            isLoading={this.props.walletOnfidoData.loading}
+                            isLoading={this.props.walletOnfidoData.isLoading}
                             buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
                         />
                     </FormScrollView>
                 ) : null}
-                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.loading ? <FullscreenLoadingIndicator /> : null}
+                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.isLoading ? <FullscreenLoadingIndicator /> : null}
             </View>
         );
     }
