@@ -26,7 +26,7 @@ function openOnfidoFlow(firstName, lastName, dob) {
                 onyxMethod: CONST.ONYX.METHOD.SET,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: true,
+                    isLoading: true,
                 },
             },
         ],
@@ -35,7 +35,7 @@ function openOnfidoFlow(firstName, lastName, dob) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                 },
             },
         ],
@@ -44,7 +44,7 @@ function openOnfidoFlow(firstName, lastName, dob) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                 },
             },
         ],
@@ -389,6 +389,62 @@ function activateWallet(currentStep, parameters) {
                 Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: false});
             }
         });
+}
+
+/**
+ * Creates an identity check by calling Onfido's API with data returned from the SDK
+ *
+ * The API will always return the updated userWallet in the response as a convenience so we can avoid an additional
+ * API request to fetch the userWallet after we call VerifyIdentity
+ *
+ * @param {Object} parameters
+ * @param {String} [parameters.onfidoData] - JSON string
+ */
+function verifyIdentity(parameters) {
+    const onfidoData = parameters.onfidoData;
+
+    API.write('VerifyIdentity', {
+        onfidoData,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                    fixableErrors: null,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    shouldShowFailedKYC: false,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                    hasAcceptedPrivacyPolicy: false,
+                },
+            },
+        ],
+    });
 }
 
 /**
