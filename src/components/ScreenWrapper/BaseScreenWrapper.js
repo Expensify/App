@@ -20,8 +20,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 
-propTypes.keyboardAvoidingViewBehavior = PropTypes.oneOf(['padding', 'height', 'position', '']).isRequired;
-
 class BaseScreenWrapper extends React.Component {
     constructor(props) {
         super(props);
