@@ -1,5 +1,6 @@
 import {KeyboardAvoidingView, View} from 'react-native';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -18,6 +19,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
+
+propTypes.keyboardAvoidingViewBehavior = PropTypes.oneOf(['padding', 'height', 'position']).isRequired;
 
 class BaseScreenWrapper extends React.Component {
     constructor(props) {
