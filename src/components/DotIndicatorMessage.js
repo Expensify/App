@@ -29,7 +29,7 @@ const defaultProps = {
 };
 
 const DotIndicatorMessage = props => (
-    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, ...props.style]}>
+    <View style={[styles.dotIndicatorMessage, ...props.style]}>
         <View style={styles.offlineFeedback.errorDot}>
             <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
         </View>
