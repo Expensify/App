@@ -103,6 +103,7 @@ function formatPersonalDetails(personalDetailsList) {
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             avatar,
+            avatarThumbnail,
             displayName,
             firstName,
             lastName,
@@ -110,7 +111,6 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
-            avatarThumbnail,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
