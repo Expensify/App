@@ -567,6 +567,10 @@ function hasPolicyMemberError(policyMemberList) {
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
+/**
+ * Returns a string representation of a 64-bit hexadecimal number
+ * @returns {String}
+ */
 function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
