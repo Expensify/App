@@ -101,11 +101,11 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
 
 /**
  * @param {Number} reportID
- * @param {String} clientID
+ * @param {String} sequenceNumber
  */
-function deleteClientAction(reportID, clientID) {
+function deleteOptimisticReportAction(reportID, sequenceNumber) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [clientID]: null,
+        [sequenceNumber]: null,
     });
 }
 
@@ -113,5 +113,5 @@ export {
     getDeletedCommentsCount,
     getLastVisibleMessageText,
     isFromCurrentUser,
-    deleteClientAction,
+    deleteOptimisticReportAction,
 };

@@ -183,7 +183,7 @@ class ReportActionsView extends React.Component {
             if (this.getIsReportFullyVisible()) {
                 Report.openReport(this.props.report.reportID);
             } else {
-                this.fetchData();
+                Report.reconnect(this.props.report.reportID);
             }
         }
 
@@ -246,10 +246,6 @@ class ReportActionsView extends React.Component {
     getIsReportFullyVisible() {
         const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
         return Visibility.isVisible() && !isSidebarCoveringReportView;
-    }
-
-    fetchData() {
-        Report.fetchInitialActions(this.props.report.reportID);
     }
 
     /**
