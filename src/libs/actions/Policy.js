@@ -1,8 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
+import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -89,7 +88,6 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
             || fullPolicyOrPolicySummary.avatarURL
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
-        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
 
@@ -814,6 +812,10 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
+function openWorkspaceReimburseView(policyID) {
+    API.read('OpenWorkspaceReimburseView', {policyID});
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -835,8 +837,6 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    generateDefaultWorkspaceName,
-    deleteWorkspaceAvatar,
-    clearAvatarErrors,
-    generatePolicyID,
+    hasPolicyMemberError,
+    openWorkspaceReimburseView,
 };
