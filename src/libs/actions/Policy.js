@@ -13,6 +13,8 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import DateUtils from '../DateUtils';
+import * as API from '../API';
 
 const allPolicies = {};
 Onyx.connect({
@@ -467,34 +469,68 @@ function setCustomUnit(policyID, values) {
 
 /**
  * @param {String} policyID
+ * @param {Object} currentCustomUnitRate
  * @param {String} customUnitID
  * @param {Object} values
  */
-function setCustomUnitRate(policyID, customUnitID, values) {
-    DeprecatedAPI.Policy_CustomUnitRate_Update({
-        policyID: policyID.toString(),
-        customUnitID: customUnitID.toString(),
-        customUnitRate: JSON.stringify(values),
-        lastModified: null,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {
-                customUnit: {
-                    rate: {
-                        id: values.customUnitRateID,
-                        name: values.name,
-                        value: Number(values.rate),
+function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    rates: {
+                        [values.customUnitRateID]: {
+                            ...values,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
-            });
-        }).catch(() => {
-            // Show the user feedback
-            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-        });
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    rates: {
+                        [values.customUnitRateID]: {
+                            pendingAction: null,
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    rates: {
+                        [currentCustomUnitRate.customUnitRateID]: {
+                            ...currentCustomUnitRate,
+                            error: {
+                                [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    // Note remember to not pass lastModified as null as per convo
+    API.write('UpdateWorkspaceCustomUnit', {
+        policyID: policyID,
+        customUnit: JSON.stringify(values),
+    }, {optimisticData, successData, failureData});
 }
 
 /**
