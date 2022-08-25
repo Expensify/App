@@ -80,6 +80,7 @@ class SettlementButton extends React.Component {
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
                 isDisabled={this.props.network.isOffline}
+                sourceAction="iou"
             >
                 {triggerKYCFlow => (
                     <ButtonWithMenu
