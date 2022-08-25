@@ -123,7 +123,9 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        Policy.updateWorkspaceCustomUnit(this.props.policyID, this.props.policy.customUnits[this.state.unitID], {
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, distanceCustomUnit, {
             customUnitID: this.state.unitID,
             name: this.state.unitName,
             attributes: {unit: value},
