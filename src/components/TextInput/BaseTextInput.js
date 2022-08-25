@@ -72,7 +72,7 @@ class BaseTextInput extends Component {
         if (_.isUndefined(inputValue) || this.state.value === inputValue) {
             return;
         }
-
+        this.input.setNativeProps({text: this.state.value});
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({value: inputValue});
         this.input.setNativeProps({text: inputValue});
@@ -257,7 +257,6 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-                                        defaultValue={this.state.value}
                                         placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
