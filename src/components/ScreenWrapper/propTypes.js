@@ -52,6 +52,7 @@ const defaultProps = {
         addListener: () => {},
     },
     modal: {},
+    keyboardAvoidingViewBehavior: 'padding',
 };
 
 export {propTypes, defaultProps};
