@@ -104,8 +104,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
 
 /**
  * @param {Number} reportID
- * @param {String} clientID
- * @param {Number} sequenceNumber
+ * @param {String} sequenceNumber
  */
 function deleteClientAction(reportID, clientID, sequenceNumber) {
     if (clientID) {
