@@ -17,20 +17,18 @@ import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import walletTermsPropTypes from './walletTermsPropTypes';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
-    walletTerms: PropTypes.shape({
-        /** Any additional error message to show */
-        errors: PropTypes.objectOf(PropTypes.string),
-    }),
+    // eslint-disable-next-line react/no-unused-prop-types
+    walletTerms: PropTypes.objectOf(walletTermsPropTypes),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    walletTerms: {
-        errors: null,
-    },
+    walletTerms: {},
 };
 
 class TermsStep extends React.Component {
