@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
@@ -567,6 +568,38 @@ function hasPolicyMemberError(policyMemberList) {
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
+/**
+ * @param {String} value
+ * @returns {String}
+ */
+function capitalizeFirstLetter(value) {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+/**
+ * Generate a policy name based on the email.
+ * @param {String} email
+ * @returns {String}
+ */
+function generateDefaultWorkspaceName(email) {
+    const emailParts = email.split('@');
+    if (!emailParts && emailParts.length !== 2) {
+        return '';
+    }
+    const username = emailParts[0];
+    const domain = emailParts[1];
+
+    if (domain.toLowerCase() === CONST.SMS.DOMAIN) {
+        return 'My Group Workspace';
+    }
+
+    if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
+        return `${capitalizeFirstLetter(username)}'s Workspace`;
+    }
+
+    return `${capitalizeFirstLetter(domain.split('.')[0])}'s Workspace`;
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -588,4 +621,5 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    generateDefaultWorkspaceName,
 };
