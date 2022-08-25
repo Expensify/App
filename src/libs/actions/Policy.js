@@ -568,7 +568,7 @@ function hasPolicyMemberError(policyMemberList) {
 }
 
 /**
- * Returns a string representation of a 64-bit hexadecimal number
+ * Returns a client generated 16 character hexadecimal value for the policyID
  * @returns {String}
  */
 function generatePolicyID() {
@@ -596,4 +596,5 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    generatePolicyID,
 };
