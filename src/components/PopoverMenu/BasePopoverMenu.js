@@ -36,9 +36,23 @@ class BasePopoverMenu extends PureComponent {
         };
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.resetFocusAndHideModal = this.resetFocusAndHideModal.bind(this);
+        this.removeKeyboardListener = this.removeKeyboardListener.bind(this);
+        this.attachKeyboardListener = this.attachKeyboardListener.bind(this);
     }
 
     componentDidMount() {
+        this.attachKeyboardListener();
+    }
+
+    componentDidUpdate() {
+        this.attachKeyboardListener();
+    }
+
+    componentWillUnmount() {
+        this.removeKeyboardListener();
+    }
+
+    attachKeyboardListener() {
         if (!this.props.shouldEnableArrowKeysActions && !this.props.isVisible) {
             return;
         }
@@ -53,7 +67,7 @@ class BasePopoverMenu extends PureComponent {
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
-    componentWillUnmount() {
+    removeKeyboardListener() {
         if (!this.unsubscribeEnterKey) {
             return;
         }
@@ -72,6 +86,7 @@ class BasePopoverMenu extends PureComponent {
 
     resetFocusAndHideModal() {
         this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
+        this.removeKeyboardListener();
         this.props.onMenuHide();
     }
 
