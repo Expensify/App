@@ -177,6 +177,9 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline')) {
+            // When returning from offline to online state we want to trigger a request to OpenReport which
+            // will fetch the reportActions data and mark the report as read. If the report is not fully visible
+            // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
             if (this.getIsReportFullyVisible()) {
                 Report.openReport(this.props.report.reportID);
             } else {
@@ -221,10 +224,11 @@ class ReportActionsView extends React.Component {
 
         // Update the new marker position and last read action when we are closing the sidebar or moving from a small to large screen size
         if (isReportFullyVisible && reportBecomeVisible) {
-            const newMarkerSequenceNumber = this.props.report.unreadActionCount === 0
-                ? 0
-                : this.props.report.lastReadSequenceNumber + 1;
-            this.setState({newMarkerSequenceNumber});
+            this.setState({
+                newMarkerSequenceNumber: this.props.report.unreadActionCount === 0
+                    ? 0
+                    : this.props.report.lastReadSequenceNumber + 1,
+            });
             Report.openReport(this.props.report.reportID);
         }
 

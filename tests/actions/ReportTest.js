@@ -283,7 +283,7 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The unreadActionCount will increase and the new marker will be set correctly
+                // The unreadActionCount will increase
                 expect(report.unreadActionCount).toBe(1);
 
                 // When a new comment is added by the current user
