@@ -17,6 +17,11 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
+import * as ErrorUtils from '../../libs/ErrorUtils';
+import Icon from '../../components/Icon';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import colors from '../../styles/colors';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /* Onyx Props */
@@ -47,47 +52,12 @@ const defaultProps = {
 };
 
 class ResendValidationForm extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-
-        this.state = {
-            formSuccess: '',
-        };
-    }
-
-    componentWillUnmount() {
-        if (!this.successMessageTimer) {
-            return;
-        }
-
-        clearTimeout(this.successMessageTimer);
-    }
-
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
-    validateAndSubmitForm() {
-        this.setState({
-            formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
-        });
-
-        if (!this.props.account.validated) {
-            Session.resendValidationLink();
-        } else {
-            Session.resetPassword();
-        }
-
-        this.successMessageTimer = setTimeout(() => {
-            this.setState({formSuccess: ''});
-        }, 5000);
-    }
-
     render() {
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
+        const error = ErrorUtils.getLatestErrorMessage(this.props.account);
+        const successMessage = this.props.account.message;
 
         return (
             <>
@@ -107,10 +77,25 @@ class ResendValidationForm extends React.Component {
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
-                {!_.isEmpty(this.state.formSuccess) && (
-                    <Text style={[styles.formSuccess]}>
-                        {this.state.formSuccess}
-                    </Text>
+                {successMessage && (
+                    <View style={[styles.flexRow, styles.mb5]}>
+                        <View style={styles.offlineFeedback.errorDot}>
+                            <Icon src={Expensicons.DotIndicator} fill={colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+                        </View>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {successMessage}
+                        </Text>
+                    </View>
+                )}
+                {!successMessage && error && (
+                    <View style={[styles.flexRow, styles.mb5]}>
+                        <View style={styles.offlineFeedback.errorDot}>
+                            <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+                        </View>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {error}
+                        </Text>
+                    </View>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => redirectToSignIn()}>
