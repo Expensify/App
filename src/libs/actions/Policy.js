@@ -567,6 +567,10 @@ function hasPolicyMemberError(policyMemberList) {
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
+function generatePolicyID() {
+    return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
