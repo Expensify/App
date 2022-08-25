@@ -278,7 +278,7 @@ class BasePaymentsPage extends React.Component {
                                 <OfflineWithFeedback
                                     pendingAction="add"
                                     errors={this.props.walletTerms.errors}
-                                    onClose={() => {}}
+                                    onClose={PaymentMethods.clearWalletTermsError}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                 >
                                     <CurrentWalletBalance />
