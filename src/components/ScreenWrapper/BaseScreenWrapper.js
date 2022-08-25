@@ -1,6 +1,5 @@
 import {KeyboardAvoidingView, View} from 'react-native';
 import React from 'react';
-import PropTypes from 'prop-types';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
