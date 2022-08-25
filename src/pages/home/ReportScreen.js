@@ -186,8 +186,8 @@ class ReportScreen extends React.Component {
         Report.updateCurrentlyViewedReportID(reportIDFromPath);
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
-        // is not stored locally yet. In this case, we fetch the report and render the view once it has loaded or redirect if the report
-        // is no longer accessible.
+        // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done. 
+        // If it doesn't exist, then we fetch the report from the API.
         if (this.props.report.reportID) {
             return;
         }
