@@ -263,7 +263,6 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 function updateProfile(firstName, lastName, pronouns, timezone) {
-    const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
         firstName,
         lastName,
