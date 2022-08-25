@@ -11,8 +11,8 @@ import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
-import {policyPropTypes} from '../pages/workspace/withPolicy';
-import * as PolicyUtils from '../libs/PolicyUtils';
+import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
+import * as Policy from '../libs/actions/Policy';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
@@ -38,7 +38,10 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** The user's wallet (coming from Onyx) */
-    userWallet: userWalletPropTypes,
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: PropTypes.objectOf(walletTermsPropTypes),
 };
 
 const defaultProps = {
@@ -49,6 +52,7 @@ const defaultProps = {
     bankAccountList: {},
     cardList: {},
     userWallet: {},
+    walletTerms: {},
 };
 
 const AvatarWithIndicator = (props) => {
@@ -59,23 +63,10 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
-    // those should be cleaned out before doing any error checking
-    const cleanPolicies = _.pick(props.policies, policy => policy);
-    const cleanPolicyMembers = _.pick(props.policiesMemberList, member => member);
-
-    // All of the error-checking methods are put into an array. This is so that using _.some() will return
-    // early as soon as the first error is returned. This makes the error checking very efficient since
-    // we only care if a single error exists anywhere.
-    const errorCheckingMethods = [
-        () => !_.isEmpty(props.userWallet.errors),
-        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
-        () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
-        () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
-        () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
-    ];
-    const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
-
+    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
+    const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
+    const hasWalletError = !_.isEmpty(props.userWallet.errors);
+    const hasWalletTermsError = !_.isEmpty(props.walletTerms.errors);
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -84,7 +75,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {(hasPolicyMemberError || hasPaymentMethodError || hasAnyPolicyError) && (
+                {(hasPolicyMemberError || hasPaymentMethodError || hasWalletError || hasWalletTermsError) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -111,5 +102,8 @@ export default withOnyx({
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
+    },
+    walletTerms: {
+        key: ONYXKEYS.WALLET_TERMS,
     },
 })(AvatarWithIndicator);

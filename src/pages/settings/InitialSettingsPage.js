@@ -30,8 +30,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
-import * as Wallet from '../../libs/actions/Wallet';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -78,6 +77,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Information about the user accepting the terms for payments */
+    walletTerms: PropTypes.objectOf(walletTermsPropTypes),
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -90,6 +92,7 @@ const defaultProps = {
     },
     betas: [],
     policyMembers: {},
+    walletTerms: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -102,6 +105,45 @@ class InitialSettingsPage extends React.Component {
         this.getMenuItemsList = this.getMenuItemsList.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
     }
+
+    const walletBalance = props.numberFormat(
+        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+        {style: 'currency', currency: 'USD'},
+    );
+
+    const defaultMenuItems = [
+        {
+            translationKey: 'common.profile',
+            icon: Expensicons.Profile,
+            action: () => { App.openProfile(); },
+        },
+        {
+            translationKey: 'common.preferences',
+            icon: Expensicons.Gear,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
+        },
+        {
+            translationKey: 'initialSettingsPage.security',
+            icon: Expensicons.Lock,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
+        },
+        {
+            translationKey: 'common.payments',
+            icon: Expensicons.Wallet,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
+            brickRoadIndicator: PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors) ? 'error' : null,
+        },
+        {
+            translationKey: 'initialSettingsPage.about',
+            icon: Expensicons.Info,
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
+        },
+        {
+            translationKey: 'initialSettingsPage.signOut',
+            icon: Expensicons.Exit,
+            action: Session.signOutAndRedirectToSignIn,
+        },
+    ];
 
     // Add free policies (workspaces) to the list of menu items
     const menuItems = _.chain(props.policies)
@@ -318,6 +360,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(InitialSettingsPage);
