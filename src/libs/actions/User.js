@@ -217,28 +217,20 @@ function validateLogin(accountID, validateCode) {
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
-    DeprecatedAPI.ValidateEmail({
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+    API.write('ValidateLogin', {
         accountID,
         validateCode,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            const {email} = response;
-
-            if (isLoggedIn) {
-                getUserDetails();
-            } else {
-                // Let the user know we've successfully validated their login
-                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
-                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-            }
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-        }
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        Navigation.navigate(redirectRoute);
-    });
+    }, {optimisticData});
+    Navigation.navigate(redirectRoute);
 }
 
 /**

@@ -2,13 +2,13 @@ import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -16,19 +16,20 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: PropTypes.shape({
-        /** Whether or not the information is currently loading */
-        loading: PropTypes.bool,
+        /** Any additional error message to show */
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     walletTerms: {
-        loading: false,
+        errors: null,
     },
 };
 
@@ -64,6 +65,8 @@ class TermsStep extends React.Component {
     }
 
     render() {
+        const errors = lodashGet(this.props, 'walletTerms.errors', {});
+        const errorMessage = this.state.error ? this.props.translate('common.error.acceptedTerms') : (_.last(_.values(errors)) || '');
         return (
             <>
                 <HeaderWithCloseButton
@@ -107,17 +110,9 @@ class TermsStep extends React.Component {
                             </>
                         )}
                     />
-                    {this.state.error && (
-                        <Text style={[styles.formError, styles.mb2]}>
-                            {this.props.translate('common.error.acceptedTerms')}
-                        </Text>
-                    )}
-                    <Button
-                        success
-                        style={[styles.mv4]}
-                        text={this.props.translate('termsStep.enablePayments')}
-                        isLoading={this.props.walletTerms.loading}
-                        onPress={() => {
+                    <FormAlertWithSubmitButton
+                        buttonText={this.props.translate('termsStep.enablePayments')}
+                        onSubmit={() => {
                             if (!this.state.hasAcceptedDisclosure
                                 || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
                                 this.setState({error: true});
@@ -125,11 +120,14 @@ class TermsStep extends React.Component {
                             }
 
                             this.setState({error: false});
-                            BankAccounts.activateWallet(CONST.WALLET.STEP.TERMS, {
+                            BankAccounts.acceptWalletTerms({
                                 hasAcceptedTerms: this.state.hasAcceptedDisclosure
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                             });
                         }}
+                        message={errorMessage}
+                        isAlertVisible={this.state.error || !_.isEmpty(errors)}
+                        containerStyles={[styles.mh0, styles.mv4]}
                     />
                 </ScrollView>
             </>
@@ -144,7 +142,6 @@ export default compose(
     withOnyx({
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
-            initWithStoredValues: false,
         },
     }),
 )(TermsStep);
