@@ -35,6 +35,7 @@ class BasePopoverMenu extends PureComponent {
             focusedIndex: -1,
         };
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
+        this.resetFocusAndHideModal = this.resetFocusAndHideModal.bind(this);
     }
 
     componentDidMount() {
@@ -69,16 +70,18 @@ class BasePopoverMenu extends PureComponent {
         this.setState({focusedIndex: index});
     }
 
+    resetFocusAndHideModal() {
+        this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
+        this.props.onMenuHide();
+    }
+
     render() {
         return (
             <Popover
                 anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={() => {
-                    this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
-                    this.props.onMenuHide();
-                }}
+                onModalHide={this.resetFocusAndHideModal}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
                 disableAnimation={this.props.disableAnimation}
