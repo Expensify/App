@@ -500,9 +500,6 @@ function updateWorkspaceGeneralSettings(policyID, name, currency) {
                 pendingFields: {
                     generalSettings: null,
                 },
-                errorFields: {
-                    generalSettings: null,
-                },
             },
         },
     ];
