@@ -97,6 +97,15 @@ function setWalletShouldShowFailedKYC(shouldShowFailedKYC) {
 }
 
 /**
+ * Save the action that triggered showing the KYC wall in Onyx.
+ *
+ * @param {String} sourceAction
+ */
+function setKYCWallSourceAction(sourceAction) {
+    Onyx.merge(ONYXKEYS.USER_WALLET, {sourceAction});
+}
+
+/**
  * Transforms a list of Idology errors to a translated displayable error string.
  * @param {Array} idologyErrors
  * @return {String}
@@ -540,4 +549,5 @@ export {
     buildIdologyError,
     updateCurrentStep,
     acceptWalletTerms,
+    setKYCWallSourceAction,
 };

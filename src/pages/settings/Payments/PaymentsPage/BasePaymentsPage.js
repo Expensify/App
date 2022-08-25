@@ -291,6 +291,7 @@ class BasePaymentsPage extends React.Component {
                                     addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                     popoverPlacement="bottom"
+                                    sourceAction="transferBalance"
                                 >
                                     {triggerKYCFlow => (
                                         <MenuItem

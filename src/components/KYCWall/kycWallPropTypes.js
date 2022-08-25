@@ -22,6 +22,9 @@ const propTypes = {
 
     /** The user's wallet */
     userWallet: PropTypes.objectOf(userWalletPropTypes),
+
+    /** The user action that led to opening the KYC wall */
+    sourceAction: PropTypes.oneOf(['transferBalance', 'iou']),
 };
 
 const defaultProps = {
@@ -29,6 +32,7 @@ const defaultProps = {
     popoverPlacement: 'top',
     shouldListenForResize: false,
     isDisabled: false,
+    sourceAction: '',
 };
 
 export {propTypes, defaultProps};
