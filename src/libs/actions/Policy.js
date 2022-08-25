@@ -526,10 +526,10 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
         },
     ];
 
-    // Note remember to not pass lastModified as null as per convo
-    API.write('UpdateWorkspaceCustomUnit', {
-        policyID: policyID,
-        customUnit: JSON.stringify(values),
+    API.write('SetWorkspaceCustomUnitRate', {
+        policyID,
+        customUnitID,
+        customUnitRate: JSON.stringify(values),
     }, {optimisticData, successData, failureData});
 }
 
