@@ -188,7 +188,7 @@ class ReportActionItem extends Component {
                                 )}
                             >
                                 <OfflineWithFeedback
-                                    onClose={() => ReportActions.deleteClientAction(this.props.report.reportID, this.props.action.clientID, this.props.action.sequenceNumber)}
+                                    onClose={() => ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber)}
                                     pendingAction={this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
