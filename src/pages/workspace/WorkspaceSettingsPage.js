@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -20,6 +21,7 @@ import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
@@ -61,7 +63,7 @@ class WorkspaceSettingsPage extends React.Component {
 
     removeAvatar() {
         this.setState({previewAvatarURL: ''});
-        Policy.update(this.props.policy.id, {avatarURL: ''}, true);
+        Policy.deleteWorkspaceAvatar(this.props.policy.id);
     }
 
     /**
@@ -116,26 +118,31 @@ class WorkspaceSettingsPage extends React.Component {
                 >
                     {hasVBA => (
                         <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
-                            <AvatarWithImagePicker
-                                isUploading={this.props.policy.isAvatarUploading}
-                                avatarURL={this.state.previewAvatarURL}
-                                size={CONST.AVATAR_SIZE.LARGE}
-                                DefaultAvatar={() => (
-                                    <Icon
-                                        src={Expensicons.Workspace}
-                                        height={80}
-                                        width={80}
-                                        fill={defaultTheme.iconSuccessFill}
-                                    />
-                                )}
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                style={[styles.mb3]}
-                                anchorPosition={{top: 172, right: 18}}
-                                isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                                onImageSelected={this.uploadAvatar}
-                                onImageRemoved={this.removeAvatar}
-                            />
-
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.policy, 'pendingFields.avatarURL', null)}
+                                errors={lodashGet(this.props.policy, 'errorFields.avatarURL', null)}
+                                onClose={() => Policy.clearAvatarErrors(this.props.policy.id)}
+                            >
+                                <AvatarWithImagePicker
+                                    isUploading={this.props.policy.isAvatarUploading}
+                                    avatarURL={this.state.previewAvatarURL}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    DefaultAvatar={() => (
+                                        <Icon
+                                            src={Expensicons.Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={defaultTheme.iconSuccessFill}
+                                        />
+                                    )}
+                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                    style={[styles.mb3]}
+                                    anchorPosition={{top: 172, right: 18}}
+                                    isUsingDefaultAvatar={!this.state.previewAvatarURL}
+                                    onImageSelected={this.uploadAvatar}
+                                    onImageRemoved={this.removeAvatar}
+                                />
+                            </OfflineWithFeedback>
                             <TextInput
                                 label={this.props.translate('workspace.editor.nameInputLabel')}
                                 containerStyles={[styles.mt4]}
