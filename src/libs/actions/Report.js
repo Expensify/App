@@ -676,7 +676,7 @@ function createOptimisticChatReport(participantList) {
         lastActorEmail: '',
         lastMessageHtml: '',
         lastMessageText: null,
-        lastReadSequenceNumber: undefined,
+        lastReadSequenceNumber: 0,
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
