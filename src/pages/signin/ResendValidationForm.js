@@ -21,6 +21,8 @@ import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import colors from '../../styles/colors';
 import variables from '../../styles/variables';
+import {DotIndicator} from '../../components/Icon/Expensicons';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -76,24 +78,10 @@ const ResendValidationForm = (props) => {
                 </Text>
             </View>
             {successMessage && (
-                <View style={[styles.flexRow, styles.mb5]}>
-                    <View style={styles.offlineFeedback.errorDot}>
-                        <Icon src={Expensicons.DotIndicator} fill={colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
-                    </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                        {successMessage}
-                    </Text>
-                </View>
+                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={[successMessage]} />
             )}
             {!successMessage && error && (
-                <View style={[styles.flexRow, styles.mb5]}>
-                    <View style={styles.offlineFeedback.errorDot}>
-                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
-                    </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                        {error}
-                    </Text>
-                </View>
+                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={[error]} />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
