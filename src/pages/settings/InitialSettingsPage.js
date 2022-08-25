@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
