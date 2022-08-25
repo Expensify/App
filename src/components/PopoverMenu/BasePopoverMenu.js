@@ -53,7 +53,7 @@ class BasePopoverMenu extends PureComponent {
     }
 
     attachKeyboardListener() {
-        if (!this.props.shouldEnableArrowKeysActions && !this.props.isVisible) {
+        if (!this.props.shouldEnableArrowKeysActions || !this.props.isVisible || this.unsubscribeEnterKey) {
             return;
         }
 
@@ -72,6 +72,7 @@ class BasePopoverMenu extends PureComponent {
             return;
         }
         this.unsubscribeEnterKey();
+        this.unsubscribeEnterKey = null;
     }
 
     /**
