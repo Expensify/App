@@ -649,25 +649,31 @@ function capitalizeFirstLetter(value) {
 /**
  * Generate a policy name based on the email.
  * @param {String} email
+ * @param {Array} policyList
  * @returns {String}
  */
-function generateDefaultWorkspaceName(email) {
+function generateDefaultWorkspaceName(email, policyList) {
+    const policyListLength = policyList.length;
+    const hasPolicies = policyListLength > 0;
     const emailParts = email.split('@');
+    let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
-        return '';
+        return defaultWorkspaceName;
     }
     const username = emailParts[0];
     const domain = emailParts[1];
 
-    if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
-        return 'My Group Workspace';
-    }
-
     if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
-        return `${capitalizeFirstLetter(username)}'s Workspace`;
+        defaultWorkspaceName = `${capitalizeFirstLetter(username)}'s Workspace`;
+    } else {
+        defaultWorkspaceName = `${capitalizeFirstLetter(domain.split('.')[0])}'s Workspace`;
     }
 
-    return `${capitalizeFirstLetter(domain.split('.')[0])}'s Workspace`;
+    if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
+        defaultWorkspaceName = 'My Group Workspace';
+    }
+
+    return hasPolicies ? `${defaultWorkspaceName} ${policyListLength + 1}` : defaultWorkspaceName;
 }
 
 export {
