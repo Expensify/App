@@ -77,6 +77,7 @@ class WorkspaceInitialPage extends React.Component {
     render() {
         const policy = this.props.policy;
         const hasMembersError = PolicyActions.hasPolicyMemberError(this.props.policyMemberList);
+        const hasCustomUnitsError = PolicyActions.hasCustomUnitsError(this.props.policy);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
@@ -92,6 +93,7 @@ class WorkspaceInitialPage extends React.Component {
                 translationKey: 'workspace.common.reimburse',
                 icon: Expensicons.Receipt,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+                error: hasCustomUnitsError,
             },
             {
                 translationKey: 'workspace.common.bills',

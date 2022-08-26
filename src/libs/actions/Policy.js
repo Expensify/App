@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
@@ -13,6 +14,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import DateUtils from '../DateUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -96,7 +98,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
             || fullPolicyOrPolicySummary.avatarURL
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
-        customUnit: customUnitSimplified,
+        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
 
@@ -376,6 +378,74 @@ function updateLocalPolicyValues(policyID, values) {
 }
 
 /**
+ * Deletes the avatar image for the workspace
+ * @param {String} policyID
+ */
+function deleteWorkspaceAvatar(policyID) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    avatarURL: null,
+                },
+                avatarURL: '',
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: null,
+                },
+                errorFields: {
+                    avatarURL: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatarURL: null,
+                },
+                errorFields: {
+                    avatarURL: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
+                    },
+                },
+            },
+        },
+    ];
+    API.write('DeleteWorkspaceAvatar', {policyID}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clear error and pending fields for the workspace avatar
+ * @param {String} policyID
+ */
+function clearAvatarErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            avatarURL: null,
+        },
+        pendingFields: {
+            avatarURL: null,
+        },
+    });
+}
+
+/**
  * Sets the name of the policy
  *
  * @param {String} policyID
@@ -441,6 +511,31 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
+ * @param {Number} customUnitID
+ */
+function removeUnitError(policyID, customUnitID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errors: null,
+                pendingAction: null,
+            },
+        },
+    });
+}
+
+/**
+ * Checks if we have any errors stored within the policy custom units.
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function hasCustomUnitsError(policy) {
+    const unitsWithErrors = _.filter(lodashGet(policy, 'customUnits', {}), customUnit => (lodashGet(customUnit, 'errors', null)));
+    return !_.isEmpty(unitsWithErrors);
+}
+
+/**
+ * @param {String} policyID
  */
 function hideWorkspaceAlertMessage(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
@@ -448,30 +543,63 @@ function hideWorkspaceAlertMessage(policyID) {
 
 /**
  * @param {String} policyID
- * @param {Object} values
+ * @param {Object} currentCustomUnit
+ * @param {Object} values The new custom unit values
  */
-function setCustomUnit(policyID, values) {
-    DeprecatedAPI.Policy_CustomUnit_Update({
-        policyID: policyID.toString(),
-        customUnit: JSON.stringify(values),
-        lastModified: null,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {
-                customUnit: {
-                    id: values.customUnitID,
-                    name: values.name,
-                    value: values.attributes.unit,
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [values.customUnitID]: {
+                        ...values,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
-            });
-        }).catch(() => {
-            // Show the user feedback
-            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-        });
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [values.customUnitID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        customUnitID: currentCustomUnit.customUnitID,
+                        name: currentCustomUnit.name,
+                        attributes: currentCustomUnit.attributes,
+                        errors: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceCustomUnit', {
+        policyID,
+        customUnit: JSON.stringify(values),
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -525,7 +653,7 @@ function subscribeToPolicyEvents() {
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
                 _.each(policyExpenseChatIDs, (reportID) => {
-                    Report.fetchInitialActions(reportID);
+                    Report.reconnect(reportID);
                 });
             }
 
@@ -576,6 +704,14 @@ function hasPolicyMemberError(policyMemberList) {
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
+/**
+ * Returns a client generated 16 character hexadecimal value for the policyID
+ * @returns {String}
+ */
+function generatePolicyID() {
+    return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -586,15 +722,20 @@ export {
     uploadAvatar,
     update,
     setWorkspaceErrors,
+    removeUnitError,
+    hasCustomUnitsError,
     hideWorkspaceAlertMessage,
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
-    setCustomUnit,
+    updateWorkspaceCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    deleteWorkspaceAvatar,
+    clearAvatarErrors,
+    generatePolicyID,
 };

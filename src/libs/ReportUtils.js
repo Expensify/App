@@ -473,7 +473,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     if (isPolicyExpenseChat(report)) {
         const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
-        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.reportName;
+        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
