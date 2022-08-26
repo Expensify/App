@@ -15,7 +15,7 @@ function hasPolicyMemberError(policyMemberList) {
 }
 
 /**
- * The policy has an error if there are errors under the 'errors' key or the 'errorFields' key.
+ * Check if the policy has any errors, and if it doesn't, then check if it has any error fields.
  *
  * @param {Object} policy
  * @param {Object} policy.errors
@@ -23,12 +23,9 @@ function hasPolicyMemberError(policyMemberList) {
  * @return {Boolean}
  */
 function hasPolicyError(policy) {
-    const errors = lodashGet(policy, 'errors', {});
-    if (!_.isEmpty(errors)) {
-        return true;
-    }
-    const hasFieldErrors = _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
-    return hasFieldErrors;
+    return !_.isEmpty(policy.errors)
+        ? true
+        : _.some(policy.errorFields, fieldErrors => !_.isEmpty(fieldErrors));
 }
 
 /**
