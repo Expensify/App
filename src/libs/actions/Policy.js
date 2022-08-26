@@ -690,6 +690,17 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
+function createWorkspace() {
+    API.write('CreateWorkspace', {
+        policyID,
+        announceChatReportID,
+        adminsChatReportID,
+        expenseChatReportID,
+    }, {
+        optimisticData, successData, failureData
+    });
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
