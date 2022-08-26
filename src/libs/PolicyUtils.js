@@ -27,7 +27,7 @@ function hasPolicyError(policy) {
     if (!_.isEmpty(errors)) {
         return true;
     }
-    const hasFieldErrors = _.some(lodashGet(policy, 'errorFields', {}), !_.isEmpty);
+    const hasFieldErrors = _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
     return hasFieldErrors;
 }
 
