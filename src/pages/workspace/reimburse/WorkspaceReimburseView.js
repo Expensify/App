@@ -109,7 +109,7 @@ class WorkspaceReimburseView extends React.Component {
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
         const unitValue = lodashGet(distanceCustomUnit, 'attributes.unit', 'mi');
 
-        if (!state.unitValue || (unitValue !== state.unitValue)) {
+        if (unitValue !== state.unitValue) {
             return {
                 unitValue,
             };
