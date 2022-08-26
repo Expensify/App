@@ -163,7 +163,7 @@ class BaseSidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(!this.props.isCreatingWorkspace && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                ...(!Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: Expensicons.NewWorkspace,
                                         iconWidth: 46,
