@@ -523,10 +523,10 @@ function navigateToDetailsPage(report) {
  */
 function generateReportID() {
     // Generate a random 32-bit number. This works fine, and starts us building a random 53-bit number.
-    let result = Math.floor(Math.random() * Math.pow(2, 32));
+    let result = Math.floor(Math.random() * (2 ** 32));
 
     // Now generate another random number. We'll use this for the remaining 21 bits of randomness.
-    let extraBits = Math.floor(Math.random() * Math.pow(2, 32));
+    let extraBits = Math.floor(Math.random() * (2 ** 32));
 
     // Add each of the remaining 21 bits to the end of `result`.
     for (let i = 0; i < 21; i++) {
@@ -539,6 +539,7 @@ function generateReportID() {
         }
 
         // Now drop the lowest bit from extraBits, which we can do with bitwise operators, because it's less than 32-bits.
+        // eslint-disable-next-line no-bitwise
         extraBits >>= 1;
     }
 
