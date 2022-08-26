@@ -702,6 +702,44 @@ function createOptimisticReport(participantList) {
     };
 }
 
+function createOptimisticWorkspaceChat(policyID, ownerEmail) {
+    const announceReportID = ReportUtils.generateReportID();
+    const announceChatData = {
+            chatType: CONST.CHAT_TYPE.POLICY_ANNOUNCE,
+            policyID: policyID,
+            reportID: announceReportID,
+            reportName: CONST.CHAT_NAME_POLICY_ANNOUNCE,
+    };
+ 
+    const adminReportID = ReportUtils.generateReportID();
+    const adminChatData = {
+            chatType: CONST.CHAT_TYPE.POLICY_ADMINS,
+            policyID: policyID,
+            reportID: adminReportID,
+            reportName: CONST.CHAT_NAME_POLICY_ADMINS,
+    };
+ 
+    const expenseReportID =  ReportUtils.generateReportID();
+    const expenseChatData = {
+            chatType: CONST.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            ownerEmail: ownerEmail,
+            policyID: policyID,
+            reportID: expenseReportID,
+            reportName: CONST.CHAT_NAME_POLICY_EXPENSE,
+    };
+
+    return {
+        announceReportID,
+        announceChatData,
+        adminReportID,
+        adminChatData,
+        expenseReportID,
+        expenseChatData
+    }
+
+}
+
 /**
  * @param {Number} reportID
  * @param {String} [text]
@@ -1614,6 +1652,7 @@ export {
     openReport,
     openPaymentDetailsPage,
     createOptimisticReport,
+    createOptimisticWorkspaceChat,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
