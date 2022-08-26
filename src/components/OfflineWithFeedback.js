@@ -45,7 +45,7 @@ const propTypes = {
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
 
-    /** Whether we should allow the user to close the error message **/
+    /** Whether we should allow the user to close the error message */
     isCloseable: PropTypes.bool,
 
     ...withLocalizePropTypes,
