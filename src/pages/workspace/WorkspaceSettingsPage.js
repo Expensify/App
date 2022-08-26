@@ -43,7 +43,6 @@ class WorkspaceSettingsPage extends React.Component {
         };
 
         this.submit = this.submit.bind(this);
-        this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.validate = this.validate.bind(this);
     }
@@ -57,10 +56,6 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
-    }
-
-    removeAvatar() {
-        Policy.deleteWorkspaceAvatar(this.props.policy.id);
     }
 
     submit() {
@@ -125,7 +120,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     anchorPosition={{top: 172, right: 18}}
                                     isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
                                     onImageSelected={file => Policy.updateWorkspaceAvatar(this.props.policy.id, file)}
-                                    onImageRemoved={this.removeAvatar}
+                                    onImageRemoved={() => Policy.deleteWorkspaceAvatar(this.props.policy.id)}
                                 />
                             </OfflineWithFeedback>
                             <TextInput
