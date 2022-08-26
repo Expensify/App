@@ -719,5 +719,5 @@ export {
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
-    clearAvatarErrors,
+    generatePolicyID,
 };
