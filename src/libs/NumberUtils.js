@@ -17,14 +17,14 @@ function rand64() {
     // If the left is any number but the highest possible, we can actually have any value for the middle part, because even if it's all `9`s, the final value will not overflow the maximum
     // 64-bit number.
     if (left !== CONST.MAX_64BIT_LEFT_PART) {
-        middle = Math.floor(Math.random() * 10000000);
+        middle = Math.floor(Math.random() * CONST.MAX_INT_FOR_RANDOM_7_DIGIT_VALUE);
     } else {
         middle = Math.floor(Math.random() * (CONST.MAX_64BIT_MIDDLE_PART + 1));
     }
 
     // And unless both the left and middle parts were the maximums, the right part can be any value as well.
     if (left !== CONST.MAX_64BIT_LEFT_PART || middle !== CONST.MAX_64BIT_MIDDLE_PART) {
-        right = Math.floor(Math.random() * 10000000);
+        right = Math.floor(Math.random() * CONST.MAX_INT_FOR_RANDOM_7_DIGIT_VALUE);
     } else {
         right = Math.floor(Math.random() * (CONST.MAX_64BIT_RIGHT_PART + 1));
     }
