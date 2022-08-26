@@ -14,21 +14,22 @@ function rand64() {
     let middle;
     let right;
 
-    // If the left is any number but the highest possible, we can actually have any value for the middle part.
+    // If the left is any number but the highest possible, we can actually have any value for the middle part, because even if it's all `9`s, the final value will not overflow the maximum
+    // 64-bit number.
     if (left !== CONST.MAX_64BIT_LEFT_PART) {
         middle = Math.floor(Math.random() * 10000000);
     } else {
         middle = Math.floor(Math.random() * (CONST.MAX_64BIT_MIDDLE_PART + 1));
     }
 
-    // Unless both the left and middle parts were the maximums, the right part can be anything.
+    // And unless both the left and middle parts were the maximums, the right part can be any value as well.
     if (left !== CONST.MAX_64BIT_LEFT_PART || middle !== CONST.MAX_64BIT_MIDDLE_PART) {
         right = Math.floor(Math.random() * 10000000);
     } else {
         right = Math.floor(Math.random() * (CONST.MAX_64BIT_RIGHT_PART + 1));
     }
 
-    // Pad the middle and right with zeros
+    // Pad the middle and right with zeros.
     const middleString = middle.toString().padStart(7, '0');
     const rightString = right.toString().padStart(7, '0');
 
