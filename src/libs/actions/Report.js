@@ -713,7 +713,7 @@ function createOptimisticChatReport(participantList) {
     };
 }
 
-function createOptimisticWorkspaceChat(policyID, ownerEmail) {
+function createOptimisticWorkspaceChats(policyID, ownerEmail) {
     const announceReportID = ReportUtils.generateReportID();
     const announceChatData = {
             chatType: CONST.CHAT_TYPE.POLICY_ANNOUNCE,
@@ -1660,7 +1660,7 @@ export {
     openReport,
     openPaymentDetailsPage,
     createOptimisticReport,
-    createOptimisticWorkspaceChat,
+    createOptimisticWorkspaceChats,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
