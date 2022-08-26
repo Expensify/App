@@ -541,7 +541,7 @@ function subscribeToPolicyEvents() {
  * @param {String} policyID
  * @param {String} memberEmail
  */
- function clearDeleteMemberError(policyID, memberEmail) {
+function clearDeleteMemberError(policyID, memberEmail) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
         [memberEmail]: {
             pendingAction: null,
