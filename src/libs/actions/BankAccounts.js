@@ -26,7 +26,7 @@ export {
     openPlaidBankLogin,
 } from './Plaid';
 export {
-    fetchOnfidoToken,
+    openOnfidoFlow,
     activateWallet,
     verifyIdentity,
     acceptWalletTerms,

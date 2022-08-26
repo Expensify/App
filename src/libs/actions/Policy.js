@@ -68,19 +68,6 @@ function getSimplifiedEmployeeList(employeeList) {
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
-    const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
-    const customUnitValue = lodashGet(customUnit, 'attributes.unit', 'mi');
-    const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
-    const customUnitSimplified = customUnit && {
-        id: customUnit.customUnitID,
-        name: customUnit.name,
-        value: customUnitValue,
-        rate: {
-            id: customUnitRate.customUnitRateID,
-            name: customUnitRate.name,
-            value: Number(customUnitRate.rate),
-        },
-    };
     return {
         isFromFullPolicy,
         id: fullPolicyOrPolicySummary.id,
@@ -93,7 +80,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
-        customUnit: customUnitSimplified,
+        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
 
@@ -502,6 +489,31 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
+ * @param {Number} customUnitID
+ */
+function removeUnitError(policyID, customUnitID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errors: null,
+                pendingAction: null,
+            },
+        },
+    });
+}
+
+/**
+ * Checks if we have any errors stored within the policy custom units.
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function hasCustomUnitsError(policy) {
+    const unitsWithErrors = _.filter(lodashGet(policy, 'customUnits', {}), customUnit => (lodashGet(customUnit, 'errors', null)));
+    return !_.isEmpty(unitsWithErrors);
+}
+
+/**
+ * @param {String} policyID
  */
 function hideWorkspaceAlertMessage(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
@@ -509,30 +521,63 @@ function hideWorkspaceAlertMessage(policyID) {
 
 /**
  * @param {String} policyID
- * @param {Object} values
+ * @param {Object} currentCustomUnit
+ * @param {Object} values The new custom unit values
  */
-function setCustomUnit(policyID, values) {
-    DeprecatedAPI.Policy_CustomUnit_Update({
-        policyID: policyID.toString(),
-        customUnit: JSON.stringify(values),
-        lastModified: null,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {
-                customUnit: {
-                    id: values.customUnitID,
-                    name: values.name,
-                    value: values.attributes.unit,
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [values.customUnitID]: {
+                        ...values,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
-            });
-        }).catch(() => {
-            // Show the user feedback
-            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-        });
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [values.customUnitID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        customUnitID: currentCustomUnit.customUnitID,
+                        name: currentCustomUnit.name,
+                        attributes: currentCustomUnit.attributes,
+                        errors: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceCustomUnit', {
+        policyID,
+        customUnit: JSON.stringify(values),
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -655,11 +700,13 @@ export {
     uploadAvatar,
     update,
     setWorkspaceErrors,
+    removeUnitError,
+    hasCustomUnitsError,
     hideWorkspaceAlertMessage,
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
-    setCustomUnit,
+    updateWorkspaceCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
