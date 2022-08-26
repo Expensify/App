@@ -38,12 +38,10 @@ class WorkspaceSettingsPage extends React.Component {
 
         this.state = {
             name: props.policy.name,
-            previewAvatarURL: props.policy.avatar,
             currency: props.policy.outputCurrency,
         };
 
         this.submit = this.submit.bind(this);
-        this.uploadAvatar = this.uploadAvatar.bind(this);
         this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.validate = this.validate.bind(this);
@@ -61,20 +59,7 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     removeAvatar() {
-        this.setState({previewAvatarURL: ''});
-        Policy.update(this.props.policy.id, {avatar: ''}, true);
-    }
-
-    /**
-     * @param {Object} image
-     * @param {String} image.uri
-     */
-    uploadAvatar(image) {
-        if (this.props.policy.isAvatarUploading) {
-            return;
-        }
-        this.setState({previewAvatarURL: image.uri});
-        Policy.uploadAvatar(this.props.policy.id, image);
+        Policy.deleteWorkspaceAvatar(this.props.policy.id);
     }
 
     submit() {
@@ -120,24 +105,38 @@ class WorkspaceSettingsPage extends React.Component {
                 >
                     {hasVBA => (
                         <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
-                            <AvatarWithImagePicker
-                                isUploading={this.props.policy.isAvatarUploading}
-                                avatarURL={this.state.previewAvatarURL}
-                                size={CONST.AVATAR_SIZE.LARGE}
-                                DefaultAvatar={() => (
-                                    <Icon
-                                        src={Expensicons.Workspace}
-                                        height={80}
-                                        width={80}
-                                        fill={defaultTheme.iconSuccessFill}
-                                    />
-                                )}
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                style={[styles.mb3]}
-                                anchorPosition={{top: 172, right: 18}}
-                                isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                                onImageSelected={this.uploadAvatar}
-                                onImageRemoved={this.removeAvatar}
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.policy, 'pendingFields.avatar', null)}
+                                errors={lodashGet(this.props.policy, 'errors', null)}
+                                isCloseable={false}
+                            >
+                                <AvatarWithImagePicker
+                                    isUploading={this.props.policy.isAvatarUploading}
+                                    avatarURL={this.props.policy.avatar}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    DefaultAvatar={() => (
+                                        <Icon
+                                            src={Expensicons.Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={defaultTheme.iconSuccessFill}
+                                        />
+                                    )}
+                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                    style={[styles.mb3]}
+                                    anchorPosition={{top: 172, right: 18}}
+                                    isUsingDefaultAvatar={!this.props.policy.avatar}
+                                    onImageSelected={file => Policy.updateWorkspaceAvatar(this.props.policy.id, file)}
+                                    onImageRemoved={this.removeAvatar}
+                                />
+                            </OfflineWithFeedback>
+                            <TextInput
+                                label={this.props.translate('workspace.editor.nameInputLabel')}
+                                containerStyles={[styles.mt4]}
+                                onChangeText={name => this.setState({name})}
+                                value={this.state.name}
+                                hasError={!this.state.name.trim().length}
+                                errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
                             />
 
                             <OfflineWithFeedback

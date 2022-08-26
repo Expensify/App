@@ -45,6 +45,9 @@ const propTypes = {
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
 
+    /** Whether we should allow the user to close the error message **/
+    isCloseable: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -53,7 +56,8 @@ const defaultProps = {
     errors: null,
     onClose: () => {},
     style: [],
-    errorStyle: [],
+    errorRowStyles: [],
+    isCloseable: true,
 };
 
 /**
@@ -110,16 +114,18 @@ const OfflineWithFeedback = (props) => {
                             <Text key={i} style={styles.offlineFeedback.text}>{error}</Text>
                         ))}
                     </View>
-                    <Tooltip text={props.translate('common.close')}>
-                        <Pressable
-                            onPress={props.onClose}
-                            style={[styles.touchableButtonImage, styles.mr0]}
-                            accessibilityRole="button"
-                            accessibilityLabel={props.translate('common.close')}
-                        >
-                            <Icon src={Expensicons.Close} />
-                        </Pressable>
-                    </Tooltip>
+                    {props.isCloseable && (
+                        <Tooltip text={props.translate('common.close')}>
+                            <Pressable
+                                onPress={props.onClose}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                                accessibilityRole="button"
+                                accessibilityLabel={props.translate('common.close')}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </Pressable>
+                        </Tooltip>
+                    )}
                 </View>
             )}
         </View>

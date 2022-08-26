@@ -202,7 +202,7 @@ class ProfilePage extends Component {
             && (lodashGet(currentUserDetails, 'timezone.selected') === this.state.selectedTimezone)
             && (lodashGet(currentUserDetails, 'timezone.automatic') === this.state.isAutomaticTimezone)
             && (currentUserDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged || currentUserDetails.avatarUploading);
+            && (!this.state.isAvatarChanged);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -217,11 +217,11 @@ class ProfilePage extends Component {
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <OfflineWithFeedback
                         pendingAction={lodashGet(currentUserDetails, 'pendingFields.avatar', null)}
-                        errors={lodashGet(currentUserDetails, 'errorFields.avatar', null)}
-                        onClose={PersonalDetails.clearAvatarErrors}
+                        errors={lodashGet(currentUserDetails, 'errors', null)}
+                        errorRowStyles={[styles.mt6]}
+                        isCloseable={false}
                     >
                         <AvatarWithImagePicker
-                            isUploading={currentUserDetails.avatarUploading}
                             isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
                             avatarURL={currentUserDetails.avatar.uri || currentUserDetails.avatar}
                             onImageSelected={PersonalDetails.updateUserAvatar}

@@ -310,35 +310,6 @@ function openIOUModalPage() {
 }
 
 /**
- * Sets the user's avatar image
- *
- * @param {File|Object} file
- */
-function setAvatar(file) {
-    setPersonalDetails({avatarUploading: true});
-    DeprecatedAPI.User_UploadAvatar({file})
-        .then((response) => {
-            // Once we get the avatarURL back, update the personal details for the user with the new avatar URL
-            if (response.jsonCode !== 200) {
-                setPersonalDetails({avatarUploading: false});
-                if (response.jsonCode === 405 || response.jsonCode === 502) {
-                    Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
-                } else {
-                    Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
-                }
-                return;
-            }
-
-            let {avatar, avatarThumbnail} = response;
-
-            // TODO: remove the following 2 lines once https://github.com/Expensify/Web-Expensify/pull/34469 is merged, also change above access to const
-            avatar = avatar || response.s3url;
-            avatarThumbnail = avatarThumbnail || response.s3url;
-            setPersonalDetails({avatar, avatarThumbnail, avatarUploading: false}, false);
-        });
-}
-
-/**
  * Updates the user's avatar image
  *
  * @param {File|Object} file
@@ -351,23 +322,10 @@ function updateUserAvatar(file) {
             [currentUserEmail]: {
                 avatar: file.uri,
                 avatarThumbnail: file.uri,
-                avatarUploading: true,
                 errors: null,
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                errorFields: {
-                    avatar: null,
-                },
-            },
-        },
-    }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS,
-        value: {
-            [currentUserEmail]: {
-                avatarUploading: false,
             },
         },
     }];
@@ -378,12 +336,14 @@ function updateUserAvatar(file) {
             [currentUserEmail]: {
                 avatar: personalDetails[currentUserEmail].avatar,
                 avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
-                avatarUploading: false,
+                pendingFields: {
+                    avatar: null,
+                },
             },
         },
     }];
 
-    API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
+    API.write('UpdateUserAvatar', {file}, {optimisticData, failureData});
 }
 
 /**
@@ -414,33 +374,15 @@ function deleteAvatar() {
     });
 }
 
-/**
- * Clear error and pending fields for the current user's avatar
- */
-function clearAvatarErrors() {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-        [currentUserEmail]: {
-            errorFields: {
-                avatarURL: null,
-            },
-            pendingFields: {
-                avatarURL: null,
-            },
-        },
-    });
-}
-
 export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
-    setAvatar,
     updateUserAvatar,
     deleteAvatar,
     openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
-    clearAvatarErrors,
 };
