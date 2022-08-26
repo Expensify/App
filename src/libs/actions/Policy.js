@@ -459,9 +459,9 @@ function update(policyID, values, shouldGrowl = false) {
  * Optimistically update the workspace general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  *
- * @param {String} policyID The id of the workspace / policy
- * @param {String} name The new workspace name
- * @param {String} currency The new workspace currency
+ * @param {String} policyID
+ * @param {String} name
+ * @param {String} currency
  */
 function updateWorkspaceGeneralSettings(policyID, name, currency) {
     const optimisticData = [
