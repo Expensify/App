@@ -534,7 +534,7 @@ function generateReportID() {
         result *= 2;
 
         // If extraBits is odd, meaning the lowest bit is set, do the same to the result, without bitwise operators.
-        if (extraBits % 2 === 0) {
+        if (extraBits % 2 === 1) {
             result += 1;
         }
 
