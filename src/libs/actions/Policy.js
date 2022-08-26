@@ -109,58 +109,6 @@ function updateAllPolicies(policyCollection) {
 }
 
 /**
- * Merges the passed in login into the specified policy
- *
- * @param {String} [name]
- * @param {Boolean} [shouldAutomaticallyReroute]
- * @returns {Promise}
- */
-function create(name = '') {
-    let res = null;
-    return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
-            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnCreate'), CONST.GROWL.SUCCESS, 3000);
-            res = response;
-
-            // Fetch the default reports and the policyExpenseChat reports on the policy
-            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
-
-            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Promise.all([
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                    id: response.policyID,
-                    type: response.policy.type,
-                    name: response.policy.name,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    outputCurrency: response.policy.outputCurrency,
-                }),
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${response.policyID}`, getSimplifiedEmployeeList(response.policy.employeeList)),
-            ]);
-        })
-        .then(() => Promise.resolve(lodashGet(res, 'policyID')));
-}
-
-/**
- * @param {String} policyID
- */
-function navigateToPolicy(policyID) {
-    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-}
-
-/**
- * @param {String} [name]
- */
-function createAndNavigate(name = '') {
-    create(name).then(navigateToPolicy);
-}
-
-/**
  * Delete the policy
  *
  * @param {String} [policyID]
@@ -219,19 +167,6 @@ function getPolicyList() {
             }
 
             Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-        });
-}
-
-function createAndGetPolicyList() {
-    let newPolicyID;
-    create()
-        .then((policyID) => {
-            newPolicyID = policyID;
-            return getPolicyList();
-        })
-        .then(() => {
-            Navigation.dismissModal();
-            navigateToPolicy(newPolicyID);
         });
 }
 
@@ -830,7 +765,11 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
-function createWorkspace(ownerEmail) {
+/**
+ * Optimistically creates a new workspace and default workspace chats 
+ * @param {*} ownerEmail
+ */
+function createWorkspace() {
     const policyID = generatePolicyID();
     const {
         announceReportID,
@@ -839,7 +778,7 @@ function createWorkspace(ownerEmail) {
         adminChatData,
         expenseReportID,
         expenseChatData
-    } = Report.createOptimisticWorkspaceChats(policyID, ownerEmail);
+    } = Report.createOptimisticWorkspaceChats(policyID, sessionEmail);
     
     API.write('CreateWorkspace', {
         policyID,
@@ -863,7 +802,7 @@ function createWorkspace(ownerEmail) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
             value: getSimplifiedEmployeeList({
-                'email': ownerEmail, 
+                'email': sessionEmail, 
                 'role': CONST.POLICY.ROLE.ADMIN
             })
         }, {
@@ -908,6 +847,8 @@ function createWorkspace(ownerEmail) {
             value: null,
         }]
     });
+
+    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
 }
 
 export {
@@ -916,15 +857,12 @@ export {
     removeMembers,
     invite,
     isAdminOfFreePolicy,
-    create,
     uploadAvatar,
     update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deletePolicy,
-    createAndNavigate,
-    createAndGetPolicyList,
     updateWorkspaceCustomUnit,
     updateCustomUnitRate,
     updateLastAccessedWorkspace,

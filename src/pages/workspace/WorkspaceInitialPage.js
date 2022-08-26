@@ -21,8 +21,7 @@ import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
-import * as PolicyActions from '../../libs/actions/Policy';
-import * as PolicyUtils from '../../libs/PolicyUtils';
+import * as Policy from '../../libs/actions/Policy';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -74,13 +73,14 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        PolicyActions.deletePolicy(this.props.policy.id);
+        Policy.deletePolicy(this.props.policy.id);
         this.toggleDeleteModal(false);
     }
 
     render() {
         const policy = this.props.policy;
-        const hasMembersError = PolicyActions.hasPolicyMemberError(this.props.policyMemberList);
+        const hasMembersError = Policy.hasPolicyMemberError(this.props.policyMemberList);
+        const hasCustomUnitsError = Policy.hasCustomUnitsError(this.props.policy);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
@@ -142,7 +142,7 @@ class WorkspaceInitialPage extends React.Component {
                             {
                                 icon: Expensicons.Plus,
                                 text: this.props.translate('workspace.new.newWorkspace'),
-                                onSelected: () => PolicyActions.createAndNavigate(),
+                                onSelected: () => Policy.createWorkspace(),
                             }, {
                                 icon: Expensicons.Trashcan,
                                 text: this.props.translate('workspace.common.delete'),

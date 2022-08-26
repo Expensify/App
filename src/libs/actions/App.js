@@ -143,7 +143,7 @@ function reconnectApp() {
  * will occur.
 
  * When the exitTo route is 'workspace/new', we create a new
- * workspace and navigate to it via Policy.createAndGetPolicyList.
+ * workspace and navigate to it
  *
  * We subscribe to the session using withOnyx in the AuthScreens and
  * pass it in as a parameter. withOnyx guarantees that the value has been read
@@ -164,7 +164,7 @@ function setUpPoliciesAndNavigate(session) {
                         && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createAndGetPolicyList();
+        Policy.createWorkspace();
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {

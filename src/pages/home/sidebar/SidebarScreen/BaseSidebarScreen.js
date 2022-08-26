@@ -170,7 +170,7 @@ class BaseSidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => Policy.createAndNavigate(),
+                                        onSelected: () => Policy.createWorkspace(),
                                     },
                                 ] : []),
                             ]}
