@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import CONST from '../CONST';
 
 /**

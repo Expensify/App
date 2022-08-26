@@ -473,33 +473,6 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
- * Uploads the avatar image to S3 bucket and updates the policy with new avatar
- *
- * @param {String} policyID
- * @param {Object} file
- */
-function uploadAvatar(policyID, file) {
-    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
-    DeprecatedAPI.User_UploadAvatar({file})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                // Update the policy with the new avatar as soon as we get it
-                let {avatar} = response;
-
-                // TODO: remove the following line once https://github.com/Expensify/Web-Expensify/pull/34469 is merged, also change above access to const
-                avatar = avatar || response.s3url;
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatar, isAvatarUploading: false});
-                update(policyID, {avatar}, true);
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
-}
-
-/**
  * @param {String} policyID
  * @param {Object} errors
  */
@@ -718,7 +691,6 @@ export {
     invite,
     isAdminOfFreePolicy,
     create,
-    uploadAvatar,
     update,
     setWorkspaceErrors,
     removeUnitError,

@@ -78,15 +78,12 @@ class ProfilePage extends Component {
             selectedTimezone: lodashGet(currentUserDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(currentUserDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
-            avatar: {uri: currentUserDetails.avatar || ReportUtils.getDefaultAvatar(currentUserDetails.login)},
-            isAvatarChanged: false,
         };
 
         this.getLogins = this.getLogins.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
-        this.deleteAvatar = this.deleteAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -148,14 +145,6 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Replaces the user's current avatar image with a default avatar.
-     */
-    deleteAvatar() {
-        PersonalDetails.deleteAvatar();
-        this.setState({avatar: {uri: ReportUtils.getDefaultAvatar(lodashGet(this.props.currentUserPersonalDetails, 'login'))}});
-    }
-
-    /**
      * Submit form to update personal details
      */
     updatePersonalDetails() {
@@ -199,8 +188,7 @@ class ProfilePage extends Component {
             && (currentUserDetails.lastName === this.state.lastName.trim())
             && (lodashGet(currentUserDetails, 'timezone.selected') === this.state.selectedTimezone)
             && (lodashGet(currentUserDetails, 'timezone.automatic') === this.state.isAutomaticTimezone)
-            && (currentUserDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged);
+            && (currentUserDetails.pronouns === this.state.pronouns.trim());
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -220,10 +208,10 @@ class ProfilePage extends Component {
                         isCloseable={false}
                     >
                         <AvatarWithImagePicker
-                            isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
-                            avatarURL={currentUserDetails.avatar.uri || currentUserDetails.avatar}
-                            onImageSelected={PersonalDetails.updateUserAvatar}
-                            onImageRemoved={this.deleteAvatar}
+                            isUsingDefaultAvatar={currentUserDetails.avatar.includes('/images/avatars/avatar')}
+                            avatarURL={currentUserDetails.avatar}
+                            onImageSelected={PersonalDetails.updateAvatar}
+                            onImageRemoved={PersonalDetails.deleteAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
