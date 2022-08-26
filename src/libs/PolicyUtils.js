@@ -34,8 +34,7 @@ function hasPolicyError(policy) {
  * @returns {Boolean}
  */
 function hasCustomUnitsError(policy) {
-    const unitsWithErrors = _.filter(lodashGet(policy, 'customUnits', {}), customUnit => (lodashGet(customUnit, 'errors', null)));
-    return !_.isEmpty(unitsWithErrors);
+    return !_.isEmpty(_.pick(policy.customUnits, 'errors'));
 }
 
 /**
