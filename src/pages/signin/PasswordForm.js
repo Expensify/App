@@ -68,6 +68,9 @@ class PasswordForm extends React.Component {
         if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
             this.clearPassword();
         }
+        if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
+            this.input2FA.focus();
+        }
     }
 
     /**
