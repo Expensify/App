@@ -202,9 +202,9 @@ class ProfilePage extends Component {
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <OfflineWithFeedback
                         pendingAction={lodashGet(currentUserDetails, 'pendingFields.avatar', null)}
-                        errors={lodashGet(currentUserDetails, 'errors', null)}
+                        errors={lodashGet(currentUserDetails, 'errorFields.avatar', null)}
                         errorRowStyles={[styles.mt6]}
-                        isCloseable={false}
+                        onClose={PersonalDetails.clearAvatarErrors}
                     >
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={currentUserDetails.avatar.includes('/images/avatars/avatar')}
@@ -213,6 +213,7 @@ class ProfilePage extends Component {
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
+
                         />
                     </OfflineWithFeedback>
                     <Text style={[styles.mt6, styles.mb6]}>

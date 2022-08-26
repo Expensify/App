@@ -105,8 +105,8 @@ class WorkspaceSettingsPage extends React.Component {
                         <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.policy, 'pendingFields.avatar', null)}
-                                errors={lodashGet(this.props.policy, 'errors', null)}
-                                isCloseable={false}
+                                errors={lodashGet(this.props.policy, 'errorFields.avatar', null)}
+                                onClose={() => Policy.clearAvatarErrors(this.props.policy.id)}
                             >
                                 <AvatarWithImagePicker
                                     isUploading={this.props.policy.isAvatarUploading}
