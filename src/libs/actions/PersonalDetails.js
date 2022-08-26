@@ -91,7 +91,6 @@ function formatPersonalDetails(personalDetailsList) {
         const sanitizedLogin = LoginUtils.getEmailWithoutMergedAccountPrefix(login);
 
         // Form the details into something that has all the data in an easy to use format.
-        const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
         const displayName = getDisplayName(sanitizedLogin, details);
         const pronouns = details.pronouns || '';
         const timezone = details.timeZone || CONST.DEFAULT_TIME_ZONE;
@@ -100,10 +99,9 @@ function formatPersonalDetails(personalDetailsList) {
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
         const avatar = details.avatar || details.avatarThumbnail || ReportUtils.getDefaultAvatar(login);
+        const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
-            avatar,
-            avatarThumbnail,
             displayName,
             firstName,
             lastName,
@@ -111,6 +109,8 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
+            avatar,
+            avatarThumbnail,
         };
     });
     Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
@@ -314,7 +314,7 @@ function openIOUModalPage() {
  *
  * @param {File|Object} file
  */
-function updateUserAvatar(file) {
+function updateAvatar(file) {
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
@@ -379,7 +379,7 @@ export {
     getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
-    updateUserAvatar,
+    updateAvatar,
     deleteAvatar,
     openIOUModalPage,
     getMaxCharacterError,

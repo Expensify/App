@@ -20,10 +20,6 @@ import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
-import {withNetwork} from './OnyxProvider';
-import compose from '../libs/compose';
-import networkPropTypes from './networkPropTypes';
-import DotIndicatorMessage from './DotIndicatorMessage';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -224,68 +220,66 @@ class AvatarWithImagePicker extends React.Component {
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         return (
-            <>
-                <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                    <Pressable
-                        onPress={() => this.setState({isMenuVisible: true})}
-                    >
-                        <View style={[styles.pRelative, styles.avatarLarge]}>
-                            {this.props.avatarURL
-                                ? (
-                                    <Avatar
-                                        containerStyles={styles.avatarLarge}
-                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                        source={this.props.avatarURL}
-                                        fallbackIcon={this.props.fallbackIcon}
-                                        size={this.props.size}
+            <View style={[styles.alignItemsCenter, ...additionalStyles]}>
+                <Pressable
+                    onPress={() => this.setState({isMenuVisible: true})}
+                >
+                    <View style={[styles.pRelative, styles.avatarLarge]}>
+                        {this.props.avatarURL
+                            ? (
+                                <Avatar
+                                    containerStyles={styles.avatarLarge}
+                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                    source={this.props.avatarURL}
+                                    fallbackIcon={this.props.fallbackIcon}
+                                    size={this.props.size}
+                                />
+                            )
+                            : (
+                                <DefaultAvatar />
+                            )}
+                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                            {({openPicker}) => (
+                                <>
+                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
+                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                            <Icon
+                                                src={Expensicons.Camera}
+                                                width={variables.iconSizeSmall}
+                                                height={variables.iconSizeSmall}
+                                                fill={themeColors.iconReversed}
+                                            />
+                                        </View>
+                                    </Tooltip>
+                                    <PopoverMenu
+                                        isVisible={this.state.isMenuVisible}
+                                        onClose={() => this.setState({isMenuVisible: false})}
+                                        onItemSelected={() => this.setState({isMenuVisible: false})}
+                                        menuItems={this.createMenuItems(openPicker)}
+                                        anchorPosition={this.props.anchorPosition}
                                     />
-                                )
-                                : (
-                                    <DefaultAvatar />
-                                )}
-                            <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                                {({openPicker}) => (
-                                    <>
-                                        <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
-                                            <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                                <Icon
-                                                    src={Expensicons.Camera}
-                                                    width={variables.iconSizeSmall}
-                                                    height={variables.iconSizeSmall}
-                                                    fill={themeColors.iconReversed}
-                                                />
-                                            </View>
-                                        </Tooltip>
-                                        <PopoverMenu
-                                            isVisible={this.state.isMenuVisible}
-                                            onClose={() => this.setState({isMenuVisible: false})}
-                                            onItemSelected={() => this.setState({isMenuVisible: false})}
-                                            menuItems={this.createMenuItems(openPicker)}
-                                            anchorPosition={this.props.anchorPosition}
-                                        />
-                                    </>
-                                )}
-                            </AttachmentPicker>
-                        </View>
-                    </Pressable>
-                    <ConfirmModal
-                        title={this.state.errorModalTitle}
-                        onConfirm={this.hideErrorModal}
-                        onCancel={this.hideErrorModal}
-                        isVisible={this.state.isErrorModalVisible}
-                        prompt={this.state.errorModalPrompt}
-                        confirmText={this.props.translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
-                    <AvatarCropModal
-                        onClose={this.hideAvatarCropModal}
-                        isVisible={this.state.isAvatarCropModalOpen}
-                        onSave={this.props.onImageSelected}
-                        imageUri={this.state.imageUri}
-                        imageName={this.state.imageName}
-                    />
-                </View>
-            </>
+                                </>
+                            )}
+                        </AttachmentPicker>
+                    </View>
+                </Pressable>
+                <ConfirmModal
+                    title={this.state.errorModalTitle}
+                    onConfirm={this.hideErrorModal}
+                    onCancel={this.hideErrorModal}
+                    isVisible={this.state.isErrorModalVisible}
+                    prompt={this.state.errorModalPrompt}
+                    confirmText={this.props.translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
+                <AvatarCropModal
+                    onClose={this.hideAvatarCropModal}
+                    isVisible={this.state.isAvatarCropModalOpen}
+                    onSave={this.props.onImageSelected}
+                    imageUri={this.state.imageUri}
+                    imageName={this.state.imageName}
+                />
+            </View>
         );
     }
 }
