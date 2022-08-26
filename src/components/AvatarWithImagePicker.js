@@ -64,9 +64,6 @@ const propTypes = {
     /** Information about the network, used to detect if we are offline */
     network: networkPropTypes.isRequired,
 
-    /** Any error messages to display associated with uploading the avatar */
-    error: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
@@ -80,7 +77,6 @@ const defaultProps = {
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
-    error: '',
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -293,7 +289,6 @@ class AvatarWithImagePicker extends React.Component {
                         imageName={this.state.imageName}
                     />
                 </View>
-                {this.props.error && <DotIndicatorMessage style={[styles.w100, styles.mt6]} type="error" messages={[this.props.error]} />}
             </>
         );
     }
