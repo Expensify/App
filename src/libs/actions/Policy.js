@@ -456,14 +456,14 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
- * Optimistically update the workspace general settings. Set the general settings as pending until the response succeeds.
+ * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  *
  * @param {String} policyID
  * @param {String} name
  * @param {String} currency
  */
-function updateWorkspaceGeneralSettings(policyID, name, currency) {
+function updateGeneralSettings(policyID, name, currency) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -760,7 +760,7 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    updateWorkspaceGeneralSettings,
+    updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
     clearAvatarErrors,
