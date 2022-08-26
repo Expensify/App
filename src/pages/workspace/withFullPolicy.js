@@ -65,7 +65,8 @@ const fullPolicyPropTypes = {
         /** Errors on the policy keyed by microtime */
         errors: PropTypes.objectOf(PropTypes.string),
 
-        /** Error objects keyed by field name containing errors keyed by microtime
+        /**
+         * Error objects keyed by field name containing errors keyed by microtime
          * E.x
          * {
          *     name: {
