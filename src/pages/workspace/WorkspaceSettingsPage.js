@@ -105,7 +105,7 @@ class WorkspaceSettingsPage extends React.Component {
                             >
                                 <AvatarWithImagePicker
                                     isUploading={this.props.policy.isAvatarUploading}
-                                    avatarURL={this.props.policy.avatar}
+                                    avatarURL={lodashGet(this.props.policy, 'avatar')}
                                     size={CONST.AVATAR_SIZE.LARGE}
                                     DefaultAvatar={() => (
                                         <Icon
