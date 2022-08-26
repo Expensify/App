@@ -339,6 +339,48 @@ function setAvatar(file) {
 }
 
 /**
+ * Updates the user's avatar image
+ *
+ * @param {File|Object} file
+ */
+function updateUserAvatar(file) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS,
+        value: {
+            [currentUserEmail]: {
+                avatar: file.uri,
+                avatarHighResolution: file.uri,
+                avatarUploading: true,
+                errors: null,
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS,
+        value: {
+            [currentUserEmail]: {
+                avatarUploading: false,
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS,
+        value: {
+            [currentUserEmail]: {
+                avatar: personalDetails[currentUserEmail].avatar,
+                avatarHighResolution: personalDetails[currentUserEmail].avatar,
+                avatarUploading: false,
+            },
+        },
+    }];
+
+    API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
+}
+
+/**
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
@@ -372,6 +414,7 @@ export {
     getDisplayName,
     setPersonalDetails,
     setAvatar,
+    updateUserAvatar,
     deleteAvatar,
     openIOUModalPage,
     getMaxCharacterError,
