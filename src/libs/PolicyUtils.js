@@ -38,14 +38,14 @@ function hasCustomUnitsError(policy) {
 }
 
 /**
- * Get the brick road indicator status for a workspace. The workspace has an error status if there is a policy member error or a policy error.
+ * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error or a policy error.
  *
  * @param {Object} policy
  * @param {String} policy.id
  * @param {Object} policyMembers
  * @returns {String}
  */
-function getWorkspaceBrickRoadIndicatorStatus(policy, policyMembers) {
+function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
     const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
     if (hasPolicyMemberError(policyMemberList) || hasPolicyError(policy) || hasCustomUnitsError(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -57,5 +57,5 @@ export {
     hasPolicyMemberError,
     hasPolicyError,
     hasCustomUnitsError,
-    getWorkspaceBrickRoadIndicatorStatus,
+    getPolicyBrickRoadIndicatorStatus,
 };
