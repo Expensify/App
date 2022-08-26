@@ -690,14 +690,47 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
-function createWorkspace() {
+function createWorkspace(ownerEmail) {
+    const workspaceChats = Report.createOptimisticWorkspaceChats(policyID, ownerEmail);
+    
     API.write('CreateWorkspace', {
         policyID,
         announceChatReportID,
         adminsChatReportID,
         expenseChatReportID,
     }, {
-        optimisticData, successData, failureData
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                id: policyID,
+                type: CONST.POLICY.TYPE.FREE,
+                name: generateDefaultWorkspaceName(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: 'USD',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,  
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+            value: getSimplifiedEmployeeList({
+                'email': ownerEmail, 
+                'role': CONST.POLICY.ROLE.ADMIN
+            })
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChats.announceChatID}`,
+            value: workspaceChats.announceChatData,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChats.adminChatID}`,
+            value: workspaceChats.adminChatData,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChats.expenseChatID}`,
+            value: workspaceChats.expenseChatData,
+        }], 
     });
 }
 
