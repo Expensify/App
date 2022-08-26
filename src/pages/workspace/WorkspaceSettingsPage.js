@@ -119,7 +119,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     style={[styles.mb3]}
                                     anchorPosition={{top: 172, right: 18}}
                                     isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
-                                    onImageSelected={file => Policy.updateWorkspaceAvatar(this.props.policy.id, file)}
+                                    onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
                                     onImageRemoved={() => Policy.deleteWorkspaceAvatar(this.props.policy.id)}
                                 />
                             </OfflineWithFeedback>
