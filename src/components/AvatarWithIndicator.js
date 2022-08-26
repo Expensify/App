@@ -59,14 +59,12 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => PolicyUtils.hasPolicyMemberError(policyMembers));
-    const hasCustomUnitsError = _.some(props.policies, policy => PolicyUtils.hasCustomUnitsError(policy));
+    const hasPolicyMemberError = _.some(props.policiesMemberList, PolicyUtils.hasPolicyMemberError);
+    const hasCustomUnitsError = _.some(props.policies, PolicyUtils.hasCustomUnitsError);
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
     const hasWalletError = !_.isEmpty(props.userWallet.errors);
-    const hasAnyPolicyError = _.some(props.policies, policy => PolicyUtils.hasPolicyError(policy));
-
-    // Show the indicator if there is some error.
-    const shouldShowIndicator = _.some([hasPolicyMemberError, hasPaymentMethodError, hasWalletError, hasAnyPolicyError, hasCustomUnitsError]);
+    const hasAnyPolicyError = _.some(props.policies, PolicyUtils.hasPolicyError);
+    const shouldShowIndicator = hasPolicyMemberError || hasCustomUnitsError || hasPaymentMethodError || hasWalletError || hasAnyPolicyError;
 
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
