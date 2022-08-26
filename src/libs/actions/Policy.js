@@ -192,30 +192,6 @@ function deleteWorkspace(policyID) {
     const failureData = [];
     const successData = [];
     API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
-
-    // const optimisticData = [{
-    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-    //     key: ONYXKEYS.ACCOUNT,
-    //     value: {isLoading: true},
-    // }];
-    // const successData = [{
-    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-    //     key: ONYXKEYS.ACCOUNT,
-    //     value: {
-    //         isLoading: false,
-    //         message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
-    //     },
-    // }];
-    // const failureData = [{
-    //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-    //     key: ONYXKEYS.ACCOUNT,
-    //     value: {
-    //         isLoading: false,
-    //         message: '',
-    //     },
-    // }];
-
-    // API.read('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
 }
 
 /**
