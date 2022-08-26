@@ -322,7 +322,9 @@ function updateAvatar(file) {
             [currentUserEmail]: {
                 avatar: file.uri,
                 avatarThumbnail: file.uri,
-                errors: null,
+                errorFields: {
+                    avatar: null,
+                },
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -374,6 +376,22 @@ function deleteAvatar() {
     });
 }
 
+/**
+ * Clear error and pending fields for the current user's avatar
+ */
+function clearAvatarErrors() {
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+        [currentUserEmail]: {
+            errorFields: {
+                avatar: null,
+            },
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    });
+}
+
 export {
     formatPersonalDetails,
     getFromReportParticipants,
@@ -385,4 +403,5 @@ export {
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
+    clearAvatarErrors,
 };
