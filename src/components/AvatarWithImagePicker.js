@@ -231,16 +231,6 @@ class AvatarWithImagePicker extends React.Component {
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
         const isPendingUpload = this.props.isUploading && this.props.network.isOffline;
 
-        const indicatorStyles = [
-            styles.alignItemsCenter,
-            styles.justifyContentCenter,
-            this.props.size === CONST.AVATAR_SIZE.LARGE ? styles.statusIndicatorLarge : styles.statusIndicator,
-            styles.statusIndicatorOnline,
-            this.animation.getSyncingStyles(),
-        ];
-
-        const indicatorIconSize = this.props.size === CONST.AVATAR_SIZE.LARGE ? variables.iconSizeXXSmall : variables.iconSizeXXXSmall;
-
         return (
             <>
                 <View style={[styles.alignItemsCenter, isPendingUpload && styles.offlineFeedback.pending, ...additionalStyles]}>
