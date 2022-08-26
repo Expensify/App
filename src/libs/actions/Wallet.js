@@ -476,7 +476,7 @@ function acceptWalletTerms(parameters) {
 }
 
 /**
- * Fetches information about a user's Expensify Wallet
+ * Fetches data when the user opens the InitialSettingsPage
  *
  * @typedef {Object} UserWallet
  * @property {Number} availableBalance
@@ -484,16 +484,21 @@ function acceptWalletTerms(parameters) {
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
  * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
  */
-function fetchUserWallet() {
-    DeprecatedAPI.Get({returnValueList: 'userWallet'})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return;
-            }
+function openInitialSettingsPage() {
+    API.read('OpenInitialSettingsPage');
+}
 
-            // When refreshing the wallet, we should not show the failed KYC page anymore, as we should allow them to retry.
-            Onyx.merge(ONYXKEYS.USER_WALLET, {...response.userWallet, shouldShowFailedKYC: false});
-        });
+/**
+ * Fetches data when the user opens the EnablePaymentsPage
+ *
+ * @typedef {Object} UserWallet
+ * @property {Number} availableBalance
+ * @property {Number} currentBalance
+ * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
+ * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ */
+function openEnablePaymentsPage() {
+    API.read('OpenEnablePaymentsPage');
 }
 
 /**
@@ -513,7 +518,8 @@ function updateCurrentStep(currentStep) {
 export {
     fetchOnfidoToken,
     activateWallet,
-    fetchUserWallet,
+    openInitialSettingsPage,
+    openEnablePaymentsPage,
     setAdditionalDetailsErrors,
     updateAdditionalDetailsDraft,
     setAdditionalDetailsErrorMessage,
