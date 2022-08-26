@@ -172,6 +172,7 @@ const InitialSettingsPage = (props) => {
             pendingAction: policy.pendingAction,
             errors: policy.errors,
             dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+            disabled: policy.pendingAction === 'delete' && _.isEmpty(policy.errors),
         }))
         .value();
     menuItems.push(...defaultMenuItems);
@@ -355,6 +356,7 @@ const InitialSettingsPage = (props) => {
                                 pendingAction={item.pendingAction}
                                 errors={item.errors}>
                                 <MenuItem
+                                    disabled={item.disabled || false}
                                     title={keyTitle}
                                     icon={item.icon}
                                     iconType={item.iconType}
