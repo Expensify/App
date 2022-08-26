@@ -61,9 +61,6 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
-    /** Information about the network, used to detect if we are offline */
-    network: networkPropTypes.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -231,7 +228,6 @@ class AvatarWithImagePicker extends React.Component {
                 <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                     <Pressable
                         onPress={() => this.setState({isMenuVisible: true})}
-                        disabled={this.props.isUploading || this.props.network.isOffline}
                     >
                         <View style={[styles.pRelative, styles.avatarLarge]}>
                             {this.props.avatarURL
@@ -297,7 +293,4 @@ class AvatarWithImagePicker extends React.Component {
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-)(AvatarWithImagePicker);
+export default withLocalize(AvatarWithImagePicker);
