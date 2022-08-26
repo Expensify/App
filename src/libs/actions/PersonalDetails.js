@@ -350,7 +350,7 @@ function updateUserAvatar(file) {
         value: {
             [currentUserEmail]: {
                 avatar: file.uri,
-                avatarHighResolution: file.uri,
+                avatarThumbnail: file.uri,
                 avatarUploading: true,
                 errors: null,
             },
@@ -371,7 +371,7 @@ function updateUserAvatar(file) {
         value: {
             [currentUserEmail]: {
                 avatar: personalDetails[currentUserEmail].avatar,
-                avatarHighResolution: personalDetails[currentUserEmail].avatar,
+                avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
                 avatarUploading: false,
             },
         },
