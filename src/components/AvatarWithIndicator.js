@@ -25,17 +25,11 @@ const propTypes = {
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
 
-    /** All the user's policies */
-    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
-
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
-    /** The list of this user's policies (coming from Onyx) */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The ID of the policy */
-        id: PropTypes.string,
-    })),
+    /** All the user's policies */
+    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -50,9 +44,11 @@ const propTypes = {
 const defaultProps = {
     size: 'default',
     tooltipText: '',
-    policies: {},
     policiesMemberList: {},
     policies: {},
+    bankAccountList: {},
+    cardList: {},
+    userWallet: {},
 };
 
 const AvatarWithIndicator = (props) => {
@@ -64,8 +60,13 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => PolicyUtils.hasPolicyMemberError(policyMembers));
+    const hasCustomUnitsError = _.some(props.policies, policy => PolicyUtils.hasCustomUnitsError(policy));
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
     const hasAnyPolicyError = _.some(props.policies, policy => PolicyUtils.hasPolicyError(policy));
+
+    // Show the indicator if there is some error.
+    const shouldShowIndicator = _.some([hasPolicyMemberError, hasPaymentMethodError, hasWalletError, hasAnyPolicyError, hasCustomUnitsError]);
+
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -87,13 +88,19 @@ AvatarWithIndicator.propTypes = propTypes;
 AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 
 export default withOnyx({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    bankAccountList: {
+        key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    cardList: {
+        key: ONYXKEYS.CARD_LIST,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
     },
 })(AvatarWithIndicator);
