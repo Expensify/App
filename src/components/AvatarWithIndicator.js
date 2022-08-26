@@ -28,6 +28,12 @@ const propTypes = {
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
+    /** The list of this user's policies (coming from Onyx) */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The ID of the policy */
+        id: PropTypes.string,
+    })),
+
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
@@ -45,6 +51,7 @@ const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
+    policies: {},
     bankAccountList: {},
     cardList: {},
     userWallet: {},
@@ -60,9 +67,11 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
+    const hasCustomUnitsError = _.some(props.policies, policy => Policy.hasCustomUnitsError(policy));
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
     const hasWalletError = !_.isEmpty(props.userWallet.errors);
     const hasWalletTermsError = !_.isEmpty(props.walletTerms.errors);
+    const shouldShowIndicator = hasPolicyMemberError || hasPaymentMethodError || hasWalletError || hasCustomUnitsError || hasWalletTermsError;
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -71,7 +80,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {(hasPolicyMemberError || hasPaymentMethodError || hasWalletError || hasWalletTermsError) && (
+                {shouldShowIndicator && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -86,6 +95,9 @@ AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 export default withOnyx({
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
