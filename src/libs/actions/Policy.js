@@ -705,7 +705,7 @@ function createWorkspace(ownerEmail) {
             value: {
                 id: policyID,
                 type: CONST.POLICY.TYPE.FREE,
-                name: generateDefaultWorkspaceName(),
+                name: 'Default',
                 role: CONST.POLICY.ROLE.ADMIN,
                 outputCurrency: 'USD',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,  
@@ -730,7 +730,35 @@ function createWorkspace(ownerEmail) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChats.expenseChatID}`,
             value: workspaceChats.expenseChatData,
-        }], 
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: null
+            }
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: null
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+            value: null
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChats.announceChatID}`,
+            value: null,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChats.adminChatID}`,
+            value: null,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChats.expenseChatID}`,
+            value: null,
+        }];
     });
 }
 
