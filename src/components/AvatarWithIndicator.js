@@ -28,7 +28,7 @@ const propTypes = {
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
-    /** All the user's policies */
+    /** All the user's policies (from Onyx via withFullPolicy) */
     policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
 
     /** List of bank accounts */
