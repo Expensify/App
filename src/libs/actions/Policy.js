@@ -736,6 +736,5 @@ export {
     hasPolicyMemberError,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
-    clearAvatarErrors,
     generatePolicyID,
 };
