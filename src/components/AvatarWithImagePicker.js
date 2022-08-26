@@ -229,11 +229,10 @@ class AvatarWithImagePicker extends React.Component {
     render() {
         const DefaultAvatar = this.props.DefaultAvatar;
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
-        const isPendingUpload = this.props.isUploading && this.props.network.isOffline;
 
         return (
             <>
-                <View style={[styles.alignItemsCenter, isPendingUpload && styles.offlineFeedback.pending, ...additionalStyles]}>
+                <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                     <Pressable
                         onPress={() => this.setState({isMenuVisible: true})}
                         disabled={this.props.isUploading || this.props.network.isOffline}

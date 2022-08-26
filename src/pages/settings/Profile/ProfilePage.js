@@ -29,6 +29,8 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as Policy from '../../../libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -163,14 +165,6 @@ class ProfilePage extends Component {
             return;
         }
 
-        // // Check if the user has modified their avatar
-        // if ((lodashGet(this.props.currentUserPersonalDetails, 'avatar') !== this.state.avatar.uri) && this.state.isAvatarChanged) {
-        //     PersonalDetails.updateUserAvatar(this.state.avatar);
-        //
-        //     // Reset the changed state
-        //     this.setState({isAvatarChanged: false});
-        // }
-
         PersonalDetails.updateProfile(
             this.state.firstName.trim(),
             this.state.lastName.trim(),
@@ -211,7 +205,6 @@ class ProfilePage extends Component {
             && (!this.state.isAvatarChanged || currentUserDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
-        const error = ErrorUtils.getLatestErrorMessage(currentUserDetails);
 
         return (
             <ScreenWrapper>
@@ -222,16 +215,21 @@ class ProfilePage extends Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                    <AvatarWithImagePicker
-                        isUploading={currentUserDetails.avatarUploading}
-                        isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
-                        avatarURL={currentUserDetails.avatar.uri || currentUserDetails.avatar}
-                        onImageSelected={PersonalDetails.updateUserAvatar}
-                        onImageRemoved={this.deleteAvatar}
-                        anchorPosition={styles.createMenuPositionProfile}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                        error={error}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(currentUserDetails, 'pendingFields.avatar', null)}
+                        errors={lodashGet(currentUserDetails, 'errorFields.avatar', null)}
+                        onClose={PersonalDetails.clearAvatarErrors}
+                    >
+                        <AvatarWithImagePicker
+                            isUploading={currentUserDetails.avatarUploading}
+                            isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
+                            avatarURL={currentUserDetails.avatar.uri || currentUserDetails.avatar}
+                            onImageSelected={PersonalDetails.updateUserAvatar}
+                            onImageRemoved={this.deleteAvatar}
+                            anchorPosition={styles.createMenuPositionProfile}
+                            size={CONST.AVATAR_SIZE.LARGE}
+                        />
+                    </OfflineWithFeedback>
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>
