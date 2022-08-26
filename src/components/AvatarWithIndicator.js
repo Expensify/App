@@ -63,6 +63,11 @@ const AvatarWithIndicator = (props) => {
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
     const hasWalletError = !_.isEmpty(props.userWallet.errors);
     const hasAnyPolicyError = _.some(props.policies, policy => PolicyUtils.hasPolicyError(policy));
+    const hasCustomUnitsError = _.some(props.policies, policy => PolicyUtils.hasCustomUnitsError(policy));
+
+    // Show the indicator if there is some error.
+    const shouldShowIndicator = _.some([hasPolicyMemberError, hasPaymentMethodError, hasWalletError, hasAnyPolicyError, hasCustomUnitsError]);
+
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -71,7 +76,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {(hasPolicyMemberError || hasPaymentMethodError || hasWalletError || hasAnyPolicyError) && (
+                {shouldShowIndicator && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
