@@ -6,12 +6,10 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -101,13 +99,6 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Fetches data needed for app initialization
  */
-function getAppData() {
-    BankAccounts.fetchUserWallet();
-}
-
-/**
- * Fetches data needed for app initialization
- */
 function openApp() {
     API.read('OpenApp', {policyIDList}, {
         optimisticData: [{
@@ -149,21 +140,6 @@ function reconnectApp() {
             value: false,
         }],
     });
-}
-
-/**
- * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
- * because some migrations might create new chat reports or their change data.
- */
-function fixAccountAndReloadData() {
-    DeprecatedAPI.User_FixAccount()
-        .then((response) => {
-            if (!response.changed) {
-                return;
-            }
-            Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-            getAppData();
-        });
 }
 
 /**
@@ -257,8 +233,6 @@ function openProfile() {
 export {
     setLocale,
     setSidebarLoaded,
-    getAppData,
-    fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
