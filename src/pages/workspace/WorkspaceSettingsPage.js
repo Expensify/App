@@ -123,7 +123,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                     style={[styles.mb3]}
                                     anchorPosition={{top: 172, right: 18}}
-                                    isUsingDefaultAvatar={!this.props.policy.avatar}
+                                    isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
                                     onImageSelected={file => Policy.updateWorkspaceAvatar(this.props.policy.id, file)}
                                     onImageRemoved={this.removeAvatar}
                                 />
