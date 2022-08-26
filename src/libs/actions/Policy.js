@@ -365,6 +365,38 @@ function updateLocalPolicyValues(policyID, values) {
 }
 
 /**
+ * Updates a workspace avatar image
+ *
+ * @param {String} policyID
+ * @param {File|Object} file
+ */
+function updateWorkspaceAvatar(policyID, file) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: file.uri,
+            errors: null,
+            pendingFields: {
+                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
+
+    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, failureData});
+}
+
+/**
  * Deletes the avatar image for the workspace
  * @param {String} policyID
  */
@@ -375,12 +407,10 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                errorFields: {
-                    avatarURL: null,
-                },
-                avatarURL: '',
+                errors: null,
+                avatar: '',
             },
         },
     ];
@@ -390,10 +420,7 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: null,
-                },
-                errorFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
             },
         },
@@ -404,10 +431,10 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
                 errorFields: {
-                    avatarURL: {
+                    avatar: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
                     },
                 },
@@ -415,21 +442,6 @@ function deleteWorkspaceAvatar(policyID) {
         },
     ];
     API.write('DeleteWorkspaceAvatar', {policyID}, {optimisticData, successData, failureData});
-}
-
-/**
- * Clear error and pending fields for the workspace avatar
- * @param {String} policyID
- */
-function clearAvatarErrors(policyID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: {
-            avatarURL: null,
-        },
-        pendingFields: {
-            avatarURL: null,
-        },
-    });
 }
 
 /**
@@ -723,6 +735,7 @@ export {
     clearAddMemberError,
     hasPolicyMemberError,
     deleteWorkspaceAvatar,
+    updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
 };
