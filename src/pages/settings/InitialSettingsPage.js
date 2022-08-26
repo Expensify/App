@@ -167,7 +167,7 @@ class InitialSettingsPage extends React.Component {
                 iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getWorkspaceBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
