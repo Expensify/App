@@ -2410,13 +2410,6 @@ const styles = {
         },
     },
 
-    dotIndicatorMessage: {
-        display: 'flex',
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-
     sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
