@@ -25,11 +25,11 @@ const propTypes = {
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
 
-    /** All the user's policies */
-    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
-
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
+
+    /** All the user's policies */
+    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -44,8 +44,8 @@ const propTypes = {
 const defaultProps = {
     size: 'default',
     tooltipText: '',
-    policies: {},
     policiesMemberList: {},
+    policies: {},
     bankAccountList: {},
     cardList: {},
     userWallet: {},
@@ -60,10 +60,10 @@ const AvatarWithIndicator = (props) => {
     ];
 
     const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => PolicyUtils.hasPolicyMemberError(policyMembers));
+    const hasCustomUnitsError = _.some(props.policies, policy => PolicyUtils.hasCustomUnitsError(policy));
     const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
     const hasWalletError = !_.isEmpty(props.userWallet.errors);
     const hasAnyPolicyError = _.some(props.policies, policy => PolicyUtils.hasPolicyError(policy));
-    const hasCustomUnitsError = _.some(props.policies, policy => PolicyUtils.hasCustomUnitsError(policy));
 
     // Show the indicator if there is some error.
     const shouldShowIndicator = _.some([hasPolicyMemberError, hasPaymentMethodError, hasWalletError, hasAnyPolicyError, hasCustomUnitsError]);
@@ -89,11 +89,11 @@ AvatarWithIndicator.propTypes = propTypes;
 AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 
 export default withOnyx({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
