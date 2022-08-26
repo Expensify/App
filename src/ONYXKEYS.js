@@ -18,9 +18,6 @@ export default {
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
-    // Boolean flag set when workspace is being created
-    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
-
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
