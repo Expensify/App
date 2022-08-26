@@ -124,7 +124,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: (type, reportAction, menuTarget) => {
+        successIcon: Expensicons.Checkmark,
+        shouldShow: (type, reportAction, betas, menuTarget) => {
             const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
 
             // Only hide the copylink menu item when context menu is opened over img element.
