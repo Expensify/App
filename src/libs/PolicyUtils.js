@@ -24,9 +24,11 @@ function hasPolicyMemberError(policyMemberList) {
  */
 function hasPolicyError(policy) {
     const errors = lodashGet(policy, 'errors', {});
-    const errorFields = lodashGet(policy, 'errorFields', {});
-    const hasFieldErrors = _.some(errorFields, fieldErrors => !_.isEmpty(fieldErrors));
-    return !_.isEmpty(errors) || hasFieldErrors;
+    if (!_.isEmpty(errors)) {
+        return true;
+    }
+    const hasFieldErrors = _.some(lodashGet(policy, 'errorFields', {}), !_.isEmpty);
+    return hasFieldErrors;
 }
 
 /**
