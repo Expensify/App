@@ -28,6 +28,7 @@ import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -85,7 +86,6 @@ class ProfilePage extends Component {
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
-        this.updateAvatar = this.updateAvatar.bind(this);
         this.deleteAvatar = this.deleteAvatar.bind(this);
     }
 
@@ -148,14 +148,6 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Updates the user's avatar image.
-     * @param {Object} avatar
-     */
-    updateAvatar(avatar) {
-        this.setState({avatar, isAvatarChanged: true});
-    }
-
-    /**
      * Replaces the user's current avatar image with a default avatar.
      */
     deleteAvatar() {
@@ -171,13 +163,13 @@ class ProfilePage extends Component {
             return;
         }
 
-        // Check if the user has modified their avatar
-        if ((lodashGet(this.props.currentUserPersonalDetails, 'avatar') !== this.state.avatar.uri) && this.state.isAvatarChanged) {
-            PersonalDetails.setAvatar(this.state.avatar);
-
-            // Reset the changed state
-            this.setState({isAvatarChanged: false});
-        }
+        // // Check if the user has modified their avatar
+        // if ((lodashGet(this.props.currentUserPersonalDetails, 'avatar') !== this.state.avatar.uri) && this.state.isAvatarChanged) {
+        //     PersonalDetails.updateUserAvatar(this.state.avatar);
+        //
+        //     // Reset the changed state
+        //     this.setState({isAvatarChanged: false});
+        // }
 
         PersonalDetails.updateProfile(
             this.state.firstName.trim(),
@@ -219,6 +211,7 @@ class ProfilePage extends Component {
             && (!this.state.isAvatarChanged || currentUserDetails.avatarUploading);
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
+        const error = ErrorUtils.getLatestErrorMessage(currentUserDetails);
 
         return (
             <ScreenWrapper>
@@ -232,11 +225,12 @@ class ProfilePage extends Component {
                     <AvatarWithImagePicker
                         isUploading={currentUserDetails.avatarUploading}
                         isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
-                        avatarURL={this.state.avatar.uri}
-                        onImageSelected={this.updateAvatar}
+                        avatarURL={currentUserDetails.avatar.uri || currentUserDetails.avatar}
+                        onImageSelected={PersonalDetails.updateUserAvatar}
                         onImageRemoved={this.deleteAvatar}
                         anchorPosition={styles.createMenuPositionProfile}
                         size={CONST.AVATAR_SIZE.LARGE}
+                        error={error}
                     />
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
