@@ -5,7 +5,7 @@ import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Checks if we have any errors stored within the POLICY_MEMBER_LIST. Determines whether we should show a red brick road error or not.
- * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * Data structure: {email: {role:'user', errors: []}, email2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
  *
  * @param {Object} policyMemberList
  * @returns {Boolean}

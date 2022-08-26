@@ -473,7 +473,7 @@ function updateWorkspaceGeneralSettings(policyID, name, currency) {
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
 
-                // Clear errorFields in case the user didn't dismiss the error
+                // Clear errorFields in case the user didn't dismiss the general settings error
                 errorFields: {
                     generalSettings: null,
                 },
