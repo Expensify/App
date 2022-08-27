@@ -182,7 +182,7 @@ class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getFilteredReports = this.getFilteredReports.bind(this);
+        this.getFilteredAndOrderedReports = this.getFilteredAndOrderedReports.bind(this);
 
         this.activeReport = {
             reportID: props.currentlyViewedReportID,
@@ -243,7 +243,7 @@ class SidebarLinks extends React.Component {
     //     // };
     // }
 
-    getFilteredReports(unfilteredReports) {
+    getFilteredAndOrderedReports(unfilteredReports) {
         const isActiveReportSame = this.activeReport.reportID === this.props.currentlyViewedReportID;
         const lastMessageTimestamp = lodashGet(unfilteredReports, `${ONYXKEYS.COLLECTION.REPORT}${this.props.currentlyViewedReportID}.lastMessageTimestamp`, 0);
 
@@ -267,7 +267,7 @@ class SidebarLinks extends React.Component {
         // Build the report options we want to show
         const recentReports = this.getRecentReportsOptionListItems();
 
-        this.orderedReports = shouldReorder || switchingPriorityModes
+        const orderedReports = shouldReorder || switchingPriorityModes
             ? recentReports
             : _.chain(this.orderedReports)
 
@@ -280,6 +280,10 @@ class SidebarLinks extends React.Component {
                 .filter(orderedReport => orderedReport !== undefined)
                 .value();
 
+        // Store these pieces of data on the class so that the next time this method is called
+        // the previous values can be compared against to tell if something changed which would
+        // cause the reports to be reordered
+        this.orderedReports = orderedReports;
         this.priorityMode = this.props.priorityMode;
         this.activeReport = {
             reportID: this.props.currentlyViewedReportID,
@@ -381,7 +385,7 @@ class SidebarLinks extends React.Component {
         const sections = [{
             title: '',
             indexOffset: 0,
-            data: this.getFilteredReports(this.props.reports),
+            data: this.getFilteredAndOrderedReports(this.props.reports),
             shouldShow: true,
         }];
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
