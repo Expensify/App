@@ -27,6 +27,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import networkPropTypes from '../../../components/networkPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
+import Timing from '../../../libs/actions/Timing';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -180,7 +181,7 @@ class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getFilteredReports = _.memoize(this.getFilteredReports);
+        this.getFilteredReports = this.getFilteredReports.bind(this);
 
         this.activeReport = {
             reportID: props.currentlyViewedReportID,
@@ -375,12 +376,14 @@ class SidebarLinks extends React.Component {
         }
 
         const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
+        Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
         const sections = [{
             title: '',
             indexOffset: 0,
             data: this.getFilteredReports(this.props.reports),
             shouldShow: true,
         }];
+        Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
             <View style={[styles.flex1, styles.h100]}>
