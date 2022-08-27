@@ -129,7 +129,6 @@ class BasePaymentsPage extends React.Component {
         this.setState({
             addPaymentMethodButton: nativeEvent.currentTarget,
         });
-
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
