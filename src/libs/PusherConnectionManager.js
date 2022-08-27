@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import * as Pusher from './Pusher/pusher';
+import * as Pusher from 'PusherClient';
 import * as Session from './actions/Session';
 import Log from './Log';
 import CONST from '../CONST';

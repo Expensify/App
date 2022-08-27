@@ -1,3 +1,4 @@
+import * as Pusher from 'PusherClient';
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
@@ -10,7 +11,6 @@ import CONST from '../../../CONST';
 import compose from '../../compose';
 import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
@@ -104,6 +104,7 @@ class AuthScreens extends React.Component {
     componentDidMount() {
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => App.reconnectApp());
+
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,

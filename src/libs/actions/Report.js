@@ -1,3 +1,4 @@
+import * as Pusher from 'PusherClient';
 import {Linking} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
@@ -5,7 +6,6 @@ import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';

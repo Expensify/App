@@ -1,3 +1,4 @@
+import * as Pusher from 'PusherClient';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
@@ -9,7 +10,6 @@ import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import Growl from '../Growl';
@@ -292,6 +292,7 @@ function deletePaypalMeAddress() {
 function subscribeToUserEvents() {
     // If we don't have the user's accountID yet we can't subscribe so return early
     if (!currentUserAccountID) {
+        console.log('Pusher-Fake no currentUserAccountID')
         return;
     }
 

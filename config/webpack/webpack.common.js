@@ -20,6 +20,8 @@ const includeModules = [
     'react-native-google-places-autocomplete',
 ].join('|');
 
+const USE_PUSHER_FAKE = dotenv.config().parsed.USE_PUSHER_FAKE === 'true';
+
 /**
  * Get a production grade config for web or desktop
  * @param {Object} env
@@ -149,6 +151,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ],
     },
     resolve: {
+        modules: ['node_modules', path.resolve(__dirname, '..', '..', 'src', 'libs')],
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
@@ -161,7 +164,13 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
-        extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
+        extensions: [
+            '.web.js',
+            ...(USE_PUSHER_FAKE ? ['.fake.js'] : []),
+            (platform === 'web') ? '.website.js' : '.desktop.js',
+            '.js',
+            '.jsx',
+        ],
     },
 });
 

@@ -1,7 +1,7 @@
+import * as Pusher from 'PusherClient';
 import CONFIG from '../CONFIG';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
-import * as Pusher from './Pusher/pusher';
 import CONST from '../CONST';
 
 /**

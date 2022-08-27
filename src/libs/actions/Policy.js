@@ -1,3 +1,4 @@
+import * as Pusher from 'PusherClient';
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -13,7 +14,6 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
-import * as Pusher from '../Pusher/pusher';
 import DateUtils from '../DateUtils';
 
 const allPolicies = {};

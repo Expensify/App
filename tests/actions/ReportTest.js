@@ -1,12 +1,12 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import * as Pusher from 'PusherClient';
 import moment from 'moment';
 import {
     beforeEach, beforeAll, afterEach, jest, describe, it, expect,
 } from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
