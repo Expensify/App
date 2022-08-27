@@ -209,9 +209,7 @@ class BasePaymentsPage extends React.Component {
      * Hide the add payment modal
      */
     hideAddPaymentMenu() {
-        this.setState({
-            shouldShowAddPaymentMenu: false,
-        });
+        this.setState({shouldShowAddPaymentMenu: false});
     }
 
     /**
