@@ -6,6 +6,7 @@ const propTypes = {
     /** URL to full-sized image */
     sourceURL: PropTypes.string,
 
+    /** Additional style props */
     style: stylePropTypes,
 
     /** Notify parent that the keyboard has opened or closed */
