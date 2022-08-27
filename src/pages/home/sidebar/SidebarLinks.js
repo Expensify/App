@@ -270,12 +270,12 @@ class SidebarLinks extends React.Component {
             ? recentReports
             : _.chain(this.orderedReports)
 
-                // To preserve the order of the conversations, we map over the previous state's order of reports.
+                // To preserve the order of the conversations, we map over the previous ordered reports.
                 // Then match and replace older reports with the newer report conversations from recentReports
                 .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
 
                 // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
-                // does not have all the conversations in prevState.orderedReports
+                // does not have all the conversations in the previous set of orderedReports
                 .filter(orderedReport => orderedReport !== undefined)
                 .value();
 
