@@ -31,7 +31,7 @@ const propTypes = {
     onPasswordUpdated: PropTypes.func,
 
     /** Notify parent that a text field has been focused or blurred */
-    onTextFieldFocused: PropTypes.func,
+    onPasswordFieldFocused: PropTypes.func,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -43,7 +43,7 @@ const defaultProps = {
     shouldShowLoadingIndicator: false,
     onSubmit: () => {},
     onPasswordUpdated: () => {},
-    onTextFieldFocused: () => {},
+    onPasswordFieldFocused: () => {},
 };
 
 class PDFPasswordForm extends Component {
@@ -116,8 +116,8 @@ class PDFPasswordForm extends Component {
                             returnKeyType="done"
                             onSubmitEditing={this.submitPassword}
                             errorText={this.state.validationErrorText}
-                            onFocus={() => this.props.onTextFieldFocused(true)}
-                            onBlur={() => { this.validate(); this.props.onTextFieldFocused(false); }}
+                            onFocus={() => this.props.onPasswordFieldFocused(true)}
+                            onBlur={() => { this.validate(); this.props.onPasswordFieldFocused(false); }}
                             autoFocus={this.props.shouldAutofocusPasswordField}
                             secureTextEntry
                         />
