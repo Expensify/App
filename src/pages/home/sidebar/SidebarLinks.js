@@ -332,13 +332,6 @@ class SidebarLinks extends React.Component {
     }
 
     shouldReorderReports(hasDraftHistory) {
-        // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
-        // Because: TBD
-        // @TODO try and figure out why
-        if (this.props.isSmallScreenWidth) {
-            return true;
-        }
-
         // Always update if LHN is empty.
         // Because: TBD
         // @TODO try and figure out why
