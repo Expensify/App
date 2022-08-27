@@ -130,7 +130,6 @@ class BasePaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, accountType, account, isDefault) {
         const position = getClickedTargetLocation(nativeEvent.currentTarget);
-
         this.setState({
             addPaymentMethodButton: nativeEvent.currentTarget,
         });
