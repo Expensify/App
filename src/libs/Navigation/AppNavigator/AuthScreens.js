@@ -104,7 +104,6 @@ class AuthScreens extends React.Component {
     componentDidMount() {
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => App.reconnectApp());
-
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,

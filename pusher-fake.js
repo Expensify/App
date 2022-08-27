@@ -1,5 +1,13 @@
+require('dotenv').config();
 const http = require('http');
 const {WebSocket, WebSocketServer} = require('ws');
+
+if (process.env.USE_PUSHER_FAKE === 'false') {
+    process.stdout.write('[pusher-fake] Skipping local web socket server as USE_PUSHER_FAKE was set to false.\n');
+    process.exit();
+}
+
+process.stdout.write('[pusher-fake] Local web socket server enabled.\n');
 
 const wss = new WebSocketServer({
     port: 8888,
