@@ -58,6 +58,7 @@ class PDFPasswordForm extends Component {
         this.validate = this.validate.bind(this);
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
+        this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
     }
 
     submitPassword() {
@@ -83,6 +84,11 @@ class PDFPasswordForm extends Component {
             validationErrorText: this.props.translate('attachmentView.passwordRequired'),
         });
         return false;
+    }
+
+    validateAndNotifyPasswordBlur() {
+        this.validate();
+        this.props.onPasswordFieldFocused(false);
     }
 
     showForm() {
@@ -117,7 +123,7 @@ class PDFPasswordForm extends Component {
                             onSubmitEditing={this.submitPassword}
                             errorText={this.state.validationErrorText}
                             onFocus={() => this.props.onPasswordFieldFocused(true)}
-                            onBlur={() => { this.validate(); this.props.onPasswordFieldFocused(false); }}
+                            onBlur={this.validateAndNotifyPasswordBlur}
                             autoFocus={this.props.shouldAutofocusPasswordField}
                             secureTextEntry
                         />
