@@ -68,7 +68,7 @@ const propTypes = {
     }),
 
     /** Information about the network */
-    network: networkPropTypes.isRequired,
+    network: networkPropTypes,
 
     /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
@@ -95,6 +95,7 @@ const defaultProps = {
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     isSyncingData: false,
+    network: {},
 };
 
 /**
