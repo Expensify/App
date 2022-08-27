@@ -4,7 +4,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import memoizeOne from 'memoize-one';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -431,7 +430,7 @@ class SidebarLinks extends React.Component {
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
                     sections={sections}
-                    focusedIndex={_.findIndex(this.state.orderedReports, (
+                    focusedIndex={_.findIndex(this.orderedReports, (
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
