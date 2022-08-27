@@ -368,7 +368,7 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        // Wait until the reports and personalDetails are actually loaded before displaying the LHN
+        // Wait until the personalDetails are actually loaded before displaying the LHN
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
