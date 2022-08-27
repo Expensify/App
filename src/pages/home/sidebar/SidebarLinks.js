@@ -260,7 +260,7 @@ class SidebarLinks extends React.Component {
             hasDraftHistory = lodashGet(this.props.reports, `${ONYXKEYS.COLLECTION.REPORT}${this.props.currentlyViewedReportID}.hasDraft`, false);
         }
 
-        const shouldReorder = this.shouldReorder(hasDraftHistory);
+        const shouldReorder = this.shouldReorderReports(hasDraftHistory);
         const switchingPriorityModes = this.props.priorityMode !== this.priorityMode;
 
         // Build the report options we want to show
@@ -301,7 +301,7 @@ class SidebarLinks extends React.Component {
      * @returns {Object}
      */
     getUnreadReports(reports) {
-        return _.reduce(unfilteredReports, (finalUnreadReportMap, report) => {
+        return _.reduce(reports, (finalUnreadReportMap, report) => {
             if (report.unreadActionCount > 0) {
                 return {
                     [report.reportID]: true,
@@ -325,7 +325,7 @@ class SidebarLinks extends React.Component {
         return sidebarOptions.recentReports;
     }
 
-    shouldReorder(hasDraftHistory) {
+    shouldReorderReports(hasDraftHistory) {
         // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
         // Because: TBD
         // @TODO try and figure out why
