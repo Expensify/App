@@ -292,7 +292,6 @@ function deletePaypalMeAddress() {
 function subscribeToUserEvents() {
     // If we don't have the user's accountID yet we can't subscribe so return early
     if (!currentUserAccountID) {
-        console.log('Pusher-Fake no currentUserAccountID')
         return;
     }
 
