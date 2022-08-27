@@ -62,7 +62,7 @@ class PDFView extends Component {
      * The PasswordResponses constants used below were copied from react-pdf
      * because they're not exported in entry.webpack.
      *
-     * @param {*} callback Callback used to send password to react-pdf
+     * @param {Function} callback Callback used to send password to react-pdf
      * @param {Number} reason Reason code for password request
      */
     initiatePasswordChallenge(callback, reason) {
