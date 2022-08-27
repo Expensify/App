@@ -39,41 +39,37 @@ describe('Sidebar', () => {
             timestampToRelative={() => {}}
             numberFormat={() => {}}
             translate={() => {}}
-            network={{
-                isOffline: false,
-                shouldFailAllRequests: false,
-            }}
         />);
         expect(sideBarLinks.toJSON()).toBe(null);
     });
 
-    // test('is not rendered when there are no props passed to it', () => {
-    //     const sideBarLinks = render(<SidebarLinks
-    //         onLinkClick={() => {}}
-    //         insets={fakeInsets}
-    //         onAvatarClick={() => {}}
-    //         isSmallScreenWidth
-    //         toLocaleDigit={() => {}}
-    //         fromLocaleDigit={() => {}}
-    //         fromLocalPhone={() => {}}
-    //         toLocalPhone={() => {}}
-    //         timestampToDateTime={() => {}}
-    //         timestampToRelative={() => {}}
-    //         numberFormat={() => {}}
-    //         translate={() => {}}
-    //     />);
-    //     expect(sideBarLinks.toJSON()).toBe(null);
-    //     // Onyx.multiSet({
-    //     //     [ONYX_KEYS.PERSONAL_DETAILS]: {
-    //     //         'email1@test.com': {
-    //     //             login: 'email1@test.com',
-    //     //             displayName: 'Email One',
-    //     //             avatar: 'none',
-    //     //             firstName: 'Email',
-    //     //         },
-    //     //     },
-    //     //     [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
-    //     // });
-    //     // expect(sideBarLinks.toJSON()).not.toBe(null);
-    // });
+    test('is not rendered when there are no props passed to it', () => {
+        const sideBarLinks = render(<SidebarLinks
+            onLinkClick={() => {}}
+            insets={fakeInsets}
+            onAvatarClick={() => {}}
+            isSmallScreenWidth
+            toLocaleDigit={() => {}}
+            fromLocaleDigit={() => {}}
+            fromLocalPhone={() => {}}
+            toLocalPhone={() => {}}
+            timestampToDateTime={() => {}}
+            timestampToRelative={() => {}}
+            numberFormat={() => {}}
+            translate={thing => thing}
+        />);
+        expect(sideBarLinks.toJSON()).toBe(null);
+        Onyx.multiSet({
+            [ONYX_KEYS.PERSONAL_DETAILS]: {
+                'email1@test.com': {
+                    login: 'email1@test.com',
+                    displayName: 'Email One',
+                    avatar: 'none',
+                    firstName: 'Email',
+                },
+            },
+            [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
+        });
+        expect(sideBarLinks.toJSON()).not.toBe(null);
+    });
 });
