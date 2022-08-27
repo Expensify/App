@@ -266,7 +266,7 @@ class SidebarLinks extends React.Component {
         const switchingPriorityModes = this.props.priorityMode !== this.priorityMode;
 
         // Build the report options we want to show
-        const recentReports = this.getRecentReports();
+        const recentReports = this.getRecentReportsOptionListItems();
 
         this.orderedReports = shouldReorder || switchingPriorityModes
             ? recentReports
@@ -288,6 +288,8 @@ class SidebarLinks extends React.Component {
             lastMessageTimestamp,
         };
         this.unreadReports = this.getUnreadReports(unfilteredReports);
+
+        return this.orderedReports;
     }
 
     /**
@@ -314,7 +316,7 @@ class SidebarLinks extends React.Component {
         }, {});
     }
 
-    getRecentReports() {
+    getRecentReportsOptionListItems() {
         const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
         const sidebarOptions = OptionsListUtils.getSidebarOptions(
             this.props.reports,
@@ -379,7 +381,7 @@ class SidebarLinks extends React.Component {
         const sections = [{
             title: '',
             indexOffset: 0,
-            data: this.state.orderedReports || [],
+            data: this.getFilteredReports(this.props.reports),
             shouldShow: true,
         }];
 
