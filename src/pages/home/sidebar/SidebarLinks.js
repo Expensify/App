@@ -93,31 +93,31 @@ const defaultProps = {
     isSyncingData: false,
 };
 
-/**
- * @param {Object} nextUnreadReports
- * @param {Object} unreadReports
- * @returns {Boolean}
- */
-function checkForNewUnreadReports(nextUnreadReports, unreadReports) {
-    return nextUnreadReports.length > 0
-            && _.some(nextUnreadReports,
-                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
-}
-const memoizeCheckForNewUnreadReports = memoizeOne(checkForNewUnreadReports);
-
-/**
- * @param {Object} reportsObject
- * @returns {Array}
- */
-function getUnreadReports(reportsObject) {
-    const reports = _.values(reportsObject);
-    if (reports.length === 0) {
-        return [];
-    }
-    const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
-    return unreadReports;
-}
-const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
+// /**
+//  * @param {Object} nextUnreadReports
+//  * @param {Object} unreadReports
+//  * @returns {Boolean}
+//  */
+// function checkForNewUnreadReports(nextUnreadReports, unreadReports) {
+//     return nextUnreadReports.length > 0
+//             && _.some(nextUnreadReports,
+//                 nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
+// }
+// const memoizeCheckForNewUnreadReports = memoizeOne(checkForNewUnreadReports);
+//
+// /**
+//  * @param {Object} reportsObject
+//  * @returns {Array}
+//  */
+// function getUnreadReports(reportsObject) {
+//     const reports = _.values(reportsObject);
+//     if (reports.length === 0) {
+//         return [];
+//     }
+//     const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
+//     return unreadReports;
+// }
+// const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
 
 class SidebarLinks extends React.Component {
     // static getRecentReports(props) {
@@ -192,55 +192,55 @@ class SidebarLinks extends React.Component {
         this.unreadReports = memoizeGetUnreadReports(props.reports || {});
     }
 
-    static getDerivedStateFromProps(nextProps, prevState) {
-        // const isActiveReportSame = prevState.activeReport.reportID === nextProps.currentlyViewedReportID;
-        // const lastMessageTimestamp = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.lastMessageTimestamp`, 0);
-
-        // Determines if the active report has a history of draft comments while active.
-        // let hasDraftHistory;
-
-        // If the active report has not changed and the message has been sent, set the draft history flag to false so LHN can reorder.
-        // Otherwise, if the active report has not changed and the flag was previously true, preserve the state so LHN cannot reorder.
-        // Otherwise, update the flag from the prop value.
-        // if (isActiveReportSame && prevState.activeReport.lastMessageTimestamp !== lastMessageTimestamp) {
-        //     hasDraftHistory = false;
-        // } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
-        //     hasDraftHistory = true;
-        // } else {
-        //     hasDraftHistory = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.hasDraft`, false);
-        // }
-
-        // const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
-        // const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
-
-        // Build the report options we want to show
-        // const recentReports = SidebarLinks.getRecentReports(nextProps);
-
-        // Determine whether we need to keep the previous LHN order
-        // const orderedReports = shouldReorder || switchingPriorityModes
-        //     ? recentReports
-        //     : _.chain(prevState.orderedReports)
-        //
-        //     // To preserve the order of the conversations, we map over the previous state's order of reports.
-        //     // Then match and replace older reports with the newer report conversations from recentReports
-        //         .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
-        //
-        //     // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
-        //     // does not have all the conversations in prevState.orderedReports
-        //         .filter(orderedReport => orderedReport !== undefined)
-        //         .value();
-
-        // return {
-        //     orderedReports,
-        //     priorityMode: nextProps.priorityMode,
-        //     activeReport: {
-        //         reportID: nextProps.currentlyViewedReportID,
-        //         hasDraftHistory,
-        //         lastMessageTimestamp,
-        //     },
-        //     unreadReports: memoizeGetUnreadReports(nextProps.reports || {}),
-        // };
-    }
+    // static getDerivedStateFromProps(nextProps, prevState) {
+    //     // const isActiveReportSame = prevState.activeReport.reportID === nextProps.currentlyViewedReportID;
+    //     // const lastMessageTimestamp = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.lastMessageTimestamp`, 0);
+    //
+    //     // Determines if the active report has a history of draft comments while active.
+    //     // let hasDraftHistory;
+    //
+    //     // If the active report has not changed and the message has been sent, set the draft history flag to false so LHN can reorder.
+    //     // Otherwise, if the active report has not changed and the flag was previously true, preserve the state so LHN cannot reorder.
+    //     // Otherwise, update the flag from the prop value.
+    //     // if (isActiveReportSame && prevState.activeReport.lastMessageTimestamp !== lastMessageTimestamp) {
+    //     //     hasDraftHistory = false;
+    //     // } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
+    //     //     hasDraftHistory = true;
+    //     // } else {
+    //     //     hasDraftHistory = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.hasDraft`, false);
+    //     // }
+    //
+    //     // const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
+    //     // const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
+    //
+    //     // Build the report options we want to show
+    //     // const recentReports = SidebarLinks.getRecentReports(nextProps);
+    //
+    //     // Determine whether we need to keep the previous LHN order
+    //     // const orderedReports = shouldReorder || switchingPriorityModes
+    //     //     ? recentReports
+    //     //     : _.chain(prevState.orderedReports)
+    //     //
+    //     //     // To preserve the order of the conversations, we map over the previous state's order of reports.
+    //     //     // Then match and replace older reports with the newer report conversations from recentReports
+    //     //         .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
+    //     //
+    //     //     // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
+    //     //     // does not have all the conversations in prevState.orderedReports
+    //     //         .filter(orderedReport => orderedReport !== undefined)
+    //     //         .value();
+    //
+    //     // return {
+    //     //     orderedReports,
+    //     //     priorityMode: nextProps.priorityMode,
+    //     //     activeReport: {
+    //     //         reportID: nextProps.currentlyViewedReportID,
+    //     //         hasDraftHistory,
+    //     //         lastMessageTimestamp,
+    //     //     },
+    //     //     unreadReports: memoizeGetUnreadReports(nextProps.reports || {}),
+    //     // };
+    // }
 
     getFilteredReports(unfilteredReports) {
         const isActiveReportSame = this.activeReport.reportID === this.props.currentlyViewedReportID;
@@ -302,38 +302,43 @@ class SidebarLinks extends React.Component {
     }
 
     shouldReorder(hasDraftHistory) {
-        // We do not want to re-order reports in the LHN if the only change is the draft comment in the
-        // current report.
-
         // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
+        // Because: TBD
+        // @TODO try and figure out why
         if (this.props.isSmallScreenWidth) {
             return true;
         }
 
         // Always update if LHN is empty.
+        // Because: TBD
+        // @TODO try and figure out why
         if (this.orderedReports.length === 0) {
             return true;
         }
 
-        const didActiveReportChange = this.activeReport.reportID !== this.props.currentlyViewedReportID;
-
         // Always re-order the list whenever the active report is changed
-        if (didActiveReportChange) {
-            return true;
-        }
-
-        // If any reports have new unread messages, re-order the list
-        const nextUnreadReports = memoizeGetUnreadReports(this.props.reports || {});
-        if (memoizeCheckForNewUnreadReports(nextUnreadReports, this.unreadReports)) {
+        // Because: TBD
+        // @TODO try and figure out why
+        if (this.activeReport.reportID !== this.props.currentlyViewedReportID) {
             return true;
         }
 
         // If there is an active report that either had or has a draft, we do not want to re-order the list
+        // because the position of the report in the list won't change
         if (this.props.currentlyViewedReportID && hasDraftHistory) {
             return false;
         }
 
-        return true;
+        // If any reports have new unread messages, the list needs to be reordered
+        // because the unread reports need to be placed at the top of the list
+        const hasNewUnreadReports = _.some(this.props.reports, (report) => {
+            return report.unreadActionCount > 0 && !this.unreadReports[report.reportID];
+        });
+        if (hasNewUnreadReports) {
+            return true;
+        }
+
+        return false;
     }
 
     showSearchPage() {
