@@ -191,7 +191,7 @@ class SidebarLinks extends React.Component {
 
         this.orderedReports = [];
         this.priorityMode = props.priorityMode;
-        this.unreadReports = memoizeGetUnreadReports(props.reports || {});
+        this.unreadReports = this.getUnreadReports(props.reports);
     }
 
     // static getDerivedStateFromProps(nextProps, prevState) {
@@ -287,7 +287,31 @@ class SidebarLinks extends React.Component {
             hasDraftHistory,
             lastMessageTimestamp,
         };
-        this.unreadReports = memoizeGetUnreadReports(unfilteredReports || {});
+        this.unreadReports = this.getUnreadReports(unfilteredReports);
+    }
+
+    /**
+     * Create a map of unread reports that looks like this:
+     *  {
+     *      1: true,
+     *      2: true,
+     * }
+     * This is so that when the new props are compared to the old props, it's
+     * fast to look up if there are any new unread reports.
+     *
+     * @param {Object[]} reports
+     * @returns {Object}
+     */
+    getUnreadReports(reports) {
+        return _.reduce(unfilteredReports, (finalUnreadReportMap, report) => {
+            if (report.unreadActionCount > 0) {
+                return {
+                    [report.reportID]: true,
+                    ...finalUnreadReportMap,
+                };
+            }
+            return finalUnreadReportMap;
+        }, {});
     }
 
     getRecentReports() {
@@ -333,9 +357,7 @@ class SidebarLinks extends React.Component {
 
         // If any reports have new unread messages, the list needs to be reordered
         // because the unread reports need to be placed at the top of the list
-        const hasNewUnreadReports = _.some(this.props.reports, (report) => {
-            return report.unreadActionCount > 0 && !this.unreadReports[report.reportID];
-        });
+        const hasNewUnreadReports = _.some(this.props.reports, report => report.unreadActionCount > 0 && !this.unreadReports[report.reportID]);
         if (hasNewUnreadReports) {
             return true;
         }
