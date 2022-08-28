@@ -164,14 +164,14 @@ describe('Sidebar', () => {
             // WHEN Onyx is updated with some personal details
             .then(() => Onyx.multiSet({
                 [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-            })
+            }))
 
-                // THEN the component should be rendered with an empty list since it will get past the early return
-                .then(() => {
-                    expect(sidebarLinks.toJSON()).not.toBe(null);
-                    expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.queryAllByText('Email1, Email2')).toHaveLength(0);
-                }));
+            // THEN the component should be rendered with an empty list since it will get past the early return
+            .then(() => {
+                expect(sidebarLinks.toJSON()).not.toBe(null);
+                expect(sidebarLinks.toJSON().children.length).toBe(2);
+                expect(sidebarLinks.queryAllByText('Email1, Email2')).toHaveLength(0);
+            });
     });
 
     test('contains one report when a report is in Onyx', () => {
@@ -185,14 +185,14 @@ describe('Sidebar', () => {
                 [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                 [`${ONYX_KEYS.COLLECTION.REPORT}1`]: fakeReport1,
                 [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-            })
+            }))
 
-                // THEN the component should be rendered with an item for the fake report
-                .then(() => {
-                    expect(sidebarLinks.toJSON()).not.toBe(null);
-                    expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.getAllByText('Email1, Email2')).toHaveLength(1);
-                }));
+            // THEN the component should be rendered with an item for the fake report
+            .then(() => {
+                expect(sidebarLinks.toJSON()).not.toBe(null);
+                expect(sidebarLinks.toJSON().children.length).toBe(2);
+                expect(sidebarLinks.getAllByText('Email1, Email2')).toHaveLength(1);
+            });
     });
 
     test('orders items with most recently updated on top', () => {
@@ -208,19 +208,19 @@ describe('Sidebar', () => {
                 [`${ONYX_KEYS.COLLECTION.REPORT}2`]: fakeReport2,
                 [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                 [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-            })
+            }))
 
-                // THEN the component should be rendered with the mostly recently updated report first
-                .then(() => {
-                    expect(sidebarLinks.toJSON()).not.toBe(null);
-                    expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    const reportOptions = sidebarLinks.getAllByText(/Email(1|3), Email(2|4)/);
-                    expect(reportOptions).toHaveLength(2);
+            // THEN the component should be rendered with the mostly recently updated report first
+            .then(() => {
+                expect(sidebarLinks.toJSON()).not.toBe(null);
+                expect(sidebarLinks.toJSON().children.length).toBe(2);
+                const reportOptions = sidebarLinks.getAllByText(/Email(1|3), Email(2|4)/);
+                expect(reportOptions).toHaveLength(2);
 
-                    // The report with participants 3 and 4 should be first (on the top) since
-                    // it has the most recent lastMessageTimestamp
-                    expect(reportOptions[0].children[0].props.children).toBe('Email3, Email4');
-                    expect(reportOptions[1].children[0].props.children).toBe('Email1, Email2');
-                }));
+                // The report with participants 3 and 4 should be first (on the top) since
+                // it has the most recent lastMessageTimestamp
+                expect(reportOptions[0].children[0].props.children).toBe('Email3, Email4');
+                expect(reportOptions[1].children[0].props.children).toBe('Email1, Email2');
+            });
     });
 });
