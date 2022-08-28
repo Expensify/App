@@ -12,16 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
-      - uses: tj-actions/eslint-changed-files@v13.3
-        with:
-          config_path: '.eslintrc.js'
-          # ignore_path: '.eslintignore'
-          extra_args: '--max-warnings=0'
-          file_extensions: |
-            **/*.ts
-            **/*.tsx
-            **/*.js
-            **/*.jsx
+
+      - run: npm run lint
         env:
           CI: true
-      # - run: npm run lint
