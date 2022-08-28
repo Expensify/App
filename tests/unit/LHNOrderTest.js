@@ -41,25 +41,25 @@ const fakePersonalDetails = {
         login: 'email1@test.com',
         displayName: 'Email One',
         avatar: 'none',
-        firstName: 'Email1',
+        firstName: 'ReportID',
     },
     'email2@test.com': {
         login: 'email2@test.com',
         displayName: 'Email Two',
         avatar: 'none',
-        firstName: 'Email2',
+        firstName: 'One',
     },
     'email3@test.com': {
         login: 'email3@test.com',
         displayName: 'Email Three',
         avatar: 'none',
-        firstName: 'Email3',
+        firstName: 'ReportID',
     },
     'email4@test.com': {
         login: 'email4@test.com',
         displayName: 'Email Four',
         avatar: 'none',
-        firstName: 'Email4',
+        firstName: 'Two',
     },
 };
 
@@ -170,7 +170,7 @@ describe('Sidebar', () => {
             .then(() => {
                 expect(sidebarLinks.toJSON()).not.toBe(null);
                 expect(sidebarLinks.toJSON().children.length).toBe(2);
-                expect(sidebarLinks.queryAllByText('Email1, Email2')).toHaveLength(0);
+                expect(sidebarLinks.queryAllByText('ReportID, One')).toHaveLength(0);
             });
     });
 
@@ -191,7 +191,7 @@ describe('Sidebar', () => {
             .then(() => {
                 expect(sidebarLinks.toJSON()).not.toBe(null);
                 expect(sidebarLinks.toJSON().children.length).toBe(2);
-                expect(sidebarLinks.getAllByText('Email1, Email2')).toHaveLength(1);
+                expect(sidebarLinks.getAllByText('ReportID, One')).toHaveLength(1);
             });
     });
 
@@ -214,13 +214,16 @@ describe('Sidebar', () => {
             .then(() => {
                 expect(sidebarLinks.toJSON()).not.toBe(null);
                 expect(sidebarLinks.toJSON().children.length).toBe(2);
-                const reportOptions = sidebarLinks.getAllByText(/Email(1|3), Email(2|4)/);
+                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two)/);
                 expect(reportOptions).toHaveLength(2);
 
                 // The report with participants 3 and 4 should be first (on the top) since
                 // it has the most recent lastMessageTimestamp
-                expect(reportOptions[0].children[0].props.children).toBe('Email3, Email4');
-                expect(reportOptions[1].children[0].props.children).toBe('Email1, Email2');
-            });
+                expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
+                expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
+            })
+
+            // WHEN there exists a draft on report2 (the one at the top of the lsit)
+            .then();
     });
 });
