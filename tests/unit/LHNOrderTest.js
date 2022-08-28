@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 // Note: `react-test-renderer` renderer must be required after react-native.
 import {render} from '@testing-library/react-native';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
-import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
 const fakeInsets = {
