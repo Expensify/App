@@ -26,6 +26,7 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
+import OfflineSwitch from '../../components/OfflineSwitch';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -160,6 +161,7 @@ const HeaderView = (props) => {
                                 </View>
                             )}
                         </Pressable>
+                        <OfflineSwitch />
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />

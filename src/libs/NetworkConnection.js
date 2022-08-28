@@ -67,6 +67,13 @@ function subscribeToNetInfo() {
         });
     }
 
+    // If we using the manual network mode this means we do not want our internet connection or Wi-Fi to affect offline status.
+    // This is useful for development testing when there is low or no network connection.
+    if (CONFIG.USE_MANUAL_NETWORK) {
+        console.debug('[NetworkConnection] Using manual network');
+        return;
+    }
+
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {

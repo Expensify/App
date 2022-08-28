@@ -5,6 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
 import EnvironmentBadge from './EnvironmentBadge';
+import OfflineSwitch from './OfflineSwitch';
 
 const propTypes = {
     /** Title of the Header */
@@ -22,7 +23,7 @@ const defaultProps = {
     subtitle: '',
 };
 const Header = props => (
-    <View style={[styles.flex1, styles.flexRow]}>
+    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
         <View style={styles.mw100}>
             <Text numberOfLines={2} style={[styles.headerText, styles.textLarge]}>
                 {props.title}
@@ -35,6 +36,7 @@ const Header = props => (
         {props.shouldShowEnvironmentBadge && (
             <EnvironmentBadge />
         )}
+        <OfflineSwitch />
     </View>
 );
 
