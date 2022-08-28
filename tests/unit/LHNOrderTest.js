@@ -12,7 +12,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 // very difficult to mock everything enough to prevent all proptype warnings.
 // Be careful with this though because some components won't render if the proptypes are wrong.
 // This should always be set to false for Travis tests.
-const SUPPRESS_PROPTYPE_WARNINGS = false;
+const SUPPRESS_PROPTYPE_WARNINGS = true;
 
 if (SUPPRESS_PROPTYPE_WARNINGS) {
     const sidebarLinksErrors = console.error.bind(console);
@@ -41,7 +41,25 @@ const fakePersonalDetails = {
         login: 'email1@test.com',
         displayName: 'Email One',
         avatar: 'none',
-        firstName: 'Email',
+        firstName: 'Email1',
+    },
+    'email2@test.com': {
+        login: 'email2@test.com',
+        displayName: 'Email Two',
+        avatar: 'none',
+        firstName: 'Email2',
+    },
+    'email3@test.com': {
+        login: 'email3@test.com',
+        displayName: 'Email Three',
+        avatar: 'none',
+        firstName: 'Email3',
+    },
+    'email4@test.com': {
+        login: 'email4@test.com',
+        displayName: 'Email Four',
+        avatar: 'none',
+        firstName: 'Email4',
     },
 };
 
@@ -49,17 +67,37 @@ const fakeReport1 = {
     reportID: 1,
     reportName: 'Report One',
     unreadActionCount: 0,
+
+    // This report's last comment will be in the past
+    lastMessageTimestamp: Date.now() - 1000,
+    participants: ['email1@test.com', 'email2@test.com'],
+};
+const fakeReport2 = {
+    reportID: 2,
+    reportName: 'Report Two',
+    unreadActionCount: 0,
     lastMessageTimestamp: Date.now(),
-    participants: ['email1@test.com'],
+    participants: ['email3@test.com', 'email4@test.com'],
 };
 
 const fakeReport1Actions = {
     actionName: 'ADDCOMMENT',
     person: [],
     sequenceNumber: 0,
-    timestamp: Date.now(),
+
+    // This comment will be in the past
+    timestamp: Date.now() - 1000,
     message: [
         {type: 'comment', reportID: 1, text: 'Comment One'},
+    ],
+};
+const fakeReport2Actions = {
+    actionName: 'ADDCOMMENT',
+    person: [],
+    sequenceNumber: 0,
+    timestamp: Date.now(),
+    message: [
+        {type: 'comment', reportID: 2, text: 'Comment Two'},
     ],
 };
 
@@ -132,12 +170,12 @@ describe('Sidebar', () => {
                 .then(() => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
                     expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.queryAllByText('Email One')).toHaveLength(0);
+                    expect(sidebarLinks.queryAllByText('Email1, Email2')).toHaveLength(0);
                 }));
     });
 
     test('contains one report when a report is in Onyx', () => {
-        // GIVEN the sidebar is rendered with default props and we are currently viewing report 1
+        // GIVEN the sidebar is rendered while currently viewing report 1
         const sidebarLinks = getDefaultRenderedSidebarLinks('1');
 
         return waitForPromisesToResolve()
@@ -153,7 +191,36 @@ describe('Sidebar', () => {
                 .then(() => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
                     expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.getAllByText('Email One')).toHaveLength(1);
+                    expect(sidebarLinks.getAllByText('Email1, Email2')).toHaveLength(1);
+                }));
+    });
+
+    test('orders items with most recently updated on top', () => {
+        // GIVEN the sidebar is rendered while currently viewing report 1
+        const sidebarLinks = getDefaultRenderedSidebarLinks('1');
+
+        return waitForPromisesToResolve()
+
+            // WHEN Onyx is updated with some personal details and multiple reports
+            .then(() => Onyx.multiSet({
+                [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                [`${ONYX_KEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                [`${ONYX_KEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+            })
+
+                // THEN the component should be rendered with the mostly recently updated report first
+                .then(() => {
+                    expect(sidebarLinks.toJSON()).not.toBe(null);
+                    expect(sidebarLinks.toJSON().children.length).toBe(2);
+                    const reportOptions = sidebarLinks.getAllByText(/Email(1|3), Email(2|4)/);
+                    expect(reportOptions).toHaveLength(2);
+
+                    // The report with participants 3 and 4 should be first (on the top) since
+                    // it has the most recent lastMessageTimestamp
+                    expect(reportOptions[0].children[0].props.children).toBe('Email3, Email4');
+                    expect(reportOptions[1].children[0].props.children).toBe('Email1, Email2');
                 }));
     });
 });
