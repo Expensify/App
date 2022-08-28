@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import CONST from '../CONST';
@@ -23,10 +24,7 @@ const propTypes = {
     children: PropTypes.node,
 
     /** Additional styles to add to checkbox button */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: stylePropTypes,
 
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([
@@ -46,15 +44,14 @@ const defaultProps = {
 class Checkbox extends React.Component {
     constructor(props) {
         super(props);
-
         this.state = {
             isFocused: false,
         };
 
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
-        this.checkboxClicked = this.checkboxClicked.bind(this);
+        this.handleSpaceKey = this.handleSpaceKey.bind(this);
+        this.firePressHandlerOnClick = this.firePressHandlerOnClick.bind(this);
     }
 
     onFocus() {
@@ -65,7 +62,7 @@ class Checkbox extends React.Component {
         this.setState({isFocused: false});
     }
 
-    onKeyDown(event) {
+    handleSpaceKey(event) {
         if (event.keyCode !== CONST.KEYCODE.SPACE) {
             return;
         }
@@ -73,7 +70,7 @@ class Checkbox extends React.Component {
         this.props.onPress();
     }
 
-    checkboxClicked(event) {
+    firePressHandlerOnClick(event) {
         // Pressable can be triggered with Enter key and by a click. As this is a checkbox,
         // We do not want to toggle it, when Enter key is pressed.
         if (event.type && event.type !== 'click') {
@@ -87,12 +84,12 @@ class Checkbox extends React.Component {
         return (
             <Pressable
                 disabled={this.props.disabled}
-                onPress={this.checkboxClicked}
+                onPress={this.firePressHandlerOnClick}
                 onFocus={this.onFocus}
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
                 style={this.props.style}
-                onKeyDown={this.onKeyDown}
+                handleSpaceKey={this.handleSpaceKey}
                 accessibilityRole="checkbox"
                 accessibilityState={{
                     checked: this.props.isChecked,
