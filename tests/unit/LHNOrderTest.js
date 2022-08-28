@@ -12,7 +12,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 // very difficult to mock everything enough to prevent all proptype warnings.
 // Be careful with this though because some components won't render if the proptypes are wrong.
 // This should always be set to false for Travis tests.
-const SUPPRESS_PROPTYPE_WARNINGS = true;
+const SUPPRESS_PROPTYPE_WARNINGS = false;
 
 if (SUPPRESS_PROPTYPE_WARNINGS) {
     const sidebarLinksErrors = console.error.bind(console);
@@ -117,7 +117,7 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
-function getDefaultRenderedSidebarLinks(currentlyViewedReportID = '') {
+function getDefaultRenderedSidebarLinks() {
     return render(<SidebarLinks
         onLinkClick={() => {}}
         insets={fakeInsets}
@@ -131,12 +131,14 @@ function getDefaultRenderedSidebarLinks(currentlyViewedReportID = '') {
         timestampToRelative={() => {}}
         numberFormat={() => {}}
         translate={thing => thing}
-        currentlyViewedReportID={currentlyViewedReportID}
     />);
 }
 
 // Icons need to be explicitly mocked. The testing library throws an error when trying to render them
-jest.mock('../../src/components/Icon/Expensicons', () => ({MagnifyingGlass: () => ''}));
+jest.mock('../../src/components/Icon/Expensicons', () => ({
+    MagnifyingGlass: () => '',
+    Pencil: () => '',
+}));
 
 // Clear out Onyx after each test so that each test starts with a clean slate
 afterEach(() => {
@@ -176,13 +178,14 @@ describe('Sidebar', () => {
 
     test('contains one report when a report is in Onyx', () => {
         // GIVEN the sidebar is rendered while currently viewing report 1
-        const sidebarLinks = getDefaultRenderedSidebarLinks('1');
+        const sidebarLinks = getDefaultRenderedSidebarLinks();
 
         return waitForPromisesToResolve()
 
             // WHEN Onyx is updated with some personal details and a report
             .then(() => Onyx.multiSet({
                 [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                [ONYX_KEYS.CURRENTLY_VIEWED_REPORTID]: 1,
                 [`${ONYX_KEYS.COLLECTION.REPORT}1`]: fakeReport1,
                 [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
             }))
@@ -197,13 +200,14 @@ describe('Sidebar', () => {
 
     test('orders items with most recently updated on top', () => {
         // GIVEN the sidebar is rendered while currently viewing report 1
-        const sidebarLinks = getDefaultRenderedSidebarLinks('1');
+        const sidebarLinks = getDefaultRenderedSidebarLinks();
 
         return waitForPromisesToResolve()
 
             // WHEN Onyx is updated with some personal details and multiple reports
             .then(() => Onyx.multiSet({
                 [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                [ONYX_KEYS.CURRENTLY_VIEWED_REPORTID]: 1,
                 [`${ONYX_KEYS.COLLECTION.REPORT}1`]: fakeReport1,
                 [`${ONYX_KEYS.COLLECTION.REPORT}2`]: fakeReport2,
                 [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
@@ -217,13 +221,24 @@ describe('Sidebar', () => {
                 const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two)/);
                 expect(reportOptions).toHaveLength(2);
 
-                // The report with participants 3 and 4 should be first (on the top) since
-                // it has the most recent lastMessageTimestamp
+                // reportID=2 should be first (on the top) since it has the most recent lastMessageTimestamp
                 expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
                 expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
             })
 
-            // WHEN there exists a draft on report2 (the one at the top of the lsit)
-            .then();
+            // WHEN there exists a draft on report1 (the report at the bommom of the list)
+            .then(Onyx.multiSet({
+                [`${ONYX_KEYS.COLLECTION.REPORTS_WITH_DRAFT}1`]: true,
+            }))
+
+            // THEN the order of the reports should not change and
+            .then(() => {
+                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two)/);
+                expect(reportOptions).toHaveLength(2);
+
+                // reportID=2 should be first (on the top) since it has the most recent lastMessageTimestamp
+                expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
+                expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
+            });
     });
 });
