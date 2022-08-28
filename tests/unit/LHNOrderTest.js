@@ -25,7 +25,6 @@ const fakePersonalDetails = {
 
 const ONYX_KEYS = {
     PERSONAL_DETAILS: 'personalDetails',
-    NVP_PREFERRED_LOCALE: 'preferredLocale',
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     COLLECTION: {
@@ -95,8 +94,6 @@ describe('Sidebar', () => {
                 // WHEN Onyx is updated with some personal details
                 Onyx.multiSet({
                     [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                 }).then(() => {
                     // THEN the component should be rendered with an empty list since it will get past the early return
                     expect(sidebarLinks.toJSON()).not.toBe(null);
