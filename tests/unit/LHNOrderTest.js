@@ -14,6 +14,21 @@ const fakeInsets = {
     bottom: 0,
 };
 
+const defaultSidebarParams = {
+    onLinkClick: () => {},
+    insets: fakeInsets,
+    onAvatarClick: () => {},
+    isSmallScreenWidth: true,
+    toLocaleDigit: () => {},
+    fromLocaleDigit: () => {},
+    fromLocalPhone: () => {},
+    toLocalPhone: () => {},
+    timestampToDateTime: () => {},
+    timestampToRelative: () => {},
+    numberFormat: () => {},
+    translate: () => {},
+};
+
 const ONYX_KEYS = {
     PERSONAL_DETAILS: 'personalDetails',
     NVP_PREFERRED_LOCALE: 'preferredLocale',
@@ -36,25 +51,9 @@ jest.mock('../../src/components/Icon/Expensicons', () => ({MagnifyingGlass: () =
 
 describe('Sidebar', () => {
     test('is not rendered when there are no props passed to it', () => {
-        const sideBarLinks = render(<SidebarLinks
-            onLinkClick={() => {}}
-            insets={fakeInsets}
-            onAvatarClick={() => {}}
-            isSmallScreenWidth
-            toLocaleDigit={() => {}}
-            fromLocaleDigit={() => {}}
-            fromLocalPhone={() => {}}
-            toLocalPhone={() => {}}
-            timestampToDateTime={() => {}}
-            timestampToRelative={() => {}}
-            numberFormat={() => {}}
-            translate={() => {}}
-        />);
-        expect(sideBarLinks.toJSON()).toBe(null);
-    });
-
-    test('is rendered with an empty list when personal details exist', () => {
-        const sideBarLinks = render(<SidebarLinks
+        // GIVEN all the default props are passed to SidebarLinks
+        // WHEN it is rendered
+        const sidebarLinks = render(<SidebarLinks
             onLinkClick={() => {}}
             insets={fakeInsets}
             onAvatarClick={() => {}}
@@ -68,9 +67,31 @@ describe('Sidebar', () => {
             numberFormat={() => {}}
             translate={thing => thing}
         />);
-        expect(sideBarLinks.toJSON()).toBe(null);
+        // THEN it should render nothing and be null
+        // This is expected because there is an early return when there are no personal details
+        expect(sidebarLinks.toJSON()).toBe(null);
+    });
+
+    test('is rendered with an empty list when personal details exist', () => {
+        // GIVEN the sidebar is rendered with default props
+        const sidebarLinks = render(<SidebarLinks
+            onLinkClick={() => {}}
+            insets={fakeInsets}
+            onAvatarClick={() => {}}
+            isSmallScreenWidth
+            toLocaleDigit={() => {}}
+            fromLocaleDigit={() => {}}
+            fromLocalPhone={() => {}}
+            toLocalPhone={() => {}}
+            timestampToDateTime={() => {}}
+            timestampToRelative={() => {}}
+            numberFormat={() => {}}
+            translate={thing => thing}
+        />);
+
         return waitForPromisesToResolve()
             .then(() => {
+                // WHEN Onyx is updated with some personal details
                 Onyx.multiSet({
                     [ONYX_KEYS.PERSONAL_DETAILS]: {
                         'email1@test.com': {
@@ -83,7 +104,11 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                 }).then(() => {
-                    expect(sideBarLinks.toJSON()).not.toBe(null);
+                    // THEN the component should be rendered with an empty list since it will get past the early return
+                    expect(sidebarLinks.toJSON()).not.toBe(null);
+                    expect(sidebarLinks.toJSON().children.length).toBe(2);
+                    // console.log(JSON.stringify(sidebarLinks.toJSON()));
+                    // @TODO Find which child is the list and make sure it's not rendered
                 });
                 return waitForPromisesToResolve();
             });
