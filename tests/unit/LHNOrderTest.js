@@ -132,7 +132,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
                     expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.queryAllByText('Email One').length).toBe(0);
+                    expect(sidebarLinks.queryAllByText('Email One')).toHaveLength(0);
                 }));
     });
 
@@ -153,7 +153,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
                     expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.getAllByText('Email One').length).toBe(1);
+                    expect(sidebarLinks.getAllByText('Email One')).toHaveLength(1);
                 }));
     });
 });
