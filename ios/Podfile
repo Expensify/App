@@ -7,7 +7,6 @@ install! 'cocoapods', :deterministic_uuids => false
 target 'NewExpensify' do
   permissions_path = '../node_modules/react-native-permissions/ios'
 
-  pod 'Plaid', '~> 2.3.1'
   pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
   pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
   pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
