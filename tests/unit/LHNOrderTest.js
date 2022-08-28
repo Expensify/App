@@ -14,19 +14,13 @@ const fakeInsets = {
     bottom: 0,
 };
 
-const defaultSidebarParams = {
-    onLinkClick: () => {},
-    insets: fakeInsets,
-    onAvatarClick: () => {},
-    isSmallScreenWidth: true,
-    toLocaleDigit: () => {},
-    fromLocaleDigit: () => {},
-    fromLocalPhone: () => {},
-    toLocalPhone: () => {},
-    timestampToDateTime: () => {},
-    timestampToRelative: () => {},
-    numberFormat: () => {},
-    translate: () => {},
+const fakePersonalDetails = {
+    'email1@test.com': {
+        login: 'email1@test.com',
+        displayName: 'Email One',
+        avatar: 'none',
+        firstName: 'Email',
+    },
 };
 
 const ONYX_KEYS = {
@@ -49,6 +43,12 @@ Onyx.init({
 // Icons need to be explicitly mocked. The testing library throws an error when trying to render them
 jest.mock('../../src/components/Icon/Expensicons', () => ({MagnifyingGlass: () => ''}));
 
+// Clear out Onyx after each test so that each test starts with a clean slate
+afterEach(() => {
+    Onyx.clear();
+    return waitForPromisesToResolve();
+});
+
 describe('Sidebar', () => {
     test('is not rendered when there are no props passed to it', () => {
         // GIVEN all the default props are passed to SidebarLinks
@@ -67,6 +67,7 @@ describe('Sidebar', () => {
             numberFormat={() => {}}
             translate={thing => thing}
         />);
+
         // THEN it should render nothing and be null
         // This is expected because there is an early return when there are no personal details
         expect(sidebarLinks.toJSON()).toBe(null);
@@ -93,14 +94,7 @@ describe('Sidebar', () => {
             .then(() => {
                 // WHEN Onyx is updated with some personal details
                 Onyx.multiSet({
-                    [ONYX_KEYS.PERSONAL_DETAILS]: {
-                        'email1@test.com': {
-                            login: 'email1@test.com',
-                            displayName: 'Email One',
-                            avatar: 'none',
-                            firstName: 'Email',
-                        },
-                    },
+                    [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                 }).then(() => {
