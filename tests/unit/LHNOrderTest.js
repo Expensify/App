@@ -100,18 +100,18 @@ describe('Sidebar', () => {
         const sidebarLinks = getDefaultRenderedSidebarLinks();
 
         return waitForPromisesToResolve()
-            .then(() => {
-                // WHEN Onyx is updated with some personal details
-                Onyx.multiSet({
-                    [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                }).then(() => {
-                    // THEN the component should be rendered with an empty list since it will get past the early return
+
+            // WHEN Onyx is updated with some personal details
+            .then(() => Onyx.multiSet({
+                [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+            })
+
+                // THEN the component should be rendered with an empty list since it will get past the early return
+                .then(() => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
                     expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.getAllByText('Email One').length).toBe(0);
-                });
-                return waitForPromisesToResolve();
-            });
+                    expect(sidebarLinks.queryAllByText('Email One').length).toBe(0);
+                }));
     });
 
     test('contains one report when a report is in Onyx', () => {
