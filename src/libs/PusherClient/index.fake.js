@@ -1,4 +1,12 @@
+import Onyx from 'react-native-onyx';
 import TYPE from './EventType';
+import ONYXKEYS from '../../ONYXKEYS';
+
+let isOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: val => isOffline = val.isOffline,
+});
 
 const ws = new WebSocket('ws://localhost:8888');
 const subscriptions = {};
@@ -51,11 +59,21 @@ function processWebSocketMessage(event) {
         return;
     }
 
+    // Events can't be sent or received when offline
+    if (isOffline) {
+        return;
+    }
+
     const pushJSON = data.event.data;
     subscriptions[data.channel][eventName](pushJSON);
 }
 
 function sendEvent(channel, eventType, data) {
+    // Events can't be sent or received when offline
+    if (isOffline) {
+        return;
+    }
+
     ws.send(JSON.stringify({channel, event: {type: eventType, data}}));
 }
 
