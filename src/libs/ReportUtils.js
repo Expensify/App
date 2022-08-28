@@ -513,7 +513,7 @@ function navigateToDetailsPage(report) {
 
 /**
  * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
- * There were approcimately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
+ * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
  * so we live with the 1 in a billion chance of a collision with an older ID until we can switch to 64-bit IDs.
  *
  * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
