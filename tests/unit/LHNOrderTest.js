@@ -1,6 +1,7 @@
 import 'react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {View} from 'react-native';
 
 // Note: `react-test-renderer` renderer must be required after react-native.
 import {render} from '@testing-library/react-native';
@@ -23,6 +24,8 @@ Onyx.init({
     keys: ONYX_KEYS,
     registerStorageEventListener: () => {},
 });
+
+jest.mock('../../src/components/Icon/Expensicons', () => ({MagnifyingGlass: () => ''}));
 
 describe('Sidebar', () => {
     test('is not rendered when there are no props passed to it', () => {
