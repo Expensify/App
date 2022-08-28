@@ -28,6 +28,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import networkPropTypes from '../../../components/networkPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
+import reportActionPropTypes from '../report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -82,12 +83,18 @@ const propTypes = {
     // Whether we are syncing app data
     isSyncingData: PropTypes.bool,
 
+    /** Actions from the ChatReport */
+    // It's used in a static method, but I guess ESLint can't find it
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reports: {},
     reportsWithDraft: {},
+    reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
