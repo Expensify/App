@@ -6,6 +6,29 @@ import {render} from '@testing-library/react-native';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
+// This will swallow up all proptype warnings and keep them from being output to the console.
+// It is helpful when developing tests to have minimal output.
+// Due to the heave usage of HOCs (specifically the language locale ones) it becomes
+// very difficult to mock everything enough to prevent all proptype warnings.
+// Be careful with this though because some components won't render if the proptypes are wrong.
+// This should always be set to false for Travis tests.
+const SUPPRESS_PROPTYPE_WARNINGS = false;
+
+if (SUPPRESS_PROPTYPE_WARNINGS) {
+    const sidebarLinksErrors = console.error.bind(console);
+    beforeAll(() => {
+        console.error = (errormessage) => {
+            const suppressedErrors = errormessage
+                .toString()
+                .includes('Warning: Failed %s type: %s%s');
+            return !suppressedErrors && sidebarLinksErrors(errormessage);
+        };
+    });
+    afterAll(() => {
+        console.error = sidebarLinksErrors;
+    });
+}
+
 const fakeInsets = {
     top: 0,
     left: 0,
