@@ -89,7 +89,7 @@ class Checkbox extends React.Component {
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
                 style={this.props.style}
-                handleSpaceKey={this.handleSpaceKey}
+                onKeyDown={this.handleSpaceKey}
                 accessibilityRole="checkbox"
                 accessibilityState={{
                     checked: this.props.isChecked,
