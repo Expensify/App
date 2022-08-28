@@ -99,7 +99,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 }
 
 /**
- * Navigate Bank Account Route
+ * Navigate to the correct bank account route based on the bank account state and type
  *
  * @param {String} policyID
  */
