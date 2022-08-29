@@ -59,14 +59,18 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
+    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
+    // those should be cleaned out before doing any error checking
+    const cleanPolicies = _.compact(props.policies);
+
     // All of the error-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error is returned. This makes the error checking very efficient since
     // we only care if a single error exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
         () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
-        () => _.some(props.policies, PolicyUtils.hasPolicyError),
-        () => _.some(props.policies, PolicyUtils.hasCustomUnitsError),
+        () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
+        () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(props.policiesMemberList, PolicyUtils.hasPolicyMemberError),
     ];
     const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
