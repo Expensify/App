@@ -28,6 +28,7 @@ import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -68,6 +69,16 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidMount() {
+        const clientPolicyMembers = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembers(this.props.policy.id, clientPolicyMembers);
+    }
+
+    componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!isReconnecting) {
+            return;
+        }
+
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
         Policy.openWorkspaceMembers(this.props.policy.id, clientPolicyMembers);
     }
@@ -352,6 +363,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withFullPolicy,
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
