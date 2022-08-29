@@ -489,6 +489,10 @@ function uploadAvatar(policyID, file) {
  * @param {Object} errors
  */
 function setWorkspaceErrors(policyID, errors) {
+    if (!allPolicies[policyID]) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
 }
@@ -519,6 +523,10 @@ function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
  * @param {String} policyID
  */
 function hideWorkspaceAlertMessage(policyID) {
+    if (!allPolicies[policyID]) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
