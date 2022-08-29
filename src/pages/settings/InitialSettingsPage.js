@@ -160,16 +160,21 @@ class InitialSettingsPage extends React.Component {
     getMenuItems() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .map(policy => ({
-                title: policy.name,
-                icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
-                iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
-                iconFill: themeColors.iconReversed,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(this.props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
-            }))
+            .map((policy) => {
+                const shouldShowErrorIndicator = Policy.hasCustomUnitsError(policy)
+                    || Policy.hasPolicyMemberError(lodashGet(this.props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {}));
+
+                return {
+                    title: policy.name,
+                    icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
+                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+                    iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
+                    iconFill: themeColors.iconReversed,
+                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                    brickRoadIndicator: shouldShowErrorIndicator ? 'error' : null,
+                };
+            })
             .value();
         menuItems.push(...this.getDefaultMenuItems());
 
