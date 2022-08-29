@@ -117,7 +117,7 @@ GitHubUtils.octokit.issues.listComments({
 }).then(({data}) => {
     const comments = _.map(data, comment => comment.body).toString();
 
-    for (const [index, comment] of comments) {
+    for (const [index, comment] of data.body()) {
         console.log(`Index: ${index} ${JSON.stringify(comment)}`);
     }
 
