@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
+import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
@@ -306,7 +307,6 @@ const InitialSettingsPage = (props) => {
         if (_.isEmpty(this.props.currentUserPersonalDetails)) {
             return null;
         }
-
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -342,7 +342,32 @@ const InitialSettingsPage = (props) => {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
+                        {_.map(this.getMenuItems(), (item, index) => {
+                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+                            const isPaymentItem = item.translationKey === 'common.payments';
+                            return (
+                                <OfflineWithFeedback
+                                    key={`${keyTitle}_${index}`}
+                                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
+                                    onClose={item.dismissError || (() => {})}
+                                    pendingAction={item.pendingAction}
+                                    errors={item.errors}
+                                >
+                                    <MenuItem
+                                        title={keyTitle}
+                                        icon={item.icon}
+                                        iconType={item.iconType}
+                                        onPress={item.action}
+                                        iconStyles={item.iconStyles}
+                                        iconFill={item.iconFill}
+                                        shouldShowRightIcon
+                                        badgeText={this.getWalletBalance(isPaymentItem)}
+                                        fallbackIcon={item.fallbackIcon}
+                                        brickRoadIndicator={item.brickRoadIndicator}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })}
                     </View>
                     {_.map(menuItems, (item, index) => {
                         const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;

@@ -2413,7 +2413,7 @@ const styles = {
         menuItemErrorPadding: {
             paddingLeft: 44,
             paddingRight: 20,
-        }
+        },
     },
 
     dotIndicatorMessage: {
