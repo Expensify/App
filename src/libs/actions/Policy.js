@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
@@ -13,7 +14,6 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
-import * as API from '../API';
 import DateUtils from '../DateUtils';
 
 const allPolicies = {};
@@ -173,7 +173,7 @@ function deleteWorkspace(policyID) {
         },
     ];
 
-    // We don't need success data since the push notification will update     
+    // We don't need success data since the push notification will update
     // the onyxData for all connected clients.
     const failureData = [];
     const successData = [];

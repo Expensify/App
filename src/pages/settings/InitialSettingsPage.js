@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
+import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
@@ -94,7 +95,7 @@ const defaultProps = {
  * @param {string} policyID
  * @param {string} pendingAction
  */
- function dismissWorkspaceError(policyID, pendingAction) {
+function dismissWorkspaceError(policyID, pendingAction) {
     if (pendingAction === 'delete') {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
@@ -205,7 +206,6 @@ class InitialSettingsPage extends React.Component {
         if (_.isEmpty(this.props.currentUserPersonalDetails)) {
             return null;
         }
-        const doNothing = () => {};
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -248,9 +248,10 @@ class InitialSettingsPage extends React.Component {
                                 <OfflineWithFeedback
                                     key={`${keyTitle}_${index}`}
                                     errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
-                                    onClose={item.dismissError || doNothing}
+                                    onClose={item.dismissError || (() => {})}
                                     pendingAction={item.pendingAction}
-                                    errors={item.errors}>
+                                    errors={item.errors}
+                                >
                                     <MenuItem
                                         title={keyTitle}
                                         icon={item.icon}
