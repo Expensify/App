@@ -36,6 +36,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
 import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
+import ConciergePage from '../../../pages/ConciergePage';
 
 let currentUserEmail;
 Onyx.connect({
@@ -98,10 +99,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => {
-            App.getAppData();
-            App.reconnectApp();
-        });
+        NetworkConnection.onReconnect(() => App.reconnectApp());
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -115,10 +113,8 @@ class AuthScreens extends React.Component {
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        App.getAppData();
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
-        App.fixAccountAndReloadData();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -209,6 +205,11 @@ class AuthScreens extends React.Component {
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
                     component={LogOutPreviousUserPage}
+                />
+                <RootStack.Screen
+                    name="Concierge"
+                    options={defaultScreenOptions}
+                    component={ConciergePage}
                 />
 
                 {/* These are the various modal routes */}

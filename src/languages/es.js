@@ -264,6 +264,7 @@ export default {
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
         imageUploadFailed: 'Error al cargar la imagen',
+        deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
     },
@@ -485,6 +486,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
+        cannotGetAccountDetails: 'No pudimos cargar los detalles de tu cuenta, por favor intenta iniciar sesión de nuevo.',
     },
     personalDetails: {
         error: {
@@ -694,7 +696,8 @@ export default {
     },
     activateStep: {
         headerTitle: 'Habilitar pagos',
-        activated: 'Su billetera Expensify está lista para usar.',
+        activatedTitle: '¡Billetera  activada!',
+        activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
         checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
     },
     companyStep: {
@@ -831,6 +834,7 @@ export default {
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
             unlockNoVBACopy: 'Conecta una cuenta bancaria para reembolsar online a los miembros de tu espacio de trabajo.',
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
+            updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado, por favor inténtalo de nuevo.',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
