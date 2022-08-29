@@ -914,6 +914,14 @@ function createWorkspace() {
     });
 }
 
+function openWorkspaceInvitePage(policyID, clientPolicyMembers) {
+    if (!policyID) {
+        return;
+    }
+
+    API.read('OpenWorkspaceInvitePage', {policyID, clientPolicyMembers});
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -937,5 +945,6 @@ export {
     deleteWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
-    createWorkspace,
+    openWorkspaceMembersPage,
+    openWorkspaceInvitePage,
 };
