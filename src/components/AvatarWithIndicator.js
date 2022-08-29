@@ -59,7 +59,9 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    // Check for errors and return as soon as there is one.
+    // All of the error-checking methods are put into an array. This is so that using _.some() will return
+    // early as soon as the first error is returned. This makes the error checking very efficient since
+    // we only care if a single error exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
         () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
