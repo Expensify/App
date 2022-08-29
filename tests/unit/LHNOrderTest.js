@@ -1,31 +1,9 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {render} from '@testing-library/react-native';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import {render} from './testUtils';
-
-// This will swallow up all proptype warnings and keep them from being output to the console.
-// It is helpful when developing tests to have minimal output.
-// Due to the heave usage of HOCs (specifically the language locale ones) it becomes
-// very difficult to mock everything enough to prevent all proptype warnings.
-// Be careful with this though because some components won't render if the proptypes are wrong.
-// This should always be set to false for Travis tests.
-const SUPPRESS_PROPTYPE_WARNINGS = false;
-
-if (SUPPRESS_PROPTYPE_WARNINGS) {
-    const sidebarLinksErrors = console.error.bind(console);
-    beforeAll(() => {
-        console.error = (errormessage) => {
-            const suppressedErrors = errormessage
-                .toString()
-                .includes('Warning: Failed %s type: %s%s');
-            return !suppressedErrors && sidebarLinksErrors(errormessage);
-        };
-    });
-    afterAll(() => {
-        console.error = sidebarLinksErrors;
-    });
-}
+import {LocaleContextProvider} from '../../src/components/withLocalize';
 
 const fakeInsets = {
     top: 0,
@@ -118,12 +96,20 @@ Onyx.init({
 jest.disableAutomock();
 
 function getDefaultRenderedSidebarLinks() {
-    return render((<SidebarLinks
-        onLinkClick={() => {}}
-        insets={fakeInsets}
-        onAvatarClick={() => {}}
-        isSmallScreenWidth
-    />));
+    // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
+    // are passed to the component. If this is not done, then all the locale props are missing
+    // and there are a lot of render warnings. It needs to be done like this because normally in
+    // our app (App.js) is when the react application is wrapped in the context providers
+    return render((
+        <LocaleContextProvider>
+            <SidebarLinks
+                onLinkClick={() => {}}
+                insets={fakeInsets}
+                onAvatarClick={() => {}}
+                isSmallScreenWidth
+            />
+        </LocaleContextProvider>
+    ));
 }
 
 // Icons need to be explicitly mocked. The testing library throws an error when trying to render them
@@ -143,7 +129,6 @@ describe('Sidebar', () => {
         // GIVEN all the default props are passed to SidebarLinks
         // WHEN it is rendered
         const sidebarLinks = getDefaultRenderedSidebarLinks();
-        console.log(sidebarLinks.container);
 
         // THEN it should render nothing and be null
         // This is expected because there is an early return when there are no personal details
