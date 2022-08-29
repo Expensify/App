@@ -219,7 +219,8 @@
     ],
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
-    ]
+    ],
+    "cacheDirectory": "<rootDir>/.jest-cache"
   },
   "prettier": {
     "bracketSpacing": false,

@@ -10,10 +10,13 @@ jobs:
 
   test:
     # uses: Expensify/App/.github/workflows/test.yml@main
+    name: jest (job ${{ matrix.chunk }})
     strategy:
       fail-fast: false
       matrix:
         chunk: [0, 1, 2, 3]
+    env:
+      CI: true
     steps:
       if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
       runs-on: ubuntu-latest
@@ -30,11 +33,20 @@ jobs:
               exit 1
             fi
 
-        - name: Jest Unit Tests
-          if: ${{ fromJSON(matrix.chunk) < 3 }}
-          run: npx jest --listTests --json | jq -cM '[_nwise(length / 3 | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs yarn test
-          env:
-            CI: true
+        - name: Cache Jest cache
+          id: cache-jest-cache
+          uses: actions/cache@v1
+          with:
+            path: .jest-cache
+            key: ${{ runner.os }}-${{ matrix.node-version }}-jest
+
+        -name: All Unit Tests
+          if: ${{ fromJSON(matrix.chunk) < 2 }}
+          run: npx jest --listTests --json --testPathIgnorePatterns=loginTest.js | jq -cM '[_nwise(length / 3 | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs yarn test
+        
+        - name: Login Unit Tests
+          if: ${{ fromJSON(matrix.chunk) === 2 }}
+          run: npx jest --listTests --json loginTest.js | jq '.[] | @text' | xargs yarn test
 
         - name: Pull Request Tests
           if: ${{ fromJSON(matrix.chunk) === 3 }}
