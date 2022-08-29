@@ -41,11 +41,11 @@ class OnfidoPrivacy extends React.Component {
     constructor(props) {
         super(props);
 
-        this.fetchOnfidoToken = this.fetchOnfidoToken.bind(this);
+        this.openOnfidoFlow = this.openOnfidoFlow.bind(this);
     }
 
-    fetchOnfidoToken() {
-        BankAccounts.fetchOnfidoToken(
+    openOnfidoFlow() {
+        BankAccounts.openOnfidoFlow(
             this.props.walletAdditionalDetailsDraft.legalFirstName,
             this.props.walletAdditionalDetailsDraft.legalLastName,
             this.props.walletAdditionalDetailsDraft.dob,
@@ -87,17 +87,17 @@ class OnfidoPrivacy extends React.Component {
                         </View>
                         <FormAlertWithSubmitButton
                             isAlertVisible={Boolean(onfidoError)}
-                            onSubmit={this.fetchOnfidoToken}
+                            onSubmit={this.openOnfidoFlow}
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
-                            isLoading={this.props.walletOnfidoData.loading}
+                            isLoading={this.props.walletOnfidoData.isLoading}
                             buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
                         />
                     </FormScrollView>
                 ) : null}
-                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.loading ? <FullscreenLoadingIndicator /> : null}
+                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.isLoading ? <FullscreenLoadingIndicator /> : null}
             </View>
         );
     }
