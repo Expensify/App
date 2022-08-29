@@ -81,6 +81,12 @@ const OfflineWithFeedback = (props) => {
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
+    const sortedErrors = _.chain(props.errors)
+        .keys()
+        .sortBy()
+        .map(key => props.errors[key])
+        .uniq()
+        .value();
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
