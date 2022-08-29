@@ -492,6 +492,75 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
+ * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
+ * If the response fails set a general error message. Clear the error message when updating.
+ *
+ * @param {String} policyID
+ * @param {String} name
+ * @param {String} currency
+ */
+function updateGeneralSettings(policyID, name, currency) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+
+                // Clear errorFields in case the user didn't dismiss the general settings error
+                errorFields: {
+                    generalSettings: null,
+                },
+                name,
+                outputCurrency: currency,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+                errorFields: {
+                    generalSettings: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+}
+
+/**
+ * @param {String} policyID The id of the workspace / policy
+ */
+function clearWorkspaceGeneralSettingsErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            generalSettings: null,
+        },
+    });
+}
+
+/**
  * @param {String} policyID
  * @param {Object} errors
  */
