@@ -14,7 +14,7 @@ const propTypes = {
     /** Whether the marker is active */
     isActive: PropTypes.bool,
 
-    /** Callback to be called when user clicks the marker */
+    /** Callback to be called when user clicks the New Messages indicator */
     onClick: PropTypes.func,
 
     ...withLocalizePropTypes,

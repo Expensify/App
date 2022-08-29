@@ -134,6 +134,8 @@ class ReportActionsList extends React.Component {
         item,
         index,
     }) {
+        // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
+        // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
         const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
             && item.action.sequenceNumber === this.props.newMarkerSequenceNumber;
         return (
