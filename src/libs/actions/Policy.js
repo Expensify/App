@@ -561,29 +561,6 @@ function clearWorkspaceGeneralSettingsErrors(policyID) {
 }
 
 /**
- * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
- *
- * @param {String} policyID
- * @param {Object} file
- */
-function uploadAvatar(policyID, file) {
-    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
-    DeprecatedAPI.User_UploadAvatar({file})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                // Update the policy with the new avatarURL as soon as we get it
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
-                update(policyID, {avatarURL: response.s3url}, true);
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
-}
-
-/**
  * @param {String} policyID
  * @param {Object} errors
  */

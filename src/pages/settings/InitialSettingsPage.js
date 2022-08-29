@@ -2,7 +2,6 @@ import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
