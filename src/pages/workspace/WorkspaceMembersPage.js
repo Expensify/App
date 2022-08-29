@@ -67,6 +67,11 @@ class WorkspaceMembersPage extends React.Component {
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
     }
 
+    componentDidMount() {
+        const clientPolicyMembers = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembers(this.props.policy.id, clientPolicyMembers);
+    }
+
     /**
      * Open the modal to invite a user
      */

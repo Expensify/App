@@ -13,6 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import * as API from '../API';
 
 const allPolicies = {};
 Onyx.connect({
@@ -567,6 +568,10 @@ function hasPolicyMemberError(policyMemberList) {
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
+function openWorkspaceMembers(policyID, clientPolicyMembers) {
+    API.read('OpenWorkspaceMembersPage', {policyID, clientPolicyMembers});
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -588,4 +593,5 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     hasPolicyMemberError,
+    openWorkspaceMembers,
 };
