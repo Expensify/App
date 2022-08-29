@@ -60,12 +60,12 @@ This is the pattern where we queue the request to be sent when the user is onlin
 - the user should be given instant feedback and
 - the user does not need to know when the change is done on the server in the background
 
-**How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failData as we don't care what response comes back at all.
+**How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failureData as we don't care what response comes back at all.
 
 **Example:** Pinning a chat.
 
 ### B - Optimistic WITH Feedback Pattern
-This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**. 
+This pattern queues the API request, but also makes sure that the user is aware that the request hasn’t been sent yet **when the user is offline**.
 When the user is online, the feature should just look like it succeeds immediately (we don't want the offline UI to flicker on and off when the user is online).
 When the user is offline:
 - Things pending to be created or updated will be shown greyed out (0.5 opacity)
