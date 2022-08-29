@@ -177,6 +177,7 @@ class ACHContractStep extends React.Component {
                     shouldShowBackButton
                 />
                 <ReimbursementAccountForm
+                    reimbursementAccount={this.props.reimbursementAccount}
                     onSubmit={this.submit}
                 >
                     <Text style={[styles.mb5]}>

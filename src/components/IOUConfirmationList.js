@@ -16,6 +16,7 @@ import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -51,6 +52,7 @@ const propTypes = {
         isPinned: PropTypes.bool,
         isUnread: PropTypes.bool,
         reportID: PropTypes.number,
+        // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
         payPalMeAddress: PropTypes.string,
         phoneNumber: PropTypes.string,
@@ -63,20 +65,9 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
+    ...withCurrentUserPersonalDetailsPropTypes,
+
     /* Onyx Props */
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-
-        /** Display name of the current user from their personal details */
-        displayName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-
-        /** Primary login of the user */
-        login: PropTypes.string,
-    }),
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
@@ -103,8 +94,8 @@ const defaultProps = {
     },
     onUpdateComment: null,
     comment: '',
-    myPersonalDetails: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class IOUConfirmationList extends Component {
@@ -190,7 +181,7 @@ class IOUConfirmationList extends Component {
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
-                this.props.myPersonalDetails,
+                this.props.currentUserPersonalDetails,
                 this.props.numberFormat(this.calculateAmount(selectedParticipants, true) / 100, {
                     style: 'currency',
                     currency: this.props.iou.selectedCurrencyCode,
@@ -246,7 +237,7 @@ class IOUConfirmationList extends Component {
         }));
 
         splits.push({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(this.props.myPersonalDetails.login),
+            email: OptionsListUtils.addSMSDomainIfPhoneNumber(this.props.currentUserPersonalDetails.login),
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
@@ -266,7 +257,7 @@ class IOUConfirmationList extends Component {
         const selectedParticipants = this.getSelectedParticipants();
         return [
             ...selectedParticipants,
-            OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
+            OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails),
         ];
     }
 
@@ -359,7 +350,6 @@ class IOUConfirmationList extends Component {
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
                 autoFocus
-                shouldDelayFocus
                 shouldTextInputAppearBelowOptions
                 shouldShowOfflineMessage
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
@@ -370,7 +360,6 @@ class IOUConfirmationList extends Component {
                             isLoading={isLoading}
                             onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                            recipientPhoneNumber={recipient.phoneNumber}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
@@ -396,11 +385,9 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },

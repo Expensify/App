@@ -438,6 +438,19 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Receives any number of object or array style objects and returns them all as an array
+ * @param {Object|Object[]} allStyles
+ * @return {Object[]}
+ */
+function combineStyles(...allStyles) {
+    let finalStyles = [];
+    _.each(allStyles, (style) => {
+        finalStyles = finalStyles.concat(parseStyleAsArray(style));
+    });
+    return finalStyles;
+}
+
+/**
  * Get variable padding-left as style
  * @param {Number} paddingLeft
  * @returns {Object}
@@ -448,6 +461,50 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
+/**
+ * Get animated opacity for report chat list
+ * @param {Animated.Value} fadeInAnimation
+ * @returns {Object}
+ */
+function getReportListAnimationStyle(fadeInAnimation) {
+    return {
+        ...styles.flex1,
+        opacity: fadeInAnimation,
+    };
+}
+
+/**
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * @param {String} text
+ * @returns {String}
+ */
+function convertToLTR(text) {
+    return `\u2066${text}`;
+}
+
+/**
+ * Checks to see if the iOS device has safe areas or not
+ *
+ * @param {Number} windowWidth
+ * @param {Number} windowHeight
+ * @returns {Boolean}
+ */
+function hasSafeAreas(windowWidth, windowHeight) {
+    const heightsIphonesWithNotches = [812, 896, 844, 926];
+    return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
+}
+
+/**
+ * Get variable keyboard height as style
+ * @param {Number} keyboardHeight
+ * @returns {Object}
+ */
+function getHeight(keyboardHeight) {
+    return {
+        height: keyboardHeight,
+    };
+}
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -474,5 +531,10 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    combineStyles,
     getPaddingLeft,
+    getReportListAnimationStyle,
+    convertToLTR,
+    hasSafeAreas,
+    getHeight,
 };

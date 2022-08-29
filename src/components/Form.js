@@ -30,10 +30,10 @@ const propTypes = {
     formState: PropTypes.shape({
 
         /** Controls the loading state of the form */
-        isSubmitting: PropTypes.bool,
+        isLoading: PropTypes.bool,
 
         /** Server side error message */
-        serverErrorMessage: PropTypes.string,
+        error: PropTypes.string,
     }),
 
     /** Contains draft values for each input in the form */
@@ -45,8 +45,8 @@ const propTypes = {
 
 const defaultProps = {
     formState: {
-        isSubmitting: false,
-        serverErrorMessage: '',
+        isLoading: false,
+        error: '',
     },
     draftValues: {},
 };
@@ -77,7 +77,7 @@ class Form extends React.Component {
 
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
-        if (this.props.formState.isSubmitting) {
+        if (this.props.formState.isLoading) {
             return;
         }
 
@@ -91,8 +91,7 @@ class Form extends React.Component {
             return;
         }
 
-        // Set loading state and call submit handler
-        FormActions.setIsSubmitting(this.props.formID, true);
+        // Call submit handler
         this.props.onSubmit(this.inputValues);
     }
 
@@ -101,7 +100,7 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        FormActions.setServerErrorMessage(this.props.formID, '');
+        FormActions.setErrorMessage(this.props.formID, '');
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
@@ -187,9 +186,9 @@ class Form extends React.Component {
                         {this.childrenWrapperWithProps(this.props.children)}
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.serverErrorMessage)}
-                            isLoading={this.props.formState.isSubmitting}
-                            message={this.props.formState.serverErrorMessage}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
+                            isLoading={this.props.formState.isLoading}
+                            message={this.props.formState.error}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
