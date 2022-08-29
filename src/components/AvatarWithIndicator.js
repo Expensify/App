@@ -40,7 +40,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** The user's wallet (coming from Onyx) */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 };
 
 const defaultProps = {
