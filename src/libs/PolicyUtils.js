@@ -7,28 +7,22 @@ import ONYXKEYS from '../ONYXKEYS';
  * Checks if we have any errors stored within the POLICY_MEMBER_LIST. Determines whether we should show a red brick road error or not.
  * Data structure: {email: {role:'user', errors: []}, email2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
  *
- * @param {Object} [policyMemberList]
+ * @param {Object} policyMemberList
  * @returns {Boolean}
  */
 function hasPolicyMemberError(policyMemberList) {
-    if (!policyMemberList) {
-        return false;
-    }
     return _.some(policyMemberList, member => !_.isEmpty(member.errors));
 }
 
 /**
  * Check if the policy has any errors, and if it doesn't, then check if it has any error fields.
  *
- * @param {Object} [policy]
+ * @param {Object} policy
  * @param {Object} policy.errors
  * @param {Object} policy.errorFields
  * @return {Boolean}
  */
 function hasPolicyError(policy) {
-    if (!policy) {
-        return false;
-    }
     return !_.isEmpty(policy.errors)
         ? true
         : _.some(policy.errorFields, fieldErrors => !_.isEmpty(fieldErrors));
@@ -37,13 +31,10 @@ function hasPolicyError(policy) {
 /**
  * Checks if we have any errors stored within the policy custom units.
  *
- * @param {Object} [policy]
+ * @param {Object} policy
  * @returns {Boolean}
  */
 function hasCustomUnitsError(policy) {
-    if (!policy) {
-        return false;
-    }
     return !_.isEmpty(_.pick(policy.customUnits, 'errors'));
 }
 
