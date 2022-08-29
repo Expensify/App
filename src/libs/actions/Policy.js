@@ -15,7 +15,6 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
 import DateUtils from '../DateUtils';
-import * as API from '../API';
 
 const allPolicies = {};
 Onyx.connect({
