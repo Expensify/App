@@ -811,11 +811,7 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
-function openWorkspaceReimburseView(policyID) {
-    API.read('OpenWorkspaceReimburseView', {policyID});
-}
-
-function openWorkspaceMembers(policyID, clientPolicyMembers) {
+function openWorkspaceMembersPage(policyID, clientPolicyMembers) {
     if (!policyID) {
         return;
     }
@@ -844,6 +840,10 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    hasPolicyMemberError,
-    openWorkspaceMembers,
+    updateGeneralSettings,
+    clearWorkspaceGeneralSettingsErrors,
+    deleteWorkspaceAvatar,
+    clearAvatarErrors,
+    generatePolicyID,
+    openWorkspaceMembersPage,
 };
