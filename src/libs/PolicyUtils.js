@@ -30,6 +30,7 @@ function hasPolicyError(policy) {
 
 /**
  * Checks if we have any errors stored within the policy custom units.
+ *
  * @param {Object} policy
  * @returns {Boolean}
  */
