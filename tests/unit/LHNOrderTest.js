@@ -163,7 +163,7 @@ describe('Sidebar', () => {
             // WHEN Onyx is updated with some personal details and a report
             .then(() => Onyx.multiSet({
                 [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                [ONYX_KEYS.CURRENTLY_VIEWED_REPORTID]: 1,
+                [ONYX_KEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                 [`${ONYX_KEYS.COLLECTION.REPORT}1`]: fakeReport1,
                 [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
             }))
@@ -185,7 +185,7 @@ describe('Sidebar', () => {
             // WHEN Onyx is updated with some personal details and multiple reports
             .then(() => Onyx.multiSet({
                 [ONYX_KEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                [ONYX_KEYS.CURRENTLY_VIEWED_REPORTID]: 1,
+                [ONYX_KEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                 [`${ONYX_KEYS.COLLECTION.REPORT}1`]: fakeReport1,
                 [`${ONYX_KEYS.COLLECTION.REPORT}2`]: fakeReport2,
                 [`${ONYX_KEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
