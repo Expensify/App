@@ -264,6 +264,7 @@ export default {
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
         imageUploadFailed: 'Error al cargar la imagen',
+        deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
     },
@@ -485,6 +486,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
+        cannotGetAccountDetails: 'No pudimos cargar los detalles de tu cuenta, por favor intenta iniciar sesión de nuevo.',
     },
     personalDetails: {
         error: {
