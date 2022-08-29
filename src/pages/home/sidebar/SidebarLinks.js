@@ -25,8 +25,6 @@ import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -66,9 +64,6 @@ const propTypes = {
         /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
     }),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
@@ -298,7 +293,6 @@ class SidebarLinks extends React.Component {
                     >
                         <AvatarWithIndicator
                             source={this.props.currentUserPersonalDetails.avatar}
-                            isActive={this.props.network && !this.props.network.isOffline}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
@@ -333,7 +327,6 @@ SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
