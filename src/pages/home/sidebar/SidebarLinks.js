@@ -75,9 +75,6 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    // Whether we are syncing app data
-    isSyncingData: PropTypes.bool,
-
     /** Actions from the ChatReport */
     // It's used in a static method, but I guess ESLint can't find it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -121,8 +118,7 @@ function getUnreadReports(reportsObject) {
     if (reports.length === 0) {
         return [];
     }
-    const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
-    return unreadReports;
+    return _.filter(reports, report => report && report.unreadActionCount > 0);
 }
 const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
 
