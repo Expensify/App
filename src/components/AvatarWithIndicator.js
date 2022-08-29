@@ -32,6 +32,15 @@ const propTypes = {
         /** The ID of the policy */
         id: PropTypes.string,
     })),
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
+
+    /** The user's wallet (coming from Onyx) */
+    userWallet: userWalletPropTypes,
 };
 
 const defaultProps = {
