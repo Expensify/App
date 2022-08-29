@@ -71,7 +71,7 @@ class WorkspaceMembersPage extends React.Component {
 
     componentDidMount() {
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembers(this.props.policy.id, clientPolicyMembers);
+        Policy.openWorkspaceMembersPage(this.props.policy.id, clientPolicyMembers);
     }
 
     componentDidUpdate(prevProps) {
@@ -81,7 +81,7 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembers(this.props.policy.id, clientPolicyMembers);
+        Policy.openWorkspaceMembersPage(this.props.policy.id, clientPolicyMembers);
     }
 
     /**

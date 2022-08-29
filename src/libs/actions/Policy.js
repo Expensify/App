@@ -737,7 +737,7 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
-function openWorkspaceMembers(policyID, clientPolicyMembers) {
+function openWorkspaceMembersPage(policyID, clientPolicyMembers) {
     if (!policyID) {
         return;
     }
@@ -771,5 +771,5 @@ export {
     deleteWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
-    openWorkspaceMembers,
+    openWorkspaceMembersPage,
 };
