@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {createContext} from 'react';
 import Onyx from 'react-native-onyx';
 
 // Note: `react-test-renderer` renderer must be required after react-native.
 import {render} from '@testing-library/react-native';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+
+const LocaleContext = createContext();
 
 // This will swallow up all proptype warnings and keep them from being output to the console.
 // It is helpful when developing tests to have minimal output.
@@ -117,21 +119,37 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
+jest.disableAutomock();
+
+const AllProviders = ({children}) => {
+    return (
+        <LocaleContext
+            value={{
+                translate: thing => thing,
+                numberFormat: () => {},
+                timestampToRelative: () => {},
+                timestampToDateTime: () => {},
+                fromLocalPhone: () => {},
+                toLocalPhone: () => {},
+                fromLocaleDigit: () => {},
+                toLocaleDigit: () => {},
+                preferredLocale: () => {},
+            }}
+        >
+            {children}
+        </LocaleContext>
+    );
+};
+
 function getDefaultRenderedSidebarLinks() {
-    return render(<SidebarLinks
+    return render((<SidebarLinks
         onLinkClick={() => {}}
         insets={fakeInsets}
         onAvatarClick={() => {}}
         isSmallScreenWidth
-        toLocaleDigit={() => {}}
-        fromLocaleDigit={() => {}}
-        fromLocalPhone={() => {}}
-        toLocalPhone={() => {}}
-        timestampToDateTime={() => {}}
-        timestampToRelative={() => {}}
-        numberFormat={() => {}}
-        translate={thing => thing}
-    />);
+    />), {
+        // wrapper: AllProviders,
+    });
 }
 
 // Icons need to be explicitly mocked. The testing library throws an error when trying to render them
@@ -151,6 +169,7 @@ describe('Sidebar', () => {
         // GIVEN all the default props are passed to SidebarLinks
         // WHEN it is rendered
         const sidebarLinks = getDefaultRenderedSidebarLinks();
+        console.log(sidebarLinks.container);
 
         // THEN it should render nothing and be null
         // This is expected because there is an early return when there are no personal details
@@ -226,7 +245,7 @@ describe('Sidebar', () => {
                 expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
             })
 
-            // WHEN there exists a draft on report1 (the report at the bommom of the list)
+            // WHEN there exists a draft on report1 (the report at the bottomom of the list)
             .then(Onyx.multiSet({
                 [`${ONYX_KEYS.COLLECTION.REPORTS_WITH_DRAFT}1`]: true,
             }))
