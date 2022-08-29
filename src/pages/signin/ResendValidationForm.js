@@ -74,7 +74,7 @@ const ResendValidationForm = (props) => {
             {props.account.message && (
                 <DotIndicatorMessage style={[styles.mb5]} type="success" messages={[props.account.message]} />
             )}
-            {!props.account.message && error && (
+            {error && (
                 <DotIndicatorMessage style={[styles.mb5]} type="error" messages={[error]} />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
