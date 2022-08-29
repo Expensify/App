@@ -491,12 +491,16 @@ function setWorkspaceErrors(policyID, errors) {
  * @param {String} policyID
  * @param {Number} customUnitID
  */
-function removeUnitError(policyID, customUnitID) {
+function clearCustomUnitErrors(policyID, customUnitID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
+                rates: [{
+                    errors: null,
+                    pendingAction: null,
+                }],
             },
         },
     });
@@ -587,17 +591,21 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
  * @param {Object} values
  */
 function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
+    console.log(">>>>", policyID, customUnitID, values.customUnitRateID);
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    rates: {
-                        [values.customUnitRateID]: {
-                            ...values,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
+                    [customUnitID]: {
+                        rates: [
+                            {
+                                ...values,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        ],
                     },
                 },
             },
@@ -610,10 +618,12 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    rates: {
-                        [values.customUnitRateID]: {
+                    [customUnitID]: {
+                        rates: [{
+                            ...values,
                             pendingAction: null,
-                        },
+                            errors: null,
+                        }],
                     },
                 },
             },
@@ -626,13 +636,13 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    rates: {
-                        [currentCustomUnitRate.customUnitRateID]: {
+                    [customUnitID]: {
+                        rates: [{
                             ...currentCustomUnitRate,
-                            error: {
+                            errors: {
                                 [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
                             },
-                        },
+                        }],
                     },
                 },
             },
@@ -734,7 +744,7 @@ export {
     uploadAvatar,
     update,
     setWorkspaceErrors,
-    removeUnitError,
+    clearCustomUnitErrors,
     hasCustomUnitsError,
     hideWorkspaceAlertMessage,
     deletePolicy,

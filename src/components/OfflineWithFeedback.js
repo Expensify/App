@@ -86,6 +86,7 @@ const OfflineWithFeedback = (props) => {
         .keys()
         .sortBy()
         .map(key => props.errors[key])
+        .uniq()
         .value();
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
