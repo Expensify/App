@@ -84,6 +84,9 @@ class WorkspaceInvitePage extends React.Component {
 
     componentDidMount() {
         this.clearErrors();
+
+        const clientPolicyMembers = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceInvitePage(this.props.policy.id, clientPolicyMembers);
     }
 
     getExcludedUsers() {

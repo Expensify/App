@@ -745,6 +745,14 @@ function openWorkspaceMembersPage(policyID, clientPolicyMembers) {
     API.read('OpenWorkspaceMembersPage', {policyID, clientPolicyMembers});
 }
 
+function openWorkspaceInvitePage(policyID, clientPolicyMembers) {
+    if (!policyID) {
+        return;
+    }
+
+    API.read('OpenWorkspaceInvitePage', {policyID, clientPolicyMembers});
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -772,4 +780,5 @@ export {
     clearAvatarErrors,
     generatePolicyID,
     openWorkspaceMembersPage,
+    openWorkspaceInvitePage,
 };
