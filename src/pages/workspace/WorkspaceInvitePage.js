@@ -22,6 +22,7 @@ import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -244,22 +245,23 @@ class WorkspaceInvitePage extends React.Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('workspace.invite.invitePeople')}
-                            subtitle={policyName}
-                            onCloseButtonPress={() => {
-                                this.clearErrors();
-                                Navigation.dismissModal();
-                            }}
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.goBack()}
-                        />
-                        <View style={[styles.flex1]}>
-                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                            {didScreenTransitionEnd && (
+                    <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                        <>
+                            <HeaderWithCloseButton
+                                title={this.props.translate('workspace.invite.invitePeople')}
+                                subtitle={policyName}
+                                onCloseButtonPress={() => {
+                                    this.clearErrors();
+                                    Navigation.dismissModal();
+                                }}
+                                shouldShowGetAssistanceButton
+                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                                shouldShowBackButton
+                                onBackButtonPress={() => Navigation.goBack()}
+                            />
+                            <View style={[styles.flex1]}>
+                                {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
+                                {didScreenTransitionEnd && (
                                 <OptionsSelector
                                     autoFocus={false}
                                     canSelectMultipleOptions
@@ -290,52 +292,53 @@ class WorkspaceInvitePage extends React.Component {
                                     forceTextUnreadStyle
                                     shouldFocusOnSelectRow
                                 />
-                            )}
-                        </View>
-                        <View style={[styles.flexShrink0]}>
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <TextInput
-                                    label={this.props.translate('workspace.invite.personalMessagePrompt')}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    numberOfLines={4}
-                                    textAlignVertical="top"
-                                    multiline
-                                    containerStyles={[styles.workspaceInviteWelcome]}
-                                    value={this.state.welcomeNote}
-                                    onChangeText={text => this.setState({welcomeNote: text})}
-                                />
-                            </View>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!this.state.selectedOptions.length}
-                                isAlertVisible={this.getShouldShowAlertPrompt()}
-                                buttonText={this.props.translate('common.invite')}
-                                onSubmit={this.inviteUser}
-                                onFixTheErrorsLinkPressed={() => {}}
-                                message={this.props.policy.alertMessage}
-                                containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                            />
-                            <Pressable
-                                onPress={(e) => {
-                                    e.preventDefault();
-                                    Link.openExternalLink(CONST.PRIVACY_URL);
-                                }}
-                                accessibilityRole="link"
-                                href={CONST.PRIVACY_URL}
-                                style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
-                            >
-                                {({hovered, pressed}) => (
-                                    <View style={[styles.flexRow]}>
-                                        <Text
-                                            style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
-                                        >
-                                            {this.props.translate('common.privacyPolicy')}
-                                        </Text>
-                                    </View>
                                 )}
-                            </Pressable>
-                        </View>
-                    </>
+                            </View>
+                            <View style={[styles.flexShrink0]}>
+                                <View style={[styles.ph5, styles.pv3]}>
+                                    <TextInput
+                                        label={this.props.translate('workspace.invite.personalMessagePrompt')}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        numberOfLines={4}
+                                        textAlignVertical="top"
+                                        multiline
+                                        containerStyles={[styles.workspaceInviteWelcome]}
+                                        value={this.state.welcomeNote}
+                                        onChangeText={text => this.setState({welcomeNote: text})}
+                                    />
+                                </View>
+                                <FormAlertWithSubmitButton
+                                    isDisabled={!this.state.selectedOptions.length}
+                                    isAlertVisible={this.getShouldShowAlertPrompt()}
+                                    buttonText={this.props.translate('common.invite')}
+                                    onSubmit={this.inviteUser}
+                                    onFixTheErrorsLinkPressed={() => {}}
+                                    message={this.props.policy.alertMessage}
+                                    containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                />
+                                <Pressable
+                                    onPress={(e) => {
+                                        e.preventDefault();
+                                        Link.openExternalLink(CONST.PRIVACY_URL);
+                                    }}
+                                    accessibilityRole="link"
+                                    href={CONST.PRIVACY_URL}
+                                    style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <View style={[styles.flexRow]}>
+                                            <Text
+                                                style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
+                                            >
+                                                {this.props.translate('common.privacyPolicy')}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </Pressable>
+                            </View>
+                        </>
+                    </FullPageNotFoundView>
                 )}
             </ScreenWrapper>
         );
