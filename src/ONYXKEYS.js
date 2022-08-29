@@ -175,5 +175,6 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
+        COMPANY_STEP_FORM: 'companyStepForm',
     },
 };
