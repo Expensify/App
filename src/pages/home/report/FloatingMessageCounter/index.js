@@ -11,7 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
-    /** Whether the marker is active */
+    /** Whether the New Messages indicator is active */
     isActive: PropTypes.bool,
 
     /** Callback to be called when user clicks the New Messages indicator */
