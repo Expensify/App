@@ -25,8 +25,6 @@ import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 
@@ -68,9 +66,6 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** Information about the network */
-    network: networkPropTypes,
-
     /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
 
@@ -79,7 +74,6 @@ const propTypes = {
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
-
     // Whether we are syncing app data
     isSyncingData: PropTypes.bool,
 
@@ -101,8 +95,6 @@ const defaultProps = {
     },
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    isSyncingData: false,
-    network: {},
 };
 
 /**
@@ -310,8 +302,6 @@ class SidebarLinks extends React.Component {
                     >
                         <AvatarWithIndicator
                             source={this.props.currentUserPersonalDetails.avatar}
-                            isActive={this.props.network && !this.props.network.isOffline}
-                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
@@ -346,7 +336,6 @@ SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
@@ -360,10 +349,6 @@ export default compose(
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        isSyncingData: {
-            key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
-            initWithStoredValues: false,
         },
         betas: {
             key: ONYXKEYS.BETAS,
