@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
@@ -8,6 +9,8 @@ class PreRenderer extends React.Component {
         super(props);
 
         this.scrollNode = this.scrollNode.bind(this);
+        this.isVerticalScrolling = false;
+        this.debouncedGetScrollDirection = _.debounce(this.getScrollDirection.bind(this), 100, true);
     }
 
     componentDidMount() {
@@ -24,16 +27,25 @@ class PreRenderer extends React.Component {
     }
 
     /**
+     * Get scroll direction based on deltaX and deltaY. We debounce this
+     * method in the constructor to make sure it's called only for the first event.
+     * @param {WheelEvent} event Wheel event
+     */
+    getScrollDirection(event) {
+        // Mark as vertical scrolling only when absolute value of deltaY is more than the double of absolute
+        // value of deltaX, so user can use trackpad scroll on the code block horizontally at a wide angle.
+        this.isVerticalScrolling = Math.abs(event.deltaY) > (Math.abs(event.deltaX) * 2);
+    }
+
+    /**
      * Manually scrolls the code block if code block horizontal scrollable, then prevents the event from being passed up to the parent.
      * @param {Object} event native event
      */
     scrollNode(event) {
         const node = this.ref.getScrollableNode();
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;
-
-        // Account for vertical scrolling variation when horizontally scrolling via touchpad by checking a large delta.
-        const isVerticalScrolling = Math.abs(event.deltaY) > 3; // This is for touchpads sensitive
-        if ((event.currentTarget === node) && horizontalOverflow && !isVerticalScrolling) {
+        this.debouncedGetScrollDirection(event);
+        if ((event.currentTarget === node) && horizontalOverflow && !this.isVerticalScrolling) {
             node.scrollLeft += event.deltaX;
             event.preventDefault();
             event.stopPropagation();
