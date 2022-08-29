@@ -79,9 +79,6 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    // Whether we are syncing app data
-    isSyncingData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -94,7 +91,6 @@ const defaultProps = {
     },
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    isSyncingData: false,
 };
 
 /**
@@ -303,7 +299,6 @@ class SidebarLinks extends React.Component {
                         <AvatarWithIndicator
                             source={this.props.currentUserPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
-                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
@@ -352,10 +347,6 @@ export default compose(
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        isSyncingData: {
-            key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
-            initWithStoredValues: false,
         },
         betas: {
             key: ONYXKEYS.BETAS,
