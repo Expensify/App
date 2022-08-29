@@ -24,8 +24,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
 import AddressForm from './AddressForm';
+import FormScrollView from '../../components/FormScrollView';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -94,6 +95,10 @@ class CompanyStep extends React.Component {
         this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearDateErrorsAndSetValue = this.clearDateErrorsAndSetValue.bind(this);
+    }
+
+    componentWillUnmount() {
+        BankAccounts.resetReimbursementAccount();
     }
 
     /**
@@ -189,6 +194,9 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
 
+        const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
+        || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -200,128 +208,140 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ReimbursementAccountForm
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    onSubmit={this.submit}
+                <FormScrollView
+                    ref={el => this.form = el}
                 >
-                    <Text>{this.props.translate('companyStep.subtitle')}</Text>
-                    <TextInput
-                        label={this.props.translate('companyStep.legalBusinessName')}
-                        containerStyles={[styles.mt4]}
-                        onChangeText={value => this.clearErrorAndSetValue('companyName', value)}
-                        value={this.state.companyName}
-                        disabled={shouldDisableCompanyName}
-                        errorText={this.getErrorText('companyName')}
-                    />
-                    <AddressForm
-                        streetTranslationKey="common.companyAddress"
-                        values={{
-                            street: this.state.addressStreet,
-                            city: this.state.addressCity,
-                            zipCode: this.state.addressZipCode,
-                            state: this.state.addressState,
-                        }}
-                        errors={{
-                            street: this.getErrors().addressStreet,
-                            city: this.getErrors().addressCity,
-                            zipCode: this.getErrors().addressZipCode,
-                            state: this.getErrors().addressState,
-                        }}
-                        onFieldChange={(values) => {
-                            const renamedFields = {
-                                street: 'addressStreet',
-                                state: 'addressState',
-                                city: 'addressCity',
-                                zipCode: 'addressZipCode',
-                            };
-                            const renamedValues = {};
-                            _.each(values, (value, inputKey) => {
-                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                renamedValues[renamedInputKey] = value;
-                            });
-                            this.setValue(renamedValues);
-                            this.clearErrors(_.keys(renamedValues));
-                        }}
-                    />
-                    <TextInput
-                        label={this.props.translate('common.phoneNumber')}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                        onChangeText={value => this.clearErrorAndSetValue('companyPhone', value)}
-                        value={this.state.companyPhone}
-                        placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                        errorText={this.getErrorText('companyPhone')}
-                    />
-                    <TextInput
-                        label={this.props.translate('companyStep.companyWebsite')}
-                        containerStyles={[styles.mt4]}
-                        onChangeText={value => this.clearErrorAndSetValue('website', value)}
-                        value={this.state.website}
-                        errorText={this.getErrorText('website')}
-                    />
-                    <TextInput
-                        label={this.props.translate('companyStep.taxIDNumber')}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
-                        value={this.state.companyTaxID}
-                        disabled={shouldDisableCompanyTaxID}
-                        placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
-                        errorText={this.getErrorText('companyTaxID')}
-                    />
-                    <View style={styles.mt4}>
-                        <Picker
-                            label={this.props.translate('companyStep.companyType')}
-                            items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
-                            onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
-                            value={this.state.incorporationType}
-                            placeholder={{value: '', label: '-'}}
-                            errorText={this.getErrorText('incorporationType')}
+                    <View style={[styles.mh5, styles.mb5]}>
+                        <Text>{this.props.translate('companyStep.subtitle')}</Text>
+                        <TextInput
+                            label={this.props.translate('companyStep.legalBusinessName')}
+                            containerStyles={[styles.mt4]}
+                            onChangeText={value => this.clearErrorAndSetValue('companyName', value)}
+                            value={this.state.companyName}
+                            disabled={shouldDisableCompanyName}
+                            errorText={this.getErrorText('companyName')}
                         />
-                    </View>
-                    <View style={styles.mt4}>
-                        <DatePicker
-                            label={this.props.translate('companyStep.incorporationDate')}
-                            onInputChange={this.clearDateErrorsAndSetValue}
-                            defaultValue={this.state.incorporationDate}
-                            placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
-                            maximumDate={new Date()}
+                        <AddressForm
+                            streetTranslationKey="common.companyAddress"
+                            values={{
+                                street: this.state.addressStreet,
+                                city: this.state.addressCity,
+                                zipCode: this.state.addressZipCode,
+                                state: this.state.addressState,
+                            }}
+                            errors={{
+                                street: this.getErrors().addressStreet,
+                                city: this.getErrors().addressCity,
+                                zipCode: this.getErrors().addressZipCode,
+                                state: this.getErrors().addressState,
+                            }}
+                            onFieldChange={(values) => {
+                                const renamedFields = {
+                                    street: 'addressStreet',
+                                    state: 'addressState',
+                                    city: 'addressCity',
+                                    zipCode: 'addressZipCode',
+                                };
+                                const renamedValues = {};
+                                _.each(values, (value, inputKey) => {
+                                    const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                    renamedValues[renamedInputKey] = value;
+                                });
+                                this.setValue(renamedValues);
+                                this.clearErrors(_.keys(renamedValues));
+                            }}
                         />
-                    </View>
-                    <View style={styles.mt4}>
-                        <StatePicker
-                            label={this.props.translate('companyStep.incorporationState')}
-                            onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
-                            value={this.state.incorporationState}
-                            errorText={this.getErrorText('incorporationState')}
+                        <TextInput
+                            label={this.props.translate('common.phoneNumber')}
+                            containerStyles={[styles.mt4]}
+                            keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                            onChangeText={value => this.clearErrorAndSetValue('companyPhone', value)}
+                            value={this.state.companyPhone}
+                            placeholder={this.props.translate('common.phoneNumberPlaceholder')}
+                            errorText={this.getErrorText('companyPhone')}
                         />
-                    </View>
-                    <CheckboxWithLabel
-                        isChecked={this.state.hasNoConnectionToCannabis}
-                        onInputChange={() => {
-                            this.setState((prevState) => {
-                                const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
-                                BankAccounts.updateReimbursementAccountDraft(newState);
-                                return newState;
-                            });
-                            this.clearError('hasNoConnectionToCannabis');
-                        }}
-                        LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
-                                <TextLink
+                        <TextInput
+                            label={this.props.translate('companyStep.companyWebsite')}
+                            containerStyles={[styles.mt4]}
+                            onChangeText={value => this.clearErrorAndSetValue('website', value)}
+                            value={this.state.website}
+                            errorText={this.getErrorText('website')}
+                        />
+                        <TextInput
+                            label={this.props.translate('companyStep.taxIDNumber')}
+                            containerStyles={[styles.mt4]}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
+                            value={this.state.companyTaxID}
+                            disabled={shouldDisableCompanyTaxID}
+                            placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
+                            errorText={this.getErrorText('companyTaxID')}
+                        />
+                        <View style={styles.mt4}>
+                            <Picker
+                                label={this.props.translate('companyStep.companyType')}
+                                items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
+                                onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
+                                value={this.state.incorporationType}
+                                placeholder={{value: '', label: '-'}}
+                                errorText={this.getErrorText('incorporationType')}
+                            />
+                        </View>
+                        <View style={styles.mt4}>
+                            <DatePicker
+                                label={this.props.translate('companyStep.incorporationDate')}
+                                onInputChange={this.clearDateErrorsAndSetValue}
+                                defaultValue={this.state.incorporationDate}
+                                placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
+                                errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
+                                maximumDate={new Date()}
+                            />
+                        </View>
+                        <View style={styles.mt4}>
+                            <StatePicker
+                                label={this.props.translate('companyStep.incorporationState')}
+                                onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
+                                value={this.state.incorporationState}
+                                errorText={this.getErrorText('incorporationState')}
+                            />
+                        </View>
+                        <CheckboxWithLabel
+                            isChecked={this.state.hasNoConnectionToCannabis}
+                            onInputChange={() => {
+                                this.setState((prevState) => {
+                                    const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
+                                    BankAccounts.updateReimbursementAccountDraft(newState);
+                                    return newState;
+                                });
+                                this.clearError('hasNoConnectionToCannabis');
+                            }}
+                            LabelComponent={() => (
+                                <>
+                                    <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
+                                    <TextLink
                                     // eslint-disable-next-line max-len
-                                    href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
-                                >
-                                    {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
-                                </TextLink>
-                            </>
-                        )}
-                        style={[styles.mt4]}
-                        errorText={this.getErrorText('hasNoConnectionToCannabis')}
+                                        href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
+                                    >
+                                        {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
+                                    </TextLink>
+                                </>
+                            )}
+                            style={[styles.mt4]}
+                            errorText={this.getErrorText('hasNoConnectionToCannabis')}
+                        />
+                    </View>
+                    <FormAlertWithSubmitButton
+                        isAlertVisible={isErrorVisible}
+                        buttonText={this.props.translate('common.saveAndContinue')}
+                        onSubmit={this.submit}
+                        onFixTheErrorsLinkPressed={() => {
+                            this.form.scrollTo({y: 0, animated: true});
+                        }}
+                        message={this.props.reimbursementAccount.error}
+                        isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
+                        isLoading={this.props.reimbursementAccount.loading}
                     />
-                </ReimbursementAccountForm>
+                </FormScrollView>
             </>
         );
     }
