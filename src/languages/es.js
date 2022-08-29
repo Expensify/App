@@ -475,7 +475,7 @@ export default {
             incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
-            unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
+            unableToResetPassword: 'No se pudo cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
             noAccess: 'No tienes acceso a esta aplicación. Por favor agrega tu usuario de GitHub para acceder',
             accountLocked: 'Tu cuenta ha sido bloqueada tras varios intentos fallidos. Por favor inténtalo otra vez dentro de 1 hora',
             fallback: 'Ha ocurrido un error. Por favor inténtalo mas tarde',
@@ -486,7 +486,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
-        cannotGetAccountDetails: 'No pudimos cargar los detalles de tu cuenta, por favor intenta iniciar sesión de nuevo.',
+        cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta, por favor intenta iniciar sesión de nuevo.',
     },
     personalDetails: {
         error: {
@@ -519,7 +519,7 @@ export default {
         setPassword: 'Configura tu contraseña',
         newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
-        passwordNotSet: 'No pudimos cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
+        passwordNotSet: 'No se pudo cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validatingAccount: 'Verificando cuenta',
     },
@@ -617,9 +617,9 @@ export default {
         selectAnswer: 'Selecciona una respuesta.',
         ssnFull9Error: 'Por favor escribe los 9 dígitos de un SSN válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
-        weCouldNotVerify: 'No pudimos verificar',
+        weCouldNotVerify: 'No se pudo verificar',
         pleaseFixIt: 'Corrije esta información antes de continuar.',
-        failedKYCTextBefore: 'No pudimos verificar correctamente su identidad. Vuelva a intentarlo más tarde y comuníquese con ',
+        failedKYCTextBefore: 'No se pudo verificar correctamente su identidad. Vuelva a intentarlo más tarde y comuníquese con ',
         failedKYCTextAfter: ' si tiene alguna pregunta.',
     },
     termsStep: {
