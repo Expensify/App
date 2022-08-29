@@ -15,7 +15,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
-import * as API from '../API';
+import DateUtils from '../DateUtils';
 
 const allPolicies = {};
 Onyx.connect({
