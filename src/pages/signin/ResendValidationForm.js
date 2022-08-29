@@ -52,7 +52,6 @@ const ResendValidationForm = (props) => {
     const login = isSMSLogin ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login)) : props.credentials.login;
     const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
     const error = ErrorUtils.getLatestErrorMessage(props.account);
-    const successMessage = props.account.message;
 
     return (
         <>
@@ -72,10 +71,10 @@ const ResendValidationForm = (props) => {
                     {props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                 </Text>
             </View>
-            {successMessage && (
-                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={[successMessage]} />
+            {props.account.message && (
+                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={[props.account.message]} />
             )}
-            {!successMessage && error && (
+            {!props.account.message && error && (
                 <DotIndicatorMessage style={[styles.mb5]} type="error" messages={[error]} />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
