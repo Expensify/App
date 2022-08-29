@@ -970,8 +970,8 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
-        growlMessageOnError: 'No ha sido posible crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
-        growlMessageOnRenameError: 'No ha sido posible cambiar el nomdre del espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
+        growlMessageOnError: 'No se pudo crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
+        growlMessageOnRenameError: 'No se pudo cambiar el nomdre del espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
             restricted: 'Restringida',
             private: 'Privada',
