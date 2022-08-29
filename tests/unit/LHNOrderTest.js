@@ -180,7 +180,8 @@ describe('Sidebar', () => {
     });
 
     test('contains one report when a report is in Onyx', () => {
-        // GIVEN the sidebar is rendered while currently viewing report 1
+        // GIVEN the sidebar is rendered in default mode (most recent first)
+        // while currently viewing report 1
         const sidebarLinks = getDefaultRenderedSidebarLinks();
 
         return waitForPromisesToResolve()
@@ -203,7 +204,8 @@ describe('Sidebar', () => {
     });
 
     test('orders items with most recently updated on top', () => {
-        // GIVEN the sidebar is rendered while currently viewing report 1
+        // GIVEN the sidebar is rendered in default mode (most recent first)
+        // while currently viewing report 1
         const sidebarLinks = getDefaultRenderedSidebarLinks();
 
         return waitForPromisesToResolve()
@@ -231,21 +233,39 @@ describe('Sidebar', () => {
                 expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
                 expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
                 expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-            })
+            });
+    });
 
-            // WHEN there exists a draft on report1 (the report at the bottom of the list)
-            .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}1`, true))
+    test('doesn\'t change the order when adding a draft to the active report', () => {
+        // GIVEN the sidebar is rendered in default mode (most recent first)
+        // while currently viewing report 1
+        const sidebarLinks = getDefaultRenderedSidebarLinks();
 
-            // THEN there should be a pencil icon and the order of the reports should not change
+        return waitForPromisesToResolve()
+
+            // WHEN Onyx is updated with some personal details and multiple reports
+            // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
+            .then(() => Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}1`]: true,
+            }))
+
+            // THEN there should be a pencil icon and report one should still be the last one
             .then(() => {
-                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-                expect(reportOptions).toHaveLength(3);
                 const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
                 expect(pencilIcon).toHaveLength(1);
 
                 // The reports should be in the order 3 > 2 > 1
-                expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
-                expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
+                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                expect(reportOptions).toHaveLength(3);
                 expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
             });
     });
