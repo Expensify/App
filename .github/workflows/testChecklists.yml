@@ -2,7 +2,6 @@ name: "Contributor Checklist"
 
 on:
   issue_comment:
-    types: [created, edited]
   pull_request:
     types: [opened, edited, synchronize]
 
