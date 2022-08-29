@@ -21,6 +21,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -84,6 +85,16 @@ class WorkspaceInvitePage extends React.Component {
 
     componentDidMount() {
         this.clearErrors();
+
+        const clientPolicyMembers = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceInvitePage(this.props.policy.id, clientPolicyMembers);
+    }
+
+    componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!isReconnecting) {
+            return;
+        }
 
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
         Policy.openWorkspaceInvitePage(this.props.policy.id, clientPolicyMembers);
@@ -337,6 +348,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withFullPolicy,
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
