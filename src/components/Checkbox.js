@@ -5,7 +5,6 @@ import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -63,7 +62,7 @@ class Checkbox extends React.Component {
     }
 
     handleSpaceKey(event) {
-        if (event.keyCode !== CONST.KEYCODE.SPACE) {
+        if (event.code !== 'Space') {
             return;
         }
 
