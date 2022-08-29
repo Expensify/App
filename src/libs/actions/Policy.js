@@ -816,6 +816,10 @@ function openWorkspaceReimburseView(policyID) {
 }
 
 function openWorkspaceMembers(policyID, clientPolicyMembers) {
+    if (!policyID) {
+        return;
+    }
+
     API.read('OpenWorkspaceMembersPage', {policyID, clientPolicyMembers});
 }
 
