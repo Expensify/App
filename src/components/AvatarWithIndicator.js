@@ -11,7 +11,8 @@ import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
-import * as Policy from '../libs/actions/Policy';
+import {fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
@@ -27,11 +28,8 @@ const propTypes = {
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
-    /** The list of this user's policies (coming from Onyx) */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The ID of the policy */
-        id: PropTypes.string,
-    })),
+    /** All the user's policies (from Onyx via withFullPolicy) */
+    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -61,11 +59,17 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
-    const hasCustomUnitsError = _.some(props.policies, policy => Policy.hasCustomUnitsError(policy));
-    const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
-    const hasWalletError = !_.isEmpty(props.userWallet.errors);
-    const shouldShowIndicator = hasPolicyMemberError || hasPaymentMethodError || hasWalletError || hasCustomUnitsError;
+    // All of the error-checking methods are put into an array. This is so that using _.some() will return
+    // early as soon as the first error is returned. This makes the error checking very efficient since
+    // we only care if a single error exists anywhere.
+    const errorCheckingMethods = [
+        () => !_.isEmpty(props.userWallet.errors),
+        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
+        () => _.some(props.policies, PolicyUtils.hasPolicyError),
+        () => _.some(props.policies, PolicyUtils.hasCustomUnitsError),
+        () => _.some(props.policiesMemberList, PolicyUtils.hasPolicyMemberError),
+    ];
+    const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
 
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
