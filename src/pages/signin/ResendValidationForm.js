@@ -88,7 +88,7 @@ const ResendValidationForm = (props) => {
                     medium
                     success
                     text={props.translate('resendValidationForm.resendLink')}
-                    isLoading={props.account.loading}
+                    isLoading={props.account.isLoading}
                     onPress={() => (props.account.validated ? Session.resetPassword() : Session.resendValidationLink())}
                     isDisabled={props.network.isOffline}
                 />
