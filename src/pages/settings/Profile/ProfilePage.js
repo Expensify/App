@@ -207,7 +207,7 @@ class ProfilePage extends Component {
                         onClose={PersonalDetails.clearAvatarErrors}
                     >
                         <AvatarWithImagePicker
-                            isUsingDefaultAvatar={currentUserDetails.avatar.includes('/images/avatars/avatar')}
+                            isUsingDefaultAvatar={lodashGet(currentUserDetails, 'avatar', '').includes('/images/avatars/avatar')}
                             avatarURL={currentUserDetails.avatar}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
