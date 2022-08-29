@@ -116,12 +116,20 @@ GitHubUtils.octokit.issues.listComments({
     per_page: 100,
 }).then(({data}) => {
     const comments = _.map(data, comment => comment.body).toString();
+
+    for (const [index, comment] of comments) {
+        console.log(`Index: ${index} ${JSON.stringify(comment)}`);
+    }
+
     const trimmedComment = comments.replace(/(\s|\r\n|\n|\r)/gm, '');
     const trimmedContributorChecklist = contributorChecklist.replace(/(\s|\r\n|\n|\r)/gm, '');
     const contributorChecklistComplete = trimmedComment.includes(trimmedContributorChecklist);
 
+    const diff = (diffMe, diffBy) => diffMe.split(diffBy).join('');
+
     if (!contributorChecklistComplete) {
         console.error('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        console.error(diff(trimmedComment, trimmedContributorChecklist));
         core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
         return;
     }
@@ -131,6 +139,7 @@ GitHubUtils.octokit.issues.listComments({
 
     if (!contributorPlusChecklistComplete) {
         console.error('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        console.error(diff(trimmedComment, trimmedContributorPlusChecklist));
         core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
         return;
     }
