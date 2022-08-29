@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -20,6 +21,7 @@ import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
@@ -61,7 +63,7 @@ class WorkspaceSettingsPage extends React.Component {
 
     removeAvatar() {
         this.setState({previewAvatarURL: ''});
-        Policy.update(this.props.policy.id, {avatarURL: ''}, true);
+        Policy.deleteWorkspaceAvatar(this.props.policy.id);
     }
 
     /**
@@ -82,9 +84,7 @@ class WorkspaceSettingsPage extends React.Component {
         }
         const name = this.state.name.trim();
         const outputCurrency = this.state.currency;
-
-        // Send the API call with new settings values, the avatar has been updated when uploaded
-        Policy.update(this.props.policy.id, {name, outputCurrency}, true);
+        Policy.updateGeneralSettings(this.props.policy.id, name, outputCurrency);
     }
 
     validate() {
@@ -104,59 +104,72 @@ class WorkspaceSettingsPage extends React.Component {
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
                     footer={(
                         <FixedFooter style={[styles.w100]}>
-                            <Button
-                                success
-                                isLoading={this.props.policy.isPolicyUpdating}
-                                text={this.props.translate('workspace.editor.save')}
-                                onPress={this.submit}
-                                pressOnEnter
-                            />
+                            <OfflineWithFeedback
+                                errors={lodashGet(this.props.policy, 'errorFields.generalSettings')}
+                                onClose={() => Policy.clearWorkspaceGeneralSettingsErrors(this.props.policy.id)}
+                            >
+                                <Button
+                                    success
+                                    isLoading={this.props.policy.isPolicyUpdating}
+                                    text={this.props.translate('workspace.editor.save')}
+                                    onPress={this.submit}
+                                    pressOnEnter
+                                />
+                            </OfflineWithFeedback>
                         </FixedFooter>
                     )}
                 >
                     {hasVBA => (
                         <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
-                            <AvatarWithImagePicker
-                                isUploading={this.props.policy.isAvatarUploading}
-                                avatarURL={this.state.previewAvatarURL}
-                                size={CONST.AVATAR_SIZE.LARGE}
-                                DefaultAvatar={() => (
-                                    <Icon
-                                        src={Expensicons.Workspace}
-                                        height={80}
-                                        width={80}
-                                        fill={defaultTheme.iconSuccessFill}
-                                    />
-                                )}
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                style={[styles.mb3]}
-                                anchorPosition={{top: 172, right: 18}}
-                                isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                                onImageSelected={this.uploadAvatar}
-                                onImageRemoved={this.removeAvatar}
-                            />
-
-                            <TextInput
-                                label={this.props.translate('workspace.editor.nameInputLabel')}
-                                containerStyles={[styles.mt4]}
-                                onChangeText={name => this.setState({name})}
-                                value={this.state.name}
-                                hasError={!this.state.name.trim().length}
-                                errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
-                            />
-
-                            <View style={[styles.mt4]}>
-                                <Picker
-                                    label={this.props.translate('workspace.editor.currencyInputLabel')}
-                                    onInputChange={currency => this.setState({currency})}
-                                    items={this.getCurrencyItems()}
-                                    value={this.state.currency}
-                                    isDisabled={hasVBA}
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.policy, 'pendingFields.avatarURL', null)}
+                                errors={lodashGet(this.props.policy, 'errorFields.avatarURL', null)}
+                                onClose={() => Policy.clearAvatarErrors(this.props.policy.id)}
+                            >
+                                <AvatarWithImagePicker
+                                    isUploading={this.props.policy.isAvatarUploading}
+                                    avatarURL={this.state.previewAvatarURL}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    DefaultAvatar={() => (
+                                        <Icon
+                                            src={Expensicons.Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={defaultTheme.iconSuccessFill}
+                                        />
+                                    )}
+                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                    style={[styles.mb3]}
+                                    anchorPosition={{top: 172, right: 18}}
+                                    isUsingDefaultAvatar={!this.state.previewAvatarURL}
+                                    onImageSelected={this.uploadAvatar}
+                                    onImageRemoved={this.removeAvatar}
                                 />
-                            </View>
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
-                                {this.props.translate('workspace.editor.currencyInputHelpText')}
-                            </Text>
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}
+                            >
+                                <TextInput
+                                    label={this.props.translate('workspace.editor.nameInputLabel')}
+                                    containerStyles={[styles.mt4]}
+                                    onChangeText={name => this.setState({name})}
+                                    value={this.state.name}
+                                    hasError={!this.state.name.trim().length}
+                                    errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
+                                />
+                                <View style={[styles.mt4]}>
+                                    <Picker
+                                        label={this.props.translate('workspace.editor.currencyInputLabel')}
+                                        onInputChange={currency => this.setState({currency})}
+                                        items={this.getCurrencyItems()}
+                                        value={this.state.currency}
+                                        isDisabled={hasVBA}
+                                    />
+                                </View>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                                    {this.props.translate('workspace.editor.currencyInputHelpText')}
+                                </Text>
+                            </OfflineWithFeedback>
                         </View>
                     )}
                 </WorkspacePageWithSections>

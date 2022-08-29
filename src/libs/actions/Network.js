@@ -2,13 +2,6 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
- * @param {Boolean} isLoadingAfterReconnect
- */
-function setIsLoadingAfterReconnect(isLoadingAfterReconnect) {
-    Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, isLoadingAfterReconnect);
-}
-
-/**
  * @param {Boolean} isOffline
  */
 function setIsOffline(isOffline) {
@@ -24,7 +17,6 @@ function setShouldFailAllRequests(shouldFailAllRequests) {
 }
 
 export {
-    setIsLoadingAfterReconnect,
     setIsOffline,
     setShouldFailAllRequests,
 };
