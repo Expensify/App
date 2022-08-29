@@ -209,10 +209,12 @@ describe('Sidebar', () => {
                 [`${ONYX_KEYS.COLLECTION.REPORTS_WITH_DRAFT}1`]: true,
             }))
 
-            // THEN the order of the reports should not change and
+            // THEN there should be a pencil icon and the order of the reports should not change
             .then(() => {
                 const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two)/);
                 expect(reportOptions).toHaveLength(2);
+                const pencilIcon = sidebarLinks.getAllByText('Pencil');
+                expect(pencilIcon).toHaveLength(1);
 
                 // reportID=2 should be first (on the top) since it has the most recent lastMessageTimestamp
                 expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
