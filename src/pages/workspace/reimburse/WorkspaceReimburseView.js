@@ -40,11 +40,13 @@ const propTypes = {
                 attributes: PropTypes.shape({
                     unit: PropTypes.string,
                 }),
-                rates: PropTypes.shape({
-                    customUnitRateID: PropTypes.string,
-                    name: PropTypes.string,
-                    rate: PropTypes.number,
-                }),
+                rates: PropTypes.objectOf(
+                    PropTypes.shape({
+                        customUnitRateID: PropTypes.string,
+                        name: PropTypes.string,
+                        rate: PropTypes.number,
+                    }),
+                ),
             }),
         ),
         outputCurrency: PropTypes.string,
