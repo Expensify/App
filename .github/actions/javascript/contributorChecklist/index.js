@@ -157,12 +157,12 @@ GitHubUtils.octokit.pulls.get({
             const comment = combinedData[i].body.replace(whitespace, '');
             printDiff(comment, completedContributorChecklist);
 
-            if (comment === completedContributorChecklist.replace(whitespace, '')) {
+            if (comment.contains(completedContributorChecklist.replace(whitespace, ''))) {
                 contributorChecklistComplete = true;
             }
             printDiff(comment, completedContributorPlusChecklist);
 
-            if (comment === completedContributorPlusChecklist.replace(whitespace, '')) {
+            if (comment.contains(completedContributorPlusChecklist.replace(whitespace, ''))) {
                 contributorPlusChecklistComplete = true;
             }
         }
