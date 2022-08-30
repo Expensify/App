@@ -424,5 +424,19 @@ describe('Sidebar', () => {
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
                 });
         });
+
+        it('sorts chats by IOU > pinned > draft', () => {
+
+        });
+    });
+
+    describe('in #focus mode', () => {
+        it('hides unread chats', () => {
+
+        });
+
+        it('alphabetizes chats', () => {
+
+        });
     });
 });
