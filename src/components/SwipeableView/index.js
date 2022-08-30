@@ -7,7 +7,7 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** can be set to provide styles */
-    styles: PropTypes.arrayOf(PropTypes.object),
+    styles: PropTypes.arrayOf(PropTypes.shape({})),
 
     /** Children to render. */
     children: PropTypes.oneOfType([
