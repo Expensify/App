@@ -1604,8 +1604,8 @@ function createIOUReportAction(type, amount, comment, paymentType = '', IOUTrans
         type,
     };
 
+    // We store amount, comment, currency in IOUDetails when type = pay
     if (type === 'pay') {
-        // We store amount, comment, currency in IOUDetails when type = pay
         _.omit(originalMessage, ['amount', 'comment', 'currency']);
         originalMessage.IOUDetails = {amount, comment, currency};
         originalMessage.paymentType = paymentType;
