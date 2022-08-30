@@ -49,7 +49,11 @@ class Icon extends PureComponent {
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute]}>
-                        {icon}
+                        <this.props.src
+                            width={width}
+                            height={height}
+                            fill={this.props.fill}
+                        />
                     </View>
                 </View>
             );
