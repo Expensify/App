@@ -63,8 +63,8 @@ jobs:
 
       - name: Create new branch
         run: |
-          BRANCH_NAME="version-${{ inputs.SEMVER_LEVEL }}-$(uuidgen)"
           git pull
+          BRANCH_NAME="version-${{ inputs.SEMVER_LEVEL }}-$(uuidgen)"
           git checkout -b "$BRANCH_NAME"
           git push --set-upstream origin "$BRANCH_NAME"
           echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
