@@ -55,31 +55,32 @@ class Trie {
     */
     getAllMatchingWords(substr) {
         let node = this.root;
-        const words = [];
-        let firstChars = '';
+        let prefix = '';
         for (let i = 0; i < substr.length; i++) {
-            firstChars += substr[i];
+            prefix += substr[i];
             if (node.children[substr[i]]) {
                 node = node.children[substr[i]];
             } else {
-                return words;
+                return [];
             }
         }
-        this.getChildMatching(node, firstChars, words);
-        return words;
+        return this.getChildMatching(node, prefix);
     }
 
     /**
-    * Find all leaf nodes inside a child node.
+    * Find all leaf nodes that are descendants of a given child node.
     * @param {TrieNode} node
-    * @param {String} firstChars
-    * @param {Array} words
+    * @param {String} prefix
+    * @param {Array} [words]
+    * @returns {Array}
     */
-    getChildMatching = (node, firstChars, words) => {
+    getChildMatching = (node, prefix, words = []) => {
+        const matching = words;
         if (node.leaf) {
-            words.unshift(firstChars);
+            matching.unshift(prefix);
         }
-        _.keys(node.children).forEach(nodeChar => this.getChildMatching(node.children[nodeChar], firstChars + nodeChar, words));
+        _.keys(node.children).forEach(nodeChar => this.getChildMatching(node.children[nodeChar], prefix + nodeChar, matching));
+        return matching;
     }
 }
 
