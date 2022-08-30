@@ -384,6 +384,15 @@ function updateWorkspaceAvatar(policyID, file) {
             },
         },
     }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -395,7 +404,7 @@ function updateWorkspaceAvatar(policyID, file) {
         },
     }];
 
-    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, failureData});
+    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, successData, failureData});
 }
 
 /**
