@@ -738,10 +738,6 @@ function generatePolicyID() {
 }
 
 function openWorkspaceMembersPage(policyID, clientPolicyMembers) {
-    if (!policyID) {
-        return;
-    }
-
     API.read('OpenWorkspaceMembersPage', {policyID, clientPolicyMembers});
 }
 
