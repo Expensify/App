@@ -117,13 +117,16 @@ class SidebarLinks extends React.Component {
             hasDraftHistory = lodashGet(this.props.reports, `${ONYXKEYS.COLLECTION.REPORT}${this.props.currentlyViewedReportID}.hasDraft`, false);
         }
 
-        const shouldReorder = this.shouldReorderReports(hasDraftHistory);
         const switchingPriorityModes = this.props.priorityMode !== this.priorityMode;
 
         // Build the report options we want to show
         const recentReports = this.getRecentReportsOptionListItems();
 
-        const orderedReports = shouldReorder || switchingPriorityModes
+        // If the order of the reports is different from the last render (or if priority mode is changing)
+        // then orderedReports is the same as the freshly calculated recentReports.
+        // If the order of the reports is the same as the last render
+        // then the data for each report is updated from the data in the new props (not sure why this is necessary)
+        const orderedReports = this.isReportOrderDifferentThanLastRender(hasDraftHistory) || switchingPriorityModes
             ? recentReports
             : _.chain(this.orderedReports)
 
@@ -188,7 +191,7 @@ class SidebarLinks extends React.Component {
         return sidebarOptions.recentReports;
     }
 
-    shouldReorderReports(hasDraftHistory) {
+    isReportOrderDifferentThanLastRender(hasDraftHistory) {
         // Always update if LHN is empty.
         // Because: TBD
         // @TODO try and figure out why
