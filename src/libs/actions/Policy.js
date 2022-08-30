@@ -667,7 +667,6 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
  * @param {Object} values
  */
 function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
-    console.log(">>>>", policyID, customUnitID, values.customUnitRateID);
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -675,13 +674,11 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        rates: [
-                            {
-                                ...values,
-                                errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                        ],
+                        rates: {
+                            ...values,
+                            errors: null,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -695,11 +692,11 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        rates: [{
+                        rates: {
                             ...values,
                             pendingAction: null,
                             errors: null,
-                        }],
+                        },
                     },
                 },
             },
@@ -713,12 +710,12 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        rates: [{
+                        rates: {
                             ...currentCustomUnitRate,
                             errors: {
                                 [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
                             },
-                        }],
+                        },
                     },
                 },
             },
