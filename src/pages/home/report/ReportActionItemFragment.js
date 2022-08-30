@@ -117,6 +117,7 @@ const ReportActionItemFragment = (props) => {
             }
             return (
                 <Text
+                    family="EMOJI_TEXT_FONT"
                     selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr]}
                 >

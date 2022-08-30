@@ -17,6 +17,7 @@ describe('OptionsListUtils', () => {
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             reportName: 'Iron Man, Mister Fantastic',
             unreadActionCount: 1,
+            hasDraft: true,
         },
         2: {
             lastVisitedTimestamp: 1610666739296,
@@ -684,7 +685,6 @@ describe('OptionsListUtils', () => {
                     0,
                     CONST.PRIORITY_MODE.DEFAULT,
                     [],
-                    {[`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${1}`]: true},
                 );
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
@@ -724,7 +724,6 @@ describe('OptionsListUtils', () => {
                     0,
                     CONST.PRIORITY_MODE.GSD,
                     [],
-                    {[`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${1}`]: true},
                 );
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
@@ -844,7 +843,6 @@ describe('OptionsListUtils', () => {
             0,
             CONST.PRIORITY_MODE.DEFAULT,
             [],
-            {},
         );
 
         // Then expect all of the reports to be shown except the archived policyExpenseChats and defaultRooms

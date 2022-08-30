@@ -6,6 +6,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -58,7 +59,7 @@ const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
     return _.map(participants, (login) => {
-        const userPersonalDetail = personalDetails[login];
+        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: login, avatar: ''});
         const userLogin = Str.removeSMSDomain(login);
 
         return ({
