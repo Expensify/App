@@ -2612,6 +2612,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.shadow,
+        cursor: 'move'
     },
 
     sliderKnob: {
