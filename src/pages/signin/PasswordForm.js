@@ -46,6 +46,7 @@ class PasswordForm extends React.Component {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.resetPassword = this.resetPassword.bind(this);
+        this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
             formError: false,
@@ -118,6 +119,14 @@ class PasswordForm extends React.Component {
         Session.signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
+    /**
+    * Clears any previously entered 2FA Code and the credentials keys in Onyx
+    */
+    clearSignInData() {
+        this.setState({twoFactorAuthCode: ''});
+        Session.clearSignInData();
+    }
+
     render() {
         return (
             <>
@@ -183,7 +192,7 @@ class PasswordForm extends React.Component {
                         isLoading={this.props.account.isLoading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
+                    <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
             </>
         );
