@@ -670,7 +670,7 @@ function fetchAllReports(
 }
 
 /**
- * Creates an optimistic report with a randomly generated reportID and as much information as we currently have
+ * Creates an optimistic chat report with a randomly generated reportID and as much information as we currently have
  *
  * @param {Array} participantList
  * @returns {Object}
