@@ -413,6 +413,8 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
+        console.log(report.reportName);
+        console.log(ReportUtils.isArchivedRoom(report));
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -527,8 +529,9 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
 
             // If the report is pinned and we are using the option to display pinned reports on top then we need to
-            // collect the pinned reports so we can sort them alphabetically once they are collected
-            if (prioritizePinnedReports && reportOption.isPinned) {
+            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
+            // archived rooms
+            if (prioritizePinnedReports && reportOption.isPinned && !reportOption.isArchivedRoom) {
                 pinnedReportOptions.push(reportOption);
             } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
                 iouDebtReportOptions.push(reportOption);
