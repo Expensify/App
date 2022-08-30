@@ -51,7 +51,7 @@ function getSimplifiedEmployeeList(employeeList) {
 }
 
 /**
- * For whatever reason, we store customUnit rates in an array, even though there's only ever a single rate per custom unit.
+ * We pass customUnit rates from PHP as an array, even though there's only ever a single rate per custom unit.
  * This flattens the array of rates so that we store the single rate directly.
  *
  * @param {Object} fullPolicyOrPolicySummary
