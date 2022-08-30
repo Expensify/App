@@ -147,7 +147,6 @@ jest.mock('../../src/components/Icon/Expensicons', () => ({
 
 describe('Sidebar', () => {
     describe('in default mode', () => {
-
         // Clear out Onyx after each test so that each test starts with a clean slate
         afterEach(Onyx.clear);
 
@@ -283,6 +282,7 @@ describe('Sidebar', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
+
                 // GIVEN the sidebar is rendered in default mode (most recent first)
                 // while currently viewing report 1
                 // with reports in top-to-bottom order of 3 > 2 > 1
@@ -316,6 +316,7 @@ describe('Sidebar', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
+
                 // GIVEN the sidebar is rendered in default mode (most recent first)
                 // while currently viewing report 2 (the one in the middle)
                 // with a draft on report 2
@@ -350,6 +351,7 @@ describe('Sidebar', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
+
                 // GIVEN the sidebar is rendered in default mode (most recent first)
                 // while currently viewing report 2 (the one in the middle)
                 // with a draft on report 2
@@ -382,10 +384,11 @@ describe('Sidebar', () => {
         });
 
         test('puts draft reports at the top when the page refreshes', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            getDefaultRenderedSidebarLinks();
             let sidebarAfterRefresh;
 
             return waitForPromisesToResolve()
+
                 // GIVEN the sidebar is rendered in default mode (most recent first)
                 // while currently viewing report 2 (the one in the middle)
                 // with a draft on report 2
