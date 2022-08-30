@@ -17,6 +17,12 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from "../../CONST";
 import * as PaymentMethods from "../../libs/actions/PaymentMethods";
+import lodashGet from "lodash/get";
+import * as PersonalDetails from "../../libs/actions/PersonalDetails";
+import ScreenWrapper from "../../components/ScreenWrapper";
+import HeaderWithCloseButton from "../../components/HeaderWithCloseButton";
+import Navigation from "../../libs/Navigation/Navigation";
+import FailedKYC from "./FailedKYC";
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -85,9 +91,6 @@ class IdologyQuestions extends React.Component {
 
             /** Answers from the user */
             answers: [],
-
-            /** Any error message */
-            errorMessage: '',
         };
     }
 
@@ -114,7 +117,6 @@ class IdologyQuestions extends React.Component {
             answers[questionIndex] = {question: question.type, answer};
             return {
                 answers,
-                errorMessage: '',
             };
         });
     }
@@ -127,6 +129,7 @@ class IdologyQuestions extends React.Component {
             // User must pick an answer
             if (!prevState.answers[prevState.questionNumber]) {
                 return {
+                    // TODO: I think this should be a merge of the Aditional Details, as an error, that would update everything
                     errorMessage: this.props.translate('additionalDetailsStep.selectAnswer'),
                 };
             }
@@ -174,6 +177,22 @@ class IdologyQuestions extends React.Component {
                 value: answer,
             };
         }));
+        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
+        const isErrorVisible = _.size(this.getErrors()) > 0 || !_.isEmpty(errors);
+        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
+
+        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.KYC) {
+            return (
+                // TODO: not sure if this is the correct design
+                <View style={[styles.flex1]}>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('additionalDetailsStep.headerTitle')}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <FailedKYC />
+                </View>
+            );
+        }
 
         return (
             <View style={[styles.flex1]}>
@@ -196,12 +215,12 @@ class IdologyQuestions extends React.Component {
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(this.state.errorMessage || this.props.walletAdditionalDetails.errors)}
+                        isAlertVisible={Boolean(isErrorVisible)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
-                        message={_.isEmpty(this.props.walletAdditionalDetails.errors) ? _.find(this.props.walletAdditionalDetails.errors, error => error !== undefined) : this.state.errorMessage}
+                        message={errorMessage}
                         isLoading={this.props.walletAdditionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
