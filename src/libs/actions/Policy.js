@@ -581,10 +581,10 @@ function clearCustomUnitErrors(policyID, customUnitID) {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
-                rates: [{
+                rates: {
                     errors: null,
                     pendingAction: null,
-                }],
+                },
             },
         },
     });
@@ -693,7 +693,6 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
                         rates: {
                             ...values,
                             pendingAction: null,
-                            errors: null,
                         },
                     },
                 },
