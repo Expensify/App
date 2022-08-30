@@ -222,7 +222,7 @@ class SidebarLinks extends React.Component {
 
             // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
             // does not have all the conversations in prevState.orderedReports
-                .filter(orderedReport => orderedReport !== undefined)
+                .compact()
                 .value();
 
         return {

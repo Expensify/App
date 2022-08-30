@@ -250,7 +250,7 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {hasDraft: true, ...fakeReport1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
@@ -262,6 +262,8 @@ describe('Sidebar', () => {
                 .then(() => {
                     const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
                     expect(pencilIcon).toHaveLength(1);
+
+                    // console.log(sidebarLinks.toJSON().children[1].children[0].props.data[0].data)
 
                     // The reports should be in the order 3 > 2 > 1
                     const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
