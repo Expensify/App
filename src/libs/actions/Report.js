@@ -1580,6 +1580,83 @@ Onyx.connect({
     },
 });
 
+/**
+ * Creates an optimistic IOU reportAction
+ * @param {String} type
+ * @param {Number} amount
+ * @param {String} comment
+ * @param {String} paymentType
+ * @param {String} reportID
+ * @param {String} IOUTransactionID
+ *
+ * @returns {Object}
+ */
+function createIOUReportAction(type, amount, comment, paymentType, reportID, IOUTransactionID) {
+    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
+    const currency = lodashGet(personalDetails, [currentUserEmail, 'localCurrencyCode']);
+    let originalMessage;
+
+    switch (type) {
+        case 'create':
+            originalMessage = {
+                IOUReportID: reportID,
+                IOUTransactionID: NumberUtils.rand64(),
+                amount,
+                comment,
+                currency,
+                type,
+            };
+            break;
+        case 'decline':
+        case 'cancel':
+            originalMessage = {
+                IOUReportID: reportID,
+                IOUTransactionID,
+                amount,
+                comment,
+                currency,
+                type,
+            };
+            break;
+        case 'pay':
+            originalMessage = {
+                IOUReportID: reportID,
+                IOUDetails: {
+                    amount,
+                    comment,
+                    currency,
+                },
+                paymentType,
+                type,
+            };
+            break;
+        default:
+            originalMessage = {};
+    }
+
+    return ({
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+        clientID: NumberUtils.rand64(),
+        isAttachment: false,
+        // message,
+        originalMessage,
+        person: [{
+            style: 'strong',
+            text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+            type: 'TEXT',
+        }],
+        reportActionID: NumberUtils.rand64(),
+        sequenceNumber: parseInt(`${Date.now()}${randomNumber}`, 10),
+        shouldShow: true,
+        timestamp: moment().unix(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    });
+}
+
 export {
     fetchAllReports,
     fetchOrCreateChatReport,
@@ -1616,4 +1693,5 @@ export {
     createOptimisticReport,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
+    createIOUReportAction,
 };
