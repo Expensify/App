@@ -1,7 +1,8 @@
 name: Contributor Checklist
 
 on:
-  issue_comment:
+  pull_request_comment:
+  pull_request_review_comment:
   pull_request:
     types: [opened, edited, synchronize]
 
