@@ -33,9 +33,14 @@ const propTypes = {
     /** ID from Idology, referencing those questions */
     idNumber: PropTypes.string,
 
-    additionalDetails: PropTypes.shape({
+    walletAdditionalDetails: PropTypes.shape({
+        /** Are we waiting for a response? */
         isLoading: PropTypes.bool,
-        errors: PropTypes.arrayOf(PropTypes.string),
+
+        /** Any additional error message to show */
+        errors: PropTypes.objectOf(PropTypes.string),
+
+        /** What error do we need to handle */
         errorCode: PropTypes.string,
     }),
 };
@@ -43,9 +48,9 @@ const propTypes = {
 const defaultProps = {
     questions: [],
     idNumber: '',
-    additionalDetails: {
+    walletAdditionalDetails: {
         isLoading: false,
-        errors: [],
+        errors: {},
         errorCode: '',
     },
 };
@@ -164,13 +169,13 @@ class IdologyQuestions extends React.Component {
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(this.state.errorMessage || this.props.additionalDetails.errors)}
+                        isAlertVisible={Boolean(this.state.errorMessage || this.props.walletAdditionalDetails.errors)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
-                        message={_.isEmpty(this.props.additionalDetails.errors) ? _.find(this.props.additionalDetails.errors, error => error !== undefined) : this.state.errorMessage}
-                        isLoading={this.props.additionalDetails.isLoading}
+                        message={_.isEmpty(this.props.walletAdditionalDetails.errors) ? _.find(this.props.walletAdditionalDetails.errors, error => error !== undefined) : this.state.errorMessage}
+                        isLoading={this.props.walletAdditionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
                 </FormScrollView>
@@ -182,7 +187,7 @@ class IdologyQuestions extends React.Component {
 IdologyQuestions.propTypes = propTypes;
 IdologyQuestions.defaultProps = defaultProps;
 export default compose(withLocalize(IdologyQuestions), withOnyx({
-    additionalDetails: {
+    walletAdditionalDetails: {
         key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
     },
 }))(IdologyQuestions);
