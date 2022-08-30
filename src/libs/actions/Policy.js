@@ -738,7 +738,10 @@ function generatePolicyID() {
 }
 
 function openWorkspaceMembersPage(policyID, clientPolicyMembers) {
-    API.read('OpenWorkspaceMembersPage', {policyID, clientPolicyMembers});
+    API.read('OpenWorkspaceMembersPage', {
+        policyID,
+        clientPolicyMembers: JSON.stringify(clientPolicyMembers),
+    });
 }
 
 export {
