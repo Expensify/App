@@ -24,6 +24,7 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -50,6 +51,9 @@ const propTypes = {
         outputCurrency: PropTypes.string,
         hasVBA: PropTypes.bool,
     }).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -278,9 +282,9 @@ class WorkspaceReimburseView extends React.Component {
                             icon={Illustrations.BankUserGreen}
                             menuItems={[
                                 {
-                                    title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                                    onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
-                                    icon: Expensicons.Receipt,
+                                    title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                                    onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                    icon: Expensicons.Bank,
                                     shouldShowRightIcon: true,
                                     iconRight: Expensicons.NewWindow,
                                 },
