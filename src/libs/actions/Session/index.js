@@ -93,9 +93,11 @@ function resendValidationLink(login = credentials.login) {
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
-        value: {isLoading: true},
-        errors: null,
-        message: '',
+        value: {
+            isLoading: true,
+            errors: null,
+            message: '',
+        },
     }];
     const successData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
