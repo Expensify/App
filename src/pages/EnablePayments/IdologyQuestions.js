@@ -213,11 +213,14 @@ class IdologyQuestions extends React.Component {
 
 IdologyQuestions.propTypes = propTypes;
 IdologyQuestions.defaultProps = defaultProps;
-export default compose(withLocalize(IdologyQuestions), withOnyx({
-    walletAdditionalDetails: {
-        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    }
-}))(IdologyQuestions);
+export default compose(
+    withLocalize(IdologyQuestions),
+    withOnyx({
+            walletAdditionalDetails: {
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            },
+            userWallet: {
+                key: ONYXKEYS.USER_WALLET,
+            },
+        }),
+)(IdologyQuestions);
