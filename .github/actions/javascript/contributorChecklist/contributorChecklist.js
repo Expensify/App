@@ -1,6 +1,8 @@
 const core = require('@actions/core');
+const Diff = require('diff');
 const github = require('@actions/github');
 const GitHubUtils = require('../../../libs/GithubUtils');
+require('colors');
 
 /* eslint-disable max-len */
 const completedContributorChecklist = `#### Contributor (PR Author) Checklist
@@ -100,6 +102,20 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 
+function printDiff(result, expected) {
+    const diff = Diff.diffTrimmedLines(result, expected);
+
+    diff.forEach((part) => {
+        // green for additions, red for deletions, grey for common parts
+
+        // eslint-disable-next-line no-nested-ternary
+        const color = !part.added ? part.removed ? 'red' : 'grey' : 'green';
+        process.stderr.write(part.value[color]);
+    });
+
+    console.log();
+}
+
 // Get all user text from the pull request, review comments, and pull request comments
 GitHubUtils.octokit.pulls.get({
     owner: GitHubUtils.GITHUB_OWNER,
@@ -129,10 +145,12 @@ GitHubUtils.octokit.pulls.get({
         for (let i = 0; i < combinedData.length; i++) {
             const whitespace = /([\n\r])/gm;
             const comment = combinedData[i].body.replace(whitespace, '');
+            printDiff(comment, completedContributorChecklist);
 
             if (comment === completedContributorChecklist.replace(whitespace, '')) {
                 contributorChecklistComplete = true;
             }
+            printDiff(comment, completedContributorPlusChecklist);
 
             if (comment === completedContributorPlusChecklist.replace(whitespace, '')) {
                 contributorPlusChecklistComplete = true;
