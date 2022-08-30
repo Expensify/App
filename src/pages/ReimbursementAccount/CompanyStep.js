@@ -24,8 +24,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import AddressForm from './AddressForm';
 import Form from '../../components/Form';
+import AddressSearch from '../../components/AddressSearch';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -46,13 +46,6 @@ class CompanyStep extends React.Component {
             ? 'https://'
             : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
 
-        this.state = {
-            addressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressStreet'),
-            addressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressCity'),
-            addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
-            addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
-        };
-
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
             companyName: 'bankAccount.error.companyName',
@@ -64,6 +57,8 @@ class CompanyStep extends React.Component {
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
             incorporationState: 'bankAccount.error.incorporationState',
+            addressZipCode: 'bankAccount.error.zipCode',
+            addressStreet: 'bankAccount.error.addressStreet',
         };
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
@@ -84,13 +79,15 @@ class CompanyStep extends React.Component {
         const errors = {};
         const errorTexts = {};
 
-        // if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
-        //     errors.addressStreet = true;
-        // }
+        if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
+            errorTexts.addressStreet = this.getErrorText('addressStreet');
+            errors.addressStreet = true;
+        }
 
-        // if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
-        //     errors.addressZipCode = true;
-        // }
+        if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+            errorTexts.addressZipCode = this.getErrorText('addressZipCode');
+            errors.addressZipCode = true;
+        }
 
         if (!values.website || !ValidationUtils.isValidURL(values.website)) {
             errorTexts.website = this.getErrorText('website');
@@ -168,35 +165,35 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName')}
                     />
-                    <AddressForm
-                        streetTranslationKey="common.companyAddress"
-                        values={{
-                            street: this.state.addressStreet,
-                            city: this.state.addressCity,
-                            zipCode: this.state.addressZipCode,
-                            state: this.state.addressState,
-                        }}
-                        errors={{
-                            street: this.getErrors().addressStreet,
-                            city: this.getErrors().addressCity,
-                            zipCode: this.getErrors().addressZipCode,
-                            state: this.getErrors().addressState,
-                        }}
-                        onFieldChange={(values) => {
-                            const renamedFields = {
-                                street: 'addressStreet',
-                                state: 'addressState',
-                                city: 'addressCity',
-                                zipCode: 'addressZipCode',
-                            };
-                            const renamedValues = {};
-                            _.each(values, (value, inputKey) => {
-                                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                renamedValues[renamedInputKey] = value;
-                            });
-                            this.setValue(renamedValues);
-                            this.clearErrors(_.keys(renamedValues));
-                        }}
+                    <AddressSearch
+                        inputID="addressStreet"
+                        label={this.props.translate('common.companyAddress')}
+                        containerStyles={[styles.mt4]}
+                        hint={this.props.translate('common.noPO')}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet')}
+                    />
+                    <View style={[styles.flexRow, styles.mt4]}>
+                        <View style={[styles.flex2, styles.mr2]}>
+                            <TextInput
+                                inputID="addressCity"
+                                label={this.props.translate('common.city')}
+                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressCity')}
+                            />
+                        </View>
+                        <View style={[styles.flex1]}>
+                            <StatePicker
+                                inputID="addressState"
+                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressState')}
+                            />
+                        </View>
+                    </View>
+                    <TextInput
+                        inputID="addressZipCode"
+                        label={this.props.translate('common.zip')}
+                        containerStyles={[styles.mt4]}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressZipCode')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     />
                     <TextInput
                         inputID="companyPhone"
