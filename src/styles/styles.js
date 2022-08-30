@@ -1401,7 +1401,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         color: themeColors.text,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
@@ -1478,7 +1478,7 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -2364,9 +2364,6 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-    },
-
-    peopleRowOfflineFeedback: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
@@ -2409,7 +2406,6 @@ const styles = {
         },
         text: {
             color: themeColors.textSupporting,
-            flex: 1,
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
         },

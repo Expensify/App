@@ -1,6 +1,8 @@
 <!doctype html>
 <html>
 
+{% include CONST.html %}
+
 <head>
     <meta charset="utf-8">
     <title>Expensify Help</title>
@@ -24,7 +26,7 @@
     <div id="lhn">
 
         <div class="lhn-header">
-            <div class="header-button" onclick="toggleHeaderMenu()">
+            <div id="header-button">
                 <i id="angle-up-icon" class="fa-solid fa-angle-up icon hide"></i>
                 <i id="bars-icon" class="fa-solid fa-bars icon"></i>
             </div>
@@ -41,20 +43,20 @@
             {% when "send-money" %}
                 {% include send-money-lhn.html %}
             {% else %}
-                <div onclick="navigateBack()" class="icon-with-link">
+                <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
                     <div class="link">Back</div>
                 </div>
-                <span class="in-this-article">In this article</span>
-                <div class="article-toc"></div>
+                {% if page.lhn_content == nil %}
+                    <span class="in-this-article">In this article</span>
+                    <div class="article-toc"></div>
+                {% endif %}
             {% endcase %}
         </div>
 
 
-        <!-- Concierge button anchored at the bottom of the LHN-->
-        <div class="floating-concierge-button">
-            <!-- Floating button content -->
-        </div>
+        <!-- Concierge button anchored at the bottom of the LHN (rendered on wider screens) -->
+        {% include floating-concierge-button.html id="floating-concierge-button-lhn" %}
     </div>
 
     <div id="content-area">
@@ -71,9 +73,15 @@
         </div>
 
         <!-- Concierge button at the bottom of the page -->
-        <div class="footer-concierge-button">
-            <!-- Footer button content -->
-        </div>
+        <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
+            <div class="body">
+                <h3 class="title">Didn't find what you were looking for?</h3>
+                <p class="description">Concierge is here to answer all your questions.</p>
+            </div>
+            <div class="submit-button">
+                <button class="success">Send a message</button>
+            </div>
+        </a>
     </div>
     {% endif %}
 

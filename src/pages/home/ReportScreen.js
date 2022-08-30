@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Keyboard, View} from 'react-native';
+import {Keyboard, Platform, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
@@ -58,6 +58,12 @@ const propTypes = {
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Flag to check if the report actions data are loading */
+        isLoadingReportActions: PropTypes.bool,
+
+        /** ID for the report */
+        reportID: PropTypes.string,
     }),
 
     /** Array of report actions for this report */
@@ -68,9 +74,6 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** Flag to check if the initial report actions data are loading */
-    isLoadingInitialReportActions: PropTypes.bool,
 
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(PropTypes.shape({
@@ -95,10 +98,10 @@ const defaultProps = {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
+        isLoadingReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],
-    isLoadingInitialReportActions: false,
     policies: {},
 };
 
@@ -142,7 +145,6 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
-        clearTimeout(this.loadingTimerId);
         this.removeViewportResizeListener();
     }
 
@@ -159,26 +161,38 @@ class ReportScreen extends React.Component {
 
     /**
      * When reports change there's a brief time content is not ready to be displayed
+     * It Should show the loader if it's the first time we are opening the report
      *
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return !getReportID(this.props.route) || (_.isEmpty(this.props.reportActions) && this.props.isLoadingInitialReportActions);
+        // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
+        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
     }
 
     /**
      * Persists the currently viewed report id
      */
     storeCurrentlyViewedReport() {
-        const reportID = getReportID(this.props.route);
-        if (_.isNaN(reportID)) {
+        const reportIDFromPath = getReportID(this.props.route);
+        if (_.isNaN(reportIDFromPath)) {
             Report.handleInaccessibleReport();
             return;
         }
 
         // Always reset the state of the composer view when the current reportID changes
         toggleReportActionComposeView(true);
-        Report.updateCurrentlyViewedReportID(reportID);
+        Report.updateCurrentlyViewedReportID(reportIDFromPath);
+
+        // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
+        // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
+        // If it doesn't exist, then we fetch the report from the API.
+        if (this.props.report.reportID) {
+            return;
+        }
+
+        Report.fetchChatReportsByIDs([reportIDFromPath], true);
     }
 
     /**
@@ -213,7 +227,10 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
+            <ScreenWrapper
+                style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
+            >
                 <HeaderView
                     reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
@@ -232,7 +249,6 @@ class ReportScreen extends React.Component {
                         )
                         : (
                             <ReportActionsView
-                                reportID={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
@@ -271,31 +287,30 @@ class ReportScreen extends React.Component {
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
-export default compose(withNetwork(), withOnyx({
-    isSidebarLoaded: {
-        key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    reportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-        canEvict: false,
-    },
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-    },
-    isComposerFullSize: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    isLoadingInitialReportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${getReportID(route)}`,
-        initWithStoredValues: false,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-}))(ReportScreen);
+export default compose(
+    withNetwork(),
+    withOnyx({
+        isSidebarLoaded: {
+            key: ONYXKEYS.IS_SIDEBAR_LOADED,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            canEvict: false,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        },
+        isComposerFullSize: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
+)(ReportScreen);

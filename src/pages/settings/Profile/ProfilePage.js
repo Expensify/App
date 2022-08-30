@@ -27,7 +27,7 @@ import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -77,16 +77,12 @@ class ProfilePage extends Component {
             selectedTimezone: lodashGet(currentUserDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(currentUserDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
-            avatar: {uri: currentUserDetails.avatar || ReportUtils.getDefaultAvatar(currentUserDetails.login)},
-            isAvatarChanged: false,
         };
 
         this.getLogins = this.getLogins.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
-        this.updateAvatar = this.updateAvatar.bind(this);
-        this.deleteAvatar = this.deleteAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -148,35 +144,11 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Updates the user's avatar image.
-     * @param {Object} avatar
-     */
-    updateAvatar(avatar) {
-        this.setState({avatar, isAvatarChanged: true});
-    }
-
-    /**
-     * Replaces the user's current avatar image with a default avatar.
-     */
-    deleteAvatar() {
-        PersonalDetails.deleteAvatar();
-        this.setState({avatar: {uri: ReportUtils.getDefaultAvatar(lodashGet(this.props.currentUserPersonalDetails, 'login'))}});
-    }
-
-    /**
      * Submit form to update personal details
      */
     updatePersonalDetails() {
         if (!this.validateInputs()) {
             return;
-        }
-
-        // Check if the user has modified their avatar
-        if ((lodashGet(this.props.currentUserPersonalDetails, 'avatar') !== this.state.avatar.uri) && this.state.isAvatarChanged) {
-            PersonalDetails.setAvatar(this.state.avatar);
-
-            // Reset the changed state
-            this.setState({isAvatarChanged: false});
         }
 
         PersonalDetails.updateProfile(
@@ -215,8 +187,7 @@ class ProfilePage extends Component {
             && (currentUserDetails.lastName === this.state.lastName.trim())
             && (lodashGet(currentUserDetails, 'timezone.selected') === this.state.selectedTimezone)
             && (lodashGet(currentUserDetails, 'timezone.automatic') === this.state.isAutomaticTimezone)
-            && (currentUserDetails.pronouns === this.state.pronouns.trim())
-            && (!this.state.isAvatarChanged || currentUserDetails.avatarUploading);
+            && (currentUserDetails.pronouns === this.state.pronouns.trim());
 
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
@@ -229,15 +200,22 @@ class ProfilePage extends Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                    <AvatarWithImagePicker
-                        isUploading={currentUserDetails.avatarUploading}
-                        isUsingDefaultAvatar={this.state.avatar.uri.includes('/images/avatars/avatar')}
-                        avatarURL={this.state.avatar.uri}
-                        onImageSelected={this.updateAvatar}
-                        onImageRemoved={this.deleteAvatar}
-                        anchorPosition={styles.createMenuPositionProfile}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(currentUserDetails, 'pendingFields.avatar', null)}
+                        errors={lodashGet(currentUserDetails, 'errorFields.avatar', null)}
+                        errorRowStyles={[styles.mt6]}
+                        onClose={PersonalDetails.clearAvatarErrors}
+                    >
+                        <AvatarWithImagePicker
+                            isUsingDefaultAvatar={lodashGet(currentUserDetails, 'avatar', '').includes('/images/avatars/avatar')}
+                            avatarURL={currentUserDetails.avatar}
+                            onImageSelected={PersonalDetails.updateAvatar}
+                            onImageRemoved={PersonalDetails.deleteAvatar}
+                            anchorPosition={styles.createMenuPositionProfile}
+                            size={CONST.AVATAR_SIZE.LARGE}
+
+                        />
+                    </OfflineWithFeedback>
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>

@@ -14,7 +14,7 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml'],
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
         // 50 megabytes in bytes
         MAX_SIZE: 52428800,
@@ -539,6 +539,10 @@ const CONST = {
             },
         },
         ERROR: {
+            // If these get updated, we need to update the codes on the Web side too
+            SSN: 'ssnError',
+            KBA: 'kbaNeeded',
+            KYC: 'kycFailed',
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
@@ -777,6 +781,25 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
+    BRICK_ROAD_INDICATOR_STATUS: {
+        ERROR: 'error',
+    },
+    REPORT_DETAILS_MENU_ITEM: {
+        MEMBERS: 'member',
+        SETTINGS: 'settings',
+        INVITE: 'invite',
+        LEAVE_ROOM: 'leaveRoom',
+    },
+
+    // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
+    // generate them each with a random number generator with only 32-bits of precision.
+    MAX_64BIT_LEFT_PART: 92233,
+    MAX_64BIT_MIDDLE_PART: 7203685,
+    MAX_64BIT_RIGHT_PART: 4775807,
+
+    // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
+    MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
+    IOS_KEYBOARD_SPACE_OFFSET: -30,
 };
 
 export default CONST;

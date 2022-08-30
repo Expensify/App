@@ -31,7 +31,6 @@ class KYCWall extends React.Component {
     }
 
     componentDidMount() {
-        PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
@@ -140,7 +139,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.isLoadingPaymentMethods
+                {this.props.isLoadingPaymentMethods && !this.props.isDisabled
                     ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
                     : this.props.children(this.continue)}
             </>
