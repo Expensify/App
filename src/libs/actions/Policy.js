@@ -783,25 +783,18 @@ function capitalizeFirstLetter(value) {
 }
 
 /**
- * Generate a policy name based on the email.
- * @param {String} email
- * @param {Array} polices
+ * Generate a policy name based on an email and policy list.
  * @returns {String}
  */
-function generateDefaultWorkspaceName(email, polices = null) {
-    let userPolicies = null;
-    if (!polices) {
-        userPolicies = allPolicies;
-    } else {
-        userPolicies = polices;
-    }
-    const emailParts = email.split('@');
+function generateDefaultWorkspaceName() {
+    const emailParts = sessionEmail.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
     }
     const username = emailParts[0];
     const domain = emailParts[1];
+
     if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
         defaultWorkspaceName = `${capitalizeFirstLetter(username)}'s Workspace`;
     } else {
@@ -812,13 +805,13 @@ function generateDefaultWorkspaceName(email, polices = null) {
         defaultWorkspaceName = 'My Group Workspace';
     }
 
-    if (userPolicies.length === 0) {
+    if (allPolicies.length === 0) {
         return defaultWorkspaceName;
     }
 
     // Check if this name already exists in the policies
     let suffix = 0;
-    _.forEach(userPolicies, (policy) => {
+    _.forEach(allPolicies, (policy) => {
         // Get the name of the policy
         const {name} = policy;
 
@@ -828,6 +821,14 @@ function generateDefaultWorkspaceName(email, polices = null) {
     });
 
     return suffix > 0 ? `${defaultWorkspaceName} ${suffix}` : defaultWorkspaceName;
+}
+
+/**
+ * Returns a client generated 16 character hexadecimal value for the policyID
+ * @returns {String}
+ */
+function generatePolicyID() {
+    return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
 export {
