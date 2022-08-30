@@ -587,4 +587,8 @@ export {
     buildIdologyError,
     updateCurrentStep,
     answerQuestionsForWallet,
+    updatePersonalDetails,
+    verifyIdentity,
+    acceptWalletTerms,
+    setAdditionalDetailsLoading,
 };

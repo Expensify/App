@@ -30,6 +30,9 @@ export {
     activateWallet,
     fetchUserWallet,
     answerQuestionsForWallet,
+    verifyIdentity,
+    acceptWalletTerms,
+    setAdditionalDetailsLoading,
 } from './Wallet';
 
 function clearPersonalBankAccount() {
