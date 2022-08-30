@@ -192,33 +192,33 @@ class SidebarLinks extends React.Component {
     }
 
     isReportOrderDifferentThanLastRender(hasDraftHistory) {
-        // Always update if LHN is empty.
-        // Because: TBD
-        // @TODO try and figure out why
-        if (this.orderedReports.length === 0) {
+        // If the number of reports changed, then the report order is different
+        if (this.orderedReports.length !== this.props.reports.length) {
             return true;
         }
 
-        // Always re-order the list whenever the active report is changed
-        // Because: TBD
-        // @TODO try and figure out why
+        // If the active report changed, then the report order is different
         if (this.activeReport.reportID !== this.props.currentlyViewedReportID) {
             return true;
         }
 
-        // If there is an active report that either had or has a draft, we do not want to re-order the list
-        // because the position of the report in the list won't change
+        // If the active report has a draft, the order of the reports doesn't change
+        // because it would cause the reports to reorder when a user starts typing a comment
+        // and that is an annoying UX (too much stuff jumping around)
         if (this.props.currentlyViewedReportID && hasDraftHistory) {
             return false;
         }
 
-        // If any reports have new unread messages, the list needs to be reordered
+        // If the unread reports have changed, then the report order changes
         // because the unread reports need to be placed at the top of the list
+        // @TODO: This can probably be optimized
         const hasNewUnreadReports = _.some(this.props.reports, report => report.unreadActionCount > 0 && !this.unreadReports[report.reportID]);
         if (hasNewUnreadReports) {
             return true;
         }
 
+        // By default, assume that the order of the reports doesn't change
+        // in order to optimize the rendering
         return false;
     }
 
