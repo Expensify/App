@@ -2,10 +2,8 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const GitHubUtils = require('../../../libs/GithubUtils');
 
-const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
-
 /* eslint-disable max-len */
-const contributorChecklist = `#### Contributor (PR Author) Checklist
+const completedContributorChecklist = `#### Contributor (PR Author) Checklist
 - [x] I linked the correct issue in the \`### Fixed Issues\` section above
 - [x] I wrote clear testing steps that cover the changes made in this PR
     - [x] I added steps for local testing in the \`Tests\` section
@@ -52,7 +50,7 @@ const contributorChecklist = `#### Contributor (PR Author) Checklist
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.`;
 
-const contributorPlusChecklist = `- [x] I have verified the author checklist is complete (all boxes are checked off).
+const completedContributorPlusChecklist = `- [x] I have verified the author checklist is complete (all boxes are checked off).
 - [x] I verified the correct issue is linked in the \`### Fixed Issues\` section above
 - [x] I verified testing steps are clear and they cover the changes made in this PR
     - [x] I verified the steps for local testing are in the \`Tests\` section
@@ -99,41 +97,61 @@ const contributorPlusChecklist = `- [x] I have verified the author checklist is 
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
 
-GitHubUtils.octokit.issues.listComments({
+const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
+const combinedData = [];
+
+// Get all user text from the pull request, review comments, and pull request comments
+GitHubUtils.octokit.pulls.get({
     owner: GitHubUtils.GITHUB_OWNER,
     repo: GitHubUtils.APP_REPO,
-    issue_number: issue,
-    per_page: 100,
-}).then(({data}) => {
-    let contributorChecklistComplete = false;
-    let contributorPlusChecklistComplete = false;
+    pull_number: issue,
+}).then(({data: pullRequestComment}) => {
+    combinedData.push(pullRequestComment);
+}).then(() => GitHubUtils.octokit.pulls.listReviewComments({
+    owner: GitHubUtils.GITHUB_OWNER,
+    repo: GitHubUtils.APP_REPO,
+    pull_number: issue,
+})).then(({data: pullRequestReviewComments}) => {
+    combinedData.push(...pullRequestReviewComments);
+})
+    .then(() => GitHubUtils.octokit.issues.listComments({
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        issue_number: issue,
+        per_page: 100,
+    }))
+    .then(({data: pullRequestComments}) => {
+        combinedData.push(...pullRequestComments);
+        let contributorChecklistComplete = false;
+        let contributorPlusChecklistComplete = false;
 
-    for (let i = 0; i < data.length; i++) {
-        const whitespace = /([\n\r])/gm;
-        const comment = data[i].body.replace(whitespace, '');
+        // Once we've gathered all the data, loop through each comment and look to see if it contains a completed checklist
+        for (let i = 0; i < combinedData.length; i++) {
+            const whitespace = /([\n\r])/gm;
+            const comment = combinedData[i].body.replace(whitespace, '');
 
-        if (comment === contributorChecklist.replace(whitespace, '')) {
-            console.log('Contributor checklist complete!');
-            contributorChecklistComplete = true;
+            if (comment === completedContributorChecklist.replace(whitespace, '')) {
+                contributorChecklistComplete = true;
+            }
+
+            if (comment === completedContributorPlusChecklist.replace(whitespace, '')) {
+                contributorPlusChecklistComplete = true;
+            }
         }
 
-        if (comment === contributorPlusChecklist.replace(whitespace, '')) {
-            console.log('Contributor+ checklist complete!');
-            contributorPlusChecklistComplete = true;
+        console.log(`C complete? ${contributorChecklistComplete} C+ complete? ${contributorPlusChecklistComplete}`);
+
+        if (!contributorChecklistComplete) {
+            console.error('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            return;
         }
-    }
 
-    if (!contributorChecklistComplete) {
-        console.error('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
-        core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
-        return;
-    }
+        if (!contributorPlusChecklistComplete) {
+            console.error('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            return;
+        }
 
-    if (!contributorPlusChecklistComplete) {
-        console.error('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
-        core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
-        return;
-    }
-
-    console.log('All checklist are complete 🎉');
-});
+        console.log('All checklist are complete 🎉');
+    });
