@@ -62,7 +62,7 @@ class WorkspaceReimburseView extends React.Component {
             unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
             unitName: lodashGet(distanceCustomUnit, 'name', ''),
             unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
+            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates.rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -148,7 +148,7 @@ class WorkspaceReimburseView extends React.Component {
         });
 
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const currentCustomUnitRate = lodashGet(distanceCustomUnit, 'rates[0]', {});
+        const currentCustomUnitRate = lodashGet(distanceCustomUnit, 'rates', {});
         Policy.setCustomUnitRate(this.props.policyID, currentCustomUnitRate, this.state.unitID, {
             ..._.omit(currentCustomUnitRate, 'rate'),
             rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
@@ -193,10 +193,10 @@ class WorkspaceReimburseView extends React.Component {
                     <OfflineWithFeedback
                         errors={{
                             ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors']),
-                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates[0]', 'errors']),
+                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', 'errors']),
                         }}
                         pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
-                            || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates[0]', 'pendingAction'])}
+                            || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', 'pendingAction'])}
                         onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID)}
                         errorRowStyles={[styles.flex1]}
                     >
