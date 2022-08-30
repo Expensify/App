@@ -27,6 +27,7 @@ import * as Localize from '../Localize';
 import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as NumberUtils from '../NumberUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -625,25 +626,6 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 }
 
 /**
- * Get the initial actions of a report
- *
- * @param {Number} reportID
- */
-function fetchInitialActions(reportID) {
-    const reportActionsOffset = -1;
-
-    DeprecatedAPI.Report_GetHistory({
-        reportID,
-        reportActionsOffset,
-        reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
-    })
-        .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-        });
-}
-
-/**
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
@@ -753,6 +735,7 @@ function buildOptimisticReportAction(reportID, text, file) {
     return {
         commentText,
         reportAction: {
+            reportActionID: NumberUtils.rand64(),
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
@@ -838,14 +821,16 @@ function addActions(reportID, text = '', file) {
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.sequenceNumber] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+        optimisticReportActions[attachmentAction.sequenceNumber] = attachmentAction;
     }
 
     const parameters = {
         reportID,
+        reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
+        commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         clientID: lastAction.clientID,
         commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
@@ -989,6 +974,39 @@ function openReport(reportID) {
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
                     unreadActionCount: 0,
+                },
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: false,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: false,
+                },
+            }],
+        });
+}
+
+/**
+ * Get the latest report history without marking the report as read.
+ *
+ * @param {Number} reportID
+ */
+function reconnect(reportID) {
+    API.write('ReconnectToReport',
+        {reportID},
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    isLoadingReportActions: true,
                 },
             }],
             successData: [{
@@ -1154,7 +1172,7 @@ function saveReportComment(reportID, comment) {
  * @returns {Promise}
  */
 function setReportWithDraft(reportID, hasDraft) {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${reportID}`, hasDraft);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
 /**
@@ -1569,6 +1587,7 @@ export {
     fetchIOUReportByID,
     addComment,
     addAttachment,
+    reconnect,
     updateNotificationPreference,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
@@ -1587,7 +1606,6 @@ export {
     navigateToConciergeChat,
     handleInaccessibleReport,
     setReportWithDraft,
-    fetchInitialActions,
     createPolicyRoom,
     setIsComposerFullSize,
     markCommentAsUnread,

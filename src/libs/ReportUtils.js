@@ -347,7 +347,7 @@ function formatReportLastMessageText(lastMessageText) {
 function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    const loginHashBucket = (parseInt(md5(login.toLowerCase()).substring(0, 4), 16) % 8) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
@@ -471,7 +471,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     if (isPolicyExpenseChat(report)) {
         const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
-        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.reportName;
+        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
@@ -512,8 +512,9 @@ function navigateToDetailsPage(report) {
 }
 
 /**
- * Generate a random reportID between 98000000 (the number of reports before the switch from sequential to random)
- * and the maximum safe integer of js (53 bits aka 9,007,199,254,740,991)
+ * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+ * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
+ * so we live with the 1 in a billion chance of a collision with an older ID until we can switch to 64-bit IDs.
  *
  * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
  * this is more than random enough for our needs.
@@ -521,7 +522,28 @@ function navigateToDetailsPage(report) {
  * @returns {Number}
  */
 function generateReportID() {
-    return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
+    // Generate a random 32-bit number. This works fine, and starts us building a random 53-bit number.
+    let result = Math.floor(Math.random() * (2 ** 32));
+
+    // Now generate another random number. We'll use this for the remaining 21 bits of randomness.
+    let extraBits = Math.floor(Math.random() * (2 ** 32));
+
+    // Add each of the remaining 21 bits to the end of `result`.
+    for (let i = 0; i < 21; i++) {
+        // Shift left by one, but don't use bit shifts: they truncate to 32-bits.
+        result *= 2;
+
+        // If extraBits is odd, meaning the lowest bit is set, do the same to the result, without bitwise operators.
+        if (extraBits % 2 === 1) {
+            result += 1;
+        }
+
+        // Now drop the lowest bit from extraBits, which we can do with bitwise operators, because it's less than 32-bits.
+        // eslint-disable-next-line no-bitwise
+        extraBits >>= 1;
+    }
+
+    return result;
 }
 
 /**

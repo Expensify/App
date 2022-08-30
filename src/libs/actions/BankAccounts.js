@@ -26,11 +26,11 @@ export {
     openPlaidBankLogin,
 } from './Plaid';
 export {
-    fetchOnfidoToken,
+    openOnfidoFlow,
     activateWallet,
-    fetchUserWallet,
     answerQuestionsForWallet,
     verifyIdentity,
+    acceptWalletTerms,
 } from './Wallet';
 
 function clearPersonalBankAccount() {

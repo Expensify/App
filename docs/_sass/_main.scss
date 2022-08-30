@@ -1,5 +1,7 @@
+@import 'breakpoints';
 @import 'colors';
 @import 'fonts';
+@import 'mixins';
 
 * {
     margin: 0;
@@ -85,6 +87,10 @@ a {
     &:hover {
         color: $color-blueHover;
     }
+
+    img {
+        display: block;
+    }
 }
 
 h1,
@@ -130,6 +136,29 @@ textarea {
     color: $color-dark;
 }
 
+button {
+    border-radius: 12px;
+    padding: 12px;
+    font-family: "GTAmericaExp-Bold", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+
+    &.success {
+        background-color: $color-green;
+        color: $color-white;
+        width: 100%;
+
+        &:hover {
+            background-color: desaturate($color-green, 15%);
+            cursor: pointer;
+        }
+
+        @include breakpoint($breakpoint-tablet) {
+            width: auto;
+        }
+    }
+}
+
 #logo {
     width: 240px;
     padding: 80px;
@@ -140,26 +169,25 @@ textarea {
 }
 
 #lhn {
-    width: 420px;
-    height: 100%;
     position: fixed;
     background-color: $color-gray1;
     box-sizing: border-box;
     border-right-color: $color-gray2;
     border-right-width: 1px;
     border-style: solid;
-
-    @media screen and (max-width: 1024px) {
-        width: 320px;
+    width: 100%;
+    height: auto;
+    &.expanded {
+        height: 100%;
     }
 
-    @media screen and (max-width: 800px) {
-        width: 100%;
-        height: auto;
+    @include breakpoint($breakpoint-tablet) {
+        width: 320px;
+        height: 100%;
+    }
 
-        &.expanded {
-            height: 100%;
-        }
+    @include breakpoint($breakpoint-desktop) {
+        width: 420px;
     }
 
     ul,
@@ -169,10 +197,6 @@ textarea {
 
 
     #lhn-content {
-        height: calc(100% - 150px);
-        padding-right: 24px;
-        padding-bottom: 44px;
-        padding-left: 44px;
         overflow: auto;
         -ms-overflow-style: none;
         /* IE and Edge */
@@ -187,16 +211,18 @@ textarea {
             display: block;
         }
 
-        @media screen and (max-width: 800px) {
-            height: calc(100% - 100px);
-            padding-right: 24px;
-            padding-bottom: 24px;
-            padding-left: 24px;
-            display: none;
+        display: none;
+        height: calc(100% - 100px);
+        padding: 0 24px 24px 24px;
 
-            &.expanded {
-                display: block;
-            }
+        @include breakpoint($breakpoint-tablet) {
+            display: block;
+            height: calc(100% - 150px);
+            padding: 0 44px 44px 44px;
+        }
+
+        &.expanded {
+            display: block;
         }
 
         .article-toc {
@@ -205,30 +231,32 @@ textarea {
     }
 
     .lhn-header {
-        padding: 44px;
-
-        @media screen and (max-width: 800px) {
-            padding: 24px;
+        padding: 24px;
+        @include breakpoint($breakpoint-tablet) {
+            padding: 44px;
         }
 
         #header-button {
             position: absolute;
-            display: none;
-
-            @media screen and (max-width: 800px) {
-                display: block;
+            display: block;
+            @include breakpoint($breakpoint-tablet) {
+                display: none;
             }
         }
 
         .logo {
-            width: 210px;
+            width: 160px;
+            align-content: center;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
 
-            @media screen and (max-width: 800px) {
-                width: 160px;
-                align-content: center;
-                display: block;
-                margin-left: auto;
-                margin-right: auto;
+            @include breakpoint($breakpoint-tablet) {
+                width: 210px;
+                align-content: normal;
+                display: flex;
+                margin-left: 0;
+                margin-right: 0;
             }
         }
     }
@@ -252,29 +280,25 @@ textarea {
 }
 
 #content-area {
+    margin-left: 0;
+    padding: 80px 24px 24px 24px;
 
-    /* Same as the width of the lhn */
-    margin-left: 420px;
-    padding: 52px 68px;
-    box-sizing: border-box;
+    @include breakpoint($breakpoint-tablet) {
+        margin-left: 320px;
+    }
 
-    @media screen and (min-width: 1600px) {
+    @include breakpoint($breakpoint-desktop) {
+        /* Same as the width of the lhn */
+        margin-left: 420px;
+        padding: 52px 68px;
+        box-sizing: border-box;
+    }
+
+    @include breakpoint($breakpoint-wide) {
         /* Center content area for bigger screens */
         margin-left: calc(420px + (100vw - 1000px - 420px)/2);
         padding: 52px 0;
         max-width: 1000px;
-    }
-
-    @media screen and (max-width: 1024px) {
-        margin-left: 320px;
-    }
-
-    @media screen and (max-width: 800px) {
-        margin-left: 0;
-        padding-top: 80px;
-        padding-left: 24px;
-        padding-right: 24px;
-        padding-bottom: 24px;
     }
 
     ul,
@@ -340,43 +364,37 @@ textarea {
     column-gap: 4%;
     padding-bottom: 20px;
 
-    @media screen and (min-width: 800px) {
+    @include breakpoint($breakpoint-desktop) {
         grid-template-columns: 48% 48%;
     }
 }
 
 .card {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     border-radius: 16px;
-    border: 1px solid $color-gray2;
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
-    $border-amount-darken: 15%;
     color: $color-dark;
 
-    &:hover {
-        border-color: darken($color-gray2, $border-amount-darken);
-        color: $color-dark;
-    }
+    @include card-border($color-gray2, 1px);
 
     &.send-money {
-        border-color: $color-blue;
-        border-width: 1.5px;
-
-        &:hover {
-            border-color: darken($color-blue, $border-amount-darken);
-        }
+        @include card-border($color-blue);
     }
 
     &.request-money {
-        border-color: $color-green;
-        border-width: 1.5px;
+        @include card-border($color-green);
+    }
 
-        &:hover {
-            border-color: darken($color-green, $border-amount-darken);
-        }
+    &.get-help {
+        @include card-border($color-pink);
+    }
+
+    .row {
+        display: flex;
+        flex-basis:100%;
     }
 
     .left-icon {
@@ -395,6 +413,18 @@ textarea {
         padding-left: 16px;
     }
 
+    .submit-button {
+        display: flex;
+        align-items: center;
+        margin-top: 16px;
+        padding-left: 0;
+
+        @include breakpoint($breakpoint-desktop) {
+            margin-top: 0;
+            padding-left: 16px;
+        }
+    }
+
     .body {
         display: flex;
         flex-wrap: nowrap;
@@ -402,8 +432,14 @@ textarea {
         flex-grow: 2;
     }
 
-    .description {
-        margin-top: 16px;
+    h3.title {
+        padding: 0;
+        margin: 0;
+    }
+
+    p.description {
+        padding: 0;
+        margin: 16px 0 0 0;
         font-weight: normal;
     }
 }
@@ -420,11 +456,11 @@ textarea {
 
 .homepage {
     h1 {
+        margin-top: 0;
         padding-bottom: 20px;
-
-        @media screen and (max-width: 800px) {
-            margin-top: 0;
-            padding-top: 8px;
+        padding-top: 8px;
+        @include breakpoint($breakpoint-tablet) {
+            padding-top: 0px;
         }
     }
     h2  {
@@ -439,30 +475,28 @@ textarea {
 }
 
 .centered-content {
-    width: 500px;
     height: 240px;
     text-align: center;
     font-size: larger;
     position: absolute;
-    top: calc((100vh - 240px)/2);
-    right: calc((100vw - 500px)/2);
+    top: calc((100vh - 240px) / 2);
+
+    width: 380px;
+    right: calc((100vw - 380px) / 2);
+    @include breakpoint($breakpoint-tablet) {
+        width: 500px;
+        right: calc((100vw - 500px) / 2);
+    }
 
     &.with-lhn {
-        right: calc((100vw - 420px - 500px)/2);
-    }
+        right: calc((100vw - 380px) / 2);
 
-    @media screen and (max-width: 1024px) {
-        &.with-lhn {
-            right: calc((100vw - 320px - 500px)/2);
+        @include breakpoint($breakpoint-tablet) {
+            right: calc((100vw - 320px - 500px ) / 2);
         }
-    }
 
-    @media screen and (max-width: 800px) {
-        width: 380px;
-        right: calc((100vw - 380px)/2);
-
-        &.with-lhn {
-            right: calc((100vw - 380px)/2);
+        @include breakpoint($breakpoint-desktop) {
+            right: calc((100vw - 420px - 500px) / 2);
         }
     }
 
@@ -474,11 +508,41 @@ textarea {
         font-size: 20px;
     }
 
-    #icon {
+    .icon {
         width: 76px;
         padding: 28px;
         display: block;
         margin-left: auto;
         margin-right: auto;
+    }
+}
+
+#floating-concierge-button-global {
+    position: fixed;
+    display: block;
+    @include breakpoint($breakpoint-tablet) {
+        display: none;
+    }
+}
+
+#floating-concierge-button-lhn {
+    position: absolute;
+    display: none;
+    @include breakpoint($breakpoint-tablet) {
+        display: block;
+    }
+}
+
+.floating-concierge-button {
+    bottom: 2rem;
+    right: 2rem;
+
+    img {
+        width: 4rem;
+        height: 4rem;
+
+        &:hover {
+            filter: saturate(2);
+        }
     }
 }

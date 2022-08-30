@@ -11,7 +11,8 @@ import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
-import * as Policy from '../libs/actions/Policy';
+import {fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
@@ -27,6 +28,9 @@ const propTypes = {
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
+    /** All the user's policies (from Onyx via withFullPolicy) */
+    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
+
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
@@ -34,13 +38,14 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** The user's wallet (coming from Onyx) */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 };
 
 const defaultProps = {
     size: 'default',
     tooltipText: '',
     policiesMemberList: {},
+    policies: {},
     bankAccountList: {},
     cardList: {},
     userWallet: {},
@@ -54,9 +59,23 @@ const AvatarWithIndicator = (props) => {
         isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
     ];
 
-    const hasPolicyMemberError = _.some(props.policiesMemberList, policyMembers => Policy.hasPolicyMemberError(policyMembers));
-    const hasPaymentMethodError = PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList);
-    const hasWalletError = !_.isEmpty(props.userWallet.errors);
+    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
+    // those should be cleaned out before doing any error checking
+    const cleanPolicies = _.pick(props.policies, policy => policy);
+    const cleanPolicyMembers = _.pick(props.policiesMemberList, member => member);
+
+    // All of the error-checking methods are put into an array. This is so that using _.some() will return
+    // early as soon as the first error is returned. This makes the error checking very efficient since
+    // we only care if a single error exists anywhere.
+    const errorCheckingMethods = [
+        () => !_.isEmpty(props.userWallet.errors),
+        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
+        () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
+        () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
+        () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
+    ];
+    const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
+
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
@@ -65,7 +84,7 @@ const AvatarWithIndicator = (props) => {
                     source={props.source}
                     size={props.size}
                 />
-                {(hasPolicyMemberError || hasPaymentMethodError || hasWalletError) && (
+                {shouldShowIndicator && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -80,6 +99,9 @@ AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 export default withOnyx({
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
