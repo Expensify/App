@@ -652,7 +652,6 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
  * @param {Object} values
  */
 function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
-    const customUnitRateID = lodashGet(values, 'customUnitRateID', '');
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -661,7 +660,7 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRateID]: {
+                            [values.customUnitRateID]: {
                                 ...values,
                                 errors: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -681,7 +680,7 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRateID]: {
+                            [values.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
