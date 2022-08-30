@@ -580,4 +580,5 @@ export {
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
+    setAdditionalDetailsLoading,
 };

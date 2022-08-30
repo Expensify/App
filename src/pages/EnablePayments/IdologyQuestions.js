@@ -15,6 +15,8 @@ import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from "../../CONST";
+import * as PaymentMethods from "../../libs/actions/PaymentMethods";
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -43,6 +45,16 @@ const propTypes = {
         /** What error do we need to handle */
         errorCode: PropTypes.string,
     }),
+
+    /** User wallet props */
+    userWallet: PropTypes.shape({
+
+        /**  The step in the wallet configuration we are in. */
+        currentStep: PropTypes.string,
+
+        /**  What tier does the user has for their wallet */
+        tierName: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -52,6 +64,10 @@ const defaultProps = {
         isLoading: false,
         errors: {},
         errorCode: '',
+    },
+    userWallet: {
+        currentStep: '',
+        tierName: '',
     },
 };
 
@@ -73,6 +89,17 @@ class IdologyQuestions extends React.Component {
             /** Any error message */
             errorMessage: '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD) {
+            return;
+        }
+
+        if (this.props.walletAdditionalDetails.isLoading) {
+            PaymentMethods.continueSetup();
+            BankAccounts.setAdditionalDetailsLoading(false);
+        }
     }
 
     /**
@@ -190,4 +217,7 @@ export default compose(withLocalize(IdologyQuestions), withOnyx({
     walletAdditionalDetails: {
         key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
     },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
+    }
 }))(IdologyQuestions);
