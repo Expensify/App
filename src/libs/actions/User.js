@@ -426,10 +426,10 @@ function updateChatPriorityMode(mode) {
 }
 
 /**
- * @param {Boolean} useStagingServer
+ * @param {Boolean} shouldUseStagingServer
  */
-function setUseStagingServer(useStagingServer) {
-    Onyx.merge(ONYXKEYS.USER, {useStagingServer});
+function setShouldUseStagingServer(shouldUseStagingServer) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 
 function clearUserErrorMessage() {
@@ -504,7 +504,7 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
-    setUseStagingServer,
+    setShouldUseStagingServer,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,
