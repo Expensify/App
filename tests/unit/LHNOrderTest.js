@@ -305,6 +305,41 @@ describe('Sidebar', () => {
                 });
         });
 
+        test('reorders the reports to keep draft reports on top', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+                // GIVEN the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with a draft on report 2
+                // with reports in top-to-bottom order of 3 > 2 > 1
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`]: true,
+                }))
+
+                // WHEN the currently active chat is switched to report 1 (the one on the bottom)
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
+
+                // THEN the order of the reports should be 2 > 3 > 1
+                //                                         ^--- (2 goes to the front and pushes 3 down)
+                .then(() => {
+                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    expect(reportOptions).toHaveLength(3);
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
+                });
+        });
+
         test('removes the pencil icon when draft is removed', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks();
 
