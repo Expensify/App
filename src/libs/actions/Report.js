@@ -1165,44 +1165,29 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
+
+    // Let's add the strike-through to the message if the user goes/is offline.
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         },
     };
 
-    // TODO: Change the unreadCount here (I'll remove this comment later, I swear :p)
-    // const optimisticReport = {
-    //     lastMessageText
-    // };
-    // If the deleted comment is more recent than our last read comment, update the unread count
-    // if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-    //     optimisticReport.unreadActionCount = Math.max(getUnreadActionCount(reportID) - 1, 0);
-    // }
-
-    // List of optimistic data to change
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: optimisticReportActions,
-        },
-        // {
-        //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        //     value: optimisticReport,
-        // },
-    ];
-
-    // On Success remove pendingAction state, the message itself will be cleared by Pusher
-    const successData = {
-        [sequenceNumber]: {
-            pendingAction: null,
-        },
+    // If we are deleting the last visible message, let's find the previous visible one
+    // and update the lastMessageText in the chat preview.
+    const optimisticReport = {
+        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
+            [sequenceNumber]: {
+                message: [{
+                    html: '',
+                    text: '',
+                }],
+            },
+        }),
     };
 
-    // On Error clear the pendingAction state and revert the message
-    // TODO: Rollback the unreadCount (I'll remove this comment later, I swear :p)
+    // If the API call fails we must show the message again, so let's revert the message content back to how it was
+    // and let's remove the pendingAction so the strike-trough is gone
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1216,12 +1201,39 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
+    // If we are deleting an unread message, let's decrease the unreadActionCount.
+    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
+        const unreadActionCount = getUnreadActionCount(reportID);
+        optimisticReport.unreadActionCount = Math.max(unreadActionCount - 1, 0);
+
+        // And if the API call fails, let's rollback to the previous counter value.
+        failureData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {unreadActionCount},
+        });
+    }
+
+    // No need for successData because the API will clear the message on success with Pusher
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticReportActions,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        },
+    ];
+
     const parameters = {
         reportID,
         sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
-    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
+    API.write('DeleteComment', parameters, {optimisticData, failureData});
 }
 
 /**
