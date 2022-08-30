@@ -691,16 +691,19 @@ function capitalizeFirstLetter(value) {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function getAllPolicies() {
-    return allPolicies;
-}
-
 /**
  * Generate a policy name based on an email and policy list.
  * @param {String} email
+ * @param {Array} polices
  * @returns {String}
  */
-function generateDefaultWorkspaceName(email) {
+function generateDefaultWorkspaceName(email, polices = null) {
+    let userPolicies = null;
+    if (!polices) {
+        userPolicies = allPolicies;
+    } else {
+        userPolicies = polices;
+    }
     const emailParts = email.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
@@ -708,7 +711,6 @@ function generateDefaultWorkspaceName(email) {
     }
     const username = emailParts[0];
     const domain = emailParts[1];
-
     if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
         defaultWorkspaceName = `${capitalizeFirstLetter(username)}'s Workspace`;
     } else {
@@ -719,18 +721,17 @@ function generateDefaultWorkspaceName(email) {
         defaultWorkspaceName = 'My Group Workspace';
     }
 
-    if (defaultWorkspaceName === '') {
+    if (userPolicies.length === 0) {
         return defaultWorkspaceName;
     }
-    console.log('this is all the polices ', getAllPolicies());
 
     // Check if this name already exists in the policies
     let suffix = 0;
-    _.forEach(getAllPolicies(), (policy) => {
+    _.forEach(userPolicies, (policy) => {
         // Get the name of the policy
         const {name} = policy;
 
-        if (_.includes(name, defaultWorkspaceName)) {
+        if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
             suffix += 1;
         }
     });
@@ -773,5 +774,4 @@ export {
     deleteWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
-    getAllPolicies,
 };
