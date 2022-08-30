@@ -2,7 +2,6 @@ const core = require('@actions/core');
 const Diff = require('diff');
 const github = require('@actions/github');
 const GitHubUtils = require('../../../libs/GithubUtils');
-require('colors');
 
 /* eslint-disable max-len */
 const completedContributorChecklist = `#### Contributor (PR Author) Checklist
@@ -103,17 +102,8 @@ const issue = github.context.payload.issue ? github.context.payload.issue.number
 const combinedData = [];
 
 function printDiff(result, expected) {
-    const diff = Diff.diffTrimmedLines(result, expected);
-
-    diff.forEach((part) => {
-        // green for additions, red for deletions, grey for common parts
-
-        // eslint-disable-next-line no-nested-ternary
-        const color = !part.added ? part.removed ? 'red' : 'grey' : 'green';
-        process.stderr.write(part.value[color]);
-    });
-
-    console.log();
+    const diff = Diff.createPatch('', result, expected, '', '');
+    console.log(diff);
 }
 
 // Get all user text from the pull request, review comments, and pull request comments
@@ -145,14 +135,20 @@ GitHubUtils.octokit.pulls.get({
         for (let i = 0; i < combinedData.length; i++) {
             const whitespace = /([\n\r])/gm;
             const comment = combinedData[i].body.replace(whitespace, '');
-            printDiff(comment, completedContributorChecklist);
 
-            if (comment.contains(completedContributorChecklist.replace(whitespace, ''))) {
+            if (comment.includes('I wrote clear testing steps that cover the changes made in this PR')) {
+                printDiff(comment, completedContributorChecklist);
+            }
+
+            if (comment.includes(completedContributorChecklist.replace(whitespace, ''))) {
                 contributorChecklistComplete = true;
             }
-            printDiff(comment, completedContributorPlusChecklist);
 
-            if (comment.contains(completedContributorPlusChecklist.replace(whitespace, ''))) {
+            if (comment.includes('I verified testing steps are clear and they cover the changes made in this PR')) {
+                printDiff(comment, completedContributorPlusChecklist);
+            }
+
+            if (comment.includes(completedContributorPlusChecklist.replace(whitespace, ''))) {
                 contributorPlusChecklistComplete = true;
             }
         }
