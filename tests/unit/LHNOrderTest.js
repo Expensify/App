@@ -305,7 +305,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('keeps draft reports at the top of the list', () => {
+        test('removes the pencil icon when draft is removed', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
@@ -326,21 +326,18 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`]: true,
                 }))
 
-                // WHEN the active chat is switched to report 1 (the one on the bottom)
-                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, '1'))
-
-                // THEN the pencil icon should still be visible
-                // and the order of the reports should be 2 > 3 > 1
-                //                                        ^--- (2 goes to the front and pushes 3 down)
                 .then(() => {
                     const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
                     expect(pencilIcon).toHaveLength(1);
+                })
 
-                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-                    expect(reportOptions).toHaveLength(3);
-                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
-                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
-                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                // WHEN the draft on report 2 is removed
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`, null))
+
+                // THEN the pencil icon goes away
+                .then(() => {
+                    const pencilIcon = sidebarLinks.queryAllByAccessibilityHint('Pencil Icon');
+                    expect(pencilIcon).toHaveLength(0);
                 });
         });
     });
