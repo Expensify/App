@@ -49,6 +49,18 @@ const fakePersonalDetails = {
         avatar: 'none',
         firstName: 'Three',
     },
+    'email7@test.com': {
+        login: 'email7@test.com',
+        displayName: 'Email Seven',
+        avatar: 'none',
+        firstName: 'ReportID',
+    },
+    'email8@test.com': {
+        login: 'email8@test.com',
+        displayName: 'Email Eight',
+        avatar: 'none',
+        firstName: 'Four',
+    },
 };
 
 const fakeReport1 = {
@@ -73,6 +85,16 @@ const fakeReport3 = {
     unreadActionCount: 0,
     lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
+};
+const fakeReportIOU = {
+    reportID: 4,
+    reportName: 'Report IOU Four',
+    unreadActionCount: 0,
+    lastMessageTimestamp: Date.now() - 1000,
+    participants: ['email5@test.com', 'email6@test.com'],
+    ownerEmail: 'email2@test.com',
+    hasOutstandingIOU: true,
+    total: 10000,
 };
 
 const fakeReport1Actions = {
@@ -109,9 +131,11 @@ const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
+    SESSION: 'session',
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
+        REPORT_IOUS: 'reportIOUs_',
     },
 };
 
@@ -143,6 +167,7 @@ function getDefaultRenderedSidebarLinks() {
 jest.mock('../../src/components/Icon/Expensicons', () => ({
     MagnifyingGlass: () => '',
     Pencil: () => '',
+    Pin: () => '',
 }));
 
 describe('Sidebar', () => {
@@ -426,7 +451,46 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by IOU > pinned > draft', () => {
+            let sidebarLinks = getDefaultRenderedSidebarLinks();
 
+            return waitForPromisesToResolve()
+
+                // GIVEN the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with a draft on report 2
+                // with the current user set to email1@
+                // with a report that has a draft, a report that is pinned, and
+                //    an outstanding IOU report that doesn't belong to the current user
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
+                    [ONYXKEYS.SESSION]: {email: 'email1@test.com'},
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, isPinned: true},
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, iouReportID: 4, hasOutstandingIOU: true},
+                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}4`]: {...fakeReportIOU, chatReportID: 3},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                }))
+
+                // THEN the reports are ordered by IOU > Pinned > Draft
+                // there is a pencil icon
+                // there is a pinned icon
+                // there is an IOU badge
+                .then(() => {
+                    // sidebarLinks.debug();
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID/);
+                    // expect(reportOptions).toHaveLength(3);
+                    // expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
+                    // expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
+                    // expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+
+                    expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
+                    expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
+                    // expect(sidebarLinks.getAllByText('$100')).toHaveLength(1);
+                });
         });
     });
 
