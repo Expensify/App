@@ -782,15 +782,16 @@ function capitalizeFirstLetter(value) {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function getAllPolicies() {
+    return allPolicies;
+}
+
 /**
  * Generate a policy name based on the email.
  * @param {String} email
- * @param {Array} policyList
  * @returns {String}
  */
-function generateDefaultWorkspaceName(email, policyList) {
-    const policyListLength = policyList.length;
-    const hasPolicies = policyListLength > 0;
+function generateDefaultWorkspaceName(email) {
     const emailParts = email.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
@@ -809,7 +810,23 @@ function generateDefaultWorkspaceName(email, policyList) {
         defaultWorkspaceName = 'My Group Workspace';
     }
 
-    return hasPolicies ? `${defaultWorkspaceName} ${policyListLength + 1}` : defaultWorkspaceName;
+    if (defaultWorkspaceName === '') {
+        return defaultWorkspaceName;
+    }
+    console.log('this is all the polices ', getAllPolicies());
+
+    // Check if this name already exists in the policies
+    let suffix = 0;
+    _.forEach(getAllPolicies(), (policy) => {
+        // Get the name of the policy
+        const {name} = policy;
+
+        if (_.includes(name, defaultWorkspaceName)) {
+            suffix += 1;
+        }
+    });
+
+    return suffix > 0 ? `${defaultWorkspaceName} ${suffix}` : defaultWorkspaceName;
 }
 
 export {
@@ -835,4 +852,8 @@ export {
     clearAddMemberError,
     hasPolicyMemberError,
     generateDefaultWorkspaceName,
+    deleteWorkspaceAvatar,
+    clearAvatarErrors,
+    generatePolicyID,
+    getAllPolicies,
 };
