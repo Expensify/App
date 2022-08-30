@@ -222,7 +222,7 @@ const OptionRow = (props) => {
                     {!props.hideAdditionalOptionStates && (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {props.option.hasDraftComment && (
-                                <View style={styles.ml2} accessibilityHint="Pencil Icon">
+                                <View style={styles.ml2}>
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
