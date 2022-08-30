@@ -327,7 +327,7 @@ describe('Sidebar', () => {
                 }))
 
                 // WHEN the currently active chat is switched to report 1 (the one on the bottom)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
+                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, '1'))
 
                 // THEN the order of the reports should be 2 > 3 > 1
                 //                                         ^--- (2 goes to the front and pushes 3 down)
