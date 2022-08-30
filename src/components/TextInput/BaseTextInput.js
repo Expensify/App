@@ -15,6 +15,7 @@ import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
+import CONST from '../../CONST';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -30,6 +31,7 @@ class BaseTextInput extends Component {
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
+            selection: props.selection,
 
             // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
@@ -59,19 +61,21 @@ class BaseTextInput extends Component {
             return;
         }
 
+        if (this.props.shouldDelayFocus) {
+            return setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+        }
         this.input.focus();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         // Activate or deactivate the label when value is changed programmatically from outside
         const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
-        if (_.isUndefined(inputValue) || this.state.value === inputValue) {
+        if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {
             return;
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: inputValue});
-        this.input.setNativeProps({text: inputValue});
+        this.setState({value: inputValue, selection: this.props.selection});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (inputValue === '') {
@@ -253,7 +257,6 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-                                        defaultValue={this.state.value}
                                         placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
@@ -274,6 +277,8 @@ class BaseTextInput extends Component {
                                         onPressOut={this.props.onPress}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
+                                        value={this.state.value}
+                                        selection={this.state.selection}
                                     />
                                     {this.props.secureTextEntry && (
                                         <Pressable

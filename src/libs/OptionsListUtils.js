@@ -106,7 +106,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
         if (!personalDetail) {
             personalDetail = {
                 login,
-                displayName: login,
+                displayName: Str.removeSMSDomain(login),
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
@@ -182,12 +182,10 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
  * Determines whether a report has a draft comment.
  *
  * @param {Object} report
- * @param {Object} reportsWithDraft
  * @return {Boolean}
  */
-function hasReportDraftComment(report, reportsWithDraft = {}) {
-    return report
-        && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
+function hasReportDraftComment(report) {
+    return lodashGet(report, 'hasDraft', false);
 }
 
 /**
@@ -219,14 +217,13 @@ function getBrickRoadIndicatorStatusForReport(report, reportActions) {
  * @param {Array<String>} logins
  * @param {Object} personalDetails
  * @param {Object} report
- * @param {Object} reportsWithDraft
  * @param {Object} reportActions
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(logins, personalDetails, report, reportsWithDraft, reportActions = {}, {
+function createOption(logins, personalDetails, report, reportActions = {}, {
     showChatPreviewLine = false,
     forcePolicyNamePreview = false,
 }) {
@@ -237,7 +234,7 @@ function createOption(logins, personalDetails, report, reportsWithDraft, reportA
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
-    const hasDraftComment = hasReportDraftComment(report, reportsWithDraft);
+    const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const iouReport = hasOutstandingIOU
         ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
@@ -369,7 +366,6 @@ function isCurrentUser(userDetails) {
  * @private
  */
 function getOptions(reports, personalDetails, activeReportID, {
-    reportsWithDraft = {},
     reportActions = {},
     betas = [],
     selectedOptions = [],
@@ -428,7 +424,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        const hasDraftComment = hasReportDraftComment(report, reportsWithDraft);
+        const hasDraftComment = hasReportDraftComment(report);
         const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
             ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
             : '';
@@ -475,7 +471,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(createOption(logins, personalDetails, report, reportsWithDraft, reportActions, {
+        allReportOptions.push(createOption(logins, personalDetails, report, reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
@@ -485,7 +481,6 @@ function getOptions(reports, personalDetails, activeReportID, {
         [personalDetail.login],
         personalDetails,
         reportMapForLogins[personalDetail.login],
-        reportsWithDraft,
         reportActions,
         {
             showChatPreviewLine,
@@ -608,7 +603,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        userToInvite = createOption([login], personalDetails, null, reportsWithDraft, reportActions, {
+        userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
@@ -770,11 +765,10 @@ function getMemberInviteOptions(
  * @param {Number} activeReportID
  * @param {String} priorityMode
  * @param {Array<String>} betas
- * @param {Object} reportsWithDraft
  * @param {Object} reportActions
  * @returns {Object}
  */
-function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportsWithDraft, reportActions) {
+function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
@@ -794,7 +788,6 @@ function calculateSidebarOptions(reports, personalDetails, activeReportID, prior
         showChatPreviewLine: true,
         prioritizePinnedReports: true,
         ...sideBarOptions,
-        reportsWithDraft,
         reportActions,
     });
 }

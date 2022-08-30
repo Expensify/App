@@ -106,7 +106,8 @@ class WorkspaceMembersPage extends React.Component {
      */
     toggleAllUsers() {
         this.setState({showTooltipForLogin: ''});
-        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
+        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
             selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
                 ? removableMembers
@@ -263,9 +264,9 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
-        const data = _.chain(policyEmployeeList)
+        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
+        const data = _.chain(policyMemberList)
             .map(email => this.props.personalDetails[email])
             .filter()
             .sortBy(person => person.displayName.toLowerCase())
