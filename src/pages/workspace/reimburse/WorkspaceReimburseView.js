@@ -152,7 +152,7 @@ class WorkspaceReimburseView extends React.Component {
         });
 
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const currentCustomUnitRate = lodashGet(distanceCustomUnit, 'rates', this.state.unitRateID, {});
+        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
         Policy.setCustomUnitRate(this.props.policyID, currentCustomUnitRate, this.state.unitID, {
             ..._.omit(currentCustomUnitRate, 'rate'),
             rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
@@ -196,11 +196,11 @@ class WorkspaceReimburseView extends React.Component {
                     </View>
                     <OfflineWithFeedback
                         errors={{
-                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors']),
-                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors']),
+                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
+                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
                         }}
-                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
-                            || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
+                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'], '')
+                            || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'], '')}
                         onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID, this.state.unitRateID)}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
