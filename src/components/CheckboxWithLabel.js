@@ -106,6 +106,7 @@ class CheckboxWithLabel extends React.Component {
                             styles.flexWrap,
                             styles.flexShrink1,
                             styles.alignItemsCenter,
+                            styles.noSelect,
                         ]}
                     >
                         {this.props.label && (
