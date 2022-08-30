@@ -375,40 +375,6 @@ function updateLocalPolicyValues(policyID, values) {
 }
 
 /**
- * Updates a workspace avatar image
- *
- * @param {String} policyID
- * @param {File|Object} file
- */
-function updateWorkspaceAvatar(policyID, file) {
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        value: {
-            avatarURL: file.uri,
-            errorFields: {
-                avatarURL: null,
-            },
-            pendingFields: {
-                avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            },
-        },
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        value: {
-            avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
-            pendingFields: {
-                avatar: null,
-            },
-        },
-    }];
-
-    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, failureData});
-}
-
-/**
  * Deletes the avatar image for the workspace
  * @param {String} policyID
  */
@@ -855,7 +821,6 @@ export {
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
-    updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
 };
