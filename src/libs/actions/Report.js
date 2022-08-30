@@ -1165,28 +1165,20 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
-
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         },
     };
-    const optimisticReport = {
-        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
-            [sequenceNumber]: {
-                ...reportAction,
-                message: [{
-                    html: '',
-                    text: '',
-                }],
-            },
-        }),
-    };
 
+    // TODO: Change the unreadCount here (I'll remove this comment later, I swear :p)
+    // const optimisticReport = {
+    //     lastMessageText
+    // };
     // If the deleted comment is more recent than our last read comment, update the unread count
-    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-        optimisticReport.unreadActionCount = Math.max(getUnreadActionCount(reportID) - 1, 0);
-    }
+    // if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
+    //     optimisticReport.unreadActionCount = Math.max(getUnreadActionCount(reportID) - 1, 0);
+    // }
 
     // List of optimistic data to change
     const optimisticData = [
@@ -1195,25 +1187,22 @@ function deleteReportComment(reportID, reportAction) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReport,
-        },
+        // {
+        //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        //     value: optimisticReport,
+        // },
     ];
 
-    // On Success remove the message content and pendingAction state
+    // On Success remove pendingAction state, the message itself will be cleared by Pusher
     const successData = {
         [sequenceNumber]: {
             pendingAction: null,
-            message: [{
-                html: '',
-                text: '',
-            }],
         },
     };
 
     // On Error clear the pendingAction state and revert the message
+    // TODO: Rollback the unreadCount (I'll remove this comment later, I swear :p)
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1225,15 +1214,6 @@ function deleteReportComment(reportID, reportAction) {
                 },
             },
         },
-
-        // {
-        //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        //     value: {
-        //         lastMessageText:
-        //         unreadActionCount:
-        //     }
-        // }
     ];
 
     const parameters = {
@@ -1242,24 +1222,6 @@ function deleteReportComment(reportID, reportAction) {
         reportActionID: reportAction.reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
-
-    // If all fails Reverse Optimistic Response:
-    // reportActionsToMerge[sequenceNumber] = {
-    //     ...reportAction,
-    //     message: oldMessage,
-    // };
-
-    // if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-    //     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-    //         unreadActionCount: getUnreadActionCount(reportID) + 1,
-    //     });
-    // }
-
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-    //     lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
-    // });
-
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 }
 
 /**
