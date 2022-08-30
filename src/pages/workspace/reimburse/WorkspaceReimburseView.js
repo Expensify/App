@@ -58,8 +58,14 @@ class WorkspaceReimburseView extends React.Component {
             .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
             .value();
 
+        debugger;
         this.state = {
-            distanceCustomUnit,
+            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+            unitName: lodashGet(distanceCustomUnit, 'name', ''),
+            unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+            rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+            rateName: lodashGet(distanceCustomUnit, 'rates[0].name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -89,7 +95,14 @@ class WorkspaceReimburseView extends React.Component {
                 .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
                 .value();
 
-            this.setState({distanceCustomUnit});
+            this.setState({
+                unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+                unitName: lodashGet(distanceCustomUnit, 'name', ''),
+                unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+                rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+                rateName: lodashGet(distanceCustomUnit, 'rates[0].name', ''),
+                rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
+            });
         }
 
         const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
@@ -112,26 +125,20 @@ class WorkspaceReimburseView extends React.Component {
     setRate(value) {
         const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
 
-        this.setState((prevState) => {
-            const distanceCustomUnit = {...prevState.distanceCustomUnit};
-            distanceCustomUnit.rates[0].rate = !isInvalidRateValue ? value : prevState.rates[0].rate;
-            return {...prevState, distanceCustomUnit};
-        }, () => {
+        this.setState(prevState => ({
+            rateValue: !isInvalidRateValue ? value : prevState.rateValue,
+        }), () => {
             // Set the corrected value with a delay and sync to the server
-            this.updateRateValueDebounced(this.state.distanceCustomUnit.rates[0].rate);
+            this.updateRateValueDebounced(this.state.rateValue);
         });
     }
 
     setUnit(value) {
-        this.setState((prevState) => {
-            const distanceCustomUnit = {...prevState.distanceCustomUnit};
-            distanceCustomUnit.attributes.unit = value;
-            return {...prevState, distanceCustomUnit};
-        });
+        this.setState({unitValue: value});
 
         Policy.setCustomUnit(this.props.policyID, {
-            customUnitID: this.state.distanceCustomUnit.customUnitID,
-            customUnitName: this.state.distanceCustomUnit.name,
+            customUnitID: this.state.unitID,
+            customUnitName: this.state.unitName,
             attributes: {unit: value},
         }, null);
     }
@@ -141,7 +148,7 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        this.updateRateValueDebounced(this.state.distanceCustomUnit.rates[0].rate);
+        this.updateRateValueDebounced(this.state.rateValue);
     }
 
     updateRateValue(value) {
@@ -151,22 +158,18 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        this.setState((prevState) => {
-            const distanceCustomUnit = {...prevState.distanceCustomUnit};
-            distanceCustomUnit.rates[0].rate = numValue.toFixed(3) * 100;
-            return {...prevState, distanceCustomUnit};
+        this.setState({
+            rateValue: numValue.toFixed(3),
         });
 
-        Policy.setCustomUnitRate(this.props.policyID, this.state.distanceCustomUnit.customUnitID, {
-            customUnitRateID: this.state.distanceCustomUnit.rates[0].customUnitRateID,
-            name: this.state.distanceCustomUnit.rates[0].name,
+        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
+            customUnitRateID: this.state.rateID,
+            name: this.state.rateName,
             rate: numValue.toFixed(3) * 100,
         }, null);
     }
 
     render() {
-        const rateValue = this.getRateDisplayValue(lodashGet(this.state.distanceCustomUnit, 'rates[0].rate', 0) / 100);
-        const unitUnitAttribute = lodashGet(this.state.distanceCustomUnit, 'attributes.unit', 'mi');
         return (
             <>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
@@ -208,7 +211,7 @@ class WorkspaceReimburseView extends React.Component {
                                     label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                     placeholder={this.state.outputCurrency}
                                     onChangeText={value => this.setRate(value)}
-                                    defaultValue={rateValue}
+                                    value={this.state.rateValue}
                                     autoCompleteType="off"
                                     autoCorrect={false}
                                     keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -219,7 +222,7 @@ class WorkspaceReimburseView extends React.Component {
                                 <Picker
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                     items={this.unitItems}
-                                    value={unitUnitAttribute}
+                                    value={this.state.unitValue}
                                     onInputChange={value => this.setUnit(value)}
                                 />
                             </View>
