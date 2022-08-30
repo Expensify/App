@@ -57,21 +57,21 @@ const fakeReport1 = {
     unreadActionCount: 0,
 
     // This report's last comment will be in the past
-    lastMessageTimestamp: Date.now() - 2000,
+    lastMessageTimestamp: Date.now() - 3000,
     participants: ['email1@test.com', 'email2@test.com'],
 };
 const fakeReport2 = {
     reportID: 2,
     reportName: 'Report Two',
     unreadActionCount: 0,
-    lastMessageTimestamp: Date.now() - 1000,
+    lastMessageTimestamp: Date.now() - 2000,
     participants: ['email3@test.com', 'email4@test.com'],
 };
 const fakeReport3 = {
     reportID: 3,
     reportName: 'Report Three',
     unreadActionCount: 0,
-    lastMessageTimestamp: Date.now(),
+    lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
 };
 
@@ -267,6 +267,38 @@ describe('Sidebar', () => {
                 const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
                 expect(reportOptions).toHaveLength(3);
                 expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+            });
+    });
+
+    test('reorders the reports when a new action is added to a report', () => {
+        const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+        return waitForPromisesToResolve()
+            // GIVEN the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            // with reports in top-to-bottom order of 3 > 2 > 1
+            .then(() => Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+            }))
+
+            // WHEN a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
+            .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
+
+            // THEN the order of the reports should be 1 > 3 > 2
+            .then(() => {
+                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                expect(reportOptions).toHaveLength(3);
+                expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
+                expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
+                expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
             });
     });
 });
