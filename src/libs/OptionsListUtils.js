@@ -413,8 +413,6 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
-        console.log(report.reportName);
-        console.log(ReportUtils.isArchivedRoom(report));
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
