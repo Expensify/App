@@ -295,6 +295,7 @@ describe('Sidebar', () => {
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
 
                 // THEN the order of the reports should be 1 > 3 > 2
+                //                                         ^--- (1 goes to the front and pushes other two down)
                 .then(() => {
                     const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
                     expect(reportOptions).toHaveLength(3);
@@ -330,6 +331,7 @@ describe('Sidebar', () => {
 
                 // THEN the pencil icon should still be visible
                 // and the order of the reports should be 2 > 3 > 1
+                //                                        ^--- (2 goes to the front and pushes 3 down)
                 .then(() => {
                     const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
                     expect(pencilIcon).toHaveLength(1);
