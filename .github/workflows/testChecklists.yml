@@ -1,4 +1,4 @@
-name: "Contributor Checklist"
+name: Contributor Checklist
 
 on:
   issue_comment:
