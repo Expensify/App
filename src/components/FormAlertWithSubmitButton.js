@@ -9,6 +9,7 @@ const propTypes = {
     buttonText: PropTypes.string.isRequired,
 
     /** Styles for container element */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether to show the alert text */

@@ -43,6 +43,9 @@ const propTypes = {
         /** ID of the policy */
         id: PropTypes.string,
     }).isRequired,
+
+    /** A ref forwarded to the TextInput */
+    forwardedRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -51,6 +54,7 @@ const defaultProps = {
     disabled: false,
     errorText: '',
     ...fullPolicyDefaultProps,
+    forwardedRef: () => {},
 };
 
 class RoomNameInput extends Component {
@@ -91,6 +95,7 @@ class RoomNameInput extends Component {
     render() {
         return (
             <TextInput
+                ref={this.props.forwardedRef}
                 disabled={this.props.disabled}
                 label={this.props.translate('newRoomPage.roomName')}
                 prefixCharacter={CONST.POLICY.ROOM_PREFIX}
@@ -118,4 +123,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
-)(RoomNameInput);
+)(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <RoomNameInput {...props} forwardedRef={ref} />
+)));

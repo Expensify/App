@@ -6,6 +6,7 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
+import stylePropTypes from '../styles/stylePropTypes';
 import Text from './Text';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
@@ -30,7 +31,7 @@ const propTypes = {
     errors: PropTypes.object,
 
     /** A function to run when the X button next to the error is clicked */
-    onClose: PropTypes.func.isRequired,
+    onClose: PropTypes.func,
 
     /** The content that needs offline feedback */
     children: PropTypes.node.isRequired,
@@ -38,18 +39,21 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    /** Additional styles to add after local styles. Applied to the parent container */
+    style: stylePropTypes,
+
+    /** Additional style object for the error row */
+    errorRowStyles: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     pendingAction: null,
     errors: null,
+    onClose: () => {},
     style: [],
+    errorRowStyles: [],
 };
 
 /**
@@ -97,7 +101,7 @@ const OfflineWithFeedback = (props) => {
                 </View>
             )}
             {hasErrors && (
-                <View style={styles.offlineFeedback.error}>
+                <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
                     <View style={styles.offlineFeedback.errorDot}>
                         <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
                     </View>

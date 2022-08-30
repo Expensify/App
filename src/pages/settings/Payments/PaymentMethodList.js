@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -17,6 +18,9 @@ import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
+import Log from '../../../libs/Log';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -152,8 +156,8 @@ class PaymentMethodList extends Component {
             type: BUTTON,
             text: this.props.translate('paymentMethodList.addPaymentMethod'),
             icon: Expensicons.CreditCard,
-            style: [styles.mh4],
-            iconStyles: [styles.mr4],
+            style: [styles.buttonCTA],
+            iconStyles: [styles.buttonCTAIcon],
             onPress: e => this.props.onPress(e),
             isDisabled: this.props.isLoadingPayments,
             shouldShowRightIcon: true,
@@ -162,6 +166,26 @@ class PaymentMethodList extends Component {
         });
 
         return combinedPaymentMethods;
+    }
+
+    /**
+     * Dismisses the error on the payment method
+     * @param {Object} item
+     */
+    dismissError(item) {
+        const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
+        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
+
+        if (!paymentID) {
+            Log.info('Unable to clear payment method error: ', item);
+            return;
+        }
+
+        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
+        } else {
+            PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
+        }
     }
 
     /**
@@ -185,20 +209,27 @@ class PaymentMethodList extends Component {
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
             return (
-                <MenuItem
-                    onPress={item.onPress}
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    disabled={item.disabled}
-                    iconFill={item.iconFill}
-                    iconHeight={item.iconSize}
-                    iconWidth={item.iconSize}
-                    badgeText={this.getDefaultBadgeText(item.isDefault)}
-                    wrapperStyle={item.wrapperStyle}
-                    shouldShowSelectedState={this.props.shouldShowSelectedState}
-                    isSelected={this.props.selectedMethodID === item.methodID}
-                />
+                <OfflineWithFeedback
+                    onClose={() => this.dismissError(item)}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    errorRowStyles={styles.ph6}
+                >
+                    <MenuItem
+                        onPress={item.onPress}
+                        title={item.title}
+                        description={item.description}
+                        icon={item.icon}
+                        disabled={item.disabled}
+                        iconFill={item.iconFill}
+                        iconHeight={item.iconSize}
+                        iconWidth={item.iconSize}
+                        badgeText={this.getDefaultBadgeText(item.isDefault)}
+                        wrapperStyle={item.wrapperStyle}
+                        shouldShowSelectedState={this.props.shouldShowSelectedState}
+                        isSelected={this.props.selectedMethodID === item.methodID}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (item.type === BUTTON) {
@@ -214,7 +245,7 @@ class PaymentMethodList extends Component {
                             iconStyles={item.iconStyles}
                             success={item.success}
                             shouldShowRightIcon={item.shouldShowRightIcon}
-                            extraLarge
+                            large
                         />
                     )}
                 </FormAlertWrapper>
