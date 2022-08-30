@@ -24,6 +24,7 @@ import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './wit
 import * as PolicyActions from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
+import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
 
@@ -124,7 +125,7 @@ class WorkspaceInitialPage extends React.Component {
             {
                 translationKey: 'workspace.common.bankAccount',
                 icon: Expensicons.Bank,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
+                action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
             },
         ];
 
