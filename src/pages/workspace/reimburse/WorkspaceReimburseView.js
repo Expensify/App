@@ -12,8 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
@@ -24,6 +22,7 @@ import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -120,7 +119,7 @@ class WorkspaceReimburseView extends React.Component {
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
         const unitValue = lodashGet(distanceCustomUnit, 'attributes.unit', 'mi');
 
-        if (!state.unitValue || (unitValue !== state.unitValue)) {
+        if (unitValue !== state.unitValue) {
             return {
                 unitValue,
             };
@@ -240,12 +239,12 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                         <Button
                             text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID))}
+                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policyID)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
-                            iconStyles={[styles.mr5]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
-                            extraLarge
+                            large
                             success
                         />
                     </Section>
