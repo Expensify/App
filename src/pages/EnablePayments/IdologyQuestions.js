@@ -233,7 +233,7 @@ class IdologyQuestions extends React.Component {
 IdologyQuestions.propTypes = propTypes;
 IdologyQuestions.defaultProps = defaultProps;
 export default compose(
-    withLocalize(IdologyQuestions),
+    withLocalize,
     withOnyx({
             walletAdditionalDetails: {
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
