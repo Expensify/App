@@ -40,12 +40,17 @@ class BasePopoverMenu extends PureComponent {
         this.attachKeyboardListener = this.attachKeyboardListener.bind(this);
     }
 
-    componentDidMount() {
-        this.attachKeyboardListener();
-    }
+    componentDidUpdate(prevProps) {
+        if (this.props.shouldEnableArrowKeysActions === prevProps.shouldEnableArrowKeysActions
+            && this.props.isVisible === prevProps.isVisible) {
+            return;
+        }
 
-    componentDidUpdate() {
-        this.attachKeyboardListener();
+        if (this.props.shouldEnableArrowKeysActions && this.props.isVisible) {
+            this.attachKeyboardListener();
+        } else {
+            this.removeKeyboardListener();
+        }
     }
 
     componentWillUnmount() {
@@ -53,10 +58,6 @@ class BasePopoverMenu extends PureComponent {
     }
 
     attachKeyboardListener() {
-        if (!this.props.shouldEnableArrowKeysActions || !this.props.isVisible || this.unsubscribeEnterKey) {
-            return;
-        }
-
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnterKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
             if (this.state.focusedIndex === -1) {
@@ -72,7 +73,6 @@ class BasePopoverMenu extends PureComponent {
             return;
         }
         this.unsubscribeEnterKey();
-        this.unsubscribeEnterKey = null;
     }
 
     /**
