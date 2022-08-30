@@ -331,6 +331,17 @@ function updateAvatar(file) {
             },
         },
     }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS,
+        value: {
+            [currentUserEmail]: {
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
@@ -345,7 +356,7 @@ function updateAvatar(file) {
         },
     }];
 
-    API.write('UpdateUserAvatar', {file}, {optimisticData, failureData});
+    API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
 }
 
 /**
