@@ -56,6 +56,7 @@ function getSimplifiedEmployeeList(employeeList) {
  *
  * @param {Object} fullPolicyOrPolicySummary
  * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
+ * @returns {Object}
  */
 function getSimplifiedCustomUnits(fullPolicyOrPolicySummary) {
     const customUnits = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {});
@@ -801,6 +802,7 @@ export {
     invite,
     isAdminOfFreePolicy,
     create,
+    uploadAvatar,
     update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
