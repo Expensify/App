@@ -97,11 +97,8 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
-        // avatar will be nested within the key "value"
-        avatar: fullPolicyOrPolicySummary.avatar
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
-            || fullPolicyOrPolicySummary.avatarURL
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+        // avatarUrl will be nested within the key "value"
+        avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         customUnits: getSimplifiedCustomUnits(fullPolicyOrPolicySummary),
     };
 }
@@ -392,12 +389,12 @@ function updateWorkspaceAvatar(policyID, file) {
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         value: {
-            avatar: file.uri,
+            avatarURL: file.uri,
             errorFields: {
-                avatar: null,
+                avatarURL: null,
             },
             pendingFields: {
-                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     }];
@@ -426,12 +423,12 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 errorFields: {
-                    avatar: null,
+                    avatarURL: null,
                 },
-                avatar: '',
+                avatarURL: '',
             },
         },
     ];
@@ -441,7 +438,10 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatar: null,
+                    avatarURL: null,
+                },
+                errorFields: {
+                    avatarURL: null,
                 },
             },
         },
@@ -452,10 +452,10 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatar: null,
+                    avatarURL: null,
                 },
                 errorFields: {
-                    avatar: {
+                    avatarURL: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
                     },
                 },
@@ -472,10 +472,10 @@ function deleteWorkspaceAvatar(policyID) {
 function clearAvatarErrors(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
-            avatar: null,
+            avatarURL: null,
         },
         pendingFields: {
-            avatar: null,
+            avatarURL: null,
         },
     });
 }
@@ -578,6 +578,29 @@ function clearWorkspaceGeneralSettingsErrors(policyID) {
 }
 
 /**
+ * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
+ *
+ * @param {String} policyID
+ * @param {Object} file
+ */
+function uploadAvatar(policyID, file) {
+    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
+    DeprecatedAPI.User_UploadAvatar({file})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                // Update the policy with the new avatarURL as soon as we get it
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
+                update(policyID, {avatarURL: response.s3url}, true);
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
+            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
+            Growl.error(errorMessage, 5000);
+        });
+}
+
+/**
  * @param {String} policyID
  * @param {Object} errors
  */
@@ -603,16 +626,6 @@ function clearCustomUnitErrors(policyID, customUnitID) {
             },
         },
     });
-}
-
-/**
- * Checks if we have any errors stored within the policy custom units.
- * @param {Object} policy
- * @returns {Boolean}
- */
-function hasCustomUnitsError(policy) {
-    const unitsWithErrors = _.filter(lodashGet(policy, 'customUnits', {}), customUnit => (lodashGet(customUnit, 'errors', null)));
-    return !_.isEmpty(unitsWithErrors);
 }
 
 /**
@@ -881,7 +894,6 @@ export {
     update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
-    hasCustomUnitsError,
     hideWorkspaceAlertMessage,
     deletePolicy,
     createAndNavigate,
