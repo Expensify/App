@@ -251,13 +251,12 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {hasDraft: true, ...fakeReport1},
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}1`]: true,
                 }))
 
                 // THEN there should be a pencil icon and report one should still be the last one
@@ -318,12 +317,11 @@ describe('Sidebar', () => {
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {hasDraft: true, ...fakeReport2},
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`]: true,
                 }))
 
                 // WHEN the currently active chat is switched to report 1 (the one on the bottom)
@@ -353,12 +351,11 @@ describe('Sidebar', () => {
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {hasDraft: true, ...fakeReport2},
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`]: true,
                 }))
 
                 .then(() => {
@@ -367,7 +364,7 @@ describe('Sidebar', () => {
                 })
 
                 // WHEN the draft on report 2 is removed
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`, null))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {hasDraft: null}))
 
                 // THEN the pencil icon goes away
                 .then(() => {
@@ -390,12 +387,11 @@ describe('Sidebar', () => {
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {hasDraft: true, ...fakeReport2},
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`]: true,
                 }))
 
                 // WHEN the sidebar is re-rendered from scratch, simulating a page refresh
