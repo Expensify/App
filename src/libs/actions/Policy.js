@@ -51,22 +51,6 @@ function getSimplifiedEmployeeList(employeeList) {
 }
 
 /**
- * We pass customUnit rates from PHP as an array, even though there's only ever a single rate per custom unit.
- * This flattens the array of rates so that we store the single rate directly.
- *
- * @param {Object} fullPolicyOrPolicySummary
- * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
- * @returns {Object}
- */
-function getSimplifiedCustomUnits(fullPolicyOrPolicySummary) {
-    const customUnits = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {});
-    _.forEach(customUnits, (customUnit, customUnitID) => {
-        customUnits[customUnitID].rates = lodashGet(customUnit, 'rates[0]', {});
-    });
-    return customUnits;
-}
-
-/**
  * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
@@ -98,7 +82,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatarUrl will be nested within the key "value"
         avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
-        customUnits: getSimplifiedCustomUnits(fullPolicyOrPolicySummary),
+        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
 
