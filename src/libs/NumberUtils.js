@@ -52,6 +52,7 @@ function generateReportActionSequenceNumber() {
 }
 
 export {
+    // eslint-disable-next-line import/prefer-default-export
     rand64,
     generateReportActionSequenceNumber,
 };
