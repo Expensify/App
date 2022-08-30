@@ -4,6 +4,7 @@ import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
+import ConciergePage from '../../../pages/ConciergePage';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 
@@ -30,6 +31,11 @@ const PublicScreens = () => (
             name="SetPassword"
             options={defaultScreenOptions}
             component={SetPasswordPage}
+        />
+        <RootStack.Screen
+            name="Concierge"
+            options={defaultScreenOptions}
+            component={ConciergePage}
         />
     </RootStack.Navigator>
 );
