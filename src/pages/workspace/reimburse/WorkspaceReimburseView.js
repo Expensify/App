@@ -32,11 +32,18 @@ const propTypes = {
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
-        customUnits: PropTypes.objectOf(PropTypes.shape({
-            customUnitID: PropTypes.string,
-            name: PropTypes.string,
-            attributes: PropTypes.shape({
-                unit: PropTypes.string,
+        customUnits: PropTypes.objectOf(
+            PropTypes.shape({
+                customUnitID: PropTypes.string,
+                name: PropTypes.string,
+                attributes: PropTypes.shape({
+                    unit: PropTypes.string,
+                }),
+                rates: PropTypes.shape({
+                    customUnitRateID: PropTypes.string,
+                    name: PropTypes.string,
+                    rate: PropTypes.number,
+                }),
             }),
             rate: PropTypes.arrayOf(PropTypes.shape({
                 customUnitRateID: PropTypes.string,

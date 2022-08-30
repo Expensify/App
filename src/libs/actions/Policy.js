@@ -53,6 +53,21 @@ function getSimplifiedEmployeeList(employeeList) {
 }
 
 /**
+ * For whatever reason, we store customUnit rates in an array, even though there's only ever a single rate per custom unit.
+ * This flattens the array of rates so that we store the single rate directly.
+ *
+ * @param {Object} fullPolicyOrPolicySummary
+ * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
+ */
+function getSimplifiedCustomUnits(fullPolicyOrPolicySummary) {
+    const customUnits = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {});
+    _.forEach(customUnits, (customUnit, customUnitID) => {
+        customUnits[customUnitID].rates = lodashGet(customUnit, 'rates[0]', {});
+    });
+    return customUnits;
+}
+
+/**
  * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
@@ -87,7 +102,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
             || fullPolicyOrPolicySummary.avatarURL
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
-        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
+        customUnits: getSimplifiedCustomUnits(fullPolicyOrPolicySummary),
     };
 }
 
@@ -119,9 +134,11 @@ function updateAllPolicies(policyCollection) {
  * @returns {Promise}
  */
 function create(name = '') {
+    Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
     return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
+            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
@@ -384,15 +401,6 @@ function updateWorkspaceAvatar(policyID, file) {
             },
         },
     }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        value: {
-            pendingFields: {
-                avatar: null,
-            },
-        },
-    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -404,7 +412,7 @@ function updateWorkspaceAvatar(policyID, file) {
         },
     }];
 
-    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, successData, failureData});
+    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, failureData});
 }
 
 /**
@@ -887,6 +895,7 @@ export {
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
+    updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
     openWorkspaceMembersPage,
