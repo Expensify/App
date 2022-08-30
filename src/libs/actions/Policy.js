@@ -699,7 +699,7 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRateID]: {
+                            [currentCustomUnitRate.customUnitRateID]: {
                                 ...currentCustomUnitRate,
                                 errors: {
                                     [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
