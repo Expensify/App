@@ -658,6 +658,7 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+            CORPORATE: 'corporate',
         },
         ROLE: {
             ADMIN: 'admin',
