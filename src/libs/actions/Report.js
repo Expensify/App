@@ -677,7 +677,7 @@ function fetchAllReports(
  * @param {Array} participantList
  * @returns {Object}
  */
-function createOptimisticReport(participantList) {
+function createOptimisticChatReport(participantList) {
     return {
         chatType: '',
         hasOutstandingIOU: false,
@@ -1641,7 +1641,7 @@ export {
     readOldestAction,
     openReport,
     openPaymentDetailsPage,
-    createOptimisticReport,
+    createOptimisticChatReport,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
