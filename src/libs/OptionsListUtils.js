@@ -232,6 +232,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const isDefaultRoom = ReportUtils.isDefaultRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -297,6 +298,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
         isArchivedRoom,
+        isDefaultRoom,
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
         isPolicyExpenseChat,
     };
