@@ -437,48 +437,6 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * Initialize our pusher subscriptions to listen for new report comments and pin toggles
- */
-function subscribeToUserEvents() {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-    if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
-        return;
-    }
-
-    // Live-update a report's actions when an 'edit comment' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
-        currentUserAccountID,
-        ({reportID, sequenceNumber, message}) => {
-            // We only want the active client to process these events once otherwise multiple tabs would decrement the 'unreadActionCount'
-            if (!ActiveClientManager.isClientTheLeader()) {
-                return;
-            }
-
-            const actionsToMerge = {};
-            actionsToMerge[sequenceNumber] = {message: [message]};
-
-            // If someone besides the current user deleted an action and the sequenceNumber is greater than our last read we will decrement the unread count
-            // we skip this for the current user because we should already have decremented the count optimistically when they deleted the comment.
-            const isFromCurrentUser = ReportActions.isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge);
-            if (!message.html && !isFromCurrentUser && sequenceNumber > getLastReadSequenceNumber(reportID)) {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                    unreadActionCount: Math.max(getUnreadActionCount(reportID) - 1, 0),
-                });
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                lastMessageText: ReportActions.getLastVisibleMessageText(reportID, actionsToMerge),
-            });
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionsToMerge);
-        });
-}
-
-/**
  * Setup reportComment push notification callbacks.
  */
 function subscribeToReportCommentPushNotifications() {
