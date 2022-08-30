@@ -49,6 +49,9 @@ const propTypes = {
 
         /** Number of unread actions on the report */
         unreadActionCount: PropTypes.number,
+
+        /** Whether or not the report has a draft comment */
+        hasDraft: PropTypes.bool,
     })),
 
     /** List of users' personal details */
@@ -85,8 +88,6 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
-    reportsWithDraft: {},
-    reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
