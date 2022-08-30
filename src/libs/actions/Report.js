@@ -1582,16 +1582,16 @@ Onyx.connect({
 
 /**
  * Creates an optimistic IOU reportAction
- * @param {String} type
- * @param {Number} amount
- * @param {String} comment
- * @param {String} paymentType
- * @param {String} reportID
- * @param {String} IOUTransactionID
+ * @param {String} type IOU type, oneOf(create, decline, cancel, pay)
+ * @param {Number} amount IOU amount in cents
+ * @param {String} comment User comment for the IOU
+ * @param {String} paymentType Only for pay IOU reportAction type - oneOf(elsewhere, payPal)
+ * @param {String} IOUTransactionID Only for decline and cancel IOU reportAction type
+ * @param {Number} IOUReportID
  *
  * @returns {Object}
  */
-function createIOUReportAction(type, amount, comment, paymentType, reportID, IOUTransactionID) {
+function createIOUReportAction(type, amount, comment, paymentType = '', IOUTransactionID = '', IOUReportID = 0) {
     const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const currency = lodashGet(personalDetails, [currentUserEmail, 'localCurrencyCode']);
     let originalMessage;
@@ -1599,34 +1599,34 @@ function createIOUReportAction(type, amount, comment, paymentType, reportID, IOU
     switch (type) {
         case 'create':
             originalMessage = {
-                IOUReportID: reportID,
                 IOUTransactionID: NumberUtils.rand64(),
                 amount,
                 comment,
                 currency,
+                IOUReportID: ReportUtils.generateReportID(),
                 type,
             };
             break;
         case 'decline':
         case 'cancel':
             originalMessage = {
-                IOUReportID: reportID,
                 IOUTransactionID,
                 amount,
                 comment,
                 currency,
+                IOUReportID,
                 type,
             };
             break;
         case 'pay':
             originalMessage = {
-                IOUReportID: reportID,
                 IOUDetails: {
                     amount,
                     comment,
                     currency,
                 },
                 paymentType,
+                IOUReportID,
                 type,
             };
             break;
@@ -1642,7 +1642,6 @@ function createIOUReportAction(type, amount, comment, paymentType, reportID, IOU
         avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
         clientID: NumberUtils.rand64(),
         isAttachment: false,
-        // message,
         originalMessage,
         person: [{
             style: 'strong',
