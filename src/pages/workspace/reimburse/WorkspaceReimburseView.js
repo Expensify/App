@@ -22,6 +22,9 @@ import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import {withNetwork} from '../../../components/OnyxProvider';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -44,6 +47,9 @@ const propTypes = {
         outputCurrency: PropTypes.string,
         hasVBA: PropTypes.bool,
     }).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
