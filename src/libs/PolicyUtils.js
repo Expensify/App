@@ -23,9 +23,9 @@ function hasPolicyMemberError(policyMemberList) {
  * @return {Boolean}
  */
 function hasPolicyError(policy) {
-    return !_.isEmpty(policy.errors)
+    return !_.isEmpty(lodashGet(policy, 'errors', {}))
         ? true
-        : _.some(policy.errorFields, fieldErrors => !_.isEmpty(fieldErrors));
+        : _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
 }
 
 /**
@@ -35,7 +35,7 @@ function hasPolicyError(policy) {
  * @returns {Boolean}
  */
 function hasCustomUnitsError(policy) {
-    return !_.isEmpty(_.pick(policy.customUnits, 'errors'));
+    return !_.isEmpty(_.pick(lodashGet(policy, 'customUnits', {}), 'errors'));
 }
 
 /**
