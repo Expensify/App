@@ -521,7 +521,7 @@ export default {
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No se pudo cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
-        validatingAccount: 'Verificando cuenta',
+        validateAccount: 'Verificar cuenta',
     },
     stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {
