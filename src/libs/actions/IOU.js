@@ -320,6 +320,72 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
+/**
+ * Creates an optimistic IOU reportAction
+ *
+ * @returns {Object}
+ */
+ function createIOUReportAction(type, amount, comment, paymentType) {
+    let originalMessage = {};
+
+    switch (type) {
+        case 'create':
+            originalMessage = {
+                IOUReport: 1,
+                IOUTransactionID: NumberUtils.rand64(),
+                amount,
+                comment,
+                currency: lodashGet(personalDetails, [currentUserEmail, 'localCurrencyCode']),
+                type,
+            };
+            break;
+        case 'decline':
+        case 'cancel':
+            originalMessage = {
+                IOUReportID: 1,
+                IOUTransactionID: NumberUtils.rand64(),
+                amount,
+                comment,
+                currency: lodashGet(personalDetails, [currentUserEmail, 'localCurrencyCode']),
+                type,
+            };
+            break;
+        case 'pay':
+            originalMessage = {
+                IOUReportID: 1,
+                paymentType,
+                type,
+            };
+            break;
+    };
+
+    return ({
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+        clientID: NumberUtils.rand64(),
+        isAttachment: false,
+        message: [{
+            type: 'COMMENT',
+            html: ,
+            text: ,
+        }],
+        originalMessage,
+        person: [{
+            style: 'strong',
+            text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+            type: 'TEXT',
+        }],
+        reportActionID: NumberUtils.rand64(),
+        sequenceNumber: parseInt(`${Date.now()}${randomNumber}`, 10),
+        shouldShow: true,
+        timestamp: moment().unix(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    });
+}
+
 export {
     createIOUTransaction,
     createIOUSplit,
@@ -327,4 +393,5 @@ export {
     rejectTransaction,
     payIOUReport,
     setIOUSelectedCurrency,
+    createIOUReportAction,
 };
