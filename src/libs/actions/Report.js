@@ -1582,56 +1582,33 @@ Onyx.connect({
 
 /**
  * Creates an optimistic IOU reportAction
- * @param {String} type IOU type, oneOf(create, decline, cancel, pay)
- * @param {Number} amount IOU amount in cents
- * @param {String} comment User comment for the IOU
- * @param {String} paymentType Only for pay IOU reportAction type - oneOf(elsewhere, payPal)
- * @param {String} IOUTransactionID Only for decline and cancel IOU reportAction type
- * @param {Number} IOUReportID
+ *
+ * @param {String} type IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {Number} amount IOU amount in cents.
+ * @param {String} comment user comment for the IOU.
+ * @param {String} paymentType passed only for IOUReportActions with type = pay IOU. Can be oneOf(elsewhere, payPal).
+ * @param {String} IOUTransactionID passed only for IOUReportActions with type = oneOf(cancel, decline). Generates a randomID as default.
+ * @param {Number} IOUReportID passed only for IOUReportActions with type = oneOf(decline, cancel, pay). Generates a randomID as default.
  *
  * @returns {Object}
  */
-function createIOUReportAction(type, amount, comment, paymentType = '', IOUTransactionID = '', IOUReportID = 0) {
+function createIOUReportAction(type, amount, comment, paymentType = '', IOUTransactionID = NumberUtils.rand64(), IOUReportID = ReportUtils.generateReportID()) {
     const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const currency = lodashGet(personalDetails, [currentUserEmail, 'localCurrencyCode']);
-    let originalMessage;
+    const originalMessage = {
+        amount,
+        comment,
+        currency,
+        IOUTransactionID,
+        IOUReportID,
+        type,
+    };
 
-    switch (type) {
-        case 'create':
-            originalMessage = {
-                IOUTransactionID: NumberUtils.rand64(),
-                amount,
-                comment,
-                currency,
-                IOUReportID: ReportUtils.generateReportID(),
-                type,
-            };
-            break;
-        case 'decline':
-        case 'cancel':
-            originalMessage = {
-                IOUTransactionID,
-                amount,
-                comment,
-                currency,
-                IOUReportID,
-                type,
-            };
-            break;
-        case 'pay':
-            originalMessage = {
-                IOUDetails: {
-                    amount,
-                    comment,
-                    currency,
-                },
-                paymentType,
-                IOUReportID,
-                type,
-            };
-            break;
-        default:
-            originalMessage = {};
+    if (type === 'pay') {
+        // We store amount, comment, currency in IOUDetails when type = pay
+        _.omit(originalMessage, ['amount', 'comment', 'currency']);
+        originalMessage.IOUDetails = {amount, comment, currency};
+        originalMessage.paymentType = paymentType;
     }
 
     return ({
