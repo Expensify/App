@@ -381,19 +381,9 @@ const styles = {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 14,
         paddingBottom: 8,
-        paddingLeft: 12,
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    buttonExtraLarge: {
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeExtraLarge,
-        paddingTop: 12,
-        paddingRight: 18,
-        paddingBottom: 12,
-        paddingLeft: 18,
+        paddingLeft: 14,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -413,13 +403,6 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonExtraLargeText: {
-        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -471,6 +454,15 @@ const styles = {
     noLeftBorderRadius: {
         borderTopLeftRadius: 0,
         borderBottomLeftRadius: 0,
+    },
+
+    buttonCTA: {
+        paddingVertical: 6,
+        ...spacing.mh4,
+    },
+
+    buttonCTAIcon: {
+        marginRight: 22,
     },
 
     buttonConfirm: {
@@ -670,7 +662,8 @@ const styles = {
     },
 
     offlineIndicatorMobile: {
-        marginLeft: 25,
+        paddingLeft: 20,
+        paddingBottom: 9,
     },
 
     // Actions
@@ -982,6 +975,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -994,6 +988,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -1008,8 +1003,18 @@ const styles = {
         backgroundColor: themeColors.online,
     },
 
-    statusIndicatorOffline: {
-        backgroundColor: themeColors.offline,
+    avatarWithIndicator: {
+        errorDot: {
+            borderColor: themeColors.sidebar,
+            borderRadius: 6,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -1,
+            bottom: -1,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
     },
 
     floatingActionButton: {
@@ -1367,7 +1372,6 @@ const styles = {
     },
 
     chatFooter: {
-        minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
@@ -1385,7 +1389,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         color: themeColors.text,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
@@ -1462,7 +1466,7 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -2367,9 +2371,6 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-    },
-
-    peopleRowOfflineFeedback: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
@@ -2412,7 +2413,6 @@ const styles = {
         },
         text: {
             color: themeColors.textSupporting,
-            flex: 1,
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
         },
@@ -2619,6 +2619,39 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
+    },
+
+    avatarCropModalContainer: {
+        maxWidth: 450, // this width was chosen to match layout to average mobile device
+    },
+
+    imageCropContainer: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.shadow,
+    },
+
+    sliderKnob: {
+        backgroundColor: themeColors.badgeSuccessBG,
+        position: 'absolute',
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+        top: -variables.sliderBarHeight,
+        left: -(variables.sliderKnobSize / 2),
+    },
+
+    sliderBar: {
+        backgroundColor: themeColors.border,
+        height: variables.sliderBarHeight,
+        borderRadius: variables.sliderBarHeight / 2,
+        alignSelf: 'stretch',
+    },
+
+    imageCropRotateButton: {
+        height: variables.iconSizeExtraLarge,
     },
 
     userSelectText: {

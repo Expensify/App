@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import NetInfo from '@react-native-community/netinfo';
 import AppStateMonitor from './AppStateMonitor';
-import promiseAllSettled from './promiseAllSettled';
 import Log from './Log';
 import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
@@ -22,9 +21,7 @@ const reconnectionCallbacks = [];
  */
 const triggerReconnectionCallbacks = _.throttle((reason) => {
     Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-    NetworkActions.setIsLoadingAfterReconnect(true);
-    promiseAllSettled(_.map(reconnectionCallbacks, callback => callback()))
-        .then(() => NetworkActions.setIsLoadingAfterReconnect(false));
+    _.each(reconnectionCallbacks, callback => callback());
 }, 5000, {trailing: false});
 
 /**
@@ -81,8 +78,6 @@ function listenForReconnect() {
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
     });
-
-    subscribeToNetInfo();
 }
 
 /**
@@ -130,4 +125,5 @@ export default {
     onReconnect,
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
+    subscribeToNetInfo,
 };

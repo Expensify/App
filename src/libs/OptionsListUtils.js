@@ -3,6 +3,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
+import memoizeOne from 'memoize-one';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -39,18 +40,6 @@ let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
-});
-
-const reportsWithDraft = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
-    callback: (hasDraft, key) => {
-        if (!key) {
-            return;
-        }
-
-        reportsWithDraft[key] = hasDraft;
-    },
 });
 
 const policies = {};
@@ -117,7 +106,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
         if (!personalDetail) {
             personalDetail = {
                 login,
-                displayName: login,
+                displayName: Str.removeSMSDomain(login),
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
@@ -196,9 +185,30 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
  * @return {Boolean}
  */
 function hasReportDraftComment(report) {
-    return report
-        && reportsWithDraft
-        && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
+    return lodashGet(report, 'hasDraft', false);
+}
+
+/**
+ * If the report or the report actions have errors, return
+ * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
+ *
+ * @param {Object} report
+ * @param {Object} reportActions
+ * @returns {String}
+ */
+function getBrickRoadIndicatorStatusForReport(report, reportActions) {
+    const reportErrors = lodashGet(report, 'errors', {});
+    const reportErrorFields = lodashGet(report, 'errorFields', {});
+    const reportID = lodashGet(report, 'reportID');
+    const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+
+    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
+    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
+
+    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
+        return '';
+    }
+    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
 }
 
 /**
@@ -207,13 +217,15 @@ function hasReportDraftComment(report) {
  * @param {Array<String>} logins
  * @param {Object} personalDetails
  * @param {Object} report
+ * @param {Object} reportActions
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(logins, personalDetails, report, {
-    showChatPreviewLine = false, forcePolicyNamePreview = false,
+function createOption(logins, personalDetails, report, reportActions = {}, {
+    showChatPreviewLine = false,
+    forcePolicyNamePreview = false,
 }) {
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -261,6 +273,7 @@ function createOption(logins, personalDetails, report, {
     return {
         text: reportName,
         alternateText,
+        brickRoadIndicator: getBrickRoadIndicatorStatusForReport(report, reportActions),
         icons: ReportUtils.getIcons(report, personalDetails, policies, lodashGet(personalDetail, ['avatar'])),
         tooltipText,
         ownerEmail: lodashGet(report, ['ownerEmail']),
@@ -353,6 +366,7 @@ function isCurrentUser(userDetails) {
  * @private
  */
 function getOptions(reports, personalDetails, activeReportID, {
+    reportActions = {},
     betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
@@ -390,6 +404,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     if (sortByAlphaAsc) {
         sortProperty = ['reportName'];
     }
+
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
     let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
 
@@ -456,17 +471,21 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(createOption(logins, personalDetails, report, {
+        allReportOptions.push(createOption(logins, personalDetails, report, reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
-    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
+    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => createOption(
+        [personalDetail.login],
+        personalDetails,
+        reportMapForLogins[personalDetail.login],
+        reportActions,
+        {
             showChatPreviewLine,
             forcePolicyNamePreview,
-        })
+        },
     ));
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -584,7 +603,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        userToInvite = createOption([login], personalDetails, null, {
+        userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
@@ -746,15 +765,10 @@ function getMemberInviteOptions(
  * @param {Number} activeReportID
  * @param {String} priorityMode
  * @param {Array<String>} betas
+ * @param {Object} reportActions
  * @returns {Object}
  */
-function getSidebarOptions(
-    reports,
-    personalDetails,
-    activeReportID,
-    priorityMode,
-    betas,
-) {
+function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
@@ -774,8 +788,11 @@ function getSidebarOptions(
         showChatPreviewLine: true,
         prioritizePinnedReports: true,
         ...sideBarOptions,
+        reportActions,
     });
 }
+
+const getSidebarOptions = memoizeOne(calculateSidebarOptions);
 
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)

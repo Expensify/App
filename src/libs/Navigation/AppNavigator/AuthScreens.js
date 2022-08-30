@@ -3,6 +3,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -36,6 +37,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
 import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
+import ConciergePage from '../../../pages/ConciergePage';
 
 let currentUserEmail;
 Onyx.connect({
@@ -86,6 +88,9 @@ const modalScreenListeners = {
 
 const propTypes = {
     ...windowDimensionsPropTypes,
+
+    /** The current path as reported by the NavigationContainer */
+    currentPath: PropTypes.string.isRequired,
 };
 
 class AuthScreens extends React.Component {
@@ -98,6 +103,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
+        NetworkConnection.onReconnect(() => App.reconnectApp());
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -111,11 +117,8 @@ class AuthScreens extends React.Component {
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        App.getAppData();
-        App.openApp(this.props.allPolicies);
+        App.openApp();
 
-        App.fixAccountAndReloadData();
-        App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -133,6 +136,11 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        // we perform this check here instead of componentDidUpdate to skip an unnecessary re-render
+        if (this.props.currentPath !== nextProps.currentPath) {
+            App.setUpPoliciesAndNavigate(nextProps.session, nextProps.currentPath);
+        }
+
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
@@ -206,6 +214,11 @@ class AuthScreens extends React.Component {
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
                     component={LogOutPreviousUserPage}
+                />
+                <RootStack.Screen
+                    name="Concierge"
+                    options={defaultScreenOptions}
+                    component={ConciergePage}
                 />
 
                 {/* These are the various modal routes */}
@@ -318,9 +331,6 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(AuthScreens);

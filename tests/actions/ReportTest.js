@@ -73,7 +73,7 @@ describe('actions/Report', () => {
             callback: val => reportActions = val,
         });
 
-        let clientID;
+        let sequenceNumber;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -91,17 +91,17 @@ describe('actions/Report', () => {
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
 
-                // Store the generated clientID so that we can send it with our mock Pusher update
-                clientID = resultAction.sequenceNumber;
+                // Store the generated sequenceNumber so that we can send it with our mock Pusher update
+                sequenceNumber = resultAction.sequenceNumber;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction.isLoading).toEqual(true);
+                expect(resultAction.pendingAction).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
                 const actionWithoutLoading = {...resultAction};
-                delete actionWithoutLoading.isLoading;
+                delete actionWithoutLoading.pendingAction;
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -119,7 +119,7 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [clientID]: null,
+                            [sequenceNumber]: null,
                             [ACTION_ID]: actionWithoutLoading,
                         },
                     },
@@ -137,7 +137,7 @@ describe('actions/Report', () => {
                 const resultAction = reportActions[ACTION_ID];
 
                 // Verify that our action is no longer in the loading state
-                expect(resultAction.isLoading).not.toBeDefined();
+                expect(resultAction.pendingAction).not.toBeDefined();
             });
     });
 
@@ -204,7 +204,6 @@ describe('actions/Report', () => {
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         const REPORT_ID = 1;
-
         let report;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
@@ -350,9 +349,9 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [_.toArray(reportActions)[1].clientID]: null,
-                            [_.toArray(reportActions)[2].clientID]: null,
-                            [_.toArray(reportActions)[3].clientID]: null,
+                            [_.toArray(reportActions)[1].sequenceNumber]: null,
+                            [_.toArray(reportActions)[2].sequenceNumber]: null,
+                            [_.toArray(reportActions)[3].sequenceNumber]: null,
                             2: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],

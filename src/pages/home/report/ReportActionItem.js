@@ -28,8 +28,11 @@ import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProv
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
+import SelectionScraper from '../../../libs/SelectionScraper';
 import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReportActions from '../../../libs/actions/ReportActions';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -98,13 +101,13 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
      */
-    showPopover(event, selection) {
+    showPopover(event) {
         // Block menu on the message being Edited
         if (this.props.draftMessage) {
             return;
         }
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -184,17 +187,24 @@ class ReportActionItem extends Component {
                                     (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
-                                {!this.props.displayAsGroup
-                                    ? (
-                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                            {children}
-                                        </ReportActionItemSingle>
-                                    )
-                                    : (
-                                        <ReportActionItemGrouped>
-                                            {children}
-                                        </ReportActionItemGrouped>
-                                    )}
+                                <OfflineWithFeedback
+                                    onClose={() => ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber)}
+                                    pendingAction={this.props.action.pendingAction}
+                                    errors={this.props.action.errors}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    {!this.props.displayAsGroup
+                                        ? (
+                                            <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
+                                                {children}
+                                            </ReportActionItemSingle>
+                                        )
+                                        : (
+                                            <ReportActionItemGrouped>
+                                                {children}
+                                            </ReportActionItemGrouped>
+                                        )}
+                                </OfflineWithFeedback>
                             </View>
                             <MiniReportActionContextMenu
                                 reportID={this.props.reportID}
