@@ -99,7 +99,7 @@ class SetPasswordPage extends Component {
     }
 
     render() {
-        const buttonText = !this.props.account.validated ? this.props.translate('setPasswordPage.validatingAccount') : this.props.translate('setPasswordPage.setPassword');
+        const buttonText = !this.props.account.validated ? this.props.translate('setPasswordPage.validateAccount') : this.props.translate('setPasswordPage.setPassword');
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
         const error = sessionError || this.props.account.error;
         return (
