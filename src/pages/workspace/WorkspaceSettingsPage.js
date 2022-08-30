@@ -39,13 +39,10 @@ class WorkspaceSettingsPage extends React.Component {
 
         this.state = {
             name: props.policy.name,
-            previewAvatarURL: props.policy.avatarURL,
             currency: props.policy.outputCurrency,
         };
 
         this.submit = this.submit.bind(this);
-        this.uploadAvatar = this.uploadAvatar.bind(this);
-        this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.validate = this.validate.bind(this);
     }
@@ -59,23 +56,6 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
-    }
-
-    removeAvatar() {
-        this.setState({previewAvatarURL: ''});
-        Policy.deleteWorkspaceAvatar(this.props.policy.id);
-    }
-
-    /**
-     * @param {Object} image
-     * @param {String} image.uri
-     */
-    uploadAvatar(image) {
-        if (this.props.policy.isAvatarUploading) {
-            return;
-        }
-        this.setState({previewAvatarURL: image.uri});
-        Policy.uploadAvatar(this.props.policy.id, image);
     }
 
     submit() {
@@ -122,13 +102,13 @@ class WorkspaceSettingsPage extends React.Component {
                     {hasVBA => (
                         <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
                             <OfflineWithFeedback
-                                pendingAction={lodashGet(this.props.policy, 'pendingFields.avatarURL', null)}
-                                errors={lodashGet(this.props.policy, 'errorFields.avatarURL', null)}
+                                pendingAction={lodashGet(this.props.policy, 'pendingFields.avatar', null)}
+                                errors={lodashGet(this.props.policy, 'errorFields.avatar', null)}
                                 onClose={() => Policy.clearAvatarErrors(this.props.policy.id)}
                             >
                                 <AvatarWithImagePicker
                                     isUploading={this.props.policy.isAvatarUploading}
-                                    avatarURL={this.state.previewAvatarURL}
+                                    avatarURL={lodashGet(this.props.policy, 'avatar')}
                                     size={CONST.AVATAR_SIZE.LARGE}
                                     DefaultAvatar={() => (
                                         <Icon
@@ -141,9 +121,9 @@ class WorkspaceSettingsPage extends React.Component {
                                     fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                     style={[styles.mb3]}
                                     anchorPosition={{top: 172, right: 18}}
-                                    isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                                    onImageSelected={this.uploadAvatar}
-                                    onImageRemoved={this.removeAvatar}
+                                    isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
+                                    onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
+                                    onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
