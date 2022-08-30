@@ -112,11 +112,9 @@ function updateAllPolicies(policyCollection) {
  * @returns {Promise}
  */
 function create(name = '') {
-    Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
     return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
-            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
@@ -456,6 +454,75 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
+ * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
+ * If the response fails set a general error message. Clear the error message when updating.
+ *
+ * @param {String} policyID
+ * @param {String} name
+ * @param {String} currency
+ */
+function updateGeneralSettings(policyID, name, currency) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+
+                // Clear errorFields in case the user didn't dismiss the general settings error
+                errorFields: {
+                    generalSettings: null,
+                },
+                name,
+                outputCurrency: currency,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+                errorFields: {
+                    generalSettings: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+}
+
+/**
+ * @param {String} policyID The id of the workspace / policy
+ */
+function clearWorkspaceGeneralSettingsErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            generalSettings: null,
+        },
+    });
+}
+
+/**
  * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
  *
  * @param {String} policyID
@@ -717,16 +784,6 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
-* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
- * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
- * @param {Object} policyMemberList
- * @returns {Boolean}
- */
-function hasPolicyMemberError(policyMemberList) {
-    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
-}
-
-/**
  * Returns a client generated 16 character hexadecimal value for the policyID
  * @returns {String}
  */
@@ -756,7 +813,8 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    hasPolicyMemberError,
+    updateGeneralSettings,
+    clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
