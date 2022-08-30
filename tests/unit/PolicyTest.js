@@ -1,23 +1,5 @@
 import * as Policy from '../../src/libs/actions/Policy';
 
-jest.mock('../../src/libs/actions/Policy', () => ({
-    __esModule: true,
-    getAllPolicies: jest.fn().mockReturnValue([
-        {
-            name: 'My Group Workspace',
-        },
-        {
-            name: 'Test Policy 2',
-        },
-        {
-            name: 'Test Policy 3',
-        },
-        {
-            name: 'Test Policy 4',
-        },
-    ]),
-}));
-
 describe('Policy', () => {
     describe('generateDefaultWorkspaceNameWithNoPolicy', () => {
         test('withAnInvalidEmailAndNoPolicy', () => {
@@ -25,9 +7,9 @@ describe('Policy', () => {
             expect(Policy.generateDefaultWorkspaceName(email)).toBe('');
         });
 
-        test('withAnSMSEmailAndNoPolicy', () => {
+        test('withAnSMSEmailAndNoPolicies', () => {
             const email = '+15033155123@expensify.sms';
-            expect(Policy.generateDefaultWorkspaceName(email)).toBe('My Group Workspace 1');
+            expect(Policy.generateDefaultWorkspaceName(email)).toBe('My Group Workspace');
         });
 
         test('withAPublicDomainEmailAndNoPolicy', () => {
@@ -47,19 +29,61 @@ describe('Policy', () => {
             expect(Policy.generateDefaultWorkspaceName(email)).toBe('');
         });
 
-        test('withAnSMSEmailAndThreePolicies', () => {
+        test('withAnSMSEmailWithPolicies', () => {
             const email = '+15033155123@expensify.sms';
-            expect(Policy.generateDefaultWorkspaceName(email)).toBe('My Group Workspace 4');
+            const policies = [
+                {
+                    name: 'My Group Workspace',
+                },
+                {
+                    name: 'My Group Workspace 1',
+                },
+                {
+                    name: 'Test Policy 3',
+                },
+                {
+                    name: 'Test Policy 4',
+                },
+            ];
+            expect(Policy.generateDefaultWorkspaceName(email, policies)).toBe('My Group Workspace 2');
         });
 
-        test('withAPublicDomainEmailAndFourPolicies', () => {
+        test('withAPublicDomainEmailWithPolicies', () => {
             const email = 'doe@gmail.com';
-            expect(Policy.generateDefaultWorkspaceName(email)).toBe('Doe\'s Workspace 5');
+            const policies = [
+                {
+                    name: 'Doe\'s Workspace',
+                },
+                {
+                    name: 'Doe\'s Workspace 1',
+                },
+                {
+                    name: 'Doe\'s Workspace 2',
+                },
+                {
+                    name: 'Doe\'s Workspace 3',
+                },
+            ];
+            expect(Policy.generateDefaultWorkspaceName(email, policies)).toBe('Doe\'s Workspace 4');
         });
 
         test('withANonPublicDomainEmailAndSevenPolicies', () => {
             const email = 'doe@someprivatecompany.com';
-            expect(Policy.generateDefaultWorkspaceName(email)).toBe('Someprivatecompany\'s Workspace 8');
+            const policies = [
+                {
+                    name: 'Someprivatecompany\'s Workspace',
+                },
+                {
+                    name: 'Someprivatecompany\'s Workspace 1',
+                },
+                {
+                    name: 'Someprivatecompany\'s Workspace 2',
+                },
+                {
+                    name: 'Doe\'s Workspace 3',
+                },
+            ];
+            expect(Policy.generateDefaultWorkspaceName(email, policies)).toBe('Someprivatecompany\'s Workspace 3');
         });
     });
 });
