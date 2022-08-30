@@ -147,158 +147,199 @@ jest.mock('../../src/components/Icon/Expensicons', () => ({
 }));
 
 describe('Sidebar', () => {
-    // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(Onyx.clear);
+    describe('in default mode', () => {
 
-    test('is not rendered when there are no props passed to it', () => {
-        // GIVEN all the default props are passed to SidebarLinks
-        // WHEN it is rendered
-        const sidebarLinks = getDefaultRenderedSidebarLinks();
+        // Clear out Onyx after each test so that each test starts with a clean slate
+        afterEach(Onyx.clear);
 
-        // THEN it should render nothing and be null
-        // This is expected because there is an early return when there are no personal details
-        expect(sidebarLinks.toJSON()).toBe(null);
-    });
+        test('is not rendered when there are no props passed to it', () => {
+            // GIVEN all the default props are passed to SidebarLinks
+            // WHEN it is rendered
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
-    test('is rendered with an empty list when personal details exist', () => {
-        // GIVEN the sidebar is rendered with default props
-        const sidebarLinks = getDefaultRenderedSidebarLinks();
+            // THEN it should render nothing and be null
+            // This is expected because there is an early return when there are no personal details
+            expect(sidebarLinks.toJSON()).toBe(null);
+        });
 
-        return waitForPromisesToResolve()
+        test('is rendered with an empty list when personal details exist', () => {
+            // GIVEN the sidebar is rendered with default props
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
-            // WHEN Onyx is updated with some personal details
-            .then(() => Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-            }))
+            return waitForPromisesToResolve()
 
-            // THEN the component should be rendered with an empty list since it will get past the early return
-            .then(() => {
-                expect(sidebarLinks.toJSON()).not.toBe(null);
-                expect(sidebarLinks.toJSON().children.length).toBe(2);
-                expect(sidebarLinks.queryAllByText('ReportID, One')).toHaveLength(0);
-            });
-    });
+                // WHEN Onyx is updated with some personal details
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                }))
 
-    test('contains one report when a report is in Onyx', () => {
-        // GIVEN the sidebar is rendered in default mode (most recent first)
-        // while currently viewing report 1
-        const sidebarLinks = getDefaultRenderedSidebarLinks();
+                // THEN the component should be rendered with an empty list since it will get past the early return
+                .then(() => {
+                    expect(sidebarLinks.toJSON()).not.toBe(null);
+                    expect(sidebarLinks.toJSON().children.length).toBe(2);
+                    expect(sidebarLinks.queryAllByText('ReportID, One')).toHaveLength(0);
+                });
+        });
 
-        return waitForPromisesToResolve()
-
-            // WHEN Onyx is updated with some personal details and a report
-            .then(() => Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-            }))
-
-            // THEN the component should be rendered with an item for the fake report
-            .then(() => {
-                expect(sidebarLinks.toJSON()).not.toBe(null);
-                expect(sidebarLinks.toJSON().children.length).toBe(2);
-                expect(sidebarLinks.getAllByText('ReportID, One')).toHaveLength(1);
-            });
-    });
-
-    test('orders items with most recently updated on top', () => {
-        // GIVEN the sidebar is rendered in default mode (most recent first)
-        // while currently viewing report 1
-        const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-        return waitForPromisesToResolve()
-
-            // WHEN Onyx is updated with some personal details and multiple reports
-            .then(() => Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-                [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-            }))
-
-            // THEN the component should be rendered with the mostly recently updated report first
-            .then(() => {
-                expect(sidebarLinks.toJSON()).not.toBe(null);
-                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-                expect(reportOptions).toHaveLength(3);
-
-                // The reports should be in the order 3 > 2 > 1
-                expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
-                expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
-                expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-            });
-    });
-
-    test('doesn\'t change the order when adding a draft to the active report', () => {
-        // GIVEN the sidebar is rendered in default mode (most recent first)
-        // while currently viewing report 1
-        const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-        return waitForPromisesToResolve()
-
-            // WHEN Onyx is updated with some personal details and multiple reports
-            // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
-            .then(() => Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-                [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-                [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}1`]: true,
-            }))
-
-            // THEN there should be a pencil icon and report one should still be the last one
-            .then(() => {
-                const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
-                expect(pencilIcon).toHaveLength(1);
-
-                // The reports should be in the order 3 > 2 > 1
-                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-                expect(reportOptions).toHaveLength(3);
-                expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-            });
-    });
-
-    test('reorders the reports when a new action is added to a report', () => {
-        const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-        return waitForPromisesToResolve()
+        test('contains one report when a report is in Onyx', () => {
             // GIVEN the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
-            // with reports in top-to-bottom order of 3 > 2 > 1
-            .then(() => Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-                [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-            }))
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
-            // WHEN a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
-            .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
+            return waitForPromisesToResolve()
 
-            // THEN the order of the reports should be 1 > 3 > 2
-            .then(() => {
-                const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-                expect(reportOptions).toHaveLength(3);
-                expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
-                expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
-                expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
-            });
+                // WHEN Onyx is updated with some personal details and a report
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                }))
+
+                // THEN the component should be rendered with an item for the fake report
+                .then(() => {
+                    expect(sidebarLinks.toJSON()).not.toBe(null);
+                    expect(sidebarLinks.toJSON().children.length).toBe(2);
+                    expect(sidebarLinks.getAllByText('ReportID, One')).toHaveLength(1);
+                });
+        });
+
+        test('orders items with most recently updated on top', () => {
+            // GIVEN the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+
+                // WHEN Onyx is updated with some personal details and multiple reports
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                }))
+
+                // THEN the component should be rendered with the mostly recently updated report first
+                .then(() => {
+                    expect(sidebarLinks.toJSON()).not.toBe(null);
+                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    expect(reportOptions).toHaveLength(3);
+
+                    // The reports should be in the order 3 > 2 > 1
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                });
+        });
+
+        test('doesn\'t change the order when adding a draft to the active report', () => {
+            // GIVEN the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+
+                // WHEN Onyx is updated with some personal details and multiple reports
+                // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}1`]: true,
+                }))
+
+                // THEN there should be a pencil icon and report one should still be the last one
+                .then(() => {
+                    const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
+                    expect(pencilIcon).toHaveLength(1);
+
+                    // The reports should be in the order 3 > 2 > 1
+                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    expect(reportOptions).toHaveLength(3);
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                });
+        });
+
+        test('reorders the reports to always have the most recently updated one on top', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+                // GIVEN the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 1
+                // with reports in top-to-bottom order of 3 > 2 > 1
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                }))
+
+                // WHEN a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
+
+                // THEN the order of the reports should be 1 > 3 > 2
+                .then(() => {
+                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    expect(reportOptions).toHaveLength(3);
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
+                });
+        });
+
+        test('keeps draft reports at the top of the list', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+                // GIVEN the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with a draft on report 2
+                // with reports in top-to-bottom order of 3 > 2 > 1
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}2`]: true,
+                }))
+
+                // WHEN the active chat is switched to report 1 (the one on the bottom)
+                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, '1'))
+
+                // THEN the pencil icon should still be visible
+                // and the order of the reports should be 2 > 3 > 1
+                .then(() => {
+                    const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
+                    expect(pencilIcon).toHaveLength(1);
+
+                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    expect(reportOptions).toHaveLength(3);
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                });
+        });
     });
 });
