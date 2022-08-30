@@ -6,10 +6,10 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 
-let useStagingServer = false;
+let shouldUseStagingServer = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => useStagingServer = lodashGet(val, 'useStagingServer', true),
+    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', true),
 });
 
 let shouldFailAllRequests = false;
@@ -98,7 +98,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (CONFIG.IS_IN_STAGING && useStagingServer) {
+    if (CONFIG.IS_IN_STAGING && shouldUseStagingServer) {
         apiRoot = shouldUseSecure ? CONST.STAGING_SECURE_URL : CONST.STAGING_URL;
     }
 
