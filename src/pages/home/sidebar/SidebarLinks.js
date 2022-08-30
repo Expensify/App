@@ -26,7 +26,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
-import reportActionPropTypes from '../report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -75,18 +74,12 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    /** Actions from the ChatReport */
-    // It's used in a static method, but I guess ESLint can't find it
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.shape(reportActionPropTypes),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reports: {},
     reportsWithDraft: {},
-    reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
@@ -116,7 +109,8 @@ function getUnreadReports(reportsObject) {
     if (reports.length === 0) {
         return [];
     }
-    return _.filter(reports, report => report && report.unreadActionCount > 0);
+    const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
+    return unreadReports;
 }
 const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
 
