@@ -804,8 +804,8 @@ function addActions(reportID, text = '', file) {
 
     // We need a newSequenceNumber that is n larger than the current depending on how many actions we are adding.
     const actionCount = text && file ? 2 : 1;
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
-    const newSequenceNumber = highestSequenceNumber + actionCount;
+    const maxSequenceNumber = getMaxSequenceNumber(reportID);
+    const newSequenceNumber = maxSequenceNumber + actionCount;
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
@@ -1175,6 +1175,10 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
             [sequenceNumber]: {
                 ...reportAction,
+                message: [{
+                    html: '',
+                    text: '',
+                }],
             },
         }),
     };
@@ -1184,7 +1188,7 @@ function deleteReportComment(reportID, reportAction) {
         optimisticReport.unreadActionCount = Math.max(getUnreadActionCount(reportID) - 1, 0);
     }
 
-    // List of optmistic data to change
+    // List of optimistic data to change
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1296,25 +1300,26 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         },
     };
 
-    // Optimistically update the report's last message if the user edited it
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
-    const optimisticReport = {};
-    if (sequenceNumber === highestSequenceNumber) {
-        optimisticReport.lastMessageText = ReportUtils.formatReportLastMessageText(textForNewComment);
-    }
-
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
-        {
+    ];
+
+    // Optimistically update the report's last message if the user edited it
+    const maxSequenceNumber = getMaxSequenceNumber(reportID);
+    if (sequenceNumber === maxSequenceNumber) {
+        optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReport,
-        },
-    ];
+            value: {
+                lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
+            },
+        });
+    }
+
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1349,7 +1354,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 }
 
 /**
- * Saves the draft for a comment report action. This will put the comment into "edit mode"
+ * Saves the draft for a comment reportAction. This will put the comment into "edit mode"
  *
  * @param {Number} reportID
  * @param {Number} reportActionID
