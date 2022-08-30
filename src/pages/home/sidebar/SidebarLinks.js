@@ -125,7 +125,8 @@ class SidebarLinks extends React.Component {
         // If the order of the reports is different from the last render (or if priority mode is changing)
         // then orderedReports is the same as the freshly calculated recentReports.
         // If the order of the reports is the same as the last render
-        // then the data for each report is updated from the data in the new props (not sure why this is necessary)
+        // then the data for each report is updated from the data in the new props
+        // @TODO: not sure why this is necessary and see if it can be removed or do something more intuitive
         const orderedReports = this.isReportOrderDifferentThanLastRender(hasDraftHistory) || switchingPriorityModes
             ? recentReports
             : _.chain(this.orderedReports)
