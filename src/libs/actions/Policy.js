@@ -652,6 +652,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
  * @param {Object} values
  */
 function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
+    const customUnitRateID = lodashGet(values, 'customUnitRateID', '');
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -660,9 +661,11 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            ...values,
-                            errors: null,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            [customUnitRateID]: {
+                                ...values,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
                         },
                     },
                 },
@@ -678,8 +681,9 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            ...values,
-                            pendingAction: null,
+                            [customUnitRateID]: {
+                                pendingAction: null,
+                            },
                         },
                     },
                 },
@@ -695,9 +699,11 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            ...currentCustomUnitRate,
-                            errors: {
-                                [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                            [customUnitRateID]: {
+                                ...currentCustomUnitRate,
+                                errors: {
+                                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                                },
                             },
                         },
                     },
