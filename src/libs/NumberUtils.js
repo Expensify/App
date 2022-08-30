@@ -36,5 +36,6 @@ function rand64() {
 }
 
 export {
+    // eslint-disable-next-line import/prefer-default-export
     rand64,
 };
