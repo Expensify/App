@@ -112,7 +112,6 @@ const ONYXKEYS = {
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
-        REPORTS_WITH_DRAFT: 'reportWithDraft_',
     },
 };
 
