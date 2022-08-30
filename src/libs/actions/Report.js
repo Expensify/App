@@ -1587,14 +1587,16 @@ Onyx.connect({
  * @param {Number} amount IOU amount in cents.
  * @param {String} comment user comment for the IOU.
  * @param {String} paymentType passed only for IOUReportActions with type = pay IOU. Can be oneOf(elsewhere, payPal).
- * @param {String} IOUTransactionID passed only for IOUReportActions with type = oneOf(cancel, decline). Generates a randomID as default.
- * @param {Number} IOUReportID passed only for IOUReportActions with type = oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} existingIOUTransactionID passed only for IOUReportActions with type = oneOf(cancel, decline). Generates a randomID as default.
+ * @param {Number} existingIOUReportID passed only for IOUReportActions with type = oneOf(decline, cancel, pay). Generates a randomID as default.
  *
  * @returns {Object}
  */
-function createIOUReportAction(type, amount, comment, paymentType = '', IOUTransactionID = NumberUtils.rand64(), IOUReportID = ReportUtils.generateReportID()) {
+function createIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
     const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const currency = lodashGet(personalDetails, [currentUserEmail, 'localCurrencyCode']);
+    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
+    const IOUReportID = existingIOUReportID || ReportUtils.generateReportID();
     const originalMessage = {
         amount,
         comment,
