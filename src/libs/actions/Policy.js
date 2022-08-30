@@ -558,17 +558,20 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
- * @param {Number} customUnitID
+ * @param {String} customUnitID
+ * @param {String} customUnitRateID
  */
-function clearCustomUnitErrors(policyID, customUnitID) {
+function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
                 rates: {
-                    errors: null,
-                    pendingAction: null,
+                    [customUnitRateID]: {
+                        errors: null,
+                        pendingAction: null,
+                    },
                 },
             },
         },
