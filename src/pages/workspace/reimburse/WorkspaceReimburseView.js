@@ -223,7 +223,6 @@ class WorkspaceReimburseView extends React.Component {
                         pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
                             || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
                         onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID, this.state.unitRateID)}
-                        errorRowStyles={[styles.flex1]}
                     >
                         <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
                             <Text>
