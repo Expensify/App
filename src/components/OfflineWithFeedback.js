@@ -87,6 +87,9 @@ const OfflineWithFeedback = (props) => {
         .keys()
         .sortBy()
         .map(key => props.errors[key])
+
+        // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
+        // and can potentially pass the same error.
         .uniq()
         .value();
 
