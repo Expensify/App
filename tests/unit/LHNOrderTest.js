@@ -487,7 +487,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     // sidebarLinks.debug();
                     // console.log(sidebarLinks.toJSON().children[1].children[0].props.data[0].data);
-                    const reportOptions = sidebarLinks.queryAllByText(/ReportID/);
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
                     expect(reportOptions).toHaveLength(3);
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
@@ -518,7 +518,7 @@ describe('Sidebar', () => {
 
                 // THEN the reports 1 and 2 are shown and 3 is not
                 .then(() => {
-                    const reportOptions = sidebarLinks.queryAllByText(/ReportID/);
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
                     expect(reportOptions).toHaveLength(2);
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
@@ -526,7 +526,32 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes chats', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
+            return waitForPromisesToResolve()
+
+                // GIVEN the sidebar is rendered in #focus mode (hides read chats)
+                // with all reports having unread chats
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                }))
+
+                // THEN the reports are in alphabetical order
+                .then(() => {
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
+                    expect(reportOptions).toHaveLength(3);
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
+                });
         });
     });
 });
