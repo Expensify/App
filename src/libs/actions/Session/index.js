@@ -153,7 +153,7 @@ function beginSignIn(login) {
             value: {
                 isLoading: false,
                 errors: {
-                    [DateUtils.getMicroseconds()]: 'Cannot get account details, please try again',
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
                 },
             },
         },

@@ -29,7 +29,7 @@ const propTypes = {
     errors: PropTypes.object,
 
     /** A function to run when the X button next to the error is clicked */
-    onClose: PropTypes.func.isRequired,
+    onClose: PropTypes.func,
 
     /** The content that needs offline feedback */
     children: PropTypes.node.isRequired,
@@ -49,6 +49,7 @@ const propTypes = {
 const defaultProps = {
     pendingAction: null,
     errors: null,
+    onClose: () => {},
     style: [],
     errorRowStyles: [],
 };
