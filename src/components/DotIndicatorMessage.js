@@ -52,7 +52,7 @@ const DotIndicatorMessage = (props) => {
                 <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {_.each(props.messages, (message, i) => (
+                {_.map(sortedMessages, (message, i) => (
                     <Text key={i} style={styles.offlineFeedback.text}>{message}</Text>
                 ))}
             </View>
