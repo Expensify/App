@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -21,7 +22,9 @@ import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import * as PolicyActions from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
+import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
 
@@ -76,13 +79,16 @@ class WorkspaceInitialPage extends React.Component {
 
     render() {
         const policy = this.props.policy;
-        const hasMembersError = PolicyActions.hasPolicyMemberError(this.props.policyMemberList);
-        const hasCustomUnitsError = PolicyActions.hasCustomUnitsError(this.props.policy);
+        const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
+        const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
+            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatarURL', {}));
+        const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(this.props.policy);
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
                 icon: Expensicons.Gear,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+                brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             },
             {
                 translationKey: 'workspace.common.card',
@@ -114,12 +120,12 @@ class WorkspaceInitialPage extends React.Component {
                 translationKey: 'workspace.common.members',
                 icon: Expensicons.Users,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
-                error: hasMembersError,
+                brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             },
             {
                 translationKey: 'workspace.common.bankAccount',
                 icon: Expensicons.Bank,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
+                action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
             },
         ];
 
@@ -161,12 +167,12 @@ class WorkspaceInitialPage extends React.Component {
                                         style={[styles.pRelative, styles.avatarLarge]}
                                         onPress={this.openEditor}
                                     >
-                                        {this.props.policy.avatarURL
+                                        {this.props.policy.avatar
                                             ? (
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                    source={this.props.policy.avatarURL}
+                                                    source={this.props.policy.avatar}
                                                     fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
@@ -213,7 +219,7 @@ class WorkspaceInitialPage extends React.Component {
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
                                     shouldShowRightIcon
-                                    brickRoadIndicator={item.error ? 'error' : null}
+                                    brickRoadIndicator={item.brickRoadIndicator}
                                 />
                             ))}
                         </View>
