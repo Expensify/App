@@ -76,7 +76,8 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && reportAction.pendingAction !== 'delete';
 }
 
 /**
