@@ -1306,7 +1306,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     // If the very last visible message is being edited, let's update the chat lastMessageText and rollback it if everything fails
-    const lastVisibleReportAction = ReportUtils.getLastVisibleReportAction(reportID);
+    const lastVisibleReportAction = ReportActions.getLastVisibleReportAction(reportID);
     if (lastVisibleReportAction && sequenceNumber === lastVisibleReportAction.sequenceNumber) {
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
