@@ -559,7 +559,7 @@ function hasReportNameError(report) {
 }
 
 /**
- * Creates an optimistic IOU reportAction
+ * Builds an optimistic IOU reportAction object
  *
  * @param {String} type IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
  * @param {Number} amount IOU amount in cents.
@@ -570,7 +570,7 @@ function hasReportNameError(report) {
  *
  * @returns {Object}
  */
-function createIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+function buildOptimisticReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
     const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const currency = lodashGet(currentUserDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
@@ -645,5 +645,5 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
-    createIOUReportAction,
+    buildOptimisticReportAction,
 };
