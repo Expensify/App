@@ -103,9 +103,8 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
 /**
  * @param {Number} reportID
  * @param {String} sequenceNumber
- * @param {String} pendingAction
  */
-function deleteOptimisticReportAction(reportID, sequenceNumber, pendingAction) {
+function deleteOptimisticReportAction(reportID, sequenceNumber) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [sequenceNumber]: null,
     });
