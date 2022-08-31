@@ -154,7 +154,7 @@ class WorkspaceReimburseView extends React.Component {
         const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
         Policy.updateCustomUnitRate(this.props.policyID, currentCustomUnitRate, this.state.unitID, {
             ...currentCustomUnitRate,
-            rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+            rate: numValue.toFixed(3) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
         });
     }
 
