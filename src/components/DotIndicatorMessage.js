@@ -12,7 +12,7 @@ import Text from './Text';
 const propTypes = {
     /**
      * In most cases this should just be errors from onxyData
-     * if you are not passing that data then this neeeds to be in a similar shape like
+     * if you are not passing that data then this needs to be in a similar shape like
      *  {
      *      timestamp: 'message',
      *  }
