@@ -276,7 +276,7 @@ class BasePaymentsPage extends React.Component {
                         <>
                             <View style={[styles.mv5]}>
                                 <OfflineWithFeedback
-                                    pendingAction="add"
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                                     errors={this.props.walletTerms.errors}
                                     onClose={PaymentMethods.clearWalletTermsError}
                                     errorRowStyles={[styles.ml10, styles.mr2]}

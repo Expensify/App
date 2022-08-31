@@ -142,7 +142,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
+                    || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
             {
                 translationKey: 'initialSettingsPage.about',
