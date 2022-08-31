@@ -95,10 +95,10 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 function getLastVisibleReportAction(reportID, actionsToMerge = {}) {
     const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
     const actions = _.toArray(lodashMerge({}, existingReportActions, actionsToMerge));
-    const lastVisibleReportAction = _.findLast(actions, action => (
+    const lastVisibleReportActionIndex = _.findLastIndex(actions, action => (
         !ReportActionsUtils.isDeletedAction(action)
     ));
-    return lastVisibleReportAction;
+    return actions[lastVisibleReportActionIndex];
 }
 
 /**
