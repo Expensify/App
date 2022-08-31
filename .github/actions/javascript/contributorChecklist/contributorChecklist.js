@@ -155,12 +155,12 @@ GitHubUtils.octokit.pulls.get({
         }
 
         if (!contributorChecklistComplete) {
-            core.error('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
         if (!contributorPlusChecklistComplete) {
-            core.error('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
