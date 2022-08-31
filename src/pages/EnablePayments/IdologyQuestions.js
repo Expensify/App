@@ -21,7 +21,6 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
-import userWalletPropTypes from './userWalletPropTypes';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -50,16 +49,12 @@ const propTypes = {
         /** What error do we need to handle */
         errorCode: PropTypes.string,
     }),
-
-    /** User wallet props */
-    userWallet: PropTypes.shape(userWalletPropTypes),
 };
 
 const defaultProps = {
     questions: [],
     idNumber: '',
     walletAdditionalDetails: {},
-    userWallet: {},
 };
 
 class IdologyQuestions extends React.Component {
@@ -82,12 +77,6 @@ class IdologyQuestions extends React.Component {
         };
     }
 
-    componentDidUpdate() {
-        if (this.props.userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD) {
-            return;
-        }
-    }
-
     /**
      * Put question answer in the state.
      * @param {Number} questionIndex
@@ -100,7 +89,7 @@ class IdologyQuestions extends React.Component {
             answers[questionIndex] = {question: question.type, answer};
             return {
                 answers,
-                errorMessage,
+                errorMessage: '',
             };
         });
     }
@@ -131,10 +120,7 @@ class IdologyQuestions extends React.Component {
                     }
                 }
 
-                BankAccounts.answerQuestionsForWallet({
-                    answers,
-                    idNumber: this.props.idNumber,
-                });
+                BankAccounts.answerQuestionsForWallet(answers, this.props.idNumber);
                 return {answers};
             }
 
@@ -160,7 +146,7 @@ class IdologyQuestions extends React.Component {
             };
         }));
         const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
-        const isErrorVisible = this.state.errorMessage || _.size(this.getErrors()) > 0 || !_.isEmpty(errors);
+        const isErrorVisible = this.state.errorMessage || !_.isEmpty(errors);
         const errorMessage = _.isEmpty(errors) ? this.state.errorMessage : _.last(_.values(errors));
 
         return (
@@ -179,6 +165,7 @@ class IdologyQuestions extends React.Component {
                         <Text style={[styles.textStrong, styles.mb5]}>{question.prompt}</Text>
                         <RadioButtons
                             items={possibleAnswers}
+                            key={questionIndex}
                             onPress={answer => this.chooseAnswer(questionIndex, answer)}
                         />
                     </View>
@@ -206,9 +193,6 @@ export default compose(
     withOnyx({
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IdologyQuestions);

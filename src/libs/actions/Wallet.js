@@ -531,11 +531,12 @@ function updateCurrentStep(currentStep) {
 /**
  * @param {Object} idologyAnswers
  */
-function answerQuestionsForWallet(idologyAnswers) {
-    const answers = JSON.stringify(idologyAnswers);
+function answerQuestionsForWallet(answers, idNumber) {
+    const idologyAnswers = JSON.stringify(answers);
     API.write('AnswerQuestionsForWallet',
         {
-            answers,
+            idologyAnswers,
+            idNumber
         },
         {
             optimisticData: [{
