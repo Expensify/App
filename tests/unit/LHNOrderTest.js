@@ -399,8 +399,7 @@ describe('Sidebar', () => {
                 }))
 
                 .then(() => {
-                    const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
-                    expect(pencilIcon).toHaveLength(1);
+                    expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
                 })
 
                 // WHEN the draft on report 2 is removed
@@ -408,8 +407,40 @@ describe('Sidebar', () => {
 
                 // THEN the pencil icon goes away
                 .then(() => {
-                    const pencilIcon = sidebarLinks.queryAllByAccessibilityHint('Pencil Icon');
-                    expect(pencilIcon).toHaveLength(0);
+                    expect(sidebarLinks.queryAllByAccessibilityHint('Pencil Icon')).toHaveLength(0);
+                });
+        });
+
+        test('removes the pin icon when chat is unpinned', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+
+                // GIVEN the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with report 2 pinned
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, isPinned: true},
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                }))
+
+                .then(() => {
+                    expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
+                })
+
+                // WHEN the chat is unpinned
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {isPinned: false}))
+
+                // THEN the pencil icon goes away
+                .then(() => {
+                    expect(sidebarLinks.queryAllByAccessibilityHint('Pin Icon')).toHaveLength(0);
                 });
         });
 
