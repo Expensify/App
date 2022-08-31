@@ -37,19 +37,13 @@ const DotIndicatorMessage = (props) => {
         return null;
     }
 
-    const sortedMessages = _.chain(props.messages)
-        .keys()
-        .sortBy()
-        .map(key => props.messages[key])
-        .value();
-
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {_.map(props.messages, (message, i) => (
+                {_.each(props.messages, (message, i) => (
                     <Text key={i} style={styles.offlineFeedback.text}>{message}</Text>
                 ))}
             </View>
