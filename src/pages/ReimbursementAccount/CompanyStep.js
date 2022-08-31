@@ -76,48 +76,44 @@ class CompanyStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errors = {};
         const errorTexts = {};
 
         if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
             errorTexts.addressStreet = this.getErrorText('addressStreet');
-            errors.addressStreet = true;
         }
 
         if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errorTexts.addressZipCode = this.getErrorText('addressZipCode');
-            errors.addressZipCode = true;
         }
 
         if (!values.website || !ValidationUtils.isValidURL(values.website)) {
             errorTexts.website = this.getErrorText('website');
-            errors.website = true;
         }
 
         if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
             errorTexts.companyTaxID = this.getErrorText('companyTaxID');
-            errors.companyTaxID = true;
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
             errorTexts.incorporationDate = this.getErrorText('incorporationDate');
-            errors.incorporationDate = true;
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
             errorTexts.incorporationDateFuture = this.getErrorText('incorporationDateFuture');
-            errors.incorporationDateFuture = true;
         }
 
         if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
             errorTexts.companyPhone = this.getErrorText('companyPhone');
-            errors.companyPhone = true;
         }
 
         if (!values.hasNoConnectionToCannabis) {
             errorTexts.hasNoConnectionToCannabis = this.getErrorText('hasNoConnectionToCannabis');
-            errors.hasNoConnectionToCannabis = true;
         }
+
+        const errors = {};
+        _.each(errorTexts, (key) => {
+            errors[key] = true;
+        });
 
         BankAccounts.setBankAccountFormValidationErrors(errors);
         BankAccounts.updateReimbursementAccountDraft(values);
