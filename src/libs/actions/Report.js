@@ -1150,17 +1150,24 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
+    // In case the message already has errors but the user tries to delete again and it works, let's clear the errors
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
     // If we are deleting an unread message, let's decrease the unreadActionCount.
     if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
         const unreadActionCount = getUnreadActionCount(reportID);
         optimisticReport.unreadActionCount = Math.max(unreadActionCount - 1, 0);
-
-        // And if the API call fails, let's rollback to the previous counter value.
-        failureData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {unreadActionCount},
-        });
     }
 
     // No need for successData because the API will clear the message on success with Pusher
@@ -1182,7 +1189,7 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
-    API.write('DeleteComment', parameters, {optimisticData, failureData});
+    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1245,7 +1252,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     // If the very last visible message is being edited, let's update the chat lastMessageText and rollback it if everything fails
-    const lastVisibleReportAction = ReportUtils.getLastVisibleReportAction(reportID);
+    const lastVisibleReportAction = ReportActions.getLastVisibleReportAction(reportID);
     if (lastVisibleReportAction && sequenceNumber === lastVisibleReportAction.sequenceNumber) {
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
