@@ -55,7 +55,6 @@ class PDFPasswordForm extends Component {
             shouldShowForm: false,
         };
         this.submitPassword = this.submitPassword.bind(this);
-        this.validate = this.validate.bind(this);
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
         this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
