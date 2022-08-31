@@ -11,8 +11,7 @@ import Text from './Text';
 
 const propTypes = {
     /** The messages to display  */
-    // eslint-disable-next-line react/forbid-prop-types
-    messages: PropTypes.object,
+    messages: PropTypes.objectOf(PropTypes.string),
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: PropTypes.oneOf(['error', 'success']).isRequired,
