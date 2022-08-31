@@ -120,6 +120,7 @@ class CompanyStep extends React.Component {
         }
 
         BankAccounts.setBankAccountFormValidationErrors(errors);
+        BankAccounts.updateReimbursementAccountDraft(values);
 
         return errorTexts;
     }
