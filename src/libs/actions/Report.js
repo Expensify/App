@@ -702,6 +702,27 @@ function createOptimisticChatReport(participantList) {
     };
 }
 
+function buildOptimisticIOUReport(total, chatReportID, currency) {
+    // comment: this.state.comment,
+    // amount: Math.round(this.state.amount * 100),
+    // currency: this.props.iou.selectedCurrencyCode,
+    // debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+
+    return {
+        cachedTotal: "(£123.45)", //todo, use Web-E format util func
+        chatReportID: chatReportID,
+        currency: currency,
+        hasOutstandingIOU: true,
+        managerEmail: "hariseldon585@gmail.com",
+        ownerEmail: "jules@expensify.com",
+        reportID: ReportUtils.generateReportID(),
+        state: "SUBMITTED",
+        stateNum: 1,
+        submitterPayPalMeAddress: "jules",
+        total: total,
+    };
+}
+
 /**
  * @param {Number} reportID
  * @param {String} [text]
