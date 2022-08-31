@@ -574,6 +574,25 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
+                })
+
+                // WHEN a new report is added
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
+                    reportID: 4,
+                    reportName: 'Report Four',
+                    unreadActionCount: 1,
+                    lastMessageTimestamp: Date.now(),
+                    participants: ['email7@test.com', 'email8@test.com'],
+                }))
+
+                // THEN they are still in alphabetical order
+                .then(() => {
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
+                    expect(reportOptions).toHaveLength(4);
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Four');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, Three');
+                    expect(reportOptions[3].children[0].props.children).toBe('ReportID, Two');
                 });
         });
     });
