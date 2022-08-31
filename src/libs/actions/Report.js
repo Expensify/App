@@ -1133,8 +1133,8 @@ function deleteReportComment(reportID, reportAction) {
         }),
     };
 
-    // If the API call fails we must show the message again, so let's revert the message content back to how it was
-    // and let's remove the pendingAction so the strike-trough is gone
+    // If the API call fails we must show the original message again, so we revert the message content back to how it was
+    // and and remove the pendingAction so the strike-through clears
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
