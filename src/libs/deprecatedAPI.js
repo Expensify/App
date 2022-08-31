@@ -505,18 +505,6 @@ function Policy_Create(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.policyID
- * @param {String} parameters.value
- * @returns {Promise}
- */
-function Policy_CustomUnit_Update(parameters) {
-    const commandName = 'Policy_CustomUnit_Update';
-    requireParameters(['policyID', 'customUnit'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
  * @param {String} parameters.customUnitID
  * @param {String} parameters.value
  * @returns {Promise}
@@ -667,7 +655,6 @@ export {
     TransferWalletBalance,
     GetLocalCurrency,
     Policy_Create,
-    Policy_CustomUnit_Update,
     Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,
