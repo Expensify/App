@@ -1150,6 +1150,20 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
+    // In case the message already has errors but the user tries to delete again and it works, let's clear the errors
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
     // If we are deleting an unread message, let's decrease the unreadActionCount.
     if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
         const unreadActionCount = getUnreadActionCount(reportID);
@@ -1175,7 +1189,7 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
-    API.write('DeleteComment', parameters, {optimisticData, failureData});
+    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
 
 /**
