@@ -162,7 +162,6 @@ function reconnectApp() {
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
- * @param {string} currentPath
  */
 function setUpPoliciesAndNavigate(session) {
     const currentUrl = getCurrentUrl();
