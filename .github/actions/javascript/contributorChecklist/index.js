@@ -8,6 +8,7 @@ module.exports =
 /***/ 2850:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const GitHubUtils = __nccwpck_require__(7999);
 
@@ -165,11 +166,13 @@ GitHubUtils.octokit.pulls.get({
 
         if (!contributorChecklistComplete) {
             console.error('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
         if (!contributorPlusChecklistComplete) {
             console.error('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
