@@ -118,16 +118,19 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
 /**
  * @param {Number} reportID
  * @param {String} sequenceNumber
+ * @param {String} pendingAction
  */
-function deleteClientAction(reportID, clientID, sequenceNumber) {
-    if (clientID) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [clientID]: null,
-        });
-    }
-    if (sequenceNumber) {
+function deleteOptimisticReportAction(reportID, sequenceNumber, pendingAction) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
             [sequenceNumber]: null,
+        });
+    } else {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [sequenceNumber]: {
+                pendingAction: null,
+                errors: null,
+            },
         });
     }
 }
