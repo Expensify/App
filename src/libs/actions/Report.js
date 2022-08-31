@@ -1240,14 +1240,37 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         },
     ];
 
-    // Optimistically update the report's last message if the user edited it
-    const maxSequenceNumber = getMaxSequenceNumber(reportID);
-    if (sequenceNumber === maxSequenceNumber) {
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    ...originalReportAction,
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    // If the very last visible message is being edited, let's update the chat lastMessageText and rollback it if everything fails
+    const lastVisibleReportAction = ReportUtils.getLastVisibleReportAction(reportID);
+    if (lastVisibleReportAction && sequenceNumber === lastVisibleReportAction.sequenceNumber) {
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
+            },
+        });
+
+        const messageHtml = lodashGet(lastVisibleReportAction, ['message', 0, 'html'], '');
+        const previousLastMessage = ReportUtils.formatReportLastMessageText(messageHtml);
+        failureData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastMessageText: previousLastMessage,
             },
         });
     }
@@ -1258,18 +1281,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [sequenceNumber]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [sequenceNumber]: {
-                    ...originalReportAction,
                     pendingAction: null,
                 },
             },
