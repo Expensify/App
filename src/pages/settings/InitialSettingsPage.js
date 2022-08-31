@@ -161,10 +161,10 @@ class InitialSettingsPage extends React.Component {
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .map(policy => ({
                 title: policy.name,
-                icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
-                iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                icon: policy.avatar ? policy.avatar : Expensicons.Building,
+                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
+                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
