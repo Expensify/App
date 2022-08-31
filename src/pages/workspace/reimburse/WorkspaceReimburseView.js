@@ -12,8 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
@@ -22,6 +20,8 @@ import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -32,16 +32,22 @@ const propTypes = {
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
-        customUnit: PropTypes.shape({
-            id: PropTypes.string,
-            name: PropTypes.string,
-            value: PropTypes.string,
-            rate: PropTypes.shape({
-                id: PropTypes.string,
+        customUnits: PropTypes.objectOf(
+            PropTypes.shape({
+                customUnitID: PropTypes.string,
                 name: PropTypes.string,
-                value: PropTypes.number,
+                attributes: PropTypes.shape({
+                    unit: PropTypes.string,
+                }),
+                rates: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        customUnitRateID: PropTypes.string,
+                        name: PropTypes.string,
+                        rate: PropTypes.number,
+                    }),
+                ),
             }),
-        }),
+        ),
         outputCurrency: PropTypes.string,
     }).isRequired,
 
@@ -51,13 +57,15 @@ const propTypes = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
+        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+
         this.state = {
-            unitID: lodashGet(props, 'policy.customUnit.id', ''),
-            unitName: lodashGet(props, 'policy.customUnit.name', ''),
-            unitValue: lodashGet(props, 'policy.customUnit.value', 'mi'),
-            rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
-            rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
+            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+            unitName: lodashGet(distanceCustomUnit, 'name', ''),
+            unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+            rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+            rateName: lodashGet(distanceCustomUnit, 'rates[0].name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -96,14 +104,31 @@ class WorkspaceReimburseView extends React.Component {
         });
     }
 
-    setUnit(value) {
-        this.setState({unitValue: value});
+    static getDerivedStateFromProps(props, state) {
+        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+        const unitValue = lodashGet(distanceCustomUnit, 'attributes.unit', 'mi');
 
-        Policy.setCustomUnit(this.props.policyID, {
+        if (unitValue !== state.unitValue) {
+            return {
+                unitValue,
+            };
+        }
+
+        return null;
+    }
+
+    setUnit(value) {
+        if (value === this.state.unitValue) {
+            return;
+        }
+
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, distanceCustomUnit, {
             customUnitID: this.state.unitID,
-            customUnitName: this.state.unitName,
+            name: this.state.unitName,
             attributes: {unit: value},
-        }, null);
+        });
     }
 
     debounceUpdateOnCursorMove(event) {
@@ -167,28 +192,34 @@ class WorkspaceReimburseView extends React.Component {
                     <View style={[styles.mv4]}>
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <View style={[styles.rateCol]}>
-                            <TextInput
-                                label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                placeholder={this.state.outputCurrency}
-                                onChangeText={value => this.setRate(value)}
-                                value={this.state.rateValue}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                onKeyPress={this.debounceUpdateOnCursorMove}
-                            />
+                    <OfflineWithFeedback
+                        errors={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'])}
+                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])}
+                        onClose={() => Policy.removeUnitError(this.props.policyID, this.state.unitID)}
+                    >
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
+                            <View style={[styles.rateCol]}>
+                                <TextInput
+                                    label={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                    placeholder={this.state.outputCurrency}
+                                    onChangeText={value => this.setRate(value)}
+                                    value={this.state.rateValue}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                    onKeyPress={this.debounceUpdateOnCursorMove}
+                                />
+                            </View>
+                            <View style={[styles.unitCol]}>
+                                <Picker
+                                    label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
+                                    items={this.unitItems}
+                                    value={this.state.unitValue}
+                                    onInputChange={value => this.setUnit(value)}
+                                />
+                            </View>
                         </View>
-                        <View style={[styles.unitCol]}>
-                            <Picker
-                                label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                items={this.unitItems}
-                                value={this.state.unitValue}
-                                onInputChange={value => this.setUnit(value)}
-                            />
-                        </View>
-                    </View>
+                    </OfflineWithFeedback>
                 </Section>
 
                 {!this.props.hasVBA && (
@@ -201,12 +232,12 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                         <Button
                             text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID))}
+                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policyID)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
-                            iconStyles={[styles.mr5]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
-                            extraLarge
+                            large
                             success
                         />
                     </Section>
