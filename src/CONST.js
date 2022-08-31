@@ -640,6 +640,9 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        REPORT_ACTION_TYPE: {
+            PAY: 'pay',
+        },
         AMOUNT_MAX_LENGTH: 10,
     },
 
