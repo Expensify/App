@@ -152,7 +152,8 @@ class CompanyStep extends React.Component {
                     validate={this.validate}
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.mh5, styles.mb5]}
+                    style={[styles.mh5, styles.flexGrow1]}
+
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
@@ -162,13 +163,15 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName')}
                     />
-                    <AddressSearch
-                        inputID="addressStreet"
-                        label={this.props.translate('common.companyAddress')}
-                        containerStyles={[styles.mt4]}
-                        hint={this.props.translate('common.noPO')}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet')}
-                    />
+                    <View>
+                        <AddressSearch
+                            inputID="addressStreet"
+                            label={this.props.translate('common.companyAddress')}
+                            containerStyles={[styles.mt4]}
+                            hint={this.props.translate('common.noPO')}
+                            defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet')}
+                        />
+                    </View>
                     <View style={[styles.flexRow, styles.mt4]}>
                         <View style={[styles.flex2, styles.mr2]}>
                             <TextInput
