@@ -87,6 +87,21 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
+ * Get last reportAction in the chat that was not deleted
+ * @param {Number} reportID
+ * @param {Object} [actionsToMerge]
+ * @return {Object}
+ */
+function getLastVisibleReportAction(reportID, actionsToMerge = {}) {
+    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
+    const actions = _.toArray(lodashMerge({}, existingReportActions, actionsToMerge));
+    const lastVisibleReportAction = _.findLast(actions, action => (
+        !ReportActionsUtils.isDeletedAction(action)
+    ));
+    return lastVisibleReportAction;
+}
+
+/**
  * @param {Number} reportID
  * @param {Number} sequenceNumber
  * @param {Number} currentUserAccountID
@@ -112,6 +127,7 @@ function deleteOptimisticReportAction(reportID, sequenceNumber) {
 export {
     getDeletedCommentsCount,
     getLastVisibleMessageText,
+    getLastVisibleReportAction,
     isFromCurrentUser,
     deleteOptimisticReportAction,
 };

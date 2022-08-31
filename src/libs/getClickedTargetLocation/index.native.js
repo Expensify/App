@@ -3,11 +3,11 @@
  *
  * @returns {Object}
  */
-function getClickedElementLocation() {
+function getClickedTargetLocation() {
     return {
         bottom: 0,
         left: 0,
     };
 }
 
-export default getClickedElementLocation;
+export default getClickedTargetLocation;
