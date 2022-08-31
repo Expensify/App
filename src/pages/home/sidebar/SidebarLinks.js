@@ -48,6 +48,9 @@ const propTypes = {
 
         /** Number of unread actions on the report */
         unreadActionCount: PropTypes.number,
+
+        /** Whether the report has a draft comment */
+        hasDraft: PropTypes.bool,
     })),
 
     /** List of users' personal details */
@@ -137,7 +140,7 @@ class SidebarLinks extends React.Component {
 
                 // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
                 // does not have all the conversations in the previous set of orderedReports
-                .filter(orderedReport => orderedReport !== undefined)
+                .compact()
                 .value();
 
         // Store these pieces of data on the class so that the next time this method is called
