@@ -36,7 +36,7 @@ const ReportActionItemMessage = (props) => {
     const isUnsent = props.network.isOffline && props.action.isLoading;
 
     return (
-        <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage, props.style]}>
+        <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage, ...props.style]}>
             {_.map(_.compact(props.action.message), (fragment, index) => (
                 <ReportActionItemFragment
                     key={`actionFragment-${props.action.sequenceNumber}-${index}`}
