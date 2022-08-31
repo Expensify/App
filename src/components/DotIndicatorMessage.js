@@ -30,7 +30,6 @@ const propTypes = {
 const defaultProps = {
     messages: {},
     style: [],
-
 };
 
 const DotIndicatorMessage = (props) => {
