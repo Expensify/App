@@ -37,6 +37,15 @@ const DotIndicatorMessage = (props) => {
         return null;
     }
 
+    // To ensure messages are presented in order we are sort of destroying the data we are given
+    // and rebuilding as an array so we can render the messages in order. We don't really care about
+    // the microtime timestamps anyways so isn't the end of the world that we sort of lose them here.
+    const sortedMessages = _.chain(props.messages)
+        .keys()
+        .sortBy()
+        .map(key => props.messages[key])
+        .value();
+
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
