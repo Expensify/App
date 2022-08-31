@@ -1,11 +1,8 @@
-const core = require('@actions/core');
-const Diff = require('diff');
 const github = require('@actions/github');
 const GitHubUtils = require('../../../libs/GithubUtils');
 
 /* eslint-disable max-len */
-const completedContributorChecklist = `#### Contributor (PR Author) Checklist
-- [x] I linked the correct issue in the \`### Fixed Issues\` section above
+const completedContributorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
 - [x] I wrote clear testing steps that cover the changes made in this PR
     - [x] I added steps for local testing in the \`Tests\` section
     - [x] I added steps for Staging and/or Production testing in the \`QA steps\` section
@@ -101,9 +98,16 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 
-function printDiff(result, expected) {
-    const diff = Diff.createPatch('', result, expected, '', '');
-    console.log(diff);
+function printUncheckedItems(result, expected) {
+    const checklist = result.split('\n');
+
+    for (const line of checklist) {
+        // Provide a search string with the first 30 characters to figure out if the checkbox item is in the checklist
+        const lineSearchString = line.replace('- [ ] ', '').slice(0, 30);
+        if (line.includes('- [ ]') && (completedContributorChecklist.includes(lineSearchString) || completedContributorPlusChecklist.includes(lineSearchString))) {
+            console.log(`Unchecked checklist item: ${line}`);
+        }
+    }
 }
 
 // Get all user text from the pull request, review comments, and pull request comments
@@ -112,13 +116,13 @@ GitHubUtils.octokit.pulls.get({
     repo: GitHubUtils.APP_REPO,
     pull_number: issue,
 }).then(({data: pullRequestComment}) => {
-    combinedData.push(pullRequestComment);
+    combinedData.push(pullRequestComment.body);
 }).then(() => GitHubUtils.octokit.pulls.listReviews({
     owner: GitHubUtils.GITHUB_OWNER,
     repo: GitHubUtils.APP_REPO,
     pull_number: issue,
 })).then(({data: pullRequestReviewComments}) => {
-    combinedData.push(...pullRequestReviewComments);
+    pullRequestReviewComments.forEach(pullRequestReviewComment => combinedData.push(pullRequestReviewComment.body));
 })
     .then(() => GitHubUtils.octokit.issues.listComments({
         owner: GitHubUtils.GITHUB_OWNER,
@@ -127,43 +131,35 @@ GitHubUtils.octokit.pulls.get({
         per_page: 100,
     }))
     .then(({data: pullRequestComments}) => {
-        combinedData.push(...pullRequestComments);
+        pullRequestComments.forEach(pullRequestComment => combinedData.push(pullRequestComment.body));
         let contributorChecklistComplete = false;
         let contributorPlusChecklistComplete = false;
 
         // Once we've gathered all the data, loop through each comment and look to see if it contains a completed checklist
         for (let i = 0; i < combinedData.length; i++) {
             const whitespace = /([\n\r])/gm;
-            const comment = combinedData[i].body.replace(whitespace, '');
-
-            if (comment.includes('I wrote clear testing steps that cover the changes made in this PR')) {
-                printDiff(comment, completedContributorChecklist);
-            }
+            const comment = combinedData[i].replace(whitespace, '');
 
             if (comment.includes(completedContributorChecklist.replace(whitespace, ''))) {
                 contributorChecklistComplete = true;
-            }
-
-            if (comment.includes('I verified testing steps are clear and they cover the changes made in this PR')) {
-                printDiff(comment, completedContributorPlusChecklist);
+            } else if (comment.includes('- [')) {
+                printUncheckedItems(combinedData[i], completedContributorChecklist);
             }
 
             if (comment.includes(completedContributorPlusChecklist.replace(whitespace, ''))) {
                 contributorPlusChecklistComplete = true;
+            } else if (comment.includes('- [')) {
+                printUncheckedItems(combinedData[i], completedContributorPlusChecklist);
             }
         }
 
-        console.log(`C complete? ${contributorChecklistComplete} C+ complete? ${contributorPlusChecklistComplete}`);
-
         if (!contributorChecklistComplete) {
             console.error('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
-            core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
         if (!contributorPlusChecklistComplete) {
             console.error('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
-            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
