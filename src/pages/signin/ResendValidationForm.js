@@ -17,7 +17,6 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import DateUtils from '../../libs/DateUtils';
 
@@ -53,7 +52,6 @@ const ResendValidationForm = (props) => {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
     const login = isSMSLogin ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login)) : props.credentials.login;
     const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
-    const error = ErrorUtils.getLatestErrorMessage(props.account);
 
     return (
         <>
@@ -76,8 +74,8 @@ const ResendValidationForm = (props) => {
             {!_.isEmpty(props.account.message) && (
                 <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{[DateUtils.getMicroseconds()]: props.account.message}} />
             )}
-            {error && (
-                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={[error]} />
+            {!_.isEmpty(props.account.errors) && (
+                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
