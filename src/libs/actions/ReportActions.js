@@ -125,7 +125,6 @@ function clearReportActionErrors(reportID, sequenceNumber) {
 export {
     getDeletedCommentsCount,
     getLastVisibleMessageText,
-    getLastVisibleReportAction,
     clearReportActionErrors,
     isFromCurrentUser,
     deleteOptimisticReportAction,
