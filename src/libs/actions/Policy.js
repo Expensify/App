@@ -654,7 +654,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
  * @param {String} customUnitID
  * @param {Object} values
  */
-function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
+function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -714,7 +714,7 @@ function setCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values
         },
     ];
 
-    API.write('SetWorkspaceCustomUnitRate', {
+    API.write('UpdateWorkspaceCustomUnitRate', {
         policyID,
         customUnitID,
         customUnitRate: JSON.stringify(values),
@@ -853,7 +853,7 @@ export {
     createAndNavigate,
     createAndGetPolicyList,
     updateWorkspaceCustomUnit,
-    setCustomUnitRate,
+    updateCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
     clearDeleteMemberError,
