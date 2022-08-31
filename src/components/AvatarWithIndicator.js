@@ -61,8 +61,8 @@ const AvatarWithIndicator = (props) => {
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
-    const cleanPolicies = _.filter(props.policies, policy => policy);
-    const cleanPolicyMembers = _.filter(props.policiesMemberList, member => member);
+    const cleanPolicies = _.pick(props.policies, policy => policy);
+    const cleanPolicyMembers = _.pick(props.policiesMemberList, member => member);
 
     // All of the error-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error is returned. This makes the error checking very efficient since
