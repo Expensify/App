@@ -1580,63 +1580,6 @@ Onyx.connect({
     },
 });
 
-/**
- * Creates an optimistic IOU reportAction
- *
- * @param {String} type IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
- * @param {Number} amount IOU amount in cents.
- * @param {String} comment user comment for the IOU.
- * @param {String} paymentType passed only for IOUReportActions with type = pay IOU. Can be oneOf(elsewhere, payPal).
- * @param {String} existingIOUTransactionID passed only for IOUReportActions with type = oneOf(cancel, decline). Generates a randomID as default.
- * @param {Number} existingIOUReportID passed only for IOUReportActions with type = oneOf(decline, cancel, pay). Generates a randomID as default.
- *
- * @returns {Object}
- */
-function createIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
-    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
-    const currency = lodashGet(personalDetails, [currentUserEmail, 'localCurrencyCode']);
-    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
-    const IOUReportID = existingIOUReportID || ReportUtils.generateReportID();
-    const originalMessage = {
-        amount,
-        comment,
-        currency,
-        IOUTransactionID,
-        IOUReportID,
-        type,
-    };
-
-    // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === 'pay') {
-        _.each(['amount', 'comment', 'currency'], (key) => {
-            delete originalMessage[key];
-        });
-        originalMessage.IOUDetails = {amount, comment, currency};
-        originalMessage.paymentType = paymentType;
-    }
-
-    return ({
-        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-        actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
-        automatic: false,
-        avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
-        clientID: NumberUtils.rand64(),
-        isAttachment: false,
-        originalMessage,
-        person: [{
-            style: 'strong',
-            text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
-            type: 'TEXT',
-        }],
-        reportActionID: NumberUtils.rand64(),
-        sequenceNumber: parseInt(`${Date.now()}${randomNumber}`, 10),
-        shouldShow: true,
-        timestamp: moment().unix(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    });
-}
-
 export {
     fetchAllReports,
     fetchOrCreateChatReport,
@@ -1673,5 +1616,4 @@ export {
     createOptimisticReport,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
-    createIOUReportAction,
 };

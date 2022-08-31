@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -10,6 +11,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import * as NumberUtils from './NumberUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -26,6 +28,27 @@ Onyx.connect({
         }
         preferredLocale = val;
     },
+});
+
+let currentUserEmail;
+let currentUserAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
+    },
+});
+
+let currentUserDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => currentUserDetails = lodashGet(val, currentUserEmail),
 });
 
 /**
@@ -556,6 +579,63 @@ function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
 }
 
+/**
+ * Creates an optimistic IOU reportAction
+ *
+ * @param {String} type IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {Number} amount IOU amount in cents.
+ * @param {String} comment user comment for the IOU.
+ * @param {String} paymentType passed only for IOUReportActions with type = pay IOU. Can be oneOf(elsewhere, payPal).
+ * @param {String} existingIOUTransactionID passed only for IOUReportActions with type = oneOf(cancel, decline). Generates a randomID as default.
+ * @param {Number} existingIOUReportID passed only for IOUReportActions with type = oneOf(decline, cancel, pay). Generates a randomID as default.
+ *
+ * @returns {Object}
+ */
+function createIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
+    const currency = lodashGet(currentUserDetails, 'localCurrencyCode');
+    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
+    const IOUReportID = existingIOUReportID || generateReportID();
+    const originalMessage = {
+        amount,
+        comment,
+        currency,
+        IOUTransactionID,
+        IOUReportID,
+        type,
+    };
+
+    // We store amount, comment, currency in IOUDetails when type = pay
+    if (type === 'pay') {
+        _.each(['amount', 'comment', 'currency'], (key) => {
+            delete originalMessage[key];
+        });
+        originalMessage.IOUDetails = {amount, comment, currency};
+        originalMessage.paymentType = paymentType;
+    }
+
+    return ({
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(currentUserDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        clientID: NumberUtils.rand64(),
+        isAttachment: false,
+        originalMessage,
+        person: [{
+            style: 'strong',
+            text: lodashGet(currentUserDetails, 'displayName', currentUserEmail),
+            type: 'TEXT',
+        }],
+        reportActionID: NumberUtils.rand64(),
+        sequenceNumber: parseInt(`${Date.now()}${randomNumber}`, 10),
+        shouldShow: true,
+        timestamp: moment().unix(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    });
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -586,4 +666,5 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    createIOUReportAction,
 };
