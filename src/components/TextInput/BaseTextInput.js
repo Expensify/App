@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
+    Animated, View, TouchableWithoutFeedback, AppState, Keyboard,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -14,6 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
 
@@ -281,8 +282,7 @@ class BaseTextInput extends Component {
                                         selection={this.state.selection}
                                     />
                                     {this.props.secureTextEntry && (
-                                        <Pressable
-                                            accessibilityRole="button"
+                                        <Checkbox
                                             style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
                                         >
@@ -290,7 +290,7 @@ class BaseTextInput extends Component {
                                                 src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
                                                 fill={themeColors.icon}
                                             />
-                                        </Pressable>
+                                        </Checkbox>
                                     )}
                                 </View>
                             </View>

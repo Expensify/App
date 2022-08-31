@@ -670,12 +670,12 @@ function fetchAllReports(
 }
 
 /**
- * Creates an optimistic report with a randomly generated reportID and as much information as we currently have
+ * Creates an optimistic chat report with a randomly generated reportID and as much information as we currently have
  *
  * @param {Array} participantList
  * @returns {Object}
  */
-function createOptimisticReport(participantList) {
+function createOptimisticChatReport(participantList) {
     return {
         chatType: '',
         hasOutstandingIOU: false,
@@ -708,7 +708,7 @@ function createOptimisticReport(participantList) {
  * @param {File} [file]
  * @returns {Object}
  */
-function buildOptimisticReportAction(reportID, text, file) {
+function createOptimisticReportAction(reportID, text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -787,7 +787,7 @@ function addActions(reportID, text = '', file) {
     let commandName = 'AddComment';
 
     if (text) {
-        const reportComment = buildOptimisticReportAction(reportID, text);
+        const reportComment = createOptimisticReportAction(reportID, text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -796,7 +796,7 @@ function addActions(reportID, text = '', file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = buildOptimisticReportAction(reportID, '', file);
+        const attachment = createOptimisticReportAction(reportID, '', file);
         attachmentAction = attachment.reportAction;
     }
 
@@ -1613,7 +1613,7 @@ export {
     readOldestAction,
     openReport,
     openPaymentDetailsPage,
-    createOptimisticReport,
+    createOptimisticChatReport,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
