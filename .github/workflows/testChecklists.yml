@@ -9,7 +9,8 @@ on:
 jobs:
   checklist:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'issue_comment' && contains(github.event.comment.body, '- [x]') || github.event_name == 'pull_request_review_comment' && contains(github.event.pull_request_review_comment.body, '- [x]') || github.event_name == 'pull_request' && contains(github.event.pull_request.body, '- [x]') }}
+    # Only run when a comment, PR, or PR review comment contains a checklist item
+    if: ${{ github.event_name == 'issue_comment' && contains(github.event.comment.body, '- [') || github.event_name == 'pull_request_review_comment' && contains(github.event.pull_request_review_comment.body, '- [') || github.event_name == 'pull_request' && contains(github.event.pull_request.body, '- [') }}
     steps:
       - name: contributorChecklist.js
         uses: Expensify/App/.github/actions/javascript/contributorChecklist@andrew-checklist
