@@ -19,7 +19,6 @@ import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Localize from '../../../libs/Localize';
 import compose from '../../../libs/compose';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
@@ -224,7 +223,7 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
-                 <HeaderWithCloseButton
+                <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
