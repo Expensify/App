@@ -151,8 +151,6 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
-jest.disableAutomock();
-
 function getDefaultRenderedSidebarLinks() {
     // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
     // are passed to the component. If this is not done, then all the locale props are missing
@@ -500,7 +498,31 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('hides unread chats', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
+            return waitForPromisesToResolve()
+
+                // GIVEN the sidebar is rendered in #focus mode (hides read chats)
+                // with report 1 and 2 having unread actions
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                }))
+
+                // THEN the reports 1 and 2 are shown and 3 is not
+                .then(() => {
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID/);
+                    expect(reportOptions).toHaveLength(2);
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
+                });
         });
 
         it('alphabetizes chats', () => {
