@@ -27,18 +27,23 @@ const defaultProps = {
 
 };
 
-const DotIndicatorMessage = props => (
-    <View style={[styles.dotIndicatorMessage, ...props.style]}>
-        <View style={styles.offlineFeedback.errorDot}>
-            <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+const DotIndicatorMessage = (props) => {
+    if (_.isEmpty(props.messages)) {
+        return null;
+    }
+    return (
+        <View style={[styles.dotIndicatorMessage, ...props.style]}>
+            <View style={styles.offlineFeedback.errorDot}>
+                <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall}/>
+            </View>
+            <View style={styles.offlineFeedback.textContainer}>
+                {_.map(props.messages, (message, i) => (
+                    <Text key={i} style={styles.offlineFeedback.text}>{message}</Text>
+                ))}
+            </View>
         </View>
-        <View style={styles.offlineFeedback.textContainer}>
-            {_.map(props.messages, (message, i) => (
-                <Text key={i} style={styles.offlineFeedback.text}>{message}</Text>
-            ))}
-        </View>
-    </View>
-);
+    );
+};
 
 DotIndicatorMessage.propTypes = propTypes;
 DotIndicatorMessage.defaultProps = defaultProps;
