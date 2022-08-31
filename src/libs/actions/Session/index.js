@@ -96,7 +96,7 @@ function resendValidationLink(login = credentials.login) {
         value: {
             isLoading: true,
             errors: null,
-            message: '',
+            message: null,
         },
     }];
     const successData = [{
@@ -112,7 +112,7 @@ function resendValidationLink(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: '',
+            message: null,
         },
     }];
 
