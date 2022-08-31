@@ -247,7 +247,6 @@ function updatePersonalDetails(personalDetails) {
  * @param {Object} [parameters.idologyAnswers]
  * @param {Boolean} [parameters.hasAcceptedTerms]
  */
-// TODO:  this is no longer used, so I need to remove it, for now I need to understand how it works
 function activateWallet(currentStep, parameters) {
     let personalDetails;
     let idologyAnswers;
@@ -258,7 +257,6 @@ function activateWallet(currentStep, parameters) {
         throw new Error('Invalid currentStep passed to activateWallet()');
     }
 
-    // TODO: need to check what this does
     setWalletShouldShowFailedKYC(false);
     if (currentStep === CONST.WALLET.STEP.ONFIDO) {
         onfidoData = parameters.onfidoData;
@@ -305,7 +303,6 @@ function activateWallet(currentStep, parameters) {
                     return;
                 }
 
-                // TODO: not sure if we need to do this, and if we do, is it this GH?
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                     if (response.title === CONST.WALLET.ERROR.KBA_NEEDED) {
                         setAdditionalDetailsQuestions(response.data.questions, response.data.idNumber);
@@ -532,7 +529,7 @@ function updateCurrentStep(currentStep) {
 }
 
 /**
- * @param {String} idologyAnswers
+ * @param {Object} idologyAnswers
  */
 function answerQuestionsForWallet(idologyAnswers) {
     const answers = JSON.stringify(idologyAnswers);
@@ -580,5 +577,4 @@ export {
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
-    setAdditionalDetailsLoading,
 };

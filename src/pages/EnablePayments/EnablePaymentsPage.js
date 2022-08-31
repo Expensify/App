@@ -27,10 +27,6 @@ const propTypes = {
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
-    additionalDetails: PropTypes.shape({
-        errorCode: PropTypes.string,
-    }),
-
     /** The user's wallet */
     userWallet: PropTypes.objectOf(userWalletPropTypes),
 
@@ -39,10 +35,6 @@ const propTypes = {
 
 const defaultProps = {
     userWallet: {},
-
-    additionalDetails: {
-        errorCode: '',
-    },
 };
 
 class EnablePaymentsPage extends React.Component {
@@ -63,7 +55,7 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (this.props.additionalDetails.errorCode === CONST.WALLET.ERROR.KYC) {
+        if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
             return (
                 <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
                     <HeaderWithCloseButton
