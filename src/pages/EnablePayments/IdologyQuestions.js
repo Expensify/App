@@ -5,7 +5,6 @@ import {
     View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -16,11 +15,6 @@ import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import FailedKYC from './FailedKYC';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
