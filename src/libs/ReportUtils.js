@@ -45,10 +45,10 @@ Onyx.connect({
     },
 });
 
-let currentUserDetails;
+let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => currentUserDetails = lodashGet(val, currentUserEmail),
+    callback: val => currentUserPersonalDetails = lodashGet(val, currentUserEmail),
 });
 
 /**
@@ -582,19 +582,20 @@ function hasReportNameError(report) {
 /**
  * Builds an optimistic IOU reportAction object
  *
- * @param {String} type IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
- * @param {Number} amount IOU amount in cents.
- * @param {String} comment user comment for the IOU.
- * @param {String} paymentType passed only for IOUReportActions with type = pay IOU. Can be oneOf(elsewhere, payPal).
- * @param {String} existingIOUTransactionID passed only for IOUReportActions with type = oneOf(cancel, decline). Generates a randomID as default.
- * @param {Number} existingIOUReportID passed only for IOUReportActions with type = oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {Number} amount - IOU amount in cents.
+ * @param {String} comment - User comment for the IOU.
+ * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
+ * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  *
  * @returns {Object}
  */
-function buildOptimisticReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
-    const currency = lodashGet(currentUserDetails, 'localCurrencyCode');
+function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+    const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
+    const sequenceNumber = NumberUtils.generateReportActionSequenceNumber();
     const originalMessage = {
         amount,
         comment,
@@ -605,7 +606,7 @@ function buildOptimisticReportAction(type, amount, comment, paymentType = '', ex
     };
 
     // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === 'pay') {
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         _.each(['amount', 'comment', 'currency'], (key) => {
             delete originalMessage[key];
         });
@@ -613,26 +614,29 @@ function buildOptimisticReportAction(type, amount, comment, paymentType = '', ex
         originalMessage.paymentType = paymentType;
     }
 
-    return ({
+    return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
-        clientID: NumberUtils.rand64(),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+
+        // For now, the clientID and sequenceNumber are the same.
+        // We are changing that as we roll out the optimistiReportAction IDs and related refactors.
+        clientID: sequenceNumber,
         isAttachment: false,
         originalMessage,
         person: [{
             style: 'strong',
-            text: lodashGet(currentUserDetails, 'displayName', currentUserEmail),
+            text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
             type: 'TEXT',
         }],
         reportActionID: NumberUtils.rand64(),
-        sequenceNumber: NumberUtils.generateReportActionSequenceNumber(),
+        sequenceNumber,
         shouldShow: true,
         timestamp: moment().unix(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    });
+    };
 }
 
 export {
@@ -665,5 +669,5 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
-    buildOptimisticReportAction,
+    buildOptimisticIOUReportAction,
 };
