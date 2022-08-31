@@ -670,12 +670,12 @@ function fetchAllReports(
 }
 
 /**
- * Creates an optimistic report with a randomly generated reportID and as much information as we currently have
+ * Creates an optimistic chat report with a randomly generated reportID and as much information as we currently have
  *
  * @param {Array} participantList
  * @returns {Object}
  */
-function createOptimisticReport(participantList) {
+function createOptimisticChatReport(participantList) {
     return {
         chatType: '',
         hasOutstandingIOU: false,
@@ -746,7 +746,7 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
  * @param {File} [file]
  * @returns {Object}
  */
-function buildOptimisticReportAction(reportID, text, file) {
+function createOptimisticReportAction(reportID, text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -759,16 +759,7 @@ function buildOptimisticReportAction(reportID, text, file) {
     const textForNewComment = isAttachment ? '[Attachment]'
         : parser.htmlToText(htmlForNewComment);
 
-    // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
-    // remove the optimistic action when we add the real action created in the server. We do this because it's not
-    // safe to assume that this will use the very next sequenceNumber. An action created by another can overwrite that
-    // sequenceNumber if it is created before this one. We use a combination of current epoch timestamp (milliseconds)
-    // and a random number so that the probability of someone else having the same optimisticReportActionID is
-    // extremely low even if they left the comment at the same moment as another user on the same report. The random
-    // number is 3 digits because if we go any higher JS will convert the digits after the 16th position to 0's in
-    // optimisticReportActionID.
-    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
-    const optimisticReportActionID = parseInt(`${Date.now()}${randomNumber}`, 10);
+    const optimisticReportActionSequenceNumber = NumberUtils.generateReportActionSequenceNumber();
 
     return {
         commentText,
@@ -787,8 +778,8 @@ function buildOptimisticReportAction(reportID, text, file) {
             automatic: false,
 
             // Use the client generated ID as a optimistic action ID so we can remove it later
-            sequenceNumber: optimisticReportActionID,
-            clientID: optimisticReportActionID,
+            sequenceNumber: optimisticReportActionSequenceNumber,
+            clientID: optimisticReportActionSequenceNumber,
             avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
             message: [
@@ -825,7 +816,7 @@ function addActions(reportID, text = '', file) {
     let commandName = 'AddComment';
 
     if (text) {
-        const reportComment = buildOptimisticReportAction(reportID, text);
+        const reportComment = createOptimisticReportAction(reportID, text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -834,7 +825,7 @@ function addActions(reportID, text = '', file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = buildOptimisticReportAction(reportID, '', file);
+        const attachment = createOptimisticReportAction(reportID, '', file);
         attachmentAction = attachment.reportAction;
     }
 
@@ -1651,8 +1642,8 @@ export {
     readOldestAction,
     openReport,
     openPaymentDetailsPage,
-    createOptimisticReport,
     createOptimisticWorkspaceChats,
+    createOptimisticChatReport,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
