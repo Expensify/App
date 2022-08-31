@@ -485,8 +485,6 @@ describe('Sidebar', () => {
                 // there is a pinned icon
                 // there is an IOU badge
                 .then(() => {
-                    // sidebarLinks.debug();
-                    // console.log(sidebarLinks.toJSON().children[1].children[0].props.data[0].data);
                     const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
                     expect(reportOptions).toHaveLength(3);
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
