@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    messages: [],
+    messages: {},
     style: [],
 
 };
