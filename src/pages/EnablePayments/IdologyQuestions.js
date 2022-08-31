@@ -145,9 +145,6 @@ class IdologyQuestions extends React.Component {
                 value: answer,
             };
         }));
-        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
-        const isErrorVisible = this.state.errorMessage || !_.isEmpty(errors);
-        const errorMessage = _.isEmpty(errors) ? this.state.errorMessage : _.last(_.values(errors));
 
         return (
             <View style={[styles.flex1]}>
@@ -171,12 +168,12 @@ class IdologyQuestions extends React.Component {
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(isErrorVisible)}
+                        isAlertVisible={Boolean(this.state.errorMessage)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
-                        message={errorMessage}
+                        message={this.state.errorMessage}
                         isLoading={this.props.walletAdditionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
