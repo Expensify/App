@@ -417,16 +417,6 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
 }
 
 /**
- * @param {Number} reportID
- * @param {Number} sequenceNumber
- */
-function setNewMarkerPosition(reportID, sequenceNumber) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        newMarkerSequenceNumber: sequenceNumber,
-    });
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -684,7 +674,7 @@ function createOptimisticChatReport(participantList) {
         lastActorEmail: '',
         lastMessageHtml: '',
         lastMessageText: null,
-        lastReadSequenceNumber: undefined,
+        lastReadSequenceNumber: 0,
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
@@ -1112,7 +1102,6 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    newMarkerSequenceNumber: sequenceNumber,
                     lastReadSequenceNumber: newLastReadSequenceNumber,
                     lastVisitedTimestamp: Date.now(),
                     unreadActionCount: calculateUnreadActionCount(reportID, newLastReadSequenceNumber, maxSequenceNumber),
@@ -1514,12 +1503,6 @@ function viewNewReportAction(reportID, action) {
         return;
     }
 
-    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the marker above the incoming message.
-    const report = lodashGet(allReports, 'reportID', {});
-    if (lodashGet(report, 'newMarkerSequenceNumber', 0) === 0 && report.unreadActionCount > 0) {
-        setNewMarkerPosition(reportID, report.lastReadSequenceNumber + 1);
-    }
-
     Log.info('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction: action,
@@ -1580,7 +1563,6 @@ export {
     addAttachment,
     reconnect,
     updateNotificationPreference,
-    setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
     subscribeToReportCommentPushNotifications,
