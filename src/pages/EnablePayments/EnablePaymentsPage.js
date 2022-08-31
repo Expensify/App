@@ -101,9 +101,6 @@ export default compose(
         walletAdditionalDetailsDraft: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
         },
-        additionalDetails: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-        },
     }),
     withNetwork(),
 )(EnablePaymentsPage);

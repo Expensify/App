@@ -21,6 +21,7 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
+import userWalletPropTypes from './userWalletPropTypes';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -51,28 +52,14 @@ const propTypes = {
     }),
 
     /** User wallet props */
-    userWallet: PropTypes.shape({
-
-        /**  The step in the wallet configuration we are in. */
-        currentStep: PropTypes.string,
-
-        /**  What tier does the user has for their wallet */
-        tierName: PropTypes.string,
-    }),
+    userWallet: PropTypes.shape(userWalletPropTypes),
 };
 
 const defaultProps = {
     questions: [],
     idNumber: '',
-    walletAdditionalDetails: {
-        isLoading: false,
-        errors: {},
-        errorCode: '',
-    },
-    userWallet: {
-        currentStep: '',
-        tierName: '',
-    },
+    walletAdditionalDetails: {},
+    userWallet: {},
 };
 
 class IdologyQuestions extends React.Component {
@@ -89,17 +76,15 @@ class IdologyQuestions extends React.Component {
 
             /** Answers from the user */
             answers: [],
+
+            /** Any error message */
+            errorMessage: '',
         };
     }
 
     componentDidUpdate() {
         if (this.props.userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD) {
             return;
-        }
-
-        if (this.props.walletAdditionalDetails.isLoading) {
-            PaymentMethods.continueSetup();
-            BankAccounts.setAdditionalDetailsLoading(false);
         }
     }
 
@@ -115,6 +100,7 @@ class IdologyQuestions extends React.Component {
             answers[questionIndex] = {question: question.type, answer};
             return {
                 answers,
+                errorMessage,
             };
         });
     }
@@ -127,7 +113,6 @@ class IdologyQuestions extends React.Component {
             // User must pick an answer
             if (!prevState.answers[prevState.questionNumber]) {
                 return {
-                    // TODO: I think this should be a merge of the Aditional Details, as an error, that would update everything
                     errorMessage: this.props.translate('additionalDetailsStep.selectAnswer'),
                 };
             }
@@ -146,11 +131,10 @@ class IdologyQuestions extends React.Component {
                     }
                 }
 
-                const idologyAnswers = {
+                BankAccounts.answerQuestionsForWallet({
                     answers,
                     idNumber: this.props.idNumber,
-                };
-                BankAccounts.answerQuestionsForWallet(idologyAnswers);
+                });
                 return {answers};
             }
 
@@ -176,22 +160,8 @@ class IdologyQuestions extends React.Component {
             };
         }));
         const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
-        const isErrorVisible = _.size(this.getErrors()) > 0 || !_.isEmpty(errors);
-        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
-
-        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.KYC) {
-            return (
-
-                // TODO: not sure if this is the correct design
-                <View style={[styles.flex1]}>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('additionalDetailsStep.headerTitle')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <FailedKYC />
-                </View>
-            );
-        }
+        const isErrorVisible = this.state.errorMessage || _.size(this.getErrors()) > 0 || !_.isEmpty(errors);
+        const errorMessage = _.isEmpty(errors) ? this.state.errorMessage : _.last(_.values(errors));
 
         return (
             <View style={[styles.flex1]}>
