@@ -520,6 +520,35 @@ describe('Sidebar', () => {
                     expect(reportOptions).toHaveLength(2);
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
+                })
+
+                // WHEN report3 becomes unread
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {unreadActionCount: 1}))
+
+                // THEN all three chats are showing
+                .then(() => {
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
+                    expect(reportOptions).toHaveLength(3);
+                })
+
+                // WHEN report 1 becomes read (it's the active report)
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {unreadActionCount: 0}))
+
+                // THEN all three chats are still showing
+                .then(() => {
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
+                    expect(reportOptions).toHaveLength(3);
+                })
+
+                // WHEN report 2 becomes the active report
+                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, '2'))
+
+                // THEN report 1 should now disappear
+                .then(() => {
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
+                    expect(reportOptions).toHaveLength(2);
+                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
+                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
                 });
         });
 
