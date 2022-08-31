@@ -167,6 +167,7 @@ class AddPersonalBankAccountPage extends React.Component {
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.selectedPlaidBankAccount', null)}
                                 errors={lodashGet(this.props.personalBankAccount, 'errorFields.selectedPlaidBankAccount', null)}
+                                onClose={BankAccounts.clearPersonalBankAccountErrors}
                             >
                                 <AddPlaidBankAccount
                                     onSelect={(params) => {

@@ -70,7 +70,9 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: true,
-                    error: '',
+                    errorFields: {
+                        selectedPlaidBankAccount: null,
+                    },
                     pendingFields: {
                         selectedPlaidBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
@@ -83,8 +85,10 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     loading: false,
-                    error: '',
                     shouldShowSuccess: true,
+                    errorFields: {
+                        selectedPlaidBankAccount: null,
+                    },
                     pendingFields: {
                         selectedPlaidBankAccount: null,
                     },
@@ -98,7 +102,7 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     loading: false,
                     errorFields: {
-                        selectedPlaidBankAccount: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                        selectedPlaidBankAccount: null,
                     },
                     pendingFields: {
                         selectedPlaidBankAccount: null,
@@ -109,6 +113,20 @@ function addPersonalBankAccount(account, password) {
     };
 
     API.write(commandName, parameters, onyxData);
+}
+
+/**
+ * Clear the pending and error fields for adding a pesonal bank account form in /add-bank-account
+ */
+function clearPersonalBankAccountErrors() {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        errorFields: {
+            selectedPlaidBankAccount: null,
+        },
+        pendingFields: {
+            selectedPlaidBankAccount: null,
+        },
+    });
 }
 
 function deletePaymentBankAccount(bankAccountID) {
@@ -127,6 +145,7 @@ function deletePaymentBankAccount(bankAccountID) {
 
 export {
     addPersonalBankAccount,
+    clearPersonalBankAccountErrors,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
