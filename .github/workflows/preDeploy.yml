@@ -40,11 +40,11 @@ jobs:
 
       - name: All Unit Tests
         if: ${{ fromJSON(matrix.chunk) < 2 }}
-        run: npx jest --listTests --json --testPathIgnorePatterns=loginTest.js | jq -cM '[_nwise(length / 3 | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs yarn test
+        run: npx jest --listTests --json --testPathIgnorePatterns=loginTest.js | jq -cM '[_nwise(length / 2 | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs npm test
       
       - name: Login Unit Tests
         if: ${{ fromJSON(matrix.chunk) == 2 }}
-        run: npx jest --listTests --json loginTest.js | jq '.[] | @text' | xargs yarn test
+        run: npm test -- tests/unit/loginTest.js
 
       - name: Pull Request Tests
         if: ${{ fromJSON(matrix.chunk) == 3 }}
