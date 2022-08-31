@@ -89,6 +89,14 @@ class PasswordForm extends React.Component {
     }
 
     /**
+    * Clears any previously entered 2FA Code and signin Onyx data
+    */
+    clearSignInData() {
+        this.setState({twoFactorAuthCode: ''});
+        Session.clearSignInData();
+    }
+
+    /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
@@ -117,14 +125,6 @@ class PasswordForm extends React.Component {
         });
 
         Session.signIn(this.state.password, this.state.twoFactorAuthCode);
-    }
-
-    /**
-    * Clears any previously entered 2FA Code and signin Onyx data
-    */
-    clearSignInData() {
-        this.setState({twoFactorAuthCode: ''});
-        Session.clearSignInData();
     }
 
     render() {
