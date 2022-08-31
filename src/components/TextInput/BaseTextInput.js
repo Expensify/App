@@ -55,6 +55,7 @@ class BaseTextInput extends Component {
                 this.dismissKeyboardWhenBackgrounded,
             );
         }
+        this.input.setNativeProps({text: this.state.value});
 
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (!this.props.autoFocus || !this.input) {
@@ -73,7 +74,7 @@ class BaseTextInput extends Component {
         if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {
             return;
         }
-        this.input.setNativeProps({text: this.state.value});
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({value: inputValue, selection: this.props.selection});
 
