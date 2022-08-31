@@ -60,6 +60,8 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.role
  * @param {String} fullPolicyOrPolicySummary.type
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
+ * @param {String} [fullPolicyOrPolicySummary.avatar]
+ * @param {String} [fullPolicyOrPolicySummary.value.avatar]
  * @param {String} [fullPolicyOrPolicySummary.avatarURL]
  * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
@@ -78,8 +80,11 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
-        // avatarUrl will be nested within the key "value"
-        avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+        // avatar will be nested within the key "value"
+        avatar: fullPolicyOrPolicySummary.avatar
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
+            || fullPolicyOrPolicySummary.avatarURL
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
@@ -293,6 +298,49 @@ function updateLocalPolicyValues(policyID, values) {
 }
 
 /**
+ * Updates a workspace avatar image
+ *
+ * @param {String} policyID
+ * @param {File|Object} file
+ */
+function updateWorkspaceAvatar(policyID, file) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: file.uri,
+            errorFields: {
+                avatar: null,
+            },
+            pendingFields: {
+                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
+
+    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, successData, failureData});
+}
+
+/**
  * Deletes the avatar image for the workspace
  * @param {String} policyID
  */
@@ -303,12 +351,12 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 errorFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
-                avatarURL: '',
+                avatar: '',
             },
         },
     ];
@@ -318,10 +366,7 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: null,
-                },
-                errorFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
             },
         },
@@ -332,10 +377,10 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
                 errorFields: {
-                    avatarURL: {
+                    avatar: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
                     },
                 },
@@ -352,10 +397,10 @@ function deleteWorkspaceAvatar(policyID) {
 function clearAvatarErrors(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
-            avatarURL: null,
+            avatar: null,
         },
         pendingFields: {
-            avatarURL: null,
+            avatar: null,
         },
     });
 }
@@ -389,26 +434,72 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
- * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
+ * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
+ * If the response fails set a general error message. Clear the error message when updating.
  *
  * @param {String} policyID
- * @param {Object} file
+ * @param {String} name
+ * @param {String} currency
  */
-function uploadAvatar(policyID, file) {
-    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
-    DeprecatedAPI.User_UploadAvatar({file})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                // Update the policy with the new avatarURL as soon as we get it
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
-                update(policyID, {avatarURL: response.s3url}, true);
-                return;
-            }
+function updateGeneralSettings(policyID, name, currency) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
+                // Clear errorFields in case the user didn't dismiss the general settings error
+                errorFields: {
+                    generalSettings: null,
+                },
+                name,
+                outputCurrency: currency,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+                errorFields: {
+                    generalSettings: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+}
+
+/**
+ * @param {String} policyID The id of the workspace / policy
+ */
+function clearWorkspaceGeneralSettingsErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            generalSettings: null,
+        },
+    });
 }
 
 /**
@@ -433,16 +524,6 @@ function removeUnitError(policyID, customUnitID) {
             },
         },
     });
-}
-
-/**
- * Checks if we have any errors stored within the policy custom units.
- * @param {Object} policy
- * @returns {Boolean}
- */
-function hasCustomUnitsError(policy) {
-    const unitsWithErrors = _.filter(lodashGet(policy, 'customUnits', {}), customUnit => (lodashGet(customUnit, 'errors', null)));
-    return !_.isEmpty(unitsWithErrors);
 }
 
 /**
@@ -606,16 +687,6 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
-* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
- * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
- * @param {Object} policyMemberList
- * @returns {Boolean}
- */
-function hasPolicyMemberError(policyMemberList) {
-    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
-}
-
-/**
  * Returns a client generated 16 character hexadecimal value for the policyID
  * @returns {String}
  */
@@ -715,11 +786,9 @@ export {
     removeMembers,
     invite,
     isAdminOfFreePolicy,
-    uploadAvatar,
     update,
     setWorkspaceErrors,
     removeUnitError,
-    hasCustomUnitsError,
     hideWorkspaceAlertMessage,
     deletePolicy,
     updateWorkspaceCustomUnit,
@@ -728,8 +797,10 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    hasPolicyMemberError,
+    updateGeneralSettings,
+    clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
+    updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
     createWorkspace,

@@ -1210,7 +1210,7 @@ function saveReportComment(reportID, comment) {
  * @returns {Promise}
  */
 function setReportWithDraft(reportID, hasDraft) {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${reportID}`, hasDraft);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
 /**
