@@ -1,4 +1,4 @@
-const core = require("@actions/core");
+const core = require('@actions/core');
 const github = require('@actions/github');
 const GitHubUtils = require('../../../libs/GithubUtils');
 
@@ -99,16 +99,16 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 
-function printUncheckedItems(result, expected) {
+function printUncheckedItems(result) {
     const checklist = result.split('\n');
 
-    for (const line of checklist) {
+    checklist.forEach((line) => {
         // Provide a search string with the first 30 characters to figure out if the checkbox item is in the checklist
         const lineSearchString = line.replace('- [ ] ', '').slice(0, 30);
         if (line.includes('- [ ]') && (completedContributorChecklist.includes(lineSearchString) || completedContributorPlusChecklist.includes(lineSearchString))) {
             console.log(`Unchecked checklist item: ${line}`);
         }
-    }
+    });
 }
 
 // Get all user text from the pull request, review comments, and pull request comments
