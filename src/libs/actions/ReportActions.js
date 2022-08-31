@@ -117,11 +117,21 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
 /**
  * @param {Number} reportID
  * @param {String} sequenceNumber
+ * @param {String} pendingAction
  */
-function deleteOptimisticReportAction(reportID, sequenceNumber) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [sequenceNumber]: null,
-    });
+function deleteOptimisticReportAction(reportID, sequenceNumber, pendingAction) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [sequenceNumber]: null,
+        });
+    } else {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [sequenceNumber]: {
+                pendingAction: null,
+                errors: null,
+            },
+        });
+    }
 }
 
 export {
