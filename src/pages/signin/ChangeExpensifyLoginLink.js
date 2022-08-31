@@ -17,6 +17,9 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
+    /** Callback to navigate back to email form */
+    onPress: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
