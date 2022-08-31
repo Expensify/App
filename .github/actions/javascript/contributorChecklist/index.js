@@ -123,7 +123,7 @@ GitHubUtils.octokit.pulls.get({
     pull_number: issue,
 }).then(({data: pullRequestComment}) => {
     combinedData.push(pullRequestComment);
-}).then(() => GitHubUtils.octokit.pulls.listReviewComments({
+}).then(() => GitHubUtils.octokit.pulls.listReviews({
     owner: GitHubUtils.GITHUB_OWNER,
     repo: GitHubUtils.APP_REPO,
     pull_number: issue,
