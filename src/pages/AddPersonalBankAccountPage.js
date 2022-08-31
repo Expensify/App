@@ -21,7 +21,6 @@ import defaultTheme from '../styles/themes/default';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import FormScrollView from '../components/FormScrollView';
-import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import FormHelper from '../libs/FormHelper';
 import * as ReimbursementAccount from '../libs/actions/ReimbursementAccount';
 import TextInput from '../components/TextInput';
@@ -124,7 +123,6 @@ class AddPersonalBankAccountPage extends React.Component {
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
-        const error = lodashGet(this.props, 'personalBankAccount.error', '');
         const loading = lodashGet(this.props, 'personalBankAccount.loading', false);
 
         return (
@@ -167,18 +165,18 @@ class AddPersonalBankAccountPage extends React.Component {
                     <FormScrollView>
                         <View style={[styles.mh5, styles.mb5]}>
                             <OfflineWithFeedback
-                                pendingAction = {lodashGet(this.props.personalBankAccount, 'pendingFields.selectedPlaidBankAccount', null)}
-                            />
+                                pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.selectedPlaidBankAccount', null)}
+                                errors={lodashGet(this.props.personalBankAccount, 'errorFields.selectedPlaidBankAccount', null)}
+                            >
                                 <AddPlaidBankAccount
                                     onSelect={(params) => {
-                                        console.log(params.selectedPlaidBankAccount);
                                         this.setState({
                                             selectedPlaidBankAccount: params.selectedPlaidBankAccount,
                                         });
                                     }}
                                     onExitPlaid={Navigation.goBack}
                                     receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                >
+                                />
                                 {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
                                     <View style={[styles.mb5]}>
                                         <TextInput
