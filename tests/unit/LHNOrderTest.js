@@ -120,8 +120,6 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
-jest.disableAutomock();
-
 function getDefaultRenderedSidebarLinks() {
     // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
     // are passed to the component. If this is not done, then all the locale props are missing
