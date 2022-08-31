@@ -24,7 +24,6 @@ import * as ReportUtils from '../ReportUtils';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as NumberUtils from '../NumberUtils';
@@ -424,48 +423,6 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
  */
 function getReportChannelName(reportID) {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
-}
-
-/**
- * Initialize our pusher subscriptions to listen for new report comments and pin toggles
- */
-function subscribeToUserEvents() {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-    if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
-        return;
-    }
-
-    // Live-update a report's actions when an 'edit comment' event is received.
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT_EDIT,
-        currentUserAccountID,
-        ({reportID, sequenceNumber, message}) => {
-            // We only want the active client to process these events once otherwise multiple tabs would decrement the 'unreadActionCount'
-            if (!ActiveClientManager.isClientTheLeader()) {
-                return;
-            }
-
-            const actionsToMerge = {};
-            actionsToMerge[sequenceNumber] = {message: [message]};
-
-            // If someone besides the current user deleted an action and the sequenceNumber is greater than our last read we will decrement the unread count
-            // we skip this for the current user because we should already have decremented the count optimistically when they deleted the comment.
-            const isFromCurrentUser = ReportActions.isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actionsToMerge);
-            if (!message.html && !isFromCurrentUser && sequenceNumber > getLastReadSequenceNumber(reportID)) {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                    unreadActionCount: Math.max(getUnreadActionCount(reportID) - 1, 0),
-                });
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                lastMessageText: ReportActions.getLastVisibleMessageText(reportID, actionsToMerge),
-            });
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionsToMerge);
-        });
 }
 
 /**
@@ -871,73 +828,6 @@ function addComment(reportID, text) {
 }
 
 /**
- * Deletes a comment from the report, basically sets it as empty string
- *
- * @param {Number} reportID
- * @param {Object} reportAction
- */
-function deleteReportComment(reportID, reportAction) {
-    // Optimistic Response
-    const sequenceNumber = reportAction.sequenceNumber;
-    const reportActionsToMerge = {};
-    const oldMessage = {...reportAction.message};
-    reportActionsToMerge[sequenceNumber] = {
-        ...reportAction,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: '',
-                text: '',
-            },
-        ],
-    };
-
-    // If the comment we are deleting is more recent than our last read comment we will update the unread count
-    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            unreadActionCount: Math.max(getUnreadActionCount(reportID) - 1, 0),
-        });
-    }
-
-    // Optimistically update the report and reportActions
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
-    });
-
-    // Try to delete the comment by calling the API
-    DeprecatedAPI.Report_EditComment({
-        reportID,
-        reportActionID: reportAction.reportActionID,
-        reportComment: '',
-        sequenceNumber,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                return;
-            }
-
-            // Reverse Optimistic Response
-            reportActionsToMerge[sequenceNumber] = {
-                ...reportAction,
-                message: oldMessage,
-            };
-
-            if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                    unreadActionCount: getUnreadActionCount(reportID) + 1,
-                });
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                lastMessageText: ReportActions.getLastVisibleMessageText(reportID, reportActionsToMerge),
-            });
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
-        });
-}
-
-/**
  * Gets the latest page of report actions and updates the last read message
  *
  * @param {Number} reportID
@@ -1206,6 +1096,88 @@ Onyx.connect({
 });
 
 /**
+ * Deletes a comment from the report, basically sets it as empty string
+ *
+ * @param {Number} reportID
+ * @param {Object} reportAction
+ */
+function deleteReportComment(reportID, reportAction) {
+    const sequenceNumber = reportAction.sequenceNumber;
+    const optimisticReportActions = {
+        [sequenceNumber]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        },
+    };
+
+    // If we are deleting the last visible message, let's find the previous visible one
+    // and update the lastMessageText in the chat preview.
+    const optimisticReport = {
+        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
+            [sequenceNumber]: {
+                message: [{
+                    html: '',
+                    text: '',
+                }],
+            },
+        }),
+    };
+
+    // If the API call fails we must show the original message again, so we revert the message content back to how it was
+    // and and remove the pendingAction so the strike-through clears
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    message: reportAction.message,
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    // If we are deleting an unread message that is greater than our last read we decrease the unreadActionCount
+    // since the message we are deleting is an unread
+    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
+        const unreadActionCount = getUnreadActionCount(reportID);
+        optimisticReport.unreadActionCount = Math.max(unreadActionCount - 1, 0);
+    }
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticReportActions,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        },
+    ];
+
+    const parameters = {
+        reportID,
+        sequenceNumber,
+        reportActionID: reportAction.reportActionID,
+    };
+    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
+}
+
+/**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
  * @param {Number} reportID
@@ -1230,32 +1202,59 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         return;
     }
 
-    // Optimistically update the report action with the new message
+    // Optimistically update the reportAction with the new message
     const sequenceNumber = originalReportAction.sequenceNumber;
-    const newReportAction = {...originalReportAction};
-    const actionToMerge = {};
-    newReportAction.message[0].isEdited = true;
-    newReportAction.message[0].html = htmlForNewComment;
-    newReportAction.message[0].text = parser.htmlToText(htmlForNewComment);
-    actionToMerge[sequenceNumber] = newReportAction;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+    const optimisticReportActions = {
+        [sequenceNumber]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            message: [{
+                isEdited: true,
+                html: htmlForNewComment,
+                text: textForNewComment,
+            }],
+        },
+    };
 
-    // Persist the updated report comment
-    DeprecatedAPI.Report_EditComment({
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticReportActions,
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    ...originalReportAction,
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
         reportID,
-        reportActionID: originalReportAction.reportActionID,
-        reportComment: htmlForNewComment,
         sequenceNumber,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                return;
-            }
-
-            // If it fails, reset Onyx
-            actionToMerge[sequenceNumber] = originalReportAction;
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
-        });
+        reportComment: htmlForNewComment,
+        reportActionID: originalReportAction.reportActionID,
+    };
+    API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1564,7 +1563,6 @@ export {
     reconnect,
     updateNotificationPreference,
     subscribeToReportTypingEvents,
-    subscribeToUserEvents,
     subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
