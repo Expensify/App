@@ -198,8 +198,8 @@ class WorkspaceReimburseView extends React.Component {
                             ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
                             ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
                         }}
-                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'], '')
-                            || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'], '')}
+                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
+                            || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
                         onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID, this.state.unitRateID)}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
