@@ -736,8 +736,6 @@ function createOptimisticReportAction(reportID, text, file) {
                 },
             ],
             automatic: false,
-
-            // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: Date.now(),
             avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
