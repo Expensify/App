@@ -72,7 +72,6 @@ const fakePersonalDetails = {
 const fakeReport1 = {
     reportID: 1,
     reportName: 'Report One',
-    unreadActionCount: 0,
 
     // This report's last comment will be in the past
     lastMessageTimestamp: Date.now() - 3000,
@@ -81,21 +80,18 @@ const fakeReport1 = {
 const fakeReport2 = {
     reportID: 2,
     reportName: 'Report Two',
-    unreadActionCount: 0,
     lastMessageTimestamp: Date.now() - 2000,
     participants: ['email3@test.com', 'email4@test.com'],
 };
 const fakeReport3 = {
     reportID: 3,
     reportName: 'Report Three',
-    unreadActionCount: 0,
     lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
 };
 const fakeReportIOU = {
     reportID: 4,
     reportName: 'Report IOU Four',
-    unreadActionCount: 0,
     lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
     ownerEmail: 'email2@test.com',
@@ -537,8 +533,8 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, unreadActionCount: 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
@@ -553,16 +549,10 @@ describe('Sidebar', () => {
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
                 })
 
-                // WHEN report3 becomes unread
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {unreadActionCount: 1}))
-
                 // THEN all three chats are showing
                 .then(() => {
                     expect(sidebarLinks.queryAllByText(/ReportID, /)).toHaveLength(3);
                 })
-
-                // WHEN report 1 becomes read (it's the active report)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {unreadActionCount: 0}))
 
                 // THEN all three chats are still showing
                 .then(() => {
@@ -590,9 +580,9 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, unreadActionCount: 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, unreadActionCount: 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
@@ -611,7 +601,6 @@ describe('Sidebar', () => {
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
                     reportID: 4,
                     reportName: 'Report Four',
-                    unreadActionCount: 1,
                     lastMessageTimestamp: Date.now(),
                     participants: ['email7@test.com', 'email8@test.com'],
                 }))

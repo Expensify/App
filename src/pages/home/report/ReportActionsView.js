@@ -38,9 +38,6 @@ const propTypes = {
         /** The ID of the report actions will be created for */
         reportID: PropTypes.number.isRequired,
 
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
 
