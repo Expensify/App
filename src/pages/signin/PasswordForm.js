@@ -120,7 +120,7 @@ class PasswordForm extends React.Component {
     }
 
     /**
-    * Clears any previously entered 2FA Code and the credentials keys in Onyx
+    * Clears any previously entered 2FA Code and signin Onyx data
     */
     clearSignInData() {
         this.setState({twoFactorAuthCode: ''});
