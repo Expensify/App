@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    messages: null,
+    messages: [],
     style: [],
 
 };
