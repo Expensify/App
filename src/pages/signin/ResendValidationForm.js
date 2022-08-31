@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -18,6 +19,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import DateUtils from '../../libs/DateUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -71,8 +73,8 @@ const ResendValidationForm = (props) => {
                     {props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                 </Text>
             </View>
-            {props.account.message && (
-                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={[props.account.message]} />
+            {!_.isEmpty(props.account.message) && (
+                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{[DateUtils.getMicroseconds()]: props.account.message}} />
             )}
             {error && (
                 <DotIndicatorMessage style={[styles.mb5]} type="error" messages={[error]} />
