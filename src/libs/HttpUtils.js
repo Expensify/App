@@ -99,7 +99,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     if (CONFIG.IS_IN_STAGING && shouldUseStagingServer) {
-        apiRoot = shouldUseSecure ? CONST.STAGING_SECURE_URL : CONST.STAGING_URL;
+        apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
     }
 
     return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
