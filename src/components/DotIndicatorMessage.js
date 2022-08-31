@@ -10,16 +10,19 @@ import variables from '../styles/variables';
 import Text from './Text';
 
 const propTypes = {
-    /** The messages to display  */
-    messages: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.string),
-        PropTypes.objectOf(PropTypes.string),
-    ]),
+    /**
+     * In most cases this should just be errors from onxyData
+     * if you are not passing that data then this neeeds to be in a similar shape like
+     *  {
+     *      timestamp: 'message',
+     *  }
+     */
+    messages: PropTypes.objectOf(PropTypes.string),
 
-    /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
+    // The type of message, 'error' shows a red dot, 'success' shows a green dot
     type: PropTypes.oneOf(['error', 'success']).isRequired,
 
-    /** Additional styles to apply to the container */
+    // Additional styles to apply to the container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
 };
@@ -35,15 +38,11 @@ const DotIndicatorMessage = (props) => {
         return null;
     }
 
-    // If the messages are passed as an object (such as our Onyx errors), then grab the sorted values
-    let sortedMessages = props.messages;
-    if (!_.isArray(props.messages)) {
-        sortedMessages = _.chain(props.messages)
-            .keys()
-            .sortBy()
-            .map(key => props.messages[key])
-            .value();
-    }
+    const sortedMessages = _.chain(props.messages)
+        .keys()
+        .sortBy()
+        .map(key => props.messages[key])
+        .value();
 
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
