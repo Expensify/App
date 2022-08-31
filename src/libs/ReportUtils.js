@@ -592,7 +592,6 @@ function hasReportNameError(report) {
  * @returns {Object}
  */
 function buildOptimisticReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
-    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const currency = lodashGet(currentUserDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
@@ -629,7 +628,7 @@ function buildOptimisticReportAction(type, amount, comment, paymentType = '', ex
             type: 'TEXT',
         }],
         reportActionID: NumberUtils.rand64(),
-        sequenceNumber: parseInt(`${Date.now()}${randomNumber}`, 10),
+        sequenceNumber: NumberUtils.generateReportActionSequenceNumber(),
         shouldShow: true,
         timestamp: moment().unix(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
