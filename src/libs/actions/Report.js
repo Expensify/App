@@ -816,10 +816,12 @@ function addActions(reportID, text = '', file) {
     const parameters = {
         reportID,
         reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
-        commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
     };
+    if (file && reportCommentAction) {
+        parameters.commentReportActionID = reportCommentAction.reportActionID;
+    }
 
     const optimisticData = [
         {
