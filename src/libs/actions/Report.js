@@ -1154,13 +1154,6 @@ function deleteReportComment(reportID, reportAction) {
     if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
         const unreadActionCount = getUnreadActionCount(reportID);
         optimisticReport.unreadActionCount = Math.max(unreadActionCount - 1, 0);
-
-        // And if the API call fails, let's rollback to the previous counter value.
-        failureData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {unreadActionCount},
-        });
     }
 
     // No need for successData because the API will clear the message on success with Pusher
