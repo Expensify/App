@@ -7,9 +7,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import Button from '../../../components/Button';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -29,12 +28,12 @@ const WorkspaceTravelNoVBAView = props => (
             </View>
             <Button
                 text={props.translate('workspace.common.bankAccount')}
-                onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID))}
+                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
-                iconStyles={[styles.mr5]}
+                iconStyles={[styles.buttonCTAIcon]}
                 shouldShowRightIcon
-                extraLarge
+                large
                 success
             />
         </Section>

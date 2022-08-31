@@ -50,7 +50,7 @@ const propTypes = {
     mostRecentIOUReportSequenceNumber: PropTypes.number,
 
     /** Are we loading more report actions? */
-    isLoadingMoreReportActions: PropTypes.bool.isRequired,
+    isLoadingMoreReportActions: PropTypes.bool,
 
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
@@ -68,6 +68,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     mostRecentIOUReportSequenceNumber: undefined,
+    isLoadingMoreReportActions: false,
 };
 
 class ReportActionsList extends React.Component {

@@ -27,6 +27,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import Form from '../../../components/Form';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,6 +80,7 @@ class ProfilePage extends Component {
         this.validate = this.validate.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.updateAvatar = this.updateAvatar.bind(this);
+        this.validateInputs = this.validateInputs.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -128,6 +130,7 @@ class ProfilePage extends Component {
     }
 
     /**
+<<<<<<< HEAD
      * Updates the user's avatar image.
      * @param {Object} avatar
      */
@@ -138,6 +141,8 @@ class ProfilePage extends Component {
     }
 
     /**
+=======
+>>>>>>> main
      * Submit form to update personal details
      * @param {Object} values
      * @param {String} values.firstName
@@ -236,15 +241,24 @@ class ProfilePage extends Component {
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}
                 >
-                    <AvatarWithImagePicker
-                        isUploading={this.props.currentUserPersonalDetails.avatarUploading}
-                        isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
-                        avatarURL={this.avatar.uri}
-                        onImageSelected={this.updateAvatar}
-                        onImageRemoved={this.updateAvatar}
-                        anchorPosition={styles.createMenuPositionProfile}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                        errors={lodashGet(this.props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                        errorRowStyles={[styles.mt6]}
+                        onClose={PersonalDetails.clearAvatarErrors}
+                    >
+                        <AvatarWithImagePicker
+                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
+                            isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
+                            avatarURL={this.avatar.uri}
+                            onImageSelected={this.updateAvatar}
+                            onImageRemoved={this.updateAvatar}
+                            anchorPosition={styles.createMenuPositionProfile}
+                            size={CONST.AVATAR_SIZE.LARGE}
+                        />
+
+                    </OfflineWithFeedback>
+
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>

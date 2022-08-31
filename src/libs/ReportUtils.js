@@ -382,6 +382,8 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     }
     if (isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
+        ]) || lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]) || Expensicons.Workspace;
 
@@ -512,8 +514,9 @@ function navigateToDetailsPage(report) {
 }
 
 /**
- * Generate a random reportID between 98000000 (the number of reports before the switch from sequential to random)
- * and the maximum safe integer of js (53 bits aka 9,007,199,254,740,991)
+ * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+ * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
+ * so we live with the 1 in a billion chance of a collision with an older ID until we can switch to 64-bit IDs.
  *
  * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
  * this is more than random enough for our needs.
@@ -521,7 +524,7 @@ function navigateToDetailsPage(report) {
  * @returns {Number}
  */
 function generateReportID() {
-    return Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 98000000)) + 98000000;
+    return (Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32));
 }
 
 /**
