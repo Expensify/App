@@ -18,25 +18,15 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Additional styles to add after local styles. */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
-
     /** localization props */
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    style: [],
 };
 
 const ReportActionItemMessage = (props) => {
     const isUnsent = props.network.isOffline && props.action.isLoading;
 
     return (
-        <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage, ...props.style]}>
+        <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
             {_.map(_.compact(props.action.message), (fragment, index) => (
                 <ReportActionItemFragment
                     key={`actionFragment-${props.action.sequenceNumber}-${index}`}
@@ -52,7 +42,6 @@ const ReportActionItemMessage = (props) => {
 };
 
 ReportActionItemMessage.propTypes = propTypes;
-ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
 export default compose(

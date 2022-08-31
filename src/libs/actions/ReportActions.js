@@ -87,21 +87,6 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * Get last reportAction in the chat that was not deleted
- * @param {Number} reportID
- * @param {Object} [actionsToMerge]
- * @return {Object}
- */
-function getLastVisibleReportAction(reportID, actionsToMerge = {}) {
-    const existingReportActions = _.indexBy(reportActions[reportID], 'sequenceNumber');
-    const actions = _.toArray(lodashMerge({}, existingReportActions, actionsToMerge));
-    const lastVisibleReportActionIndex = _.findLastIndex(actions, action => (
-        !ReportActionsUtils.isDeletedAction(action)
-    ));
-    return actions[lastVisibleReportActionIndex];
-}
-
-/**
  * @param {Number} reportID
  * @param {Number} sequenceNumber
  * @param {Number} currentUserAccountID
@@ -120,24 +105,28 @@ function isFromCurrentUser(reportID, sequenceNumber, currentUserAccountID, actio
  * @param {String} pendingAction
  */
 function deleteOptimisticReportAction(reportID, sequenceNumber, pendingAction) {
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [sequenceNumber]: null,
-        });
-    } else {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [sequenceNumber]: {
-                pendingAction: null,
-                errors: null,
-            },
-        });
-    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [sequenceNumber]: null,
+    });
+}
+
+/**
+ * @param {Number} reportID
+ * @param {String} sequenceNumber
+ */
+function clearReportActionErrors(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [sequenceNumber]: {
+            errors: null,
+        },
+    });
 }
 
 export {
     getDeletedCommentsCount,
     getLastVisibleMessageText,
     getLastVisibleReportAction,
+    clearReportActionErrors,
     isFromCurrentUser,
     deleteOptimisticReportAction,
 };

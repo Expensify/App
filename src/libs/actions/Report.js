@@ -753,8 +753,8 @@ function addActions(reportID, text = '', file) {
 
     // We need a newSequenceNumber that is n larger than the current depending on how many actions we are adding.
     const actionCount = text && file ? 2 : 1;
-    const maxSequenceNumber = getMaxSequenceNumber(reportID);
-    const newSequenceNumber = maxSequenceNumber + actionCount;
+    const highestSequenceNumber = getMaxSequenceNumber(reportID);
+    const newSequenceNumber = highestSequenceNumber + actionCount;
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
@@ -1114,8 +1114,6 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
-
-    // Let's add the strike-through to the message if the user goes/is offline.
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -1150,7 +1148,6 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    // In case the message already has errors but the user tries to delete again and it works, let's clear the errors
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1158,19 +1155,18 @@ function deleteReportComment(reportID, reportAction) {
             value: {
                 [sequenceNumber]: {
                     pendingAction: null,
-                    errors: null,
                 },
             },
         },
     ];
 
-    // If we are deleting an unread message, let's decrease the unreadActionCount.
+    // If we are deleting an unread message that is greater than our last read we decrease the unreadActionCount
+    // since the message we are deleting is an unread
     if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
         const unreadActionCount = getUnreadActionCount(reportID);
         optimisticReport.unreadActionCount = Math.max(unreadActionCount - 1, 0);
     }
 
-    // No need for successData because the API will clear the message on success with Pusher
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1250,28 +1246,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             },
         },
     ];
-
-    // If the very last visible message is being edited, let's update the chat lastMessageText and rollback it if everything fails
-    const lastVisibleReportAction = ReportActions.getLastVisibleReportAction(reportID);
-    if (lastVisibleReportAction && sequenceNumber === lastVisibleReportAction.sequenceNumber) {
-        optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                lastMessageText: ReportUtils.formatReportLastMessageText(textForNewComment),
-            },
-        });
-
-        const messageHtml = lodashGet(lastVisibleReportAction, ['message', 0, 'html'], '');
-        const previousLastMessage = ReportUtils.formatReportLastMessageText(messageHtml);
-        failureData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                lastMessageText: previousLastMessage,
-            },
-        });
-    }
 
     const successData = [
         {
