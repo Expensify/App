@@ -90,7 +90,8 @@ function canEditReportAction(reportAction) {
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
-        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
+        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && reportAction.pendingAction !== 'delete';
 }
 
 /**
