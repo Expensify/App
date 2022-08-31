@@ -224,103 +224,101 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('common.profile')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                 <HeaderWithCloseButton
+                    title={this.props.translate('common.profile')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={CONST.PROFILE_SETTINGS_FORM}
+                    validate={this.validate}
+                    onSubmit={this.updatePersonalDetails}
+                    submitButtonText={this.props.translate('common.save')}
+                >
+                    <AvatarWithImagePicker
+                        isUploading={this.props.currentUserPersonalDetails.avatarUploading}
+                        isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
+                        avatarURL={this.avatar.uri}
+                        onImageSelected={this.updateAvatar}
+                        onImageRemoved={this.updateAvatar}
+                        anchorPosition={styles.createMenuPositionProfile}
+                        size={CONST.AVATAR_SIZE.LARGE}
                     />
-                    <Form
-                        style={[styles.flexGrow1, styles.ph5]}
-                        formID={CONST.PROFILE_SETTINGS_FORM}
-                        validate={this.validate}
-                        onSubmit={this.updatePersonalDetails}
-                        submitButtonText={this.props.translate('common.save')}
-                    >
-                        <AvatarWithImagePicker
-                            isUploading={this.props.currentUserPersonalDetails.avatarUploading}
-                            isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
-                            avatarURL={this.avatar.uri}
-                            onImageSelected={this.updateAvatar}
-                            onImageRemoved={this.updateAvatar}
-                            anchorPosition={styles.createMenuPositionProfile}
-                            size={CONST.AVATAR_SIZE.LARGE}
-                        />
-                        <Text style={[styles.mt6, styles.mb6]}>
-                            {this.props.translate('profilePage.tellUsAboutYourself')}
-                        </Text>
+                    <Text style={[styles.mt6, styles.mb6]}>
+                        {this.props.translate('profilePage.tellUsAboutYourself')}
+                    </Text>
 
-                        <View style={[styles.flexRow, styles.mt4, styles.mb4]}>
-                            <View style={styles.flex1}>
-                                <TextInput
-                                    inputID="firstName"
-                                    name="fname"
-                                    label={this.props.translate('common.firstName')}
-                                    defaultValue={this.props.currentUserPersonalDetails.firstName}
-                                    placeholder={this.props.translate('profilePage.john')}
-                                />
-                            </View>
-                            <View style={[styles.flex1, styles.ml2]}>
-                                <TextInput
-                                    inputID="lastName"
-                                    name="lname"
-                                    label={this.props.translate('common.lastName')}
-                                    defaultValue={this.props.currentUserPersonalDetails.lastName}
-                                    placeholder={this.props.translate('profilePage.doe')}
-                                />
-                            </View>
-                        </View>
-                        <View style={styles.mb6}>
-                            <Picker
-                                inputID="pronouns"
-                                label={this.props.translate('profilePage.preferredPronouns')}
-                                items={pronounsList}
-                                placeholder={{
-                                    value: '',
-                                    label: this.props.translate('profilePage.selectYourPronouns'),
-                                }}
-                                defaultValue={pronounsPickerValue}
-                            />
-                            {this.state.hasSelfSelectedPronouns && (
-                                <View style={styles.mt2}>
-                                    <TextInput
-                                        inputID="selfSelectedPronoun"
-                                        defaultValue={this.pronouns}
-                                        placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        <LoginField
-                            label={this.props.translate('profilePage.emailAddress')}
-                            type="email"
-                            login={this.state.logins.email}
-                            defaultValue={this.state.logins.email}
-                        />
-                        <LoginField
-                            label={this.props.translate('common.phoneNumber')}
-                            type="phone"
-                            login={this.state.logins.phone}
-                            defaultValue={this.state.logins.phone}
-                        />
-                        <View style={styles.mb3}>
-                            <Picker
-                                inputID="timezone"
-                                label={this.props.translate('profilePage.timezone')}
-                                items={timezones}
-                                isDisabled={this.state.isAutomaticTimezone}
-                                defaultValue={this.state.selectedTimezone}
-                                value={this.state.selectedTimezone}
+                    <View style={[styles.flexRow, styles.mt4, styles.mb4]}>
+                        <View style={styles.flex1}>
+                            <TextInput
+                                inputID="firstName"
+                                name="fname"
+                                label={this.props.translate('common.firstName')}
+                                defaultValue={this.props.currentUserPersonalDetails.firstName}
+                                placeholder={this.props.translate('profilePage.john')}
                             />
                         </View>
-                        <CheckboxWithLabel
-                            inputID="isAutomaticTimezone"
-                            label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                            defaultValue={this.state.isAutomaticTimezone}
+                        <View style={[styles.flex1, styles.ml2]}>
+                            <TextInput
+                                inputID="lastName"
+                                name="lname"
+                                label={this.props.translate('common.lastName')}
+                                defaultValue={this.props.currentUserPersonalDetails.lastName}
+                                placeholder={this.props.translate('profilePage.doe')}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.mb6}>
+                        <Picker
+                            inputID="pronouns"
+                            label={this.props.translate('profilePage.preferredPronouns')}
+                            items={pronounsList}
+                            placeholder={{
+                                value: '',
+                                label: this.props.translate('profilePage.selectYourPronouns'),
+                            }}
+                            defaultValue={pronounsPickerValue}
                         />
-                    </Form>
-                </KeyboardAvoidingView>
+                        {this.state.hasSelfSelectedPronouns && (
+                            <View style={styles.mt2}>
+                                <TextInput
+                                    inputID="selfSelectedPronoun"
+                                    defaultValue={this.pronouns}
+                                    placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                />
+                            </View>
+                        )}
+                    </View>
+                    <LoginField
+                        label={this.props.translate('profilePage.emailAddress')}
+                        type="email"
+                        login={this.state.logins.email}
+                        defaultValue={this.state.logins.email}
+                    />
+                    <LoginField
+                        label={this.props.translate('common.phoneNumber')}
+                        type="phone"
+                        login={this.state.logins.phone}
+                        defaultValue={this.state.logins.phone}
+                    />
+                    <View style={styles.mb3}>
+                        <Picker
+                            inputID="timezone"
+                            label={this.props.translate('profilePage.timezone')}
+                            items={timezones}
+                            isDisabled={this.state.isAutomaticTimezone}
+                            defaultValue={this.state.selectedTimezone}
+                            value={this.state.selectedTimezone}
+                        />
+                    </View>
+                    <CheckboxWithLabel
+                        inputID="isAutomaticTimezone"
+                        label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
+                        defaultValue={this.state.isAutomaticTimezone}
+                    />
+                </Form>
             </ScreenWrapper>
         );
     }
