@@ -737,10 +737,10 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
-function openWorkspaceMembersPage(policyID, clientPolicyMembers) {
+function openWorkspaceMembersPage(policyID, clientMemberEmails) {
     API.read('OpenWorkspaceMembersPage', {
         policyID,
-        clientPolicyMembers: JSON.stringify(clientPolicyMembers),
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
     });
 }
 
