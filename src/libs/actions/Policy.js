@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import Str from 'expensify-common/lib/str';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -688,14 +689,6 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
- * @param {String} value
- * @returns {String}
- */
-function capitalizeFirstLetter(value) {
-    return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-/**
  * Generate a policy name based on an email and policy list.
  * @returns {String}
  */
@@ -709,9 +702,9 @@ function generateDefaultWorkspaceName() {
     const domain = emailParts[1];
 
     if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
-        defaultWorkspaceName = `${capitalizeFirstLetter(username)}'s Workspace`;
+        defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
     } else {
-        defaultWorkspaceName = `${capitalizeFirstLetter(domain.split('.')[0])}'s Workspace`;
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
     }
 
     if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
@@ -831,6 +824,10 @@ function createWorkspace() {
     Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
 }
 
+function openWorkspaceReimburseView(policyID) {
+    API.read('OpenWorkspaceReimburseView', {policyID});
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -848,6 +845,7 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
+    openWorkspaceReimburseView,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
