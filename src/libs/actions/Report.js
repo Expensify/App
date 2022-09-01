@@ -652,28 +652,28 @@ function createOptimisticChatReport(participantList) {
 function createOptimisticWorkspaceChats(policyID, ownerEmail) {
     const announceChatReportID = ReportUtils.generateReportID();
     const announceChatData = {
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-            policyID: policyID,
-            reportID: announceChatReportID,
-            reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        reportID: announceChatReportID,
+        reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
     };
- 
+
     const adminsChatReportID = ReportUtils.generateReportID();
     const adminChatData = {
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-            policyID: policyID,
-            reportID: adminsChatReportID,
-            reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        reportID: adminsChatReportID,
+        reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
     };
- 
-    const expenseChatReportID =  ReportUtils.generateReportID();
+
+    const expenseChatReportID = ReportUtils.generateReportID();
     const expenseChatData = {
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            isOwnPolicyExpenseChat: true,
-            ownerEmail: ownerEmail,
-            policyID: policyID,
-            reportID: expenseChatReportID,
-            reportName: '',
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        isOwnPolicyExpenseChat: true,
+        ownerEmail,
+        policyID,
+        reportID: expenseChatReportID,
+        reportName: '',
     };
 
     return {
@@ -682,8 +682,8 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         adminsChatReportID,
         adminChatData,
         expenseChatReportID,
-        expenseChatData
-    }
+        expenseChatData,
+    };
 }
 
 /**
