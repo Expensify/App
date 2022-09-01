@@ -906,6 +906,7 @@ function openReport(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
+                    lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 },
             }],
             successData: [{
