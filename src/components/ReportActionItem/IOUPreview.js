@@ -134,7 +134,10 @@ const IOUPreview = (props) => {
                         <OfflineWithFeedback
                             pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                             errors={props.walletTerms.errors}
-                            onClose={PaymentMethods.clearWalletTermsError}
+                            onClose={() => {
+                                PaymentMethods.clearWalletTermsError();
+                                Report.clearIOUError(props.chatReportID);
+                            }}
                             errorRowStyles={[styles.mbn1]}
                         >
                             <View>
