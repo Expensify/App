@@ -239,80 +239,115 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     showChatPreviewLine = false,
     forcePolicyNamePreview = false,
 }) {
-    const isChatRoom = ReportUtils.isChatRoom(report);
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const result = {
+        text: null,
+        alternateText: null,
+        brickRoadIndicator: null,
+        icons: null,
+        tooltipText: null,
+        ownerEmail: null,
+        subtitle: null,
+        participantsList: null,
+        login: null,
+        reportID: null,
+        phoneNumber: null,
+        payPalMeAddress: null,
+        isUnread: null,
+        hasDraftComment: false,
+        keyForList: null,
+        searchText: null,
+        isPinned: false,
+        hasOutstandingIOU: false,
+        iouReportID: null,
+        isIOUReportOwner: null,
+        iouReportAmount: 0,
+        isChatRoom: false,
+        isArchivedRoom: false,
+        shouldShowSubscript: false,
+        isPolicyExpenseChat: false,
+    };
+
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
-    const hasOutstandingIOU = report && report.hasOutstandingIOU || false;
-    const iouReport = hasOutstandingIOU && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || {};
-    const lastActorDetails = report && personalDetailMap[report.lastActorEmail] || null;
-    let lastMessageTextFromReport = '';
+    let hasMultipleParticipants = personalDetailList.length > 1;
+    let subtitle;
+
     if (report) {
+        result.isChatRoom = ReportUtils.isChatRoom(report);
+        result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
+        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+        result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
+        result.ownerEmail = report.ownerEmail;
+        result.reportID = report.reportID;
+        result.isUnread = report.unreadActionCount > 0;
+        result.hasDraftComment = report.hasDraft;
+        result.isPinned = report.isPinned;
+        result.iouReportID = report.iouReportID;
+        result.keyForList = String(report.reportID);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
+        result.hasOutstandingIOU = report.hasOutstandingIOU;
+
+        hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+
+        let lastMessageTextFromReport = '';
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
             lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
         }
-    }
-    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
-        ? `${lastActorDetails.displayName}: `
-        : '';
-    lastMessageText += report ? lastMessageTextFromReport : '';
 
-    if (isPolicyExpenseChat && isArchivedRoom) {
-        const archiveReason = lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: archiveReason.displayName || report.lastActorEmail,
-            policyName: ReportUtils.getPolicyName(report, policies),
-        });
-    }
+        const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
+        let lastMessageText = hasMultipleParticipants && lastActorDetails
+            ? `${lastActorDetails.displayName}: `
+            : '';
+        lastMessageText += report ? lastMessageTextFromReport : '';
 
-    const tooltipText = report && ReportUtils.getReportParticipantsTitle(report.participants || []) || null;
-    const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
-    let alternateText;
-    if (isChatRoom || isPolicyExpenseChat) {
-        alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
-            ? lastMessageText
-            : subtitle;
+        if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+            const archiveReason = lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                displayName: archiveReason.displayName || report.lastActorEmail,
+                policyName: ReportUtils.getPolicyName(report, policies),
+            });
+        }
+
+        if (result.isChatRoom || result.isPolicyExpenseChat) {
+            result.alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
+                ? lastMessageText
+                : subtitle;
+        } else {
+            result.alternateText = (showChatPreviewLine && lastMessageText)
+                ? lastMessageText
+                : Str.removeSMSDomain(personalDetail.login);
+        }
     } else {
-        alternateText = (showChatPreviewLine && lastMessageText)
-            ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login);
+        result.keyForList = personalDetail.login;
     }
-    return {
-        text: reportName,
-        alternateText,
-        brickRoadIndicator: getBrickRoadIndicatorStatusForReport(report, reportActions),
-        icons: ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar),
-        tooltipText,
-        ownerEmail: report ? report.ownerEmail : null,
-        subtitle,
-        participantsList: personalDetailList,
 
-        // It doesn't make sense to provide a login in the case of a report with multiple participants since
-        // there isn't any one single login to refer to for a report.
-        login: !hasMultipleParticipants ? personalDetail.login : null,
-        reportID: report ? report.reportID : null,
-        phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
-        payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
-        isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment: report ? report.hasDraft : false,
-        keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
-        isPinned: report ? report.isPinned : false,
-        hasOutstandingIOU,
-        iouReportID: report ? report.iouReportID : null,
-        isIOUReportOwner: iouReport ? iouReport.ownerEmail === currentUserLogin : false,
-        iouReportAmount: iouReport ? iouReport.total : 0,
-        isChatRoom,
-        isArchivedRoom,
-        shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
-        isPolicyExpenseChat,
-    };
+    if (result.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
+        if (iouReport) {
+            result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
+            result.iouReportAmount = iouReport.total;
+        }
+    }
+
+    if (!hasMultipleParticipants) {
+        result.login = personalDetail.login;
+        result.phoneNumber = personalDetail.phoneNumber;
+        result.payPalMeAddress = personalDetail.payPalMeAddress;
+    }
+
+    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    result.text = reportName;
+    result.subtitle = subtitle;
+    result.participantsList = personalDetailList;
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+
+    return result;
 }
 
 /**
