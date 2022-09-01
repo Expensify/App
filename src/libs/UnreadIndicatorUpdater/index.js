@@ -14,7 +14,7 @@ const reports = {};
 const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
     const totalCount = _.reduce(reports, (total, report) => total + (ReportUtils.isUnread(report) ? 1 : 0), 0);
     updateUnread(totalCount);
-}, 1000, {leading: false});
+}, 300, {leading: false});
 
 let connectionID;
 
@@ -50,4 +50,5 @@ function stopListeningForReportChanges() {
 export default {
     listenForReportChanges,
     stopListeningForReportChanges,
+    throttledUpdatePageTitleAndUnreadCount,
 };

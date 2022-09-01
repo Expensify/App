@@ -8,6 +8,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import Log from '../Log';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -55,6 +56,7 @@ class NavigationRoot extends Component {
             Log.info('Navigating to route', false, {path: currentPath});
         }
 
+        UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
         this.setState({currentPath});
     }
 
