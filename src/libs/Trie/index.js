@@ -76,6 +76,9 @@ class Trie {
     */
     getChildMatching = (node, prefix, words = []) => {
         const matching = words;
+        if (matching.length > 4) {
+            return matching;
+        }
         if (node.leaf) {
             matching.unshift(prefix);
         }
