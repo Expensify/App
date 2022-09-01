@@ -24,18 +24,33 @@ import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import walletTransferPropTypes from './walletTransferPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
+import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../../components/OnyxProvider';
-import paymentMethodPropTypes from '../../../components/paymentMethodPropTypes';
 
 const propTypes = {
     /** User's wallet information */
     userWallet: PropTypes.objectOf(userWalletPropTypes),
 
-    /** List of payment methods */
-    paymentMethodList: PropTypes.arrayOf(paymentMethodPropTypes),
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(PropTypes.shape({
+        /** The name of the institution (bank of america, etc) */
+        addressName: PropTypes.string,
+
+        /** The masked bank account number */
+        accountNumber: PropTypes.string,
+
+        /** The bankAccountID in the bankAccounts db */
+        bankAccountID: PropTypes.number,
+
+        /** The bank account type */
+        type: PropTypes.string,
+    })),
+
+    /** List of card objects */
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Wallet balance transfer props */
     walletTransfer: walletTransferPropTypes,
@@ -44,7 +59,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    paymentMethodList: [],
+    bankAccountList: {},
+    cardList: {},
     userWallet: {},
     walletTransfer: {},
 };
@@ -96,7 +112,10 @@ class TransferBalancePage extends React.Component {
      * @returns {Object|undefined}
      */
     getSelectedPaymentMethodAccount() {
-        const paymentMethods = _.filter(this.props.paymentMethodList, paymentMethod => paymentMethod.accountType !== CONST.PAYMENT_METHODS.PAYPAL);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            this.props.cardList,
+        );
 
         const defaultAccount = _.find(paymentMethods, method => method.isDefault);
         const selectedAccount = _.find(
@@ -114,9 +133,12 @@ class TransferBalancePage extends React.Component {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const paymentMethods = _.filter(this.props.paymentMethodList, paymentMethod => paymentMethod.accountType !== CONST.PAYMENT_METHODS.PAYPAL);
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            this.props.cardList,
+        );
 
-        const filteredMethods = _.filter(paymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
+        const filteredMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
             const account = _.first(filteredMethods);
             PaymentMethods.saveWalletTransferAccountTypeAndID(
@@ -287,8 +309,11 @@ export default compose(
         walletTransfer: {
             key: ONYXKEYS.WALLET_TRANSFER,
         },
-        paymentMethodList: {
-            key: ONYXKEYS.PAYMENT_METHOD_LIST,
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
         },
     }),
 )(TransferBalancePage);
