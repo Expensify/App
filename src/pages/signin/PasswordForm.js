@@ -85,6 +85,7 @@ class PasswordForm extends React.Component {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
+        this.setState({formError: false});
         Session.resetPassword();
     }
 
