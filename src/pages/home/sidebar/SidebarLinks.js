@@ -108,6 +108,8 @@ class SidebarLinks extends React.Component {
     }
 
     getFilteredAndOrderedReports(unfilteredReports) {
+        return this.getRecentReportsOptionListItems();
+
         const isActiveReportSame = this.activeReport.reportID === this.props.currentlyViewedReportID;
         const lastMessageTimestamp = lodashGet(unfilteredReports, `${ONYXKEYS.COLLECTION.REPORT}${this.props.currentlyViewedReportID}.lastMessageTimestamp`, 0);
 
@@ -188,7 +190,7 @@ class SidebarLinks extends React.Component {
     }
 
     getRecentReportsOptionListItems() {
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
+        const activeReportID = this.props.currentlyViewedReportID;
         const sidebarOptions = OptionsListUtils.getSidebarOptions(
             this.props.reports,
             this.props.personalDetails,

@@ -351,7 +351,7 @@ function isCurrentUser(userDetails) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Number} activeReportID
+ * @param {String} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
@@ -430,9 +430,8 @@ function getOptions(reports, personalDetails, activeReportID, {
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-
-        if (report.reportID !== activeReportID
-            && (!report.isPinned || isDefaultRoom)
+        if (report.reportID.toString() !== activeReportID.toString()
+            && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
