@@ -40,6 +40,7 @@ const DotIndicatorMessage = (props) => {
     // To ensure messages are presented in order we are sort of destroying the data we are given
     // and rebuilding as an array so we can render the messages in order. We don't really care about
     // the microtime timestamps anyways so isn't the end of the world that we sort of lose them here.
+    // BEWARE: if you decide to refactor this and keep the microtime keys it could cause performance issues
     const sortedMessages = _.chain(props.messages)
         .keys()
         .sortBy()
