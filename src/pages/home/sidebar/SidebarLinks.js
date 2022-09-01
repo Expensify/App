@@ -26,6 +26,7 @@ import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import Timing from '../../../libs/actions/Timing';
+import reportActionPropTypes from '../report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -53,6 +54,9 @@ const propTypes = {
         hasDraft: PropTypes.bool,
     })),
 
+    /** All report actions for all reports */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
@@ -79,6 +83,7 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
+    reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
@@ -98,6 +103,27 @@ class SidebarLinks extends React.Component {
         // this.orderedReports = [];
         // this.priorityMode = props.priorityMode;
         // this.unreadReports = this.getUnreadReports(props.reports);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!_.isEqual(prevProps.reports, this.props.reports)) {
+            console.log('!!! props.reports')
+        }
+        if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            console.log('!!! props.personalDetails')
+        }
+        if (!_.isEqual(prevProps.currentUserPersonalDetails, this.props.currentUserPersonalDetails)) {
+            console.log('!!! props.currentUserPersonalDetails')
+        }
+        if (!_.isEqual(prevProps.currentlyViewedReportID, this.props.currentlyViewedReportID)) {
+            console.log('!!! props.currentlyViewedReportID')
+        }
+        if (!_.isEqual(prevProps.priorityMode, this.props.priorityMode)) {
+            console.log('!!! props.priorityMode')
+        }
+        if (!_.isEqual(prevProps.reportActions, this.props.reportActions)) {
+            console.log('!!! props.reportActions')
+        }
     }
 
     getFilteredAndOrderedReports(unfilteredReports) {
