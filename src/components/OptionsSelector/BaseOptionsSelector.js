@@ -11,7 +11,7 @@ import Text from '../Text';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import withLocalize from '../withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -24,6 +24,7 @@ const propTypes = {
     shouldDelayFocus: PropTypes.bool,
 
     ...optionsSelectorPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
