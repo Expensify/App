@@ -5,10 +5,10 @@ export default PropTypes.shape({
     title: PropTypes.string,
 
     /** The masked bank account number */
-    description: PropTypes.string,
+    description: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** The bankAccountID in the bankAccounts db */
-    methodID: PropTypes.number,
+    methodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** The bank account type */
     accountType: PropTypes.string,
