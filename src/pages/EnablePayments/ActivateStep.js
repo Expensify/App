@@ -28,7 +28,7 @@ const propTypes = {
 
 const defaultProps = {
     userWallet: {
-        sourceAction: '',
+        chatReportID: 0,
     },
 };
 
@@ -40,13 +40,8 @@ class ActivateStep extends React.Component {
     }
 
     renderGoldWalletActivationStep() {
-        let continueButtonText = this.props.translate('common.continue');
-        if (this.props.userWallet.sourceAction) {
-            continueButtonText = this.props.userWallet.sourceAction === 'transferBalance'
-                ? this.props.translate('activateStep.continueToTransfer')
-                : this.props.translate('activateStep.continueToPayment');
-        }
-
+        // The text of the "Continue" button depends on whether the action comes from an IOU (i.e. with an attached chat), or a balance transfer
+        const continueButtonText = this.props.userWallet.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
         return (
             <>
                 <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
