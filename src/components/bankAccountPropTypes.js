@@ -2,14 +2,14 @@ import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
     /** The name of the institution (bank of america, etc */
-    addressName: PropTypes.string,
+    title: PropTypes.string,
 
     /** The masked bank account number */
-    accountNumber: PropTypes.string,
+    description: PropTypes.string,
 
     /** The bankAccountID in the bankAccounts db */
-    bankAccountID: PropTypes.number,
+    methodID: PropTypes.number,
 
     /** The bank account type */
-    type: PropTypes.string,
+    accountType: PropTypes.string,
 });
