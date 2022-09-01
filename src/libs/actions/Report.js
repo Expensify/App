@@ -709,7 +709,6 @@ function createOptimisticChatReport(participantList) {
         reportName: 'Chat Report',
         stateNum: 0,
         statusNum: 0,
-        unreadActionCount: 0,
         visibility: undefined,
     };
 }
@@ -816,6 +815,7 @@ function addActions(reportID, text = '', file) {
         lastMessageTimestamp: moment().unix(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
+        lastReadSequenceNumber: newSequenceNumber,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -906,7 +906,6 @@ function openReport(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: 0,
                 },
             }],
             successData: [{
@@ -1014,7 +1013,6 @@ function readNewestAction(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: getUnreadActionCountFromSequenceNumber(reportID, sequenceNumber),
                 },
             }],
         });
@@ -1027,7 +1025,8 @@ function readNewestAction(reportID) {
  * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
-    API.write('MarkCommentAsUnread',
+    const newLastReadSequenceNumber = sequenceNumber - 1;
+    API.write('MarkAsUnread',
         {
             reportID,
             sequenceNumber,

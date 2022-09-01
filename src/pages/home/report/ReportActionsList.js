@@ -27,9 +27,6 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
 

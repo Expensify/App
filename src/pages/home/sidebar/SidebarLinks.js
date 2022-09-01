@@ -47,9 +47,6 @@ const propTypes = {
         /** Name of the report */
         reportName: PropTypes.string,
 
-        /** Number of unread actions on the report */
-        unreadActionCount: PropTypes.number,
-
         /** Whether the report has a draft comment */
         hasDraft: PropTypes.bool,
     })),
@@ -119,7 +116,8 @@ function getUnreadReports(reportsObject) {
     if (reports.length === 0) {
         return [];
     }
-    return _.filter(reports, report => report && report.unreadActionCount > 0);
+    const unreadReports = _.filter(reports, report => report && ReportUtils.isUnread(report));
+    return unreadReports;
 }
 const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
 
