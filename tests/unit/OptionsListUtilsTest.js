@@ -16,7 +16,6 @@ describe('OptionsListUtils', () => {
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             reportName: 'Iron Man, Mister Fantastic',
-            unreadActionCount: 1,
             hasDraft: true,
         },
         2: {
@@ -26,7 +25,6 @@ describe('OptionsListUtils', () => {
             reportID: 2,
             participants: ['peterparker@expensify.com'],
             reportName: 'Spider-Man',
-            unreadActionCount: 1,
         },
 
         // This is the only report we are pinning in this test
@@ -37,7 +35,6 @@ describe('OptionsListUtils', () => {
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
             reportName: 'Mister Fantastic',
-            unreadActionCount: 0,
         },
         4: {
             lastVisitedTimestamp: 1610666739298,
@@ -46,7 +43,6 @@ describe('OptionsListUtils', () => {
             reportID: 4,
             participants: ['tchalla@expensify.com'],
             reportName: 'Black Panther',
-            unreadActionCount: 1,
         },
         5: {
             lastVisitedTimestamp: 1610666739299,
@@ -55,7 +51,6 @@ describe('OptionsListUtils', () => {
             reportID: 5,
             participants: ['suestorm@expensify.com'],
             reportName: 'Invisible Woman',
-            unreadActionCount: 1,
         },
         6: {
             lastVisitedTimestamp: 1610666739300,
@@ -64,7 +59,6 @@ describe('OptionsListUtils', () => {
             reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
-            unreadActionCount: 0,
         },
 
         // Note: This report has the largest lastMessageTimestamp
@@ -75,7 +69,6 @@ describe('OptionsListUtils', () => {
             reportID: 7,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
-            unreadActionCount: 1,
         },
 
         // Note: This report has no lastMessageTimestamp
@@ -86,7 +79,6 @@ describe('OptionsListUtils', () => {
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
             reportName: 'Silver Surfer',
-            unreadActionCount: 0,
         },
 
         // Note: This report has an IOU
@@ -97,7 +89,6 @@ describe('OptionsListUtils', () => {
             reportID: 9,
             participants: ['mistersinister@marauders.com'],
             reportName: 'Mister Sinister',
-            unreadActionCount: 0,
             iouReportID: 100,
             hasOutstandingIOU: true,
         },
@@ -173,7 +164,6 @@ describe('OptionsListUtils', () => {
             reportID: 11,
             participants: ['concierge@expensify.com'],
             reportName: 'Concierge',
-            unreadActionCount: 1,
         },
     };
 
@@ -186,7 +176,6 @@ describe('OptionsListUtils', () => {
             reportID: 12,
             participants: ['chronos@expensify.com'],
             reportName: 'Chronos',
-            unreadActionCount: 1,
         },
     };
 
@@ -199,7 +188,6 @@ describe('OptionsListUtils', () => {
             reportID: 13,
             participants: ['receipts@expensify.com'],
             reportName: 'Receipts',
-            unreadActionCount: 1,
         },
     };
 
@@ -212,7 +200,6 @@ describe('OptionsListUtils', () => {
             reportID: 14,
             participants: ['d_email@email.com'],
             reportName: 'D report name',
-            unreadActionCount: 0,
         },
         15: {
             lastVisitedTimestamp: 1610666732302,
@@ -221,7 +208,6 @@ describe('OptionsListUtils', () => {
             reportID: 15,
             participants: ['z_email@email.com'],
             reportName: 'Z Report Name',
-            unreadActionCount: 0,
         },
     };
 
@@ -781,7 +767,6 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 10,
                 reportName: '',
-                unreadActionCount: 0,
                 visibility: undefined,
             },
 
@@ -797,7 +782,6 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 11,
                 reportName: '',
-                unreadActionCount: 0,
                 visibility: undefined,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
@@ -814,7 +798,6 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 12,
                 reportName: '#admins',
-                unreadActionCount: 0,
                 visibility: undefined,
             },
 
@@ -829,7 +812,6 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 13,
                 reportName: '#admins',
-                unreadActionCount: 0,
                 visibility: undefined,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
