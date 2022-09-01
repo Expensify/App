@@ -154,28 +154,29 @@ function getParticipantNames(personalDetailList) {
  * @return {String}
  */
 function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat) {
-    const searchTerms = [];
+    let searchTerms = [];
 
     if (!isChatRoomOrPolicyExpenseChat) {
-        _.each(personalDetailList, (personalDetail) => {
-            searchTerms.push(personalDetail.displayName);
-            searchTerms.push(personalDetail.login.replace(/\./g, ''));
-        });
+        for (let i = 0; i < personalDetailList.length; i++) {
+            const personalDetail = personalDetailList[i];
+            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login.replace(/\./g, '')]);
+        }
     }
     if (report) {
-        searchTerms.push(...reportName);
-        searchTerms.push(..._.map(reportName.split(','), name => name.trim()));
+        Array.prototype.push.apply(searchTerms, reportName.split(''));
+        Array.prototype.push.apply(searchTerms, reportName.split(','));
 
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-            searchTerms.push(...chatRoomSubtitle);
-            searchTerms.push(..._.map(chatRoomSubtitle.split(','), name => name.trim()));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(''));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(','));
         } else {
-            searchTerms.push(...report.participants);
+            searchTerms = searchTerms.concat(report.participants);
         }
     }
 
-    return _.unique(searchTerms).join(' ');
+    const finalSearchTerms = _.unique(searchTerms).join(' ');
+    return finalSearchTerms;
 }
 
 /**

@@ -498,7 +498,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
+        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
@@ -513,11 +513,9 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
-        participants.length > 1,
-    );
-    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const isMultipleParticipantReport = participants.length > 1;
+    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
+    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
 }
 
 /**
