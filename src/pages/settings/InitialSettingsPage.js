@@ -55,6 +55,9 @@ const propTypes = {
 
         /** The user's role in the policy */
         role: PropTypes.string,
+
+        /** The current action that is waiting to happen on the policy */
+        pendingAction: PropTypes.string,
     })),
 
     /** List of policy members */
