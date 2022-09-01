@@ -30,7 +30,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** User's paypal.me username if they have one */
-    payPalUserDetails: bankAccountPropTypes,
+    payPalMeUserDetails: bankAccountPropTypes,
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -66,7 +66,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    payPalUserDetails: {},
+    payPalMeUserDetails: {},
     bankAccountList: {},
     cardList: {},
     userWallet: {
@@ -114,7 +114,7 @@ class PaymentMethodList extends Component {
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(this.props.cardList, card => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalUserDetails);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUserDetails);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -283,7 +283,7 @@ export default compose(
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },
-        payPalMeUsername: {
+        payPalMeUserDetails: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
         userWallet: {
