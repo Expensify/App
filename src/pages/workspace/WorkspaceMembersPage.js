@@ -70,8 +70,8 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidMount() {
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientPolicyMembers);
+        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
     componentDidUpdate(prevProps) {
@@ -80,8 +80,8 @@ class WorkspaceMembersPage extends React.Component {
             return;
         }
 
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientPolicyMembers);
+        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
     /**
