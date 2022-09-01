@@ -144,6 +144,27 @@ function getParticipantNames(personalDetailList) {
 }
 
 /**
+ * A very optimized method to remove unique items from an array.
+ * Taken from https://stackoverflow.com/a/9229821/9114791
+ *
+ * @param {Array} items
+ * @returns {Array}
+ */
+function uniqFast(items) {
+    const seenItems = {};
+    const result = [];
+    let j = 0;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (seenItems[item] !== 1) {
+            seenItems[item] = 1;
+            result[j++] = item;
+        }
+    }
+    return result;
+}
+
+/**
  * Returns a string with all relevant search terms.
  * Default should be serachable by policy/domain name but not by participants.
  *
@@ -175,7 +196,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         }
     }
 
-    const finalSearchTerms = _.unique(searchTerms).join(' ');
+    const finalSearchTerms = uniqFast(searchTerms).join(' ');
     return finalSearchTerms;
 }
 
