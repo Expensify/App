@@ -94,7 +94,7 @@ class InitialSettingsPage extends React.Component {
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItems = this.getMenuItems.bind(this);
+        this.getMenuItemsList = this.getMenuItemsList.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
     }
 
@@ -158,7 +158,7 @@ class InitialSettingsPage extends React.Component {
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      * @returns {Array} the menu item list
      */
-    getMenuItems() {
+    getMenuItemsList() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .map(policy => ({
@@ -270,7 +270,7 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItems(), (item, index) => this.getMenuItem(item, index))}
+                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
