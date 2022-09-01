@@ -38,10 +38,6 @@
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.9",
-    "@formatjs/intl-getcanonicallocales": "^1.5.8",
-    "@formatjs/intl-locale": "^2.4.21",
-    "@formatjs/intl-numberformat": "^6.2.5",
-    "@formatjs/intl-pluralrules": "^4.0.13",
     "@oguzhnatly/react-native-image-manipulator": "^1.0.5",
     "@onfido/react-native-sdk": "github:Expensify/react-native-sdk#5d36f3128c4798a767782c8bc565ace30308edba",
     "@pieter-pot/react-native-fast-image": "8.5.11",
