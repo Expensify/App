@@ -108,22 +108,45 @@ class SidebarLinks extends React.Component {
     componentDidUpdate(prevProps) {
         if (!_.isEqual(prevProps.reports, this.props.reports)) {
             console.log('!!! props.reports')
+            return;
         }
         if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
             console.log('!!! props.personalDetails')
+            return;
         }
         if (!_.isEqual(prevProps.currentUserPersonalDetails, this.props.currentUserPersonalDetails)) {
             console.log('!!! props.currentUserPersonalDetails')
+            return;
         }
         if (!_.isEqual(prevProps.currentlyViewedReportID, this.props.currentlyViewedReportID)) {
             console.log('!!! props.currentlyViewedReportID')
+            return;
         }
         if (!_.isEqual(prevProps.priorityMode, this.props.priorityMode)) {
             console.log('!!! props.priorityMode')
+            return;
         }
         if (!_.isEqual(prevProps.reportActions, this.props.reportActions)) {
             console.log('!!! props.reportActions')
+            return;
         }
+        if (!_.isEqual(prevProps.isSmallScreenWidth, this.props.isSmallScreenWidth)) {
+            console.log('!!! props.isSmallScreenWidth')
+            return;
+        }
+        if (!_.isEqual(prevProps.insets, this.props.insets)) {
+            console.log('!!! props.insets')
+            return;
+        }
+        if (!_.isEqual(prevProps.onAvatarClick, this.props.onAvatarClick)) {
+            console.log('!!! props.onAvatarClick')
+            return;
+        }
+        if (!_.isEqual(prevProps.onLinkClick, this.props.onLinkClick)) {
+            console.log('!!! props.onLinkClick')
+            return;
+        }
+        console.log('!!! unknown')
     }
 
     getFilteredAndOrderedReports(unfilteredReports) {
