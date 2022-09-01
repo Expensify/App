@@ -650,41 +650,40 @@ function createOptimisticChatReport(participantList) {
 }
 
 function createOptimisticWorkspaceChats(policyID, ownerEmail) {
-    const announceReportID = ReportUtils.generateReportID();
+    const announceChatReportID = ReportUtils.generateReportID();
     const announceChatData = {
-            chatType: CONST.CHAT_TYPE.POLICY_ANNOUNCE,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             policyID: policyID,
-            reportID: announceReportID,
-            reportName: CONST.CHAT_NAME_POLICY_ANNOUNCE,
+            reportID: announceChatReportID,
+            reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
     };
  
-    const adminReportID = ReportUtils.generateReportID();
+    const adminsChatReportID = ReportUtils.generateReportID();
     const adminChatData = {
-            chatType: CONST.CHAT_TYPE.POLICY_ADMINS,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             policyID: policyID,
-            reportID: adminReportID,
-            reportName: CONST.CHAT_NAME_POLICY_ADMINS,
+            reportID: adminsChatReportID,
+            reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
     };
  
-    const expenseReportID =  ReportUtils.generateReportID();
+    const expenseChatReportID =  ReportUtils.generateReportID();
     const expenseChatData = {
-            chatType: CONST.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
             ownerEmail: ownerEmail,
             policyID: policyID,
-            reportID: expenseReportID,
-            reportName: CONST.CHAT_NAME_POLICY_EXPENSE,
+            reportID: expenseChatReportID,
+            reportName: '',
     };
 
     return {
-        announceReportID,
+        announceChatReportID,
         announceChatData,
-        adminReportID,
+        adminsChatReportID,
         adminChatData,
-        expenseReportID,
+        expenseChatReportID,
         expenseChatData
     }
-
 }
 
 /**

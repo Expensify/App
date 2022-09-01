@@ -751,19 +751,22 @@ function generatePolicyID() {
 function createWorkspace() {
     const policyID = generatePolicyID();
     const {
-        announceReportID,
+        announceChatReportID,
         announceChatData,
-        adminReportID,
+        adminsChatReportID,
         adminChatData,
-        expenseReportID,
+        expenseChatReportID,
         expenseChatData
     } = Report.createOptimisticWorkspaceChats(policyID, sessionEmail);
+    const workspaceName = generateDefaultWorkspaceName();
     
     API.write('CreateWorkspace', {
         policyID,
-        announceReportID,
-        adminReportID,
-        expenseReportID,
+        announceChatReportID,
+        adminsChatReportID,
+        expenseChatReportID,
+        policyName: workspaceName,
+        type: CONST.POLICY.TYPE.FREE,
     }, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -771,7 +774,7 @@ function createWorkspace() {
             value: {
                 id: policyID,
                 type: CONST.POLICY.TYPE.FREE,
-                name: 'Default',
+                name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 outputCurrency: 'USD',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,  
@@ -786,15 +789,15 @@ function createWorkspace() {
             })
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: announceChatData,
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: adminChatData,
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
             value: expenseChatData,
         }],
         successData: [{
@@ -814,15 +817,15 @@ function createWorkspace() {
             value: null
         }, {
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: null,
         }, {
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: null,
         }, {
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
             value: null,
         }]
     });
