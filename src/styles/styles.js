@@ -381,19 +381,9 @@ const styles = {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 14,
         paddingBottom: 8,
-        paddingLeft: 12,
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    buttonExtraLarge: {
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeExtraLarge,
-        paddingTop: 12,
-        paddingRight: 18,
-        paddingBottom: 12,
-        paddingLeft: 18,
+        paddingLeft: 14,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -416,14 +406,6 @@ const styles = {
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.lineHeightNormalFont,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonExtraLargeText: {
-        fontSize: variables.fontSizeMedium,
-        lineHeight: variables.lineHeightMediumFont,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -475,6 +457,15 @@ const styles = {
     noLeftBorderRadius: {
         borderTopLeftRadius: 0,
         borderBottomLeftRadius: 0,
+    },
+
+    buttonCTA: {
+        paddingVertical: 6,
+        ...spacing.mh4,
+    },
+
+    buttonCTAIcon: {
+        marginRight: 22,
     },
 
     buttonConfirm: {
