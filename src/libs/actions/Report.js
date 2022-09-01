@@ -63,14 +63,6 @@ const typingWatchTimers = {};
  * @param {Number} reportID
  * @returns {Number}
  */
-function getUnreadActionCount(reportID) {
-    return lodashGet(allReports, [reportID, 'unreadActionCount'], 0);
-}
-
-/**
- * @param {Number} reportID
- * @returns {Number}
- */
 function getLastReadSequenceNumber(reportID) {
     return lodashGet(allReports, [reportID, 'lastReadSequenceNumber'], 0);
 }
@@ -1124,13 +1116,6 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    // If we are deleting an unread message that is greater than our last read we decrease the unreadActionCount
-    // since the message we are deleting is an unread
-    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-        const unreadActionCount = getUnreadActionCount(reportID);
-        optimisticReport.unreadActionCount = Math.max(unreadActionCount - 1, 0);
-    }
-
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1430,20 +1415,15 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
-    const incomingSequenceNumber = action.sequenceNumber;
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
     const lastReadSequenceNumber = getLastReadSequenceNumber(reportID);
     const updatedReportObject = {};
 
     // When handling an action from the current user we can assume that their last read actionID has been updated in the server, but not necessarily reflected
-    // locally (e.g. could be from a different session) so we set their unreadActionCount to zero. If the action is from another user we will only update the
-    // unreadActionCount if the incoming sequenceNumber is higher than the last read for the user.
+    // locally so we will update the lastReadSequenceNumber to mark the report as read.
     if (isFromCurrentUser) {
-        updatedReportObject.unreadActionCount = 0;
         updatedReportObject.lastVisitedTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.pendingAction ? lastReadSequenceNumber : action.sequenceNumber;
-    } else if (incomingSequenceNumber > lastReadSequenceNumber) {
-        updatedReportObject.unreadActionCount = getUnreadActionCount(reportID) + 1;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
