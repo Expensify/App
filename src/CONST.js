@@ -281,6 +281,10 @@ const CONST = {
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         },
+        WORKSPACE_CHAT_ROOMS: {
+            ANNOUNCE: '#announce',
+            ADMINS: '#admins',
+        },
         STATE_NUM: {
             OPEN: 0,
             PROCESSING: 1,
