@@ -446,8 +446,6 @@ class ReportActionCompose extends React.Component {
         }
         this.setState({isFullComposerAvailable: false});
 
-        // Important to reset the selection on Submit action
-        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
         return trimmedComment;
     }
 
@@ -679,7 +677,7 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, !this.props.isSmallScreenWidth && styles.chatItemComposeSecondaryRow]}>
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />

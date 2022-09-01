@@ -50,8 +50,5 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        isCreatingWorkspace: {
-            key: ONYXKEYS.IS_CREATING_WORKSPACE,
-        },
     }),
 )(SidebarScreen);
