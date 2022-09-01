@@ -31,6 +31,7 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -96,6 +97,7 @@ class InitialSettingsPage extends React.Component {
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItems = this.getMenuItems.bind(this);
+        this.getMenuItem = this.getMenuItem.bind(this);
     }
 
     // Add free policies (workspaces) to the list of menu items
@@ -173,25 +175,66 @@ class InitialSettingsPage extends React.Component {
     getMenuItems() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .map((policy) => {
-                const shouldShowErrorIndicator = Policy.hasCustomUnitsError(policy)
-                    || Policy.hasPolicyMemberError(lodashGet(this.props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {}));
-
-                return {
-                    title: policy.name,
-                    icon: policy.avatar ? policy.avatar : Expensicons.Building,
-                    iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                    action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                    iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
-                    iconFill: themeColors.iconReversed,
-                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                    brickRoadIndicator: shouldShowErrorIndicator ? 'error' : null,
-                };
-            })
+            .map(policy => ({
+                title: policy.name,
+                icon: policy.avatar ? policy.avatar : Expensicons.Building,
+                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
+                iconFill: themeColors.iconReversed,
+                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                pendingAction: policy.pendingAction ? policy.pendingAction : null,
+                isPolicy: true,
+            }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
 
         return menuItems;
+    }
+
+    getMenuItem(item, index) {
+        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+        const isPaymentItem = item.translationKey === 'common.payments';
+
+        // If the menu item is a policy, wrap it with OfflineWithFeedback
+        if (item.isPolicy) {
+            return (
+                <OfflineWithFeedback
+                    pendingAction={item.pendingAction}
+                >
+                    <MenuItem
+                        key={`${keyTitle}_${index}`}
+                        title={keyTitle}
+                        icon={item.icon}
+                        iconType={item.iconType}
+                        onPress={item.action}
+                        iconStyles={item.iconStyles}
+                        iconFill={item.iconFill}
+                        shouldShowRightIcon
+                        badgeText={this.getWalletBalance(isPaymentItem)}
+                        fallbackIcon={item.fallbackIcon}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                    />
+                </OfflineWithFeedback>
+            );
+        }
+
+        return (
+            <MenuItem
+                key={`${keyTitle}_${index}`}
+                title={keyTitle}
+                icon={item.icon}
+                iconType={item.iconType}
+                onPress={item.action}
+                iconStyles={item.iconStyles}
+                iconFill={item.iconFill}
+                shouldShowRightIcon
+                badgeText={this.getWalletBalance(isPaymentItem)}
+                fallbackIcon={item.fallbackIcon}
+                brickRoadIndicator={item.brickRoadIndicator}
+            />
+        );
     }
 
     openProfileSettings() {
@@ -241,25 +284,7 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItems(), (item, index) => {
-                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-                            const isPaymentItem = item.translationKey === 'common.payments';
-                            return (
-                                <MenuItem
-                                    key={`${keyTitle}_${index}`}
-                                    title={keyTitle}
-                                    icon={item.icon}
-                                    iconType={item.iconType}
-                                    onPress={item.action}
-                                    iconStyles={item.iconStyles}
-                                    iconFill={item.iconFill}
-                                    shouldShowRightIcon
-                                    badgeText={this.getWalletBalance(isPaymentItem)}
-                                    fallbackIcon={item.fallbackIcon}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                />
-                            );
-                        })}
+                        {_.map(this.getMenuItems(), (item, index) => this.getMenuItem(item, index))}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
