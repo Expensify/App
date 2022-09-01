@@ -8,7 +8,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
-import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -110,7 +109,6 @@ class AuthScreens extends React.Component {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
-            Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
             Policy.subscribeToPolicyEvents();
         });
