@@ -576,7 +576,6 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
     const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
-    const sequenceNumber = NumberUtils.generateReportActionSequenceNumber();
     const originalMessage = {
         amount,
         comment,
@@ -601,10 +600,6 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
         actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
-
-        // For now, the clientID and sequenceNumber are the same.
-        // We are changing that as we roll out the optimistiReportAction IDs and related refactors.
-        clientID: sequenceNumber,
         isAttachment: false,
         originalMessage,
         person: [{
@@ -613,7 +608,7 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
             type: 'TEXT',
         }],
         reportActionID: NumberUtils.rand64(),
-        sequenceNumber,
+        sequenceNumber: Date.now(),
         shouldShow: true,
         timestamp: moment().unix(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
