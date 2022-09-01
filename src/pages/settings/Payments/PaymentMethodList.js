@@ -29,7 +29,7 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** User's paypal.me username if they have one */
+    /** User's paypal.me account details if they have one */
     payPalMeUserDetails: bankAccountPropTypes,
 
     /** List of bank accounts */
