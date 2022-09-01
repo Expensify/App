@@ -244,7 +244,7 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const policyName = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name || false;
+    const policyName = (policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name) || false;
     if (!policyName) {
         return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
