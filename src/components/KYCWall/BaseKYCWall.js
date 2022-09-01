@@ -36,7 +36,7 @@ class KYCWall extends React.Component {
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
-        Wallet.setKYCWallSourceAction(this.props.sourceAction);
+        Wallet.setKYCWallSourceChatReportID(this.props.chatReportID);
     }
 
     componentWillUnmount() {

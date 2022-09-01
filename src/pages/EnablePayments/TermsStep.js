@@ -18,17 +18,22 @@ import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import walletTermsPropTypes from './walletTermsPropTypes';
+import userWalletPropTypes from './userWalletPropTypes';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
     // eslint-disable-next-line react/no-unused-prop-types
     walletTerms: PropTypes.objectOf(walletTermsPropTypes),
 
+    /** The user's wallet account */
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     walletTerms: {},
+    userWallet: {},
 };
 
 class TermsStep extends React.Component {
@@ -121,6 +126,7 @@ class TermsStep extends React.Component {
                             BankAccounts.acceptWalletTerms({
                                 hasAcceptedTerms: this.state.hasAcceptedDisclosure
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                                chatReportID: this.props.userWallet.chatReportID,
                             });
                         }}
                         message={errorMessage}
@@ -140,6 +146,9 @@ export default compose(
     withOnyx({
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(TermsStep);
