@@ -30,6 +30,7 @@ import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -47,6 +48,7 @@ const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...networkPropTypes,
 };
 
 const defaultProps = fullPolicyDefaultProps;
