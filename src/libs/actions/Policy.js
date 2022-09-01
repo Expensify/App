@@ -766,7 +766,7 @@ function generatePolicyID() {
 }
 
 /**
- * Optimistically creates a new workspace and default workspace chats 
+ * Optimistically creates a new workspace and default workspace chats
  * @param {*} ownerEmail
  */
 function createWorkspace() {
@@ -777,10 +777,9 @@ function createWorkspace() {
         adminsChatReportID,
         adminChatData,
         expenseChatReportID,
-        expenseChatData
+        expenseChatData,
     } = Report.createOptimisticWorkspaceChats(policyID, sessionEmail);
     const workspaceName = generateDefaultWorkspaceName();
-    
     API.write('CreateWorkspace', {
         policyID,
         announceChatReportID,
@@ -799,13 +798,13 @@ function createWorkspace() {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
                 outputCurrency: 'USD',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,  
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-            value: getSimplifiedEmployeeList([{'email': sessionEmail, 'role': CONST.POLICY.ROLE.ADMIN}])
+            value: getSimplifiedEmployeeList([{email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN}]),
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
@@ -823,17 +822,17 @@ function createWorkspace() {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingAction: null
-            }
+                pendingAction: null,
+            },
         }],
         failureData: [{
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: null
+            value: null,
         }, {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-            value: null
+            value: null,
         }, {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
@@ -846,7 +845,7 @@ function createWorkspace() {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
             value: null,
-        }]
+        }],
     });
 
     Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
