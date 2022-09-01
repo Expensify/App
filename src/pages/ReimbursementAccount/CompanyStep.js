@@ -45,26 +45,6 @@ class CompanyStep extends React.Component {
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
             ? 'https://'
             : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
-
-        // Map a field to the key of the error's translation
-        this.errorTranslationKeys = {
-            companyName: 'bankAccount.error.companyName',
-            companyPhone: 'bankAccount.error.phoneNumber',
-            website: 'bankAccount.error.website',
-            companyTaxID: 'bankAccount.error.taxID',
-            incorporationDate: 'bankAccount.error.incorporationDate',
-            incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
-            incorporationType: 'bankAccount.error.companyType',
-            hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
-            incorporationState: 'bankAccount.error.incorporationState',
-            addressZipCode: 'bankAccount.error.zipCode',
-            addressStreet: 'bankAccount.error.addressStreet',
-        };
-
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
-        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     componentWillUnmount() {
@@ -79,35 +59,55 @@ class CompanyStep extends React.Component {
         const errorTexts = {};
 
         if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errorTexts.addressStreet = this.getErrorText('addressStreet');
+            errorTexts.addressStreet = this.props.translate('bankAccount.error.addressStreet');
         }
 
         if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errorTexts.addressZipCode = this.getErrorText('addressZipCode');
+            errorTexts.addressZipCode = this.props.translate('bankAccount.error.zipCode');
+        }
+
+        if (!values.addressCity) {
+            errorTexts.addressCity = this.props.translate('bankAccount.error.addressCity');
+        }
+
+        if (!values.addressState) {
+            errorTexts.addressState = this.props.translate('bankAccount.error.addressState');
         }
 
         if (!values.website || !ValidationUtils.isValidURL(values.website)) {
-            errorTexts.website = this.getErrorText('website');
+            errorTexts.website = this.props.translate('bankAccount.error.website');
         }
 
         if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
-            errorTexts.companyTaxID = this.getErrorText('companyTaxID');
+            errorTexts.companyTaxID = this.props.translate('bankAccount.error.taxID');
+        }
+
+        if (!values.incorporationType) {
+            errorTexts.incorporationType = this.props.translate('bankAccount.error.companyType');
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errorTexts.incorporationDate = this.getErrorText('incorporationDate');
+            errorTexts.incorporationDate = this.props.translate('bankAccount.error.incorporationDate');
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errorTexts.incorporationDateFuture = this.getErrorText('incorporationDateFuture');
+            errorTexts.incorporationDateFuture = this.props.translate('bankAccount.error.incorporationDateFuture');
+        }
+
+        if (!values.incorporationState) {
+            errorTexts.incorporationState = this.props.translate('bankAccount.error.incorporationState');
         }
 
         if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
-            errorTexts.companyPhone = this.getErrorText('companyPhone');
+            errorTexts.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
+        }
+
+        if (!values.companyName) {
+            errorTexts.companyName = this.props.translate('bankAccount.error.companyName');
         }
 
         if (!values.hasNoConnectionToCannabis) {
-            errorTexts.hasNoConnectionToCannabis = this.getErrorText('hasNoConnectionToCannabis');
+            errorTexts.hasNoConnectionToCannabis = this.props.translate('bankAccount.error.restrictedBusiness');
         }
 
         const errors = {};
