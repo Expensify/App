@@ -41,27 +41,33 @@ class Icon extends PureComponent {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const IconToRender = this.props.src;
-
-        const icon = (
-            <IconToRender
-                width={width}
-                height={height}
-                fill={this.props.fill}
-            />
-        );
 
         if (this.props.inline) {
             return (
-                <View style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}>
+                <View
+                    accessibilityHint={`${this.props.src.name} Icon`}
+                    style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
+                >
                     <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute]}>
-                        {icon}
+                        <this.props.src
+                            width={width}
+                            height={height}
+                            fill={this.props.fill}
+                        />
                     </View>
                 </View>
             );
         }
 
-        return icon;
+        return (
+            <View accessibilityHint={`${this.props.src.name} Icon`}>
+                <this.props.src
+                    width={width}
+                    height={height}
+                    fill={this.props.fill}
+                />
+            </View>
+        );
     }
 }
 
