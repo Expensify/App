@@ -625,7 +625,9 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
  * @returns {Boolean}
  */
 function isUnread(report) {
-    return report.lastReadSequenceNumber < report.maxSequenceNumber;
+    const lastReadSequenceNumber = lodashGet(report, 'lastReadSequenceNumber', 0);
+    const maxSequenceNumber = lodashGet(report, 'maxSequenceNumber', 0);
+    return lastReadSequenceNumber < maxSequenceNumber;
 }
 
 export {
