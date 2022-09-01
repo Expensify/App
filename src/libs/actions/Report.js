@@ -612,7 +612,6 @@ function createOptimisticChatReport(participantList) {
         reportName: 'Chat Report',
         stateNum: 0,
         statusNum: 0,
-        unreadActionCount: 0,
         visibility: undefined,
     };
 }
@@ -720,7 +719,6 @@ function addActions(reportID, text = '', file) {
         lastMessageTimestamp: Date.now(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
-        unreadActionCount: 0,
         lastReadSequenceNumber: newSequenceNumber,
     };
 
@@ -812,7 +810,6 @@ function openReport(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: 0,
                 },
             }],
             successData: [{
@@ -935,7 +932,6 @@ function readNewestAction(reportID) {
                 value: {
                     lastReadSequenceNumber: sequenceNumber,
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: 0,
                 },
             }],
         });
@@ -948,7 +944,6 @@ function readNewestAction(reportID) {
  * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
-    const maxSequenceNumber = getMaxSequenceNumber(reportID);
     const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkAsUnread',
         {
