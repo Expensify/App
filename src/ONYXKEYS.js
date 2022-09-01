@@ -116,9 +116,6 @@ export default {
     // The user's bank accounts
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    // The user's payment methods
-    PAYMENT_METHOD_LIST: 'paymentMethodList',
-
     // The user's credit cards
     CARD_LIST: 'cardList',
 

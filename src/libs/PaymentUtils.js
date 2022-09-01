@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import BankAccount from './models/BankAccount';
-import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 
@@ -25,38 +24,44 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
 }
 
 /**
- * Get the PaymentMethod list with icons
- * @param {Array} paymentMethodList
+ * Get the PaymentMethods list
+ * @param {Array} bankAccountList
+ * @param {Array} cardList
+ * @param {Object} [payPalDetails = null]
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(paymentMethodList) {
-    const paymentMethods = [...paymentMethodList];
-    _.each(paymentMethods, (paymentMethod, index) => {
-        switch (paymentMethod.accountType) {
-            case CONST.PAYMENT_METHODS.BANK_ACCOUNT: {
-                const {icon, iconSize} = getBankIcon(lodashGet(paymentMethod, 'additionalData.bankName', ''));
-                paymentMethods[index].icon = icon;
-                paymentMethods[index].iconSize = iconSize;
-                break;
-            }
-            case CONST.PAYMENT_METHODS.DEBIT_CARD: {
-                const {icon, iconSize} = getBankIcon(paymentMethod.accountData.bank, true);
-                paymentMethods[index].icon = icon;
-                paymentMethods[index].iconSize = iconSize;
-                break;
-            }
-            case CONST.PAYMENT_METHODS.PAYPAL: {
-                paymentMethods[index].icon = Expensicons.PayPal;
-                break;
-            }
-            default: {
-                paymentMethods[index].icon = '';
-                paymentMethods[index].iconSize = '';
-                break;
-            }
-        }
+function formatPaymentMethods(bankAccountList, cardList, payPalDetails = null) {
+    const combinedPaymentMethods = [];
+
+    _.each(bankAccountList, (bankAccount) => {
+        const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
+        combinedPaymentMethods.push({
+            ...bankAccount,
+            icon,
+            iconSize,
+            errors: bankAccount.errors,
+            pendingAction: bankAccount.pendingAction,
+        });
     });
-    return paymentMethods;
+
+    _.each(cardList, (card) => {
+        const {icon, iconSize} = getBankIcon(card.bank, true);
+        combinedPaymentMethods.push({
+            ...card,
+            icon,
+            iconSize,
+            errors: card.errors,
+            pendingAction: card.pendingAction,
+        });
+    });
+
+    if (payPalDetails) {
+        combinedPaymentMethods.push({
+            ...payPalDetails,
+        });
+    }
+
+    return combinedPaymentMethods;
 }
 
 /**
