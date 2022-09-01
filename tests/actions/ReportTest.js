@@ -73,7 +73,7 @@ describe('actions/Report', () => {
             callback: val => reportActions = val,
         });
 
-        let clientID;
+        let sequenceNumber;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -91,8 +91,8 @@ describe('actions/Report', () => {
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
 
-                // Store the generated clientID so that we can send it with our mock Pusher update
-                clientID = resultAction.sequenceNumber;
+                // Store the generated sequenceNumber so that we can send it with our mock Pusher update
+                sequenceNumber = resultAction.sequenceNumber;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
                 expect(resultAction.pendingAction).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -119,7 +119,7 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [clientID]: null,
+                            [sequenceNumber]: null,
                             [ACTION_ID]: actionWithoutLoading,
                         },
                     },
@@ -242,7 +242,6 @@ describe('actions/Report', () => {
                             lastMessageTimestamp: 0,
                             lastMessageText: 'Comment 1',
                             lastActorEmail: USER_2_LOGIN,
-                            newMarkerSequenceNumber: 0,
                             lastReadSequenceNumber: 0,
                         },
                     },
@@ -284,9 +283,8 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The unreadActionCount will increase and the new marker will be set correctly
+                // The unreadActionCount will increase
                 expect(report.unreadActionCount).toBe(1);
-                expect(report.newMarkerSequenceNumber).toBe(1);
 
                 // When a new comment is added by the current user
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
@@ -349,9 +347,9 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [_.toArray(reportActions)[1].clientID]: null,
-                            [_.toArray(reportActions)[2].clientID]: null,
-                            [_.toArray(reportActions)[3].clientID]: null,
+                            [_.toArray(reportActions)[1].sequenceNumber]: null,
+                            [_.toArray(reportActions)[2].sequenceNumber]: null,
+                            [_.toArray(reportActions)[3].sequenceNumber]: null,
                             2: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
@@ -391,7 +389,6 @@ describe('actions/Report', () => {
                 // Then we should expect the unreadActionCount to be updated
                 expect(report.unreadActionCount).toBe(2);
                 expect(report.lastReadSequenceNumber).toBe(2);
-                expect(report.newMarkerSequenceNumber).toBe(3);
 
                 // If the user deletes the last comment after the last read the unreadActionCount will decrease and the lastMessageText will reflect the new last comment
                 Report.deleteReportComment(REPORT_ID, reportActions[4]);

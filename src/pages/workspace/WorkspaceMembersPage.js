@@ -106,7 +106,8 @@ class WorkspaceMembersPage extends React.Component {
      */
     toggleAllUsers() {
         this.setState({showTooltipForLogin: ''});
-        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
+        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
             selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
                 ? removableMembers
@@ -218,10 +219,10 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <OfflineWithFeedback onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
+            <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
-                        style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
+                        style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
                         onPress={() => this.toggleUser(item.login)}
                         activeOpacity={0.7}
                     >
@@ -263,9 +264,9 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
-        const data = _.chain(policyEmployeeList)
+        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
+        const data = _.chain(policyMemberList)
             .map(email => this.props.personalDetails[email])
             .filter()
             .sortBy(person => person.displayName.toLowerCase())
