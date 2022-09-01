@@ -620,6 +620,14 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
     };
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnread(report) {
+    return report.lastReadSequenceNumber < report.maxSequenceNumber;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -651,4 +659,5 @@ export {
     generateReportID,
     hasReportNameError,
     buildOptimisticIOUReportAction,
+    isUnread,
 };
