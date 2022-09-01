@@ -235,15 +235,14 @@ class SidebarLinks extends React.Component {
         }
 
         const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-        // Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
+        Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
         const sections = [{
             title: '',
             indexOffset: 0,
             data: this.getFilteredAndOrderedReports(this.props.reports),
             shouldShow: true,
         }];
-        // const sections = [];
-        // Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
+        Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
             <View style={[styles.flex1, styles.h100]}>
