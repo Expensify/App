@@ -18,7 +18,6 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
-import DateUtils from '../../libs/DateUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,7 +71,7 @@ const ResendValidationForm = (props) => {
                 </Text>
             </View>
             {!_.isEmpty(props.account.message) && (
-                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{[DateUtils.getMicroseconds()]: props.account.message}} />
+                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{0: props.account.message}} /> // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object that looks similar
             )}
             {!_.isEmpty(props.account.errors) && (
                 <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
