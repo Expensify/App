@@ -224,29 +224,31 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
-    const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
-    const iouReport = hasOutstandingIOU
-        ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
-        : {};
-
-    const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
-    const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
-        ? `[${Localize.translateLocal('common.attachment')}]`
-        : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
+    const hasOutstandingIOU = report && report.hasOutstandingIOU || false;
+    const iouReport = hasOutstandingIOU && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || {};
+    const lastActorDetails = report && personalDetailMap[report.lastActorEmail] || null;
+    let lastMessageTextFromReport = '';
+    if (report) {
+        if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+            lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+        } else {
+            lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+        }
+    }
     let lastMessageText = report && hasMultipleParticipants && lastActorDetails
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (isPolicyExpenseChat && isArchivedRoom) {
-        const archiveReason = lodashGet(lastReportActions[report.reportID], 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
+        const archiveReason = lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: lodashGet(lastActorDetails, 'displayName', report.lastActorEmail),
+            displayName: archiveReason.displayName || report.lastActorEmail,
             policyName: ReportUtils.getPolicyName(report, policies),
         });
     }
 
-    const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
+    const tooltipText = report && ReportUtils.getReportParticipantsTitle(report.participants || []) || null;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
     const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     let alternateText;
@@ -263,9 +265,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         text: reportName,
         alternateText,
         brickRoadIndicator: getBrickRoadIndicatorStatusForReport(report, reportActions),
-        icons: ReportUtils.getIcons(report, personalDetails, policies, lodashGet(personalDetail, ['avatar'])),
+        icons: ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar),
         tooltipText,
-        ownerEmail: lodashGet(report, ['ownerEmail']),
+        ownerEmail: report ? report.ownerEmail : null,
         subtitle,
         participantsList: personalDetailList,
 
@@ -276,14 +278,14 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
         payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment: lodashGet(report, 'hasDraft', false),
+        hasDraftComment: report ? report.hasDraft : false,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
-        isPinned: lodashGet(report, 'isPinned', false),
+        isPinned: report ? report.isPinned : false,
         hasOutstandingIOU,
-        iouReportID: lodashGet(report, 'iouReportID'),
-        isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
-        iouReportAmount: lodashGet(iouReport, 'total', 0),
+        iouReportID: report ? report.iouReportID : null,
+        isIOUReportOwner: iouReport ? iouReport.ownerEmail === currentUserLogin : false,
+        iouReportAmount: iouReport ? iouReport.total : 0,
         isChatRoom,
         isArchivedRoom,
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
@@ -405,7 +407,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const logins = lodashGet(report, ['participants'], []);
+        const logins = report.participants || [];
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
         const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
@@ -413,9 +415,10 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        const hasDraftComment = lodashGet(report, 'hasDraft', false);
-        const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
-            ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
+        const hasDraftComment = report.hasDraft || false;
+        const iouReport = report.iouReportID && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        const iouReportOwner = report.hasOutstandingIOU && iouReport
+            ? iouReport.ownerEmail
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
