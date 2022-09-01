@@ -89,10 +89,10 @@ class PasswordForm extends React.Component {
     }
 
     /**
-    * Clears any previously entered 2FA Code and signin Onyx data
+    * Clears local and Onyx sign in states
     */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: ''});
+        this.setState({twoFactorAuthCode: '', formError: false});
         Session.clearSignInData();
     }
 
