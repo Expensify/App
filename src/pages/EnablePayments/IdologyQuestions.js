@@ -5,6 +5,7 @@ import {
     View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -15,6 +16,7 @@ import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -140,6 +142,10 @@ class IdologyQuestions extends React.Component {
             };
         }));
 
+        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
+        const isErrorVisible = this.state.errorMessage || !_.isEmpty(errors);
+        const errorMessage = _.isEmpty(errors) ? this.state.errorMessage : _.last(_.values(errors));
+
         return (
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5]}>
@@ -162,15 +168,16 @@ class IdologyQuestions extends React.Component {
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(this.state.errorMessage)}
+                        isAlertVisible={Boolean(isErrorVisible)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
-                        message={this.state.errorMessage}
+                        message={errorMessage}
                         isLoading={this.props.walletAdditionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
+                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                 </FormScrollView>
             </View>
         );
