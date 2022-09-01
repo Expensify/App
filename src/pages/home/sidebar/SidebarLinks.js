@@ -3,6 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import memoizeOne from 'memoize-one';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -94,140 +95,19 @@ const defaultProps = {
 class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
-
-        // this.activeReport = {
-        //     reportID: props.currentlyViewedReportID,
-        // };
-        //
-        // this.orderedReports = [];
-        // this.priorityMode = props.priorityMode;
-        // this.unreadReports = this.getUnreadReports(props.reports);
+        this.getRecentReportsOptionListItems = memoizeOne(this.getRecentReportsOptionListItems.bind(this));
     }
 
-    getFilteredAndOrderedReports(unfilteredReports) {
-        return this.getRecentReportsOptionListItems();
-
-        // const isActiveReportSame = this.activeReport.reportID === this.props.currentlyViewedReportID;
-        // const lastMessageTimestamp = lodashGet(unfilteredReports, `${ONYXKEYS.COLLECTION.REPORT}${this.props.currentlyViewedReportID}.lastMessageTimestamp`, 0);
-        //
-        // // Determines if the active report has a history of draft comments while active.
-        // let hasDraftHistory;
-        //
-        // // If the active report has not changed and the message has been sent, set the draft history flag to false so LHN can reorder.
-        // // Otherwise, if the active report has not changed and the flag was previously true, preserve the state so LHN cannot reorder.
-        // // Otherwise, update the flag from the prop value.
-        // if (isActiveReportSame && this.activeReport.lastMessageTimestamp !== lastMessageTimestamp) {
-        //     hasDraftHistory = false;
-        // } else if (isActiveReportSame && this.activeReport.hasDraftHistory) {
-        //     hasDraftHistory = true;
-        // } else {
-        //     hasDraftHistory = lodashGet(this.props.reports, `${ONYXKEYS.COLLECTION.REPORT}${this.props.currentlyViewedReportID}.hasDraft`, false);
-        // }
-        //
-        // const switchingPriorityModes = this.props.priorityMode !== this.priorityMode;
-        //
-        // // Build the report options we want to show
-        // const recentReports = this.getRecentReportsOptionListItems();
-        //
-        // // If the order of the reports is different from the last render (or if priority mode is changing)
-        // // then orderedReports is the same as the freshly calculated recentReports.
-        // // If the order of the reports is the same as the last render
-        // // then the data for each report is updated from the data in the new props
-        // // @TODO: not sure why this is necessary and see if it can be removed or do something more intuitive
-        // const orderedReports = this.isReportOrderDifferentThanLastRender(hasDraftHistory) || switchingPriorityModes
-        //     ? recentReports
-        //     : _.chain(this.orderedReports)
-        //
-        //         // To preserve the order of the conversations, we map over the previous ordered reports.
-        //         // Then match and replace older reports with the newer report conversations from recentReports
-        //         .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
-        //
-        //         // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
-        //         // does not have all the conversations in the previous set of orderedReports
-        //         .compact()
-        //         .value();
-        //
-        // // Store these pieces of data on the class so that the next time this method is called
-        // // the previous values can be compared against to tell if something changed which would
-        // // cause the reports to be reordered
-        // this.orderedReports = orderedReports;
-        // this.priorityMode = this.props.priorityMode;
-        // this.activeReport = {
-        //     reportID: this.props.currentlyViewedReportID,
-        //     hasDraftHistory,
-        //     lastMessageTimestamp,
-        // };
-        // this.unreadReports = this.getUnreadReports(unfilteredReports);
-        //
-        // return this.orderedReports;
-    }
-
-    /**
-     * Create a map of unread reports that looks like this:
-     *  {
-     *      1: true,
-     *      2: true,
-     * }
-     * This is so that when the new props are compared to the old props, it's
-     * fast to look up if there are any new unread reports.
-     *
-     * @param {Object[]} reports
-     * @returns {Object}
-     */
-    getUnreadReports(reports) {
-        // return _.reduce(reports, (finalUnreadReportMap, report) => {
-        //     if (report.unreadActionCount > 0) {
-        //         return {
-        //             [report.reportID]: true,
-        //             ...finalUnreadReportMap,
-        //         };
-        //     }
-        //     return finalUnreadReportMap;
-        // }, {});
-    }
-
-    getRecentReportsOptionListItems() {
-        const activeReportID = this.props.currentlyViewedReportID;
+    getRecentReportsOptionListItems(activeReportID, priorityMode, unorderedReports, personalDetails, betas, reportActions) {
         const sidebarOptions = OptionsListUtils.getSidebarOptions(
-            this.props.reports,
-            this.props.personalDetails,
+            unorderedReports,
+            personalDetails,
             activeReportID,
-            this.props.priorityMode,
-            this.props.betas,
-            this.props.reportActions,
+            priorityMode,
+            betas,
+            reportActions,
         );
         return sidebarOptions.recentReports;
-    }
-
-    isReportOrderDifferentThanLastRender(hasDraftHistory) {
-        // // If the number of reports changed, then the report order is different
-        // if (this.orderedReports.length !== this.props.reports.length) {
-        //     return true;
-        // }
-        //
-        // // If the active report changed, then the report order is different
-        // if (this.activeReport.reportID !== this.props.currentlyViewedReportID) {
-        //     return true;
-        // }
-        //
-        // // If the active report has a draft, the order of the reports doesn't change
-        // // because it would cause the reports to reorder when a user starts typing a comment
-        // // and that is an annoying UX (too much stuff jumping around)
-        // if (this.props.currentlyViewedReportID && hasDraftHistory) {
-        //     return false;
-        // }
-        //
-        // // If the unread reports have changed, then the report order changes
-        // // because the unread reports need to be placed at the top of the list
-        // // @TODO: This can probably be optimized
-        // const hasNewUnreadReports = _.some(this.props.reports, report => report.unreadActionCount > 0 && !this.unreadReports[report.reportID]);
-        // if (hasNewUnreadReports) {
-        //     return true;
-        // }
-        //
-        // // By default, assume that the order of the reports doesn't change
-        // // in order to optimize the rendering
-        // return false;
     }
 
     showSearchPage() {
@@ -240,12 +120,19 @@ class SidebarLinks extends React.Component {
             return null;
         }
 
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
         Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
+        const optionListItems = this.getRecentReportsOptionListItems(
+            this.props.currentlyViewedReportID,
+            this.props.priorityMode,
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            this.props.reportActions,
+        );
         const sections = [{
             title: '',
             indexOffset: 0,
-            data: this.getFilteredAndOrderedReports(this.props.reports),
+            data: optionListItems,
             shouldShow: true,
         }];
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
@@ -297,7 +184,7 @@ class SidebarLinks extends React.Component {
                     ]}
                     sections={sections}
                     focusedIndex={_.findIndex(this.orderedReports, (
-                        option => option.reportID === activeReportID
+                        option => option.reportID.toString() === this.props.currentlyViewedReportID.toString()
                     ))}
                     onSelectRow={(option) => {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
