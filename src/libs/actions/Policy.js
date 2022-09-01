@@ -569,7 +569,7 @@ function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
-                rates: {
+                onyxRates: {
                     [customUnitRateID]: {
                         errors: null,
                         pendingAction: null,
@@ -662,7 +662,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, val
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        rates: {
+                        onyxRates: {
                             [values.customUnitRateID]: {
                                 ...values,
                                 errors: null,
@@ -682,7 +682,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, val
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        rates: {
+                        onyxRates: {
                             [values.customUnitRateID]: {
                                 pendingAction: null,
                             },
@@ -700,7 +700,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, val
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        rates: {
+                        onyxRates: {
                             [currentCustomUnitRate.customUnitRateID]: {
                                 ...currentCustomUnitRate,
                                 errors: {
