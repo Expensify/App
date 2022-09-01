@@ -776,6 +776,7 @@ function createWorkspace() {
                 type: CONST.POLICY.TYPE.FREE,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
+                owner: sessionEmail,
                 outputCurrency: 'USD',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,  
             },
@@ -783,10 +784,7 @@ function createWorkspace() {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-            value: getSimplifiedEmployeeList({
-                'email': sessionEmail, 
-                'role': CONST.POLICY.ROLE.ADMIN
-            })
+            value: getSimplifiedEmployeeList([{'email': sessionEmail, 'role': CONST.POLICY.ROLE.ADMIN}])
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
