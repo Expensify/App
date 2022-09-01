@@ -1,6 +1,7 @@
 import React, {forwardRef} from 'react';
 import BaseOptionsSelector from './BaseOptionsSelector';
 import {propTypes, defaultProps} from './optionsSelectorPropTypes';
+import withLocalize from '../withLocalize';
 
 const OptionsSelector = forwardRef((props, ref) => (
     <BaseOptionsSelector
@@ -14,4 +15,4 @@ OptionsSelector.propTypes = propTypes;
 OptionsSelector.defaultProps = defaultProps;
 OptionsSelector.displayName = 'OptionsSelector';
 
-export default OptionsSelector;
+export default withLocalize(OptionsSelector);
