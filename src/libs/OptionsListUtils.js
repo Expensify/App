@@ -3,7 +3,6 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
-import memoizeOne from 'memoize-one';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -825,7 +824,7 @@ function getMemberInviteOptions(
  * @param {Object} reportActions
  * @returns {Object}
  */
-function calculateSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
+function getSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
@@ -848,8 +847,6 @@ function calculateSidebarOptions(reports, personalDetails, activeReportID, prior
         reportActions,
     });
 }
-
-const getSidebarOptions = memoizeOne(calculateSidebarOptions);
 
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
