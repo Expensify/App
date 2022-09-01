@@ -53,7 +53,7 @@ class CompanyStep extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Object}
+     * @returns {Object} - object values error strings
      */
     validate(values) {
         const errorTexts = {};
