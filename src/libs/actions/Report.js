@@ -1185,6 +1185,10 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [{
+                html: '',
+                text: '',
+            }],
         },
     };
 
