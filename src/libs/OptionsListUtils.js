@@ -828,7 +828,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
     const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.searchText)));
+        isSearchStringMatch(searchValue, currencyOption.text)));
 
     return {
         // returns filtered options i.e. options with string match if search text is entered
