@@ -218,62 +218,6 @@ const OptionRowLHN = (props) => {
 
 OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
-OptionRowLHN.displayName = 'OptionRow';
+OptionRowLHN.displayName = 'OptionRowLHN';
 
-// It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default withLocalize(memo(OptionRowLHN, (prevProps, nextProps) => {
-    if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
-        return false;
-    }
-
-    if (prevProps.isSelected !== nextProps.isSelected) {
-        return false;
-    }
-
-    if (prevProps.mode !== nextProps.mode) {
-        return false;
-    }
-
-    if (prevProps.option.isUnread !== nextProps.option.isUnread) {
-        return false;
-    }
-
-    if (prevProps.option.alternateText !== nextProps.option.alternateText) {
-        return false;
-    }
-
-    if (prevProps.option.descriptiveText !== nextProps.option.descriptiveText) {
-        return false;
-    }
-
-    if (prevProps.option.hasDraftComment !== nextProps.option.hasDraftComment) {
-        return false;
-    }
-
-    if (prevProps.option.isPinned !== nextProps.option.isPinned) {
-        return false;
-    }
-
-    if (prevProps.option.hasOutstandingIOU !== nextProps.option.hasOutstandingIOU) {
-        return false;
-    }
-
-    if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
-        return false;
-    }
-
-    // Re-render when the text changes
-    if (prevProps.option.text !== nextProps.option.text) {
-        return false;
-    }
-
-    if (prevProps.backgroundColor !== nextProps.backgroundColor) {
-        return false;
-    }
-
-    if (prevProps.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator) {
-        return false;
-    }
-
-    return true;
-}));
+export default withLocalize(OptionRowLHN);

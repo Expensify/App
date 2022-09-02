@@ -26,6 +26,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
+import OptionsListLHN from '../../../components/LHNOptionsList';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -181,7 +182,7 @@ class SidebarLinks extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
-                <OptionsList
+                <OptionsListLHN
                     contentContainerStyles={[
                         styles.sidebarListContainer,
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
