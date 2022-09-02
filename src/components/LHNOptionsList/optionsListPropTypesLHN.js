@@ -29,9 +29,6 @@ const propTypes = {
     /** Index for option to focus on */
     focusedIndex: PropTypes.number,
 
-    /** Whether we can select multiple options or not */
-    canSelectMultipleOptions: PropTypes.bool,
-
     /** Whether to allow option focus or not */
     disableFocusOptions: PropTypes.bool,
 
@@ -68,7 +65,6 @@ const defaultProps = {
     contentContainerStyles: [],
     sections: [],
     focusedIndex: 0,
-    canSelectMultipleOptions: false,
     disableFocusOptions: false,
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
