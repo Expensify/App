@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import SectionList from '../SectionList';
-import optionPropTypesLHN from './optionPropTypesLHN';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -9,7 +8,7 @@ const propTypes = {
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
 
     /** Sections for the section list */
-    data: PropTypes.arrayOf(optionPropTypesLHN).isRequired,
+    data: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** Index for option to focus on */
     focusedIndex: PropTypes.number.isRequired,
