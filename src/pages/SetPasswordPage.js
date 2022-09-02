@@ -30,6 +30,9 @@ const propTypes = {
 
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
+
+        /** If account is validated or not */
+        validated: PropTypes.bool,
     }),
 
     /** The credentials of the logged in person */
@@ -75,15 +78,6 @@ class SetPasswordPage extends Component {
         };
     }
 
-    componentDidMount() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        if (this.props.credentials.authToken) {
-            return;
-        }
-        Session.validateEmail(accountID, validateCode);
-    }
-
     validateAndSubmitForm() {
         if (!this.state.isFormValid) {
             return;
@@ -91,15 +85,16 @@ class SetPasswordPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        if (this.props.credentials.authToken) {
-            Session.changePasswordAndSignIn(this.props.credentials.authToken, this.state.password);
-        } else {
+        if (this.props.account.validated) {
             Session.setPassword(this.state.password, validateCode, accountID);
+        } else {
+            Session.setPasswordForNewAccountAndSignin(accountID, validateCode, this.state.password);
+            // Session.changePasswordAndSignIn(this.props.credentials.authToken, this.state.password);
         }
     }
 
     render() {
-        const buttonText = !this.props.account.validated ? this.props.translate('setPasswordPage.validateAccount') : this.props.translate('setPasswordPage.setPassword');
+        const buttonText = this.props.translate('setPasswordPage.setPassword');
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
         const error = sessionError || this.props.account.error;
         return (
