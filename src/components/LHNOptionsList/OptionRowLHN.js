@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
-import optionPropTypes from '../optionPropTypes';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
@@ -24,14 +23,15 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
+import OptionsListUtilsLHN from '../../libs/OptionsListUtilsLHN';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
 
-    /** Option to allow the user to choose from can be type 'report' or 'user' */
-    option: optionPropTypes.isRequired,
+    /** The ID of the report that the option is for */
+    reportID: PropTypes.string.isRequired,
 
     /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused: PropTypes.bool,
@@ -56,6 +56,7 @@ const defaultProps = {
 };
 
 const OptionRowLHN = (props) => {
+    const optionItem = OptionsListUtilsLHN.getOptionData(props.reportID);
     let touchableRef = null;
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -87,11 +88,11 @@ const OptionRowLHN = (props) => {
         ? props.hoverStyle.backgroundColor
         : themeColors.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
+    const isMultipleParticipant = lodashGet(optionItem, 'participantsList.length', 0) > 1;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
-    const avatarTooltips = !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((optionItem.participantsList || []).slice(0, 10), isMultipleParticipant);
+    const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
         <Hoverable>
@@ -100,7 +101,7 @@ const OptionRowLHN = (props) => {
                     ref={el => touchableRef = el}
                     onPress={(e) => {
                         e.preventDefault();
-                        props.onSelectRow(props.option, touchableRef);
+                        props.onSelectRow(optionItem, touchableRef);
                     }}
                     activeOpacity={0.8}
                     style={[
@@ -122,19 +123,19 @@ const OptionRowLHN = (props) => {
                             ]}
                         >
                             {
-                                !_.isEmpty(props.option.icons)
+                                !_.isEmpty(optionItem.icons)
                                 && (
-                                    props.option.shouldShowSubscript ? (
+                                    optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            mainAvatar={props.option.icons[0]}
-                                            secondaryAvatar={props.option.icons[1]}
-                                            mainTooltip={props.option.ownerEmail}
-                                            secondaryTooltip={props.option.subtitle}
+                                            mainAvatar={optionItem.icons[0]}
+                                            secondaryAvatar={optionItem.icons[1]}
+                                            mainTooltip={optionItem.ownerEmail}
+                                            secondaryTooltip={optionItem.subtitle}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
-                                            icons={props.option.icons}
+                                            icons={optionItem.icons}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
@@ -145,37 +146,37 @@ const OptionRowLHN = (props) => {
                                                     ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                     : undefined,
                                             ]}
-                                            avatarTooltips={props.option.isPolicyExpenseChat ? [props.option.subtitle] : avatarTooltips}
+                                            avatarTooltips={optionItem.isPolicyExpenseChat ? [optionItem.subtitle] : avatarTooltips}
                                         />
                                     )
                                 )
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={props.option.text}
+                                    fullTitle={optionItem.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
-                                    shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
+                                    shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
                                 />
-                                {props.option.alternateText ? (
+                                {optionItem.alternateText ? (
                                     <Text
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
-                                        {props.option.alternateText}
+                                        {optionItem.alternateText}
                                     </Text>
                                 ) : null}
                             </View>
-                            {props.option.descriptiveText ? (
+                            {optionItem.descriptiveText ? (
                                 <View style={[styles.flexWrap]}>
                                     <Text style={[styles.textLabel]}>
-                                        {props.option.descriptiveText}
+                                        {optionItem.descriptiveText}
                                     </Text>
                                 </View>
                             ) : null}
-                            {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                            {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
@@ -188,15 +189,15 @@ const OptionRowLHN = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        {props.option.hasDraftComment && (
+                        {optionItem.hasDraftComment && (
                             <View style={styles.ml2}>
                                 <Icon src={Expensicons.Pencil} height={16} width={16} />
                             </View>
                         )}
-                        {props.option.hasOutstandingIOU && (
-                            <IOUBadge iouReportID={props.option.iouReportID} />
+                        {optionItem.hasOutstandingIOU && (
+                            <IOUBadge iouReportID={optionItem.iouReportID} />
                         )}
-                        {props.option.isPinned && (
+                        {optionItem.isPinned && (
                             <View style={styles.ml2}>
                                 <Icon src={Expensicons.Pin} height={16} width={16} />
                             </View>
