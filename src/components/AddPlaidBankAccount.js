@@ -50,6 +50,9 @@ const propTypes = {
     /** Are we adding a withdrawal account? */
     allowDebit: PropTypes.bool,
 
+    /** Has an account already been selected */
+    selectedPlaidIndex: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
@@ -69,6 +72,7 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
+    selectedPlaidIndex: undefined,
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -122,10 +126,15 @@ class AddPlaidBankAccount extends React.Component {
      * @param {String} index
      */
     selectAccount(index) {
+        if (index == undefined) {
+            return;
+        }
+
         this.setState({selectedIndex: Number(index)}, () => {
             const selectedPlaidBankAccount = this.getPlaidBankAccounts()[this.state.selectedIndex];
             selectedPlaidBankAccount.bankName = this.props.plaidData.bankName;
             selectedPlaidBankAccount.plaidAccessToken = this.props.plaidData.plaidAccessToken;
+            selectedPlaidBankAccount.selectedPlaidIndex = this.state.selectedIndex;
             this.props.onSelect({selectedPlaidBankAccount});
         });
     }
