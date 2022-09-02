@@ -153,8 +153,8 @@ class SidebarLinks extends React.Component {
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
                     data={optionListItems}
-                    focusedIndex={_.findIndex(this.orderedReports, (
-                        option => option.reportID.toString() === this.props.currentlyViewedReportID.toString()
+                    focusedIndex={_.findIndex(optionListItems, (
+                        option => option === this.props.currentlyViewedReportID.toString()
                     ))}
                     onSelectRow={(option) => {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
