@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
+import * as ErrorUtils from '../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -26,7 +27,7 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        error: PropTypes.string,
+        errors: PropTypes.string,
 
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
@@ -47,7 +48,7 @@ const propTypes = {
     /** Session object */
     session: PropTypes.shape({
         /** An error message to display to the user */
-        error: PropTypes.string,
+        errors: PropTypes.string,
     }),
 
     /** The accountID and validateCode are passed via the URL */
@@ -61,7 +62,7 @@ const defaultProps = {
     credentials: {},
     route: validateLinkDefaultProps,
     session: {
-        error: '',
+        errors: '',
         authToken: '',
     },
 };
@@ -89,14 +90,13 @@ class SetPasswordPage extends Component {
             Session.setPassword(this.state.password, validateCode, accountID);
         } else {
             Session.setPasswordForNewAccountAndSignin(accountID, validateCode, this.state.password);
-            // Session.changePasswordAndSignIn(this.props.credentials.authToken, this.state.password);
         }
     }
 
     render() {
         const buttonText = this.props.translate('setPasswordPage.setPassword');
-        const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
-        const error = sessionError || this.props.account.error;
+        const sessionError = this.props.session.errors && ErrorUtils.getLatestErrorMessage(this.props.session);
+        const error = sessionError || ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout

@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
+import DateUtils from '../DateUtils';
 
 let currentActiveClients;
 Onyx.connect({
@@ -44,7 +45,7 @@ function clearStorageAndRedirect(errorMessage) {
             }
 
             // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
-            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
+            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: errorMessage}});
         });
 }
 
