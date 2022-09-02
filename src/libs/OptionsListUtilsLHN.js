@@ -8,7 +8,6 @@ import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import Permissions from './Permissions';
-import lodashOrderBy from 'lodash/orderBy';
 
 let reports;
 Onyx.connect({
@@ -87,7 +86,10 @@ Onyx.connect({
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
-function getOrderedReports() {
+/**
+ * @returns {String[]} An array of reportIDs sorted in the proper order
+ */
+function getOrderedReportIDs() {
     const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
     const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
 
@@ -191,7 +193,7 @@ function getOrderedReports() {
     const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
-    return recentReportOptions;
+    return _.pluck(recentReportOptions, 'reportID');
 }
 
 /**
@@ -309,5 +311,5 @@ function getOptionData(reportID) {
 
 export default {
     getOptionData,
-    getOrderedReports,
+    getOrderedReportIDs,
 };
