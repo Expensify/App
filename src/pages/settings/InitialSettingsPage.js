@@ -192,7 +192,7 @@ class InitialSettingsPage extends React.Component {
                 isPolicy: true,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === 'delete' && _.isEmpty(policy.errors),
+                disabled: policy.pendingAction === 'delete',
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
@@ -224,6 +224,7 @@ class InitialSettingsPage extends React.Component {
                         badgeText={this.getWalletBalance(isPaymentItem)}
                         fallbackIcon={item.fallbackIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
+                        disabled={item.disabled}
                     />
                 </OfflineWithFeedback>
             );
