@@ -184,7 +184,7 @@ class BaseOptionsListLHN extends Component {
 
     render() {
         return (
-            <View style={this.props.listContainerStyles}>
+            <View style={[styles.flex1]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
