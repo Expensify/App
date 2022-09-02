@@ -292,29 +292,33 @@ function resetPassword() {
     {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
                     forgotPassword: true,
+                    message: null,
+                    errors: null,
                 },
             },
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
+                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
                 },
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
+                    message: null,
                 },
             },
         ],
