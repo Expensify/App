@@ -51,6 +51,12 @@ const propTypes = {
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
 
+    // Additional styles to add after local styles
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
