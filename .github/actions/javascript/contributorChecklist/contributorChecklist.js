@@ -144,13 +144,13 @@ GitHubUtils.octokit.pulls.get({
             if (comment.includes(completedContributorChecklist.replace(whitespace, ''))) {
                 contributorChecklistComplete = true;
             } else if (comment.includes('- [')) {
-                printUncheckedItems(combinedData[i], completedContributorChecklist);
+                printUncheckedItems(combinedData[i]);
             }
 
             if (comment.includes(completedContributorPlusChecklist.replace(whitespace, ''))) {
                 contributorPlusChecklistComplete = true;
             } else if (comment.includes('- [')) {
-                printUncheckedItems(combinedData[i], completedContributorPlusChecklist);
+                printUncheckedItems(combinedData[i]);
             }
         }
 
@@ -164,5 +164,5 @@ GitHubUtils.octokit.pulls.get({
             return;
         }
 
-        console.log('All checklist are complete 🎉');
+        console.log('All checklists are complete 🎉');
     });
