@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import SectionList from '../SectionList';
 import styles from '../../styles/styles';
-import optionPropTypes from '../optionPropTypes';
+import optionPropTypesLHN from './optionPropTypesLHN';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -28,7 +28,7 @@ const propTypes = {
         indexOffset: PropTypes.number,
 
         /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypes),
+        data: PropTypes.arrayOf(optionPropTypesLHN),
 
         /** Whether this section should show or not */
         shouldShow: PropTypes.bool,
@@ -38,13 +38,10 @@ const propTypes = {
     focusedIndex: PropTypes.number,
 
     /** Array of already selected options */
-    selectedOptions: PropTypes.arrayOf(optionPropTypes),
+    selectedOptions: PropTypes.arrayOf(optionPropTypesLHN),
 
     /** Whether we can select multiple options or not */
     canSelectMultipleOptions: PropTypes.bool,
-
-    /** Whether to show headers above each section or not */
-    hideSectionHeaders: PropTypes.bool,
 
     /** Whether to allow option focus or not */
     disableFocusOptions: PropTypes.bool,
@@ -67,9 +64,6 @@ const propTypes = {
         PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
     ]),
 
-    /** Whether to show the title tooltip */
-    showTitleTooltip: PropTypes.bool,
-
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
@@ -89,14 +83,12 @@ const defaultProps = {
     focusedIndex: 0,
     selectedOptions: [],
     canSelectMultipleOptions: false,
-    hideSectionHeaders: false,
     disableFocusOptions: false,
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     innerRef: null,
-    showTitleTooltip: false,
     optionMode: undefined,
     isDisabled: false,
     onLayout: undefined,
