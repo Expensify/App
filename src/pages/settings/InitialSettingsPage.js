@@ -189,9 +189,7 @@ class InitialSettingsPage extends React.Component {
         // If the menu item is a policy, wrap it with OfflineWithFeedback
         if (item.isPolicy) {
             return (
-                <OfflineWithFeedback
-                    pendingAction={item.pendingAction}
-                >
+                <OfflineWithFeedback pendingAction={item.pendingAction}>
                     <MenuItem
                         key={`${keyTitle}_${index}`}
                         title={keyTitle}
