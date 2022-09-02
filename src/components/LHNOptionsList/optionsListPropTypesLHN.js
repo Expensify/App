@@ -9,19 +9,7 @@ const propTypes = {
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
 
     /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        /** Title of the section */
-        title: PropTypes.string,
-
-        /** The initial index of this section given the total number of options in each section's data array */
-        indexOffset: PropTypes.number,
-
-        /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypesLHN),
-
-        /** Whether this section should show or not */
-        shouldShow: PropTypes.bool,
-    })).isRequired,
+    data: PropTypes.arrayOf(optionPropTypesLHN).isRequired,
 
     /** Index for option to focus on */
     focusedIndex: PropTypes.number.isRequired,

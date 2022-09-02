@@ -2,9 +2,7 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import variables from '../../styles/variables';
 import OptionRowLHN from './OptionRowLHN';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultPropTypes} from './optionsListPropTypesLHN';
 
@@ -45,7 +43,7 @@ class BaseOptionsListLHN extends Component {
             return true;
         }
 
-        if (!_.isEqual(nextProps.sections, this.props.sections)) {
+        if (!_.isEqual(nextProps.sections, this.props.data)) {
             return true;
         }
 
@@ -78,7 +76,7 @@ class BaseOptionsListLHN extends Component {
      * @returns {Object}
      */
     getItemLayout(data, flatDataArrayIndex) {
-        const targetItem = this.props.sections[flatDataArrayIndex];
+        const targetItem = this.props.data[flatDataArrayIndex];
         return {
             length: targetItem.length,
             offset: targetItem.offset,
@@ -127,7 +125,7 @@ class BaseOptionsListLHN extends Component {
                     onScrollBeginDrag={this.props.onScrollBeginDrag}
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
-                    data={this.props.sections}
+                    data={this.props.data}
                     keyExtractor={this.extractKey}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
