@@ -45,9 +45,6 @@ const propTypes = {
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
-    /** Force the text style to be the unread style */
-    forceTextUnreadStyle: PropTypes.bool,
-
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
@@ -63,7 +60,6 @@ const defaultProps = {
     backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     isSelected: false,
-    forceTextUnreadStyle: false,
     mode: 'default',
     onSelectRow: () => {},
     isDisabled: false,
@@ -76,8 +72,7 @@ const OptionRowLHN = (props) => {
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
-        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+    const textUnreadStyle = [textStyle, styles.sidebarLinkTextUnread];
     const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle], props.style);
