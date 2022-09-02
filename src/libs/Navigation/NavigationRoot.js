@@ -1,14 +1,14 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {getPathFromState, NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import Log from '../Log';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -28,21 +28,11 @@ const propTypes = {
 };
 
 class NavigationRoot extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            currentPath: '',
-        };
-
-        this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
-    }
-
     /**
-     * Intercept state changes and perform different logic
+     * Intercept navigation state changes and log it
      * @param {NavigationState} state
      */
-    parseAndStoreRoute(state) {
+    parseAndLogRoute(state) {
         if (!state) {
             return;
         }
@@ -57,7 +47,6 @@ class NavigationRoot extends Component {
         }
 
         UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
-        this.setState({currentPath});
     }
 
     render() {
@@ -69,7 +58,7 @@ class NavigationRoot extends Component {
                         style={styles.navigatorFullScreenLoading}
                     />
                 )}
-                onStateChange={this.parseAndStoreRoute}
+                onStateChange={this.parseAndLogRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}
                 ref={Navigation.navigationRef}
@@ -78,7 +67,7 @@ class NavigationRoot extends Component {
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
+                <AppNavigator authenticated={this.props.authenticated} />
             </NavigationContainer>
         );
     }

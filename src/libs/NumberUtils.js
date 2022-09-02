@@ -4,7 +4,6 @@ import CONST from '../CONST';
  * Generates a random positive 64 bit numeric string by randomly generating the left, middle, and right parts and concatenating them. Used to generate client-side ids.
  * @returns {String} string representation of a randomly generated 64 bit signed integer
  */
-/* eslint-disable no-unused-vars */
 function rand64() {
     // Max 64-bit signed:
     // 9,223,372,036,854,775,807
