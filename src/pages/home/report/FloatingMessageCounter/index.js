@@ -11,17 +11,25 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
-    /** Whether the New Messages indicator is active */
-    isActive: PropTypes.bool,
+    /** Count of new messages to show in the badge */
+    count: PropTypes.number,
 
-    /** Callback to be called when user clicks the New Messages indicator */
+    /** Whether the marker is active */
+    active: PropTypes.bool,
+
+    /** Callback to be called when user closes the badge */
+    onClose: PropTypes.func,
+
+    /** Callback to be called when user clicks the marker */
     onClick: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    isActive: false,
+    count: 0,
+    active: false,
+    onClose: () => {},
     onClick: () => {},
 };
 
@@ -37,7 +45,7 @@ class FloatingMessageCounter extends PureComponent {
     }
 
     componentDidUpdate() {
-        if (this.props.isActive) {
+        if (this.props.active && this.props.count > 0) {
             this.show();
         } else {
             this.hide();
@@ -85,9 +93,23 @@ class FloatingMessageCounter extends PureComponent {
                                             styles.textWhite,
                                         ]}
                                     >
-                                        {this.props.translate('newMessages')}
+                                        {this.props.translate(
+                                            'newMessageCount',
+                                            {count: this.props.count},
+                                        )}
                                     </Text>
                                 </View>
+                            )}
+                            shouldRemoveRightBorderRadius
+                        />
+                        <Button
+                            success
+                            small
+                            style={[styles.buttonDropdown]}
+                            onPress={this.props.onClose}
+                            shouldRemoveLeftBorderRadius
+                            ContentComponent={() => (
+                                <Icon small src={Expensicons.Close} fill={themeColors.textReversed} />
                             )}
                         />
                     </View>
