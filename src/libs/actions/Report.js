@@ -1103,13 +1103,12 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
+
+    // We are not updating the message content here so the message can re-appear as strike-throughed
+    // if the user goes offline. The API will update the message content to empty strings on success.
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            message: [{
-                html: '',
-                text: '',
-            }],
         },
     };
 
