@@ -44,9 +44,6 @@ const propTypes = {
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
-    /** Whether to disable the interactivity of the list's option row(s) */
-    isDisabled: PropTypes.bool,
-
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
 };
@@ -60,7 +57,6 @@ const defaultProps = {
     onSelectRow: () => {},
     innerRef: null,
     optionMode: undefined,
-    isDisabled: false,
     onLayout: undefined,
 };
 

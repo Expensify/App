@@ -171,7 +171,7 @@ class BaseOptionsListLHN extends Component {
                 showSelectedState={false}
                 hideAdditionalOptionStates={false}
                 forceTextUnreadStyle={false}
-                isDisabled={this.props.isDisabled || section.isDisabled}
+                isDisabled={false}
             />
         );
     }
