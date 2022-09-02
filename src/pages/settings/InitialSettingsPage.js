@@ -184,7 +184,6 @@ class InitialSettingsPage extends React.Component {
 
     getMenuItem(item, index) {
         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-        console.log("🚀 ~ file: InitialSettingsPage.js ~ line 187 ~ InitialSettingsPage ~ getMenuItem ~ keyTitle_index", `${keyTitle}_${index}`)
         const isPaymentItem = item.translationKey === 'common.payments';
 
         if (item.isPolicy) {
