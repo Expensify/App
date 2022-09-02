@@ -42,9 +42,6 @@ const propTypes = {
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
@@ -65,7 +62,6 @@ const propTypes = {
 const defaultProps = {
     backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
-    hideAdditionalOptionStates: false,
     isSelected: false,
     forceTextUnreadStyle: false,
     mode: 'default',
@@ -210,23 +206,21 @@ const OptionRowLHN = (props) => {
                             )}
                         </View>
                     </View>
-                    {!props.hideAdditionalOptionStates && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            {props.option.hasDraftComment && (
-                                <View style={styles.ml2}>
-                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
-                                </View>
-                            )}
-                            {props.option.hasOutstandingIOU && (
-                                <IOUBadge iouReportID={props.option.iouReportID} />
-                            )}
-                            {props.option.isPinned && (
-                                <View style={styles.ml2}>
-                                    <Icon src={Expensicons.Pin} height={16} width={16} />
-                                </View>
-                            )}
-                        </View>
-                    )}
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        {props.option.hasDraftComment && (
+                            <View style={styles.ml2}>
+                                <Icon src={Expensicons.Pencil} height={16} width={16} />
+                            </View>
+                        )}
+                        {props.option.hasOutstandingIOU && (
+                            <IOUBadge iouReportID={props.option.iouReportID} />
+                        )}
+                        {props.option.isPinned && (
+                            <View style={styles.ml2}>
+                                <Icon src={Expensicons.Pin} height={16} width={16} />
+                            </View>
+                        )}
+                    </View>
                 </TouchableOpacity>
             )}
         </Hoverable>
