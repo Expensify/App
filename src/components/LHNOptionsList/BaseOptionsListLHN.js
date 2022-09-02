@@ -162,7 +162,6 @@ class BaseOptionsListLHN extends Component {
             <OptionRowLHN
                 option={item}
                 viewMode={this.props.optionMode}
-                backgroundColor={this.props.optionBackgroundColor}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}

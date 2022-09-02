@@ -23,11 +23,9 @@ import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import variables from '../../styles/variables';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
-    /** Background Color of the Option Row */
-    backgroundColor: PropTypes.string,
-
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
@@ -50,7 +48,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     viewMode: 'default',
     onSelectRow: () => {},
@@ -88,7 +85,7 @@ const OptionRowLHN = (props) => {
     ]);
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor
         ? props.hoverStyle.backgroundColor
-        : props.backgroundColor;
+        : themeColors.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
 
@@ -112,7 +109,7 @@ const OptionRowLHN = (props) => {
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
-                        StyleUtils.getBackgroundColorStyle(props.backgroundColor),
+                        StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                         props.optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !props.optionIsFocused ? props.hoverStyle : null,
                     ]}
@@ -140,7 +137,7 @@ const OptionRowLHN = (props) => {
                                             icons={props.option.icons}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
+                                                StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
                                                 props.optionIsFocused
                                                     ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                     : undefined,
