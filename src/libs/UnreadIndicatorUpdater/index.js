@@ -4,7 +4,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import updateUnread from './updateUnread';
 import * as ReportUtils from '../ReportUtils';
 
-// Stash the reports
 const reports = {};
 
 /**
