@@ -48,9 +48,6 @@ const propTypes = {
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
-    /** Whether this option should be disabled */
-    isDisabled: PropTypes.bool,
-
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -62,7 +59,6 @@ const defaultProps = {
     isSelected: false,
     mode: 'default',
     onSelectRow: () => {},
-    isDisabled: false,
     optionIsFocused: false,
     style: null,
 };
@@ -114,7 +110,6 @@ const OptionRowLHN = (props) => {
                         e.preventDefault();
                         props.onSelectRow(props.option, touchableRef);
                     }}
-                    disabled={props.isDisabled}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,
@@ -125,7 +120,6 @@ const OptionRowLHN = (props) => {
                         StyleUtils.getBackgroundColorStyle(props.backgroundColor),
                         props.optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !props.optionIsFocused ? props.hoverStyle : null,
-                        props.isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
@@ -270,10 +264,6 @@ export default withLocalize(memo(OptionRowLHN, (prevProps, nextProps) => {
 
     // Re-render when the text changes
     if (prevProps.option.text !== nextProps.option.text) {
-        return false;
-    }
-
-    if (prevProps.isDisabled !== nextProps.isDisabled) {
         return false;
     }
 

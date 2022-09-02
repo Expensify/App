@@ -165,7 +165,6 @@ class BaseOptionsListLHN extends Component {
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
-                isDisabled={false}
             />
         );
     }
