@@ -249,6 +249,9 @@ const InitialSettingsPage = (props) => {
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
+                errors: policy.errors,
+                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                disabled: policy.pendingAction === 'delete',
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
@@ -274,6 +277,7 @@ const InitialSettingsPage = (props) => {
                         badgeText={this.getWalletBalance(isPaymentItem)}
                         fallbackIcon={item.fallbackIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
+                        disabled={item.disabled}
                     />
                 </OfflineWithFeedback>
             );
