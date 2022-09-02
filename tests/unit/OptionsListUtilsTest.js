@@ -122,6 +122,8 @@ describe('OptionsListUtils', () => {
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
+            lastReadSequenceNumber: 9,
+            maxSequenceNumber: 10,
         },
     };
 
