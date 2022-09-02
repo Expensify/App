@@ -54,9 +54,6 @@ const propTypes = {
     /** Force the text style to be the unread style */
     forceTextUnreadStyle: PropTypes.bool,
 
-    /** Whether to show the title tooltip */
-    showTitleTooltip: PropTypes.bool,
-
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
@@ -75,7 +72,6 @@ const defaultProps = {
     showSelectedState: false,
     isSelected: false,
     forceTextUnreadStyle: false,
-    showTitleTooltip: false,
     mode: 'default',
     onSelectRow: () => {},
     isDisabled: false,
@@ -120,7 +116,7 @@ const OptionRowLHN = (props) => {
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
-    const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
+    const avatarTooltips = !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
         <Hoverable>
@@ -185,7 +181,7 @@ const OptionRowLHN = (props) => {
                                 <DisplayNames
                                     fullTitle={props.option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled={props.showTitleTooltip}
+                                    tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
                                     shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
@@ -298,10 +294,6 @@ export default withLocalize(memo(OptionRowLHN, (prevProps, nextProps) => {
     }
 
     if (prevProps.isDisabled !== nextProps.isDisabled) {
-        return false;
-    }
-
-    if (prevProps.showTitleTooltip !== nextProps.showTitleTooltip) {
         return false;
     }
 
