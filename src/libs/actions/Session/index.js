@@ -308,6 +308,46 @@ function resetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
+                    message: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    message: null,
+                },
+            },
+        ],
+    });
+}
+
+function resendResetPassword() {
+    API.write('RequestPasswordReset', {
+        email: credentials.login,
+    },
+    {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: true,
+                    forgotPassword: true,
+                    message: null,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
                     message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
                 },
             },
@@ -531,6 +571,7 @@ export {
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resetPassword,
+    resendResetPassword,
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
