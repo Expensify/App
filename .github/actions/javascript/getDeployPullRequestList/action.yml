@@ -14,5 +14,5 @@ outputs:
     PR_LIST:
         description: Array of pull request numbers
 runs:
-    using: 'node12'
+    using: 'node16'
     main: './index.js'
