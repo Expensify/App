@@ -656,6 +656,7 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         policyID,
         reportID: announceChatReportID,
         reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
     const adminsChatReportID = ReportUtils.generateReportID();
@@ -664,6 +665,7 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         policyID,
         reportID: adminsChatReportID,
         reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
     const expenseChatReportID = ReportUtils.generateReportID();
@@ -674,6 +676,7 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         policyID,
         reportID: expenseChatReportID,
         reportName: '',
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
     return {
