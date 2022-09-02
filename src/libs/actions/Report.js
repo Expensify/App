@@ -616,6 +616,11 @@ function createOptimisticChatReport(participantList) {
     };
 }
 
+/**
+ * @param {String} policyID
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
 function createOptimisticWorkspaceChats(policyID, ownerEmail) {
     const announceChatReportID = ReportUtils.generateReportID();
     const announceChatData = {
@@ -624,6 +629,23 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         reportID: announceChatReportID,
         reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat: false,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: 0,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: '',
+        oldPolicyName: '',
+        ownerEmail: '__FAKE__',
+        participants: [ownerEmail],
+        stateNum: 0,
+        statusNum: 0,
+        visibility: undefined,
     };
 
     const adminsChatReportID = ReportUtils.generateReportID();
@@ -633,6 +655,23 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         reportID: adminsChatReportID,
         reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat: false,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: 0,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: '',
+        oldPolicyName: '',
+        ownerEmail: '__FAKE__',
+        participants: [ownerEmail],
+        stateNum: 0,
+        statusNum: 0,
+        visibility: undefined,
     };
 
     const expenseChatReportID = ReportUtils.generateReportID();
@@ -644,6 +683,21 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         reportID: expenseChatReportID,
         reportName: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        hasOutstandingIOU: false,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: 0,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: '',
+        oldPolicyName: '',
+        participants: [ownerEmail],
+        stateNum: 0,
+        statusNum: 0,
+        visibility: undefined,
     };
 
     return {

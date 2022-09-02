@@ -739,7 +739,6 @@ function generatePolicyID() {
 
 /**
  * Optimistically creates a new workspace and default workspace chats
- * @param {*} ownerEmail
  */
 function createWorkspace() {
     const policyID = generatePolicyID();
