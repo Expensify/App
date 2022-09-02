@@ -193,7 +193,10 @@ function getOrderedReportIDs() {
     const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
-    return _.pluck(recentReportOptions, 'reportID');
+    return _.chain(recentReportOptions)
+        .pluck('reportID')
+        .map(reportID => reportID.toString())
+        .value();
 }
 
 /**

@@ -28,7 +28,6 @@ class BaseOptionsListLHN extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
-        this.extractKey = this.extractKey.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
@@ -85,15 +84,6 @@ class BaseOptionsListLHN extends Component {
     }
 
     /**
-     * Returns the key used by the list
-     * @param {Object} option
-     * @return {String}
-     */
-    extractKey(option) {
-        return option.keyForList;
-    }
-
-    /**
      * Function which renders a row in the list
      *
      * @param {Object} params
@@ -105,7 +95,7 @@ class BaseOptionsListLHN extends Component {
     renderItem({item, index}) {
         return (
             <OptionRowLHN
-                reportID={item.reportID.toString()}
+                reportID={item}
                 viewMode={this.props.optionMode}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === index}
@@ -126,7 +116,7 @@ class BaseOptionsListLHN extends Component {
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
                     data={this.props.data}
-                    keyExtractor={this.extractKey}
+                    keyExtractor={item => item}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}
