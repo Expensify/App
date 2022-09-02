@@ -169,7 +169,6 @@ class BaseOptionsListLHN extends Component {
                 mode={this.props.optionMode}
                 showTitleTooltip
                 backgroundColor={this.props.optionBackgroundColor}
-                hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}

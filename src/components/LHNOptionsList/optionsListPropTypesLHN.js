@@ -9,10 +9,6 @@ const propTypes = {
     /** option Background Color */
     optionBackgroundColor: PropTypes.string,
 
-    /** Style for hovered state */
-    // eslint-disable-next-line react/forbid-prop-types
-    optionHoveredStyle: PropTypes.object,
-
     /** Extra styles for the section list container */
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -73,7 +69,6 @@ const propTypes = {
 
 const defaultProps = {
     optionBackgroundColor: undefined,
-    optionHoveredStyle: undefined,
     contentContainerStyles: [],
     sections: [],
     focusedIndex: 0,
