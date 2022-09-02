@@ -55,7 +55,7 @@ const propTypes = {
         role: PropTypes.string,
 
         /** The current action that is waiting to happen on the policy */
-        pendingAction: PropTypes.string,
+        pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
     })),
 
     /** List of policy members */
