@@ -160,7 +160,7 @@ class BaseOptionsListLHN extends Component {
     renderItem({item, index, section}) {
         return (
             <OptionRowLHN
-                option={item}
+                reportID={item.reportID}
                 viewMode={this.props.optionMode}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
