@@ -54,6 +54,9 @@ const propTypes = {
 
         /** The user's role in the policy */
         role: PropTypes.string,
+
+        /** The current action that is waiting to happen on the policy */
+        pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
     })),
 
     /** List of policy members */
@@ -109,7 +112,8 @@ class InitialSettingsPage extends React.Component {
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItems = this.getMenuItems.bind(this);
+        this.getMenuItemsList = this.getMenuItemsList.bind(this);
+        this.getMenuItem = this.getMenuItem.bind(this);
     }
 
     componentDidMount() {
@@ -172,19 +176,20 @@ class InitialSettingsPage extends React.Component {
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      * @returns {Array} the menu item list
      */
-    getMenuItems() {
+    getMenuItemsList() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .map(policy => ({
                 title: policy.name,
-                icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
-                iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                icon: policy.avatar ? policy.avatar : Expensicons.Building,
+                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
+                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
-                pendingAction: policy.pendingAction,
+                pendingAction: policy.pendingAction ? policy.pendingAction : null,
+                isPolicy: true,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === 'delete' && _.isEmpty(policy.errors),
@@ -193,6 +198,52 @@ class InitialSettingsPage extends React.Component {
         menuItems.push(...this.getDefaultMenuItems());
 
         return menuItems;
+    }
+
+    getMenuItem(item, index) {
+        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+        const isPaymentItem = item.translationKey === 'common.payments';
+
+        if (item.isPolicy) {
+            return (
+                <OfflineWithFeedback
+                    key={`${keyTitle}_${index}`}
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                >
+                    <MenuItem
+                        title={keyTitle}
+                        icon={item.icon}
+                        iconType={item.iconType}
+                        onPress={item.action}
+                        iconStyles={item.iconStyles}
+                        iconFill={item.iconFill}
+                        shouldShowRightIcon
+                        badgeText={this.getWalletBalance(isPaymentItem)}
+                        fallbackIcon={item.fallbackIcon}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                    />
+                </OfflineWithFeedback>
+            );
+        }
+
+        return (
+            <MenuItem
+                key={`${keyTitle}_${index}`}
+                title={keyTitle}
+                icon={item.icon}
+                iconType={item.iconType}
+                onPress={item.action}
+                iconStyles={item.iconStyles}
+                iconFill={item.iconFill}
+                shouldShowRightIcon
+                badgeText={this.getWalletBalance(isPaymentItem)}
+                fallbackIcon={item.fallbackIcon}
+                brickRoadIndicator={item.brickRoadIndicator}
+            />
+        );
     }
 
     openProfileSettings() {
@@ -206,6 +257,7 @@ class InitialSettingsPage extends React.Component {
         if (_.isEmpty(this.props.currentUserPersonalDetails)) {
             return null;
         }
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -241,32 +293,7 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItems(), (item, index) => {
-                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-                            const isPaymentItem = item.translationKey === 'common.payments';
-                            return (
-                                <OfflineWithFeedback
-                                    key={`${keyTitle}_${index}`}
-                                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
-                                    onClose={item.dismissError || (() => {})}
-                                    pendingAction={item.pendingAction}
-                                    errors={item.errors}
-                                >
-                                    <MenuItem
-                                        title={keyTitle}
-                                        icon={item.icon}
-                                        iconType={item.iconType}
-                                        onPress={item.action}
-                                        iconStyles={item.iconStyles}
-                                        iconFill={item.iconFill}
-                                        shouldShowRightIcon
-                                        badgeText={this.getWalletBalance(isPaymentItem)}
-                                        fallbackIcon={item.fallbackIcon}
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                    />
-                                </OfflineWithFeedback>
-                            );
-                        })}
+                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
