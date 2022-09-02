@@ -28,6 +28,8 @@ import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as NumberUtils from '../NumberUtils';
+import * as NumberFormatUtils from './NumberFormatUtils';
+
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -706,14 +708,14 @@ function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
     return {
         cachedTotal: NumberFormatUtils.format(locale, number, options),
         chatReportID,
-        currency: currency,
+        currency,
         hasOutstandingIOU: true,
         managerEmail: "__FAKE__",
         ownerEmail: "__FAKE__",
         reportID: ReportUtils.generateReportID(),
         state: "SUBMITTED",
         stateNum: 1,
-        total: total,
+        total,
     };
 }
 
