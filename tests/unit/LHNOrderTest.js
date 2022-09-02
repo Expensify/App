@@ -152,18 +152,39 @@ Onyx.init({
 });
 
 function getDefaultRenderedSidebarLinks() {
+    class ErrorBoundary extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {hasError: false};
+        }
+
+        static getDerivedStateFromError(error) {
+            // Update state so the next render will show the fallback UI.
+            return {hasError: true, error};
+        }
+
+        componentDidCatch(error, errorInfo) {
+            console.error(error, errorInfo);
+        }
+
+        render() {
+            return this.props.children;
+        }
+    }
     // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     return render((
         <LocaleContextProvider>
-            <SidebarLinks
-                onLinkClick={() => {}}
-                insets={fakeInsets}
-                onAvatarClick={() => {}}
-                isSmallScreenWidth={false}
-            />
+            <ErrorBoundary>
+                <SidebarLinks
+                    onLinkClick={() => {}}
+                    insets={fakeInsets}
+                    onAvatarClick={() => {}}
+                    isSmallScreenWidth={false}
+                />
+            </ErrorBoundary>
         </LocaleContextProvider>
     ));
 }
@@ -617,6 +638,7 @@ describe('Sidebar', () => {
                 }))
 
                 // THEN they are still in alphabetical order
+
                 .then(() => {
                     const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
                     expect(reportOptions).toHaveLength(4);
