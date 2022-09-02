@@ -168,6 +168,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
+        fallback: {
+            'process/browser': require.resolve('process/browser'),
+        },
     },
 });
 
