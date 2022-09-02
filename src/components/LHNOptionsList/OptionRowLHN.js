@@ -1,29 +1,28 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {memo} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {
     TouchableOpacity,
     View,
     StyleSheet,
 } from 'react-native';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import optionPropTypes from './optionPropTypes';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import MultipleAvatars from './MultipleAvatars';
-import Hoverable from './Hoverable';
-import DisplayNames from './DisplayNames';
-import IOUBadge from './IOUBadge';
-import colors from '../styles/colors';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Text from './Text';
-import SelectCircle from './SelectCircle';
-import SubscriptAvatar from './SubscriptAvatar';
-import CONST from '../CONST';
-import * as ReportUtils from '../libs/ReportUtils';
-import variables from '../styles/variables';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
+import optionPropTypes from '../optionPropTypes';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import MultipleAvatars from '../MultipleAvatars';
+import Hoverable from '../Hoverable';
+import DisplayNames from '../DisplayNames';
+import IOUBadge from '../IOUBadge';
+import colors from '../../styles/colors';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Text from '../Text';
+import SubscriptAvatar from '../SubscriptAvatar';
+import CONST from '../../CONST';
+import * as ReportUtils from '../../libs/ReportUtils';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -42,9 +41,6 @@ const propTypes = {
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
 
-    /** Whether this item is selected */
-    isSelected: PropTypes.bool,
-
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
@@ -56,7 +52,6 @@ const propTypes = {
 const defaultProps = {
     backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
-    isSelected: false,
     mode: 'default',
     onSelectRow: () => {},
     optionIsFocused: false,
