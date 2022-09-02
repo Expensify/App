@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import participantPropTypes from './participantPropTypes';
+import CONST from '../../CONST';
+import participantPropTypes from '../participantPropTypes';
 
 export default PropTypes.shape({
     // Text to display
