@@ -222,13 +222,13 @@ class BaseTextInput extends Component {
 
                                 // When multiline is not supplied, calculating textinput height using onLayout
                                 // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...!this.props.multiline ? {
+                                {...!this.props.multiline && {
                                     onLayout: event => (
                                         this.setState({
                                             height: event.nativeEvent.layout.height,
                                         })
                                     ),
-                                } : null}
+                                }}
                                 style={[
                                     textInputContainerStyles,
 
