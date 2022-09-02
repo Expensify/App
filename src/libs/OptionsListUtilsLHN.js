@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
 import _ from 'underscore/underscore-node';
 import Str from 'expensify-common/lib/str';
+import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
-import {getPersonalDetailsForLogins, getSearchText, getBrickRoadIndicatorStatusForReport} from './OptionsListUtils';
+import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 
 let reports;
@@ -20,23 +20,23 @@ Onyx.connect({
     callback: val => personalDetails = val,
 });
 
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
-});
-
-let priorityMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: val => priorityMode = val,
-});
-
-let betas;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: val => betas = val,
-});
+// let currentlyViewedReportID;
+// Onyx.connect({
+//     key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+//     callback: val => currentlyViewedReportID = val,
+// });
+//
+// let priorityMode;
+// Onyx.connect({
+//     key: ONYXKEYS.NVP_PRIORITY_MODE,
+//     callback: val => priorityMode = val,
+// });
+//
+// let betas;
+// Onyx.connect({
+//     key: ONYXKEYS.NVP_PRIORITY_MODE,
+//     callback: val => betas = val,
+// });
 
 const lastReportActions = {};
 let reportActions;
@@ -82,11 +82,11 @@ Onyx.connect({
     callback: val => currentUserLogin = val,
 });
 
-let loginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: val => loginList = val,
-});
+// let loginList;
+// Onyx.connect({
+//     key: ONYXKEYS.LOGIN_LIST,
+//     callback: val => loginList = val,
+// });
 
 let preferredLocale;
 Onyx.connect({
@@ -98,6 +98,7 @@ Onyx.connect({
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
  * @param {String} reportID
+ * @returns {Object}
  */
 function getOptionData(reportID) {
     const report = reports[reportID];
@@ -129,7 +130,7 @@ function getOptionData(reportID) {
         isPolicyExpenseChat: false,
     };
 
-    const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
+    const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const personalDetail = personalDetailList[0];
     let hasMultipleParticipants = personalDetailList.length > 1;
@@ -138,7 +139,7 @@ function getOptionData(reportID) {
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-    result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
+    result.brickRoadIndicator = OptionsListUtils.getBrickRoadIndicatorStatusForReport(report, reportActions);
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
     result.isUnread = report.unreadActionCount > 0;
@@ -204,7 +205,7 @@ function getOptionData(reportID) {
     result.subtitle = subtitle;
     result.participantsList = personalDetailList;
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
-    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.searchText = OptionsListUtils.getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
 
     return result;
 }
