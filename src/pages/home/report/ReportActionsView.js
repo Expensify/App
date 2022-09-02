@@ -213,7 +213,8 @@ class ReportActionsView extends React.Component {
                     this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
                 }
             } else if (this.state.newMarkerSequenceNumber === 0) {
-                // The report is not in view so we will update the newMarkerSequenceNumber
+                // The report is not in view and we received a comment from another user while the new marker is not set
+                // so we wil set the new marker now.
                 this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
             }
         }
