@@ -705,7 +705,7 @@ function createOptimisticChatReport(participantList) {
 function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
     return {
         cachedTotal: NumberFormatUtils.format(locale, number, options),
-        chatReportID: chatReportID,
+        chatReportID,
         currency: currency,
         hasOutstandingIOU: true,
         managerEmail: "__FAKE__",
