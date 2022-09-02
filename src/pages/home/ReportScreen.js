@@ -60,7 +60,7 @@ const propTypes = {
         isLoadingReportActions: PropTypes.bool,
 
         /** ID for the report */
-        reportID: PropTypes.string,
+        reportID: PropTypes.number,
     }),
 
     /** Array of report actions for this report */
