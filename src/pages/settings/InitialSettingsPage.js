@@ -251,7 +251,7 @@ const InitialSettingsPage = (props) => {
                 isPolicy: true,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === 'delete',
+                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
