@@ -170,7 +170,7 @@ class BaseOptionsListLHN extends Component {
                 onSelectRow={this.props.onSelectRow}
                 showSelectedState={false}
                 hideAdditionalOptionStates={false}
-                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                forceTextUnreadStyle={false}
                 isDisabled={this.props.isDisabled || section.isDisabled}
             />
         );

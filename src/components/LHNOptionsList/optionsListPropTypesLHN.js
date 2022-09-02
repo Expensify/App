@@ -32,9 +32,6 @@ const propTypes = {
     /** Whether to allow option focus or not */
     disableFocusOptions: PropTypes.bool,
 
-    /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
-
     /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func,
 
@@ -63,7 +60,6 @@ const defaultProps = {
     sections: [],
     focusedIndex: 0,
     disableFocusOptions: false,
-    forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     innerRef: null,
