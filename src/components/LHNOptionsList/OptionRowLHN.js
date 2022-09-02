@@ -45,9 +45,6 @@ const propTypes = {
     /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
-    /** Whether we should show the selected state */
-    showSelectedState: PropTypes.bool,
-
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
@@ -69,7 +66,6 @@ const defaultProps = {
     backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
-    showSelectedState: false,
     isSelected: false,
     forceTextUnreadStyle: false,
     mode: 'default',
@@ -212,7 +208,6 @@ const OptionRowLHN = (props) => {
                                     />
                                 </View>
                             )}
-                            {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                         </View>
                     </View>
                     {!props.hideAdditionalOptionStates && (
@@ -286,10 +281,6 @@ export default withLocalize(memo(OptionRowLHN, (prevProps, nextProps) => {
 
     // Re-render when the text changes
     if (prevProps.option.text !== nextProps.option.text) {
-        return false;
-    }
-
-    if (prevProps.showSelectedState !== nextProps.showSelectedState) {
         return false;
     }
 
