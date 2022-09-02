@@ -169,7 +169,7 @@ class BaseOptionsListLHN extends Component {
                         && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
                 showSelectedState={false}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                hideAdditionalOptionStates={false}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 isDisabled={this.props.isDisabled || section.isDisabled}
             />
