@@ -14,6 +14,7 @@ import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
+import getCurrentUrl from '../Navigation/currentUrl';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -161,26 +162,19 @@ function reconnectApp() {
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
- * @param {string} currentPath
  */
-function setUpPoliciesAndNavigate(session, currentPath) {
-    if (!session || !currentPath || !currentPath.includes('exitTo')) {
+function setUpPoliciesAndNavigate(session) {
+    const currentUrl = getCurrentUrl();
+    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
     }
 
-    let exitTo;
-    try {
-        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
-        exitTo = url.searchParams.get('exitTo');
-    } catch (error) {
-        // URLSearchParams is unsupported on iOS so we catch th error and
-        // silence it here since this is primarily a Web flow
-        return;
-    }
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const url = new URL(currentUrl);
+    const exitTo = url.searchParams.get('exitTo');
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
         Policy.createWorkspace();

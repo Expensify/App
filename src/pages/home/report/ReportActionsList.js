@@ -27,9 +27,6 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
 
@@ -116,7 +113,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.reportActionID}`;
+        return `${item.action.reportActionID}${item.action.sequenceNumber}`;
     }
 
     /**
