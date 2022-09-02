@@ -35,9 +35,6 @@ const propTypes = {
     /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func,
 
-    /** Optional header message */
-    headerMessage: PropTypes.string,
-
     /** Passed via forwardRef so we can access the SectionList ref */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
@@ -61,7 +58,6 @@ const defaultProps = {
     focusedIndex: 0,
     disableFocusOptions: false,
     onSelectRow: () => {},
-    headerMessage: '',
     innerRef: null,
     optionMode: undefined,
     isDisabled: false,
