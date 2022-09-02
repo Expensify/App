@@ -57,6 +57,10 @@ const defaultProps = {
 
 const OptionRowLHN = (props) => {
     const optionItem = OptionsListUtilsLHN.getOptionData(props.reportID);
+    if (!optionItem) {
+        return null;
+    }
+
     let touchableRef = null;
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText

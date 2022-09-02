@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore/underscore-node';
+import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
@@ -11,6 +11,7 @@ import * as CollectionUtils from './CollectionUtils';
 let reports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: val => reports = val,
 });
 
@@ -52,28 +53,18 @@ Onyx.connect({
     },
 });
 
-const policies = {};
+let policies;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policy, key) => {
-        if (!policy || !key || !policy.name) {
-            return;
-        }
-
-        policies[key] = policy;
-    },
+    waitForCollectionCallback: true,
+    callback: val => policies = val,
 });
 
-const iouReports = {};
+let iouReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail) {
-            return;
-        }
-
-        iouReports[key] = iouReport;
-    },
+    waitForCollectionCallback: true,
+    callback: val => iouReports = val,
 });
 
 let currentUserLogin;
@@ -101,7 +92,10 @@ Onyx.connect({
  * @returns {Object}
  */
 function getOptionData(reportID) {
-    const report = reports[reportID];
+    const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!report) {
+        return;
+    }
     const result = {
         text: null,
         alternateText: null,
@@ -133,7 +127,6 @@ function getOptionData(reportID) {
     const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const personalDetail = personalDetailList[0];
-    let hasMultipleParticipants = personalDetailList.length > 1;
 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -150,7 +143,7 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
 
-    hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+    const hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
     let lastMessageTextFromReport = '';
