@@ -42,7 +42,7 @@ const propTypes = {
     onSelectRow: PropTypes.func,
 
     /** Toggle between compact and default view */
-    mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
+    viewMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -52,7 +52,7 @@ const propTypes = {
 const defaultProps = {
     backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
-    mode: 'default',
+    viewMode: 'default',
     onSelectRow: () => {},
     optionIsFocused: false,
     style: null,
@@ -64,16 +64,16 @@ const OptionRowLHN = (props) => {
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
     const textUnreadStyle = [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
+    const displayNameStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle], props.style);
-    const alternateTextStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
+    const alternateTextStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
-    const contentContainerStyles = props.mode === CONST.OPTION_MODE.COMPACT
+    const contentContainerStyles = props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === CONST.OPTION_MODE.COMPACT ? [
+    const sidebarInnerRowStyle = StyleSheet.flatten(props.viewMode === CONST.OPTION_MODE.COMPACT ? [
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
@@ -133,12 +133,12 @@ const OptionRowLHN = (props) => {
                                             secondaryAvatar={props.option.icons[1]}
                                             mainTooltip={props.option.ownerEmail}
                                             secondaryTooltip={props.option.subtitle}
-                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={props.option.icons}
-                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
                                                 props.optionIsFocused
