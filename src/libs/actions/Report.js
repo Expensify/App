@@ -729,9 +729,18 @@ function createOptimisticChatReport(
     };
 }
 
+/*
+ * Creates an optimistic IOU report with a randomly generated reportID
+ */
 function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.numberFormat(
+        total, {
+            style: 'currency',
+            currency: currency,
+        },
+    );
     return {
-        cachedTotal: NumberFormatUtils.format(locale, number, options),
+        cachedTotal: formattedTotal,
         chatReportID,
         currency,
         hasOutstandingIOU: true,
