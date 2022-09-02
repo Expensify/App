@@ -158,16 +158,15 @@ Onyx.init({
 });
 
 function getDefaultRenderedSidebarLinks() {
-    // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
-    // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
-    // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
-    // With the ErrorBoundary, those errors are caught and logged to the console so you can find exactly which error
-    // might be causing a rendering issue when developing tests.
     class ErrorBoundary extends React.Component {
-        // Error boundaries have to implement this method. It's for providing a fallback UI, but
-        // we don't need that for unit testing, so this is basically a no-op.
+        constructor(props) {
+            super(props);
+            this.state = {hasError: false};
+        }
+
         static getDerivedStateFromError(error) {
-            return {error};
+            // Update state so the next render will show the fallback UI.
+            return {hasError: true, error};
         }
 
         componentDidCatch(error, errorInfo) {
@@ -175,11 +174,9 @@ function getDefaultRenderedSidebarLinks() {
         }
 
         render() {
-            // eslint-disable-next-line react/prop-types
             return this.props.children;
         }
     }
-
     // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
@@ -641,6 +638,7 @@ describe('Sidebar', () => {
                 }))
 
                 // THEN they are still in alphabetical order
+
                 .then(() => {
                     const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
                     expect(reportOptions).toHaveLength(4);
