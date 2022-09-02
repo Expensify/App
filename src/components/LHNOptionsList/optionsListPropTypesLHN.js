@@ -6,10 +6,10 @@ import CONST from '../../CONST';
 
 const propTypes = {
     /** option Background Color */
-    optionBackgroundColor: PropTypes.string,
+    optionBackgroundColor: PropTypes.string.isRequired,
 
     /** Extra styles for the section list container */
-    contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
+    contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
 
     /** Sections for the section list */
     sections: PropTypes.arrayOf(PropTypes.shape({
@@ -24,40 +24,29 @@ const propTypes = {
 
         /** Whether this section should show or not */
         shouldShow: PropTypes.bool,
-    })),
+    })).isRequired,
 
     /** Index for option to focus on */
-    focusedIndex: PropTypes.number,
+    focusedIndex: PropTypes.number.isRequired,
 
     /** Whether to allow option focus or not */
-    disableFocusOptions: PropTypes.bool,
+    disableFocusOptions: PropTypes.bool.isRequired,
 
     /** Callback to fire when a row is selected */
-    onSelectRow: PropTypes.func,
+    onSelectRow: PropTypes.func.isRequired,
 
     /** Passed via forwardRef so we can access the SectionList ref */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
-    ]),
+    ]).isRequired,
 
     /** Toggle between compact and default view of the option */
-    optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
+    optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)).isRequired,
 
     /** Callback to execute when the SectionList lays out */
-    onLayout: PropTypes.func,
+    onLayout: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-    optionBackgroundColor: undefined,
-    contentContainerStyles: [],
-    sections: [],
-    focusedIndex: 0,
-    disableFocusOptions: false,
-    onSelectRow: () => {},
-    innerRef: null,
-    optionMode: undefined,
-    onLayout: undefined,
-};
-
-export {propTypes, defaultProps};
+// eslint-disable-next-line import/prefer-default-export
+export {propTypes};
