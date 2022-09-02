@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
 import {Keyboard} from 'react-native';
 import BaseOptionsList from './BaseOptionsListLHN';
-import {propTypes, defaultProps} from './optionsListPropTypesLHN';
+import {propTypes} from './optionsListPropTypesLHN';
 
 const OptionsList = forwardRef((props, ref) => (
     <BaseOptionsList
@@ -13,7 +13,6 @@ const OptionsList = forwardRef((props, ref) => (
 ));
 
 OptionsList.propTypes = propTypes;
-OptionsList.defaultProps = defaultProps;
 OptionsList.displayName = 'OptionsList';
 
 export default OptionsList;
