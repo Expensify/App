@@ -45,6 +45,7 @@ const ReportActionItemMessage = (props) => {
                     attachmentInfo={props.action.attachmentInfo}
                     source={lodashGet(props.action, 'originalMessage.source')}
                     loading={props.action.isLoading}
+                    style={props.style}
                 />
             ))}
         </View>
