@@ -824,6 +824,24 @@ function createWorkspace() {
             value: {
                 pendingAction: null,
             },
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+            value: {
+                pendingAction: null,
+            },
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {
+                pendingAction: null,
+            },
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: {
+                pendingAction: null,
+            },
         }],
         failureData: [{
             onyxMethod: CONST.ONYX.METHOD.SET,
