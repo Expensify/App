@@ -175,13 +175,8 @@ function getOptionData(reportID) {
         });
     }
 
-    const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-    const forcePolicyNamePreview = result.isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : false;
-
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        result.alternateText = (!forcePolicyNamePreview && lastMessageText)
-            ? lastMessageText
-            : subtitle;
+        result.alternateText = lastMessageText || subtitle;
     } else {
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
