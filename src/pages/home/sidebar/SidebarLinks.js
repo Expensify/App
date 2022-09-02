@@ -181,7 +181,7 @@ class SidebarLinks extends React.Component {
                         styles.sidebarListContainer,
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
-                    sections={sections}
+                    data={sections}
                     focusedIndex={_.findIndex(this.orderedReports, (
                         option => option.reportID.toString() === this.props.currentlyViewedReportID.toString()
                     ))}
