@@ -3,7 +3,6 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import memoizeOne from 'memoize-one';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -98,10 +97,15 @@ const defaultProps = {
     network: {},
 };
 
+function deepCompareRenderItems(activeReportID, priorityMode, unorderedReports, personalDetails, betas, reportActions) {
+    return `${activeReportID}_${priorityMode}_${JSON.stringify(unorderedReports)}_${JSON.stringify(personalDetails)}_${JSON.stringify(betas)}_${JSON.stringify(reportActions)}`;
+}
+
 class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
-        this.getRecentReportsOptionListItems = memoizeOne(this.getRecentReportsOptionListItems.bind(this));
+
+        this.getRecentReportsOptionListItems = _.memoize(this.getRecentReportsOptionListItems.bind(this), deepCompareRenderItems);
     }
 
     /**
