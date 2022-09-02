@@ -14,11 +14,9 @@ import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -40,6 +38,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** List of reports */
+    // eslint-disable-next-line react/no-unused-prop-types
     reports: PropTypes.objectOf(PropTypes.shape({
         /** ID of the report */
         reportID: PropTypes.number,
@@ -55,6 +54,7 @@ const propTypes = {
     })),
 
     /** All report actions for all reports */
+    // eslint-disable-next-line react/no-unused-prop-types
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** List of users' personal details */
@@ -92,15 +92,7 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
-function deepCompareRenderItems(activeReportID, priorityMode, unorderedReports, personalDetails, betas, reportActions) {
-    return `${activeReportID}_${priorityMode}_${JSON.stringify(unorderedReports)}_${JSON.stringify(personalDetails)}_${JSON.stringify(betas)}_${JSON.stringify(reportActions)}`;
-}
-
 class SidebarLinks extends React.Component {
-    getRecentReportsOptionListItems() {
-        return OptionsListUtilsLHN.getOrderedReports();
-    }
-
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
@@ -112,7 +104,7 @@ class SidebarLinks extends React.Component {
         }
 
         Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
-        const optionListItems = this.getRecentReportsOptionListItems();
+        const optionListItems = OptionsListUtilsLHN.getOrderedReportIDs();
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
