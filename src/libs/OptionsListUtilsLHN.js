@@ -26,18 +26,18 @@ Onyx.connect({
 //     key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
 //     callback: val => currentlyViewedReportID = val,
 // });
-//
-// let priorityMode;
-// Onyx.connect({
-//     key: ONYXKEYS.NVP_PRIORITY_MODE,
-//     callback: val => priorityMode = val,
-// });
-//
-// let betas;
-// Onyx.connect({
-//     key: ONYXKEYS.NVP_PRIORITY_MODE,
-//     callback: val => betas = val,
-// });
+
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: val => priorityMode = val,
+});
+
+let betas;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: val => betas = val,
+});
 
 const lastReportActions = {};
 let reportActions;
@@ -84,6 +84,35 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
+
+function getOrderedReports() {
+    const prioritizeIOUDebts = true;
+    const prioritizeReportsWithDraftComments = true;
+    const includeRecentReports = true;
+    const includeMultipleParticipantReports = true;
+    const maxRecentReportsToShow = 0;
+    const showChatPreviewLine = true;
+    const prioritizePinnedReports = true;
+    const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD ? true : false;
+    const sortByAlphaAsc = priorityMode === CONST.PRIORITY_MODE.GSD ? true : false;
+
+    let recentReportOptions = [];
+    const pinnedReportOptions = [];
+    let personalDetailsOptions = [];
+    const iouDebtReportOptions = [];
+    const draftReportOptions = [];
+    const reportMapForLogins = {};
+
+    let orderedReports = _.sortBy(reports, sortByAlphaAsc ? 'reportName' : 'lastMessageTimestamp');
+    if (!sortByAlphaAsc) {
+        orderedReports.reverse();
+    }
+
+    // Move the archived Rooms to the last
+    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
+
+    return [];
+}
 
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
@@ -198,4 +227,7 @@ function getOptionData(reportID) {
     return result;
 }
 
-export default {getOptionData};
+export default {
+    getOptionData,
+    getOrderedReports,
+};
