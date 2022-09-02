@@ -88,22 +88,13 @@ Onyx.connect({
 });
 
 function getOrderedReports() {
-    const prioritizeIOUDebts = true;
-    const prioritizeReportsWithDraftComments = true;
-    const includeRecentReports = true;
-    const includeMultipleParticipantReports = true;
-    const maxRecentReportsToShow = 0;
-    const showChatPreviewLine = true;
-    const prioritizePinnedReports = true;
     const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
     const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
 
     let recentReportOptions = [];
     const pinnedReportOptions = [];
-    let personalDetailsOptions = [];
     const iouDebtReportOptions = [];
     const draftReportOptions = [];
-    const reportMapForLogins = {};
 
     const filteredReports = _.filter(reports, (report) => {
         if (!report || !report.reportID) {
@@ -158,17 +149,9 @@ function getOrderedReports() {
         }
 
         return true;
-
-        // Save the report in the map if this is a single participant so we can associate the reportID with the
-        // personal detail option later. Individuals should not be associated with single participant
-        // policyExpenseChats or chatRooms since those are not people.
-        // @TODO: Maybe remove
-        if (participants.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
-            reportMapForLogins[participants[0]] = report;
-        }
     });
 
-    let orderedReports = _.sortBy(sortByTimestampDescending ? 'lastMessageTimestamp' : 'reportName');
+    let orderedReports = _.sortBy(filteredReports, sortByTimestampDescending ? 'lastMessageTimestamp' : 'reportName');
 
     if (sortByTimestampDescending) {
         orderedReports.reverse();
@@ -183,36 +166,30 @@ function getOrderedReports() {
 
         // If the report is pinned and we are using the option to display pinned reports on top then we need to
         // collect the pinned reports so we can sort them alphabetically once they are collected
-        if (prioritizePinnedReports && report.isPinned) {
+        if (report.isPinned) {
             pinnedReportOptions.push(report);
-        } else if (prioritizeIOUDebts && report.hasOutstandingIOU && !report.isIOUReportOwner) {
+        } else if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
             iouDebtReportOptions.push(report);
-        } else if (prioritizeReportsWithDraftComments && report.hasDraft) {
+        } else if (report.hasDraft) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);
         }
     }
 
-    // If we are prioritizing reports with draft comments, add them before the normal recent report options
+    // Prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
-    if (prioritizeReportsWithDraftComments) {
-        const sortedDraftReports = _.sortBy(draftReportOptions, 'text');
-        recentReportOptions = sortedDraftReports.concat(recentReportOptions);
-    }
+    const sortedDraftReports = _.sortBy(draftReportOptions, 'text');
+    recentReportOptions = sortedDraftReports.concat(recentReportOptions);
 
-    // If we are prioritizing IOUs the user owes, add them before the normal recent report options and reports
+    // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
     // with draft comments.
-    if (prioritizeIOUDebts) {
-        const sortedIOUReports = _.sortBy(iouDebtReportOptions, 'iouReportAmount').reverse();
-        recentReportOptions = sortedIOUReports.concat(recentReportOptions);
-    }
+    const sortedIOUReports = _.sortBy(iouDebtReportOptions, 'iouReportAmount').reverse();
+    recentReportOptions = sortedIOUReports.concat(recentReportOptions);
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    if (prioritizePinnedReports) {
-        const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
-        recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
-    }
+    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
+    recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
     return recentReportOptions;
 }
