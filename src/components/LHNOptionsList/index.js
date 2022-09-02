@@ -1,10 +1,10 @@
 import React, {forwardRef} from 'react';
-import BaseOptionsList from './BaseOptionsList';
+import BaseOptionsListLHN from './BaseOptionsListLHN';
 import withWindowDimensions from '../withWindowDimensions';
-import {propTypes, defaultProps} from './optionsListPropTypes';
+import {propTypes, defaultProps} from './optionsListPropTypesLHN';
 
-const OptionsList = forwardRef((props, ref) => (
-    <BaseOptionsList
+const OptionsListLHN = forwardRef((props, ref) => (
+    <BaseOptionsListLHN
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
@@ -12,8 +12,8 @@ const OptionsList = forwardRef((props, ref) => (
     />
 ));
 
-OptionsList.propTypes = propTypes;
-OptionsList.defaultProps = defaultProps;
-OptionsList.displayName = 'OptionsList';
+OptionsListLHN.propTypes = propTypes;
+OptionsListLHN.defaultProps = defaultProps;
+OptionsListLHN.displayName = 'OptionsListLHN';
 
-export default withWindowDimensions(OptionsList);
+export default withWindowDimensions(OptionsListLHN);

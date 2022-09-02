@@ -8,7 +8,7 @@ import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
-import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
+import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypesLHN';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -26,12 +26,11 @@ const defaultProps = {
     ...optionsListDefaultProps,
 };
 
-class BaseOptionsList extends Component {
+class BaseOptionsListLHN extends Component {
     constructor(props) {
         super(props);
 
         this.renderItem = this.renderItem.bind(this);
-        this.renderSectionHeader = this.renderSectionHeader.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
         this.buildFlatSectionArray = this.buildFlatSectionArray.bind(this);
         this.extractKey = this.extractKey.bind(this);
@@ -125,7 +124,7 @@ class BaseOptionsList extends Component {
             const section = this.props.sections[sectionIndex];
 
             // Add the section header
-            const sectionHeaderHeight = section.title && !this.props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+            const sectionHeaderHeight = 0;
             flatArray.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
@@ -168,7 +167,7 @@ class BaseOptionsList extends Component {
             <OptionRow
                 option={item}
                 mode={this.props.optionMode}
-                showTitleTooltip={this.props.showTitleTooltip}
+                showTitleTooltip
                 backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
@@ -181,35 +180,6 @@ class BaseOptionsList extends Component {
                 isDisabled={this.props.isDisabled || section.isDisabled}
             />
         );
-    }
-
-    /**
-     * Function which renders a section header component
-     *
-     * @param {Object} params
-     * @param {Object} params.section
-     * @param {String} params.section.title
-     * @param {Boolean} params.section.shouldShow
-     *
-     * @return {Component}
-     */
-    renderSectionHeader({section: {title, shouldShow}}) {
-        if (title && shouldShow && !this.props.hideSectionHeaders) {
-            return (
-
-                // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
-                // We do this so that we can reference the height in `getItemLayout` –
-                // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
-                // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-                <View style={styles.optionsListSectionHeader}>
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
-                        {title}
-                    </Text>
-                </View>
-            );
-        }
-
-        return <View />;
     }
 
     render() {
@@ -235,7 +205,6 @@ class BaseOptionsList extends Component {
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}
-                    renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
@@ -248,10 +217,10 @@ class BaseOptionsList extends Component {
     }
 }
 
-BaseOptionsList.propTypes = propTypes;
-BaseOptionsList.defaultProps = defaultProps;
+BaseOptionsListLHN.propTypes = propTypes;
+BaseOptionsListLHN.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseOptionsList {...props} innerRef={ref} />
+    <BaseOptionsListLHN {...props} innerRef={ref} />
 ));

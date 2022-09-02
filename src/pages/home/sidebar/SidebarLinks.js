@@ -195,8 +195,6 @@ class SidebarLinks extends React.Component {
                         this.props.onLinkClick();
                     }}
                     optionBackgroundColor={themeColors.sidebar}
-                    hideSectionHeaders
-                    showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
