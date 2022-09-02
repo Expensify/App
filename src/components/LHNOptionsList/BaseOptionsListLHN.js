@@ -46,10 +46,6 @@ class BaseOptionsListLHN extends Component {
             return true;
         }
 
-        if (nextProps.selectedOptions.length !== this.props.selectedOptions.length) {
-            return true;
-        }
-
         if (nextProps.headerMessage !== this.props.headerMessage) {
             return true;
         }
@@ -172,7 +168,6 @@ class BaseOptionsListLHN extends Component {
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
-                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
