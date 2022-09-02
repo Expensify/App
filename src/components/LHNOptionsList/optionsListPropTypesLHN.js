@@ -39,7 +39,7 @@ const propTypes = {
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
-    ]).isRequired,
+    ]),
 
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)).isRequired,
@@ -48,5 +48,9 @@ const propTypes = {
     onLayout: PropTypes.func.isRequired,
 };
 
+const defaultProps = {
+    innerRef: null,
+};
+
 // eslint-disable-next-line import/prefer-default-export
-export {propTypes};
+export {propTypes, defaultProps};
