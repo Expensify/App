@@ -12,9 +12,9 @@ const reports = {};
  * and Mac OS or iOS dock icon with an unread indicator.
  */
 const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
-    const totalCount = _.reduce(reports, (total, report) => total + (ReportUtils.isUnread(report) ? 1 : 0), 0);
+    const totalCount = _.filter(reports, ReportUtils.isUnread).length;
     updateUnread(totalCount);
-}, 300, {leading: false});
+}, 1000, {leading: false});
 
 let connectionID;
 
