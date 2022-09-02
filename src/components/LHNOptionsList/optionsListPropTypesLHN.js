@@ -5,9 +5,6 @@ import optionPropTypesLHN from './optionPropTypesLHN';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** option Background Color */
-    optionBackgroundColor: PropTypes.string.isRequired,
-
     /** Extra styles for the section list container */
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
 

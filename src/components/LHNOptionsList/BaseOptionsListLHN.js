@@ -1,11 +1,10 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
-import SectionList from '../SectionList';
 import OptionRowLHN from './OptionRowLHN';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultPropTypes} from './optionsListPropTypesLHN';
 
@@ -31,13 +30,10 @@ class BaseOptionsListLHN extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
-        this.buildFlatSectionArray = this.buildFlatSectionArray.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
-
-        this.flattenedData = this.buildFlatSectionArray();
     }
 
     shouldComponentUpdate(nextProps) {
@@ -54,14 +50,6 @@ class BaseOptionsListLHN extends Component {
         }
 
         return false;
-    }
-
-    componentDidUpdate(prevProps) {
-        if (_.isEqual(this.props.sections, prevProps.sections)) {
-            return;
-        }
-
-        this.flattenedData = this.buildFlatSectionArray();
     }
 
     onViewableItemsChanged() {
@@ -90,52 +78,12 @@ class BaseOptionsListLHN extends Component {
      * @returns {Object}
      */
     getItemLayout(data, flatDataArrayIndex) {
-        if (!_.has(this.flattenedData, flatDataArrayIndex)) {
-            this.flattenedData = this.buildFlatSectionArray();
-        }
-
-        const targetItem = this.flattenedData[flatDataArrayIndex];
+        const targetItem = this.props.sections[flatDataArrayIndex];
         return {
             length: targetItem.length,
             offset: targetItem.offset,
             index: flatDataArrayIndex,
         };
-    }
-
-    /**
-     * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
-     *
-     * @returns {Array<Object>}
-     */
-    buildFlatSectionArray() {
-        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-        let offset = 0;
-
-        // Start with just an empty list header
-        const flatArray = [{length: 0, offset}];
-
-        // Build the flat array
-        for (let sectionIndex = 0; sectionIndex < this.props.sections.length; sectionIndex++) {
-            const section = this.props.sections[sectionIndex];
-
-            // Add the section header
-            const sectionHeaderHeight = 0;
-            flatArray.push({length: sectionHeaderHeight, offset});
-            offset += sectionHeaderHeight;
-
-            // Add section items
-            for (let i = 0; i < section.data.length; i++) {
-                flatArray.push({length: optionHeight, offset});
-                offset += optionHeight;
-            }
-
-            // Add the section footer
-            flatArray.push({length: 0, offset});
-        }
-
-        // Then add the list footer
-        flatArray.push({length: 0, offset});
-        return flatArray;
     }
 
     /**
@@ -153,17 +101,16 @@ class BaseOptionsListLHN extends Component {
      * @param {Object} params
      * @param {Object} params.item
      * @param {Number} params.index
-     * @param {Object} params.section
      *
      * @return {Component}
      */
-    renderItem({item, index, section}) {
+    renderItem({item, index}) {
         return (
             <OptionRowLHN
-                reportID={item.reportID}
+                reportID={item.reportID.toString()}
                 viewMode={this.props.optionMode}
                 optionIsFocused={!this.props.disableFocusOptions
-                        && this.props.focusedIndex === (index + section.indexOffset)}
+                        && this.props.focusedIndex === index}
                 onSelectRow={this.props.onSelectRow}
             />
         );
@@ -172,7 +119,7 @@ class BaseOptionsListLHN extends Component {
     render() {
         return (
             <View style={[styles.flex1]}>
-                <SectionList
+                <FlatList
                     ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
@@ -180,7 +127,7 @@ class BaseOptionsListLHN extends Component {
                     onScrollBeginDrag={this.props.onScrollBeginDrag}
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
-                    sections={this.props.sections}
+                    data={this.props.sections}
                     keyExtractor={this.extractKey}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}

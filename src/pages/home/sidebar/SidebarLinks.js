@@ -133,12 +133,7 @@ class SidebarLinks extends React.Component {
             this.props.betas,
             this.props.reportActions,
         );
-        const sections = [{
-            title: '',
-            indexOffset: 0,
-            data: optionListItems,
-            shouldShow: true,
-        }];
+        const sections = optionListItems;
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
