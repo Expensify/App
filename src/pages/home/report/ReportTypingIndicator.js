@@ -9,7 +9,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
 import TextWithEllipsis from '../../../components/TextWithEllipsis';
 
 const propTypes = {
