@@ -26,6 +26,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
+    // eslint-disable-next-line react/forbid-prop-types
     wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Children view component for this action item */

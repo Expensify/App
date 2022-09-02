@@ -21,6 +21,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -151,13 +152,7 @@ class LoginForm extends React.Component {
 
     render() {
         const formErrorTranslated = this.state.formError && this.props.translate(this.state.formError);
-        const error = formErrorTranslated || _.chain(this.props.account.errors || [])
-            .keys()
-            .sortBy()
-            .reverse()
-            .map(key => this.props.account.errors[key])
-            .first()
-            .value();
+        const error = formErrorTranslated || ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
                 <View style={[styles.mt3]}>

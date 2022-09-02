@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
@@ -23,6 +24,7 @@ import CONST from '../../CONST';
 import withFullPolicy from './withFullPolicy';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -45,36 +47,15 @@ const defaultProps = {
 class WorkspaceBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
-        this.onScreenFocus = this.onScreenFocus.bind(this);
         this.getShouldShowPage = this.getShouldShowPage.bind(this);
         this.navigateToBankAccountRoute = this.navigateToBankAccountRoute.bind(this);
     }
 
     componentDidMount() {
-        this.unsubscribe = this.props.navigation.addListener('focus', this.onScreenFocus);
-
-        if (!this.getShouldShowPage()) {
-            this.navigateToBankAccountRoute();
-        }
-    }
-
-    componentWillUnmount() {
-        if (!this.unsubscribe) {
-            return;
-        }
-
-        this.unsubscribe();
-    }
-
-    /**
-     * When we are returning to this screen we want to check if we should go back or show the alternate view with "Continue with setup" button.
-     */
-    onScreenFocus() {
         if (this.getShouldShowPage()) {
             return;
         }
-
-        this.props.navigation.goBack();
+        this.navigateToBankAccountRoute();
     }
 
     /**
@@ -95,46 +76,46 @@ class WorkspaceBankAccountPage extends React.Component {
     }
 
     render() {
-        const policyName = lodashGet(this.props.policy, 'name');
-
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.bankAccount')}
-                    subtitle={policyName}
-                    onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
-                />
-                <ScrollView style={styles.flex1}>
-                    <Section
-                        title={this.props.translate('workspace.bankAccount.almostDone')}
-                        icon={Illustrations.BankArrowPink}
-                    >
-                        <Text>
-                            {this.props.translate('workspace.bankAccount.youreAlmostDone')}
-                        </Text>
-                    </Section>
-                    <Button
-                        text={this.props.translate('workspace.bankAccount.continueWithSetup')}
-                        onPress={this.navigateToBankAccountRoute}
-                        icon={Expensicons.Bank}
-                        style={[styles.mh3, styles.mt2]}
-                        iconStyles={[styles.mr5]}
-                        shouldShowRightIcon
-                        extraLarge
-                        success
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('workspace.common.bankAccount')}
+                        subtitle={lodashGet(this.props.policy, 'name')}
+                        onCloseButtonPress={Navigation.dismissModal}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                        shouldShowBackButton
                     />
-                    <MenuItem
-                        title={this.props.translate('workspace.bankAccount.startOver')}
-                        icon={Expensicons.RotateLeft}
-                        onPress={BankAccounts.requestResetFreePlanBankAccount}
-                        shouldShowRightIcon
-                    />
-                </ScrollView>
-                <WorkspaceResetBankAccountModal />
+                    <ScrollView style={styles.flex1}>
+                        <Section
+                            title={this.props.translate('workspace.bankAccount.almostDone')}
+                            icon={Illustrations.BankArrowPink}
+                        >
+                            <Text>
+                                {this.props.translate('workspace.bankAccount.youreAlmostDone')}
+                            </Text>
+                        </Section>
+                        <Button
+                            text={this.props.translate('workspace.bankAccount.continueWithSetup')}
+                            onPress={this.navigateToBankAccountRoute}
+                            icon={Expensicons.Bank}
+                            style={[styles.mt2, styles.buttonCTA]}
+                            iconStyles={[styles.buttonCTAIcon]}
+                            shouldShowRightIcon
+                            large
+                            success
+                        />
+                        <MenuItem
+                            title={this.props.translate('workspace.bankAccount.startOver')}
+                            icon={Expensicons.RotateLeft}
+                            onPress={BankAccounts.requestResetFreePlanBankAccount}
+                            shouldShowRightIcon
+                        />
+                    </ScrollView>
+                    <WorkspaceResetBankAccountModal />
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
