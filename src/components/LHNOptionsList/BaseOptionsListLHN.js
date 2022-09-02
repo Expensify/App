@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import SectionList from '../SectionList';
 import OptionRowLHN from './OptionRowLHN';
-import {propTypes as optionsListPropTypes} from './optionsListPropTypesLHN';
+import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultPropTypes} from './optionsListPropTypesLHN';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -22,6 +22,7 @@ const propTypes = {
 const defaultProps = {
     keyboardDismissMode: 'none',
     onScrollBeginDrag: () => {},
+    ...optionsListDefaultPropTypes,
 };
 
 class BaseOptionsListLHN extends Component {
