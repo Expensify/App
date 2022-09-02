@@ -918,4 +918,6 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getSearchText,
+    getBrickRoadIndicatorStatusForReport,
 };
