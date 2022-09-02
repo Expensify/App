@@ -208,10 +208,10 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
  * @returns {String}
  */
 function getBrickRoadIndicatorStatusForReport(report, reportActions) {
-    const reportErrors = lodashGet(report, 'errors', {});
-    const reportErrorFields = lodashGet(report, 'errorFields', {});
-    const reportID = lodashGet(report, 'reportID');
-    const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+    const reportErrors = report.errors || {};
+    const reportErrorFields = report.errorFields || {};
+    const reportID = report.reportID;
+    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
 
     const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
     const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
