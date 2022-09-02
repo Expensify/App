@@ -202,7 +202,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
+    newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -264,6 +264,7 @@ export default {
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
+        deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
     },
@@ -485,6 +486,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
+        cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
     },
     personalDetails: {
         error: {
@@ -519,7 +521,7 @@ export default {
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
-        validatingAccount: 'Verifying account',
+        validateAccount: 'Verify account',
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
@@ -692,7 +694,8 @@ export default {
     },
     activateStep: {
         headerTitle: 'Enable payments',
-        activated: 'Your Expensify Wallet is ready to use.',
+        activatedTitle: 'Wallet activated!',
+        activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
         checkBackLater: 'We\'re still reviewing your information. Please check back later.',
     },
     companyStep: {
@@ -829,6 +832,7 @@ export default {
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
+            updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -909,10 +913,9 @@ export default {
         title: 'Request a call',
         subtitle: 'Need help?',
         description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
-        extension: 'Extension (Optional)',
+        phoneNumberExtension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
         blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
@@ -925,7 +928,11 @@ export default {
             guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
         },
         error: {
-            phoneExtension: 'Please enter a valid phone extension number',
+            phoneNumberExtension: 'Please enter a valid phone extension number',
+            firstName: 'Please provide your first name so our guides know how to address you!',
+            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
+            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
     },
     requestCallConfirmationScreen: {

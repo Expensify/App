@@ -18,7 +18,6 @@ import OptionsList from '../../../components/OptionsList';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
-import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -26,8 +25,6 @@ import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -51,10 +48,10 @@ const propTypes = {
 
         /** Number of unread actions on the report */
         unreadActionCount: PropTypes.number,
-    })),
 
-    /** Reports having a draft */
-    reportsWithDraft: PropTypes.objectOf(PropTypes.bool),
+        /** Whether the report has a draft comment */
+        hasDraft: PropTypes.bool,
+    })),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -68,9 +65,6 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
 
@@ -80,22 +74,17 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    // Whether we are syncing app data
-    isSyncingData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reports: {},
-    reportsWithDraft: {},
     personalDetails: {},
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    isSyncingData: false,
 };
 
 /**
@@ -133,7 +122,6 @@ class SidebarLinks extends React.Component {
             activeReportID,
             props.priorityMode,
             props.betas,
-            props.reportsWithDraft,
             props.reportActions,
         );
         return sidebarOptions.recentReports;
@@ -190,7 +178,7 @@ class SidebarLinks extends React.Component {
         this.state = {
             activeReport: {
                 reportID: props.currentlyViewedReportID,
-                hasDraftHistory: lodashGet(props.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${props.currentlyViewedReportID}`, false),
+                hasDraftHistory: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.hasDraft`, false),
                 lastMessageTimestamp: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.lastMessageTimestamp`, 0),
             },
             orderedReports: [],
@@ -214,7 +202,7 @@ class SidebarLinks extends React.Component {
         } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
             hasDraftHistory = true;
         } else {
-            hasDraftHistory = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
+            hasDraftHistory = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.hasDraft`, false);
         }
 
         const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
@@ -234,7 +222,7 @@ class SidebarLinks extends React.Component {
 
             // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
             // does not have all the conversations in prevState.orderedReports
-                .filter(orderedReport => orderedReport !== undefined)
+                .compact()
                 .value();
 
         return {
@@ -303,8 +291,6 @@ class SidebarLinks extends React.Component {
                     >
                         <AvatarWithIndicator
                             source={this.props.currentUserPersonalDetails.avatar}
-                            isActive={this.props.network && !this.props.network.isOffline}
-                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
@@ -329,7 +315,6 @@ class SidebarLinks extends React.Component {
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
                 />
-                <KeyboardSpacer />
             </View>
         );
     }
@@ -340,7 +325,6 @@ SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
@@ -355,15 +339,8 @@ export default compose(
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
         },
-        isSyncingData: {
-            key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
-            initWithStoredValues: false,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        reportsWithDraft: {
-            key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,

@@ -18,24 +18,37 @@ import * as API from '../API';
  * @param {String} lastName
  * @param {String} dob
  */
-function fetchOnfidoToken(firstName, lastName, dob) {
-    // Use Onyx.set() since we are resetting the Onfido flow completely.
-    Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
-    DeprecatedAPI.Wallet_GetOnfidoSDKToken(firstName, lastName, dob)
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
-                Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
-                    applicantID: apiResult.applicantID,
-                    sdkToken: apiResult.sdkToken,
-                    loading: false,
-                    hasAcceptedPrivacyPolicy: true,
-                });
-                return;
-            }
-
-            Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED});
-        });
+function openOnfidoFlow(firstName, lastName, dob) {
+    API.read('OpenOnfidoFlow', {firstName, lastName, dob}, {
+        optimisticData: [
+            {
+                // Use Onyx.set() since we are resetting the Onfido flow completely.
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
 }
 
 /**
@@ -189,7 +202,8 @@ function updatePersonalDetails(personalDetails) {
                 key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                 value: {
                     isLoading: true,
-                    errors: [],
+                    errors: null,
+                    errorFields: null,
                 },
             },
         ],
@@ -378,7 +392,104 @@ function activateWallet(currentStep, parameters) {
 }
 
 /**
- * Fetches information about a user's Expensify Wallet
+ * Creates an identity check by calling Onfido's API with data returned from the SDK
+ *
+ * The API will always return the updated userWallet in the response as a convenience so we can avoid an additional
+ * API request to fetch the userWallet after we call VerifyIdentity
+ *
+ * @param {Object} parameters
+ * @param {String} [parameters.onfidoData] - JSON string
+ */
+function verifyIdentity(parameters) {
+    const onfidoData = parameters.onfidoData;
+
+    API.write('VerifyIdentity', {
+        onfidoData,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                    fixableErrors: null,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    shouldShowFailedKYC: false,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                    hasAcceptedPrivacyPolicy: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Complete the "Accept Terms" step of the wallet activation flow.
+ *
+ * @param {Object} parameters
+ * @param {Boolean} parameters.hasAcceptedTerms
+ */
+function acceptWalletTerms(parameters) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                shouldShowWalletActivationSuccess: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_TERMS,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                shouldShowWalletActivationSuccess: null,
+                shouldShowFailedKYC: true,
+            },
+        },
+    ];
+
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Fetches data when the user opens the InitialSettingsPage
  *
  * @typedef {Object} UserWallet
  * @property {Number} availableBalance
@@ -386,16 +497,21 @@ function activateWallet(currentStep, parameters) {
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
  * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
  */
-function fetchUserWallet() {
-    DeprecatedAPI.Get({returnValueList: 'userWallet'})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return;
-            }
+function openInitialSettingsPage() {
+    API.read('OpenInitialSettingsPage');
+}
 
-            // When refreshing the wallet, we should not show the failed KYC page anymore, as we should allow them to retry.
-            Onyx.merge(ONYXKEYS.USER_WALLET, {...response.userWallet, shouldShowFailedKYC: false});
-        });
+/**
+ * Fetches data when the user opens the EnablePaymentsPage
+ *
+ * @typedef {Object} UserWallet
+ * @property {Number} availableBalance
+ * @property {Number} currentBalance
+ * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
+ * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ */
+function openEnablePaymentsPage() {
+    API.read('OpenEnablePaymentsPage');
 }
 
 /**
@@ -413,9 +529,10 @@ function updateCurrentStep(currentStep) {
 }
 
 export {
-    fetchOnfidoToken,
+    openOnfidoFlow,
     activateWallet,
-    fetchUserWallet,
+    openInitialSettingsPage,
+    openEnablePaymentsPage,
     setAdditionalDetailsErrors,
     updateAdditionalDetailsDraft,
     setAdditionalDetailsErrorMessage,
@@ -423,4 +540,6 @@ export {
     buildIdologyError,
     updateCurrentStep,
     updatePersonalDetails,
+    verifyIdentity,
+    acceptWalletTerms,
 };
