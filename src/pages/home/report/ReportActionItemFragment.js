@@ -69,6 +69,7 @@ const defaultProps = {
     isSingleLine: false,
     tooltipText: '',
     source: '',
+    style: [],
 };
 
 const ReportActionItemFragment = (props) => {
@@ -135,7 +136,7 @@ const ReportActionItemFragment = (props) => {
                 <Text
                     family="EMOJI_TEXT_FONT"
                     selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr]}
+                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     {props.fragment.isEdited && (
