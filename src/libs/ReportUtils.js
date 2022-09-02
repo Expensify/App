@@ -603,7 +603,7 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
 
         // For now, the clientID and sequenceNumber are the same.
-        // We are changing that as we roll out the optimistiReportAction IDs and related refactors.
+        // We are changing that as we roll out the optimisticReportAction IDs and related refactors.
         clientID: sequenceNumber,
         isAttachment: false,
         originalMessage,
@@ -618,6 +618,16 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
         timestamp: moment().unix(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
+}
+
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnread(report) {
+    const lastReadSequenceNumber = lodashGet(report, 'lastReadSequenceNumber', 0);
+    const maxSequenceNumber = lodashGet(report, 'maxSequenceNumber', 0);
+    return lastReadSequenceNumber < maxSequenceNumber;
 }
 
 export {
@@ -651,4 +661,5 @@ export {
     generateReportID,
     hasReportNameError,
     buildOptimisticIOUReportAction,
+    isUnread,
 };
