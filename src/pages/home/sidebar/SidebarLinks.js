@@ -26,6 +26,7 @@ import withCurrentUserPersonalDetails from '../../../components/withCurrentUserP
 import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import OptionsListLHN from '../../../components/LHNOptionsList';
+import OptionsListUtilsLHN from '../../../libs/OptionsListUtilsLHN';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -96,22 +97,8 @@ function deepCompareRenderItems(activeReportID, priorityMode, unorderedReports, 
 }
 
 class SidebarLinks extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.getRecentReportsOptionListItems = _.memoize(this.getRecentReportsOptionListItems.bind(this), deepCompareRenderItems);
-    }
-
-    getRecentReportsOptionListItems(activeReportID, priorityMode, unorderedReports, personalDetails, betas, reportActions) {
-        const sidebarOptions = OptionsListUtils.getSidebarOptions(
-            unorderedReports,
-            personalDetails,
-            activeReportID,
-            priorityMode,
-            betas,
-            reportActions,
-        );
-        return sidebarOptions.recentReports;
+    getRecentReportsOptionListItems() {
+        return OptionsListUtilsLHN.getOrderedReports();
     }
 
     showSearchPage() {
@@ -125,15 +112,7 @@ class SidebarLinks extends React.Component {
         }
 
         Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
-        const optionListItems = this.getRecentReportsOptionListItems(
-            this.props.currentlyViewedReportID,
-            this.props.priorityMode,
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            this.props.reportActions,
-        );
-        const sections = optionListItems;
+        const optionListItems = this.getRecentReportsOptionListItems();
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
@@ -181,7 +160,7 @@ class SidebarLinks extends React.Component {
                         styles.sidebarListContainer,
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
-                    data={sections}
+                    data={optionListItems}
                     focusedIndex={_.findIndex(this.orderedReports, (
                         option => option.reportID.toString() === this.props.currentlyViewedReportID.toString()
                     ))}
