@@ -29,7 +29,6 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as NumberUtils from '../NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
-
 let currentUserEmail;
 let currentUserAccountID;
 Onyx.connect({
@@ -633,10 +632,10 @@ function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
         chatReportID,
         currency,
         hasOutstandingIOU: true,
-        managerEmail: "__FAKE__",
-        ownerEmail: "__FAKE__",
+        managerEmail: '__FAKE__',
+        ownerEmail: '__FAKE__',
         reportID: ReportUtils.generateReportID(),
-        state: "SUBMITTED",
+        state: 'SUBMITTED',
         stateNum: 1,
         total,
     };
