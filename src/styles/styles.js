@@ -2623,6 +2623,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.shadow,
+        cursor: 'move',
     },
 
     sliderKnob: {
@@ -2633,6 +2634,7 @@ const styles = {
         borderRadius: variables.sliderKnobSize / 2,
         top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
+        cursor: 'pointer',
     },
 
     sliderBar: {
