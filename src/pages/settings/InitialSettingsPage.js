@@ -186,7 +186,6 @@ class InitialSettingsPage extends React.Component {
         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
 
-        // If the menu item is a policy, wrap it with OfflineWithFeedback
         if (item.isPolicy) {
             return (
                 <OfflineWithFeedback pendingAction={item.pendingAction}>
