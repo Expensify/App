@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import SectionList from '../SectionList';
-import styles from '../../styles/styles';
 import optionPropTypesLHN from './optionPropTypesLHN';
 import CONST from '../../CONST';
 
@@ -29,9 +28,6 @@ const propTypes = {
 
     /** Index for option to focus on */
     focusedIndex: PropTypes.number,
-
-    /** Array of already selected options */
-    selectedOptions: PropTypes.arrayOf(optionPropTypesLHN),
 
     /** Whether we can select multiple options or not */
     canSelectMultipleOptions: PropTypes.bool,
@@ -72,7 +68,6 @@ const defaultProps = {
     contentContainerStyles: [],
     sections: [],
     focusedIndex: 0,
-    selectedOptions: [],
     canSelectMultipleOptions: false,
     disableFocusOptions: false,
     hideAdditionalOptionStates: false,
