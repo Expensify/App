@@ -212,6 +212,9 @@ class ReportActionsView extends React.Component {
                 } else if (this.state.newMarkerSequenceNumber === 0) {
                     this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
                 }
+            } else if (this.state.newMarkerSequenceNumber === 0) {
+                // The report is not in view so we will update the newMarkerSequenceNumber if necessary
+                this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
             }
         }
 
