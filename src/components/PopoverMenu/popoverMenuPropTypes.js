@@ -49,9 +49,6 @@ const propTypes = {
 
     /** Whether disable the animations */
     disableAnimation: PropTypes.bool,
-
-    /** Whether to allow arrow key actions on the list */
-    shouldEnableArrowKeysActions: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -59,7 +56,6 @@ const defaultProps = {
     animationOut: 'fadeOut',
     headerText: undefined,
     disableAnimation: true,
-    shouldEnableArrowKeysActions: false,
 };
 
 export {propTypes, defaultProps};
