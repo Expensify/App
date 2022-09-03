@@ -99,7 +99,7 @@ const defaultProps = {
  * @param {string} pendingAction
  */
 function dismissWorkspaceError(policyID, pendingAction) {
-    if (pendingAction === 'delete') {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
     }

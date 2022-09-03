@@ -171,7 +171,7 @@ function createAndNavigate(name = '') {
 function deleteWorkspace(policyID) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
