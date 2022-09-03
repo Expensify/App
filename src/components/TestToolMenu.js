@@ -43,7 +43,7 @@ const TestToolMenu = props => (
         <TestToolRow title="Use Staging Server">
             <Switch
                 isOn={lodashGet(props, 'user.shouldUseStagingServer', true)}
-                onToggle={() => User.setShouldUseStagingServer(!props.user.shouldUseStagingServer)}
+                onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
             />
         </TestToolRow>
 
