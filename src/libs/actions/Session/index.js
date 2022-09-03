@@ -385,7 +385,6 @@ function cleanupSession() {
     PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
-    Welcome.resetReadyCheck();
 }
 
 function clearAccountMessages() {

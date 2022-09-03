@@ -3,6 +3,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../../styles/styles';
 import SidebarLinks from '../SidebarLinks';
 import PopoverMenu from '../../../../components/PopoverMenu';
@@ -18,9 +19,9 @@ import * as Policy from '../../../../libs/actions/Policy';
 import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
-
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
@@ -43,7 +44,7 @@ class BaseSidebarScreen extends Component {
         this.startTimer = this.startTimer.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
         this.showCreateMenu = this.showCreateMenu.bind(this);
-
+        this.didShowWelcomeAction = false;
         this.state = {
             isCreateMenuActive: false,
         };
@@ -52,9 +53,23 @@ class BaseSidebarScreen extends Component {
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+    }
+
+    componentDidUpdate() {
+        if (this.didShowWelcomeAction || !_.isBoolean(this.props.isFirstTimeExpensifyUser) || this.props.isLoadingPolicyData || this.props.isLoadingReportData) {
+            return;
+        }
 
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        Welcome.show({routes, showCreateMenu: this.showCreateMenu});
+        Welcome.show(
+            routes,
+            this.showCreateMenu,
+            this.props.isFirstTimeExpensifyUser,
+            this.props.allReports,
+            lodashGet(this.props, 'session.email', ''),
+            this.props.allPolicies,
+        );
+        this.didShowWelcomeAction = true;
     }
 
     /**
@@ -185,4 +200,27 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default BaseSidebarScreen;
+export default withOnyx({
+    isFirstTimeExpensifyUser: {
+        key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+        initWithStoredValues: false,
+    },
+    isLoadingPolicyData: {
+        key: ONYXKEYS.IS_LOADING_POLICY_DATA,
+        initWithStoredValues: false,
+    },
+    isLoadingReportData: {
+        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        initWithStoredValues: false,
+    },
+    allReports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+        initWithStoredValues: false,
+    },
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(BaseSidebarScreen);
