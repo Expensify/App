@@ -47,14 +47,8 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
-
-        /** The current position of the new marker */
-        newMarkerSequenceNumber: PropTypes.number,
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
@@ -95,7 +89,6 @@ const defaultProps = {
     },
     reportActions: {},
     report: {
-        unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,

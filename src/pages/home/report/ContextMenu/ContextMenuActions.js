@@ -125,6 +125,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
+        successIcon: Expensicons.Checkmark,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, betas, menuTarget) => {
             const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
 

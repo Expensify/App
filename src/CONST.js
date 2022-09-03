@@ -640,6 +640,9 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        REPORT_ACTION_TYPE: {
+            PAY: 'pay',
+        },
         AMOUNT_MAX_LENGTH: 10,
     },
 
@@ -658,11 +661,16 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+            CORPORATE: 'corporate',
         },
         ROLE: {
             ADMIN: 'admin',
         },
         ROOM_PREFIX: '#',
+    },
+
+    CUSTOM_UNITS: {
+        NAME_DISTANCE: 'Distance',
     },
 
     TERMS: {

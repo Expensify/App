@@ -381,19 +381,9 @@ const styles = {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 14,
         paddingBottom: 8,
-        paddingLeft: 12,
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    buttonExtraLarge: {
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeExtraLarge,
-        paddingTop: 12,
-        paddingRight: 18,
-        paddingBottom: 12,
-        paddingLeft: 18,
+        paddingLeft: 14,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -413,13 +403,6 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonExtraLargeText: {
-        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -471,6 +454,15 @@ const styles = {
     noLeftBorderRadius: {
         borderTopLeftRadius: 0,
         borderBottomLeftRadius: 0,
+    },
+
+    buttonCTA: {
+        paddingVertical: 6,
+        ...spacing.mh4,
+    },
+
+    buttonCTAIcon: {
+        marginRight: 22,
     },
 
     buttonConfirm: {
@@ -2360,9 +2352,13 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
+        ...spacing.pt2,
+    },
+
+    peopleRowBorderBottom: {
         borderColor: themeColors.border,
-        ...spacing.pv2,
+        borderBottomWidth: 1,
+        ...spacing.pb2,
     },
 
     peopleRowCell: {
@@ -2408,6 +2404,13 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+    },
+
+    dotIndicatorMessage: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 
     sidebarPopover: {
@@ -2620,6 +2623,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.shadow,
+        cursor: 'move',
     },
 
     sliderKnob: {
@@ -2630,6 +2634,7 @@ const styles = {
         borderRadius: variables.sliderKnobSize / 2,
         top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
+        cursor: 'pointer',
     },
 
     sliderBar: {
