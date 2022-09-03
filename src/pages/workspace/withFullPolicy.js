@@ -57,7 +57,24 @@ const fullPolicyPropTypes = {
         outputCurrency: PropTypes.string,
 
         /** The URL for the policy avatar */
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
+
+        /** A list of emails for the employees on the policy */
+        employeeList: PropTypes.arrayOf(PropTypes.string),
+
+        /** Errors on the policy keyed by microtime */
+        errors: PropTypes.objectOf(PropTypes.string),
+
+        /**
+         * Error objects keyed by field name containing errors keyed by microtime
+         * E.x
+         * {
+         *     name: {
+         *        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem updating your workspace name.',
+         *     }
+         * }
+        */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** The policy member list for the current route */
