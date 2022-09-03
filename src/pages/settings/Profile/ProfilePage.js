@@ -72,13 +72,11 @@ class ProfilePage extends Component {
             selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            isAvatarChanged: false,
         };
 
         this.getLogins = this.getLogins.bind(this);
         this.validate = this.validate.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
-        this.updateAvatar = this.updateAvatar.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -128,16 +126,6 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Updates the user's avatar image.
-     * @param {Object} avatar
-     */
-    updateAvatar(avatar) {
-        this.avatar = _.isUndefined(avatar) ? {uri: ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login)} : avatar;
-
-        this.setState({isAvatarChanged: true});
-    }
-
-    /**
      * Submit form to update personal details
      * @param {Object} values
      * @param {String} values.firstName
@@ -148,19 +136,6 @@ class ProfilePage extends Component {
      * @param {String} values.selfSelectedPronoun
      */
     updatePersonalDetails(values) {
-        // Check if the user has modified their avatar
-        if ((this.props.currentUserPersonalDetails.avatar !== this.avatar.uri) && this.state.isAvatarChanged) {
-            // If the user removed their profile photo, replace it accordingly with the default avatar
-            if (this.avatar.uri.includes('/images/avatars/avatar')) {
-                PersonalDetails.deleteAvatar(this.avatar.uri);
-            } else {
-                PersonalDetails.setAvatar(this.avatar);
-            }
-
-            // Reset the changed state
-            this.setState({isAvatarChanged: false});
-        }
-
         PersonalDetails.updateProfile(
             values.firstName.trim(),
             values.lastName.trim(),
@@ -218,7 +193,7 @@ class ProfilePage extends Component {
             label: value,
             value: `${CONST.PRONOUNS.PREFIX}${key}`,
         }));
-
+        const currentUserDetails = this.props.currentUserPersonalDetails || {};
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
 
         return (
@@ -236,15 +211,23 @@ class ProfilePage extends Component {
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}
                 >
-                    <AvatarWithImagePicker
-                        isUploading={this.props.currentUserPersonalDetails.avatarUploading}
-                        isUsingDefaultAvatar={this.avatar.uri.includes('/images/avatars/avatar')}
-                        avatarURL={this.avatar.uri}
-                        onImageSelected={this.updateAvatar}
-                        onImageRemoved={this.updateAvatar}
-                        anchorPosition={styles.createMenuPositionProfile}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                        errors={lodashGet(this.props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                        errorRowStyles={[styles.mt6]}
+                        onClose={PersonalDetails.clearAvatarErrors}
+                    >
+                        <AvatarWithImagePicker
+                            isUsingDefaultAvatar={lodashGet(currentUserDetails, 'avatar', '').includes('/images/avatars/avatar')}
+                            avatarURL={currentUserDetails.avatar}
+                            onImageSelected={PersonalDetails.updateAvatar}
+                            onImageRemoved={PersonalDetails.deleteAvatar}
+                            anchorPosition={styles.createMenuPositionProfile}
+                            size={CONST.AVATAR_SIZE.LARGE}
+                        />
+
+                    </OfflineWithFeedback>
+
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>
@@ -255,7 +238,7 @@ class ProfilePage extends Component {
                                 inputID="firstName"
                                 name="fname"
                                 label={this.props.translate('common.firstName')}
-                                defaultValue={this.props.currentUserPersonalDetails.firstName}
+                                defaultValue={currentUserDetails.firstName}
                                 placeholder={this.props.translate('profilePage.john')}
                             />
                         </View>
@@ -264,7 +247,7 @@ class ProfilePage extends Component {
                                 inputID="lastName"
                                 name="lname"
                                 label={this.props.translate('common.lastName')}
-                                defaultValue={this.props.currentUserPersonalDetails.lastName}
+                                defaultValue={currentUserDetails.lastName}
                                 placeholder={this.props.translate('profilePage.doe')}
                             />
                         </View>
