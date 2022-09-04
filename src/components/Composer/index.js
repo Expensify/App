@@ -3,6 +3,7 @@ import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
@@ -130,6 +131,7 @@ class Composer extends React.Component {
             },
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
+        this.paste = this.paste.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -233,15 +235,12 @@ class Composer extends React.Component {
     }
 
     /**
-     * Manually place the pasted HTML into Composer
-     *
-     * @param {String} html - pasted HTML
+     * Set pasted text to clipboard
+     * @param {String} text
      */
-    handlePastedHTML(html) {
-        const parser = new ExpensiMark();
-        const markdownText = parser.htmlToMarkdown(html);
+    paste(text) {
         try {
-            document.execCommand('insertText', false, markdownText);
+            document.execCommand('insertText', false, text);
             this.updateNumberOfLines();
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
@@ -252,19 +251,33 @@ class Composer extends React.Component {
     }
 
     /**
+     * Manually place the pasted HTML into Composer
+     *
+     * @param {String} html - pasted HTML
+     */
+    handlePastedHTML(html) {
+        const parser = new ExpensiMark();
+
+        this.paste(parser.htmlToMarkdown(html));
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
+        if (event) {
+            event.preventDefault();
+        }
+
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
 
         // If paste contains files, then trigger file management
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
-            event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
             return;
         }
@@ -273,7 +286,6 @@ class Composer extends React.Component {
         if (types.includes(TEXT_HTML)) {
             const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
-            event.preventDefault();
             const domparser = new DOMParser();
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
@@ -309,7 +321,11 @@ class Composer extends React.Component {
             }
 
             this.handlePastedHTML(pastedHTML);
+            return;
         }
+
+        const plainText = event.clipboardData.getData('text/plain');
+        this.paste(Str.htmlDecode(plainText));
     }
 
     /**
