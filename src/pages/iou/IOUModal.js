@@ -347,7 +347,7 @@ class IOUModal extends Component {
             return;
         }
 
-        IOU.createIOUTransaction({
+        IOU.requestMoney({
             comment: this.state.comment,
 
             // Send in cents to API.
