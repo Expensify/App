@@ -81,15 +81,6 @@ const OfflineWithFeedback = (props) => {
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
-    const sortedErrors = _.chain(props.errors)
-        .keys()
-        .sortBy()
-        .map(key => props.errors[key])
-
-        // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
-        // and can potentially pass the same error.
-        .uniq()
-        .value();
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
