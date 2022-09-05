@@ -181,6 +181,7 @@ class LoginForm extends React.Component {
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
+                                isDisabled={this.props.network.isOffline}
                                 buttonText={this.props.translate('common.continue')}
                                 isLoading={this.props.account.isLoading}
                                 onSubmit={this.validateAndSubmitForm}

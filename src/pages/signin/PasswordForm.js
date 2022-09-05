@@ -22,6 +22,7 @@ import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../com
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -195,7 +196,7 @@ class PasswordForm extends React.Component {
                 )}
                 <View>
                     <Button
-                        disabled={this.props.network.isOffline}
+                        isDisabled={this.props.network.isOffline}
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
@@ -204,6 +205,7 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
+                <OfflineIndicator containerStyles={[styles.mv5]} />
             </>
         );
     }
