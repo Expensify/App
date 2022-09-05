@@ -19,7 +19,6 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as Authentication from '../../Authentication';
-import * as ErrorUtils from '../../ErrorUtils';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
@@ -238,6 +237,7 @@ function signIn(password, twoFactorAuthCode) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
             },
         },
     ];
@@ -262,7 +262,7 @@ function signIn(password, twoFactorAuthCode) {
         },
     ];
 
-    API.write('SignInUser', {
+    API.write('SigninUser', {
         email: credentials.login,
         password,
         twoFactorAuthCode,
