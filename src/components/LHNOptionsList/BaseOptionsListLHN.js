@@ -4,7 +4,9 @@ import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import OptionRowLHN from './OptionRowLHN';
+import variables from '../../styles/variables';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultPropTypes} from './optionsListPropTypesLHN';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -79,7 +81,7 @@ class BaseOptionsListLHN extends Component {
         return {
             length: optionHeight,
             offset: index * optionHeight,
-            index: index,
+            index,
         };
     }
 
