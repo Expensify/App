@@ -22,9 +22,6 @@ import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Section from '../../components/Section';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
@@ -32,14 +29,9 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
-import FormScrollView from '../../components/FormScrollView';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import Form from '../../components/Form';
 
 const propTypes = {
-    /** Bank account currently in setup */
-    // eslint-disable-next-line react/no-unused-prop-types
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
@@ -65,79 +57,46 @@ class BankAccountStep extends React.Component {
     constructor(props) {
         super(props);
 
-        this.toggleTerms = this.toggleTerms.bind(this);
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
-        this.state = {
-            selectedPlaidBankAccount: undefined,
-            hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
-            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
-            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
-        };
-
-        // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
-        this.errorTranslationKeys = {
-            routingNumber: 'bankAccount.error.routingNumber',
-            accountNumber: 'bankAccount.error.accountNumber',
-            hasAcceptedTerms: 'common.error.acceptedTerms',
-        };
-
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
-    }
-
-    toggleTerms() {
-        this.setState((prevState) => {
-            const hasAcceptedTerms = !prevState.hasAcceptedTerms;
-            BankAccounts.updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
-            return {hasAcceptedTerms};
-        });
-        this.clearError('hasAcceptedTerms');
+        this.validate = this.validate.bind(this);
+        this.validatePlaidAccount = this.validatePlaidAccount.bind(this);
     }
 
     /**
      * @returns {Boolean}
      */
-    validate() {
+    validate(values) {
         const errors = {};
 
-        if (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(this.state.accountNumber.trim())) {
-            errors.accountNumber = true;
+        if (!values.accountNumber || !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim())) {
+            errors.accountNumber = this.props.translate('bankAccount.error.accountNumber');
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(this.state.routingNumber.trim())) {
-            errors.routingNumber = true;
+        if (!values.routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(values.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(values.routingNumber.trim())) {
+            errors.routingNumber = this.props.translate('bankAccount.error.routingNumber');
         }
-        if (!this.state.hasAcceptedTerms) {
-            errors.hasAcceptedTerms = true;
+        if (!values.acceptedTerms) {
+            errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
         }
 
-        BankAccounts.setBankAccountFormValidationErrors(errors);
-        return _.size(errors) === 0;
+        return errors;
     }
 
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        const newState = {[inputKey]: value};
-        this.setState(newState);
-        BankAccounts.updateReimbursementAccountDraft(newState);
-        this.clearError(inputKey);
-    }
 
-    addManualAccount() {
-        if (!this.validate()) {
-            return;
+    validatePlaidAccount(values) {
+        const errors = {};
+        if (_.isUndefined(values.selectedPlaidBankAccount)) {
+            errors.selectedPlaidBankAccount = this.props.translate('bankAccount.error.noBankAccountSelected');
         }
 
+        return errors;
+    }
+
+    addManualAccount(values) {
         BankAccounts.setupWithdrawalAccount({
-            acceptTerms: this.state.hasAcceptedTerms,
-            accountNumber: this.state.accountNumber,
-            routingNumber: this.state.routingNumber,
+            acceptTerms: values.acceptedTerms,
+            accountNumber: values.accountNumber,
+            routingNumber: values.routingNumber,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
@@ -150,11 +109,9 @@ class BankAccountStep extends React.Component {
     /**
      * Add the Bank account retrieved via Plaid in db
      */
-    addPlaidAccount() {
-        const selectedPlaidBankAccount = this.state.selectedPlaidBankAccount;
-        if (!this.state.selectedPlaidBankAccount) {
-            return;
-        }
+    addPlaidAccount(values) {
+        const selectedPlaidBankAccount = values.selectedPlaidBankAccount;
+
         BankAccounts.setupWithdrawalAccount({
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
@@ -185,8 +142,6 @@ class BankAccountStep extends React.Component {
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
         const plaidDesktopMessage = getPlaidDesktopMessage();
         const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
-        const error = lodashGet(this.props, 'reimbursementAccount.error', '');
-        const loading = lodashGet(this.props, 'reimbursementAccount.loading', false);
         const validated = lodashGet(this.props, 'user.validated', false);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -274,36 +229,30 @@ class BankAccountStep extends React.Component {
                     </ScrollView>
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
-                    <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
-                            <AddPlaidBankAccount
-                                text={this.props.translate('bankAccount.plaidBodyCopy')}
-                                onSelect={(params) => {
-                                    this.setState({
-                                        selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                    });
-                                }}
-                                onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
-                                receivedRedirectURI={this.props.receivedRedirectURI}
-                                plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
-                                allowDebit
-                            />
-                        </View>
-                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={Boolean(error)}
-                                buttonText={this.props.translate('common.saveAndContinue')}
-                                onSubmit={this.addPlaidAccount}
-                                message={error}
-                                isLoading={loading}
-                            />
-                        )}
-                    </FormScrollView>
+                    <Form
+                        formID={ONYXKEYS.FORMS.BANK_ACCOUNT_STEP_FORM_PLAID}
+                        validate={this.validatePlaidAccount}
+                        onSubmit={this.addPlaidAccount}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
+                        style={[styles.mh5, styles.mb5, styles.flex1]}
+                    >
+                        <AddPlaidBankAccount
+                            inputID="selectedPlaidBankAccount"
+                            text={this.props.translate('bankAccount.plaidBodyCopy')}
+                            onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                            receivedRedirectURI={this.props.receivedRedirectURI}
+                            plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
+                            allowDebit
+                        />
+                    </Form>
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
-                    <ReimbursementAccountForm
-                        reimbursementAccount={this.props.reimbursementAccount}
+                    <Form
+                        formID={ONYXKEYS.FORMS.BANK_ACCOUNT_STEP_FORM_MANUAL}
+                        validate={this.validate}
                         onSubmit={this.addManualAccount}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
+                        style={[styles.mh5, styles.flexGrow1]}
                     >
                         <Text style={[styles.mb5]}>
                             {this.props.translate('bankAccount.checkHelpLine')}
@@ -314,26 +263,21 @@ class BankAccountStep extends React.Component {
                             source={exampleCheckImage(this.props.preferredLocale)}
                         />
                         <TextInput
+                            inputID="routingNumber"
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            value={this.state.routingNumber}
-                            onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
                             disabled={shouldDisableInputs}
-                            errorText={this.getErrorText('routingNumber')}
                         />
                         <TextInput
+                            inputID="accountNumber"
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            value={this.state.accountNumber}
-                            onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                             disabled={shouldDisableInputs}
-                            errorText={this.getErrorText('accountNumber')}
                         />
                         <CheckboxWithLabel
                             style={styles.mt4}
-                            isChecked={this.state.hasAcceptedTerms}
-                            onInputChange={this.toggleTerms}
+                            inputID="acceptedTerms"
                             LabelComponent={() => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                     <Text>
@@ -344,9 +288,8 @@ class BankAccountStep extends React.Component {
                                     </TextLink>
                                 </View>
                             )}
-                            errorText={this.getErrorText('hasAcceptedTerms')}
                         />
-                    </ReimbursementAccountForm>
+                    </Form>
                 )}
             </View>
         );
@@ -359,12 +302,6 @@ BankAccountStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
         user: {
             key: ONYXKEYS.USER,
         },
