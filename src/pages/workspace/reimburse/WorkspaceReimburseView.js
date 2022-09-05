@@ -72,10 +72,10 @@ class WorkspaceReimburseView extends React.Component {
         debugger;
         this.state = {
             unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
-            unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
             unitName: lodashGet(distanceCustomUnit, 'name', ''),
             unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-            rateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
+            unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
+            unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -110,7 +110,7 @@ class WorkspaceReimburseView extends React.Component {
                 unitName: lodashGet(distanceCustomUnit, 'name', ''),
                 unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
                 unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
-                rateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
+                unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
             });
         }
 
@@ -135,10 +135,10 @@ class WorkspaceReimburseView extends React.Component {
         const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
 
         this.setState(prevState => ({
-            rateValue: !isInvalidRateValue ? value : prevState.rateValue,
+            unitRateValue: !isInvalidRateValue ? value : prevState.unitRateValue,
         }), () => {
             // Set the corrected value with a delay and sync to the server
-            this.updateRateValueDebounced(this.state.rateValue);
+            this.updateRateValueDebounced(this.state.unitRateValue);
         });
     }
 
@@ -157,7 +157,7 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        this.updateRateValueDebounced(this.state.rateValue);
+        this.updateRateValueDebounced(this.state.unitRateValue);
     }
 
     updateRateValue(value) {
@@ -168,7 +168,7 @@ class WorkspaceReimburseView extends React.Component {
         }
 
         this.setState({
-            rateValue: numValue.toFixed(3),
+            unitRateValue: numValue.toFixed(3),
         });
 
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
@@ -242,18 +242,36 @@ class WorkspaceReimburseView extends React.Component {
                         <View style={[styles.mv4]}>
                             <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                         </View>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <View style={[styles.rateCol]}>
-                                <TextInput
-                                    label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                    placeholder={this.state.outputCurrency}
-                                    onChangeText={value => this.setRate(value)}
-                                    value={this.state.rateValue}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                    onKeyPress={this.debounceUpdateOnCursorMove}
-                                />
+                        <OfflineWithFeedback
+                            errors={{
+                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
+                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'onyxRates', this.state.unitRateID, 'errors'], {}),
+                            }}
+                            pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
+                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'onyxRates', this.state.unitRateID, 'pendingAction'])}
+                            onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID, this.state.unitRateID)}
+                        >
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
+                                <View style={[styles.rateCol]}>
+                                    <TextInput
+                                        label={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                        placeholder={this.state.outputCurrency}
+                                        onChangeText={value => this.setRate(value)}
+                                        value={this.state.unitRateValue}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                        onKeyPress={this.debounceUpdateOnCursorMove}
+                                    />
+                                </View>
+                                <View style={[styles.unitCol]}>
+                                    <Picker
+                                        label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
+                                        items={this.unitItems}
+                                        value={this.state.unitValue}
+                                        onInputChange={value => this.setUnit(value)}
+                                    />
+                                </View>
                             </View>
                             <View style={[styles.unitCol]}>
                                 <Picker
