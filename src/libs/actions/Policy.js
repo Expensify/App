@@ -1,7 +1,10 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import Str from 'expensify-common/lib/str';
 import * as DeprecatedAPI from '../deprecatedAPI';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
@@ -13,6 +16,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
+import DateUtils from '../DateUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -34,19 +38,18 @@ Onyx.connect({
 });
 
 /**
- * Simplifies the employeeList response into an object containing an array of emails
+ * Simplifies the employeeList response into an object mapping employee email to a default employee list entry
  *
  * @param {Object} employeeList
- * @returns {Array}
+ * @returns {Object}
  */
 function getSimplifiedEmployeeList(employeeList) {
-    const employeeListEmails = _.chain(employeeList)
+    return _.chain(employeeList)
         .pluck('email')
         .flatten()
         .unique()
+        .reduce((map, email) => ({...map, [email]: {}}), {})
         .value();
-
-    return employeeListEmails;
 }
 
 /**
@@ -59,6 +62,8 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.role
  * @param {String} fullPolicyOrPolicySummary.type
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
+ * @param {String} [fullPolicyOrPolicySummary.avatar]
+ * @param {String} [fullPolicyOrPolicySummary.value.avatar]
  * @param {String} [fullPolicyOrPolicySummary.avatarURL]
  * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
@@ -67,19 +72,6 @@ function getSimplifiedEmployeeList(employeeList) {
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
-    const customUnit = lodashGet(fullPolicyOrPolicySummary, 'value.customUnits[0]', undefined);
-    const customUnitValue = lodashGet(customUnit, 'attributes.unit', 'mi');
-    const customUnitRate = lodashGet(customUnit, 'rates[0]', {});
-    const customUnitSimplified = customUnit && {
-        id: customUnit.customUnitID,
-        name: customUnit.name,
-        value: customUnitValue,
-        rate: {
-            id: customUnitRate.customUnitRateID,
-            name: customUnitRate.name,
-            value: Number(customUnitRate.rate),
-        },
-    };
     return {
         isFromFullPolicy,
         id: fullPolicyOrPolicySummary.id,
@@ -90,10 +82,12 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
-        // avatarUrl will be nested within the key "value"
-        avatarURL: fullPolicyOrPolicySummary.avatarURL || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
-        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
-        customUnit: customUnitSimplified,
+        // avatar will be nested within the key "value"
+        avatar: fullPolicyOrPolicySummary.avatar
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
+            || fullPolicyOrPolicySummary.avatarURL
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
 
@@ -125,11 +119,9 @@ function updateAllPolicies(policyCollection) {
  * @returns {Promise}
  */
 function create(name = '') {
-    Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
     return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
-            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
@@ -143,14 +135,16 @@ function create(name = '') {
             Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
 
             // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
-                id: response.policyID,
-                type: response.policy.type,
-                name: response.policy.name,
-                role: CONST.POLICY.ROLE.ADMIN,
-                outputCurrency: response.policy.outputCurrency,
-            });
+            return Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                    id: response.policyID,
+                    type: response.policy.type,
+                    name: response.policy.name,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: response.policy.outputCurrency,
+                }),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${response.policyID}`, getSimplifiedEmployeeList(response.policy.employeeList)),
+            ]);
         })
         .then(() => Promise.resolve(lodashGet(res, 'policyID')));
 }
@@ -259,10 +253,8 @@ function loadFullPolicy(policyID) {
                 return;
             }
 
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`],
-                ...getSimplifiedPolicyObject(policy, true),
-            });
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy, true));
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, getSimplifiedEmployeeList(lodashGet(policy, 'value.employeeList', {})));
         });
 }
 
@@ -291,14 +283,9 @@ function removeMembers(members, policyID) {
         return;
     }
 
-    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-
-    // Make a shallow copy to preserve original data and remove the members
-    const policy = _.clone(allPolicies[key]);
-    policy.employeeList = _.without(policy.employeeList, ...members);
-
-    // Optimistically remove the members from the policy
-    Onyx.set(key, policy);
+    const employeeListUpdate = {};
+    _.each(members, login => employeeListUpdate[login] = null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
 
     // Make the API call to remove a login from the policy
     DeprecatedAPI.Policy_Employees_Remove({
@@ -309,9 +296,10 @@ function removeMembers(members, policyID) {
             if (data.jsonCode === 200) {
                 return;
             }
-            const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
-            policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...members];
-            Onyx.set(key, policyDataWithMembersRemoved);
+
+            // Rollback removal on failure
+            _.each(members, login => employeeListUpdate[login] = {});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
 
             // Show the user feedback that the removal failed
             const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
@@ -327,16 +315,15 @@ function removeMembers(members, policyID) {
  * @param {String} policyID
  */
 function invite(logins, welcomeNote, policyID) {
-    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
-
-    // Make a shallow copy to preserve original data, and concat the login
-    const policy = _.clone(allPolicies[key]);
-    policy.employeeList = [...policy.employeeList, ...newEmployeeList];
-    policy.alertMessage = '';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        alertMessage: '',
+    });
 
     // Optimistically add the user to the policy
-    Onyx.merge(key, policy);
+    const newEmployeeLogins = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
+    const employeeUpdate = {};
+    _.each(newEmployeeLogins, login => employeeUpdate[login] = {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeUpdate);
 
     // Make the API call to merge the login into the policy
     DeprecatedAPI.Policy_Employees_Merge({
@@ -356,16 +343,15 @@ function invite(logins, welcomeNote, policyID) {
             }
 
             // If the operation failed, undo the optimistic addition
-            const policyDataWithoutLogin = _.clone(allPolicies[key]);
-            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
+            _.each(newEmployeeLogins, login => employeeUpdate[login] = null);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeUpdate);
 
             // Show the user feedback that the addition failed
-            policyDataWithoutLogin.alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
+            let alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
             if (data.jsonCode === 402) {
-                policyDataWithoutLogin.alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
+                alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
-
-            Onyx.set(key, policyDataWithoutLogin);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage});
         });
 }
 
@@ -376,6 +362,114 @@ function invite(logins, welcomeNote, policyID) {
  */
 function updateLocalPolicyValues(policyID, values) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+}
+
+/**
+ * Updates a workspace avatar image
+ *
+ * @param {String} policyID
+ * @param {File|Object} file
+ */
+function updateWorkspaceAvatar(policyID, file) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: file.uri,
+            errorFields: {
+                avatar: null,
+            },
+            pendingFields: {
+                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
+
+    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Deletes the avatar image for the workspace
+ * @param {String} policyID
+ */
+function deleteWorkspaceAvatar(policyID) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    avatar: null,
+                },
+                avatar: '',
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatar: null,
+                },
+                errorFields: {
+                    avatar: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
+                    },
+                },
+            },
+        },
+    ];
+    API.write('DeleteWorkspaceAvatar', {policyID}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clear error and pending fields for the workspace avatar
+ * @param {String} policyID
+ */
+function clearAvatarErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            avatar: null,
+        },
+        pendingFields: {
+            avatar: null,
+        },
+    });
 }
 
 /**
@@ -407,26 +501,72 @@ function update(policyID, values, shouldGrowl = false) {
 }
 
 /**
- * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
+ * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
+ * If the response fails set a general error message. Clear the error message when updating.
  *
  * @param {String} policyID
- * @param {Object} file
+ * @param {String} name
+ * @param {String} currency
  */
-function uploadAvatar(policyID, file) {
-    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
-    DeprecatedAPI.User_UploadAvatar({file})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                // Update the policy with the new avatarURL as soon as we get it
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
-                update(policyID, {avatarURL: response.s3url}, true);
-                return;
-            }
+function updateGeneralSettings(policyID, name, currency) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
+                // Clear errorFields in case the user didn't dismiss the general settings error
+                errorFields: {
+                    generalSettings: null,
+                },
+                name,
+                outputCurrency: currency,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    generalSettings: null,
+                },
+                errorFields: {
+                    generalSettings: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+}
+
+/**
+ * @param {String} policyID The id of the workspace / policy
+ */
+function clearWorkspaceGeneralSettingsErrors(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            generalSettings: null,
+        },
+    });
 }
 
 /**
@@ -440,6 +580,21 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
+ * @param {Number} customUnitID
+ */
+function removeUnitError(policyID, customUnitID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errors: null,
+                pendingAction: null,
+            },
+        },
+    });
+}
+
+/**
+ * @param {String} policyID
  */
 function hideWorkspaceAlertMessage(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
@@ -447,30 +602,63 @@ function hideWorkspaceAlertMessage(policyID) {
 
 /**
  * @param {String} policyID
- * @param {Object} values
+ * @param {Object} currentCustomUnit
+ * @param {Object} values The new custom unit values
  */
-function setCustomUnit(policyID, values) {
-    DeprecatedAPI.Policy_CustomUnit_Update({
-        policyID: policyID.toString(),
-        customUnit: JSON.stringify(values),
-        lastModified: null,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {
-                customUnit: {
-                    id: values.customUnitID,
-                    name: values.name,
-                    value: values.attributes.unit,
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [values.customUnitID]: {
+                        ...values,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
-            });
-        }).catch(() => {
-            // Show the user feedback
-            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-        });
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [values.customUnitID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        customUnitID: currentCustomUnit.customUnitID,
+                        name: currentCustomUnit.name,
+                        attributes: currentCustomUnit.attributes,
+                        errors: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceCustomUnit', {
+        policyID,
+        customUnit: JSON.stringify(values),
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -524,7 +712,7 @@ function subscribeToPolicyEvents() {
             if (!_.isEmpty(policyExpenseChatIDs)) {
                 Report.fetchChatReportsByIDs(policyExpenseChatIDs);
                 _.each(policyExpenseChatIDs, (reportID) => {
-                    Report.fetchInitialActions(reportID);
+                    Report.reconnect(reportID);
                 });
             }
 
@@ -566,13 +754,56 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
-* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
- * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
- * @param {Object} policyMemberList
- * @returns {Boolean}
+ * Generate a policy name based on an email and policy list.
+ * @returns {String}
  */
-function hasPolicyMemberError(policyMemberList) {
-    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
+function generateDefaultWorkspaceName() {
+    const emailParts = sessionEmail.split('@');
+    let defaultWorkspaceName = '';
+    if (!emailParts || emailParts.length !== 2) {
+        return defaultWorkspaceName;
+    }
+    const username = emailParts[0];
+    const domain = emailParts[1];
+
+    if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
+        defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
+    } else {
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
+    }
+
+    if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
+        defaultWorkspaceName = 'My Group Workspace';
+    }
+
+    if (allPolicies.length === 0) {
+        return defaultWorkspaceName;
+    }
+
+    // Check if this name already exists in the policies
+    let suffix = 0;
+    _.forEach(allPolicies, (policy) => {
+        // Get the name of the policy
+        const {name} = policy;
+
+        if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
+            suffix += 1;
+        }
+    });
+
+    return suffix > 0 ? `${defaultWorkspaceName} ${suffix}` : defaultWorkspaceName;
+}
+
+/**
+ * Returns a client generated 16 character hexadecimal value for the policyID
+ * @returns {String}
+ */
+function generatePolicyID() {
+    return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+}
+
+function openWorkspaceReimburseView(policyID) {
+    API.read('OpenWorkspaceReimburseView', {policyID});
 }
 
 export {
@@ -582,18 +813,25 @@ export {
     invite,
     isAdminOfFreePolicy,
     create,
-    uploadAvatar,
     update,
     setWorkspaceErrors,
+    removeUnitError,
     hideWorkspaceAlertMessage,
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
-    setCustomUnit,
+    updateWorkspaceCustomUnit,
     setCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
-    hasPolicyMemberError,
+    openWorkspaceReimburseView,
+    generateDefaultWorkspaceName,
+    updateGeneralSettings,
+    clearWorkspaceGeneralSettingsErrors,
+    deleteWorkspaceAvatar,
+    updateWorkspaceAvatar,
+    clearAvatarErrors,
+    generatePolicyID,
 };

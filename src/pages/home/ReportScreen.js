@@ -1,11 +1,10 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Keyboard, View} from 'react-native';
+import {Keyboard, Platform, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
-import DrawerStatusContext from '@react-navigation/drawer/lib/module/utils/DrawerStatusContext';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -27,7 +26,6 @@ import addViewportResizeListener from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -49,20 +47,17 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
-
-        /** The current position of the new marker */
-        newMarkerSequenceNumber: PropTypes.number,
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
 
         /** Flag to check if the report actions data are loading */
         isLoadingReportActions: PropTypes.bool,
+
+        /** ID for the report */
+        reportID: PropTypes.number,
     }),
 
     /** Array of report actions for this report */
@@ -85,8 +80,6 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -96,7 +89,6 @@ const defaultProps = {
     },
     reportActions: {},
     report: {
-        unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
@@ -169,22 +161,31 @@ class ReportScreen extends React.Component {
     shouldShowLoader() {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        return !getReportID(this.props.route) || isLoadingInitialReportActions;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
     }
 
     /**
      * Persists the currently viewed report id
      */
     storeCurrentlyViewedReport() {
-        const reportID = getReportID(this.props.route);
-        if (_.isNaN(reportID)) {
+        const reportIDFromPath = getReportID(this.props.route);
+        if (_.isNaN(reportIDFromPath)) {
             Report.handleInaccessibleReport();
             return;
         }
 
         // Always reset the state of the composer view when the current reportID changes
         toggleReportActionComposeView(true);
-        Report.updateCurrentlyViewedReportID(reportID);
+        Report.updateCurrentlyViewedReportID(reportIDFromPath);
+
+        // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
+        // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
+        // If it doesn't exist, then we fetch the report from the API.
+        if (this.props.report.reportID) {
+            return;
+        }
+
+        Report.fetchChatReportsByIDs([reportIDFromPath], true);
     }
 
     /**
@@ -197,10 +198,6 @@ class ReportScreen extends React.Component {
 
     render() {
         if (!this.props.isSidebarLoaded) {
-            return null;
-        }
-
-        if (this.props.isSmallScreenWidth && this.context === 'open') {
             return null;
         }
 
@@ -223,7 +220,10 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
+            <ScreenWrapper
+                style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
+            >
                 <HeaderView
                     reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
@@ -277,12 +277,10 @@ class ReportScreen extends React.Component {
     }
 }
 
-ReportScreen.contextType = DrawerStatusContext;
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
