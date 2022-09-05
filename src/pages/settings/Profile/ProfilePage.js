@@ -239,7 +239,7 @@ class ProfilePage extends Component {
                                 inputID="firstName"
                                 name="fname"
                                 label={this.props.translate('common.firstName')}
-                                defaultValue={currentUserDetails.firstName}
+                                defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                                 placeholder={this.props.translate('profilePage.john')}
                             />
                         </View>
@@ -248,7 +248,7 @@ class ProfilePage extends Component {
                                 inputID="lastName"
                                 name="lname"
                                 label={this.props.translate('common.lastName')}
-                                defaultValue={currentUserDetails.lastName}
+                                defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                                 placeholder={this.props.translate('profilePage.doe')}
                             />
                         </View>
