@@ -232,31 +232,45 @@ function createTemporaryLogin(authToken, email) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+            },
+        },
+    ];
 
-    Authentication.Authenticate({
-        useExpensifyLogin: true,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: credentials.login,
-        partnerUserSecret: password,
-        twoFactorAuthCode,
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write('SignInUser', {
         email: credentials.login,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
-                if (errorMessage === 'passwordForm.error.twoFactorAuthenticationEnabled') {
-                    Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: false});
-                    return;
-                }
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(errorMessage), isLoading: false});
-                return;
-            }
-
-            const {authToken, email} = response;
-            createTemporaryLogin(authToken, email);
-        });
+        password,
+        twoFactorAuthCode,
+    }, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
