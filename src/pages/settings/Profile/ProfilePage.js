@@ -298,7 +298,6 @@ class ProfilePage extends Component {
 
 ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
-ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,

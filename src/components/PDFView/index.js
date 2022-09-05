@@ -85,6 +85,5 @@ class PDFView extends PureComponent {
 
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
-PDFView.displayName = 'PDFView';
 
 export default withWindowDimensions(PDFView);

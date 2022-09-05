@@ -52,6 +52,5 @@ class PreRenderer extends React.Component {
 }
 
 PreRenderer.propTypes = htmlRendererPropTypes;
-PreRenderer.displayName = 'PreRenderer';
 
 export default withLocalize(PreRenderer);
