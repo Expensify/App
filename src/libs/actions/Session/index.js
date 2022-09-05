@@ -20,7 +20,6 @@ import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as Authentication from '../../Authentication';
 import * as ErrorUtils from '../../ErrorUtils';
-import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
