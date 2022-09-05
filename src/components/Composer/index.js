@@ -267,9 +267,7 @@ class Composer extends React.Component {
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
-        if (event) {
-            event.preventDefault();
-        }
+        event.preventDefault();
 
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
