@@ -167,6 +167,10 @@ function uniqFast(items) {
  * Returns a string with all relevant search terms.
  * Default should be serachable by policy/domain name but not by participants.
  *
+ * This method must be incredibly performant. It was found to be a big performance bottleneck
+ * when dealing with accounts that have thousands of reports. For loops are more efficient than _.each
+ * Array.prototype.push.apply is faster than using the spread operator, and concat() is faster than push().
+ *
  * @param {Object} report
  * @param {String} reportName
  * @param {Array} personalDetailList
