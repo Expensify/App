@@ -121,6 +121,49 @@ function createIOUTransaction(params) {
         });
 }
 
+function requestMoney(params) {
+    const optimisticChatReport = Report.createOptimisticChatReport();
+    const optimisticReportAction = Report.createOptimisticReportAction();
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
+            value: {
+                [params.reportActionID]: {
+                    ...optimisticReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${params.chatReportID}`,
+            value: optimisticChatReport,
+            },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${params.iouReportID}`,
+            value: optimisticChatReport,
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
+            value: {
+                [params.reportActionID]: {
+                    ...optimisticReportAction,
+                    pendingAction: null,
+                    error : {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal(iou.error.genericCreateFailureMessage),
+                    },
+                },
+            },
+        },
+    ];
+    API.write('RequestMoney', params, {optimisticData, failureData})
+}
+
 /**
  * Creates IOUSplit Transaction
  *

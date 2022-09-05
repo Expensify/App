@@ -1589,6 +1589,7 @@ export {
     openReport,
     openPaymentDetailsPage,
     createOptimisticChatReport,
+    createOptimisticReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
