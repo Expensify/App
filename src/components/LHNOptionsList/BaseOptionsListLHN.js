@@ -74,12 +74,12 @@ class BaseOptionsListLHN extends Component {
      *
      * @returns {Object}
      */
-    getItemLayout(data, flatDataArrayIndex) {
-        const targetItem = this.props.data[flatDataArrayIndex];
+    getItemLayout(data, index) {
+        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
         return {
-            length: targetItem.length,
-            offset: targetItem.offset,
-            index: flatDataArrayIndex,
+            length: optionHeight,
+            offset: index * optionHeight,
+            index: index,
         };
     }
 
