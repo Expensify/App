@@ -10,6 +10,9 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
+import DateUtils from '../DateUtils';
+import * as API from '../API';
+import {buildOptimisticIOUReportAction} from "../ReportUtils";
 
 /**
  * Gets the IOU Reports for new transaction
@@ -123,11 +126,12 @@ function createIOUTransaction(params) {
 
 function requestMoney(params) {
     const optimisticChatReport = Report.createOptimisticChatReport();
-    const optimisticReportAction = Report.createOptimisticReportAction();
+    const optimisticIOUReport = Report.createOptimisticChatReport();
+    const optimisticReportAction = buildOptimisticIOUReportAction('create', params.amount, 'comment', '', '', optimisticIOUReport.reportID);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticChatReport.reportID}`,
             value: {
                 [params.reportActionID]: {
                     ...optimisticReportAction,
@@ -137,31 +141,31 @@ function requestMoney(params) {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${params.chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticChatReport.reportID}`,
             value: optimisticChatReport,
-            },
+        },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${params.iouReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
             value: optimisticChatReport,
         },
     ];
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticChatReport.reportID}`,
             value: {
                 [params.reportActionID]: {
                     ...optimisticReportAction,
                     pendingAction: null,
-                    error : {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal(iou.error.genericCreateFailureMessage),
+                    error: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                     },
                 },
             },
         },
     ];
-    API.write('RequestMoney', params, {optimisticData, failureData})
+    API.write('RequestMoney', params, {optimisticData, failureData});
 }
 
 /**
@@ -368,6 +372,7 @@ export {
     createIOUSplit,
     createIOUSplitGroup,
     rejectTransaction,
+    requestMoney,
     payIOUReport,
     setIOUSelectedCurrency,
 };
