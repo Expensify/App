@@ -2352,9 +2352,13 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
+        ...spacing.pt2,
+    },
+
+    peopleRowBorderBottom: {
         borderColor: themeColors.border,
-        ...spacing.pv2,
+        borderBottomWidth: 1,
+        ...spacing.pb2,
     },
 
     peopleRowCell: {
@@ -2400,6 +2404,13 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+    },
+
+    dotIndicatorMessage: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 
     sidebarPopover: {
