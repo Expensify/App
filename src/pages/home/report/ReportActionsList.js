@@ -1,35 +1,34 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View, Animated} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
+import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
+import CONST from '../../../CONST';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
+    /** Position of the "New" line marker */
+    newMarkerSequenceNumber: PropTypes.number.isRequired,
+
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
-
-        /** The current position of the new marker */
-        newMarkerSequenceNumber: PropTypes.number,
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
@@ -48,7 +47,7 @@ const propTypes = {
     mostRecentIOUReportSequenceNumber: PropTypes.number,
 
     /** Are we loading more report actions? */
-    isLoadingReportActions: PropTypes.bool.isRequired,
+    isLoadingMoreReportActions: PropTypes.bool,
 
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
@@ -66,6 +65,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     mostRecentIOUReportSequenceNumber: undefined,
+    isLoadingMoreReportActions: false,
 };
 
 class ReportActionsList extends React.Component {
@@ -74,6 +74,22 @@ class ReportActionsList extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
+
+        this.state = {
+            fadeInAnimation: new Animated.Value(0),
+        };
+    }
+
+    componentDidMount() {
+        this.fadeIn();
+    }
+
+    fadeIn() {
+        Animated.timing(this.state.fadeInAnimation, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
     }
 
     /**
@@ -85,19 +101,19 @@ class ReportActionsList extends React.Component {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
         const availableHeight = this.props.windowHeight
-            - (styles.chatFooter.minHeight + variables.contentHeaderHeight);
+            - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
     /**
      * Create a unique key for Each Action in the FlatList.
-     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-     * shouldn't happen, but might be possible in some rare cases.
+     * We use the reportActionId that is a string representation of a random 64-bit int, which should be
+     * random enought to avoid colisions
      * @param {Object} item
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.sequenceNumber}${item.action.clientID}`;
+        return `${item.action.reportActionID}${item.action.sequenceNumber}`;
     }
 
     /**
@@ -116,8 +132,10 @@ class ReportActionsList extends React.Component {
         item,
         index,
     }) {
-        const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
-            && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+        // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
+        // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
+        const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
+            && item.action.sequenceNumber === this.props.newMarkerSequenceNumber;
         return (
             <ReportActionItem
                 reportID={this.props.report.reportID}
@@ -153,31 +171,37 @@ class ReportActionsList extends React.Component {
     render() {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
+        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
-            <InvertedFlatList
-                ref={ReportScrollManager.flatListRef}
-                data={this.props.sortedReportActions}
-                renderItem={this.renderItem}
-                CellRendererComponent={this.renderCell}
-                contentContainerStyle={[
-                    styles.chatContentScrollView,
-                    shouldShowReportRecipientLocalTime && styles.pt0,
-                ]}
-                keyExtractor={this.keyExtractor}
-                initialRowHeight={32}
-                initialNumToRender={this.calculateInitialNumToRender()}
-                onEndReached={this.props.loadMoreChats}
-                onEndReachedThreshold={0.75}
-                ListFooterComponent={this.props.isLoadingReportActions
-                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
-                    : null}
-                keyboardShouldPersistTaps="handled"
-                onLayout={this.props.onLayout}
-                onScroll={this.props.onScroll}
-                extraData={extraData}
-            />
+            <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
+                <InvertedFlatList
+                    ref={ReportScrollManager.flatListRef}
+                    data={this.props.sortedReportActions}
+                    renderItem={this.renderItem}
+                    CellRendererComponent={this.renderCell}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldShowReportRecipientLocalTime && styles.pt0,
+                    ]}
+                    keyExtractor={this.keyExtractor}
+                    initialRowHeight={32}
+                    initialNumToRender={this.calculateInitialNumToRender()}
+                    onEndReached={this.props.loadMoreChats}
+                    onEndReachedThreshold={0.75}
+                    ListFooterComponent={this.props.isLoadingMoreReportActions
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                            />
+                        )
+                        : null}
+                    keyboardShouldPersistTaps="handled"
+                    onLayout={this.props.onLayout}
+                    onScroll={this.props.onScroll}
+                    extraData={extraData}
+                />
+            </Animated.View>
         );
     }
 }

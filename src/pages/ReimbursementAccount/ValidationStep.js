@@ -191,6 +191,7 @@ class ValidationStep extends React.Component {
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <ReimbursementAccountForm
+                        reimbursementAccount={this.props.reimbursementAccount}
                         onSubmit={this.submit}
                     >
                         <View style={[styles.mb2]}>
@@ -243,10 +244,10 @@ class ValidationStep extends React.Component {
                             text={this.props.translate('validationStep.letsChatCTA')}
                             onPress={Report.navigateToConciergeChat}
                             icon={Expensicons.ChatBubble}
-                            style={[styles.mt4, styles.mh3]}
-                            iconStyles={[styles.mr5]}
+                            style={[styles.mt4, styles.buttonCTA]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
-                            extraLarge
+                            large
                             success
                         />
                         <MenuItem

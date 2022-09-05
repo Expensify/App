@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import {withNavigationFocus} from '@react-navigation/compat';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -15,6 +14,7 @@ import withNavigationFallback from './withNavigationFallback';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
+import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** The text for the button label */
@@ -33,6 +33,7 @@ const propTypes = {
     iconFill: PropTypes.string,
 
     /** Any additional styles to pass to the icon container. */
+    // eslint-disable-next-line react/forbid-prop-types
     iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
@@ -43,9 +44,6 @@ const propTypes = {
 
     /** medium sized button */
     medium: PropTypes.bool,
-
-    /** Extra large sized button */
-    extraLarge: PropTypes.bool,
 
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
@@ -78,9 +76,11 @@ const propTypes = {
     ]),
 
     /** Additional button styles. Specific to the OpacityView of button */
+    // eslint-disable-next-line react/forbid-prop-types
     innerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Additional text styles */
+    // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether we should use the success theme color */
@@ -120,7 +120,6 @@ const defaultProps = {
     small: false,
     large: false,
     medium: false,
-    extraLarge: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
@@ -159,6 +158,7 @@ class Button extends Component {
             if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
+            e.preventDefault();
             this.props.onPress();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
@@ -187,7 +187,6 @@ class Button extends Component {
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
-                    this.props.extraLarge && styles.buttonExtraLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
@@ -267,7 +266,6 @@ class Button extends Component {
                                 this.props.small ? styles.buttonSmall : undefined,
                                 this.props.medium ? styles.buttonMedium : undefined,
                                 this.props.large ? styles.buttonLarge : undefined,
-                                this.props.extraLarge ? styles.buttonExtraLarge : undefined,
                                 this.props.success ? styles.buttonSuccess : undefined,
                                 this.props.danger ? styles.buttonDanger : undefined,
                                 (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,

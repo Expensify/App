@@ -1,0 +1,12 @@
+name: 'Get Release Body'
+description: 'Generate the body of a production release'
+inputs:
+  PR_LIST:
+    description: JSON array of pull request numbers (string)
+    required: true
+outputs:
+  RELEASE_BODY:
+    description: String body of a production release.
+runs:
+  using: 'node16'
+  main: './index.js'

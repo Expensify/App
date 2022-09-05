@@ -1,0 +1,548 @@
+@import 'breakpoints';
+@import 'colors';
+@import 'fonts';
+@import 'mixins';
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    line-height: 1;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+caption,
+th,
+td {
+    text-align: left;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+q,
+blockquote {
+    quotes: none;
+
+    &:before,
+    &:after {
+        content: none;
+    }
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+menu,
+nav,
+section,
+summary {
+    display: block;
+}
+
+html,
+body {
+    height: 100%;
+    min-height: 100%;
+    background: $color-white;
+}
+
+hr {
+    background: $color-blue;
+    border: none;
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+    margin: 0 0 16px;
+}
+
+strong {
+    font-weight: bold;
+}
+
+em {
+    font-style: italic;
+}
+
+a {
+    color: $color-blue;
+    text-decoration: none;
+
+    &:hover {
+        color: $color-blueHover;
+    }
+
+    img {
+        display: block;
+    }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: $color-dark;
+    font-weight: bold;
+    padding-bottom: 12px;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 20px;
+}
+
+h1 {
+    font-size: larger;
+}
+
+h2 {
+    font-size: large;
+}
+
+p {
+    padding-bottom: 20px;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    line-height: 1.4;
+    font-weight: 400;
+    font-family: "GTAmericaExp-Regular", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-size: 16px;
+    color: $color-dark;
+}
+
+button {
+    border-radius: 12px;
+    padding: 12px;
+    font-family: "GTAmericaExp-Bold", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+
+    &.success {
+        background-color: $color-green;
+        color: $color-white;
+        width: 100%;
+
+        &:hover {
+            background-color: desaturate($color-green, 15%);
+            cursor: pointer;
+        }
+
+        @include breakpoint($breakpoint-tablet) {
+            width: auto;
+        }
+    }
+}
+
+#logo {
+    width: 240px;
+    padding: 80px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    align-content: center;
+}
+
+#lhn {
+    position: fixed;
+    background-color: $color-gray1;
+    box-sizing: border-box;
+    border-right-color: $color-gray2;
+    border-right-width: 1px;
+    border-style: solid;
+    width: 100%;
+    height: auto;
+    &.expanded {
+        height: 100%;
+    }
+
+    @include breakpoint($breakpoint-tablet) {
+        width: 320px;
+        height: 100%;
+    }
+
+    @include breakpoint($breakpoint-desktop) {
+        width: 420px;
+    }
+
+    ul,
+    li {
+        list-style: none;
+    }
+
+
+    #lhn-content {
+        overflow: auto;
+        -ms-overflow-style: none;
+        /* IE and Edge */
+        scrollbar-width: none;
+        /* Firefox */
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        .in-this-article {
+            padding-top: 40px;
+            display: block;
+        }
+
+        display: none;
+        height: calc(100% - 100px);
+        padding: 0 24px 24px 24px;
+
+        @include breakpoint($breakpoint-tablet) {
+            display: block;
+            height: calc(100% - 150px);
+            padding: 0 44px 44px 44px;
+        }
+
+        &.expanded {
+            display: block;
+        }
+
+        .article-toc {
+            margin-top: 20px;
+        }
+    }
+
+    .lhn-header {
+        padding: 24px;
+        @include breakpoint($breakpoint-tablet) {
+            padding: 44px;
+        }
+
+        #header-button {
+            position: absolute;
+            display: block;
+            @include breakpoint($breakpoint-tablet) {
+                display: none;
+            }
+        }
+
+        .logo {
+            width: 160px;
+            align-content: center;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+
+            @include breakpoint($breakpoint-tablet) {
+                width: 210px;
+                align-content: normal;
+                display: flex;
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+    }
+
+    .icon-with-link {
+        display: grid;
+        grid-template-columns: 40px auto;
+        cursor: pointer;
+    }
+
+    .selected {
+        cursor: auto;
+        font-weight: bold;
+        color: $color-dark;
+    }
+
+    .hide {
+        display: none;
+        position: fixed;
+    }
+}
+
+#content-area {
+    margin-left: 0;
+    padding: 80px 24px 24px 24px;
+
+    @include breakpoint($breakpoint-tablet) {
+        margin-left: 320px;
+    }
+
+    @include breakpoint($breakpoint-desktop) {
+        /* Same as the width of the lhn */
+        margin-left: 420px;
+        padding: 52px 68px;
+        box-sizing: border-box;
+    }
+
+    @include breakpoint($breakpoint-wide) {
+        /* Center content area for bigger screens */
+        margin-left: calc(420px + (100vw - 1000px - 420px)/2);
+        padding: 52px 0;
+        max-width: 1000px;
+    }
+
+    ul,
+    ol {
+        margin-left: 24px;
+        padding-bottom: 20px;
+    }
+
+    h1 {
+        &.title {
+            font-size: 2.25em;
+        }
+    }
+}
+
+.link {
+    display: inline;
+    color: $color-blue;
+    cursor: pointer;
+
+    &:hover {
+        color: $color-blueHover;
+    }
+}
+
+.lhn-items {
+
+    ol,
+    ul {
+        padding-left: 32px;
+    }
+
+    ul,
+    li {
+        margin-bottom: 20px;
+
+        /* Apply recursive style to add a margin to the nested items */
+        ul,
+        li {
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    }
+
+    .nested-treeview {
+        margin-left: 40px;
+    }
+
+    .selected-article {
+        font-weight: bold;
+        color: $color-dark;
+    }
+
+    .home-link {
+        padding-left: 40px;
+    }
+}
+
+.cards-group {
+    display: grid;
+    grid-template-columns: auto;
+    row-gap: 12px;
+    column-gap: 4%;
+    padding-bottom: 20px;
+
+    @include breakpoint($breakpoint-desktop) {
+        grid-template-columns: 48% 48%;
+    }
+}
+
+.card {
+    display: flex;
+    flex-wrap: wrap;
+    border-radius: 16px;
+    padding: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: $color-dark;
+
+    @include card-border($color-gray2, 1px);
+
+    &.send-money {
+        @include card-border($color-blue);
+    }
+
+    &.request-money {
+        @include card-border($color-green);
+    }
+
+    &.get-help {
+        @include card-border($color-pink);
+    }
+
+    .row {
+        display: flex;
+        flex-basis:100%;
+    }
+
+    .left-icon {
+        display: flex;
+        align-items: center;
+        padding-right: 28px;
+
+        img {
+            width: 32px;
+        }
+    }
+
+    .right-icon {
+        display: flex;
+        align-items: center;
+        padding-left: 16px;
+    }
+
+    .submit-button {
+        display: flex;
+        align-items: center;
+        margin-top: 16px;
+        padding-left: 0;
+
+        @include breakpoint($breakpoint-desktop) {
+            margin-top: 0;
+            padding-left: 16px;
+        }
+    }
+
+    .body {
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: column;
+        flex-grow: 2;
+    }
+
+    h3.title {
+        padding: 0;
+        margin: 0;
+    }
+
+    p.description {
+        padding: 0;
+        margin: 16px 0 0 0;
+        font-weight: normal;
+    }
+}
+
+.icon {
+    color: $color-gray3;
+    font-size: larger;
+    display: inline;
+
+    &.fa-angle-right {
+        padding-left: 4px;
+    }
+}
+
+.homepage {
+    h1 {
+        margin-top: 0;
+        padding-bottom: 20px;
+        padding-top: 8px;
+        @include breakpoint($breakpoint-tablet) {
+            padding-top: 0px;
+        }
+    }
+    h2  {
+        padding-bottom: 24px;
+    }
+    p {
+        margin-bottom: 20px;
+    }
+    .cards-group {
+        padding-bottom: 32px;
+    }
+}
+
+.centered-content {
+    height: 240px;
+    text-align: center;
+    font-size: larger;
+    position: absolute;
+    top: calc((100vh - 240px) / 2);
+
+    width: 380px;
+    right: calc((100vw - 380px) / 2);
+    @include breakpoint($breakpoint-tablet) {
+        width: 500px;
+        right: calc((100vw - 500px) / 2);
+    }
+
+    &.with-lhn {
+        right: calc((100vw - 380px) / 2);
+
+        @include breakpoint($breakpoint-tablet) {
+            right: calc((100vw - 320px - 500px ) / 2);
+        }
+
+        @include breakpoint($breakpoint-desktop) {
+            right: calc((100vw - 420px - 500px) / 2);
+        }
+    }
+
+    div {
+        margin-top: 8px;
+    }
+
+    strong {
+        font-size: 20px;
+    }
+
+    .icon {
+        width: 76px;
+        padding: 28px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+#floating-concierge-button-global {
+    position: fixed;
+    display: block;
+    @include breakpoint($breakpoint-tablet) {
+        display: none;
+    }
+}
+
+#floating-concierge-button-lhn {
+    position: absolute;
+    display: none;
+    @include breakpoint($breakpoint-tablet) {
+        display: block;
+    }
+}
+
+.floating-concierge-button {
+    bottom: 2rem;
+    right: 2rem;
+
+    img {
+        width: 4rem;
+        height: 4rem;
+
+        &:hover {
+            filter: saturate(2);
+        }
+    }
+}

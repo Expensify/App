@@ -17,14 +17,18 @@ const propTypes = {
     /** Listen for window resize event on web and desktop */
     shouldListenForResize: PropTypes.bool,
 
-    ...userWalletPropTypes,
+    /** Wrapped components should be disabled, and not in spinner/loading state */
+    isDisabled: PropTypes.bool,
+
+    /** The user's wallet */
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 };
 
 const defaultProps = {
-    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
     popoverPlacement: 'top',
     shouldListenForResize: false,
+    isDisabled: false,
 };
 
 export {propTypes, defaultProps};

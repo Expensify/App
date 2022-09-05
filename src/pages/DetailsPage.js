@@ -19,6 +19,7 @@ import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
+import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
@@ -66,6 +67,10 @@ const getPhoneNumber = (details) => {
 
 const DetailsPage = (props) => {
     const details = props.personalDetails[props.route.params.login];
+    if (!details) {
+        // Personal details have not loaded yet
+        return <FullscreenLoadingIndicator />;
+    }
     const isSMSLogin = Str.isSMSLogin(details.login);
 
     // If we have a reportID param this means that we
@@ -102,7 +107,7 @@ const DetailsPage = (props) => {
                         <View style={styles.pageWrapper}>
                             <AttachmentModal
                                 headerTitle={isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                sourceURL={details.avatarHighResolution}
+                                sourceURL={details.avatar}
                                 isAuthTokenRequired
                             >
                                 {({show}) => (

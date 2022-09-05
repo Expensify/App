@@ -17,6 +17,7 @@ const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
+const conciergeUrl = `${expensifyURL}concierge/`;
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -48,6 +49,7 @@ export default {
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
+        CONCIERGE_URL: conciergeUrl,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
@@ -63,4 +65,5 @@ export default {
     },
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
+    DEV_PORT: process.env.PORT || 8080,
 };

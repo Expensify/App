@@ -5,7 +5,7 @@ title: "[Performance] "
 labels: Engineering, Daily
 ---
 
-If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
 ___
 
 ## What performance issue do we need to solve?

@@ -12,24 +12,11 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
-    // A key that is set while we are still waiting for the initial round of reports to load. Once set it should not be
-    // false unless we sign out. If there are reports in storage when the app inits this will be `true`.
-    INITIAL_REPORT_DATA_LOADED: 'initialReportDataLoaded',
-
-    // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
-    IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
-
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
-    // Boolean flag set when workspace is being created
-    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
-
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
-
-    // What the active route is for our navigator. Global route that determines what views to display.
-    CURRENT_URL: 'currentURL',
 
     // Stores current date
     CURRENT_DATE: 'currentDate',
@@ -45,9 +32,6 @@ export default {
 
     // Keeps track if there is modal currently visible or not
     MODAL: 'modal',
-
-    // Contains the personalDetails of the user as well as their timezone
-    MY_PERSONAL_DETAILS: 'myPersonalDetails',
 
     // Has information about the network status (offline/online)
     NETWORK: 'network',
@@ -89,11 +73,11 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
-    // SDK token used to communicate with Plaid API
-    PLAID_LINK_TOKEN: 'plaidLinkToken',
+    // Plaid data (access tokens, bank accounts ...)
+    PLAID_DATA: 'plaidData',
 
-    // List of bank accounts returned by Plaid
-    PLAID_BANK_ACCOUNTS: 'plaidBankAccounts',
+    // Token needed to initialize Plaid link
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
 
     // Collection Keys
     COLLECTION: {
@@ -104,8 +88,8 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
-        REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
+        POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
     // Indicates which locale should be used
@@ -138,6 +122,9 @@ export default {
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',
 
+    // Stores information about the active personal bank account being set up
+    PERSONAL_BANK_ACCOUNT: 'personalBankAccount',
+
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
@@ -156,14 +143,8 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // Stores values for the request call form
-    REQUEST_CALL_FORM: 'requestCallForm',
-
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
-
-    // Are report actions loading?
-    IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
@@ -174,14 +155,11 @@ export default {
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
 
-    // Are we loading the rename policy room command
-    IS_LOADING_RENAME_POLICY_ROOM: 'isLoadingRenamePolicyRoom',
-
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
-    // Is close acount modal open?
-    IS_CLOSE_ACCOUNT_MODAL_OPEN: 'isCloseAccountModalOpen',
+    // Data related to user closing their account (loading status and error message)
+    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
@@ -189,11 +167,9 @@ export default {
     // The policyID of the last workspace whose settings were accessed by the user
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
-    // Validating Email?
-    USER_SIGN_UP: 'userSignUp',
-
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+        REQUEST_CALL_FORM: 'requestCallForm',
     },
 };

@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import overflowXHidden from './overflowXHidden';
@@ -136,7 +137,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        whiteSpace: 'pre',
     },
 };
 
@@ -150,6 +150,7 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+    ...writingDirection,
 
     rateCol: {
         margin: 0,
@@ -381,19 +382,9 @@ const styles = {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 14,
         paddingBottom: 8,
-        paddingLeft: 12,
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    buttonExtraLarge: {
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeExtraLarge,
-        paddingTop: 12,
-        paddingRight: 18,
-        paddingBottom: 12,
-        paddingLeft: 18,
+        paddingLeft: 14,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -413,13 +404,6 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonExtraLargeText: {
-        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -471,6 +455,15 @@ const styles = {
     noLeftBorderRadius: {
         borderTopLeftRadius: 0,
         borderBottomLeftRadius: 0,
+    },
+
+    buttonCTA: {
+        paddingVertical: 6,
+        ...spacing.mh4,
+    },
+
+    buttonCTAIcon: {
+        marginRight: 22,
     },
 
     buttonConfirm: {
@@ -663,6 +656,15 @@ const styles = {
 
     chatItemComposeSecondaryRowOffset: {
         marginLeft: 48,
+    },
+
+    offlineIndicator: {
+        marginLeft: 48,
+    },
+
+    offlineIndicatorMobile: {
+        paddingLeft: 20,
+        paddingBottom: 9,
     },
 
     // Actions
@@ -974,6 +976,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -986,6 +989,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -1000,8 +1004,18 @@ const styles = {
         backgroundColor: themeColors.online,
     },
 
-    statusIndicatorOffline: {
-        backgroundColor: themeColors.offline,
+    avatarWithIndicator: {
+        errorDot: {
+            borderColor: themeColors.sidebar,
+            borderRadius: 6,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -1,
+            bottom: -1,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
     },
 
     floatingActionButton: {
@@ -1130,18 +1144,6 @@ const styles = {
         paddingRight: 20,
     },
 
-    sidebarInnerRow: {
-        height: 64,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
-    sidebarInnerRowSmall: {
-        height: 52,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
     sidebarLinkText: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
@@ -1206,6 +1208,22 @@ const styles = {
         flexGrow: 1,
         flexBasis: 'auto',
         ...optionAlternateTextPlatformStyles,
+    },
+
+    optionRow: {
+        height: variables.optionRowHeight,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionRowCompact: {
+        height: variables.optionRowHeightCompact,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionsListSectionHeader: {
+        height: variables.optionsListSectionHeaderHeight,
     },
 
     appContent: {
@@ -1355,7 +1373,6 @@ const styles = {
     },
 
     chatFooter: {
-        minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
@@ -1373,7 +1390,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         color: themeColors.text,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
@@ -1394,6 +1411,10 @@ const styles = {
         alignSelf: 'flex-end',
         flex: 1,
         maxHeight: '100%',
+    },
+
+    editInputComposeSpacing: {
+        marginVertical: 6,
     },
 
     textInputComposeSpacing: {
@@ -1446,7 +1467,7 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -1748,6 +1769,7 @@ const styles = {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
     },
+
     PDFView: {
         // `display: grid` is not supported in native platforms!
         // It's being used on Web/Desktop only to vertically center short PDFs,
@@ -1760,6 +1782,12 @@ const styles = {
         overflow: 'hidden',
         overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    pdfPasswordForm: {
+        wideScreenWidth: {
+            width: 350,
+        },
     },
 
     modalCenterContentContainer: {
@@ -1840,6 +1868,10 @@ const styles = {
         ...spacing.mv1,
         ...spacing.mh1,
         ...{borderRadius: variables.componentBorderRadiusSmall},
+    },
+
+    reportActionSystemMessageContainer: {
+        marginLeft: 42,
     },
 
     reportDetailsTitleContainer: {
@@ -2109,10 +2141,6 @@ const styles = {
         paddingEnd: 20,
     },
 
-    iouConfirmComment: {
-        flexBasis: 92,
-    },
-
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -2334,9 +2362,13 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
+        ...spacing.pt2,
+    },
+
+    peopleRowBorderBottom: {
         borderColor: themeColors.border,
-        ...spacing.pv2,
+        borderBottomWidth: 1,
+        ...spacing.pb2,
     },
 
     peopleRowCell: {
@@ -2353,6 +2385,42 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    offlineFeedback: {
+        deleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        pending: {
+            opacity: 0.5,
+        },
+        error: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        container: {
+            ...spacing.pv2,
+        },
+        textContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        text: {
+            color: themeColors.textSupporting,
+            textAlignVertical: 'center',
+            fontSize: variables.fontSizeLabel,
+        },
+        errorDot: {
+            marginRight: 12,
+        },
+    },
+
+    dotIndicatorMessage: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 
     sidebarPopover: {
@@ -2555,6 +2623,41 @@ const styles = {
         height: 153,
     },
 
+    avatarCropModalContainer: {
+        maxWidth: 450, // this width was chosen to match layout to average mobile device
+    },
+
+    imageCropContainer: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.shadow,
+        cursor: 'move',
+    },
+
+    sliderKnob: {
+        backgroundColor: themeColors.badgeSuccessBG,
+        position: 'absolute',
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+        top: -variables.sliderBarHeight,
+        left: -(variables.sliderKnobSize / 2),
+        cursor: 'pointer',
+    },
+
+    sliderBar: {
+        backgroundColor: themeColors.border,
+        height: variables.sliderBarHeight,
+        borderRadius: variables.sliderBarHeight / 2,
+        alignSelf: 'stretch',
+    },
+
+    imageCropRotateButton: {
+        height: variables.iconSizeExtraLarge,
+    },
+
     userSelectText: {
         userSelect: 'text',
     },
@@ -2570,7 +2673,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
-        marginLeft: 4,
+        marginLeft: 6,
     },
 };
 

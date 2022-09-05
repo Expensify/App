@@ -5,7 +5,7 @@
 
 # In order for this script to be safely run from anywhere, we cannot use the raw relative path '../actions'
 declare ACTIONS_DIR
-ACTIONS_DIR="$(dirname "$(dirname "$0")")/actions"
+ACTIONS_DIR="$(dirname "$(dirname "$0")")/actions/javascript"
 
 # List of paths to all JS files that implement our GH Actions
 declare -r GITHUB_ACTIONS=(
@@ -23,6 +23,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
     "$ACTIONS_DIR/triggerWorkflowAndWait/triggerWorkflowAndWait.js"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.js"
+    "$ACTIONS_DIR/contributorChecklist/contributorChecklist.js"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

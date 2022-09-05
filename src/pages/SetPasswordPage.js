@@ -29,7 +29,7 @@ const propTypes = {
         error: PropTypes.string,
 
         /** Whether a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     /** The credentials of the logged in person */
@@ -47,15 +47,6 @@ const propTypes = {
         error: PropTypes.string,
     }),
 
-    /** User signup object */
-    userSignUp: PropTypes.shape({
-        /** Is Validating Email */
-        isValidating: PropTypes.bool,
-
-        /** Auth token used to change password */
-        authToken: PropTypes.string,
-    }),
-
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
@@ -68,10 +59,6 @@ const defaultProps = {
     route: validateLinkDefaultProps,
     session: {
         error: '',
-        authToken: '',
-    },
-    userSignUp: {
-        isValidating: false,
         authToken: '',
     },
 };
@@ -91,7 +78,7 @@ class SetPasswordPage extends Component {
     componentDidMount() {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        if (this.props.userSignUp.authToken) {
+        if (this.props.credentials.authToken) {
             return;
         }
         Session.validateEmail(accountID, validateCode);
@@ -104,15 +91,15 @@ class SetPasswordPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        if (this.props.userSignUp.authToken) {
-            Session.changePasswordAndSignIn(this.props.userSignUp.authToken, this.state.password);
+        if (this.props.credentials.authToken) {
+            Session.changePasswordAndSignIn(this.props.credentials.authToken, this.state.password);
         } else {
             Session.setPassword(this.state.password, validateCode, accountID);
         }
     }
 
     render() {
-        const buttonText = this.props.userSignUp.isValidating ? this.props.translate('setPasswordPage.verifyingAccount') : this.props.translate('setPasswordPage.setPassword');
+        const buttonText = !this.props.account.validated ? this.props.translate('setPasswordPage.validateAccount') : this.props.translate('setPasswordPage.setPassword');
         const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
         const error = sessionError || this.props.account.error;
         return (
@@ -122,17 +109,18 @@ class SetPasswordPage extends Component {
                     welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
                 >
                     <View style={[styles.mb4]}>
+                        {/* The prop onSubmitEditing is required, but it needs to stay as a no-op because the form is submitted and validated from the button below */}
                         <NewPasswordForm
+                            onSubmitEditing={() => {}}
                             password={this.state.password}
                             updatePassword={password => this.setState({password})}
                             updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                            onSubmitEditing={this.validateAndSubmitForm}
                         />
                     </View>
                     <View>
                         <FormAlertWithSubmitButton
                             buttonText={buttonText}
-                            isLoading={this.props.account.loading || this.props.userSignUp.isValidatingEmail}
+                            isLoading={this.props.account.isLoading}
                             onSubmit={this.validateAndSubmitForm}
                             containerStyles={[styles.mb2, styles.mh0]}
                             message={error}
@@ -158,6 +146,5 @@ export default compose(
             key: ONYXKEYS.SESSION,
             initWithStoredValues: false,
         },
-        userSignUp: {key: ONYXKEYS.USER_SIGN_UP},
     }),
 )(SetPasswordPage);

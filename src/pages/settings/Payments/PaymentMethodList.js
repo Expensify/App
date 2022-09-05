@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -14,7 +15,12 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
+import Log from '../../../libs/Log';
 
 const MENU_ITEM = 'menuItem';
 const BUTTON = 'button';
@@ -30,16 +36,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc */
-        cardName: PropTypes.string,
-
-        /** The masked credit card number */
-        cardNumber: PropTypes.string,
-
-        /** The ID of the card in the cards DB */
-        cardID: PropTypes.number,
-    })),
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
@@ -115,8 +112,8 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     getFilteredPaymentMethods() {
-        // Hide the billing card from the payments menu for now because you can't make it your default method, or delete it
-        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
+        // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
+        const filteredCardList = _.filter(this.props.cardList, card => card.additionalData.isP2PDebitCard);
 
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 
@@ -159,8 +156,8 @@ class PaymentMethodList extends Component {
             type: BUTTON,
             text: this.props.translate('paymentMethodList.addPaymentMethod'),
             icon: Expensicons.CreditCard,
-            style: [styles.mh4],
-            iconStyles: [styles.mr4],
+            style: [styles.buttonCTA],
+            iconStyles: [styles.buttonCTAIcon],
             onPress: e => this.props.onPress(e),
             isDisabled: this.props.isLoadingPayments,
             shouldShowRightIcon: true,
@@ -169,6 +166,26 @@ class PaymentMethodList extends Component {
         });
 
         return combinedPaymentMethods;
+    }
+
+    /**
+     * Dismisses the error on the payment method
+     * @param {Object} item
+     */
+    dismissError(item) {
+        const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
+        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
+
+        if (!paymentID) {
+            Log.info('Unable to clear payment method error: ', item);
+            return;
+        }
+
+        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
+        } else {
+            PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
+        }
     }
 
     /**
@@ -192,35 +209,46 @@ class PaymentMethodList extends Component {
     renderItem({item}) {
         if (item.type === MENU_ITEM) {
             return (
-                <MenuItem
-                    onPress={item.onPress}
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    disabled={item.disabled}
-                    iconFill={item.iconFill}
-                    iconHeight={item.iconSize}
-                    iconWidth={item.iconSize}
-                    badgeText={this.getDefaultBadgeText(item.isDefault)}
-                    wrapperStyle={item.wrapperStyle}
-                    shouldShowSelectedState={this.props.shouldShowSelectedState}
-                    isSelected={this.props.selectedMethodID === item.methodID}
-                />
+                <OfflineWithFeedback
+                    onClose={() => this.dismissError(item)}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    errorRowStyles={styles.ph6}
+                >
+                    <MenuItem
+                        onPress={item.onPress}
+                        title={item.title}
+                        description={item.description}
+                        icon={item.icon}
+                        disabled={item.disabled}
+                        iconFill={item.iconFill}
+                        iconHeight={item.iconSize}
+                        iconWidth={item.iconSize}
+                        badgeText={this.getDefaultBadgeText(item.isDefault)}
+                        wrapperStyle={item.wrapperStyle}
+                        shouldShowSelectedState={this.props.shouldShowSelectedState}
+                        isSelected={this.props.selectedMethodID === item.methodID}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (item.type === BUTTON) {
             return (
-                <Button
-                    text={item.text}
-                    icon={item.icon}
-                    onPress={item.onPress}
-                    isDisabled={item.isDisabled}
-                    style={item.style}
-                    iconStyles={item.iconStyles}
-                    success={item.success}
-                    shouldShowRightIcon={item.shouldShowRightIcon}
-                    extraLarge
-                />
+                <FormAlertWrapper>
+                    {isOffline => (
+                        <Button
+                            text={item.text}
+                            icon={item.icon}
+                            onPress={item.onPress}
+                            isDisabled={item.isDisabled || isOffline}
+                            style={item.style}
+                            iconStyles={item.iconStyles}
+                            success={item.success}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            large
+                        />
+                    )}
+                </FormAlertWrapper>
             );
         }
 

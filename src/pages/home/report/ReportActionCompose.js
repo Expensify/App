@@ -5,7 +5,6 @@ import {
     TouchableOpacity,
     InteractionManager,
 } from 'react-native';
-import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -35,8 +34,8 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import DateUtils from '../../../libs/DateUtils';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -45,6 +44,7 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** Beta features list */
@@ -96,14 +96,9 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Primary login of the user */
-        login: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -113,7 +108,7 @@ const defaultProps = {
     reportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
-    myPersonalDetails: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class ReportActionCompose extends React.Component {
@@ -129,12 +124,14 @@ class ReportActionCompose extends React.Component {
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.comment = props.comment;
-        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.addAttachment = this.addAttachment.bind(this);
+
+        this.comment = props.comment;
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -263,7 +260,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Array<object>}
      */
     getIOUOptions(reportParticipants) {
-        const participants = _.filter(reportParticipants, email => this.props.myPersonalDetails.login !== email);
+        const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
         const iouOptions = [];
@@ -395,8 +392,6 @@ class ReportActionCompose extends React.Component {
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
-
-        this.textInput.scrollTop = this.textInput.scrollHeight;
     }
 
     /**
@@ -432,6 +427,36 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * @returns {String}
+     */
+    prepareCommentAndResetComposer() {
+        const trimmedComment = this.comment.trim();
+
+        // Don't submit empty comments or comments that exceed the character limit
+        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+            return '';
+        }
+
+        this.updateComment('');
+        this.setTextInputShouldClear(true);
+        if (this.props.isComposerFullSize) {
+            Report.setIsComposerFullSize(this.props.reportID, false);
+        }
+        this.setState({isFullComposerAvailable: false});
+
+        return trimmedComment;
+    }
+
+    /**
+     * @param {Object} file
+     */
+    addAttachment(file) {
+        const comment = this.prepareCommentAndResetComposer();
+        Report.addAttachment(this.props.reportID, file, comment);
+        this.setTextInputShouldClear(false);
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -441,25 +466,12 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        const trimmedComment = this.comment.trim();
-
-        // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        const comment = this.prepareCommentAndResetComposer();
+        if (!comment) {
             return;
         }
 
-        DateUtils.throttledUpdateTimezone();
-
-        this.props.onSubmit(trimmedComment);
-        this.updateComment('');
-        this.setTextInputShouldClear(true);
-        if (this.props.isComposerFullSize) {
-            Report.setIsComposerFullSize(this.props.reportID, false);
-        }
-        this.setState({isFullComposerAvailable: false});
-
-        // Important to reset the selection on Submit action
-        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
+        this.props.onSubmit(comment);
     }
 
     render() {
@@ -468,8 +480,9 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        const reportParticipants = lodashGet(this.props.report, 'participants', []);
-        const reportRecipient = this.props.personalDetails[reportParticipants[0]];
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
+        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
             && !this.props.isComposerFullSize;
@@ -481,7 +494,11 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <View style={[
+                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+                this.props.isComposerFullSize && styles.chatItemFullComposeRow,
+            ]}
+            >
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -496,11 +513,7 @@ class ReportActionCompose extends React.Component {
                 >
                     <AttachmentModal
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
-                        onConfirm={(file) => {
-                            this.submitForm();
-                            Report.addAction(this.props.reportID, '', file);
-                            this.setTextInputShouldClear(false);
-                        }}
+                        onConfirm={this.addAttachment}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -568,9 +581,7 @@ class ReportActionCompose extends React.Component {
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
-                                                                onPicked: (file) => {
-                                                                    displayFileInModal({file});
-                                                                },
+                                                                onPicked: displayFileInModal,
                                                             });
                                                         },
                                                     },
@@ -612,7 +623,7 @@ class ReportActionCompose extends React.Component {
                                                 return;
                                             }
 
-                                            displayFileInModal({file});
+                                            displayFileInModal(file);
                                             this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
@@ -620,7 +631,7 @@ class ReportActionCompose extends React.Component {
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={file => displayFileInModal({file})}
+                                        onPasteFile={displayFileInModal}
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
@@ -664,8 +675,8 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <OfflineIndicator />
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, !this.props.isSmallScreenWidth && styles.chatItemComposeSecondaryRow]}>
+                    {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
@@ -682,7 +693,9 @@ export default compose(
     withDrawerState,
     withNavigationFocus,
     withLocalize,
+    withNetwork(),
     withPersonalDetails(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -695,9 +708,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionCompose);

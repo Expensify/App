@@ -1,12 +1,7 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
-import * as DeprecatedAPI from '../deprecatedAPI';
-import * as Plaid from './Plaid';
-import * as ReimbursementAccount from './ReimbursementAccount';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as PaymentMethods from './PaymentMethods';
-import Growl from '../Growl';
 import * as Localize from '../Localize';
 
 export {
@@ -16,6 +11,7 @@ export {
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
+    resetReimbursementAccount,
     resetFreePlanBankAccount,
     validateBankAccount,
     hideBankAccountErrors,
@@ -26,98 +22,101 @@ export {
     cancelResetFreePlanBankAccount,
 } from './ReimbursementAccount';
 export {
-    fetchPlaidBankAccounts,
-    clearPlaidBankAccountsAndToken,
-    fetchPlaidLinkToken,
-    getPlaidBankAccounts,
-    getBankName,
-    getPlaidAccessToken,
+    openPlaidBankAccountSelector,
+    openPlaidBankLogin,
 } from './Plaid';
 export {
-    fetchOnfidoToken,
+    openOnfidoFlow,
     activateWallet,
-    fetchUserWallet,
+    verifyIdentity,
+    acceptWalletTerms,
 } from './Wallet';
+
+function clearPersonalBankAccount() {
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+}
+
+function clearPlaid() {
+    Onyx.set(ONYXKEYS.PLAID_DATA, {});
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+}
 
 /**
  * Adds a bank account via Plaid
  *
  * @param {Object} account
  * @param {String} password
- * @param {String} plaidLinkToken
+ * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account, password, plaidLinkToken) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
-    const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
-        bankAccount.plaidAccountID === account.plaidAccountID
-    ));
-    DeprecatedAPI.BankAccount_Create({
-        accountNumber: unmaskedAccount.accountNumber,
-        addressName: unmaskedAccount.addressName,
-        allowDebit: false,
-        confirm: false,
-        isSavings: unmaskedAccount.isSavings,
-        password,
-        routingNumber: unmaskedAccount.routingNumber,
-        setupType: 'plaid',
-        additionalData: JSON.stringify({
-            useOnFido: false,
-            policyID: '',
-            plaidLinkToken,
-            isInSetup: true,
-            bankAccountInReview: null,
-            currentStep: 'AccountOwnerInformationStep',
-            bankName: Plaid.getBankName(),
-            plaidAccountID: unmaskedAccount.plaidAccountID,
-            ownershipType: '',
-            acceptTerms: true,
-            country: 'US',
-            currency: CONST.CURRENCY.USD,
-            fieldsType: 'local',
-            plaidAccessToken: Plaid.getPlaidAccessToken(),
-        }),
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                PaymentMethods.getPaymentMethods()
-                    .then(() => {
-                        PaymentMethods.continueSetup();
-                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-                    });
-                return;
-            }
+function addPersonalBankAccount(account, password) {
+    const commandName = 'AddPersonalBankAccount';
 
-            if (response.message === 'Incorrect Expensify password entered') {
-                ReimbursementAccount.setBankAccountFormValidationErrors({password: true});
-            }
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-        })
-        .catch(() => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-        });
+    const parameters = {
+        addressName: account.addressName,
+        routingNumber: account.routingNumber,
+        accountNumber: account.accountNumber,
+        isSavings: account.isSavings,
+        setupType: 'plaid',
+        bank: account.bankName,
+        plaidAccountID: account.plaidAccountID,
+        plaidAccessToken: account.plaidAccessToken,
+        password,
+    };
+
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    loading: true,
+                    error: '',
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    loading: false,
+                    error: '',
+                    shouldShowSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    loading: false,
+                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                },
+            },
+        ],
+    };
+
+    API.write(commandName, parameters, onyxData);
 }
 
-/**
- * Deletes a bank account
- *
- * @param {Number} bankAccountID
- */
-function deleteBankAccount(bankAccountID) {
-    DeprecatedAPI.DeleteBankAccount({
+function deletePaymentBankAccount(bankAccountID) {
+    API.write('DeletePaymentBankAccount', {
         bankAccountID,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            ReimbursementAccount.deleteFromBankAccountList(bankAccountID);
-            Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
-        } else {
-            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-        }
-    }).catch(() => {
-        Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
     });
 }
 
 export {
     addPersonalBankAccount,
-    deleteBankAccount,
+    deletePaymentBankAccount,
+    clearPersonalBankAccount,
+    clearPlaid,
 };

@@ -42,15 +42,9 @@ const propTypes = {
 
         /** Selected Currency Code of the current IOU */
         selectedCurrencyCode: PropTypes.string,
-    }),
+    }).isRequired,
 
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    },
 };
 
 class IOUAmountPage extends React.Component {
@@ -62,9 +56,14 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.shouldUpdateSelection = true;
 
         this.state = {
             amount: props.selectedAmount,
+            selection: {
+                start: props.selectedAmount.length,
+                end: props.selectedAmount.length,
+            },
         };
     }
 
@@ -78,6 +77,19 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
+    }
+
+    /**
+     * Returns the new selection object based on the updated amount's length
+     *
+     * @param {Object} oldSelection
+     * @param {Number} prevLength
+     * @param {Number} newLength
+     * @returns {Object}
+     */
+    getNewSelection(oldSelection, prevLength, newLength) {
+        const cursorPosition = oldSelection.end + (newLength - prevLength);
+        return {start: cursorPosition, end: cursorPosition};
     }
 
     /**
@@ -134,6 +146,16 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Adds a leading zero to the amount if user entered just the decimal separator
+     *
+     * @param {String} amount - Changed amount from user input
+     * @returns {String}
+     */
+    addLeadingZero(amount) {
+        return amount === '.' ? '0.' : amount;
+    }
+
+    /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
@@ -143,16 +165,26 @@ class IOUAmountPage extends React.Component {
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
-                this.setState(prevState => ({
-                    amount: prevState.amount.slice(0, -1),
-                }));
+                this.setState((prevState) => {
+                    const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
+                    const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
+                    if (!this.validateAmount(amount)) {
+                        return prevState;
+                    }
+                    const selection = this.getNewSelection(prevState.selection, prevState.amount.length, amount.length);
+                    return {amount, selection};
+                });
             }
             return;
         }
 
         this.setState((prevState) => {
-            const amount = `${prevState.amount}${key}`;
-            return this.validateAmount(amount) ? {amount: this.stripCommaFromAmount(amount)} : prevState;
+            const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
+            if (!this.validateAmount(amount)) {
+                return prevState;
+            }
+            const selection = this.getNewSelection(prevState.selection, prevState.amount.length, amount.length);
+            return {amount: this.stripCommaFromAmount(amount), selection};
         });
     }
 
@@ -164,7 +196,7 @@ class IOUAmountPage extends React.Component {
      */
     updateAmount(text) {
         this.setState((prevState) => {
-            const amount = this.replaceAllDigits(text, this.props.fromLocaleDigit);
+            const amount = this.addLeadingZero(this.replaceAllDigits(text, this.props.fromLocaleDigit));
             return this.validateAmount(amount)
                 ? {amount: this.stripCommaFromAmount(amount)}
                 : prevState;
@@ -222,7 +254,14 @@ class IOUAmountPage extends React.Component {
                         placeholder={this.props.numberFormat(0)}
                         preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
+                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
+                        selection={this.state.selection}
+                        onSelectionChange={(e) => {
+                            if (!this.shouldUpdateSelection) {
+                                return;
+                            }
+                            this.setState({selection: e.nativeEvent.selection});
+                        }}
                     />
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
@@ -230,6 +269,7 @@ class IOUAmountPage extends React.Component {
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
+                                longPressHandlerStateChanged={state => this.shouldUpdateSelection = !state}
                             />
                         ) : <View />}
 
@@ -248,7 +288,6 @@ class IOUAmountPage extends React.Component {
 }
 
 IOUAmountPage.propTypes = propTypes;
-IOUAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

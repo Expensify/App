@@ -4,7 +4,6 @@ export default {
     componentSizeNormal: 40,
     inputComponentSizeNormal: 42,
     componentSizeLarge: 52,
-    componentSizeExtraLarge: 64,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusNormal: 8,
@@ -49,4 +48,9 @@ export default {
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
     minHeightToShowGraphics: 854, // Login form layout breaks below this height due to insufficient space to show the form and graphics
+    optionRowHeight: 64,
+    optionRowHeightCompact: 52,
+    optionsListSectionHeaderHeight: 54,
+    sliderBarHeight: 8,
+    sliderKnobSize: 26,
 };

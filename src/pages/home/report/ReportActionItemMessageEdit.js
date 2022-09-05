@@ -16,10 +16,8 @@ import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -43,11 +41,8 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    // The NVP describing a user's block status
-    blockedFromConcierge: PropTypes.shape({
-        // The date that the user will be unblocked
-        expiresAt: PropTypes.string,
-    }),
+    // Whether or not the emoji picker is disabled
+    shouldDisableEmojiPicker: PropTypes.bool,
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -59,7 +54,7 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     report: {},
-    blockedFromConcierge: {},
+    shouldDisableEmojiPicker: false,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -180,20 +175,19 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
-        if (e && e.key === 'Enter' && !e.shiftKey) {
+        if (!e || VirtualKeyboard.shouldAssumeIsOpen()) {
+            return;
+        }
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
-        } else if (e && e.key === 'Escape') {
+        } else if (e.key === 'Escape') {
             e.preventDefault();
             this.deleteDraft();
         }
     }
 
     render() {
-        const shouldDisableEmojiPicker = (ReportUtils.chatIncludesConcierge(this.props.report)
-                                            && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
-                                            || ReportUtils.isArchivedRoom(this.props.report);
-
         return (
             <View style={styles.chatItemMessage}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
@@ -205,9 +199,9 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
-                        defaultValue={this.state.draft}
+                        value={this.state.draft}
                         maxLines={16} // This is the same that slack has
-                        style={[styles.textInputCompose, styles.flex4]}
+                        style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
@@ -225,7 +219,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
-                            isDisabled={shouldDisableEmojiPicker}
+                            isDisabled={this.props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />

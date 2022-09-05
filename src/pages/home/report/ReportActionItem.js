@@ -24,8 +24,15 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import InlineSystemMessage from '../../../components/InlineSystemMessage';
+import styles from '../../../styles/styles';
+import SelectionScraper from '../../../libs/SelectionScraper';
+import * as User from '../../../libs/actions/User';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReportActions from '../../../libs/actions/ReportActions';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -94,13 +101,13 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
      */
-    showPopover(event, selection) {
+    showPopover(event) {
         // Block menu on the message being Edited
         if (this.props.draftMessage) {
             return;
         }
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -137,16 +144,20 @@ class ReportActionItem extends Component {
             );
         } else {
             children = !this.props.draftMessage
-                ? <ReportActionItemMessage action={this.props.action} />
-                : (
+                ? (
+                    <ReportActionItemMessage action={this.props.action} />
+                ) : (
                     <ReportActionItemMessageEdit
-                            action={this.props.action}
-                            draftMessage={this.props.draftMessage}
-                            reportID={this.props.reportID}
-                            index={this.props.index}
-                            ref={el => this.textInput = el}
-                            report={this.props.report}
-                            blockedFromConcierge={this.props.blockedFromConcierge}
+                        action={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        reportID={this.props.reportID}
+                        index={this.props.index}
+                        ref={el => this.textInput = el}
+                        report={this.props.report}
+                        shouldDisableEmojiPicker={
+                            (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                            || ReportUtils.isArchivedRoom(this.props.report)
+                        }
                     />
                 );
         }
@@ -173,20 +184,33 @@ class ReportActionItem extends Component {
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
-                                    this.props.action.isPending || this.props.action.error,
+                                    (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
-                                {!this.props.displayAsGroup
-                                    ? (
-                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                            {children}
-                                        </ReportActionItemSingle>
-                                    )
-                                    : (
-                                        <ReportActionItemGrouped>
-                                            {children}
-                                        </ReportActionItemGrouped>
-                                    )}
+                                <OfflineWithFeedback
+                                    onClose={() => {
+                                        if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber);
+                                        } else {
+                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
+                                        }
+                                    }}
+                                    pendingAction={this.props.action.pendingAction}
+                                    errors={this.props.action.errors}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    {!this.props.displayAsGroup
+                                        ? (
+                                            <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
+                                                {children}
+                                            </ReportActionItemSingle>
+                                        )
+                                        : (
+                                            <ReportActionItemGrouped>
+                                                {children}
+                                            </ReportActionItemGrouped>
+                                        )}
+                                </OfflineWithFeedback>
                             </View>
                             <MiniReportActionContextMenu
                                 reportID={this.props.reportID}
@@ -202,6 +226,9 @@ class ReportActionItem extends Component {
                         </View>
                     )}
                 </Hoverable>
+                <View style={styles.reportActionSystemMessageContainer}>
+                    <InlineSystemMessage message={this.props.action.error} />
+                </View>
             </PressableWithSecondaryInteraction>
         );
     }
@@ -211,6 +238,7 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withNetwork(),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {

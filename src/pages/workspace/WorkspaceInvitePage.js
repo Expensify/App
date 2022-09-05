@@ -13,7 +13,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import TextInput from '../../components/TextInput';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
@@ -68,12 +67,10 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            [],
+        } = OptionsListUtils.getMemberInviteOptions(
             props.personalDetails,
             props.betas,
             '',
-            [],
             this.getExcludedUsers(),
         );
         this.state = {
@@ -90,8 +87,8 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     getExcludedUsers() {
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...CONST.EXPENSIFY_EMAILS, ...policyEmployeeList];
+        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        return [...CONST.EXPENSIFY_EMAILS, ...policyMemberList];
     }
 
     /**
@@ -103,19 +100,6 @@ class WorkspaceInvitePage extends React.Component {
         return this.props.translate('workspace.invite.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
-    }
-
-    /**
-     * @returns {String}
-     */
-    getErrorText() {
-        const errors = lodashGet(this.props.policy, 'errors', {});
-
-        if (errors.noUserSelected) {
-            return this.props.translate('workspace.invite.pleaseSelectUser');
-        }
-
-        return '';
     }
 
     /**
@@ -192,12 +176,10 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = OptionsListUtils.getNewChatOptions(
-                [],
+            } = OptionsListUtils.getMemberInviteOptions(
                 this.props.personalDetails,
                 this.props.betas,
                 prevState.searchValue,
-                [],
                 this.getExcludedUsers(),
             );
 
@@ -248,7 +230,7 @@ class WorkspaceInvitePage extends React.Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <HeaderWithCloseButton
                             title={this.props.translate('workspace.invite.invitePeople')}
                             subtitle={policyName}
@@ -275,12 +257,10 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = OptionsListUtils.getNewChatOptions(
-                                            [],
+                                        } = OptionsListUtils.getMemberInviteOptions(
                                             this.props.personalDetails,
                                             this.props.betas,
                                             searchValue,
-                                            [],
                                             this.getExcludedUsers(),
                                         );
                                         this.setState({
@@ -289,8 +269,8 @@ class WorkspaceInvitePage extends React.Component {
                                             personalDetails,
                                         });
                                     }}
+                                    onConfirmSelection={this.inviteUser}
                                     headerMessage={headerMessage}
-                                    disableArrowKeysActions
                                     hideSectionHeaders
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
@@ -341,7 +321,7 @@ class WorkspaceInvitePage extends React.Component {
                                 )}
                             </Pressable>
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );

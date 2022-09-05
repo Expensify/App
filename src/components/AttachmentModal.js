@@ -1,13 +1,15 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Animated} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import _ from 'lodash';
+import lodashExtend from 'lodash/extend';
+import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
@@ -71,15 +73,20 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
-            isConfirmModalOpen: false,
+            isAttachmentInvalid: false,
+            attachmentInvalidReasonTitle: null,
+            attachmentInvalidReason: null,
             file: null,
             sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
+            isConfirmButtonDisabled: false,
+            confirmButtonFadeAnimation: new Animated.Value(1),
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
-        this.isValidSize = this.isValidSize.bind(this);
+        this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
+        this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
 
     /**
@@ -89,22 +96,30 @@ class AttachmentModal extends PureComponent {
      * @returns {String}
      */
     getModalType(sourceUrl, file) {
-        const modalType = (sourceUrl
-            && (Str.isPDF(sourceUrl) || (file && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename')))))
+        return (
+            sourceUrl
+            && (
+                Str.isPDF(sourceUrl)
+                || (
+                    file
+                    && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))
+                )
+            )
+        )
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
-        return modalType;
     }
 
     /**
      * Returns the filename split into fileName and fileExtension
+     *
+     * @param {String} fullFileName
      * @returns {Object}
      */
-    splitExtensionFromFileName() {
-        const fullFileName = this.props.originalFileName ? this.props.originalFileName.trim() : lodashGet(this.state, 'file.name', '').trim();
-        const splittedFileName = fullFileName.split('.');
-        const fileExtension = splittedFileName.pop();
-        const fileName = splittedFileName.join('.');
+    splitExtensionFromFileName(fullFileName) {
+        const fileName = fullFileName.trim();
+        const splitFileName = fileName.split('.');
+        const fileExtension = splitFileName.pop();
         return {fileName, fileExtension};
     }
 
@@ -112,13 +127,14 @@ class AttachmentModal extends PureComponent {
      * Execute the onConfirm callback and close the modal.
      */
     submitAndClose() {
-        // If the modal has already been closed, don't allow another submission
-        if (!this.state.isModalOpen) {
+        // If the modal has already been closed or the confirm button is disabled
+        // do not submit.
+        if (!this.state.isModalOpen || this.state.isConfirmButtonDisabled) {
             return;
         }
 
         if (this.props.onConfirm) {
-            this.props.onConfirm(_.extend(this.state.file, {source: this.state.sourceURL}));
+            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.sourceURL}));
         }
 
         this.setState({isModalOpen: false});
@@ -128,16 +144,89 @@ class AttachmentModal extends PureComponent {
      * Close the confirm modal.
      */
     closeConfirmModal() {
-        this.setState({isConfirmModalOpen: false});
+        this.setState({isAttachmentInvalid: false});
     }
 
     /**
-     * Check if the attachment size is less than the API size limit.
      * @param {Object} file
      * @returns {Boolean}
      */
-    isValidSize(file) {
-        return !file || lodashGet(file, 'size', 0) < CONST.API_MAX_ATTACHMENT_SIZE;
+    isValidFile(file) {
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooLarge'),
+                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeExceeded'),
+            });
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
+                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
+            });
+            return false;
+        }
+
+        const {fileExtension} = this.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReason: invalidReason,
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {Object} file
+     */
+    validateAndDisplayFileToUpload(file) {
+        if (!file) {
+            return;
+        }
+
+        if (!this.isValidFile(file)) {
+            return;
+        }
+
+        if (file instanceof File) {
+            const source = URL.createObjectURL(file);
+            const modalType = this.getModalType(source, file);
+            this.setState({
+                isModalOpen: true, sourceURL: source, file, modalType,
+            });
+        } else {
+            const modalType = this.getModalType(file.uri, file);
+            this.setState({
+                isModalOpen: true, sourceURL: file.uri, file, modalType,
+            });
+        }
+    }
+
+    /**
+     * In order to gracefully hide/show the confirm button when the keyboard
+     * opens/closes, apply an animation to fade the confirm button out/in. And since
+     * we're only updating the opacity of the confirm button, we must also conditionally
+     * disable it.
+     *
+     * @param {Boolean} shouldFadeOut If true, fade out confirm button. Otherwise fade in.
+     */
+    updateConfirmButtonVisibility(shouldFadeOut) {
+        this.setState({isConfirmButtonDisabled: shouldFadeOut});
+        const toValue = shouldFadeOut ? 0 : 1;
+
+        Animated.timing(this.state.confirmButtonFadeAnimation, {
+            toValue,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
     }
 
     render() {
@@ -145,11 +234,16 @@ class AttachmentModal extends PureComponent {
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
 
+        // When the confirm button is visible we don't need bottom padding on the attachment view.
+        const attachmentViewPaddingStyles = this.props.onConfirm
+            ? [styles.pl5, styles.pr5, styles.pt5]
+            : styles.p5;
+
         const attachmentViewStyles = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth
             ? [styles.imageModalImageCenterContainer]
-            : [styles.imageModalImageCenterContainer, styles.p5];
+            : [styles.imageModalImageCenterContainer, attachmentViewPaddingStyles];
 
-        const {fileName, fileExtension} = this.splitExtensionFromFileName();
+        const {fileName, fileExtension} = this.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
         return (
             <>
@@ -181,50 +275,42 @@ class AttachmentModal extends PureComponent {
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
-                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
+                            <AttachmentView
+                                sourceURL={sourceURL}
+                                file={this.state.file}
+                                onToggleKeyboard={this.updateConfirmButtonVisibility}
+                            />
                         )}
                     </View>
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <Button
-                            success
-                            style={[styles.buttonConfirm]}
-                            textStyles={[styles.buttonConfirmText]}
-                            text={this.props.translate('common.send')}
-                            onPress={this.submitAndClose}
-                            pressOnEnter
-                        />
+                        <Animated.View style={StyleUtils.fade(this.state.confirmButtonFadeAnimation)}>
+                            <Button
+                                success
+                                style={[styles.buttonConfirm]}
+                                textStyles={[styles.buttonConfirmText]}
+                                text={this.props.translate('common.send')}
+                                onPress={this.submitAndClose}
+                                disabled={this.state.isConfirmButtonDisabled}
+                                pressOnEnter
+                            />
+                        </Animated.View>
                     )}
                 </Modal>
+
                 <ConfirmModal
-                    title={this.props.translate('attachmentPicker.attachmentTooLarge')}
+                    title={this.state.attachmentInvalidReasonTitle}
                     onConfirm={this.closeConfirmModal}
                     onCancel={this.closeConfirmModal}
-                    isVisible={this.state.isConfirmModalOpen}
-                    prompt={this.props.translate('attachmentPicker.sizeExceeded')}
+                    isVisible={this.state.isAttachmentInvalid}
+                    prompt={this.state.attachmentInvalidReason}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
+
                 {this.props.children({
-                    displayFileInModal: ({file}) => {
-                        if (!this.isValidSize(file)) {
-                            this.setState({isConfirmModalOpen: true});
-                            return;
-                        }
-                        if (file instanceof File) {
-                            const source = URL.createObjectURL(file);
-                            const modalType = this.getModalType(source, file);
-                            this.setState({
-                                isModalOpen: true, sourceURL: source, file, modalType,
-                            });
-                        } else {
-                            const modalType = this.getModalType(file.uri, file);
-                            this.setState({
-                                isModalOpen: true, sourceURL: file.uri, file, modalType,
-                            });
-                        }
-                    },
+                    displayFileInModal: this.validateAndDisplayFileToUpload,
                     show: () => {
                         this.setState({isModalOpen: true});
                     },

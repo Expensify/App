@@ -67,7 +67,7 @@ class EmojiSkinToneList extends Component {
                             ]}
                         >
                             <View style={[styles.emojiItem, styles.justifyContentCenter]}>
-                                <Text style={[styles.emojiText, styles.ph2]}>
+                                <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>
                                     {selectedEmoji.code}
                                 </Text>
                             </View>

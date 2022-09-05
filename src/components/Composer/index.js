@@ -108,6 +108,8 @@ const IMAGE_EXTENSIONS = {
     'image/webp': 'webp',
 };
 
+const COPY_DROP_EFFECT = 'copy';
+
 /**
  * Enable Markdown parsing.
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -197,13 +199,15 @@ class Composer extends React.Component {
     dragNDropListener(e) {
         let isOriginComposer = false;
         const handler = () => {
+            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
             switch (e.type) {
                 case 'dragover':
                     e.preventDefault();
+                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragOver(e, isOriginComposer);
                     break;
                 case 'dragenter':
-                    e.dataTransfer.dropEffect = 'copy';
+                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragEnter(e, isOriginComposer);
                     break;
                 case 'dragleave':
@@ -239,6 +243,10 @@ class Composer extends React.Component {
         try {
             document.execCommand('insertText', false, markdownText);
             this.updateNumberOfLines();
+
+            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
+            this.textInput.blur();
+            this.textInput.focus();
         // eslint-disable-next-line no-empty
         } catch (e) {}
     }
