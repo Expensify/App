@@ -98,13 +98,13 @@ class WorkspaceReimburseView extends React.Component {
                 .values()
                 .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
                 .value();
-
+            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'onyxRates', {}), rate => rate.name === 'Default Rate');
             this.setState({
                 unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
                 unitName: lodashGet(distanceCustomUnit, 'name', ''),
                 unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-                unitRateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
-                rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
+                unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
+                rateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
             });
         }
 
