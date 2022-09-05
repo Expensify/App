@@ -20,7 +20,7 @@ import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '../../libs/ErrorUtils';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -213,4 +213,5 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
     }),
     withToggleVisibilityView,
+    withNetwork(),
 )(PasswordForm);
