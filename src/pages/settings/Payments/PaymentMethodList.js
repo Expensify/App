@@ -156,8 +156,8 @@ class PaymentMethodList extends Component {
             type: BUTTON,
             text: this.props.translate('paymentMethodList.addPaymentMethod'),
             icon: Expensicons.CreditCard,
-            style: [styles.mh4],
-            iconStyles: [styles.mr4],
+            style: [styles.buttonCTA],
+            iconStyles: [styles.buttonCTAIcon],
             onPress: e => this.props.onPress(e),
             isDisabled: this.props.isLoadingPayments,
             shouldShowRightIcon: true,
@@ -245,7 +245,7 @@ class PaymentMethodList extends Component {
                             iconStyles={item.iconStyles}
                             success={item.success}
                             shouldShowRightIcon={item.shouldShowRightIcon}
-                            extraLarge
+                            large
                         />
                     )}
                 </FormAlertWrapper>

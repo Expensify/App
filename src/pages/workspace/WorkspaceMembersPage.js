@@ -30,6 +30,7 @@ import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -47,6 +48,7 @@ const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...networkPropTypes,
 };
 
 const defaultProps = fullPolicyDefaultProps;
@@ -70,8 +72,8 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidMount() {
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembersPage(this.props.policy.id, clientPolicyMembers);
+        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
     componentDidUpdate(prevProps) {
@@ -80,8 +82,8 @@ class WorkspaceMembersPage extends React.Component {
             return;
         }
 
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembersPage(this.props.policy.id, clientPolicyMembers);
+        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
     /**
@@ -236,10 +238,10 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <OfflineWithFeedback onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
+            <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
-                        style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
+                        style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
                         onPress={() => this.toggleUser(item.login)}
                         activeOpacity={0.7}
                     >

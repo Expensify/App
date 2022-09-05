@@ -202,7 +202,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
+    newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -521,7 +521,7 @@ export default {
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
-        validatingAccount: 'Verifying account',
+        validateAccount: 'Verify account',
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
