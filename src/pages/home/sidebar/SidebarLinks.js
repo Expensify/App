@@ -46,9 +46,6 @@ const propTypes = {
         /** Name of the report */
         reportName: PropTypes.string,
 
-        /** Number of unread actions on the report */
-        unreadActionCount: PropTypes.number,
-
         /** Whether the report has a draft comment */
         hasDraft: PropTypes.bool,
     })),

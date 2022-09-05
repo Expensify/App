@@ -273,6 +273,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
+        result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
@@ -485,10 +486,11 @@ function getOptions(reports, personalDetails, activeReportID, {
                 // not give archived rooms this exception since they do not need to be higlihted.
                 && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
 
-        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID.toString() !== activeReportID.toString()
-            && !report.isPinned
+
+        if (report.reportID !== activeReportID
+            && (!report.isPinned || isDefaultRoom)
             && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
@@ -575,8 +577,10 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
 
             // If the report is pinned and we are using the option to display pinned reports on top then we need to
-            // collect the pinned reports so we can sort them alphabetically once they are collected
-            if (prioritizePinnedReports && reportOption.isPinned) {
+            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
+            // default archived rooms.
+            if (prioritizePinnedReports && reportOption.isPinned
+                && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
                 pinnedReportOptions.push(reportOption);
             } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
                 iouDebtReportOptions.push(reportOption);
@@ -880,7 +884,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
     const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.searchText)));
+        isSearchStringMatch(searchValue, currencyOption.text)));
 
     return {
         // returns filtered options i.e. options with string match if search text is entered

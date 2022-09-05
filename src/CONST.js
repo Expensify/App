@@ -670,6 +670,10 @@ const CONST = {
         ROOM_PREFIX: '#',
     },
 
+    CUSTOM_UNITS: {
+        NAME_DISTANCE: 'Distance',
+    },
+
     TERMS: {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
