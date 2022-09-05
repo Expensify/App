@@ -105,7 +105,7 @@
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-screens": "^3.10.1",
-    "react-native-svg": "^12.1.0",
+    "react-native-svg": "^13.1.0",
     "react-native-webview": "^11.17.2",
     "react-pdf": "5.7.2",
     "react-plaid-link": "3.3.2",
