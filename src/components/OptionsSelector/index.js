@@ -11,4 +11,4 @@ const OptionsSelector = forwardRef((props, ref) => (
 
 OptionsSelector.displayName = 'OptionsSelector';
 
-export default withLocalize(OptionsSelector);
+export default OptionsSelector;
