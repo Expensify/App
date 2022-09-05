@@ -125,13 +125,13 @@ function createIOUTransaction(params) {
 }
 
 function requestMoney(params) {
-    const optimisticChatReport = Report.createOptimisticChatReport();
+    const chatReport = params.report ? params.report : Report.createOptimisticChatReport();
     const optimisticIOUReport = Report.createOptimisticChatReport();
     const optimisticReportAction = buildOptimisticIOUReportAction('create', params.amount, 'comment', '', '', optimisticIOUReport.reportID);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticChatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [params.reportActionID]: {
                     ...optimisticReportAction,
@@ -141,7 +141,7 @@ function requestMoney(params) {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticChatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: optimisticChatReport,
         },
         {
@@ -153,7 +153,7 @@ function requestMoney(params) {
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticChatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [params.reportActionID]: {
                     ...optimisticReportAction,
@@ -166,6 +166,7 @@ function requestMoney(params) {
         },
     ];
     API.write('RequestMoney', params, {optimisticData, failureData});
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
 /**
