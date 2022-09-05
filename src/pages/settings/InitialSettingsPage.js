@@ -173,7 +173,7 @@ class InitialSettingsPage extends React.Component {
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
-                pendingAction: policy.pendingAction ? policy.pendingAction : null,
+                pendingAction: policy.pendingAction,
                 isPolicy: true,
             }))
             .value();
