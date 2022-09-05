@@ -655,13 +655,13 @@ function createOptimisticWorkspaceChats(policyID, policyName) {
             message: [
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: "strong",
+                    style: 'strong',
                     text: announceChatData.ownerEmail,
                 },
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: "normal",
-                    text: " created this report",
+                    style: 'normal',
+                    text: ' created this report',
                 },
             ],
             person: [
@@ -675,9 +675,8 @@ function createOptimisticWorkspaceChats(policyID, policyName) {
             sequenceNumber: 0,
             avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
-        }
+        },
     };
 
     const adminsChatReportID = ReportUtils.generateReportID();
@@ -714,13 +713,13 @@ function createOptimisticWorkspaceChats(policyID, policyName) {
             message: [
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: "strong",
+                    style: 'strong',
                     text: adminsChatData.ownerEmail,
                 },
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: "normal",
-                    text: " created this report",
+                    style: 'normal',
+                    text: ' created this report',
                 },
             ],
             person: [
@@ -734,9 +733,8 @@ function createOptimisticWorkspaceChats(policyID, policyName) {
             sequenceNumber: 0,
             avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
-        }
+        },
     };
 
     const expenseChatReportID = ReportUtils.generateReportID();
@@ -772,13 +770,13 @@ function createOptimisticWorkspaceChats(policyID, policyName) {
             message: [
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: "strong",
-                    text: "You",
+                    style: 'strong',
+                    text: 'You',
                 },
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: "normal",
-                    text: " created this report",
+                    style: 'normal',
+                    text: ' created this report',
                 },
             ],
             person: [
@@ -792,9 +790,8 @@ function createOptimisticWorkspaceChats(policyID, policyName) {
             sequenceNumber: 0,
             avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
-        }
+        },
     };
 
     return {
