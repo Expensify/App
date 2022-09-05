@@ -47,36 +47,15 @@ const defaultProps = {
 class WorkspaceBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
-        this.onScreenFocus = this.onScreenFocus.bind(this);
         this.getShouldShowPage = this.getShouldShowPage.bind(this);
         this.navigateToBankAccountRoute = this.navigateToBankAccountRoute.bind(this);
     }
 
     componentDidMount() {
-        this.unsubscribe = this.props.navigation.addListener('focus', this.onScreenFocus);
-
-        if (!this.getShouldShowPage()) {
-            this.navigateToBankAccountRoute();
-        }
-    }
-
-    componentWillUnmount() {
-        if (!this.unsubscribe) {
-            return;
-        }
-
-        this.unsubscribe();
-    }
-
-    /**
-     * When we are returning to this screen we want to check if we should go back or show the alternate view with "Continue with setup" button.
-     */
-    onScreenFocus() {
         if (this.getShouldShowPage()) {
             return;
         }
-
-        this.props.navigation.goBack();
+        this.navigateToBankAccountRoute();
     }
 
     /**
@@ -122,10 +101,10 @@ class WorkspaceBankAccountPage extends React.Component {
                             text={this.props.translate('workspace.bankAccount.continueWithSetup')}
                             onPress={this.navigateToBankAccountRoute}
                             icon={Expensicons.Bank}
-                            style={[styles.mh3, styles.mt2]}
-                            iconStyles={[styles.mr5]}
+                            style={[styles.mt2, styles.buttonCTA]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
-                            extraLarge
+                            large
                             success
                         />
                         <MenuItem

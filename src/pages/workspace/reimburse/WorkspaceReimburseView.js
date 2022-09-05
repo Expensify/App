@@ -12,8 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
@@ -22,28 +20,40 @@ import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import {withNetwork} from '../../../components/OnyxProvider';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** The policy ID currently being configured */
     policyID: PropTypes.string.isRequired,
 
-    /** Does the user have a VBA in their account? */
-    hasVBA: PropTypes.bool.isRequired,
-
     /** Policy values needed in the component */
     policy: PropTypes.shape({
-        customUnit: PropTypes.shape({
-            id: PropTypes.string,
-            name: PropTypes.string,
-            value: PropTypes.string,
-            rate: PropTypes.shape({
-                id: PropTypes.string,
+        customUnits: PropTypes.objectOf(
+            PropTypes.shape({
+                customUnitID: PropTypes.string,
                 name: PropTypes.string,
-                value: PropTypes.number,
+                attributes: PropTypes.shape({
+                    unit: PropTypes.string,
+                }),
+                rates: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        customUnitRateID: PropTypes.string,
+                        name: PropTypes.string,
+                        rate: PropTypes.number,
+                    }),
+                ),
             }),
-        }),
+        ),
         outputCurrency: PropTypes.string,
+        hasVBA: PropTypes.bool,
     }).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -51,13 +61,15 @@ const propTypes = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
+        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+
         this.state = {
-            unitID: lodashGet(props, 'policy.customUnit.id', ''),
-            unitName: lodashGet(props, 'policy.customUnit.name', ''),
-            unitValue: lodashGet(props, 'policy.customUnit.value', 'mi'),
-            rateID: lodashGet(props, 'policy.customUnit.rate.id', ''),
-            rateName: lodashGet(props, 'policy.customUnit.rate.name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(props, 'policy.customUnit.rate.value', 0) / 100),
+            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+            unitName: lodashGet(distanceCustomUnit, 'name', ''),
+            unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+            rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+            rateName: lodashGet(distanceCustomUnit, 'rates[0].name', ''),
+            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -74,6 +86,35 @@ class WorkspaceReimburseView extends React.Component {
 
         this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
+    }
+
+    componentDidMount() {
+        Policy.openWorkspaceReimburseView(this.props.policyID);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
+            const distanceCustomUnit = _.chain(lodashGet(this.props, 'policy.customUnits', []))
+                .values()
+                .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
+                .value();
+
+            this.setState({
+                unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+                unitName: lodashGet(distanceCustomUnit, 'name', ''),
+                unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+                rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
+                rateName: lodashGet(distanceCustomUnit, 'rates[0].name', ''),
+                rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
+            });
+        }
+
+        const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!reconnecting) {
+            return;
+        }
+
+        Policy.openWorkspaceReimburseView(this.props.policyID);
     }
 
     getRateDisplayValue(value) {
@@ -97,13 +138,17 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     setUnit(value) {
-        this.setState({unitValue: value});
+        if (value === this.state.unitValue) {
+            return;
+        }
 
-        Policy.setCustomUnit(this.props.policyID, {
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, distanceCustomUnit, {
             customUnitID: this.state.unitID,
-            customUnitName: this.state.unitName,
+            name: this.state.unitName,
             attributes: {unit: value},
-        }, null);
+        });
     }
 
     debounceUpdateOnCursorMove(event) {
@@ -135,101 +180,109 @@ class WorkspaceReimburseView extends React.Component {
     render() {
         return (
             <>
-                <Section
-                    title={this.props.translate('workspace.reimburse.captureReceipts')}
-                    icon={Illustrations.ReceiptYellow}
-                    menuItems={[
-                        {
-                            title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                            onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
-                            icon: Expensicons.Receipt,
-                            shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
-                        },
-                    ]}
-                >
-                    <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
-                        <Text>
-                            {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
-                            <CopyTextToClipboard
-                                text="receipts@expensify.com"
-                                textStyles={[styles.textBlue]}
-                            />
-                            <Text>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
-                        </Text>
-                    </View>
-                </Section>
-
-                <Section
-                    title={this.props.translate('workspace.reimburse.trackDistance')}
-                    icon={Illustrations.GpsTrackOrange}
-                >
-                    <View style={[styles.mv4]}>
-                        <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <View style={[styles.rateCol]}>
-                            <TextInput
-                                label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                placeholder={this.state.outputCurrency}
-                                onChangeText={value => this.setRate(value)}
-                                value={this.state.rateValue}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                onKeyPress={this.debounceUpdateOnCursorMove}
-                            />
-                        </View>
-                        <View style={[styles.unitCol]}>
-                            <Picker
-                                label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                items={this.unitItems}
-                                value={this.state.unitValue}
-                                onInputChange={value => this.setUnit(value)}
-                            />
-                        </View>
-                    </View>
-                </Section>
-
-                {!this.props.hasVBA && (
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
                     <Section
-                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                        icon={Illustrations.JewelBoxGreen}
-                    >
-                        <View style={[styles.mv4]}>
-                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                        </View>
-                        <Button
-                            text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(this.props.policyID))}
-                            icon={Expensicons.Bank}
-                            style={[styles.mt4]}
-                            iconStyles={[styles.mr5]}
-                            shouldShowRightIcon
-                            extraLarge
-                            success
-                        />
-                    </Section>
-                )}
-                {this.props.hasVBA && (
-                    <Section
-                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                        icon={Illustrations.BankUserGreen}
+                        title={this.props.translate('workspace.reimburse.captureReceipts')}
+                        icon={Illustrations.ReceiptYellow}
                         menuItems={[
                             {
-                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
-                                icon: Expensicons.Bank,
+                                title: this.props.translate('workspace.reimburse.viewAllReceipts'),
+                                onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                                icon: Expensicons.Receipt,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
                             },
                         ]}
                     >
-                        <View style={[styles.mv4]}>
-                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                        <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
+                            <Text>
+                                {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                                <CopyTextToClipboard
+                                    text="receipts@expensify.com"
+                                    textStyles={[styles.textBlue]}
+                                />
+                                <Text>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                            </Text>
                         </View>
                     </Section>
-                )}
+
+                    <Section
+                        title={this.props.translate('workspace.reimburse.trackDistance')}
+                        icon={Illustrations.GpsTrackOrange}
+                    >
+                        <View style={[styles.mv4]}>
+                            <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                        </View>
+                        <OfflineWithFeedback
+                            errors={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'])}
+                            pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])}
+                            onClose={() => Policy.removeUnitError(this.props.policyID, this.state.unitID)}
+                        >
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
+                                <View style={[styles.rateCol]}>
+                                    <TextInput
+                                        label={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                        placeholder={this.state.outputCurrency}
+                                        onChangeText={value => this.setRate(value)}
+                                        value={this.state.rateValue}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                        onKeyPress={this.debounceUpdateOnCursorMove}
+                                    />
+                                </View>
+                                <View style={[styles.unitCol]}>
+                                    <Picker
+                                        label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
+                                        items={this.unitItems}
+                                        value={this.state.unitValue}
+                                        onInputChange={value => this.setUnit(value)}
+                                    />
+                                </View>
+                            </View>
+                        </OfflineWithFeedback>
+                    </Section>
+
+                    {!this.props.hasVBA && (
+                        <Section
+                            title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                            icon={Illustrations.JewelBoxGreen}
+                        >
+                            <View style={[styles.mv4]}>
+                                <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                            </View>
+                            <Button
+                                text={this.props.translate('workspace.common.bankAccount')}
+                                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policyID)}
+                                icon={Expensicons.Bank}
+                                style={[styles.mt4]}
+                                iconStyles={[styles.buttonCTAIcon]}
+                                shouldShowRightIcon
+                                large
+                                success
+                            />
+                        </Section>
+                    )}
+                    {this.props.hasVBA && (
+                        <Section
+                            title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                            icon={Illustrations.BankUserGreen}
+                            menuItems={[
+                                {
+                                    title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                                    onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                    icon: Expensicons.Bank,
+                                    shouldShowRightIcon: true,
+                                    iconRight: Expensicons.NewWindow,
+                                },
+                            ]}
+                        >
+                            <View style={[styles.mv4]}>
+                                <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                            </View>
+                        </Section>
+                    )}
+                </FullPageNotFoundView>
             </>
         );
     }
@@ -241,6 +294,7 @@ WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 export default compose(
     withFullPolicy,
     withLocalize,
+    withNetwork(),
     withOnyx({
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
