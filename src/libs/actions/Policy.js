@@ -590,17 +590,17 @@ function hideWorkspaceAlertMessage(policyID) {
 /**
  * @param {String} policyID
  * @param {Object} currentCustomUnit
- * @param {Object} values The new custom unit values
+ * @param {Object} newCustomUnit
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.customUnitID]: {
-                        ...values,
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -614,7 +614,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.customUnitID]: {
+                    [newCustomUnit.customUnitID]: {
                         pendingAction: null,
                         errors: null,
                     },
@@ -644,7 +644,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
-        customUnit: JSON.stringify(values),
+        customUnit: JSON.stringify(newCustomUnit),
     }, {optimisticData, successData, failureData});
 }
 
@@ -652,9 +652,9 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
  * @param {String} policyID
  * @param {Object} currentCustomUnitRate
  * @param {String} customUnitID
- * @param {Object} values
+ * @param {Object} newCustomUnitRate
  */
-function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, values) {
+function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -663,8 +663,8 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, val
                 customUnits: {
                     [customUnitID]: {
                         onyxRates: {
-                            [values.customUnitRateID]: {
-                                ...values,
+                            [newCustomUnitRate.customUnitRateID]: {
+                                ...newCustomUnitRate,
                                 errors: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -683,7 +683,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, val
                 customUnits: {
                     [customUnitID]: {
                         onyxRates: {
-                            [values.customUnitRateID]: {
+                            [newCustomUnitRate.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -717,7 +717,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, val
     API.write('UpdateWorkspaceCustomUnitRate', {
         policyID,
         customUnitID,
-        customUnitRate: JSON.stringify(values),
+        customUnitRate: JSON.stringify(newCustomUnitRate),
     }, {optimisticData, successData, failureData});
 }
 
