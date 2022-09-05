@@ -188,7 +188,13 @@ class ReportActionItem extends Component {
                                 )}
                             >
                                 <OfflineWithFeedback
-                                    onClose={() => ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber)}
+                                    onClose={() => {
+                                        if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber);
+                                        } else {
+                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
+                                        }
+                                    }}
                                     pendingAction={this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
