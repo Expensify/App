@@ -158,18 +158,37 @@ Onyx.init({
 });
 
 function getDefaultRenderedSidebarLinks() {
+    class ErrorBoundary extends React.Component {
+        // Error boundaries have to implement this method. It's for providing a fallback UI, but
+        // we don't need that for unit testing, so this is basically a no-op.
+        static getDerivedStateFromError(error) {
+            return {error};
+        }
+
+        componentDidCatch(error, errorInfo) {
+            console.error(error, errorInfo);
+        }
+
+        render() {
+            // eslint-disable-next-line react/prop-types
+            return this.props.children;
+        }
+    }
+
     // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     return render((
         <LocaleContextProvider>
-            <SidebarLinks
-                onLinkClick={() => {}}
-                insets={fakeInsets}
-                onAvatarClick={() => {}}
-                isSmallScreenWidth={false}
-            />
+            <ErrorBoundary>
+                <SidebarLinks
+                    onLinkClick={() => {}}
+                    insets={fakeInsets}
+                    onAvatarClick={() => {}}
+                    isSmallScreenWidth={false}
+                />
+            </ErrorBoundary>
         </LocaleContextProvider>
     ));
 }
