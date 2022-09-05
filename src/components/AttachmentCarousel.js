@@ -39,7 +39,6 @@ class AttachmentCarousel extends React.Component {
 
         this.canUseTouchScreen = canUseTouchScreen();
         this.makeAndSetArrowState = this.makeAndSetArrowState.bind(this);
-        this.onPressShowArrow = this.onPressShowArrow.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.handleArrowPress = this.handleArrowPress.bind(this);
         this.onShowArrow = this.onShowArrow.bind(this);
@@ -72,21 +71,11 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Toggles the visibility of the arrows on mouse hover
+     * Toggles the visibility of the arrows
      * @param {Boolean} showArrows
      */
     onShowArrow(showArrows) {
         this.setState({showArrows});
-    }
-
-    /**
-     * Helper to provide a check for touchscreens
-     */
-    onPressShowArrow() {
-        if (!this.canUseTouchScreen) {
-            return;
-        }
-        this.onShowArrow(!this.state.showArrows);
     }
 
     /**
@@ -128,6 +117,7 @@ class AttachmentCarousel extends React.Component {
             }
             return attachmentsAccumulator;
         }, []);
+
         const {sourceURL, file} = this.getAttachment(attachments[page]);
         this.setState({
             page,

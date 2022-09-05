@@ -20,7 +20,7 @@ const propTypes = {
     canSwipeLeft: PropTypes.bool,
     canSwipeRight: PropTypes.bool,
 
-    /** Callback to facility an press event */
+    /** Callback to handle a press event because PanResponder will intercept all gestures */
     onPress: PropTypes.func,
 
     /** should the movement be animated */

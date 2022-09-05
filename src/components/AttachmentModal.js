@@ -82,10 +82,10 @@ class AttachmentModal extends PureComponent {
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
-            sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
+            sourceURL: props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.sourceURL) : props.sourceURL,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -101,7 +101,7 @@ class AttachmentModal extends PureComponent {
             return {
                 prevIsModalOpen: true,
                 file: {name: lodashGet(props, 'originalFileName', '')},
-                sourceURL: lodashGet(props, 'sourceURL', ''),
+                sourceURL: props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.sourceURL) : props.sourceURL,
             };
         }
 
@@ -148,9 +148,10 @@ class AttachmentModal extends PureComponent {
      * @returns {Object}
      */
     splitExtensionFromFileName(fullFileName) {
-        const fileName = fullFileName.trim();
-        const splitFileName = fileName.split('.');
+        const cleanFileName = fullFileName.trim();
+        const splitFileName = cleanFileName.split('.');
         const fileExtension = splitFileName.pop();
+        const fileName = splitFileName.shift();
         return {fileName, fileExtension};
     }
 
@@ -261,10 +262,6 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = this.props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(this.state.sourceURL)
-            : this.state.sourceURL;
-
         // When the confirm button is visible we don't need bottom padding on the attachment view.
         const attachmentViewPaddingStyles = this.props.onConfirm
             ? [styles.pl5, styles.pr5, styles.pt5]
@@ -274,7 +271,8 @@ class AttachmentModal extends PureComponent {
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, attachmentViewPaddingStyles];
 
-        const {fileName, fileExtension} = this.splitExtensionFromFileName(lodashGet(this.state, 'file.name') || this.props.originalFileName);
+        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
+        const {fileName, fileExtension} = this.splitExtensionFromFileName(originalFileName);
 
         return (
             <>
@@ -293,7 +291,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => fileDownload(sourceURL, this.props.originalFileName)}
+                        onDownloadButtonPress={() => fileDownload(this.state.sourceURL, originalFileName)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis
@@ -310,12 +308,12 @@ class AttachmentModal extends PureComponent {
                                 showArrows={this.state.showArrows}
                                 reportId={this.state.reportId}
                                 onArrowPress={this.onArrowPress}
-                                sourceURL={this.state.sourceURL}
+                                sourceURL={this.props.sourceURL}
                             />
                         ) : (this.state.sourceURL
                             && (
                                 <AttachmentView
-                                    sourceURL={sourceURL}
+                                    sourceURL={this.state.sourceURL}
                                     file={this.state.file}
                                     onToggleKeyboard={this.updateConfirmButtonVisibility}
                                 />
