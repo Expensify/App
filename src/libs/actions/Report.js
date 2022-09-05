@@ -736,8 +736,7 @@ function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
         total, {
             style: 'currency',
             currency,
-        },
-    );
+        },);
     return {
         cachedTotal: formattedTotal,
         chatReportID,
