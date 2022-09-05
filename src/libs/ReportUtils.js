@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -10,6 +11,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import * as NumberUtils from './NumberUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -26,6 +28,27 @@ Onyx.connect({
         }
         preferredLocale = val;
     },
+});
+
+let currentUserEmail;
+let currentUserAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
+    },
+});
+
+let currentUserPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: val => currentUserPersonalDetails = lodashGet(val, currentUserEmail),
 });
 
 /**
@@ -76,7 +99,8 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -90,7 +114,8 @@ function canEditReportAction(reportAction) {
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
-        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
+        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -524,28 +549,7 @@ function navigateToDetailsPage(report) {
  * @returns {Number}
  */
 function generateReportID() {
-    // Generate a random 32-bit number. This works fine, and starts us building a random 53-bit number.
-    let result = Math.floor(Math.random() * (2 ** 32));
-
-    // Now generate another random number. We'll use this for the remaining 21 bits of randomness.
-    let extraBits = Math.floor(Math.random() * (2 ** 32));
-
-    // Add each of the remaining 21 bits to the end of `result`.
-    for (let i = 0; i < 21; i++) {
-        // Shift left by one, but don't use bit shifts: they truncate to 32-bits.
-        result *= 2;
-
-        // If extraBits is odd, meaning the lowest bit is set, do the same to the result, without bitwise operators.
-        if (extraBits % 2 === 1) {
-            result += 1;
-        }
-
-        // Now drop the lowest bit from extraBits, which we can do with bitwise operators, because it's less than 32-bits.
-        // eslint-disable-next-line no-bitwise
-        extraBits >>= 1;
-    }
-
-    return result;
+    return (Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32));
 }
 
 /**
@@ -554,6 +558,76 @@ function generateReportID() {
  */
 function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
+}
+
+/**
+ * Builds an optimistic IOU reportAction object
+ *
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {Number} amount - IOU amount in cents.
+ * @param {String} comment - User comment for the IOU.
+ * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
+ * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ *
+ * @returns {Object}
+ */
+function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+    const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
+    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
+    const IOUReportID = existingIOUReportID || generateReportID();
+    const sequenceNumber = NumberUtils.generateReportActionSequenceNumber();
+    const originalMessage = {
+        amount,
+        comment,
+        currency,
+        IOUTransactionID,
+        IOUReportID,
+        type,
+    };
+
+    // We store amount, comment, currency in IOUDetails when type = pay
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        _.each(['amount', 'comment', 'currency'], (key) => {
+            delete originalMessage[key];
+        });
+        originalMessage.IOUDetails = {amount, comment, currency};
+        originalMessage.paymentType = paymentType;
+    }
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+
+        // For now, the clientID and sequenceNumber are the same.
+        // We are changing that as we roll out the optimisticReportAction IDs and related refactors.
+        clientID: sequenceNumber,
+        isAttachment: false,
+        originalMessage,
+        person: [{
+            style: 'strong',
+            text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+            type: 'TEXT',
+        }],
+        reportActionID: NumberUtils.rand64(),
+        sequenceNumber,
+        shouldShow: true,
+        timestamp: moment().unix(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnread(report) {
+    const lastReadSequenceNumber = lodashGet(report, 'lastReadSequenceNumber', 0);
+    const maxSequenceNumber = lodashGet(report, 'maxSequenceNumber', 0);
+    return lastReadSequenceNumber < maxSequenceNumber;
 }
 
 export {
@@ -586,4 +660,6 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    buildOptimisticIOUReportAction,
+    isUnread,
 };

@@ -30,6 +30,8 @@ const propTypes = {
 
     /** Function for native pdf to handle toggling arrows */
     onPDFPress: PropTypes.func,
+    /** Notify parent that the UI should be modified to accommodate keyboard */
+    onToggleKeyboard: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
@@ -41,6 +43,7 @@ const defaultProps = {
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
     onPDFPress: () => {},
+    onToggleKeyboard: () => {},
 };
 
 const AttachmentView = (props) => {
@@ -53,6 +56,7 @@ const AttachmentView = (props) => {
                 onPress={props.onPDFPress}
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}
+                onToggleKeyboard={props.onToggleKeyboard}
             />
         );
     }
