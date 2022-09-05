@@ -462,6 +462,9 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
+        if (!report) {
+            return null;
+        }
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -469,7 +472,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
         const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
-        if (!report || !report.reportID || shouldFilterNoParticipants) {
+        if (!report.reportID || shouldFilterNoParticipants) {
             return;
         }
 
