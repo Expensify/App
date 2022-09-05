@@ -27,7 +27,7 @@ import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as NumberUtils from '../NumberUtils';
-import * as NumberFormatUtils from './NumberFormatUtils';
+import * as NumberFormatUtils from '../NumberFormatUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -732,10 +732,10 @@ function createOptimisticChatReport(
  * Creates an optimistic IOU report with a randomly generated reportID
  */
 function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
-    const formattedTotal = NumberFormatUtils.numberFormat(
+    const formattedTotal = NumberFormatUtils.numberFormat(locale,
         total, {
             style: 'currency',
-            currency: currency,
+            currency,
         },
     );
     return {
