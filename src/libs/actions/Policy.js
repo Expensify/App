@@ -802,6 +802,10 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
+function openWorkspaceReimburseView(policyID) {
+    API.read('OpenWorkspaceReimburseView', {policyID});
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -822,6 +826,7 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
+    openWorkspaceReimburseView,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
