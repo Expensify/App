@@ -268,6 +268,7 @@ const CONST = {
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
+                TEXT: 'TEXT',
             },
         },
         TYPE: {

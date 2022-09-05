@@ -742,15 +742,18 @@ function generatePolicyID() {
  */
 function createWorkspace() {
     const policyID = generatePolicyID();
+    const workspaceName = generateDefaultWorkspaceName();
     const {
         announceChatReportID,
         announceChatData,
+        announceReportActionData,
         adminsChatReportID,
-        adminChatData,
+        adminsChatData,
+        adminsReportActionData,
         expenseChatReportID,
         expenseChatData,
-    } = Report.createOptimisticWorkspaceChats(policyID, sessionEmail);
-    const workspaceName = generateDefaultWorkspaceName();
+        expenseReportActionData,
+    } = Report.createOptimisticWorkspaceChats(policyID, workspaceName);
     API.write('CreateWorkspace', {
         policyID,
         announceChatReportID,
@@ -775,19 +778,31 @@ function createWorkspace() {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-            value: getSimplifiedEmployeeList([{email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN}]),
+            value: {[sessionEmail]: {}},
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: announceChatData,
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: announceReportActionData,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: adminChatData,
+            value: adminsChatData,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: adminsReportActionData,
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
             value: expenseChatData,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: expenseReportActionData,
         }],
         successData: [{
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -827,12 +842,24 @@ function createWorkspace() {
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: null,
         }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: null,
+        }, {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: null,
         }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: null,
+        }, {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: null,
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: null,
         }],
     });

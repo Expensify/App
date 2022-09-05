@@ -618,10 +618,10 @@ function createOptimisticChatReport(participantList) {
 
 /**
  * @param {String} policyID
- * @param {String} ownerEmail
+ * @param {String} policyName
  * @returns {Object}
  */
-function createOptimisticWorkspaceChats(policyID, ownerEmail) {
+function createOptimisticWorkspaceChats(policyID, policyName) {
     const announceChatReportID = ReportUtils.generateReportID();
     const announceChatData = {
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
@@ -631,6 +631,7 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat: false,
+        isLoadingReportActions: false,
         isPinned: false,
         lastActorEmail: '',
         lastMessageHtml: '',
@@ -640,16 +641,47 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference: '',
-        oldPolicyName: '',
+        oldPolicyName: policyName,
         ownerEmail: '__FAKE__',
-        participants: [ownerEmail],
+        participants: [currentUserEmail],
         stateNum: 0,
         statusNum: 0,
         visibility: undefined,
     };
+    const announceReportActionData = {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: "strong",
+                    text: announceChatData.ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: "normal",
+                    text: " created this report",
+                },
+            ],
+            person: [
+                {
+                    style: 'strong',
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            shouldShow: true,
+        }
+    };
 
     const adminsChatReportID = ReportUtils.generateReportID();
-    const adminChatData = {
+    const adminsChatData = {
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         policyID,
         reportID: adminsChatReportID,
@@ -657,6 +689,7 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat: false,
+        isLoadingReportActions: false,
         isPinned: false,
         lastActorEmail: '',
         lastMessageHtml: '',
@@ -666,19 +699,51 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference: '',
-        oldPolicyName: '',
+        oldPolicyName: policyName,
         ownerEmail: '__FAKE__',
-        participants: [ownerEmail],
+        participants: [currentUserEmail],
         stateNum: 0,
         statusNum: 0,
         visibility: undefined,
+    };
+
+    const adminsReportActionData = {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: "strong",
+                    text: adminsChatData.ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: "normal",
+                    text: " created this report",
+                },
+            ],
+            person: [
+                {
+                    style: 'strong',
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            shouldShow: true,
+        }
     };
 
     const expenseChatReportID = ReportUtils.generateReportID();
     const expenseChatData = {
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         isOwnPolicyExpenseChat: true,
-        ownerEmail,
+        ownerEmail: currentUserEmail,
         policyID,
         reportID: expenseChatReportID,
         reportName: '',
@@ -693,20 +758,55 @@ function createOptimisticWorkspaceChats(policyID, ownerEmail) {
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference: '',
-        oldPolicyName: '',
-        participants: [ownerEmail],
+        oldPolicyName: policyName,
+        participants: [currentUserEmail],
         stateNum: 0,
         statusNum: 0,
         visibility: undefined,
     };
 
+    const expenseReportActionData = {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: "strong",
+                    text: "You",
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: "normal",
+                    text: " created this report",
+                },
+            ],
+            person: [
+                {
+                    style: 'strong',
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            shouldShow: true,
+        }
+    };
+
     return {
         announceChatReportID,
         announceChatData,
+        announceReportActionData,
         adminsChatReportID,
-        adminChatData,
+        adminsChatData,
+        adminsReportActionData,
         expenseChatReportID,
         expenseChatData,
+        expenseReportActionData,
     };
 }
 
