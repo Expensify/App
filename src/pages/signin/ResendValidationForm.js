@@ -100,6 +100,7 @@ const ResendValidationForm = (props) => {
 
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
+ResendValidationForm.displayName = 'ResendValidationForm';
 
 export default compose(
     withLocalize,

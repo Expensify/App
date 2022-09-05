@@ -143,7 +143,6 @@ class CloseAccountPage extends Component {
 
 CloseAccountPage.propTypes = propTypes;
 CloseAccountPage.defaultProps = defaultProps;
-CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default compose(
     withLocalize,

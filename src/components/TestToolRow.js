@@ -26,4 +26,6 @@ const TestToolRow = props => (
 );
 
 TestToolRow.propTypes = propTypes;
+TestToolRow.displayName = 'TestToolRow';
+
 export default TestToolRow;

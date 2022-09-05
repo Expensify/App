@@ -103,7 +103,6 @@ class AddPayPalMePage extends React.Component {
 
 AddPayPalMePage.propTypes = propTypes;
 AddPayPalMePage.defaultProps = defaultProps;
-AddPayPalMePage.displayName = 'AddPayPalMePage';
 
 export default compose(
     withLocalize,

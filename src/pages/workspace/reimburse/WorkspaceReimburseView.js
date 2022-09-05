@@ -279,7 +279,6 @@ class WorkspaceReimburseView extends React.Component {
 }
 
 WorkspaceReimburseView.propTypes = propTypes;
-WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 
 export default compose(
     withFullPolicy,

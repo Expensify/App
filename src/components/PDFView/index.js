@@ -157,7 +157,7 @@ class PDFView extends Component {
     }
 }
 
-PDFView.propTypes = pdfViewPropTypes.propTypes;
-PDFView.defaultProps = pdfViewPropTypes.defaultProps;
+PDFView.propTypes = propTypes;
+PDFView.defaultProps = defaultProps;
 
 export default withWindowDimensions(PDFView);
