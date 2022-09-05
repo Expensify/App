@@ -199,8 +199,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         }
     }
 
-    const finalSearchTerms = uniqFast(searchTerms).join(' ');
-    return finalSearchTerms;
+    return uniqFast(searchTerms).join(' ');
 }
 
 /**
@@ -259,6 +258,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
+        isDefaultRoom: false,
         isPinned: false,
         hasOutstandingIOU: false,
         iouReportID: null,
