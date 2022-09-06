@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.97-2",
+  "version": "1.1.97-4",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -157,7 +157,7 @@
     "electron-notarize": "^1.2.1",
     "electron-reloader": "^1.2.1",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "2.0.29",
+    "eslint-config-expensify": "2.0.30",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
