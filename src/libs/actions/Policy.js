@@ -923,10 +923,6 @@ function createWorkspace() {
 }
 
 function openWorkspaceInvitePage(policyID, clientPolicyMembers) {
-    if (!policyID) {
-        return;
-    }
-
     API.read('OpenWorkspaceInvitePage', {policyID, clientPolicyMembers});
 }
 
