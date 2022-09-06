@@ -136,6 +136,29 @@ function mergeParamsWithLocalACHData(data) {
 }
 
 /**
+ * Create the bank account in db with manually entered data.
+ *
+ * @param {Object} params
+ *
+ * @param {Boolean} [params.acceptTerms]
+ * @param {String} [params.accountNumber]
+ * @param {String} [params.routingNumber]
+ * @param {String} [params.setupType]
+ * @param {String} [params.country]
+ * @param {String} [params.currency]
+ * @param {String} [params.fieldsType]
+ * @param {String} [params.plaidAccessToken]
+ * @param {String} [params.plaidAccountID]
+ * @param {String} [params.ownershipType]
+ * @param {Boolean} [params.isSavings]
+ * @param {String} [params.addressName]
+ *
+ */
+function connectBankAccountManually (params) {
+
+}
+
+/**
  * Create or update the bank account in db with the updated data.
  *
  * This action is called by several steps in the Verified Bank Account flow and is coupled tightly with SetupWithdrawalAccount in Auth
@@ -250,4 +273,7 @@ function setupWithdrawalAccount(params) {
         });
 }
 
-export default setupWithdrawalAccount;
+export {
+    setupWithdrawalAccount,
+    connectBankAccountManually,
+};
