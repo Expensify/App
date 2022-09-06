@@ -226,9 +226,7 @@ class ProfilePage extends Component {
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
-
                     </OfflineWithFeedback>
-
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>
