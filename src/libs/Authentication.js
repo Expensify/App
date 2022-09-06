@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/no-api-in-views,rulesdir/no-api-side-effects-method */
 
+import _ from 'underscore';
 import requireParameters from './requireParameters';
 import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
@@ -101,6 +102,7 @@ function reauthenticate(command = '') {
         {optimisticData, successData, failureData},
     )
         .then((response) => {
+            console.log(">>>>", JSON.stringify(response));
             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 // If authentication fails, then the network can be unpaused
                 NetworkStore.setIsAuthenticating(false);
@@ -123,18 +125,22 @@ function reauthenticate(command = '') {
                 return;
             }
 
+            const sessionResponse = _.find(response.onyxData, onyxData => onyxData.key === ONYXKEYS.SESSION);
+
             // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+            updateSessionAuthTokens(sessionResponse.value.authToken, sessionResponse.value.encryptedAuthToken);
 
             // Note: It is important to manually set the authToken that is in the store here since any requests that are hooked into
             // reauthenticate .then() will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
             // enough to do the updateSessionAuthTokens() call above.
-            NetworkStore.setAuthToken(response.authToken);
+            NetworkStore.setAuthToken(sessionResponse.value.authToken);
 
             // The authentication process is finished so the network can be unpaused to continue processing requests
             NetworkStore.setIsAuthenticating(false);
         });
 }
+
+window.reauthenticate = reauthenticate;
 
 export {
     reauthenticate,
