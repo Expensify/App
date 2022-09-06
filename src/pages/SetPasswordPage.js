@@ -27,7 +27,7 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        errors: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
@@ -48,7 +48,7 @@ const propTypes = {
     /** Session object */
     session: PropTypes.shape({
         /** An error message to display to the user */
-        errors: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
 
     /** The accountID and validateCode are passed via the URL */
@@ -62,7 +62,7 @@ const defaultProps = {
     credentials: {},
     route: validateLinkDefaultProps,
     session: {
-        errors: '',
+        errors: null,
         authToken: '',
     },
 };

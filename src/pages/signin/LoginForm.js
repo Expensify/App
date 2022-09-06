@@ -32,7 +32,7 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        error: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Success message to display when necessary */
         success: PropTypes.string,
