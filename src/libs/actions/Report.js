@@ -596,7 +596,15 @@ function fetchAllReports(
  * @param {String} oldPolicyName
  * @returns {Object}
  */
-function createOptimisticChatReport(participantList, reportName = 'Chat Report', chatType = '', policyID = '_FAKE_', ownerEmail = '__FAKE__', isOwnPolicyExpenseChat = false, oldPolicyName = '') {
+function createOptimisticChatReport(
+    participantList,
+    reportName = 'Chat Report',
+    chatType = '',
+    policyID = '_FAKE_',
+    ownerEmail = '__FAKE__',
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+) {
     return {
         chatType,
         hasOutstandingIOU: false,
@@ -668,7 +676,15 @@ function createOptimisticCreatedReportAction(ownerEmail) {
  * @returns {Object}
  */
 function createOptimisticWorkspaceChats(policyID, policyName) {
-    const announceChatData = createOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, null, false, policyName);
+    const announceChatData = createOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = createOptimisticCreatedReportAction(announceChatData.ownerEmail);
 
