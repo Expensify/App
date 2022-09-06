@@ -509,6 +509,10 @@ function clearWorkspaceGeneralSettingsErrors(policyID) {
  * @param {Object} errors
  */
 function setWorkspaceErrors(policyID, errors) {
+    if (!allPolicies[policyID]) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
 }
@@ -539,6 +543,10 @@ function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
  * @param {String} policyID
  */
 function hideWorkspaceAlertMessage(policyID) {
+    if (!allPolicies[policyID]) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
@@ -945,6 +953,13 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
     });
 }
 
+function openWorkspaceInvitePage(policyID, clientMemberEmails) {
+    API.read('OpenWorkspaceInvitePage', {
+        policyID,
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
+    });
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -972,4 +987,5 @@ export {
     generatePolicyID,
     createWorkspace,
     openWorkspaceMembersPage,
+    openWorkspaceInvitePage,
 };
