@@ -90,7 +90,7 @@ class WorkspaceInvitePage extends React.Component {
         this.clearErrors();
 
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(this.props.policy.id, clientPolicyMembers);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
     }
 
     componentDidUpdate(prevProps) {
@@ -100,7 +100,7 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(this.props.policy.id, clientPolicyMembers);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
     }
 
     getExcludedUsers() {

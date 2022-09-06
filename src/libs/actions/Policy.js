@@ -822,10 +822,6 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
 }
 
 function openWorkspaceInvitePage(policyID, clientPolicyMembers) {
-    if (!policyID) {
-        return;
-    }
-
     API.read('OpenWorkspaceInvitePage', {policyID, clientPolicyMembers});
 }
 
