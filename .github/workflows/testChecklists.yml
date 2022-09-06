@@ -1,12 +1,6 @@
 name: Contributor Checklist
 
-on:
-  issue_comment:
-    types: [created, edited, deleted]
-  pull_request_review:
-    types: [submitted, edited, dismissed]
-  pull_request:
-    types: [opened, edited, synchronize]
+on: [issue_comment, pull_request_review, pull_request]
 
 jobs:
   checklist:
