@@ -818,7 +818,7 @@ function createWorkspace() {
             value: expenseReportActionData,
         }],
         successData: [{
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {pendingAction: null},
         },
