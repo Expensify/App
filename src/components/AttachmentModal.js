@@ -120,7 +120,7 @@ class AttachmentModal extends PureComponent {
         const fileName = fullFileName.trim();
         const splitFileName = fileName.split('.');
         const fileExtension = splitFileName.pop();
-        return {fileName, fileExtension};
+        return {fileName: splitFileName.join('.'), fileExtension};
     }
 
     /**
