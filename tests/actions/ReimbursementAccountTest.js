@@ -260,7 +260,7 @@ describe('actions/BankAccounts', () => {
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
 
                 HttpUtils.xhr.mockImplementation((command) => {
-                    // WHEN we mock a sucessful call to SetupWithdrawalAccount while on the ACHContractStep
+                    // WHEN we mock a successful call to SetupWithdrawalAccount while on the ACHContractStep
                     switch (command) {
                         case 'BankAccount_SetupWithdrawal':
                             return Promise.resolve({

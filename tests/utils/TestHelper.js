@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import CONST from '../../src/CONST';
 import * as Session from '../../src/libs/actions/Session';
 import HttpUtils from '../../src/libs/HttpUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
 import * as ReportUtils from '../../src/libs/ReportUtils';
-import Str from 'expensify-common/lib/str';
 
 /**
  * Simulate signing in and make sure all API calls in this flow succeed. Every time we add
