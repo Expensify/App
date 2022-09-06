@@ -13,6 +13,7 @@ import Log from '../Log';
 import DateUtils from '../DateUtils';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import lodashGet from "lodash/get";
 
 /**
  * Gets the IOU Reports for new transaction
@@ -102,8 +103,8 @@ function startLoadingAndResetError() {
 }
 
 function requestMoney(params) {
-    const chatReport = params.reportID ? params.reportID : Report.createOptimisticChatReport();
-    const optimisticIOUReport = Report.createOptimisticChatReport();
+    const chatReport = lodashGet(params, 'report.reportID', null) ? params.report : Report.createOptimisticChatReport(params.participants);
+    const optimisticIOUReport = Report.createOptimisticChatReport(params.participants);
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', params.amount, 'comment', '', '', optimisticIOUReport.reportID);
     const optimisticData = [
         {
