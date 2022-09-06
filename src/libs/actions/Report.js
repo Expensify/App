@@ -621,11 +621,11 @@ function createOptimisticChatReport(participantList) {
  * Creates an optimistic IOU report with a randomly generated reportID
  */
 function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
-    const formattedTotal = NumberFormatUtils.numberFormat(locale,
+    const formattedTotal = NumberFormatUtils.format(locale,
         total, {
             style: 'currency',
             currency,
-        },);
+        });
     return {
         cachedTotal: formattedTotal,
         chatReportID,
