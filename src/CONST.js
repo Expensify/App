@@ -268,6 +268,7 @@ const CONST = {
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
+                TEXT: 'TEXT',
             },
         },
         TYPE: {
@@ -280,6 +281,10 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        },
+        WORKSPACE_CHAT_ROOMS: {
+            ANNOUNCE: '#announce',
+            ADMINS: '#admins',
         },
         STATE_NUM: {
             OPEN: 0,

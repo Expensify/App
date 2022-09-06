@@ -112,58 +112,6 @@ function updateAllPolicies(policyCollection) {
 }
 
 /**
- * Merges the passed in login into the specified policy
- *
- * @param {String} [name]
- * @param {Boolean} [shouldAutomaticallyReroute]
- * @returns {Promise}
- */
-function create(name = '') {
-    let res = null;
-    return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
-            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnCreate'), CONST.GROWL.SUCCESS, 3000);
-            res = response;
-
-            // Fetch the default reports and the policyExpenseChat reports on the policy
-            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
-
-            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Promise.all([
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                    id: response.policyID,
-                    type: response.policy.type,
-                    name: response.policy.name,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    outputCurrency: response.policy.outputCurrency,
-                }),
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${response.policyID}`, getSimplifiedEmployeeList(response.policy.employeeList)),
-            ]);
-        })
-        .then(() => Promise.resolve(lodashGet(res, 'policyID')));
-}
-
-/**
- * @param {String} policyID
- */
-function navigateToPolicy(policyID) {
-    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-}
-
-/**
- * @param {String} [name]
- */
-function createAndNavigate(name = '') {
-    create(name).then(navigateToPolicy);
-}
-
-/**
  * Delete the policy
  *
  * @param {String} [policyID]
@@ -222,19 +170,6 @@ function getPolicyList() {
             }
 
             Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-        });
-}
-
-function createAndGetPolicyList() {
-    let newPolicyID;
-    create()
-        .then((policyID) => {
-            newPolicyID = policyID;
-            return getPolicyList();
-        })
-        .then(() => {
-            Navigation.dismissModal();
-            navigateToPolicy(newPolicyID);
         });
 }
 
@@ -850,6 +785,155 @@ function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 }
 
+/**
+ * Optimistically creates a new workspace and default workspace chats
+ */
+function createWorkspace() {
+    const policyID = generatePolicyID();
+    const workspaceName = generateDefaultWorkspaceName();
+
+    const {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+    } = Report.createOptimisticWorkspaceChats(policyID, workspaceName);
+
+    // We need to use makeRequestWithSideEffects as we try to redirect to the policy right after creation
+    // The policy hasn't been merged in Onyx data at this point, leading to an intermittent Not Found screen
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('CreateWorkspace', {
+        policyID,
+        announceChatReportID,
+        adminsChatReportID,
+        expenseChatReportID,
+        policyName: workspaceName,
+        type: CONST.POLICY.TYPE.FREE,
+    },
+    {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                id: policyID,
+                type: CONST.POLICY.TYPE.FREE,
+                name: workspaceName,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: sessionEmail,
+                outputCurrency: 'USD',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+            value: {
+                [sessionEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    errors: {},
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+            value: announceChatData,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: announceReportActionData,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: adminsChatData,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: adminsReportActionData,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: expenseChatData,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: expenseReportActionData,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: {pendingAction: null},
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: null,
+        }],
+    }).then(() => {
+        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+    });
+}
+
 function openWorkspaceReimburseView(policyID) {
     API.read('OpenWorkspaceReimburseView', {policyID});
 }
@@ -867,14 +951,11 @@ export {
     removeMembers,
     invite,
     isAdminOfFreePolicy,
-    create,
     update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deletePolicy,
-    createAndNavigate,
-    createAndGetPolicyList,
     updateWorkspaceCustomUnit,
     updateCustomUnitRate,
     updateLastAccessedWorkspace,
@@ -889,5 +970,6 @@ export {
     updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
+    createWorkspace,
     openWorkspaceMembersPage,
 };
