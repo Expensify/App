@@ -14,7 +14,6 @@ export {
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
-    validateBankAccount,
     hideBankAccountErrors,
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
