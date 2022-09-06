@@ -467,7 +467,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
         if (!report) {
-            return null;
+            return;
         }
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
