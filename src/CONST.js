@@ -97,6 +97,7 @@ const CONST = {
         STATE: {
             VERIFYING: 'VERIFYING',
             PENDING: 'PENDING',
+            OPEN: 'OPEN',
         },
         MAX_LENGTH: {
             SSN: 4,

@@ -113,9 +113,43 @@ function deletePaymentBankAccount(bankAccountID) {
     });
 }
 
+/**
+ * @param {Number} bankAccountID
+ * @param {String} validateCode
+ */
+function validateBankAccount(bankAccountID, validateCode) {
+    API.write('ValidateBankAccountWithTransactions', {
+        bankAccountID,
+        validateCode,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                errors: null,
+                achData: {
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    currentStep: CONST.BANK_ACCOUNT.STEP.ENABLE,
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                achData: {
+                    state: CONST.BANK_ACCOUNT.STATE.VERIFYING,
+                    currentStep: CONST.BANK_ACCOUNT.STEP.VALIDATION,
+                },
+            },
+        }],
+    });
+}
+
 export {
     addPersonalBankAccount,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    validateBankAccount,
 };
