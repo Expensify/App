@@ -580,14 +580,21 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
- * @param {Number} customUnitID
+ * @param {String} customUnitID
+ * @param {String} customUnitRateID
  */
-function removeUnitError(policyID, customUnitID) {
+function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
+                onyxRates: {
+                    [customUnitRateID]: {
+                        errors: null,
+                        pendingAction: null,
+                    },
+                },
             },
         },
     });
@@ -603,17 +610,17 @@ function hideWorkspaceAlertMessage(policyID) {
 /**
  * @param {String} policyID
  * @param {Object} currentCustomUnit
- * @param {Object} values The new custom unit values
+ * @param {Object} newCustomUnit
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.customUnitID]: {
-                        ...values,
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -627,7 +634,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.customUnitID]: {
+                    [newCustomUnit.customUnitID]: {
                         pendingAction: null,
                         errors: null,
                     },
@@ -657,40 +664,81 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
-        customUnit: JSON.stringify(values),
+        customUnit: JSON.stringify(newCustomUnit),
     }, {optimisticData, successData, failureData});
 }
 
 /**
  * @param {String} policyID
+ * @param {Object} currentCustomUnitRate
  * @param {String} customUnitID
- * @param {Object} values
+ * @param {Object} newCustomUnitRate
  */
-function setCustomUnitRate(policyID, customUnitID, values) {
-    DeprecatedAPI.Policy_CustomUnitRate_Update({
-        policyID: policyID.toString(),
-        customUnitID: customUnitID.toString(),
-        customUnitRate: JSON.stringify(values),
-        lastModified: null,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {
-                customUnit: {
-                    rate: {
-                        id: values.customUnitRateID,
-                        name: values.name,
-                        value: Number(values.rate),
+function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        onyxRates: {
+                            [newCustomUnitRate.customUnitRateID]: {
+                                ...newCustomUnitRate,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
                     },
                 },
-            });
-        }).catch(() => {
-            // Show the user feedback
-            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-        });
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        onyxRates: {
+                            [newCustomUnitRate.customUnitRateID]: {
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        onyxRates: {
+                            [currentCustomUnitRate.customUnitRateID]: {
+                                ...currentCustomUnitRate,
+                                errors: {
+                                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceCustomUnitRate', {
+        policyID,
+        customUnitID,
+        customUnitRate: JSON.stringify(newCustomUnitRate),
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -822,13 +870,13 @@ export {
     create,
     update,
     setWorkspaceErrors,
-    removeUnitError,
+    clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
     updateWorkspaceCustomUnit,
-    setCustomUnitRate,
+    updateCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
     clearDeleteMemberError,
