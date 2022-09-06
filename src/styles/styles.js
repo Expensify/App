@@ -1765,6 +1765,7 @@ const styles = {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
     },
+
     PDFView: {
         // `display: grid` is not supported in native platforms!
         // It's being used on Web/Desktop only to vertically center short PDFs,
@@ -1777,6 +1778,12 @@ const styles = {
         overflow: 'hidden',
         overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    pdfPasswordForm: {
+        wideScreenWidth: {
+            width: 350,
+        },
     },
 
     modalCenterContentContainer: {
@@ -2351,9 +2358,13 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
+        ...spacing.pt2,
+    },
+
+    peopleRowBorderBottom: {
         borderColor: themeColors.border,
-        ...spacing.pv2,
+        borderBottomWidth: 1,
+        ...spacing.pb2,
     },
 
     peopleRowCell: {
@@ -2399,6 +2410,13 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+    },
+
+    dotIndicatorMessage: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 
     sidebarPopover: {
@@ -2611,6 +2629,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.shadow,
+        cursor: 'move',
     },
 
     sliderKnob: {
@@ -2621,6 +2640,7 @@ const styles = {
         borderRadius: variables.sliderKnobSize / 2,
         top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
+        cursor: 'pointer',
     },
 
     sliderBar: {

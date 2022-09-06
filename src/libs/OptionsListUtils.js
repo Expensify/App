@@ -222,6 +222,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const isDefaultRoom = ReportUtils.isDefaultRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
@@ -275,7 +276,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         reportID: report ? report.reportID : null,
         phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
         payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
-        isUnread: report ? report.unreadActionCount > 0 : null,
+        isUnread: ReportUtils.isUnread(report),
         hasDraftComment: lodashGet(report, 'hasDraft', false),
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
@@ -286,6 +287,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
         isArchivedRoom,
+        isDefaultRoom,
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
         isPolicyExpenseChat,
     };
@@ -426,10 +428,11 @@ function getOptions(reports, personalDetails, activeReportID, {
                 // not give archived rooms this exception since they do not need to be higlihted.
                 && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
 
-        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+
         if (report.reportID !== activeReportID
-            && !report.isPinned
+            && (!report.isPinned || isDefaultRoom)
             && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
@@ -516,8 +519,10 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
 
             // If the report is pinned and we are using the option to display pinned reports on top then we need to
-            // collect the pinned reports so we can sort them alphabetically once they are collected
-            if (prioritizePinnedReports && reportOption.isPinned) {
+            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
+            // default archived rooms.
+            if (prioritizePinnedReports && reportOption.isPinned
+                && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
                 pinnedReportOptions.push(reportOption);
             } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
                 iouDebtReportOptions.push(reportOption);
@@ -823,7 +828,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
     const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.searchText)));
+        isSearchStringMatch(searchValue, currencyOption.text)));
 
     return {
         // returns filtered options i.e. options with string match if search text is entered

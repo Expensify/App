@@ -669,6 +669,10 @@ const CONST = {
         ROOM_PREFIX: '#',
     },
 
+    CUSTOM_UNITS: {
+        NAME_DISTANCE: 'Distance',
+    },
+
     TERMS: {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
@@ -761,6 +765,7 @@ const CONST = {
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
 
+    FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -794,6 +799,7 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
+    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.
@@ -804,6 +810,14 @@ const CONST = {
     // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
     IOS_KEYBOARD_SPACE_OFFSET: -30,
+
+    PDF_PASSWORD_FORM: {
+        // Constants for password-related error responses received from react-pdf.
+        REACT_PDF_PASSWORD_RESPONSES: {
+            NEED_PASSWORD: 1,
+            INCORRECT_PASSWORD: 2,
+        },
+    },
 };
 
 export default CONST;
