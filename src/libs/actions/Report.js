@@ -624,9 +624,10 @@ function createOptimisticChatReport(participantList, reportName = 'Chat Report',
 
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
- * @param {String} ownerEmail 
+ * @param {String} ownerEmail
+ * @returns {Object}
  */
- function createOptimisticCreatedReportAction(ownerEmail) {
+function createOptimisticCreatedReportAction(ownerEmail) {
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
