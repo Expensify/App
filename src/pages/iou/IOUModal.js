@@ -346,6 +346,8 @@ class IOUModal extends Component {
 
         IOU.requestMoney({
             comment: this.state.comment,
+            participants: this.participants,
+            report: this.props.report,
 
             // Send in cents to API.
             amount: Math.round(this.state.amount * 100),
