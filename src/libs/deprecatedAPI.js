@@ -641,7 +641,6 @@ export {
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
-    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
