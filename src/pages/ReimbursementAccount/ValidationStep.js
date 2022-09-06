@@ -27,7 +27,6 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -176,10 +175,6 @@ class ValidationStep extends React.Component {
                     shouldShowBackButton
                     shouldShowStepCounter={!isVerifying}
                 />
-                {/* <OfflineWithFeedback
-                    errors={lodashGet(this.props.reimbursementAccount, 'errors', null)}
-                    onClose={}
-                /> */}
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
                         <Text>
