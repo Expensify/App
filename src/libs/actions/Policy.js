@@ -924,7 +924,7 @@ function createWorkspace() {
 
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     API.read('OpenWorkspaceInvitePage', {
-        policyID, 
+        policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
     });
 }
