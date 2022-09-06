@@ -597,7 +597,6 @@ function GetStatementPDF(parameters) {
 
 export {
     BankAccount_SetupWithdrawal,
-    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
