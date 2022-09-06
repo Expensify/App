@@ -57,7 +57,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    inputID: undefined,
+    inputID: null,
     plaidData: {
         bankName: '',
         plaidAccessToken: '',
