@@ -3,12 +3,10 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
-import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -88,9 +86,6 @@ const modalScreenListeners = {
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-
-    /** The current path as reported by the NavigationContainer */
-    currentPath: PropTypes.string.isRequired,
 };
 
 class AuthScreens extends React.Component {
@@ -110,7 +105,6 @@ class AuthScreens extends React.Component {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
-            Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
             Policy.subscribeToPolicyEvents();
         });
@@ -118,8 +112,7 @@ class AuthScreens extends React.Component {
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
         App.openApp();
-
-        App.fixAccountAndReloadData();
+        App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -137,11 +130,6 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        // we perform this check here instead of componentDidUpdate to skip an unnecessary re-render
-        if (this.props.currentPath !== nextProps.currentPath) {
-            App.setUpPoliciesAndNavigate(nextProps.session, nextProps.currentPath);
-        }
-
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 

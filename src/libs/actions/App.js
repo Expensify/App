@@ -6,7 +6,6 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
@@ -15,6 +14,7 @@ import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
+import getCurrentUrl from '../Navigation/currentUrl';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -144,20 +144,6 @@ function reconnectApp() {
 }
 
 /**
- * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
- * because some migrations might create new chat reports or their change data.
- */
-function fixAccountAndReloadData() {
-    DeprecatedAPI.User_FixAccount()
-        .then((response) => {
-            if (!response.changed) {
-                return;
-            }
-            Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-        });
-}
-
-/**
  * This action runs when the Navigator is ready and the current route changes
  *
  * currentPath should be the path as reported by the NavigationContainer
@@ -170,35 +156,28 @@ function fixAccountAndReloadData() {
  * will occur.
 
  * When the exitTo route is 'workspace/new', we create a new
- * workspace and navigate to it via Policy.createAndGetPolicyList.
+ * workspace and navigate to it
  *
  * We subscribe to the session using withOnyx in the AuthScreens and
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
- * @param {string} currentPath
  */
-function setUpPoliciesAndNavigate(session, currentPath) {
-    if (!session || !currentPath || !currentPath.includes('exitTo')) {
+function setUpPoliciesAndNavigate(session) {
+    const currentUrl = getCurrentUrl();
+    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
     }
 
-    let exitTo;
-    try {
-        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
-        exitTo = url.searchParams.get('exitTo');
-    } catch (error) {
-        // URLSearchParams is unsupported on iOS so we catch th error and
-        // silence it here since this is primarily a Web flow
-        return;
-    }
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const url = new URL(currentUrl);
+    const exitTo = url.searchParams.get('exitTo');
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createAndGetPolicyList();
+        Policy.createWorkspace();
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
@@ -248,7 +227,6 @@ function openProfile() {
 export {
     setLocale,
     setSidebarLoaded,
-    fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,

@@ -202,7 +202,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
+    newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -264,6 +264,7 @@ export default {
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
+        deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
     },
@@ -485,6 +486,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
+        cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
     },
     personalDetails: {
         error: {
@@ -519,7 +521,7 @@ export default {
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
-        validatingAccount: 'Verifying account',
+        validateAccount: 'Verify account',
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
@@ -577,6 +579,16 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
+        passwordRequired: 'Please enter a password',
+        passwordIncorrect: 'Incorrect password. Please try again.',
+        pdfPasswordForm: {
+            title: 'Password protected PDF',
+            infoText: 'This PDF is password protected.',
+            beforeLinkText: 'Please',
+            linkText: 'enter the password',
+            afterLinkText: 'to view it.',
+            formLabel: 'View PDF',
+        },
     },
     pronouns: {
         heHimHis: 'He/him',
@@ -780,7 +792,6 @@ export default {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
-            growlMessageOnCreate: 'Workspace created',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
@@ -790,7 +801,6 @@ export default {
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
@@ -830,6 +840,7 @@ export default {
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
+            updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
         },
         bills: {
             manageYourBills: 'Manage your bills',

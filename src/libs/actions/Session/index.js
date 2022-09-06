@@ -90,11 +90,33 @@ function signOutAndRedirectToSignIn() {
  * @param {String} [login]
  */
 function resendValidationLink(login = credentials.login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
-    DeprecatedAPI.ResendValidateCode({email: login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        });
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+
+    API.write('RequestAccountValidationLink', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -131,7 +153,7 @@ function beginSignIn(login) {
             value: {
                 isLoading: false,
                 errors: {
-                    [DateUtils.getMicroseconds()]: 'Cannot get account details, please try again',
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
                 },
             },
         },
@@ -270,29 +292,33 @@ function resetPassword() {
     {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
                     forgotPassword: true,
+                    message: null,
+                    errors: null,
                 },
             },
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
+                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
                 },
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
+                    message: null,
                 },
             },
         ],
