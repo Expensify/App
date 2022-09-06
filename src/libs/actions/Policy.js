@@ -823,7 +823,7 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
 
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     API.read('OpenWorkspaceInvitePage', {
-        policyID, 
+        policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
     });
 }
