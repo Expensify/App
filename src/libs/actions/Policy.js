@@ -821,8 +821,11 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
     });
 }
 
-function openWorkspaceInvitePage(policyID, clientPolicyMembers) {
-    API.read('OpenWorkspaceInvitePage', {policyID, clientPolicyMembers});
+function openWorkspaceInvitePage(policyID, clientMemberEmails) {
+    API.read('OpenWorkspaceInvitePage', {
+        policyID, 
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
+    });
 }
 
 export {
