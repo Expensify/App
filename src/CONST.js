@@ -640,6 +640,9 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        REPORT_ACTION_TYPE: {
+            PAY: 'pay',
+        },
         AMOUNT_MAX_LENGTH: 10,
     },
 
@@ -658,11 +661,16 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+            CORPORATE: 'corporate',
         },
         ROLE: {
             ADMIN: 'admin',
         },
         ROOM_PREFIX: '#',
+    },
+
+    CUSTOM_UNITS: {
+        NAME_DISTANCE: 'Distance',
     },
 
     TERMS: {
@@ -789,6 +797,24 @@ const CONST = {
         SETTINGS: 'settings',
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
+    },
+
+    // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
+    // generate them each with a random number generator with only 32-bits of precision.
+    MAX_64BIT_LEFT_PART: 92233,
+    MAX_64BIT_MIDDLE_PART: 7203685,
+    MAX_64BIT_RIGHT_PART: 4775807,
+
+    // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
+    MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
+    IOS_KEYBOARD_SPACE_OFFSET: -30,
+
+    PDF_PASSWORD_FORM: {
+        // Constants for password-related error responses received from react-pdf.
+        REACT_PDF_PASSWORD_RESPONSES: {
+            NEED_PASSWORD: 1,
+            INCORRECT_PASSWORD: 2,
+        },
     },
 };
 

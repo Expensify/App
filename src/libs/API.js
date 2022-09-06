@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as Request from './Request';
 import * as SequentialQueue from './Network/SequentialQueue';
-import {version} from '../../package.json';
+import pkg from '../../package.json';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
@@ -26,7 +26,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
     // Assemble the data we'll send to the API
     const data = {
         ...apiCommandParameters,
-        appversion: version,
+        appversion: pkg.version,
     };
 
     // Assemble all the request data we'll be storing in the queue
@@ -73,7 +73,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
     // Assemble the data we'll send to the API
     const data = {
         ...apiCommandParameters,
-        appversion: version,
+        appversion: pkg.version,
     };
 
     // Assemble all the request data we'll be storing

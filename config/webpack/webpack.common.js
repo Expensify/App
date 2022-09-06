@@ -1,5 +1,5 @@
 const path = require('path');
-const {IgnorePlugin, DefinePlugin} = require('webpack');
+const {IgnorePlugin, DefinePlugin, ProvidePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -11,7 +11,7 @@ const includeModules = [
     'react-native-animatable',
     'react-native-reanimated',
     'react-native-picker-select',
-    'react-native-web',
+    '@expensify/react-native-web',
     'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
@@ -34,7 +34,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         app: './index.js',
     },
     output: {
-        filename: '[name]-[hash].bundle.js',
+        filename: '[name]-[contenthash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
     },
@@ -44,6 +44,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             template: 'web/index.html',
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
+        }),
+        new ProvidePlugin({
+            process: 'process/browser',
         }),
 
         // Copies favicons into the dist/ folder to use for unread status
@@ -63,7 +66,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
-        new IgnorePlugin(/^\.\/locale$/, /moment$/),
+        new IgnorePlugin({
+            resourceRegExp: /^\.\/locale$/,
+            contextRegExp: /moment$/,
+        }),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(
@@ -151,7 +157,8 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     resolve: {
         alias: {
             'react-native-config': 'react-web-config',
-            'react-native$': 'react-native-web',
+            'react-native$': '@expensify/react-native-web',
+            'react-native-web': '@expensify/react-native-web',
             'react-content-loader/native': 'react-content-loader',
         },
 
@@ -161,6 +168,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
+        fallback: {
+            'process/browser': require.resolve('process/browser'),
+        },
     },
 });
 
