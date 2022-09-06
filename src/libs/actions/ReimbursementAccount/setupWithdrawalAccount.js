@@ -4,7 +4,9 @@ import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import BankAccount from '../../models/BankAccount';
 import CONST from '../../../CONST';
+import DateUtils from '../../DateUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
+import * as API from '../../API';
 import * as store from './store';
 import * as DeprecatedAPI from '../../deprecatedAPI';
 import * as errors from './errors';
@@ -135,6 +137,42 @@ function mergeParamsWithLocalACHData(data) {
     return updatedACHData;
 }
 
+function getVBADataForOnyx() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
+                },
+            },
+        ],
+    };
+}
+
 /**
  * Create the bank account in db with manually entered data.
  *
@@ -155,7 +193,7 @@ function mergeParamsWithLocalACHData(data) {
  *
  */
 function connectBankAccountManually (params) {
-
+    API.write('ConnectBankAccountManually', params, getVBADataForOnyx());
 }
 
 /**
