@@ -134,17 +134,11 @@ class BankAccountStep extends React.Component {
             return;
         }
 
-        BankAccounts.connectBankAccountManually({
-            acceptTerms: this.state.hasAcceptedTerms,
-            accountNumber: this.state.accountNumber,
-            routingNumber: this.state.routingNumber,
-            setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
-
-            // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
-            country: CONST.COUNTRY.US,
-            currency: CONST.CURRENCY.USD,
-            fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
-        });
+        BankAccounts.connectBankAccountManually(
+            this.state.accountNumber,
+            this.state.routingNumber,
+            this.state.hasAcceptedTerms,
+        );
     }
 
     /**
