@@ -412,12 +412,6 @@ function Policy_Employees_Merge(parameters) {
     return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
-function BankAccount_Validate(parameters) {
-    const commandName = 'ValidateBankAccount';
-    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
-}
-
 /**
  * @param {*} parameters
  * @returns {Promise}
