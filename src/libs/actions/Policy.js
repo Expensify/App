@@ -743,6 +743,7 @@ function generatePolicyID() {
 function createWorkspace() {
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName();
+
     const {
         announceChatReportID,
         announceChatData,
@@ -778,7 +779,9 @@ function createWorkspace() {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-            value: {[sessionEmail]: {}},
+            value: {
+                [sessionEmail]: {role: CONST.POLICY.ROLE.ADMIN}
+            },
         }, {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,

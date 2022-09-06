@@ -645,9 +645,9 @@ function createOptimisticChatReport(participantList, reportName = 'Chat Report',
             ],
             person: [
                 {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                     style: 'strong',
                     text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
-                    type: 'TEXT',
                 },
             ],
             automatic: false,
@@ -665,124 +665,17 @@ function createOptimisticChatReport(participantList, reportName = 'Chat Report',
  * @returns {Object}
  */
 function createOptimisticWorkspaceChats(policyID, policyName) {
-    const announceChatData = createOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, '', false, policyName);
+    const announceChatData = createOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, null, false, policyName);
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = createOptimisticCreatedReportAction(announceChatData.ownerEmail);
 
-    const adminsChatReportID = ReportUtils.generateReportID();
-    const adminsChatData = {
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        policyID,
-        reportID: adminsChatReportID,
-        reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        hasOutstandingIOU: false,
-        isOwnPolicyExpenseChat: false,
-        isLoadingReportActions: false,
-        isPinned: false,
-        lastActorEmail: '',
-        lastMessageHtml: '',
-        lastMessageText: null,
-        lastReadSequenceNumber: 0,
-        lastMessageTimestamp: 0,
-        lastVisitedTimestamp: 0,
-        maxSequenceNumber: 0,
-        notificationPreference: '',
-        oldPolicyName: policyName,
-        ownerEmail: '__FAKE__',
-        participants: [currentUserEmail],
-        stateNum: 0,
-        statusNum: 0,
-        visibility: undefined,
-    };
+    const adminsChatData = createOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatReportID = adminsChatData.reportID;
+    const adminsReportActionData = createOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
-    const adminsReportActionData = {
-        0: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            message: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'strong',
-                    text: adminsChatData.ownerEmail,
-                },
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'normal',
-                    text: ' created this report',
-                },
-            ],
-            person: [
-                {
-                    style: 'strong',
-                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
-                    type: 'TEXT',
-                },
-            ],
-            automatic: false,
-            sequenceNumber: 0,
-            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
-            timestamp: moment().unix(),
-            shouldShow: true,
-        },
-    };
-
-    const expenseChatReportID = ReportUtils.generateReportID();
-    const expenseChatData = {
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        isOwnPolicyExpenseChat: true,
-        ownerEmail: currentUserEmail,
-        policyID,
-        reportID: expenseChatReportID,
-        reportName: '',
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        hasOutstandingIOU: false,
-        isPinned: false,
-        lastActorEmail: '',
-        lastMessageHtml: '',
-        lastMessageText: null,
-        lastReadSequenceNumber: 0,
-        lastMessageTimestamp: 0,
-        lastVisitedTimestamp: 0,
-        maxSequenceNumber: 0,
-        notificationPreference: '',
-        oldPolicyName: policyName,
-        participants: [currentUserEmail],
-        stateNum: 0,
-        statusNum: 0,
-        visibility: undefined,
-    };
-
-    const expenseReportActionData = {
-        0: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            message: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'strong',
-                    text: 'You',
-                },
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'normal',
-                    text: ' created this report',
-                },
-            ],
-            person: [
-                {
-                    style: 'strong',
-                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
-                    type: 'TEXT',
-                },
-            ],
-            automatic: false,
-            sequenceNumber: 0,
-            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
-            timestamp: moment().unix(),
-            shouldShow: true,
-        },
-    };
+    const expenseChatData = createOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportActionData = createOptimisticCreatedReportAction(expenseChatData.ownerEmail);
 
     return {
         announceChatReportID,
