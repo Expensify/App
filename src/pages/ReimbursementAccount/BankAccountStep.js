@@ -134,7 +134,7 @@ class BankAccountStep extends React.Component {
             return;
         }
 
-        BankAccounts.setupWithdrawalAccount({
+        BankAccounts.connectBankAccountManually({
             acceptTerms: this.state.hasAcceptedTerms,
             accountNumber: this.state.accountNumber,
             routingNumber: this.state.routingNumber,
