@@ -18,6 +18,7 @@ export {
     updateReimbursementAccountDraft,
     requestResetFreePlanBankAccount,
     cancelResetFreePlanBankAccount,
+    connectBankAccountManually,
 } from './ReimbursementAccount';
 export {
     openPlaidBankAccountSelector,
