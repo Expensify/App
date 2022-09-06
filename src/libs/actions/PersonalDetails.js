@@ -72,7 +72,7 @@ function getDisplayName(login, personalDetail) {
  * @returns {String}
  */
 function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
 }
 
 /**
@@ -263,7 +263,6 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 function updateProfile(firstName, lastName, pronouns, timezone) {
-    const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
         firstName,
         lastName,
@@ -283,19 +282,6 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                         firstName,
                         lastName,
                     }),
-                },
-            },
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    firstName: myPersonalDetails.firstName,
-                    lastName: myPersonalDetails.lastName,
-                    pronouns: myPersonalDetails.pronouns,
-                    timezone: myPersonalDetails.timeZone,
-                    displayName: myPersonalDetails.displayName,
                 },
             },
         }],

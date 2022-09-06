@@ -1,0 +1,20 @@
+name: Contributor Checklist
+
+on:
+  issue_comment:
+    types: [created, edited, deleted]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    # Only run when a comment, PR, or PR review comment contains a checklist item
+    if: github.actor != 'OSBotify' && (contains(github.event.issue.pull_request.url, 'http') && github.event_name == 'issue_comment' && contains(github.event.comment.body, '- [') || github.event_name == 'pull_request_review' && contains(github.event.review.body, '- [') || github.event_name == 'pull_request' && contains(github.event.pull_request.body, '- ['))
+    steps:
+      - name: contributorChecklist.js
+        uses: Expensify/App/.github/actions/javascript/contributorChecklist@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
