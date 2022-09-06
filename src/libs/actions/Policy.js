@@ -811,7 +811,7 @@ function createWorkspace() {
             value: {
                 [sessionEmail]: {
                     role: CONST.POLICY.ROLE.ADMIN,
-                    errors: [],
+                    errors: {},
                 },
             },
         },
