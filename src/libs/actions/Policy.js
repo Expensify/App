@@ -757,7 +757,7 @@ function createWorkspace() {
     } = Report.createOptimisticWorkspaceChats(policyID, workspaceName);
 
     // We need to use makeRequestWithSideEffects as we try to redirect to the policy right after creation
-    // The policy hasn't been merged in Onyx data at this point, leading to an intermittent Not Found screen 
+    // The policy hasn't been merged in Onyx data at this point, leading to an intermittent Not Found screen
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects('CreateWorkspace', {
         policyID,
