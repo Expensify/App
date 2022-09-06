@@ -23,6 +23,7 @@ import Text from '../../components/Text';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -54,6 +55,7 @@ const propTypes = {
 
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
+    ...networkPropTypes,
 };
 
 const defaultProps = fullPolicyDefaultProps;
