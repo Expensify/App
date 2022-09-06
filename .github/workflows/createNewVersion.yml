@@ -55,18 +55,19 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Create new branch
-        run: |
-          BRANCH_NAME="version-${{ inputs.SEMVER_LEVEL }}-$(uuidgen)"
-          git checkout -b "$BRANCH_NAME"
-          git push --set-upstream origin "$BRANCH_NAME"
-          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
-
       - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
         with:
           poll-interval-seconds: 10
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Create new branch
+        run: |
+          git pull
+          BRANCH_NAME="version-${{ inputs.SEMVER_LEVEL }}-$(uuidgen)"
+          git checkout -b "$BRANCH_NAME"
+          git push --set-upstream origin "$BRANCH_NAME"
+          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
 
       - name: Generate version
         id: bumpVersion

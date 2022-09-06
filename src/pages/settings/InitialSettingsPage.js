@@ -2,7 +2,6 @@ import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
@@ -24,12 +23,13 @@ import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
 import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
-import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,6 +53,9 @@ const propTypes = {
 
         /** The user's role in the policy */
         role: PropTypes.string,
+
+        /** The current action that is waiting to happen on the policy */
+        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
 
     /** List of policy members */
@@ -94,7 +97,8 @@ class InitialSettingsPage extends React.Component {
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItems = this.getMenuItems.bind(this);
+        this.getMenuItemsList = this.getMenuItemsList.bind(this);
+        this.getMenuItem = this.getMenuItem.bind(this);
     }
 
     componentDidMount() {
@@ -157,23 +161,65 @@ class InitialSettingsPage extends React.Component {
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      * @returns {Array} the menu item list
      */
-    getMenuItems() {
+    getMenuItemsList() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .map(policy => ({
                 title: policy.name,
-                icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
-                iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                icon: policy.avatar ? policy.avatar : Expensicons.Building,
+                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatarURL ? [] : [styles.popoverMenuIconEmphasized],
+                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(this.props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
+                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                pendingAction: policy.pendingAction,
+                isPolicy: true,
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
 
         return menuItems;
+    }
+
+    getMenuItem(item, index) {
+        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+        const isPaymentItem = item.translationKey === 'common.payments';
+
+        if (item.isPolicy) {
+            return (
+                <OfflineWithFeedback key={`${keyTitle}_${index}`} pendingAction={item.pendingAction}>
+                    <MenuItem
+                        title={keyTitle}
+                        icon={item.icon}
+                        iconType={item.iconType}
+                        onPress={item.action}
+                        iconStyles={item.iconStyles}
+                        iconFill={item.iconFill}
+                        shouldShowRightIcon
+                        badgeText={this.getWalletBalance(isPaymentItem)}
+                        fallbackIcon={item.fallbackIcon}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                    />
+                </OfflineWithFeedback>
+            );
+        }
+
+        return (
+            <MenuItem
+                key={`${keyTitle}_${index}`}
+                title={keyTitle}
+                icon={item.icon}
+                iconType={item.iconType}
+                onPress={item.action}
+                iconStyles={item.iconStyles}
+                iconFill={item.iconFill}
+                shouldShowRightIcon
+                badgeText={this.getWalletBalance(isPaymentItem)}
+                fallbackIcon={item.fallbackIcon}
+                brickRoadIndicator={item.brickRoadIndicator}
+            />
+        );
     }
 
     openProfileSettings() {
@@ -223,25 +269,7 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItems(), (item, index) => {
-                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-                            const isPaymentItem = item.translationKey === 'common.payments';
-                            return (
-                                <MenuItem
-                                    key={`${keyTitle}_${index}`}
-                                    title={keyTitle}
-                                    icon={item.icon}
-                                    iconType={item.iconType}
-                                    onPress={item.action}
-                                    iconStyles={item.iconStyles}
-                                    iconFill={item.iconFill}
-                                    shouldShowRightIcon
-                                    badgeText={this.getWalletBalance(isPaymentItem)}
-                                    fallbackIcon={item.fallbackIcon}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                />
-                            );
-                        })}
+                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
@@ -251,7 +279,6 @@ class InitialSettingsPage extends React.Component {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
