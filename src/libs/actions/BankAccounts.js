@@ -41,6 +41,50 @@ function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
+function getOnyxDataForVBBA() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: true,
+                    errors: null,
+                },
+            },
+        ],
+
+        // No successData because PHP pusher is responsible for setting next step (along with isLoading false)
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
+                },
+            },
+        ],
+    };
+}
+
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+    const commandName = 'ConnectBankAccountWithPlaid';
+
+    const parameters = {
+        bankAccountID,
+        routingNumber: selectedPlaidBankAccount.routingNumber,
+        accountNumber: selectedPlaidBankAccount.accountNumber,
+        bank: selectedPlaidBankAccount.bankName,
+        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
+        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+    };
+
+    API.write(commandName, parameters, getOnyxDataForVBBA());
+}
+
 /**
  * Adds a bank account via Plaid
  *
@@ -119,4 +163,5 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    connectBankAccountWithPlaid,
 };

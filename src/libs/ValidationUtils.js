@@ -370,7 +370,7 @@ function isExistingRoomName(roomName, reports, policyID) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
 export {
