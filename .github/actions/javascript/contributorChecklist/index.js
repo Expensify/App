@@ -174,7 +174,7 @@ getPullRequestBody()
             return;
         }
 
-        console.log(`${verifyingContributorChecklist ? 'Contributor' : 'Contributor+'} is complete 🎉`);
+        console.log(`${verifyingContributorChecklist ? 'Contributor' : 'Contributor+'} checklist is complete 🎉`);
     });
 
 
