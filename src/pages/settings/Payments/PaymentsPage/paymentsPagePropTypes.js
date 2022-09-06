@@ -22,7 +22,7 @@ const propTypes = {
     shouldListenForResize: PropTypes.bool,
 
     /** The user's wallet account */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
