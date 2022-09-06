@@ -783,7 +783,11 @@ function createWorkspace() {
         expenseChatData,
         expenseReportActionData,
     } = Report.createOptimisticWorkspaceChats(policyID, workspaceName);
-    API.write('CreateWorkspace', {
+
+    // We need to use makeRequestWithSideEffects as we try to redirect to the policy right after creation
+    // The policy hasn't been merged in Onyx data at this point, leading to an intermittent Not Found screen 
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('CreateWorkspace', {
         policyID,
         announceChatReportID,
         adminsChatReportID,
@@ -905,9 +909,9 @@ function createWorkspace() {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: null,
         }],
+    }).then(() => {
+        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
-
-    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
 }
 
 export {
