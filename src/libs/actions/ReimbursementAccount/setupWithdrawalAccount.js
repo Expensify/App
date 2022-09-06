@@ -176,24 +176,17 @@ function getVBADataForOnyx() {
 /**
  * Create the bank account in db with manually entered data.
  *
- * @param {Object} params
- *
- * @param {Boolean} [params.acceptTerms]
- * @param {String} [params.accountNumber]
- * @param {String} [params.routingNumber]
- * @param {String} [params.setupType]
- * @param {String} [params.country]
- * @param {String} [params.currency]
- * @param {String} [params.fieldsType]
- * @param {String} [params.plaidAccessToken]
- * @param {String} [params.plaidAccountID]
- * @param {String} [params.ownershipType]
- * @param {Boolean} [params.isSavings]
- * @param {String} [params.addressName]
+ * @param {String} [accountNumber]
+ * @param {String} [routingNumber]
+ * @param {Boolean} [acceptTerms]
  *
  */
-function connectBankAccountManually (params) {
-    API.write('ConnectBankAccountManually', params, getVBADataForOnyx());
+function connectBankAccountManually(accountNumber, routingNumber, acceptTerms) {
+    API.write('ConnectBankAccountManually', {
+        accountNumber,
+        routingNumber,
+        acceptTerms,
+    }, getVBADataForOnyx());
 }
 
 /**
