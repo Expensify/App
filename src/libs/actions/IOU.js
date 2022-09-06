@@ -12,7 +12,7 @@ import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
 import DateUtils from '../DateUtils';
 import * as API from '../API';
-import {buildOptimisticIOUReportAction} from "../ReportUtils";
+import * as ReportUtils from '../ReportUtils';
 
 /**
  * Gets the IOU Reports for new transaction
@@ -101,33 +101,10 @@ function startLoadingAndResetError() {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 }
 
-/**
- * Creates IOUSplit Transaction
- *
- * @param {Object} params
- * @param {Number} params.amount
- * @param {String} params.comment
- * @param {String} params.currency
- * @param {String} params.debtorEmail
- */
-function createIOUTransaction(params) {
-    startLoadingAndResetError();
-    DeprecatedAPI.CreateIOUTransaction(params)
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                processIOUErrorResponse(response);
-                return;
-            }
-
-            getIOUReportsForNewTransaction([response]);
-            Navigation.navigate(ROUTES.getReportRoute(response.chatReportID));
-        });
-}
-
 function requestMoney(params) {
-    const chatReport = params.report ? params.report : Report.createOptimisticChatReport();
+    const chatReport = params.reportID ? params.reportID : Report.createOptimisticChatReport();
     const optimisticIOUReport = Report.createOptimisticChatReport();
-    const optimisticReportAction = buildOptimisticIOUReportAction('create', params.amount, 'comment', '', '', optimisticIOUReport.reportID);
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', params.amount, 'comment', '', '', optimisticIOUReport.reportID);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -142,12 +119,12 @@ function requestMoney(params) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: optimisticChatReport,
+            value: chatReport,
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
-            value: optimisticChatReport,
+            value: chatReport,
         },
     ];
     const failureData = [
@@ -369,7 +346,6 @@ function payIOUReport({
 }
 
 export {
-    createIOUTransaction,
     createIOUSplit,
     createIOUSplitGroup,
     rejectTransaction,
