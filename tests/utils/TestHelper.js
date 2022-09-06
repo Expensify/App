@@ -53,7 +53,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                             key: ONYXKEYS.SESSION,
                             value: {
                                 shouldShowComposeInput: true,
-                                error: null,
                                 authToken,
                                 accountID,
                                 email: login,
