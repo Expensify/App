@@ -13,7 +13,7 @@ import Log from '../Log';
 import DateUtils from '../DateUtils';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import lodashGet from "lodash/get";
+import lodashGet from 'lodash/get';
 
 /**
  * Gets the IOU Reports for new transaction
