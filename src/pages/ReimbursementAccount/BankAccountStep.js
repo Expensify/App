@@ -64,7 +64,8 @@ class BankAccountStep extends React.Component {
     }
 
     /**
-     * @returns {Boolean}
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Object}
      */
     validate(values) {
         const errors = {};
@@ -81,7 +82,6 @@ class BankAccountStep extends React.Component {
 
         return errors;
     }
-
 
     validatePlaidAccount(values) {
         const errors = {};
@@ -108,6 +108,7 @@ class BankAccountStep extends React.Component {
 
     /**
      * Add the Bank account retrieved via Plaid in db
+     * @param {Object} values - form input values passed by the Form component
      */
     addPlaidAccount(values) {
         const selectedPlaidBankAccount = values.selectedPlaidBankAccount;
