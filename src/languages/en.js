@@ -202,7 +202,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
     },
-    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
+    newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -579,6 +579,16 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
+        passwordRequired: 'Please enter a password',
+        passwordIncorrect: 'Incorrect password. Please try again.',
+        pdfPasswordForm: {
+            title: 'Password protected PDF',
+            infoText: 'This PDF is password protected.',
+            beforeLinkText: 'Please',
+            linkText: 'enter the password',
+            afterLinkText: 'to view it.',
+            formLabel: 'View PDF',
+        },
     },
     pronouns: {
         heHimHis: 'He/him',

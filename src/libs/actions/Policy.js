@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import Str from 'expensify-common/lib/str';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -133,7 +135,7 @@ function create(name = '') {
             Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
 
             // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Promise.all(
+            return Promise.all([
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
                     id: response.policyID,
                     type: response.policy.type,
@@ -142,7 +144,7 @@ function create(name = '') {
                     outputCurrency: response.policy.outputCurrency,
                 }),
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${response.policyID}`, getSimplifiedEmployeeList(response.policy.employeeList)),
-            );
+            ]);
         })
         .then(() => Promise.resolve(lodashGet(res, 'policyID')));
 }
@@ -752,11 +754,63 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
+ * Generate a policy name based on an email and policy list.
+ * @returns {String}
+ */
+function generateDefaultWorkspaceName() {
+    const emailParts = sessionEmail.split('@');
+    let defaultWorkspaceName = '';
+    if (!emailParts || emailParts.length !== 2) {
+        return defaultWorkspaceName;
+    }
+    const username = emailParts[0];
+    const domain = emailParts[1];
+
+    if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
+        defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
+    } else {
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
+    }
+
+    if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
+        defaultWorkspaceName = 'My Group Workspace';
+    }
+
+    if (allPolicies.length === 0) {
+        return defaultWorkspaceName;
+    }
+
+    // Check if this name already exists in the policies
+    let suffix = 0;
+    _.forEach(allPolicies, (policy) => {
+        // Get the name of the policy
+        const {name} = policy;
+
+        if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
+            suffix += 1;
+        }
+    });
+
+    return suffix > 0 ? `${defaultWorkspaceName} ${suffix}` : defaultWorkspaceName;
+}
+
+/**
  * Returns a client generated 16 character hexadecimal value for the policyID
  * @returns {String}
  */
 function generatePolicyID() {
     return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+}
+
+function openWorkspaceReimburseView(policyID) {
+    API.read('OpenWorkspaceReimburseView', {policyID});
+}
+
+function openWorkspaceMembersPage(policyID, clientMemberEmails) {
+    API.read('OpenWorkspaceMembersPage', {
+        policyID,
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
+    });
 }
 
 export {
@@ -779,10 +833,13 @@ export {
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
+    openWorkspaceReimburseView,
+    generateDefaultWorkspaceName,
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
+    openWorkspaceMembersPage,
 };

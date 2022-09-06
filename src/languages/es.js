@@ -202,7 +202,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
     },
-    newMessageCount: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
+    newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -579,6 +579,16 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
+        passwordRequired: 'Por favor introduce tu contraseña',
+        passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+        pdfPasswordForm: {
+            title: 'PDF protegido con contraseña',
+            infoText: 'Este PDF esta protegido con contraseña.',
+            beforeLinkText: 'Por favor',
+            linkText: 'introduce la contraseña',
+            afterLinkText: 'para verlo.',
+            formLabel: 'Ver PDF',
+        },
     },
     pronouns: {
         heHimHis: 'Él',

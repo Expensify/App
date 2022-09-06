@@ -46,8 +46,8 @@ const propTypes = {
         /** Name of the report */
         reportName: PropTypes.string,
 
-        /** Number of unread actions on the report */
-        unreadActionCount: PropTypes.number,
+        /** Whether the report has a draft comment */
+        hasDraft: PropTypes.bool,
     })),
 
     /** List of users' personal details */
@@ -105,7 +105,7 @@ function getUnreadReports(reportsObject) {
     if (reports.length === 0) {
         return [];
     }
-    const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
+    const unreadReports = _.filter(reports, report => report && ReportUtils.isUnread(report));
     return unreadReports;
 }
 const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
@@ -219,7 +219,7 @@ class SidebarLinks extends React.Component {
 
             // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
             // does not have all the conversations in prevState.orderedReports
-                .filter(orderedReport => orderedReport !== undefined)
+                .compact()
                 .value();
 
         return {
