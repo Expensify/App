@@ -890,6 +890,13 @@ function openWorkspaceReimburseView(policyID) {
     API.read('OpenWorkspaceReimburseView', {policyID});
 }
 
+function openWorkspaceMembersPage(policyID, clientMemberEmails) {
+    API.read('OpenWorkspaceMembersPage', {
+        policyID,
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
+    });
+}
+
 export {
     getPolicyList,
     loadFullPolicy,
@@ -916,4 +923,5 @@ export {
     clearAvatarErrors,
     generatePolicyID,
     createWorkspace,
+    openWorkspaceMembersPage,
 };
