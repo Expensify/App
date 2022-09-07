@@ -169,7 +169,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('common.companyAddress')}
                             containerStyles={[styles.mt4]}
                             hint={this.props.translate('common.noPO')}
-                            defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet')}
+                            value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet')}
                         />
                     </View>
                     <View style={[styles.flexRow, styles.mt4]}>
@@ -177,13 +177,13 @@ class CompanyStep extends React.Component {
                             <TextInput
                                 inputID="addressCity"
                                 label={this.props.translate('common.city')}
-                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressCity')}
+                                value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressCity')}
                             />
                         </View>
                         <View style={[styles.flex1]}>
                             <StatePicker
                                 inputID="addressState"
-                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressState')}
+                                value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressState')}
                             />
                         </View>
                     </View>
@@ -192,7 +192,7 @@ class CompanyStep extends React.Component {
                         label={this.props.translate('common.zip')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressZipCode')}
+                        value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressZipCode')}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     />
                     <TextInput
@@ -245,7 +245,7 @@ class CompanyStep extends React.Component {
                     </View>
                     <CheckboxWithLabel
                         inputID="hasNoConnectionToCannabis"
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'hasNoConnectionToCannabis')}
+                        defaultValue={!!ReimbursementAccountUtils.getDefaultStateForField(this.props, 'hasNoConnectionToCannabis')}
                         LabelComponent={() => (
                             <>
                                 <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
