@@ -119,7 +119,7 @@ Alternatively, you can also set up debugger using [Flipper](https://fbflipper.co
 Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
 1. Navigate to `chrome://inspect`
 2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
-3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
+3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
 ## Web
