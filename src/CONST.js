@@ -415,7 +415,7 @@ const CONST = {
         PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {errors: '', success: '', loading: false},
+    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', loading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
