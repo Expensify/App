@@ -115,7 +115,6 @@ function updateAllPolicies(policyCollection) {
  * Delete the policy
  *
  * @param {String} [policyID]
- * @returns {Promise}
  */
 function deletePolicy(policyID) {
     return DeprecatedAPI.Policy_Delete({policyID})
@@ -130,12 +129,12 @@ function deletePolicy(policyID) {
             Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
 
             // Removing the workspace data from Onyx as well
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
+            console.log(policyID);
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
         })
         .then(() => Report.fetchAllReports(false))
         .then(() => {
             Navigation.goBack();
-            return Promise.resolve();
         });
 }
 
