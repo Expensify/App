@@ -93,12 +93,12 @@ function addPersonalBankAccount(account, password) {
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: CONST.ONYX.METHOD.SET,
                 key: ONYXKEYS.PLAID_DATA,
                 value: {},
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: CONST.ONYX.METHOD.SET,
                 key: ONYXKEYS.PLAID_LINK_TOKEN,
                 value: '',
             },
