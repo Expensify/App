@@ -34,6 +34,9 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** Are we loading the createPolicyRoom command */
     isLoadingCreatePolicyRoom: PropTypes.bool,
 
