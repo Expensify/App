@@ -171,6 +171,7 @@ function validateBankAccount(bankAccountID, validateCode) {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
                 isLoading: true,
+                errors: null,
             },
         }],
         successData: [{
