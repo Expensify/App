@@ -1,0 +1,14 @@
+name: Contributor+ Checklist
+
+on: issue_comment
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    if: github.actor != 'OSBotify' && (contains(github.event.issue.pull_request.url, 'http') && github.event_name == 'issue_comment' && contains(github.event.comment.body, '- ['))
+    steps:
+      - name: contributorChecklist.js
+        uses: Expensify/App/.github/actions/javascript/contributorChecklist@andrew-checklist-3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHECKLIST: 'contributorPlus'
