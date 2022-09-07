@@ -18,7 +18,7 @@ import Text from '../components/Text';
 import Button from '../components/Button';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
-import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 
@@ -31,7 +31,7 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
 
     /* Onyx Props */
@@ -80,7 +80,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...fullPolicyDefaultProps,
+    ...policyDefaultProps,
     report: {
         reportID: 0,
         reportName: '',
@@ -292,7 +292,7 @@ ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withPolicy,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,

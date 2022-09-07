@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -50,11 +50,11 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
 };
 
-const defaultProps = fullPolicyDefaultProps;
+const defaultProps = policyDefaultProps;
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -333,7 +333,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
