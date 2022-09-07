@@ -731,7 +731,7 @@ function buildOptimisticChatReport(
 /*
  * Builds an optimistic IOU report with a randomly generated reportID
  */
-function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
+function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
     const formattedTotal = NumberFormatUtils.format(locale,
         total, {
             style: 'currency',
@@ -742,8 +742,8 @@ function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
         chatReportID,
         currency,
         hasOutstandingIOU: true,
-        managerEmail: '__FAKE__',
-        ownerEmail: '__FAKE__',
+        managerEmail: recipientEmail,
+        ownerEmail,
         reportID: ReportUtils.generateReportID(),
         state: 'SUBMITTED',
         stateNum: 1,
