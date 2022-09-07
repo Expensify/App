@@ -115,6 +115,7 @@ class TransferBalancePage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
+            {},
             '',
             this.props.userWallet,
         );
@@ -138,6 +139,7 @@ class TransferBalancePage extends React.Component {
         const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
+            {},
             '',
             this.props.userWallet,
         );

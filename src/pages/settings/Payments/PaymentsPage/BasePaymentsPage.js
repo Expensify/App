@@ -209,6 +209,7 @@ class BasePaymentsPage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
+            {},
             '',
             this.props.userWallet,
         );

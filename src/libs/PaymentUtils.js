@@ -54,6 +54,7 @@ function formatPaymentMethods(bankAccountList, cardList, pendingBankAccount = {}
             accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
             accountData: _.extend({}, pendingBankAccount, {icon}),
             isDefault: false,
+            isPending: true,
             errors: pendingBankAccount.errors,
             pendingAction: pendingBankAccount.pendingAction,
         });
