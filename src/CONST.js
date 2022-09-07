@@ -311,6 +311,7 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
+        OWNER_EMAIL_FAKE: '__FAKE__',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -673,6 +674,7 @@ const CONST = {
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
+        OWNER_EMAIL_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
