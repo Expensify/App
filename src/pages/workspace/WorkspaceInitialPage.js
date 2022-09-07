@@ -20,8 +20,9 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
-import * as Policy from '../../libs/actions/Policy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import * as PolicyActions from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -29,7 +30,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
 
     /** The employee list of this policy (coming from Onyx) */
@@ -37,7 +38,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...fullPolicyDefaultProps,
+    ...policyDefaultProps,
     policyMemberList: {},
 };
 
@@ -245,7 +246,7 @@ WorkspaceInitialPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withPolicy,
     withOnyx({
         policyMemberList: {
             key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
