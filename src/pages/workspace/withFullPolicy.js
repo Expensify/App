@@ -106,7 +106,6 @@ export default function (WrappedComponent) {
         const isFromFullPolicy = lodashGet(props, 'policy.isFromFullPolicy', false) || lodashGet(props, `policy.policy_${policyID}.isFromFullPolicy`, false);
 
         if (_.isString(policyID) && !_.isEmpty(policyID) && (!isFromFullPolicy || !isPreviousRouteInSameWorkspace(currentRoute.name, policyID))) {
-            Policy.loadFullPolicy(policyID);
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
