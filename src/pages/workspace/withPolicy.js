@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import {useNavigationState} from '@react-navigation/native';
 import CONST from '../../CONST';
@@ -11,28 +10,12 @@ import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
 
-let previousRouteName = '';
-let previousRoutePolicyID = '';
-
 /**
  * @param {Object} route
  * @returns {String}
  */
 function getPolicyIDFromRoute(route) {
     return lodashGet(route, 'params.policyID', '');
-}
-
-/**
- * @param {String} routeName
- * @param {String} policyID
- * @returns {Boolean}
- */
-function isPreviousRouteInSameWorkspace(routeName, policyID) {
-    return (
-        Str.startsWith(routeName, 'Workspace')
-        && Str.startsWith(previousRouteName, 'Workspace')
-        && policyID === previousRoutePolicyID
-    );
 }
 
 const policyPropTypes = {
@@ -106,14 +89,10 @@ export default function (WrappedComponent) {
     const WithPolicy = (props) => {
         const currentRoute = _.last(useNavigationState(state => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
-        const isFromFullPolicy = lodashGet(props, 'policy.isFromFullPolicy', false) || lodashGet(props, `policy.policy_${policyID}.isFromFullPolicy`, false);
 
-        if (_.isString(policyID) && !_.isEmpty(policyID) && (!isFromFullPolicy || !isPreviousRouteInSameWorkspace(currentRoute.name, policyID))) {
+        if (_.isString(policyID) && !_.isEmpty(policyID)) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
-
-        previousRouteName = currentRoute.name;
-        previousRoutePolicyID = policyID;
 
         const rest = _.omit(props, ['forwardedRef', 'policy', 'policyMemberList']);
         return (
