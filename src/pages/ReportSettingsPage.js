@@ -77,16 +77,6 @@ const propTypes = {
     }).isRequired,
 };
 
-const defaultProps = {
-    report: {
-        reportID: 0,
-        reportName: '',
-        policyID: '',
-        notificationPreference: '',
-        visibility: '',
-    },
-};
-
 class ReportSettingsPage extends Component {
     constructor(props) {
         super(props);
@@ -284,7 +274,6 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
-ReportSettingsPage.defaultProps = defaultProps;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default compose(
