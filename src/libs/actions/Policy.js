@@ -128,9 +128,9 @@ function deletePolicy(policyID) {
 
             Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
 
-            // Removing the workspace data from Onyx as well
-            console.log(policyID);
+            // Removing the workspace data from Onyx and local array as well
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
+            allPolicies[policyID] = null;
         })
         .then(() => Report.fetchAllReports(false))
         .then(() => {
