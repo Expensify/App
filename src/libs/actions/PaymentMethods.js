@@ -335,6 +335,26 @@ function deletePaymentCard(fundID) {
     });
 }
 
+function navigateToAddPaymentMethodPage(paymentType, allowPaypalPaymentTypes = true) {
+    // We don't always show Paypal as an option
+    if (paymentType === CONST.PAYMENT_METHODS.PAYPAL && allowPaypalPaymentTypes) {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+        return;
+    }
+
+    if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
+        return;
+    }
+
+    if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+        return;
+    }
+
+    throw new Error('Invalid payment method type selected');
+}
+
 export {
     deletePayPalMe,
     deletePaymentCard,
@@ -355,4 +375,5 @@ export {
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
     clearWalletError,
+    navigateToAddPaymentMethodPage,
 };

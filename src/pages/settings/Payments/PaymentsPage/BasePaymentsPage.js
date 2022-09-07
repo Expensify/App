@@ -54,7 +54,6 @@ class BasePaymentsPage extends React.Component {
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
-        this.addPaymentMethodTypePressed = this.addPaymentMethodTypePressed.bind(this);
         this.hideAddPaymentMenu = this.hideAddPaymentMenu.bind(this);
         this.hideDefaultDeleteMenu = this.hideDefaultDeleteMenu.bind(this);
         this.makeDefaultPaymentMethod = this.makeDefaultPaymentMethod.bind(this);
@@ -171,32 +170,6 @@ class BasePaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: true,
         });
         this.setPositionAddPaymentMenu(position);
-    }
-
-    /**
-     * Navigate to the appropriate payment type addition screen
-     *
-     * @param {String} paymentType
-     */
-    addPaymentMethodTypePressed(paymentType) {
-        this.hideAddPaymentMenu();
-
-        if (paymentType === CONST.PAYMENT_METHODS.PAYPAL) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-            return;
-        }
-
-        if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
-            return;
-        }
-
-        if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
-            return;
-        }
-
-        throw new Error('Invalid payment method type selected');
     }
 
     fetchData() {
@@ -322,7 +295,10 @@ class BasePaymentsPage extends React.Component {
                         top: this.state.anchorPositionTop,
                         left: this.state.anchorPositionLeft,
                     }}
-                    onItemSelected={method => this.addPaymentMethodTypePressed(method)}
+                    onItemSelected={(item) => {
+                        this.hideAddPaymentMenu();
+                        PaymentMethods.navigateToAddPaymentMethodPage(item);
+                    }}
                 />
                 <Popover
                     isVisible={this.state.shouldShowDefaultDeleteMenu}
