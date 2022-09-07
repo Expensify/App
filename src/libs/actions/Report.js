@@ -588,13 +588,27 @@ function fetchAllReports(
  * Creates an optimistic chat report with a randomly generated reportID and as much information as we currently have
  *
  * @param {Array} participantList
+ * @param {String} reportName
+ * @param {String} chatType
+ * @param {String} policyID
+ * @param {String} ownerEmail
+ * @param {Boolean} isOwnPolicyExpenseChat
+ * @param {String} oldPolicyName
  * @returns {Object}
  */
-function createOptimisticChatReport(participantList) {
+function createOptimisticChatReport(
+    participantList,
+    reportName = 'Chat Report',
+    chatType = '',
+    policyID = '_FAKE_',
+    ownerEmail = '__FAKE__',
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+) {
     return {
-        chatType: '',
+        chatType,
         hasOutstandingIOU: false,
-        isOwnPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat,
         isPinned: false,
         lastActorEmail: '',
         lastMessageHtml: '',
@@ -604,15 +618,94 @@ function createOptimisticChatReport(participantList) {
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference: '',
-        oldPolicyName: '',
-        ownerEmail: '__FAKE__',
+        oldPolicyName,
+        ownerEmail,
         participants: participantList,
-        policyID: '_FAKE_',
+        policyID,
         reportID: ReportUtils.generateReportID(),
-        reportName: 'Chat Report',
+        reportName,
         stateNum: 0,
         statusNum: 0,
         visibility: undefined,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+function createOptimisticCreatedReportAction(ownerEmail) {
+    return {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'normal',
+                    text: ' created this report',
+                },
+            ],
+            person: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            shouldShow: true,
+        },
+    };
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} policyName
+ * @returns {Object}
+ */
+function createOptimisticWorkspaceChats(policyID, policyName) {
+    const announceChatData = createOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
+    const announceChatReportID = announceChatData.reportID;
+    const announceReportActionData = createOptimisticCreatedReportAction(announceChatData.ownerEmail);
+
+    const adminsChatData = createOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatReportID = adminsChatData.reportID;
+    const adminsReportActionData = createOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+
+    const expenseChatData = createOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportActionData = createOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+
+    return {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
     };
 }
 
@@ -1538,7 +1631,9 @@ export {
     readOldestAction,
     openReport,
     openPaymentDetailsPage,
+    createOptimisticWorkspaceChats,
     createOptimisticChatReport,
+    createOptimisticCreatedReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
