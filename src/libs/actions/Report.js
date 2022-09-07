@@ -26,7 +26,8 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import {buildOptimisticCreatedReportAction} from "../ReportUtils";
+import * as NumberUtils from '../NumberUtils';
+import * as NumberFormatUtils from '../NumberFormatUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -724,6 +725,29 @@ function createOptimisticChatReport(participantList) {
         statusNum: 0,
         unreadActionCount: 0,
         visibility: undefined,
+    };
+}
+
+/*
+ * Creates an optimistic IOU report with a randomly generated reportID
+ */
+function buildOptimisticIOUReport(total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.format(locale,
+        total, {
+            style: 'currency',
+            currency,
+        });
+    return {
+        cachedTotal: formattedTotal,
+        chatReportID,
+        currency,
+        hasOutstandingIOU: true,
+        managerEmail: '__FAKE__',
+        ownerEmail: '__FAKE__',
+        reportID: ReportUtils.generateReportID(),
+        state: 'SUBMITTED',
+        stateNum: 1,
+        total,
     };
 }
 
@@ -1734,4 +1758,5 @@ export {
     createOptimisticReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
+    buildOptimisticIOUReport,
 };
