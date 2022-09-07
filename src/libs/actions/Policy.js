@@ -870,12 +870,27 @@ function createWorkspace() {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: {pendingAction: null},
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: {pendingAction: null},
+        }
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {pendingAction: null},
         }],
         failureData: [{
@@ -894,7 +909,7 @@ function createWorkspace() {
             value: null,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: null,
         },
@@ -904,7 +919,7 @@ function createWorkspace() {
             value: null,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: null,
         },
@@ -914,7 +929,7 @@ function createWorkspace() {
             value: null,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: null,
         }],
