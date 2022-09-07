@@ -169,7 +169,7 @@ describe('actions/BankAccounts', () => {
                     },
                 }));
 
-                // And mock resonse to SetNameValuePair
+                // And mock response to SetNameValuePair
                 HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({jsonCode: 200}));
 
                 // WHEN we call setupWithdrawalAccount on the RequestorStep
@@ -304,31 +304,41 @@ describe('actions/BankAccounts', () => {
     });
 
     it('should fetch the correct initial state for a user on the ACHContractStep in PENDING state', () => {
+        console.debug(">>>>!!!! BROKEN TEST START")
+        jest.setTimeout(1000000);
         // GIVEN a mock response for a call to Get&returnValueList=nameValuePairs&name=expensify_freePlanBankAccountID that returns a bankAccountID
-        HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE));
+        HttpUtils.xhr.mockImplementationOnce((command) => {
+                console.debug(">>>> MOCKING GET #1")
+                // debugger;
+                return Promise.resolve(FREE_PLAN_NVP_RESPONSE);
+            });
 
-        // and a mock response for a call to Get&returnValueList=nameValuePairs,bankAccountList&nvpNames that should return a bank account that has completed both
-        // the RequestorStep, CompanyStep, and ACHContractStep and is now PENDING
         HttpUtils.xhr
-            .mockImplementationOnce(() => Promise.resolve({
-                jsonCode: 200,
-                nameValuePairs: [],
-                bankAccountList: [{
-                    accountNumber: TEST_BANK_ACCOUNT_NUMBER_MASKED,
-                    additionalData: {
-                        currentStep: CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
-                        isOnfidoSetupComplete: true,
-                    },
-                    bankAccountID: TEST_BANK_ACCOUNT_ID,
-                    state: BankAccount.STATE.PENDING,
-                    routingNumber: TEST_BANK_ACCOUNT_ROUTING_NUMBER,
-                }],
-            }));
+            .mockImplementationOnce((command) => {
+                console.debug(">>>> MOCKING GET #2")
+                // debugger;
+                return Promise.resolve({
+                    jsonCode: 200,
+                    nameValuePairs: [],
+                    bankAccountList: [{
+                        accountNumber: TEST_BANK_ACCOUNT_NUMBER_MASKED,
+                        additionalData: {
+                            currentStep: CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
+                            isOnfidoSetupComplete: true,
+                        },
+                        bankAccountID: TEST_BANK_ACCOUNT_ID,
+                        state: BankAccount.STATE.PENDING,
+                        routingNumber: TEST_BANK_ACCOUNT_ROUTING_NUMBER,
+                    }],
+                })
+            });
 
+        // debugger;
         // WHEN we fetch the account
         BankAccounts.fetchFreePlanVerifiedBankAccount();
         return waitForPromisesToResolve()
             .then(() => {
+                // debugger;
                 // THEN we should see that we are directed to the ValidationStep
                 expect(reimbursementAccount.loading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
