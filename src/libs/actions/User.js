@@ -233,8 +233,7 @@ function validateLogin(accountID, validateCode) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {success});
             }
         } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: error}});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('resendValidationForm.validationCodeFailedMessage')}});
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});

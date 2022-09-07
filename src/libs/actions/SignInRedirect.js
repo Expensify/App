@@ -3,6 +3,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
 // eslint-disable-next-line import/no-cycle
 import DateUtils from '../DateUtils';
+import * as Localize from '../Localize';
 
 let currentActiveClients;
 Onyx.connect({
@@ -47,7 +48,7 @@ function clearStorageAndRedirect(errorMessage) {
 
             // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
             if (errorMessage) {
-                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: errorMessage}});
+                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
             }
         });
 }
