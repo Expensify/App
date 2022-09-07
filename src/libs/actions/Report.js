@@ -61,37 +61,6 @@ const typingWatchTimers = {};
 
 /**
  * @param {Number} reportID
- * @param {Number} lastReadSequenceNumber
- * @param {Number} maxSequenceNumber
- * @returns {Boolean}
- */
-function calculateUnreadActionCount(
-    reportID,
-    lastReadSequenceNumber,
-    maxSequenceNumber,
-) {
-    if (maxSequenceNumber === 0) {
-        return 0;
-    }
-
-    if (!lastReadSequenceNumber) {
-        return maxSequenceNumber;
-    }
-
-    const unreadActionCount = maxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumber);
-    return Math.max(0, unreadActionCount);
-}
-
-/**
- * @param {Number} reportID
- * @returns {Number}
- */
-function getUnreadActionCount(reportID) {
-    return lodashGet(allReports, [reportID, 'unreadActionCount'], 0);
-}
-
-/**
- * @param {Number} reportID
  * @returns {Number}
  */
 function getLastReadSequenceNumber(reportID) {
@@ -171,7 +140,6 @@ function getSimplifiedReportObject(report) {
         chatType,
         ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
-        unreadActionCount: calculateUnreadActionCount(report.reportID, lastReadSequenceNumber, report.reportActionCount),
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
@@ -620,13 +588,27 @@ function fetchAllReports(
  * Creates an optimistic chat report with a randomly generated reportID and as much information as we currently have
  *
  * @param {Array} participantList
+ * @param {String} reportName
+ * @param {String} chatType
+ * @param {String} policyID
+ * @param {String} ownerEmail
+ * @param {Boolean} isOwnPolicyExpenseChat
+ * @param {String} oldPolicyName
  * @returns {Object}
  */
-function createOptimisticChatReport(participantList) {
+function createOptimisticChatReport(
+    participantList,
+    reportName = 'Chat Report',
+    chatType = '',
+    policyID = '_FAKE_',
+    ownerEmail = '__FAKE__',
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+) {
     return {
-        chatType: '',
+        chatType,
         hasOutstandingIOU: false,
-        isOwnPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat,
         isPinned: false,
         lastActorEmail: '',
         lastMessageHtml: '',
@@ -636,16 +618,94 @@ function createOptimisticChatReport(participantList) {
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference: '',
-        oldPolicyName: '',
-        ownerEmail: '__FAKE__',
+        oldPolicyName,
+        ownerEmail,
         participants: participantList,
-        policyID: '_FAKE_',
+        policyID,
         reportID: ReportUtils.generateReportID(),
-        reportName: 'Chat Report',
+        reportName,
         stateNum: 0,
         statusNum: 0,
-        unreadActionCount: 0,
         visibility: undefined,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+function createOptimisticCreatedReportAction(ownerEmail) {
+    return {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'normal',
+                    text: ' created this report',
+                },
+            ],
+            person: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            shouldShow: true,
+        },
+    };
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} policyName
+ * @returns {Object}
+ */
+function createOptimisticWorkspaceChats(policyID, policyName) {
+    const announceChatData = createOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
+    const announceChatReportID = announceChatData.reportID;
+    const announceReportActionData = createOptimisticCreatedReportAction(announceChatData.ownerEmail);
+
+    const adminsChatData = createOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatReportID = adminsChatData.reportID;
+    const adminsReportActionData = createOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+
+    const expenseChatData = createOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportActionData = createOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+
+    return {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
     };
 }
 
@@ -752,7 +812,6 @@ function addActions(reportID, text = '', file) {
         lastMessageTimestamp: Date.now(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
-        unreadActionCount: 0,
         lastReadSequenceNumber: newSequenceNumber,
     };
 
@@ -844,7 +903,7 @@ function openReport(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: 0,
+                    lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 },
             }],
             successData: [{
@@ -967,7 +1026,6 @@ function readNewestAction(reportID) {
                 value: {
                     lastReadSequenceNumber: sequenceNumber,
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: 0,
                 },
             }],
         });
@@ -980,7 +1038,6 @@ function readNewestAction(reportID) {
  * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
-    const maxSequenceNumber = getMaxSequenceNumber(reportID);
     const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkAsUnread',
         {
@@ -994,7 +1051,6 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 value: {
                     lastReadSequenceNumber: newLastReadSequenceNumber,
                     lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: calculateUnreadActionCount(reportID, newLastReadSequenceNumber, maxSequenceNumber),
                 },
             }],
         });
@@ -1103,13 +1159,12 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
+
+    // We are not updating the message content here so the message can re-appear as strike-throughed
+    // if the user goes offline. The API will update the message content to empty strings on success.
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            message: [{
-                html: '',
-                text: '',
-            }],
         },
     };
 
@@ -1152,13 +1207,6 @@ function deleteReportComment(reportID, reportAction) {
             },
         },
     ];
-
-    // If we are deleting an unread message that is greater than our last read we decrease the unreadActionCount
-    // since the message we are deleting is an unread
-    if (sequenceNumber > getLastReadSequenceNumber(reportID)) {
-        const unreadActionCount = getUnreadActionCount(reportID);
-        optimisticReport.unreadActionCount = Math.max(unreadActionCount - 1, 0);
-    }
 
     const optimisticData = [
         {
@@ -1459,20 +1507,15 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
-    const incomingSequenceNumber = action.sequenceNumber;
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
     const lastReadSequenceNumber = getLastReadSequenceNumber(reportID);
     const updatedReportObject = {};
 
     // When handling an action from the current user we can assume that their last read actionID has been updated in the server, but not necessarily reflected
-    // locally (e.g. could be from a different session) so we set their unreadActionCount to zero. If the action is from another user we will only update the
-    // unreadActionCount if the incoming sequenceNumber is higher than the last read for the user.
+    // locally so we will update the lastReadSequenceNumber to mark the report as read.
     if (isFromCurrentUser) {
-        updatedReportObject.unreadActionCount = 0;
         updatedReportObject.lastVisitedTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.pendingAction ? lastReadSequenceNumber : action.sequenceNumber;
-    } else if (incomingSequenceNumber > lastReadSequenceNumber) {
-        updatedReportObject.unreadActionCount = getUnreadActionCount(reportID) + 1;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
@@ -1588,7 +1631,9 @@ export {
     readOldestAction,
     openReport,
     openPaymentDetailsPage,
+    createOptimisticWorkspaceChats,
     createOptimisticChatReport,
+    createOptimisticCreatedReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
 };
