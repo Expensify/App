@@ -1546,7 +1546,7 @@ function addWorkspaceRoom(policy, reportName, visibility) {
         policy.emailList,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policy.policyID,
+        policy.id,
         CONST.REPORT.OWNER_EMAIL_FAKE,
         false,
         '',
