@@ -50,6 +50,7 @@ function addPersonalBankAccount(account, password) {
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
         password,
+        isPending: true,
     };
 
     const onyxData = {
