@@ -1,8 +1,6 @@
-import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Localize from '../Localize';
 
 export {
     setupWithdrawalAccount,

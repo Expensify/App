@@ -29,12 +29,35 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
+ * @param {Object} pendingBankAccount
  * @param {String} [payPalMeUsername='']
  * @param {Object} userWallet
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', userWallet) {
+function formatPaymentMethods(bankAccountList, cardList, pendingBankAccount = {}, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
+
+    // See if we need to show a pending bank account in the payment methods list
+    if (!_.isEmpty(pendingBankAccount)) {
+        const formattedBankAccountNumber = pendingBankAccount.accountNumber
+            ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${pendingBankAccount.accountNumber.slice(-4)
+            }`
+            : null;
+        const {icon, iconSize} = getBankIcon(lodashGet(pendingBankAccount, 'additionalData.bankName', ''));
+        combinedPaymentMethods.push({
+            title: pendingBankAccount.addressName,
+            description: formattedBankAccountNumber,
+            methodID: 0,
+            icon,
+            iconSize,
+            key: 'bankAccount-0',
+            accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+            accountData: _.extend({}, pendingBankAccount, {icon}),
+            isDefault: false,
+            errors: pendingBankAccount.errors,
+            pendingAction: pendingBankAccount.pendingAction,
+        });
+    }
 
     _.each(bankAccountList, (bankAccount) => {
         // Add all bank accounts besides the wallet

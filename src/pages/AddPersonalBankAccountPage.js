@@ -8,6 +8,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
@@ -164,7 +165,7 @@ class AddPersonalBankAccountPage extends React.Component {
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
                                 errors={lodashGet(this.props.personalBankAccount, 'errorFields.plaidSelector', null)}
-                                onClose={BankAccounts.clearPersonalBankAccountErrors}
+                                onClose={PaymentMethods.clearPersonalBankAccountErrors}
                             >
                                 <AddPlaidBankAccount
                                     onSelect={(params) => {

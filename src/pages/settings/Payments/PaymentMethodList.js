@@ -38,6 +38,12 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    personalBankAccount: PropTypes.shape({
+        error: PropTypes.string,
+        shouldShowSuccess: PropTypes.bool,
+        loading: PropTypes.bool,
+    }),
+
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
@@ -69,6 +75,7 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: {},
     cardList: {},
+    personalBankAccount: {},
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
@@ -114,8 +121,9 @@ class PaymentMethodList extends Component {
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(this.props.cardList, card => card.additionalData.isP2PDebitCard);
+        const pendingBankAccount = lodashGet(this.props.personalBankAccount, 'pendingFields.selectedBankAccount', {});
 
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, pendingBankAccount, this.props.payPalMeUsername, this.props.userWallet);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -283,6 +291,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        personalBankAccount: {
+            key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
         },
         payPalMeUsername: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
