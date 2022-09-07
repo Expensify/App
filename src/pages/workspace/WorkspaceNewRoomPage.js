@@ -81,7 +81,8 @@ class WorkspaceNewRoomPage extends React.Component {
         if (!this.validate()) {
             return;
         }
-        Report.addWorkspaceRoom(this.state.policyID, this.state.roomName, this.state.visibility);
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`];
+        Report.addWorkspaceRoom(policy, this.state.roomName, this.state.visibility);
     }
 
     /**
