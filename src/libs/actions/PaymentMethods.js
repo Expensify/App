@@ -348,11 +348,39 @@ function navigateToAddPaymentMethodPage(paymentType, allowPaypalPaymentTypes = t
     }
 
     if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        // If we are adding a new bank account and starting over, clear all plaid data, tokens, and saved personal bank account data
+        this.clearPersonalBankAccount();
+        this.clearPlaid();
+
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
         return;
     }
 
     throw new Error('Invalid payment method type selected');
+}
+
+function clearPersonalBankAccount() {
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+}
+
+/**
+ * Clear the pending and error fields for adding a pesonal bank account form in /add-bank-account
+ */
+function clearPersonalBankAccountErrors() {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        errorFields: {
+            plaidSelector: null,
+        },
+        pendingFields: {
+            plaidSelector: null,
+            selectedPlaidIndex: undefined,
+        },
+    });
+}
+
+function clearPlaid() {
+    Onyx.set(ONYXKEYS.PLAID_DATA, {});
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
 export {
@@ -376,4 +404,7 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     navigateToAddPaymentMethodPage,
+    clearPersonalBankAccount,
+    clearPersonalBankAccountErrors,
+    clearPlaid,
 };

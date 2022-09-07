@@ -32,15 +32,6 @@ export {
     acceptWalletTerms,
 } from './Wallet';
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
-}
-
-function clearPlaid() {
-    Onyx.set(ONYXKEYS.PLAID_DATA, {});
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
-}
-
 /**
  * Adds a bank account via Plaid
  *
@@ -123,21 +114,6 @@ function addPersonalBankAccount(account, password) {
     API.write(commandName, parameters, onyxData);
 }
 
-/**
- * Clear the pending and error fields for adding a pesonal bank account form in /add-bank-account
- */
-function clearPersonalBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
-        errorFields: {
-            plaidSelector: null,
-        },
-        pendingFields: {
-            plaidSelector: null,
-            selectedPlaidIndex: undefined,
-        },
-    });
-}
-
 function deletePaymentBankAccount(bankAccountID) {
     API.write('DeletePaymentBankAccount', {
         bankAccountID,
@@ -154,8 +130,5 @@ function deletePaymentBankAccount(bankAccountID) {
 
 export {
     addPersonalBankAccount,
-    clearPersonalBankAccountErrors,
     deletePaymentBankAccount,
-    clearPersonalBankAccount,
-    clearPlaid,
 };
