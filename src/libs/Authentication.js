@@ -103,7 +103,6 @@ function Authenticate(parameters) {
 //         {optimisticData, successData, failureData},
 //     )
 //         .then((response) => {
-//             console.log(">>>>", JSON.stringify(response));
 //             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
 //                 // If authentication fails, then the network can be unpaused
 //                 NetworkStore.setIsAuthenticating(false);

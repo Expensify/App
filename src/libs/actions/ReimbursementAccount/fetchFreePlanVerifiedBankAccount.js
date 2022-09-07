@@ -35,8 +35,6 @@ function fetchNameValuePairsAndBankAccount() {
         name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
     })
         .then((response) => {
-            console.debug(">>>> mocked GET #1 response nameValuePairs", response);
-            // debugger;
             bankAccountID = lodashGet(response, ['nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
             ], '');
             failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
@@ -53,7 +51,6 @@ function fetchNameValuePairsAndBankAccount() {
             });
         })
         .then(({bankAccountList, nameValuePairs}) => {
-            console.debug(">>>> mocked GET #2 response bankAccountList nameValuePairs", bankAccountList, nameValuePairs);
             // Users have a limited amount of attempts to get the validations amounts correct.
             // Once exceeded, we need to block them from attempting to validate.
             const failedValidationAttempts = lodashGet(nameValuePairs, failedValidationAttemptsName, 0);
@@ -66,10 +63,6 @@ function fetchNameValuePairsAndBankAccount() {
             const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
             const throttledHistoryCount = lodashGet(nameValuePairs, CONST.NVP.PLAID_THROTTLED, 0);
             const isPlaidDisabled = throttledHistoryCount > CONST.BANK_ACCOUNT.PLAID.ALLOWED_THROTTLED_COUNT;
-
-            // debugger;
-
-            console.debug(">>>> fetchNameValuePairsAndBankAccount response", bankAccountList, nameValuePairs);
 
             return {
                 maxAttemptsReached,
