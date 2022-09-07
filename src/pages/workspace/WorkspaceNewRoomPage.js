@@ -35,16 +35,12 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
-    /** Are we loading the createPolicyRoom command */
-    isLoadingCreatePolicyRoom: PropTypes.bool,
-
     ...fullPolicyPropTypes,
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
-    isLoadingCreatePolicyRoom: false,
     ...fullPolicyDefaultProps,
 };
 
@@ -60,7 +56,7 @@ class WorkspaceNewRoomPage extends React.Component {
             workspaceOptions: [],
         };
 
-        this.validateAndCreatePolicyRoom = this.validateAndCreatePolicyRoom.bind(this);
+        this.validateAndAddWorkspaceRoom = this.validateAndAddWorkspaceRoom.bind(this);
     }
 
     componentDidMount() {
@@ -81,15 +77,11 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
-    validateAndCreatePolicyRoom() {
+    validateAndAddWorkspaceRoom() {
         if (!this.validate()) {
             return;
         }
-        Report.createPolicyRoom(
-            this.state.policyID,
-            this.state.roomName,
-            this.state.visibility,
-        );
+        Report.addWorkspaceRoom(this.state.policyID, this.state.roomName, this.state.visibility);
     }
 
     /**
@@ -186,10 +178,9 @@ class WorkspaceNewRoomPage extends React.Component {
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        isLoading={this.props.isLoadingCreatePolicyRoom}
                         success
                         pressOnEnter
-                        onPress={this.validateAndCreatePolicyRoom}
+                        onPress={this.validateAndAddWorkspaceRoom}
                         style={[styles.w100]}
                         text={this.props.translate('newRoomPage.createRoom')}
                     />
@@ -213,9 +204,6 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        isLoadingCreatePolicyRoom: {
-            key: ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM,
         },
     }),
     withLocalize,
