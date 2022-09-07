@@ -95,8 +95,8 @@ class AddPlaidBankAccount extends React.Component {
             return;
         }
 
-        BankAccounts.clearPlaid();
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+        this.selectAccount(this.props.selectedPlaidIndex);
     }
 
     /**

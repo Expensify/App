@@ -65,10 +65,6 @@ class AddPersonalBankAccountPage extends React.Component {
         });
     }
 
-    componentDidMount() {
-        BankAccounts.clearPersonalBankAccount();
-    }
-
     /**
      * @returns {Object}
      */
@@ -130,9 +126,9 @@ class AddPersonalBankAccountPage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={this.clearProgressAndGoBack}
+                    onCloseButtonPress={Navigation.goBack}
                     shouldShowBackButton
-                    onBackButtonPress={this.clearProgressAndGoBack}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 {shouldShowSuccess ? (
                     <>
@@ -166,8 +162,8 @@ class AddPersonalBankAccountPage extends React.Component {
                     <FormScrollView>
                         <View style={[styles.mh5, styles.mb5]}>
                             <OfflineWithFeedback
-                                pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.selectedPlaidBankAccount', null)}
-                                errors={lodashGet(this.props.personalBankAccount, 'errorFields.selectedPlaidBankAccount', null)}
+                                pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
+                                errors={lodashGet(this.props.personalBankAccount, 'errorFields.plaidSelector', null)}
                                 onClose={BankAccounts.clearPersonalBankAccountErrors}
                             >
                                 <AddPlaidBankAccount
@@ -203,6 +199,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                             pressOnEnter
                                             text={this.props.translate('common.saveAndContinue')}
                                             onPress={this.submit}
+                                            isLoading={loading}
                                         />
                                     </View>
                                 )}

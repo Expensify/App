@@ -71,11 +71,12 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     loading: true,
                     errorFields: {
-                        selectedPlaidBankAccount: null,
+                        plaidSelector: null,
                     },
                     pendingFields: {
-                        selectedPlaidBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        plaidSelector: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         selectedPlaidIndex: account.selectedPlaidIndex,
+                        selectedBankAccount: parameters,
                     },
                 },
             },
@@ -87,13 +88,19 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     loading: false,
                     shouldShowSuccess: true,
-                    errorFields: {
-                        selectedPlaidBankAccount: null,
-                    },
-                    pendingFields: {
-                        selectedPlaidBankAccount: null,
-                    },
+                    errorFields: null,
+                    pendingFields: null,
                 },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.PLAID_DATA,
+                value: {},
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.PLAID_LINK_TOKEN,
+                value: '',
             },
         ],
         failureData: [
@@ -103,10 +110,10 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     loading: false,
                     errorFields: {
-                        selectedPlaidBankAccount: null,
+                        plaidSelector: null,
                     },
                     pendingFields: {
-                        selectedPlaidBankAccount: null,
+                        plaidSelector: null,
                     },
                 },
             },
@@ -122,10 +129,10 @@ function addPersonalBankAccount(account, password) {
 function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
         errorFields: {
-            selectedPlaidBankAccount: null,
+            plaidSelector: null,
         },
         pendingFields: {
-            selectedPlaidBankAccount: null,
+            plaidSelector: null,
             selectedPlaidIndex: undefined,
         },
     });
