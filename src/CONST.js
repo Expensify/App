@@ -512,6 +512,7 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+        GUIDES_DOMAIN: 'team.expensify.com',
     },
 
     ENVIRONMENT: {
