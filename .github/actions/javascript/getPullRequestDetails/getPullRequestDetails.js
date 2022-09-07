@@ -92,8 +92,8 @@ if (pullRequestNumber) {
             ...DEFAULT_PAYLOAD,
             pull_number: matchingPRNum,
         }))
-        .then((matchingPR) => {
-            outputMergeCommitHash(matchingPR);
-            outputMergeActor(matchingPR);
+        .then(({data}) => {
+            outputMergeCommitHash(data);
+            outputMergeActor(data);
         });
 }
