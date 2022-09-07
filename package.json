@@ -175,7 +175,7 @@
     "react-native-flipper": "https://gitpkg.now.sh/facebook/flipper/react-native/react-native-flipper?9cacc9b59402550eae866e0e81e5f0c2f8203e6b",
     "react-native-performance-flipper-reporter": "^2.0.0",
     "react-native-svg-transformer": "^0.14.3",
-    "react-test-renderer": "18.1.0",
+    "react-test-renderer": "18.2.0",
     "semver": "^7.3.4",
     "style-loader": "^2.0.0",
     "wait-port": "^0.2.9",
