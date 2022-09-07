@@ -1486,7 +1486,7 @@ function addWorkspaceRoom(policy, reportName, visibility) {
         },
     ];
 
-    API.write('AddWorkspaceRoom', {workspaceRoom}, {optimisticData, successData, failureData});
+    API.write('AddWorkspaceRoom', {workspaceRoom: JSON.stringify(workspaceRoom)}, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(workspaceRoom.reportID));
 }
 
