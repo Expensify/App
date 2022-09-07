@@ -94,14 +94,12 @@ export default function (WrappedComponent) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
-        const rest = _.omit(props, ['forwardedRef', 'policy', 'policyMemberList']);
+        const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 ref={props.forwardedRef}
-                policy={props.policy}
-                policyMemberList={props.policyMemberList}
             />
         );
     };
