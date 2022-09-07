@@ -226,7 +226,7 @@ function removeMembers(members, policyID) {
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: membersListKey,
-        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: 'There was a problem removing that workspace member'}})),
+        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
     }];
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
