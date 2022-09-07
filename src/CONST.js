@@ -667,6 +667,7 @@ const CONST = {
             ADMIN: 'admin',
         },
         ROOM_PREFIX: '#',
+        CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
     },
 
     CUSTOM_UNITS: {
