@@ -1483,7 +1483,9 @@ function addWorkspaceRoom(policy, reportName, visibility) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
             value: {
-                pendingAction: null,
+                0: {
+                    pendingAction: null,
+                },
             },
         },
     ];
@@ -1501,7 +1503,9 @@ function addWorkspaceRoom(policy, reportName, visibility) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
             value: {
-                pendingAction: null,
+                0: {
+                    pendingAction: null,
+                },
             },
         },
     ];
