@@ -204,6 +204,15 @@ function getPolicyType(report, policies) {
 }
 
 /**
+ * Returns true if there are any guides accounts (team.expensify.com) in emails
+ * @param {Array} emails
+ * @returns {Boolean}
+ */
+function hasExpensifyGuidesEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -215,7 +224,9 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
+            || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
+            || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
     return _.last(sortedReports);
@@ -333,13 +344,6 @@ function chatIncludesConcierge(report) {
  */
 function hasExpensifyEmails(emails) {
     return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
-}
-
-/**
- * Returns true if there are any guides accounts (team.expensify.com) in emails
- */
-function hasExpensifyGuidesEmails(emails) {
-    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
 /**
