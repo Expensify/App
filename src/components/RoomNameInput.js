@@ -5,7 +5,6 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withPolicy, {policyDefaultProps, policyPropTypes} from '../pages/workspace/withPolicy';
 import TextInput from './TextInput';
 
 const propTypes = {
@@ -22,7 +21,6 @@ const propTypes = {
     errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
-    ...policyPropTypes,
 
     /* Onyx Props */
 
@@ -53,7 +51,6 @@ const defaultProps = {
     initialValue: '',
     disabled: false,
     errorText: '',
-    ...policyDefaultProps,
     forwardedRef: () => {},
 };
 
@@ -114,7 +111,6 @@ RoomNameInput.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

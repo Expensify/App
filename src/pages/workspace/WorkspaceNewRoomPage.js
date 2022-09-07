@@ -3,7 +3,6 @@ import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -38,14 +37,11 @@ const propTypes = {
     /** Are we loading the createPolicyRoom command */
     isLoadingCreatePolicyRoom: PropTypes.bool,
 
-    ...policyPropTypes,
-
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
     isLoadingCreatePolicyRoom: false,
-    ...policyDefaultProps,
 };
 
 class WorkspaceNewRoomPage extends React.Component {
@@ -203,7 +199,6 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 
 export default compose(
-    withPolicy,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
