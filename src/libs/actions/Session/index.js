@@ -188,7 +188,7 @@ function createTemporaryLogin(authToken, email) {
     })
         .then((createLoginResponse) => {
             if (createLoginResponse.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: createLoginResponse.message});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translate('createLoginResponse.message')}});
                 return createLoginResponse;
             }
 
@@ -250,7 +250,7 @@ function signIn(password, twoFactorAuthCode) {
                     Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: false});
                     return;
                 }
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: Localize.translateLocal(errorMessage), isLoading: false});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}, isLoading: false});
                 return;
             }
 
@@ -348,7 +348,7 @@ function setPassword(password, validateCode, accountID) {
             }
 
             // This request can fail if the password is not complex enough
-            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: response.message});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds]: response.message}});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
