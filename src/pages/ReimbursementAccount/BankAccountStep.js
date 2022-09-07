@@ -155,7 +155,7 @@ class BankAccountStep extends React.Component {
         if (!this.state.selectedPlaidBankAccount) {
             return;
         }
-        BankAccounts.setupWithdrawalAccount({
+        BankAccounts.connectBankAccountWithPlaid({
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
