@@ -126,21 +126,21 @@ function validateBankAccount(bankAccountID, validateCode) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
-                errors: null,
-                achData: {
-                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    currentStep: CONST.BANK_ACCOUNT.STEP.ENABLE,
-                },
+                isLoading: true,
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
             },
         }],
         failureData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
-                achData: {
-                    state: CONST.BANK_ACCOUNT.STATE.VERIFYING,
-                    currentStep: CONST.BANK_ACCOUNT.STEP.VALIDATION,
-                },
+                isLoading: false,
             },
         }],
     });

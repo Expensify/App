@@ -60,7 +60,7 @@ class ReimbursementAccountForm extends React.Component {
                     }}
                     message={this.props.reimbursementAccount.error}
                     isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
-                    isLoading={this.props.reimbursementAccount.loading}
+                    isLoading={this.props.reimbursementAccount.loading || this.props.reimbursementAccount.isLoading}
                 />
             </FormScrollView>
         );
