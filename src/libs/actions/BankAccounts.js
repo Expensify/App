@@ -41,7 +41,7 @@ function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
-function getOnyxDataForVBBA() {
+function getVBADataForOnyx() {
     return {
         optimisticData: [
             {
@@ -53,14 +53,21 @@ function getOnyxDataForVBBA() {
                 },
             },
         ],
-
-        // No successData because PHP pusher is responsible for setting next step (along with isLoading false)
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
                     },
@@ -82,7 +89,7 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
     };
 
-    API.write(commandName, parameters, getOnyxDataForVBBA());
+    API.write(commandName, parameters, getVBADataForOnyx());
 }
 
 /**
