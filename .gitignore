@@ -35,6 +35,7 @@ local.properties
 *.iml
 android/*.hprof
 android/app/src/main/java/com/expensify/chat/generated/
+.cxx/
 
 # Vscode
 .vscode
