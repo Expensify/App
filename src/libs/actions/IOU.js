@@ -14,6 +14,7 @@ import DateUtils from '../DateUtils';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import lodashGet from 'lodash/get';
+import * as NumberUtils from "../NumberUtils";
 
 /**
  * Gets the IOU Reports for new transaction
@@ -102,16 +103,17 @@ function startLoadingAndResetError() {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 }
 
-function requestMoney(params) {
-    const chatReport = lodashGet(params, 'report.reportID', null) ? params.report : Report.createOptimisticChatReport(params.participants);
-    const optimisticIOUReport = Report.createOptimisticChatReport(params.participants);
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', params.amount, 'comment', '', '', optimisticIOUReport.reportID);
+function requestMoney(report, participants, amount, currency, debtorEmail, comment) {
+    const chatReport = lodashGet(report, 'reportID', null) ? report : Report.createOptimisticChatReport(participants);
+    const optimisticTransactionID = NumberUtils.rand64();
+    const optimisticIOUReport = Report.buildOptimisticIOUReport(amount, chatReport.reportID, currency, 'en');
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', '', '', optimisticIOUReport.reportID);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [params.reportActionID]: {
+                [optimisticReportAction.reportActionID]: {
                     ...optimisticReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -133,7 +135,7 @@ function requestMoney(params) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [params.reportActionID]: {
+                [optimisticReportAction.reportActionID]: {
                     ...optimisticReportAction,
                     pendingAction: null,
                     error: {
@@ -143,7 +145,16 @@ function requestMoney(params) {
             },
         },
     ];
-    API.write('RequestMoney', params, {optimisticData, failureData});
+    API.write('RequestMoney', {
+        debtorEmail,
+        amount,
+        currency,
+        comment,
+        iouReportID: optimisticIOUReport.reportID,
+        chatReportID: chatReport.reportID,
+        transactionID: optimisticTransactionID,
+        reportActionID: optimisticReportAction.reportActionID,
+    }, {optimisticData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
