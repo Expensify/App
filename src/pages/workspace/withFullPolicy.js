@@ -86,7 +86,7 @@ const fullPolicyDefaultProps = {
 };
 
 /*
- * HOC for loading a full policy. It checks the route params and if current route has a policyID that the previous route did not, it full-loads that policy.
+ * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
 export default function (WrappedComponent) {
     const propTypes = {
