@@ -1451,16 +1451,22 @@ function addWorkspaceRoom(policy, reportName, visibility) {
         '',
         visibility,
     );
+    const createdActionData = createOptimisticCreatedReportAction(workspaceRoom.ownerEmail);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceRoom.reportID}`,
             value: {
                 pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 ...workspaceRoom,
             },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
+            value: createdActionData,
         },
     ];
     const successData = [
