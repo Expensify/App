@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
+// eslint-disable-next-line import/no-cycle
 import DateUtils from '../DateUtils';
 
 let currentActiveClients;

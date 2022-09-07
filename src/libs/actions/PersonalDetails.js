@@ -6,7 +6,9 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
+// eslint-disable-next-line import/no-cycle
 import * as DeprecatedAPI from '../deprecatedAPI';
+// eslint-disable-next-line import/no-cycle
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
