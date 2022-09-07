@@ -690,16 +690,18 @@ function fetchAllReports(
  * @param {String} ownerEmail
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
+ * @param {String} visibility
  * @returns {Object}
  */
 function buildOptimisticChatReport(
     participantList,
     reportName = 'Chat Report',
     chatType = '',
-    policyID = '_FAKE_',
-    ownerEmail = '__FAKE__',
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
+    visibility = undefined,
 ) {
     return {
         chatType,
@@ -722,7 +724,7 @@ function buildOptimisticChatReport(
         reportName,
         stateNum: 0,
         statusNum: 0,
-        visibility: undefined,
+        visibility,
     };
 }
 
@@ -1533,6 +1535,63 @@ function createPolicyRoom(policyID, reportName, visibility) {
 }
 
 /**
+ * Add a workspace room optimistically and navigate to it.
+ *
+ * @param {Object} policy
+ * @param {String} reportName
+ * @param {String} visibility
+ */
+function addWorkspaceRoom(policy, reportName, visibility) {
+    const workspaceRoom = createOptimisticChatReport(
+        policy.emailList,
+        reportName,
+        CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        policy.policyID,
+        CONST.REPORT.OWNER_EMAIL_FAKE,
+        false,
+        '',
+        visibility,
+    );
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceRoom.reportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                ...workspaceRoom,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceRoom.reportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceRoom.reportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+            },
+        },
+    ];
+
+    API.write('AddWorkspaceRoom', {workspaceRoom}, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.getReportRoute(workspaceRoom.reportID));
+}
+
+/**
  * @param {Object} policyRoomReport
  * @param {Number} policyRoomReport.reportID
  * @param {String} policyRoomReport.reportName
@@ -1742,6 +1801,7 @@ export {
     handleInaccessibleReport,
     setReportWithDraft,
     createPolicyRoom,
+    addWorkspaceRoom,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
