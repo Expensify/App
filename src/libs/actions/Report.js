@@ -1479,6 +1479,13 @@ function addWorkspaceRoom(policy, reportName, visibility) {
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
     ];
     const failureData = [
         {
@@ -1488,6 +1495,13 @@ function addWorkspaceRoom(policy, reportName, visibility) {
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
+            value: {
+                pendingAction: null,
             },
         },
     ];
