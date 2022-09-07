@@ -443,7 +443,9 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        // We create policy rooms for all policies, however we don't show them unless
+        // - It's a free plan workspace
+        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
         if (ReportUtils.isDefaultRoom(report)
             && !ReportUtils.hasExpensifyGuidesEmails(logins)
             && !Permissions.canUseDefaultRooms(betas)
