@@ -809,6 +809,7 @@ export default {
             selectAll: 'Select all',
             error: {
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
+                genericRemove: 'There was a problem removing that workspace member.',
             },
         },
         card: {
