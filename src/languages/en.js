@@ -822,6 +822,7 @@ export default {
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
+                genericRemove: 'There was a problem removing that workspace member.',
             },
         },
         card: {
