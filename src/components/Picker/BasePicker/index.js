@@ -14,17 +14,6 @@ class BasePicker extends React.Component {
 
         this.updateSelectedValueAndExecuteOnChange = this.updateSelectedValueAndExecuteOnChange.bind(this);
         this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
-        this.setNativeProps = this.setNativeProps.bind(this);
-    }
-
-    /**
-     * This method mimicks RN's setNativeProps method. It's exposed to Picker's ref and can be used by other components
-     * to directly manipulate Picker's value when Picker is used as an uncontrolled input.
-     *
-     * @param {*} value
-     */
-    setNativeProps({value}) {
-        this.pickerValue = value;
     }
 
     updateSelectedValueAndExecuteOnChange(value) {
@@ -56,16 +45,6 @@ class BasePicker extends React.Component {
                 pickerProps={{
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,
-                }}
-                ref={(node) => {
-                    if (!node || !_.isFunction(this.props.innerRef)) {
-                        return;
-                    }
-
-                    this.props.innerRef(node);
-
-                    // eslint-disable-next-line no-param-reassign
-                    node.setNativeProps = this.setNativeProps;
                 }}
             />
         );
