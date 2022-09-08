@@ -157,7 +157,7 @@ class CompanyStep extends React.Component {
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.updateCompanyInfoForVBBA({
+        BankAccounts.setupWithdrawalAccount({
             bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'),
 
             // Fields from bankAccount step

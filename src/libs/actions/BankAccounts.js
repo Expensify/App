@@ -3,6 +3,7 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
+import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
@@ -49,19 +50,29 @@ function getOnyxDataForVBBA() {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     loading: true,
-                    error: '',
+                    errors: null,
                 },
             },
         ],
-
-        // No successData because PHP pusher is responsible for setting next step (along with isLoading false)
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                    errors: null,
+                },
+            },
+        ],
         failureData: [
             {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     loading: false,
-                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
                 },
             },
         ],
@@ -78,51 +89,6 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
         bank: selectedPlaidBankAccount.bankName,
         plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
-    };
-
-    API.write(commandName, parameters, getOnyxDataForVBBA());
-}
-
-function updateBankAccountManualInfoForVBBA(reimbursementAccountDraft) {
-    const commandName = 'UpdateBankAccountManualInfoForVBBA';
-
-    const parameters = {
-        bankAccountID: reimbursementAccountDraft.bankAccountID,
-        routingNumber: reimbursementAccountDraft.routingNumber,
-        accountNumber: reimbursementAccountDraft.accountNumber,
-        plaidMask: reimbursementAccountDraft.plaidMask,
-    };
-
-    API.write(commandName, parameters, getOnyxDataForVBBA());
-}
-
-function updateCompanyInfoForVBBA(reimbursementAccountDraft) {
-    const commandName = 'UpdateCompanyInfoForVBBA';
-
-    const parameters = {
-        bankAccountID: reimbursementAccountDraft.bankAccountID,
-
-        // Fields from the BankAccountStep
-        routingNumber: reimbursementAccountDraft.routingNumber,
-        accountNumber: reimbursementAccountDraft.accountNumber,
-        bank: reimbursementAccountDraft.bankName,
-        plaidAccountID: reimbursementAccountDraft.plaidAccountID,
-        isSavings: reimbursementAccountDraft.isSavings,
-        plaidAccessToken: reimbursementAccountDraft.plaidAccessToken,
-
-        // Fields from the CompanyStep
-        companyName: reimbursementAccountDraft.companyName,
-        addressStreet: reimbursementAccountDraft.addressStreet,
-        addressCity: reimbursementAccountDraft.addressCity,
-        addressState: reimbursementAccountDraft.addressState,
-        addressZip: reimbursementAccountDraft.addressZipCode,
-        website: reimbursementAccountDraft.website,
-        companyTaxID: reimbursementAccountDraft.companyTaxID,
-        incorporationDate: reimbursementAccountDraft.incorporationDate,
-        incorporationState: reimbursementAccountDraft.incorporationState,
-        incorporationType: reimbursementAccountDraft.incorporationType,
-        companyPhone: reimbursementAccountDraft.companyPhone,
-        hasNoConnectionToCannabis: reimbursementAccountDraft.hasNoConnectionToCannabis,
     };
 
     API.write(commandName, parameters, getOnyxDataForVBBA());
@@ -207,6 +173,4 @@ export {
     clearPersonalBankAccount,
     clearPlaid,
     connectBankAccountWithPlaid,
-    updateBankAccountManualInfoForVBBA,
-    updateCompanyInfoForVBBA,
 };

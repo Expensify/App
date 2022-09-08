@@ -73,7 +73,7 @@ class BankAccountManualStep extends React.Component {
             return;
         }
 
-        BankAccounts.updateBankAccountManualInfoForVBBA({
+        BankAccounts.setupWithdrawalAccount({
             bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'),
             plaidMask: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
             ...this.state,

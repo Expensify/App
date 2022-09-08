@@ -29,7 +29,7 @@ const propTypes = {
 const defaultProps = {
     reimbursementAccount: {
         loading: false,
-        error: '',
+        errors: '',
         isErrorHtml: false,
         errorFields: {},
     },
@@ -44,7 +44,7 @@ class ReimbursementAccountForm extends React.Component {
 
     render() {
         const hasErrorFields = _.size(this.props.reimbursementAccount.errorFields) > 0;
-        const error = this.props.reimbursementAccount.error;
+        const error = _.first(_.values(this.props.reimbursementAccount.errors));
         const isErrorVisible = hasErrorFields || Boolean(error);
 
         return (
