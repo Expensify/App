@@ -97,7 +97,10 @@ const BankAccountStep = (props) => {
                 <Button
                     icon={Expensicons.Bank}
                     text={props.translate('bankAccount.connectOnlineWithPlaid')}
-                    onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
+                    onPress={() => {
+                        BankAccounts.clearPlaid();
+                        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+                    }}
                     disabled={props.isPlaidDisabled || !props.user.validated}
                     style={[styles.mt5, styles.buttonCTA]}
                     iconStyles={[styles.buttonCTAIcon]}

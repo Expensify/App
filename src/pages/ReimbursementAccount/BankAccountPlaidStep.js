@@ -32,16 +32,11 @@ const defaultProps = {
 class BankAccountPlaidStep extends React.Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            selectedPlaidBankAccount: undefined,
-        };
-
         this.submit = this.submit.bind(this);
     }
 
     submit() {
-        const selectedPlaidBankAccount = this.state.selectedPlaidBankAccount;
+        const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
         if (!selectedPlaidBankAccount) {
             return;
         }
@@ -57,7 +52,7 @@ class BankAccountPlaidStep extends React.Component {
         });
 
         const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
-        BankAccounts.connectBankAccountWithPlaid(bankAccountID, this.state.selectedPlaidBankAccount);
+        BankAccounts.connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount);
     }
 
     render() {
@@ -74,13 +69,11 @@ class BankAccountPlaidStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.setBankAccountSubStep(null)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ReimbursementAccountForm onSubmit={this.submit} hideSubmitButton={_.isUndefined(this.state.selectedPlaidBankAccount)}>
+                <ReimbursementAccountForm onSubmit={this.submit} hideSubmitButton={_.isUndefined(this.props.plaidData.selectedPlaidBankAccount)}>
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSelect={(params) => {
-                            this.setState({
-                                selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                            });
+                            BankAccounts.updatePlaidData({selectedPlaidBankAccount: params.selectedPlaidBankAccount});
                         }}
                         onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                         receivedRedirectURI={this.props.receivedRedirectURI}
@@ -101,6 +94,9 @@ export default compose(
     withOnyx({
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
     }),
 )(BankAccountPlaidStep);

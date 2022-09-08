@@ -40,6 +40,10 @@ function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
+function updatePlaidData(plaidData) {
+    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
+}
+
 function getOnyxDataForVBBA() {
     return {
         optimisticData: [
@@ -171,4 +175,5 @@ export {
     clearPersonalBankAccount,
     clearPlaid,
     connectBankAccountWithPlaid,
+    updatePlaidData,
 };
