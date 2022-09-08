@@ -285,6 +285,9 @@ const CONST = {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
         },
+        STATE: {
+            SUBMITTED: 'SUBMITTED',
+        },
         STATE_NUM: {
             OPEN: 0,
             PROCESSING: 1,
