@@ -24,7 +24,8 @@ import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
-import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -83,7 +84,7 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    ...withDrawerPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -229,6 +230,11 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
+        const isPendingAddWorkspaceRoom = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom', '') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+        const hasAddWorkspaceRoomError = !_.isEmpty(lodashGet(this.props.report, 'errorFields.addWorkspaceRoom', {}));
+
+        // Hide the composer for an archived room, or a room pending add while offline, or when there is an error adding the room
+        const hideComposer = isArchivedRoom || (isPendingAddWorkspaceRoom && this.props.network.isOffline) || hasAddWorkspaceRoomError;
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -258,20 +264,34 @@ class ReportScreen extends React.Component {
                                 isDrawerOpen={this.props.isDrawerOpen}
                             />
                         )}
-                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                    {(hideComposer || this.props.session.shouldShowComposeInput) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            {
-                                isArchivedRoom
-                                    ? (
-                                        <ArchivedReportFooter
-                                            reportClosedAction={reportClosedAction}
-                                            report={this.props.report}
-                                            isComposerFullSize={this.props.isComposerFullSize}
-                                        />
-                                    </SwipeableView>
+                            {isArchivedRoom && (
+                                <ArchivedReportFooter
+                                    reportClosedAction={reportClosedAction}
+                                    report={this.props.report}
+                                />
+                            )}
+                            {hideComposer
+                                ? (
+                                    !this.props.isSmallScreenWidth && (
+                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                                    )
                                 )
-                        }
-                    </View>
+                                : (
+                                    this.props.session.shouldShowComposeInput && (
+                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                            <ReportActionCompose
+                                                onSubmit={this.onSubmitComment}
+                                                reportID={reportID}
+                                                reportActions={this.props.reportActions}
+                                                report={this.props.report}
+                                                isComposerFullSize={this.props.isComposerFullSize}
+                                            />
+                                        </SwipeableView>
+                                    )
+                                )}
+                        </View>
                     )}
                 </View>
             </ScreenWrapper>
@@ -283,7 +303,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
-    withDrawerState,
+    withWindowDimensions,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
