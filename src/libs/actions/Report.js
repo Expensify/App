@@ -648,8 +648,8 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
         managerEmail: recipientEmail,
         ownerEmail,
         reportID: ReportUtils.generateReportID(),
-        state: 'SUBMITTED',
-        stateNum: 1,
+        state: CONST.STATE.SUBMITTED,
+        stateNum: CONST.STATUS.SUBMITTED,
         total,
     };
 }
