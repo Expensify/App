@@ -186,8 +186,8 @@ function updatePersonalDetails(personalDetails) {
     const ssn = personalDetails.ssn || '';
     const phoneNumber = personalDetails.phoneNumber || '';
     API.write('UpdatePersonalDetailsForWallet', {
-        firstName,
-        lastName,
+        legalFirstName: firstName,
+        legalLastName: lastName,
         dob,
         addressStreet,
         addressCity,
