@@ -1,3 +1,4 @@
+import DateUtils from '../../DateUtils';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 
@@ -8,7 +9,12 @@ import ONYXKEYS from '../../../ONYXKEYS';
  * @param {Boolean} isErrorHtml if @errorModalMessage is in html format or not
  */
 function showBankAccountErrorModal(error = null, isErrorHtml = false) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error, isErrorHtml});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        errors: {
+            [DateUtils.getMicroseconds()]: error,
+        },
+        isErrorHtml,
+    });
 }
 
 /**
@@ -37,22 +43,12 @@ function setBankAccountFormValidationErrors(errorFields) {
  */
 function resetReimbursementAccount() {
     setBankAccountFormValidationErrors({});
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {successRoute: null});
-}
-
-/**
- * Set the current error message.
- *
- * @param {String} error
- */
-function showBankAccountFormValidationError(error) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
 }
 
 export {
     showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
     setPersonalBankAccountFormValidationErrorFields,
-    showBankAccountFormValidationError,
     resetReimbursementAccount,
 };

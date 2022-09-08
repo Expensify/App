@@ -10,7 +10,6 @@ export {
     fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     showBankAccountErrorModal,
-    showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
@@ -49,7 +48,7 @@ function getOnyxDataForVBBA() {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    loading: true,
+                    isLoading: true,
                     errors: null,
                 },
             },
@@ -59,7 +58,7 @@ function getOnyxDataForVBBA() {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     errors: null,
                 },
             },
@@ -69,7 +68,7 @@ function getOnyxDataForVBBA() {
                 onyxMethod: 'merge',
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
                     },
@@ -122,7 +121,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: true,
+                    isLoading: true,
                     error: '',
                 },
             },
@@ -132,7 +131,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     error: '',
                     shouldShowSuccess: true,
                 },
@@ -143,7 +142,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
                 },
             },

@@ -33,7 +33,7 @@ const propTypes = {
     personalBankAccount: PropTypes.shape({
         error: PropTypes.string,
         shouldShowSuccess: PropTypes.bool,
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 };
 
@@ -41,7 +41,7 @@ const defaultProps = {
     personalBankAccount: {
         error: '',
         shouldShowSuccess: false,
-        loading: false,
+        isLoading: false,
     },
 };
 
@@ -124,7 +124,7 @@ class AddPersonalBankAccountPage extends React.Component {
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
         const error = lodashGet(this.props, 'personalBankAccount.error', '');
-        const loading = lodashGet(this.props, 'personalBankAccount.loading', false);
+        const isLoading = lodashGet(this.props, 'personalBankAccount.isLoading', false);
 
         return (
             <ScreenWrapper>
@@ -197,7 +197,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                 buttonText={this.props.translate('common.saveAndContinue')}
                                 onSubmit={this.submit}
                                 message={error}
-                                isLoading={loading}
+                                isLoading={isLoading}
                             />
                         )}
                     </FormScrollView>

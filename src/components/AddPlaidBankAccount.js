@@ -58,7 +58,7 @@ const defaultProps = {
         bankName: '',
         plaidAccessToken: '',
         bankAccounts: [],
-        loading: false,
+        isLoading: false,
         error: '',
     },
     plaidLinkToken: '',
@@ -142,7 +142,7 @@ class AddPlaidBankAccount extends React.Component {
         if (!plaidBankAccounts.length) {
             return (
                 <FullPageOfflineBlockingView>
-                    {(!token || this.props.plaidData.loading)
+                    {(!token || this.props.plaidData.isLoading)
                     && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
     /** Whether we are loading the data via the API */
-    loading: PropTypes.bool,
+    isLoading: PropTypes.bool,
 
     /** A date that indicates the user has been throttled */
     throttledDate: PropTypes.string,

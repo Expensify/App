@@ -28,7 +28,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        loading: false,
+        isLoading: false,
         errors: '',
         isErrorHtml: false,
         errorFields: {},
@@ -44,7 +44,7 @@ class ReimbursementAccountForm extends React.Component {
 
     render() {
         const hasErrorFields = _.size(this.props.reimbursementAccount.errorFields) > 0;
-        const error = _.first(_.values(this.props.reimbursementAccount.errors));
+        const error = _.last(_.values(this.props.reimbursementAccount.errors));
         const isErrorVisible = hasErrorFields || Boolean(error);
 
         return (
@@ -65,7 +65,7 @@ class ReimbursementAccountForm extends React.Component {
                         }}
                         message={error}
                         isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
-                        isLoading={this.props.reimbursementAccount.loading}
+                        isLoading={this.props.reimbursementAccount.isLoading}
                     />
                 )}
             </FormScrollView>
