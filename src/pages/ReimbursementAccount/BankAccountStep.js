@@ -268,6 +268,7 @@ class BankAccountStep extends React.Component {
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             disabled={shouldDisableInputs}
+                            shouldSaveDraft
                         />
                         <TextInput
                             inputID="accountNumber"
@@ -275,6 +276,7 @@ class BankAccountStep extends React.Component {
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             disabled={shouldDisableInputs}
+                            shouldSaveDraft
                         />
                         <CheckboxWithLabel
                             style={styles.mt4}
@@ -289,6 +291,7 @@ class BankAccountStep extends React.Component {
                                     </TextLink>
                                 </View>
                             )}
+                            shouldSaveDraft
                         />
                     </Form>
                 )}
