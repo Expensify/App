@@ -24,7 +24,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** The user's wallet */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,

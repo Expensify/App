@@ -28,7 +28,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** The user's wallet */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 
     ...withLocalizePropTypes,
 };
