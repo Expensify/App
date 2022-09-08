@@ -37,17 +37,22 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
 function formatPaymentMethods(bankAccountList, cardList, personalBankAccount = {}, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
 
-    const pendingBankAccount = lodashGet(this.props.personalBankAccount, 'pendingFields.selectedBankAccount', {});
+    const pendingBankAccount = lodashGet(personalBankAccount, 'pendingFields.selectedBankAccount', {});
+
     // See if we need to show a pending bank account in the payment methods list
     if (!_.isEmpty(pendingBankAccount)) {
-        const formattedBankAccountNumber = pendingBankAccount.accountNumber
-            ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${pendingBankAccount.accountNumber.slice(-4)
-            }`
-            : null;
+        // Get error from errorFields and pass it into the pendingBankAccount Object
+        const pendingAccountErrors = lodashGet(personalBankAccount, 'errorFields.plaidSelector', {});
+        const sortedErrors = _.chain(pendingAccountErrors)
+            .keys()
+            .sortBy()
+            .map(key => pendingAccountErrors[key])
+            .value();
+        pendingBankAccount.errors = sortedErrors;
         const {icon, iconSize} = getBankIcon(lodashGet(pendingBankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
             title: pendingBankAccount.addressName,
-            description: formattedBankAccountNumber,
+            description: this.maskFinancialNumber('bankAccount', pendingBankAccount.accountNumber),
             methodID: 0,
             icon,
             iconSize,
@@ -67,15 +72,11 @@ function formatPaymentMethods(bankAccountList, cardList, personalBankAccount = {
             return;
         }
 
-        const formattedBankAccountNumber = bankAccount.accountNumber
-            ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
-            }`
-            : null;
         const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
             title: bankAccount.addressName,
-            description: formattedBankAccountNumber,
+            description: this.maskFinancialNumber('bankAccount', bankAccount.accountNumber),
             methodID: bankAccount.bankAccountID,
             icon,
             iconSize,
@@ -89,14 +90,11 @@ function formatPaymentMethods(bankAccountList, cardList, personalBankAccount = {
     });
 
     _.each(cardList, (card) => {
-        const formattedCardNumber = card.cardNumber
-            ? `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
-            : null;
         const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.DEBIT_CARD && userWallet.walletLinkedAccountID === card.fundID;
         const {icon, iconSize} = getBankIcon(card.bank, true);
         combinedPaymentMethods.push({
             title: card.addressName,
-            description: formattedCardNumber,
+            description: this.maskFinancialNumber('card', card.cardNumber),
             methodID: card.fundID,
             icon,
             iconSize,
