@@ -21,7 +21,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** The user's wallet */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.number,
