@@ -123,7 +123,6 @@ class RequestorStep extends React.Component {
         });
         if (_.size(errors)) {
             BankAccounts.setBankAccountFormValidationErrors(errors);
-            BankAccounts.showBankAccountErrorModal();
             return false;
         }
         return true;

@@ -73,19 +73,15 @@ function getNextStep(updatedACHData) {
  */
 function showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData) {
     let error = verificationsError;
-    let isErrorHTML = false;
     const responseACHData = lodashGet(response, 'achData', {});
 
     if (response.jsonCode === 666 || response.jsonCode === 404) {
-        // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
-        error = response.htmlMessage || response.message;
-        isErrorHTML = Boolean(response.htmlMessage);
+        error = response.message;
     }
 
     if (response.jsonCode === 402) {
         if (hasAccountOrRoutingError(response)) {
             errors.setBankAccountFormValidationErrors({routingNumber: true});
-            errors.showBankAccountErrorModal();
         } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
             error = Localize.translateLocal('bankAccount.error.incorporationState');
         } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
@@ -97,7 +93,6 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
 
     if (error) {
         errors.showBankAccountFormValidationError(error);
-        errors.showBankAccountErrorModal(error, isErrorHTML);
     }
 
     const nextStep = response.jsonCode === 200 && !error ? getNextStep(updatedACHData) : updatedACHData.currentStep;
@@ -246,7 +241,7 @@ function setupWithdrawalAccount(params) {
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false, achData: {...updatedACHData}});
             console.error(response.stack);
-            errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
+            errors.showBankAccountFormValidationError('common.genericErrorMessage');
         });
 }
 

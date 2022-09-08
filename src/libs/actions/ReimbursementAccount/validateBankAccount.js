@@ -40,13 +40,13 @@ function validateBankAccount(bankAccountID, validateCode) {
 
             // If the validation amounts entered were incorrect, show specific error
             if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
-                errors.showBankAccountErrorModal(Localize.translateLocal('bankAccount.error.validationAmounts'));
+                errors.showBankAccountFormValidationError(Localize.translateLocal('bankAccount.error.validationAmounts'));
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false});
                 return;
             }
 
             // We are generically showing any other backend errors that might pop up in the validate step
-            errors.showBankAccountErrorModal(response.message);
+            errors.showBankAccountFormValidationError(response.message);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false});
         });
 }

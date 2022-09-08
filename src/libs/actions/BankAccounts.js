@@ -9,7 +9,6 @@ export {
     setupWithdrawalAccount,
     fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
-    showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,

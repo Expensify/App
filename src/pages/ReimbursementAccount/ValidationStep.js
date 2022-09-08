@@ -107,7 +107,6 @@ class ValidationStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            BankAccounts.showBankAccountErrorModal();
             return;
         }
 

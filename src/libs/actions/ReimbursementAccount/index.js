@@ -8,7 +8,6 @@ import deleteFromBankAccountList from './deleteFromBankAccountList';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {
-    showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
     setPersonalBankAccountFormValidationErrorFields,
     resetReimbursementAccount,
