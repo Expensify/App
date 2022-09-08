@@ -56,7 +56,7 @@ const propTypes = {
         role: PropTypes.string,
 
         /** The current action that is waiting to happen on the policy */
-        pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
 
     /** List of policy members */
@@ -188,7 +188,7 @@ class InitialSettingsPage extends React.Component {
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
-                pendingAction: policy.pendingAction ? policy.pendingAction : null,
+                pendingAction: policy.pendingAction,
                 isPolicy: true,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -304,7 +304,6 @@ class InitialSettingsPage extends React.Component {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,

@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '../optionPropTypes';
-import {withLocalizePropTypes} from '../withLocalize';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -93,8 +92,6 @@ const propTypes = {
 
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
