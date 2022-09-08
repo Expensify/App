@@ -37,6 +37,13 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** Personal Bank Account */
+    personalBankAccount: PropTypes.shape({
+        error: PropTypes.string,
+        shouldShowSuccess: PropTypes.bool,
+        loading: PropTypes.bool,
+    }),
+
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
 };
@@ -64,7 +71,7 @@ const AvatarWithIndicator = (props) => {
     // we only care if a single error exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
-        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
+        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList, props.personalBankAccount),
         () => _.some(props.policies, PolicyUtils.hasPolicyError),
         () => _.some(props.policies, PolicyUtils.hasCustomUnitsError),
         () => _.some(props.policiesMemberList, PolicyUtils.hasPolicyMemberError),
@@ -103,6 +110,9 @@ export default withOnyx({
     },
     cardList: {
         key: ONYXKEYS.CARD_LIST,
+    },
+    personalBankAccount: {
+        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,

@@ -38,6 +38,7 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** Personal Bank Account */
     personalBankAccount: PropTypes.shape({
         error: PropTypes.string,
         shouldShowSuccess: PropTypes.bool,

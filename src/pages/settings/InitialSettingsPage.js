@@ -69,6 +69,13 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** Personal Bank Account */
+    personalBankAccount: PropTypes.shape({
+        error: PropTypes.string,
+        shouldShowSuccess: PropTypes.bool,
+        loading: PropTypes.bool,
+    }),
+
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -137,7 +144,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList, this.props.personalBankAccount) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -277,5 +284,8 @@ export default compose(
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },
+        personalBankAccount: {
+            key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+        }
     }),
 )(InitialSettingsPage);
