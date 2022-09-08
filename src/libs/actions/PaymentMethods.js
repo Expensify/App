@@ -130,7 +130,9 @@ function openPaymentsPage() {
         ],
     };
 
-    return API.read('OpenPaymentsPage', {}, onyxData);
+    return API.read('OpenPaymentsPage', {
+        massageData: true,
+    }, onyxData);
 }
 
 /**
