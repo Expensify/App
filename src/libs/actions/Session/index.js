@@ -326,7 +326,7 @@ function resetPassword() {
 }
 
 function resendResetPassword() {
-    API.write('RequestPasswordReset', {
+    API.write('ResendRequestPasswordReset', {
         email: credentials.login,
     },
     {
