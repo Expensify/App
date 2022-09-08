@@ -95,6 +95,15 @@ class SidebarLinks extends React.Component {
         this.getRecentReportsOptionListItems = memoizeOne(this.getRecentReportsOptionListItems.bind(this));
     }
 
+    /**
+     * @param {String} activeReportID
+     * @param {String} priorityMode
+     * @param {Object[]} unorderedReports
+     * @param {Object} personalDetails
+     * @param {String[]} betas
+     * @param {Object} reportActions
+     * @returns {Object[]}
+     */
     getRecentReportsOptionListItems(activeReportID, priorityMode, unorderedReports, personalDetails, betas, reportActions) {
         const sidebarOptions = OptionsListUtils.getSidebarOptions(
             unorderedReports,
