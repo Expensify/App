@@ -101,4 +101,6 @@ const MultipleAvatars = (props) => {
 
 MultipleAvatars.defaultProps = defaultProps;
 MultipleAvatars.propTypes = propTypes;
+MultipleAvatars.displayName = 'MultipleAvatars';
+
 export default memo(MultipleAvatars);
