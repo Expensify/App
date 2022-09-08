@@ -305,8 +305,6 @@ describe('actions/BankAccounts', () => {
 
     it('should fetch the correct initial state for a user on the ACHContractStep in PENDING state', () => {
         // GIVEN a mock response for a call to Get&returnValueList=nameValuePairs&name=expensify_freePlanBankAccountID that returns a bankAccountID
-        // TODO: these duplicated mocks are temporary, need to find out what API call is swallowing up this first mock
-        HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE));
         HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE));
 
         HttpUtils.xhr
