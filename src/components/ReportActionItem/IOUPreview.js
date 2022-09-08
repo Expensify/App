@@ -79,7 +79,7 @@ const propTypes = {
     }).isRequired,
 
     /** Information about the user accepting the terms for payments */
-    walletTerms: PropTypes.objectOf(walletTermsPropTypes),
+    walletTerms: walletTermsPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -142,17 +142,15 @@ const IOUPreview = (props) => {
                         >
                             <View>
                                 <View style={styles.flexRow}>
-                                    <View style={styles.flex1}>
-                                        <View style={styles.flexRow}>
-                                            <Text style={styles.h1}>
-                                                {cachedTotal}
-                                            </Text>
-                                            {!props.iouReport.hasOutstandingIOU && (
-                                                <View style={styles.iouPreviewBoxCheckmark}>
-                                                    <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
-                                                </View>
-                                            )}
-                                        </View>
+                                    <View style={[styles.flex1, styles.flexRow]}>
+                                        <Text style={styles.h1}>
+                                            {cachedTotal}
+                                        </Text>
+                                        {!props.iouReport.hasOutstandingIOU && (
+                                            <View style={styles.iouPreviewBoxCheckmark}>
+                                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                            </View>
+                                        )}
                                     </View>
                                     <View style={styles.iouPreviewBoxAvatar}>
                                         <MultipleAvatars

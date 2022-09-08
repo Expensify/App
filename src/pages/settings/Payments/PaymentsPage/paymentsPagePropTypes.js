@@ -34,7 +34,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Information about the user accepting the terms for payments */
-    walletTerms: PropTypes.objectOf(walletTermsPropTypes),
+    walletTerms: walletTermsPropTypes,
 
     ...withLocalizePropTypes,
 

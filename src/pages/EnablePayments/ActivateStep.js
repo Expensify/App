@@ -18,16 +18,21 @@ import Button from '../../components/Button';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import walletTermsPropTypes from './walletTermsPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The user's wallet */
     userWallet: PropTypes.objectOf(userWalletPropTypes),
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
 };
 
 const defaultProps = {
-    userWallet: {
+    userWallet: {},
+    walletTerms: {
         chatReportID: 0,
     },
 };
@@ -41,7 +46,7 @@ class ActivateStep extends React.Component {
 
     renderGoldWalletActivationStep() {
         // The text of the "Continue" button depends on whether the action comes from an IOU (i.e. with an attached chat), or a balance transfer
-        const continueButtonText = this.props.userWallet.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
+        const continueButtonText = this.props.walletTerms.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
         return (
             <>
                 <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -99,8 +104,8 @@ ActivateStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(ActivateStep);
