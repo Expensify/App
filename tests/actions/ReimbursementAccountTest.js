@@ -307,6 +307,8 @@ describe('actions/BankAccounts', () => {
         // GIVEN a mock response for a call to Get&returnValueList=nameValuePairs&name=expensify_freePlanBankAccountID that returns a bankAccountID
         HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE));
 
+        // and a mock response for a call to Get&returnValueList=nameValuePairs,bankAccountList&nvpNames that should return a bank account that has completed both
+        // the RequestorStep, CompanyStep, and ACHContractStep and is now PENDING
         HttpUtils.xhr
             .mockImplementationOnce(() => Promise.resolve({
                 jsonCode: 200,
