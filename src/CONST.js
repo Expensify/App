@@ -670,6 +670,7 @@ const CONST = {
             FREE: 'free',
             PERSONAL: 'personal',
             CORPORATE: 'corporate',
+            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
