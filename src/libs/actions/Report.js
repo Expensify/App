@@ -1196,18 +1196,6 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [sequenceNumber]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1226,7 +1214,7 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
-    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
+    API.write('DeleteComment', parameters, {optimisticData, failureData});
 }
 
 /**
