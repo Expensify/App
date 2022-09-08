@@ -649,7 +649,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
         ownerEmail,
         reportID: ReportUtils.generateReportID(),
         state: CONST.STATE.SUBMITTED,
-        stateNum: CONST.STATUS.SUBMITTED,
+        stateNum: 1,
         total,
     };
 }
