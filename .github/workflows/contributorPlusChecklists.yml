@@ -5,7 +5,7 @@ on: pull_request_review
 jobs:
   checklist:
     runs-on: ubuntu-latest
-    if: github.actor != 'OSBotify' && (github.event_name == 'pull_request_review' && contains(github.event.review.body, '- ['))
+    if: github.actor != 'OSBotify'
     steps:
       - name: contributorChecklist.js
         uses: Expensify/App/.github/actions/javascript/contributorChecklist@main
