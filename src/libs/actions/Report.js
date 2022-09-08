@@ -27,7 +27,6 @@ import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as NumberUtils from '../NumberUtils';
-import * as NumberFormatUtils from '../NumberFormatUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -628,29 +627,6 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility: undefined,
-    };
-}
-
-/*
- * Builds an optimistic IOU report with a randomly generated reportID
- */
-function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
-    const formattedTotal = NumberFormatUtils.format(locale,
-        total, {
-            style: 'currency',
-            currency,
-        });
-    return {
-        cachedTotal: formattedTotal,
-        chatReportID,
-        currency,
-        hasOutstandingIOU: true,
-        managerEmail: recipientEmail,
-        ownerEmail,
-        reportID: ReportUtils.generateReportID(),
-        state: CONST.STATE.SUBMITTED,
-        stateNum: 1,
-        total,
     };
 }
 
@@ -1657,7 +1633,6 @@ export {
     openPaymentDetailsPage,
     buildOptimisticWorkspaceChats,
     buildOptimisticChatReport,
-    buildOptimisticIOUReport,
     buildOptimisticCreatedReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
