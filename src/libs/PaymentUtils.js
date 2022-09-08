@@ -29,14 +29,15 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
- * @param {Object} pendingBankAccount
+ * @param {Object} personalBankAccount
  * @param {String} [payPalMeUsername='']
  * @param {Object} userWallet
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, pendingBankAccount = {}, payPalMeUsername = '', userWallet) {
+function formatPaymentMethods(bankAccountList, cardList, personalBankAccount = {}, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
 
+    const pendingBankAccount = lodashGet(this.props.personalBankAccount, 'pendingFields.selectedBankAccount', {});
     // See if we need to show a pending bank account in the payment methods list
     if (!_.isEmpty(pendingBankAccount)) {
         const formattedBankAccountNumber = pendingBankAccount.accountNumber
@@ -139,8 +140,23 @@ function calculateWalletTransferBalanceFee(currentBalance, methodType) {
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
 
+function maskFinancialNumber(type, number) {
+    let maskedFormat = '';
+
+    if (type === 'bankAccount') {
+        maskedFormat = Localize.translateLocal('paymentMethodList.accountLastFour');
+    } else if (type === 'card') {
+        maskedFormat = Localize.translateLocal('paymentMethodList.cardLastFour');
+    } else {
+        return null;
+    }
+
+    return `${maskedFormat} ${number.slice(-4)}`;
+}
+
 export {
-    hasExpensifyPaymentMethod,
-    formatPaymentMethods,
     calculateWalletTransferBalanceFee,
+    formatPaymentMethods,
+    hasExpensifyPaymentMethod,
+    maskFinancialNumber,
 };
