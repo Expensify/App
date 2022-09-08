@@ -2671,6 +2671,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
     },
+
+    translate0InvertY: {
+        transform: 'translate3d(0,0,0) scaleY(-1)',
+    },
 };
 
 export default styles;
