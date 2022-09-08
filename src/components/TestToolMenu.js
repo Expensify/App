@@ -77,6 +77,8 @@ const TestToolMenu = props => (
 
 TestToolMenu.propTypes = propTypes;
 TestToolMenu.defaultProps = defaultProps;
+TestToolMenu.displayName = 'TestToolMenu';
+
 export default compose(
     withNetwork(),
     withOnyx({
