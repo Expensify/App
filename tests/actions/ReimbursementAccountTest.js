@@ -231,24 +231,25 @@ describe('actions/BankAccounts', () => {
 
     it('should fetch the correct initial state for a user with an account in setup (bailed after RequestorStep - but completed Onfido)', () => {
         // GIVEN a mock response for a call to Get&returnValueList=nameValuePairs&name=expensify_freePlanBankAccountID that returns a bankAccountID
-        HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE));
+        HttpUtils.xhr
+            .mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE))
 
-        // and a mock response for a call to Get&returnValueList=nameValuePairs,bankAccountList&nvpNames that should return a bank account
-        // that has completed both the RequestorStep and CompanyStep and has completed Onfido
-        HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({
-            jsonCode: 200,
-            nameValuePairs: [],
-            bankAccountList: [{
-                accountNumber: TEST_BANK_ACCOUNT_NUMBER_MASKED,
-                additionalData: {
-                    currentStep: CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                    isOnfidoSetupComplete: true,
-                },
-                bankAccountID: TEST_BANK_ACCOUNT_ID,
-                state: BankAccount.STATE.SETUP,
-                routingNumber: TEST_BANK_ACCOUNT_ROUTING_NUMBER,
-            }],
-        }));
+            // and a mock response for a call to Get&returnValueList=nameValuePairs,bankAccountList&nvpNames that should return a bank account
+            // that has completed both the RequestorStep and CompanyStep and has completed Onfido
+            .mockImplementationOnce(() => Promise.resolve({
+                jsonCode: 200,
+                nameValuePairs: [],
+                bankAccountList: [{
+                    accountNumber: TEST_BANK_ACCOUNT_NUMBER_MASKED,
+                    additionalData: {
+                        currentStep: CONST.BANK_ACCOUNT.STEP.REQUESTOR,
+                        isOnfidoSetupComplete: true,
+                    },
+                    bankAccountID: TEST_BANK_ACCOUNT_ID,
+                    state: BankAccount.STATE.SETUP,
+                    routingNumber: TEST_BANK_ACCOUNT_ROUTING_NUMBER,
+                }],
+            }));
 
         // WHEN we fetch the bank account
         BankAccounts.fetchFreePlanVerifiedBankAccount();
@@ -305,11 +306,12 @@ describe('actions/BankAccounts', () => {
 
     it('should fetch the correct initial state for a user on the ACHContractStep in PENDING state', () => {
         // GIVEN a mock response for a call to Get&returnValueList=nameValuePairs&name=expensify_freePlanBankAccountID that returns a bankAccountID
-        HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE));
+        HttpUtils.xhr
+            .mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE))
+            // .mockImplementationOnce(() => Promise.resolve(FREE_PLAN_NVP_RESPONSE))
 
         // and a mock response for a call to Get&returnValueList=nameValuePairs,bankAccountList&nvpNames that should return a bank account that has completed both
         // the RequestorStep, CompanyStep, and ACHContractStep and is now PENDING
-        HttpUtils.xhr
             .mockImplementationOnce(() => Promise.resolve({
                 jsonCode: 200,
                 nameValuePairs: [],
