@@ -57,10 +57,10 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
+            inputValues: {}
         };
 
         this.inputRefs = {};
-        this.inputValues = {};
         this.touchedInputs = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
@@ -87,12 +87,12 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(this.validate(this.inputValues))) {
+        if (!_.isEmpty(this.validate(this.state.inputValues))) {
             return;
         }
 
         // Call submit handler
-        this.props.onSubmit(this.inputValues);
+        this.props.onSubmit(this.state.inputValues);
     }
 
     /**
@@ -145,8 +145,8 @@ class Form extends React.Component {
             const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
 
             // We want to initialize the input value if it's undefined
-            if (_.isUndefined(this.inputValues[inputID])) {
-                this.inputValues[inputID] = defaultValue;
+            if (_.isUndefined(this.state.inputValues[inputID])) {
+                this.state.inputValues[inputID] = defaultValue;
             }
 
             return React.cloneElement(child, {
@@ -155,26 +155,27 @@ class Form extends React.Component {
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);
-                    this.validate(this.inputValues);
+                    this.validate(this.state.inputValues);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
-                    this.inputValues[inputKey] = value;
-                    const inputRef = this.inputRefs[inputKey];
-
-                    if (key && inputRef && _.isFunction(inputRef.setNativeProps)) {
-                        inputRef.setNativeProps({value});
-                    }
+                    this.setState(prevState => ({
+                        inputValues : {
+                            ...prevState.inputValues,
+                            [inputKey] : value,
+                        },
+                    }));
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }
-                    this.validate(this.inputValues);
+                    this.validate(this.state.inputValues);
                 },
             });
         });
     }
 
     render() {
+        console.log(this.state.inputValues);
         return (
             <>
                 <ScrollView
@@ -216,3 +217,4 @@ export default compose(
         },
     }),
 )(Form);
+
