@@ -233,7 +233,7 @@ describe('NetworkTests', () => {
                 // We should expect to see seven request be made in total. 3 Get requests that initially fail. Then the call
                 // to Authenticate. Followed by 3 requests to Get again.
                 const callsToGet = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Get');
-                const callsToReAuthenticateUser = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'ReauthenticateUser');
+                const callsToReAuthenticateUser = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
                 expect(callsToGet.length).toBe(6);
                 expect(callsToReAuthenticateUser.length).toBe(1);
                 expect(account).toEqual(TEST_ACCOUNT_DATA);
