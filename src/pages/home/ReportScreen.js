@@ -272,17 +272,15 @@ class ReportScreen extends React.Component {
                                     )
                                 )
                                 : (
-                                    this.props.session.shouldShowComposeInput && (
-                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                            <ReportActionCompose
-                                                onSubmit={this.onSubmitComment}
-                                                reportID={reportID}
-                                                reportActions={this.props.reportActions}
-                                                report={this.props.report}
-                                                isComposerFullSize={this.props.isComposerFullSize}
-                                            />
-                                        </SwipeableView>
-                                    )
+                                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                        <ReportActionCompose
+                                            onSubmit={this.onSubmitComment}
+                                            reportID={reportID}
+                                            reportActions={this.props.reportActions}
+                                            report={this.props.report}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                        />
+                                    </SwipeableView>
                                 )}
                         </View>
                     )}
