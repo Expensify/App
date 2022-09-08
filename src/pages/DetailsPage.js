@@ -72,8 +72,7 @@ class DetailsPage extends React.PureComponent {
             return;
         }
 
-        // to prevent infinite loading spinner and redirect to the root
-        // in case login query not exists in /details route (i.e. when visit https://staging.new.expensify.com/details)
+        // Leave the page when the login information is not available
         Navigation.dismissModal();
     }
 
