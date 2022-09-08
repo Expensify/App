@@ -577,8 +577,8 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
         hasOutstandingIOU: true,
         managerEmail: recipientEmail,
         ownerEmail,
-        reportID: ReportUtils.generateReportID(),
-        state: CONST.STATE.SUBMITTED,
+        reportID: generateReportID(),
+        state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: 1,
         total,
     };
