@@ -268,6 +268,7 @@ const CONST = {
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
+                TEXT: 'TEXT',
             },
         },
         TYPE: {
@@ -280,6 +281,10 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        },
+        WORKSPACE_CHAT_ROOMS: {
+            ANNOUNCE: '#announce',
+            ADMINS: '#admins',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -507,6 +512,7 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+        GUIDES_DOMAIN: 'team.expensify.com',
     },
 
     ENVIRONMENT: {
@@ -667,6 +673,7 @@ const CONST = {
             ADMIN: 'admin',
         },
         ROOM_PREFIX: '#',
+        CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
     },
 
     CUSTOM_UNITS: {

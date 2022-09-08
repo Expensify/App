@@ -10,6 +10,7 @@ module.exports =
 
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
+const _ = __nccwpck_require__(3571);
 const GitHubUtils = __nccwpck_require__(7999);
 
 /* eslint-disable max-len */
@@ -106,43 +107,44 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
 
+// True if we are validating a contributor checklist, otherwise we are validating a contributor+ checklist
+const verifyingContributorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 
-function printUncheckedItems(result) {
-    const checklist = result.split('\n');
-
-    checklist.forEach((line) => {
-        // Provide a search string with the first 30 characters to figure out if the checkbox item is in the checklist
-        const lineSearchString = line.replace('- [ ] ', '').slice(0, 30);
-        if (line.includes('- [ ]') && (completedContributorChecklist.includes(lineSearchString) || completedContributorPlusChecklist.includes(lineSearchString))) {
-            console.log(`Unchecked checklist item: ${line}`);
-        }
-    });
+function getPullRequestBody() {
+    return GitHubUtils.octokit.pulls.get({
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        pull_number: issue,
+    }).then(({data: pullRequestComment}) => pullRequestComment.body);
 }
 
-// Get all user text from the pull request, review comments, and pull request comments
-GitHubUtils.octokit.pulls.get({
-    owner: GitHubUtils.GITHUB_OWNER,
-    repo: GitHubUtils.APP_REPO,
-    pull_number: issue,
-}).then(({data: pullRequestComment}) => {
-    combinedData.push(pullRequestComment.body);
-}).then(() => GitHubUtils.octokit.pulls.listReviews({
-    owner: GitHubUtils.GITHUB_OWNER,
-    repo: GitHubUtils.APP_REPO,
-    pull_number: issue,
-})).then(({data: pullRequestReviewComments}) => {
-    pullRequestReviewComments.forEach(pullRequestReviewComment => combinedData.push(pullRequestReviewComment.body));
-})
-    .then(() => GitHubUtils.octokit.issues.listComments({
+function getAllReviewComments() {
+    return GitHubUtils.paginate(GitHubUtils.octokit.pulls.listReviews, {
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        pull_number: issue,
+        per_page: 100,
+    }, response => _.map(response.data, review => review.body));
+}
+
+function getAllComments() {
+    return GitHubUtils.paginate(GitHubUtils.octokit.issues.listComments, {
         owner: GitHubUtils.GITHUB_OWNER,
         repo: GitHubUtils.APP_REPO,
         issue_number: issue,
         per_page: 100,
-    }))
-    .then(({data: pullRequestComments}) => {
-        pullRequestComments.forEach(pullRequestComment => combinedData.push(pullRequestComment.body));
+    }, response => _.map(response.data, comment => comment.body));
+}
+
+getPullRequestBody()
+    .then(pullRequestBody => combinedData.push(pullRequestBody))
+    .then(() => getAllReviewComments())
+    .then(reviewComments => combinedData.push(...reviewComments))
+    .then(() => getAllComments())
+    .then(comments => combinedData.push(...comments))
+    .then(() => {
         let contributorChecklistComplete = false;
         let contributorPlusChecklistComplete = false;
 
@@ -153,28 +155,26 @@ GitHubUtils.octokit.pulls.get({
 
             if (comment.includes(completedContributorChecklist.replace(whitespace, ''))) {
                 contributorChecklistComplete = true;
-            } else if (comment.includes('- [')) {
-                printUncheckedItems(combinedData[i]);
             }
 
             if (comment.includes(completedContributorPlusChecklist.replace(whitespace, ''))) {
                 contributorPlusChecklistComplete = true;
-            } else if (comment.includes('- [')) {
-                printUncheckedItems(combinedData[i]);
             }
         }
 
-        if (!contributorChecklistComplete) {
+        if (verifyingContributorChecklist && !contributorChecklistComplete) {
+            console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
             core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        if (!contributorPlusChecklistComplete) {
-            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        if (!verifyingContributorChecklist && !contributorPlusChecklistComplete) {
+            console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
+            core.setFailed('Contributor+ checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        console.log('All checklists are complete 🎉');
+        console.log(`${verifyingContributorChecklist ? 'Contributor' : 'Contributor+'} checklist is complete 🎉`);
     });
 
 

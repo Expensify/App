@@ -285,7 +285,6 @@ class InitialSettingsPage extends React.Component {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,

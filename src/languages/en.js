@@ -794,7 +794,6 @@ export default {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
-            growlMessageOnCreate: 'Workspace created',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
@@ -804,7 +803,6 @@ export default {
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
