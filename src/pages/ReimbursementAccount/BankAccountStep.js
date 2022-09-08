@@ -301,6 +301,7 @@ const BankAccountStep = (props) => {
                             label={this.props.translate('bankAccount.routingNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             disabled={shouldDisableInputs}
+                            shouldSaveDraft
                         />
                         <TextInput
                             inputID="accountNumber"
@@ -308,6 +309,7 @@ const BankAccountStep = (props) => {
                             label={this.props.translate('bankAccount.accountNumber')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             disabled={shouldDisableInputs}
+                            shouldSaveDraft
                         />
                         <CheckboxWithLabel
                             style={styles.mt4}
@@ -322,6 +324,7 @@ const BankAccountStep = (props) => {
                                     </TextLink>
                                 </View>
                             )}
+                            shouldSaveDraft
                         />
                     </Form>
                 )}
