@@ -47,14 +47,8 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
-
-        /** The current position of the new marker */
-        newMarkerSequenceNumber: PropTypes.number,
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
@@ -63,7 +57,7 @@ const propTypes = {
         isLoadingReportActions: PropTypes.bool,
 
         /** ID for the report */
-        reportID: PropTypes.string,
+        reportID: PropTypes.number,
     }),
 
     /** Array of report actions for this report */
@@ -95,7 +89,6 @@ const defaultProps = {
     },
     reportActions: {},
     report: {
-        unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
@@ -208,10 +201,14 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        // We create policy rooms for all policies, however we don't show them unless
+        // - It's a free plan workspace
+        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
         if (!Permissions.canUseDefaultRooms(this.props.betas)
             && ReportUtils.isDefaultRoom(this.props.report)
-            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
+            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(this.props.report, ['participants'], []))
+        ) {
             return null;
         }
 

@@ -179,16 +179,6 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 }
 
 /**
- * Determines whether a report has a draft comment.
- *
- * @param {Object} report
- * @return {Boolean}
- */
-function hasReportDraftComment(report) {
-    return lodashGet(report, 'hasDraft', false);
-}
-
-/**
  * If the report or the report actions have errors, return
  * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
  *
@@ -232,9 +222,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const isDefaultRoom = ReportUtils.isDefaultRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
-    const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const iouReport = hasOutstandingIOU
         ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
@@ -286,8 +276,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         reportID: report ? report.reportID : null,
         phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
         payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
-        isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment,
+        isUnread: ReportUtils.isUnread(report),
+        hasDraftComment: lodashGet(report, 'hasDraft', false),
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
         isPinned: lodashGet(report, 'isPinned', false),
@@ -297,6 +287,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isChatRoom,
         isArchivedRoom,
+        isDefaultRoom,
         shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
         isPolicyExpenseChat,
     };
@@ -424,7 +415,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        const hasDraftComment = hasReportDraftComment(report);
+        const hasDraftComment = lodashGet(report, 'hasDraft', false);
         const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
             ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
             : '';
@@ -437,10 +428,11 @@ function getOptions(reports, personalDetails, activeReportID, {
                 // not give archived rooms this exception since they do not need to be higlihted.
                 && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
 
-        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+
         if (report.reportID !== activeReportID
-            && !report.isPinned
+            && (!report.isPinned || isDefaultRoom)
             && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
@@ -451,8 +443,14 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+        // We create policy rooms for all policies, however we don't show them unless
+        // - It's a free plan workspace
+        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
+        if (!Permissions.canUseDefaultRooms(betas)
+            && ReportUtils.isDefaultRoom(report)
+            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(logins)
+        ) {
             return;
         }
 
@@ -527,8 +525,10 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
 
             // If the report is pinned and we are using the option to display pinned reports on top then we need to
-            // collect the pinned reports so we can sort them alphabetically once they are collected
-            if (prioritizePinnedReports && reportOption.isPinned) {
+            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
+            // default archived rooms.
+            if (prioritizePinnedReports && reportOption.isPinned
+                && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
                 pinnedReportOptions.push(reportOption);
             } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
                 iouDebtReportOptions.push(reportOption);
@@ -834,7 +834,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
     const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.searchText)));
+        isSearchStringMatch(searchValue, currencyOption.text)));
 
     return {
         // returns filtered options i.e. options with string match if search text is entered
