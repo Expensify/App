@@ -47,9 +47,6 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
 
@@ -60,7 +57,7 @@ const propTypes = {
         isLoadingReportActions: PropTypes.bool,
 
         /** ID for the report */
-        reportID: PropTypes.string,
+        reportID: PropTypes.number,
     }),
 
     /** Array of report actions for this report */
@@ -92,7 +89,6 @@ const defaultProps = {
     },
     reportActions: {},
     report: {
-        unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
