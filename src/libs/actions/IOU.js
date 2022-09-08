@@ -107,7 +107,7 @@ function requestMoney(report, participants, amount, currency, debtorEmail, comme
     const chatReport = lodashGet(report, 'reportID', null) ? report : Report.createOptimisticChatReport(participants);
     const optimisticTransactionID = NumberUtils.rand64();
     const optimisticIOUReport = Report.buildOptimisticIOUReport(amount, chatReport.reportID, currency, 'en');
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', '', '', optimisticIOUReport.reportID);
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', '', optimisticTransactionID, optimisticIOUReport.reportID);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
