@@ -22,7 +22,4 @@ export default PropTypes.shape({
 
     /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
     shouldShowWalletActivationSuccess: PropTypes.bool,
-
-    /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
-    chatReportID: PropTypes.number,
 });

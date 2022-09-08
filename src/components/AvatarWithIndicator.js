@@ -41,7 +41,7 @@ const propTypes = {
     userWallet: PropTypes.objectOf(userWalletPropTypes),
 
     /** Information about the user accepting the terms for payments */
-    walletTerms: PropTypes.objectOf(walletTermsPropTypes),
+    walletTerms: walletTermsPropTypes,
 };
 
 const defaultProps = {

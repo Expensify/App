@@ -78,7 +78,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Information about the user accepting the terms for payments */
-    walletTerms: PropTypes.objectOf(walletTermsPropTypes),
+    walletTerms: walletTermsPropTypes,
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,

@@ -102,7 +102,7 @@ function setWalletShouldShowFailedKYC(shouldShowFailedKYC) {
  * @param {Number} chatReportID
  */
 function setKYCWallSourceChatReportID(chatReportID) {
-    Onyx.merge(ONYXKEYS.USER_WALLET, {chatReportID});
+    Onyx.merge(ONYXKEYS.WALLET_TERMS, {chatReportID});
 }
 
 /**
