@@ -158,6 +158,11 @@ Onyx.init({
 });
 
 function getDefaultRenderedSidebarLinks() {
+    // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
+    // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
+    // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
+    // With the ErrorBoundary, those errors are caught and logged to the console so you can find exactly which error
+    // might be causing a rendering issue when developing tests.
     class ErrorBoundary extends React.Component {
         // Error boundaries have to implement this method. It's for providing a fallback UI, but
         // we don't need that for unit testing, so this is basically a no-op.
