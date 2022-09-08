@@ -497,7 +497,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
 
-        if (report.reportID.toString() !== activeReportID.toString()
+        if (report.reportID.toString() !== activeReportID
             && (!report.isPinned || isDefaultRoom)
             && !hasDraftComment
             && shouldFilterReport
