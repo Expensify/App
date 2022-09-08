@@ -119,7 +119,7 @@ describe('NetworkTests', () => {
                             command === 'Get' && params.returnValueList === 'chatList'
                         ));
                         const callsToReAuthenticateUser = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
-                            command === 'ReauthenticateUser'
+                            command === 'Authenticate'
                         ));
 
                         expect(callsToChatList.length).toBe(3);
