@@ -175,9 +175,9 @@ class ReportActionItem extends Component {
             >
                 <Hoverable resetsOnClickOutside>
                     {hovered => (
-                        <View>
+                        <View testID="report-action-item">
                             {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator />
+                                <UnreadActionIndicator sequenceNumber={this.props.action.sequenceNumber} />
                             )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(

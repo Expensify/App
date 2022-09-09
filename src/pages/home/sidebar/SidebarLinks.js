@@ -154,7 +154,7 @@ class SidebarLinks extends React.Component {
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
-            <View style={[styles.flex1, styles.h100]}>
+            <View testID="sidebar-links" style={[styles.flex1, styles.h100]}>
                 <View
                     style={[
                         styles.flexRow,

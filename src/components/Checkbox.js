@@ -8,7 +8,7 @@ import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** Whether checkbox is checked */
-    isChecked: PropTypes.bool.isRequired,
+    isChecked: PropTypes.bool,
 
     /** A function that is called when the box/label is pressed */
     onPress: PropTypes.func.isRequired,
@@ -33,6 +33,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isChecked: false,
     hasError: false,
     disabled: false,
     style: [],

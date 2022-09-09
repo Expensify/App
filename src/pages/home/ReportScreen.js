@@ -24,6 +24,7 @@ import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
+import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -81,6 +82,8 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    ...withDrawerPropTypes,
 };
 
 const defaultProps = {
@@ -237,6 +240,7 @@ class ReportScreen extends React.Component {
                 />
 
                 <View
+                    testID="report-screen"
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
@@ -252,6 +256,7 @@ class ReportScreen extends React.Component {
                                 report={this.props.report}
                                 session={this.props.session}
                                 isComposerFullSize={this.props.isComposerFullSize}
+                                isDrawerOpen={this.props.isDrawerOpen}
                             />
                         )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
@@ -279,6 +284,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withDrawerState,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {

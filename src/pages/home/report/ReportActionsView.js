@@ -14,7 +14,7 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
+import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -30,6 +30,7 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     /* Onyx Props */
@@ -100,18 +101,15 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', (state) => {
+        this.appStateChangeListener = AppState.addEventListener('change', () => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
 
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
-            if (state === 'active' && !ReportUtils.isUnread(this.props.report)) {
-                this.setState({newMarkerSequenceNumber: 0});
-            }
-
             Report.openReport(this.props.report.reportID);
+            this.setState({newMarkerSequenceNumber: 0});
         });
 
         Report.subscribeToReportTypingEvents(this.props.report.reportID);
@@ -383,7 +381,6 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
-    withDrawerState,
     withLocalize,
     withNetwork(),
 )(ReportActionsView);

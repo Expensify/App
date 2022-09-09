@@ -223,6 +223,7 @@ class BaseOptionsList extends Component {
                     </View>
                 ) : null}
                 <SectionList
+                    testID="options-list"
                     ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"

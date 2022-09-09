@@ -26,6 +26,7 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
+import ReportHeaderViewBackButton from './ReportHeaderViewBackButton';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -49,7 +50,7 @@ const propTypes = {
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -60,6 +61,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
+    policies: {},
     report: null,
 };
 
@@ -89,17 +91,13 @@ const HeaderView = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
-        <View style={[styles.appContentHeader]} nativeID="drag-area">
+        <View style={[styles.appContentHeader]} testID="report-header" nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <Tooltip text={props.translate('common.back')}>
-                        <Pressable
-                            onPress={props.onNavigationMenuButtonClicked}
-                            style={[styles.LHNToggle]}
-                        >
-                            <Icon src={Expensicons.BackArrow} />
-                        </Pressable>
-                    </Tooltip>
+                    <ReportHeaderViewBackButton
+                        tooltipText={props.translate('common.back')}
+                        onPress={props.onNavigationMenuButtonClicked}
+                    />
                 )}
                 {Boolean(props.report && title) && (
                     <View

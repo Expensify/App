@@ -1330,10 +1330,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemUnsentMessage: {
-        opacity: 0.6,
-    },
-
     chatItemMessageLink: {
         color: colors.blue,
         fontSize: variables.fontSizeNormal,
