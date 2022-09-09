@@ -174,7 +174,7 @@ export default {
             '¡Pregúntame cómo pagar a la gente!',
             '¡Pregúntame cómo enviar una factura!',
             '¡Pregúntame cómo escanear un recibo!',
-            '¡Pregúntame cómo obtener una tarjeta corporativa gratis!',
+            '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!',
         ],
         sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
