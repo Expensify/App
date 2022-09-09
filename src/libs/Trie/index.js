@@ -9,12 +9,12 @@ class Trie {
     /**
     * Add a word to the Trie
     * @param {String} word
-    * @param {Object} [metaData]
+    * @param {Object} [metaData] - attach additional data to the word
     * @param {TrieNode} newNode
-    * @param {String} [containChar]
+    * @param {Boolean} [containChar] - empty word doesn't have any char
     * @returns {void}
     */
-    add(word, metaData, newNode = this.root, containChar) {
+    add(word, metaData, newNode = this.root, containChar = false) {
         const node = newNode;
         if (word.length === 0 && !containChar) {
             throw new Error('Cannot insert empty word into Trie :', word);
@@ -23,11 +23,12 @@ class Trie {
             node.setCompleteWord();
             node.setMetaData(metaData);
             return;
-        } if (!node.children[word[0]]) {
-            node.children[word[0]] = new TrieNode();
-            return this.add(word.substring(1), metaData, node.children[word[0]], word.charAt(0));
         }
-        return this.add(word.substring(1), metaData, node.children[word[0]], word.charAt(0));
+        if (!node.children[word[0]]) {
+            node.children[word[0]] = new TrieNode();
+            return this.add(word.substring(1), metaData, node.children[word[0]], true);
+        }
+        return this.add(word.substring(1), metaData, node.children[word[0]], true);
     }
 
     /**
