@@ -101,6 +101,7 @@ function canEditReportAction(reportAction) {
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -116,6 +117,7 @@ function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 

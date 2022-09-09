@@ -174,13 +174,6 @@ function getDefaultRenderedSidebarLinks() {
     ));
 }
 
-// Icons need to be explicitly mocked. The testing library throws an error when trying to render them
-jest.mock('../../src/components/Icon/Expensicons', () => ({
-    MagnifyingGlass: () => '',
-    Pencil: () => '',
-    Pin: () => '',
-}));
-
 describe('Sidebar', () => {
     describe('in default mode', () => {
         // Clear out Onyx after each test so that each test starts with a clean slate

@@ -253,7 +253,7 @@ class SidebarLinks extends React.Component {
         }];
 
         return (
-            <View style={[styles.flex1, styles.h100]}>
+            <View testID="sidebar-links" style={[styles.flex1, styles.h100]}>
                 <View
                     style={[
                         styles.flexRow,

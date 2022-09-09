@@ -201,6 +201,7 @@
       "<rootDir>/node_modules/"
     ],
     "testMatch": [
+      "**/tests/ui/**/*.[jt]s?(x)",
       "**/tests/unit/**/*.[jt]s?(x)",
       "**/tests/actions/**/*.[jt]s?(x)",
       "**/?(*.)+(spec|test).[jt]s?(x)"

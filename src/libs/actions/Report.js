@@ -11,7 +11,6 @@ import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
-import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -21,12 +20,12 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
-import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as NumberUtils from '../NumberUtils';
+import Visibility from '../Visibility';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -802,9 +801,19 @@ function addActions(reportID, text = '', file) {
     const lastAction = attachmentAction || reportCommentAction;
 
     // We need a newSequenceNumber that is n larger than the current depending on how many actions we are adding.
-    const actionCount = text && file ? 2 : 1;
     const highestSequenceNumber = getMaxSequenceNumber(reportID);
+    const actionCount = text && file ? 2 : 1;
     const newSequenceNumber = highestSequenceNumber + actionCount;
+
+    // We guess at what these sequenceNumbers are to enable marking as unread while offline
+    if (text && file) {
+        reportCommentAction.sequenceNumber = highestSequenceNumber + 1;
+        attachmentAction.sequenceNumber = highestSequenceNumber + 2;
+    } else if (file) {
+        attachmentAction.sequenceNumber = highestSequenceNumber + 1;
+    } else {
+        reportCommentAction.sequenceNumber = highestSequenceNumber + 1;
+    }
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
@@ -815,13 +824,14 @@ function addActions(reportID, text = '', file) {
         lastReadSequenceNumber: newSequenceNumber,
     };
 
-    // Optimistically add the new actions to the store before waiting to save them to the server
+    // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
+    // so that we can later unset these messages via the server by sending {[clientID]: null}
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.sequenceNumber] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.sequenceNumber] = attachmentAction;
+        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
     }
 
     const parameters = {
@@ -1159,26 +1169,32 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
-
-    // We are not updating the message content here so the message can re-appear as strike-throughed
-    // if the user goes offline. The API will update the message content to empty strings on success.
+    const deletedMessage = [{
+        type: 'COMMENT',
+        html: '',
+        text: '',
+        isEdited: true,
+    }];
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            previousMessage: reportAction.message,
+            message: deletedMessage,
         },
     };
 
-    // If we are deleting the last visible message, let's find the previous visible one
-    // and update the lastMessageText in the chat preview.
+    // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
+    // Similarly, we are deleting the last read comment will want to update the lastReadSequenceNumber to use the previous visible message.
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    const lastReadSequenceNumber = ReportActionsUtils.getNewLastReadSequenceNumberForDeletedAction(
+        reportID,
+        optimisticReportActions,
+        reportAction.sequenceNumber,
+        getLastReadSequenceNumber(reportID),
+    );
     const optimisticReport = {
-        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
-            [sequenceNumber]: {
-                message: [{
-                    html: '',
-                    text: '',
-                }],
-            },
-        }),
+        lastMessageText,
+        lastReadSequenceNumber,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1191,6 +1207,7 @@ function deleteReportComment(reportID, reportAction) {
                 [sequenceNumber]: {
                     message: reportAction.message,
                     pendingAction: null,
+                    previousMessage: null,
                 },
             },
         },
@@ -1203,6 +1220,7 @@ function deleteReportComment(reportID, reportAction) {
             value: {
                 [sequenceNumber]: {
                     pendingAction: null,
+                    previousMessage: null,
                 },
             },
         },
@@ -1511,11 +1529,14 @@ function viewNewReportAction(reportID, action) {
     const lastReadSequenceNumber = getLastReadSequenceNumber(reportID);
     const updatedReportObject = {};
 
-    // When handling an action from the current user we can assume that their last read actionID has been updated in the server, but not necessarily reflected
-    // locally so we will update the lastReadSequenceNumber to mark the report as read.
+    // When handling an action from the current user we can assume that their last read actionID has been updated in the server,
+    // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
     if (isFromCurrentUser) {
         updatedReportObject.lastVisitedTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.pendingAction ? lastReadSequenceNumber : action.sequenceNumber;
+        updatedReportObject.maxSequenceNumber = action.sequenceNumber;
+    } else {
+        updatedReportObject.maxSequenceNumber = action.sequenceNumber;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
@@ -1589,7 +1610,9 @@ Onyx.connect({
                 return;
             }
 
-            if (action.isLoading) {
+            // We don't want to process any new actions that have a pendingAction field as this means they are "optimistic" and no notifications
+            // should be created for them
+            if (!_.isEmpty(action.pendingAction)) {
                 return;
             }
 
@@ -1599,6 +1622,8 @@ Onyx.connect({
 
             // If we are past the deadline to notify for this comment don't do it
             if (moment.utc(action.timestamp * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
+                handledReportActions[reportID] = handledReportActions[reportID] || {};
+                handledReportActions[reportID][action.sequenceNumber] = true;
                 return;
             }
 
