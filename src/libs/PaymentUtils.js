@@ -51,18 +51,18 @@ function formatPaymentMethods(bankAccountList, cardList, personalBankAccount = {
         pendingBankAccount.errors = sortedErrors;
         const {icon, iconSize} = getBankIcon(lodashGet(pendingBankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
-            title: pendingBankAccount.addressName,
+            accountData: _.extend({}, pendingBankAccount, {icon}),
+            accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
             description: this.maskFinancialNumber('bankAccount', pendingBankAccount.accountNumber),
-            methodID: 0,
+            errors: pendingBankAccount.errors,
             icon,
             iconSize,
-            key: 'bankAccount-0',
-            accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
-            accountData: _.extend({}, pendingBankAccount, {icon}),
             isDefault: false,
             isPending: true,
-            errors: pendingBankAccount.errors,
+            key: 'bankAccount-0',
+            methodID: 0,
             pendingAction: pendingBankAccount.pendingAction,
+            title: pendingBankAccount.addressName,
         });
     }
 
