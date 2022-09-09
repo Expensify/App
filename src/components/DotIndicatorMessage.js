@@ -67,6 +67,7 @@ const DotIndicatorMessage = (props) => {
 
 DotIndicatorMessage.propTypes = propTypes;
 DotIndicatorMessage.defaultProps = defaultProps;
+DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;
 
