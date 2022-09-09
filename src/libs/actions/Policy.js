@@ -871,7 +871,11 @@ function createWorkspace() {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                0: {
+                    pendingAction: null,
+                },
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -881,7 +885,11 @@ function createWorkspace() {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                0: {
+                    pendingAction: null,
+                },
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -891,7 +899,11 @@ function createWorkspace() {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                0: {
+                    pendingAction: null,
+                },
+            },
         }],
         failureData: [{
             onyxMethod: CONST.ONYX.METHOD.SET,
