@@ -249,7 +249,8 @@ class ReportActionCompose extends React.Component {
                 return;
             }
 
-            this.setState({inputPlaceholder: _.shuffle(this.props.translate('reportActionCompose.writeSomethingConcierge'))[0]});
+            // Randomly pick one of the Concierge placeholder messages from the list
+            this.setState({inputPlaceholder: _.shuffle(this.props.translate('reportActionCompose.conciergePlaceholderOptions'))[0]});
             return;
         }
 

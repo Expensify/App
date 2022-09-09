@@ -166,7 +166,8 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
-        writeSomethingConcierge: [
+        sayHello: 'Di hola!',
+        conciergePlaceholderOptions: [
             '¡Pide ayuda!',
             '¡Pregúntame lo que sea!',
             '¡Pídeme que te reserve un viaje!',
@@ -176,7 +177,6 @@ export default {
             '¡Pregúntame cómo escanear un recibo!',
             '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!',
         ],
-        sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
