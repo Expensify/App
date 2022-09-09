@@ -74,11 +74,13 @@ const AvatarWithIndicator = (props) => {
     // we only care if a single error exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
-        () => !_.isEmpty(props.walletTerms.errors),
         () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
+
+        // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
+        () => !_.isEmpty(props.walletTerms.errors) && !props.walletTerms.chatReportID,
     ];
     const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
 
