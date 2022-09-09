@@ -10,6 +10,9 @@ const propTypes = {
         PropTypes.node,
     ]).isRequired,
 
+    /** Array of disabled indexes. */
+    disabledIndexes: PropTypes.arrayOf(PropTypes.number),
+
     /** The current focused index. */
     focusedIndex: PropTypes.number.isRequired,
 
@@ -18,6 +21,10 @@ const propTypes = {
 
     /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+    disabledIndexes: [],
 };
 
 class ArrowKeyFocusManager extends Component {
@@ -30,11 +37,14 @@ class ArrowKeyFocusManager extends Component {
                 return;
             }
 
-            let newFocusedIndex = this.props.focusedIndex - 1;
+            const currentFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
+            let newFocusedIndex = currentFocusedIndex;
 
-            // Wrap around to the bottom of the list
-            if (newFocusedIndex < 0) {
-                newFocusedIndex = this.props.maxIndex;
+            while (this.props.disabledIndexes.includes(newFocusedIndex)) {
+                newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : this.props.maxIndex;
+                if (newFocusedIndex === currentFocusedIndex) { // all indexes are disabled
+                    return; // no-op
+                }
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
@@ -45,11 +55,14 @@ class ArrowKeyFocusManager extends Component {
                 return;
             }
 
-            let newFocusedIndex = this.props.focusedIndex + 1;
+            const currentFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
+            let newFocusedIndex = currentFocusedIndex;
 
-            // Wrap around to the top of the list
-            if (newFocusedIndex > this.props.maxIndex) {
-                newFocusedIndex = 0;
+            while (this.props.disabledIndexes.includes(newFocusedIndex)) {
+                newFocusedIndex = newFocusedIndex < this.props.maxIndex ? newFocusedIndex + 1 : 0;
+                if (newFocusedIndex === currentFocusedIndex) { // all indexes are disabled
+                    return; // no-op
+                }
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
@@ -72,5 +85,6 @@ class ArrowKeyFocusManager extends Component {
 }
 
 ArrowKeyFocusManager.propTypes = propTypes;
+ArrowKeyFocusManager.defaultProps = defaultProps;
 
 export default ArrowKeyFocusManager;
