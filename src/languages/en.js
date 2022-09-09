@@ -166,7 +166,8 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        writeSomethingConcierge: [
+        sayHello: 'Say hello!',
+        conciergePlaceholderOptions: [
             'Ask for help!',
             'Ask me anything!',
             'Ask me to book travel!',
@@ -176,7 +177,6 @@ export default {
             'Ask me how to scan a receipt!',
             'Ask me how to get a free corporate card!',
         ],
-        sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
