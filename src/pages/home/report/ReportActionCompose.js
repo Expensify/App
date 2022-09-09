@@ -253,7 +253,7 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
-        if (_.size(this.props.reportActions) === 1) {
+        if (_.size(this.props.reportActions) <= 1) {
             this.setState({inputPlaceholder: this.props.translate('reportActionCompose.sayHello')});
             return;
         }
