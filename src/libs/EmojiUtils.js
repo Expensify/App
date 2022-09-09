@@ -207,13 +207,11 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
  */
 function replaceEmojis(text) {
     let newText = text;
-    const emojiNames = text.match(/:[\w+-]+:/g);
-    if (!emojiNames || emojiNames.length === 0) { return text; }
-    for (let i = 0; i < emojiNames.length; i++) {
-        const checkEmoji = emojisTrie.isWord(emojiNames[i].slice(1, -1));
-        if (checkEmoji && checkEmoji.metaData && checkEmoji.metaData.code) {
-            newText = newText.replace(emojiNames[i], checkEmoji.metaData.code);
-        }
+    const emojiData = text.match(/:[\w+-]+:/g);
+    if (!emojiData || emojiData.length === 0) { return text; }
+    for (let i = 0; i < emojiData.length; i++) {
+        const checkEmoji = emojisTrie.isWord(emojiData[i].slice(1, -1));
+        newText = newText.replace(emojiData[i], checkEmoji.getMetaData().code);
     }
     return newText;
 }
