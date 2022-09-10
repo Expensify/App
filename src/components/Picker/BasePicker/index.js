@@ -10,9 +10,7 @@ class BasePicker extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            selectedValue: this.props.defaultValue,
-        };
+        this.pickerValue = this.props.defaultValue;
 
         this.updateSelectedValueAndExecuteOnChange = this.updateSelectedValueAndExecuteOnChange.bind(this);
         this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
@@ -31,7 +29,7 @@ class BasePicker extends React.Component {
 
     updateSelectedValueAndExecuteOnChange(value) {
         this.props.onInputChange(value);
-        this.setState({selectedValue: value});
+        this.pickerValue = value;
     }
 
     executeOnCloseAndOnBlur() {
@@ -49,7 +47,7 @@ class BasePicker extends React.Component {
                 style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled, hasError, this.props.focused) : styles.pickerSmall}
                 useNativeAndroidPickerStyle={false}
                 placeholder={this.props.placeholder}
-                value={this.props.value || this.state.selectedValue}
+                value={this.props.value || this.pickerValue}
                 Icon={() => this.props.icon(this.props.size)}
                 disabled={this.props.disabled}
                 fixAndroidTouchableBug
@@ -58,7 +56,6 @@ class BasePicker extends React.Component {
                 pickerProps={{
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,
-                    ref: this.props.innerRef,
                 }}
                 ref={(node) => {
                     if (!node || !_.isFunction(this.props.innerRef)) {
