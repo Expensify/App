@@ -12,8 +12,8 @@ const propTypes = {
     /** Callback to execute when the text input is modified correctly */
     onChangeText: PropTypes.func,
 
-    /** Initial room name to show in input field. This should include the '#' already prefixed to the name */
-    initialValue: PropTypes.string,
+    /** Room name to show in input field. This should include the '#' already prefixed to the name */
+    value: PropTypes.string,
 
     /** Whether we should show the input as disabled */
     disabled: PropTypes.bool,
@@ -50,7 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     onChangeText: () => {},
-    initialValue: '',
+    value: '',
     disabled: false,
     errorText: '',
     ...fullPolicyDefaultProps,

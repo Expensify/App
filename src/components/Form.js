@@ -57,7 +57,7 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
-            inputValues: {}
+            inputValues: {},
         };
 
         this.inputRefs = {};
@@ -160,9 +160,9 @@ class Form extends React.Component {
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
                     this.setState(prevState => ({
-                        inputValues : {
+                        inputValues: {
                             ...prevState.inputValues,
-                            [inputID] : value,
+                            [inputID]: value,
                         },
                     }), () => this.validate(this.state.inputValues));
 
@@ -175,7 +175,6 @@ class Form extends React.Component {
     }
 
     render() {
-        console.log(this.state.inputValues);
         return (
             <>
                 <ScrollView
