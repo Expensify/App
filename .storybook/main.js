@@ -13,6 +13,6 @@ module.exports = {
         '../assets/css',
     ],
     core: {
-        builder: 'webpack5'
+        builder: 'webpack5',
     },
 };
