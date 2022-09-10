@@ -162,13 +162,13 @@ class Form extends React.Component {
                     this.setState(prevState => ({
                         inputValues : {
                             ...prevState.inputValues,
-                            [inputKey] : value,
+                            [inputID] : value,
                         },
-                    }));
+                    }), () => this.validate(this.state.inputValues));
+
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }
-                    this.validate(this.state.inputValues);
                 },
             });
         });
