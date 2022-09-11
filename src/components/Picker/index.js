@@ -29,6 +29,9 @@ const propTypes = {
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
+
+    /** A callback method that is called when the value changes and it received the selected value as an argument */
+    onInputChange: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -58,9 +61,9 @@ class Picker extends PureComponent {
      * @param {Number} index
      */
     onInputChange(value, index) {
-        console.log('On input chnage');
         if (this.props.inputID) {
-            return this.props.onInputChange(value, this.props.inputID);
+            this.props.onInputChange(value, this.props.inputID);
+            return;
         }
 
         this.props.onInputChange(value, index);
