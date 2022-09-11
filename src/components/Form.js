@@ -162,7 +162,7 @@ class Form extends React.Component {
                     this.setState(prevState => ({
                         inputValues: {
                             ...prevState.inputValues,
-                            [inputID]: value,
+                            [inputKey]: value,
                         },
                     }), () => this.validate(this.state.inputValues));
 
