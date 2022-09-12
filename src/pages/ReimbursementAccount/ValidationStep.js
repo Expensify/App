@@ -56,19 +56,20 @@ class ValidationStep extends React.Component {
      */
     validate(values) {
         const errors = {};
+
         const filteredValues = {
             amount1: this.filterInput(values.amount1),
             amount2: this.filterInput(values.amount2),
             amount3: this.filterInput(values.amount3),
         };
 
-        _.each(['amount1', 'amount2', 'amount3'], (inputKey) => {
+        _.chain(filteredValues).keys().each((inputKey) => {
             if (ValidationUtils.isRequiredFulfilled(filteredValues[inputKey])) {
                 return;
             }
-
             errors[inputKey] = this.props.translate('common.error.invalidAmount');
         });
+
         return errors;
     }
 
