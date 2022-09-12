@@ -15,6 +15,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
@@ -29,8 +30,8 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** User's paypal.me account details if they have one */
-    payPalMeUserDetails: bankAccountPropTypes,
+    /** Account details for PayPal.Me */
+    payPalMeData: paypalMeDataPropTypes,
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -66,7 +67,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    payPalMeUserDetails: {},
+    payPalMeData: {},
     bankAccountList: {},
     cardList: {},
     userWallet: {
@@ -114,7 +115,7 @@ class PaymentMethodList extends Component {
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(this.props.cardList, card => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUserDetails);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -283,7 +284,7 @@ export default compose(
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },
-        payPalMeUserDetails: {
+        payPalMeData: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
         userWallet: {

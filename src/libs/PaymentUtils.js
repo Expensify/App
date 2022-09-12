@@ -18,7 +18,7 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-    const validDebitCard = _.some(cardList, card => lodashGet(card, 'additionalData.isP2PDebitCard', false));
+    const validDebitCard = _.some(cardList, card => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
 
     return validBankAccount || validDebitCard;
 }
@@ -27,14 +27,14 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
- * @param {Object} [payPalDetails = null]
+ * @param {Object} [payPalMeData = null]
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalDetails = null) {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
-        const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
+        const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'accountData.additionalData.bankName', ''));
         combinedPaymentMethods.push({
             ...bankAccount,
             icon,
@@ -45,7 +45,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalDetails = null) {
     });
 
     _.each(cardList, (card) => {
-        const {icon, iconSize} = getBankIcon(card.bank, true);
+        const {icon, iconSize} = getBankIcon(lodashGet(card, 'accountData.bank', ''), true);
         combinedPaymentMethods.push({
             ...card,
             icon,
@@ -55,9 +55,9 @@ function formatPaymentMethods(bankAccountList, cardList, payPalDetails = null) {
         });
     });
 
-    if (payPalDetails) {
+    if (payPalMeData) {
         combinedPaymentMethods.push({
-            ...payPalDetails,
+            ...payPalMeData,
         });
     }
 
