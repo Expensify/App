@@ -241,31 +241,26 @@ class ReportScreen extends React.Component {
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
                 </OfflineWithFeedback>
-
-                <OfflineWithFeedback
+                <View
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    pendingAction={lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom', '')}
+                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
-                    <View
-                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
-                    >
-                        {this.shouldShowLoader()
-                            ? (
-                                <ReportActionsSkeletonView
-                                    containerHeight={this.state.skeletonViewContainerHeight}
-                                />
-                            )
-                            : (
-                                <ReportActionsView
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    session={this.props.session}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                />
-                            )}
-                        {(hideComposer || this.props.session.shouldShowComposeInput) && (
+                    {this.shouldShowLoader()
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={this.state.skeletonViewContainerHeight}
+                            />
+                        )
+                        : (
+                            <ReportActionsView
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
+                                session={this.props.session}
+                                isComposerFullSize={this.props.isComposerFullSize}
+                            />
+                        )}
+                    {(hideComposer || this.props.session.shouldShowComposeInput) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             {isArchivedRoom && (
                                 <ArchivedReportFooter
@@ -291,9 +286,8 @@ class ReportScreen extends React.Component {
                                     </SwipeableView>
                                 )}
                         </View>
-                        )}
-                    </View>
-                </OfflineWithFeedback>
+                    )}
+                </View>
             </ScreenWrapper>
         );
     }
