@@ -12,6 +12,7 @@ import md5 from './md5';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import * as NumberFormatUtils from './NumberFormatUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -571,6 +572,29 @@ function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
 }
 
+/*
+ * Builds an optimistic IOU report with a randomly generated reportID
+ */
+function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.format(locale,
+        total, {
+            style: 'currency',
+            currency,
+        });
+    return {
+        cachedTotal: formattedTotal,
+        chatReportID,
+        currency,
+        hasOutstandingIOU: true,
+        managerEmail: recipientEmail,
+        ownerEmail,
+        reportID: generateReportID(),
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: 1,
+        total,
+    };
+}
+
 /**
  * Builds an optimistic IOU reportAction object
  *
@@ -672,6 +696,7 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     isUnread,
 };
