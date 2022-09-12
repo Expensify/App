@@ -118,12 +118,12 @@ describe('NetworkTests', () => {
                         const callsToChatList = _.filter(HttpUtils.xhr.mock.calls, ([command, params]) => (
                             command === 'Get' && params.returnValueList === 'chatList'
                         ));
-                        const callsToReAuthenticateUser = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
+                        const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
                             command === 'Authenticate'
                         ));
 
                         expect(callsToChatList.length).toBe(3);
-                        expect(callsToReAuthenticateUser.length).toBe(2);
+                        expect(callsToAuthenticate.length).toBe(2);
                     });
             });
     });
@@ -233,9 +233,9 @@ describe('NetworkTests', () => {
                 // We should expect to see seven request be made in total. 3 Get requests that initially fail. Then the call
                 // to Authenticate. Followed by 3 requests to Get again.
                 const callsToGet = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Get');
-                const callsToReAuthenticateUser = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
+                const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
                 expect(callsToGet.length).toBe(6);
-                expect(callsToReAuthenticateUser.length).toBe(1);
+                expect(callsToAuthenticate.length).toBe(1);
                 expect(account).toEqual(TEST_ACCOUNT_DATA);
                 expect(personalDetailsList).toEqual(TEST_PERSONAL_DETAILS);
                 expect(chatList).toEqual(TEST_CHAT_LIST);
@@ -549,7 +549,7 @@ describe('NetworkTests', () => {
                 const [commandName2] = call2;
                 const [commandName3] = call3;
                 expect(commandName1).toBe('Mock');
-                expect(commandName2).toBe('ReauthenticateUser');
+                expect(commandName2).toBe('Authenticate');
                 expect(commandName3).toBe('Mock');
             });
     });
@@ -699,7 +699,7 @@ describe('NetworkTests', () => {
 
                 // Third command should be the call to Authenticate
                 const [thirdCommand] = xhr.mock.calls[2];
-                expect(thirdCommand).toBe('ReauthenticateUser');
+                expect(thirdCommand).toBe('Authenticate');
 
                 const [fourthCommand] = xhr.mock.calls[3];
                 expect(fourthCommand).toBe('MockCommand');
