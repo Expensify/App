@@ -103,10 +103,19 @@ function startLoadingAndResetError() {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 }
 
-function requestMoney(report, participants, amount, currency, debtorEmail, comment) {
-    const chatReport = lodashGet(report, 'reportID', null) ? report : Report.createOptimisticChatReport(participants);
+function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
+    const chatReport = lodashGet(report, 'reportID', null) ? report : Report.buildOptimisticChatReport(participants);
     const optimisticTransactionID = NumberUtils.rand64();
-    const optimisticIOUReport = Report.buildOptimisticIOUReport(amount, chatReport.reportID, currency, 'en');
+    const existingIOUReportID = chatReport.hasOutstandingIOU ? chatReport.iouReportID : 0;
+    let IOUReport = null;
+    if (existingIOUReportID) {
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${existingIOUReportID}`,
+            callback: val => IOUReport = val,
+        });
+    } else {
+        IOUReport = ReportUtils.buildOptimisticIOUReport(debtorEmail, recipientEmail, amount, chatReport.reportID, currency, 'en');
+    }
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', '', optimisticTransactionID, optimisticIOUReport.reportID);
     const optimisticData = [
         {
@@ -126,8 +135,8 @@ function requestMoney(report, participants, amount, currency, debtorEmail, comme
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
-            value: chatReport,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${IOUReport.reportID}`,
+            value: IOUReport,
         },
     ];
     const failureData = [

@@ -351,6 +351,7 @@ class IOUModal extends Component {
             this.participants,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
+            this.props.currentUserPersonalDetails.login,
             OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
             this.state.comment);
     }
