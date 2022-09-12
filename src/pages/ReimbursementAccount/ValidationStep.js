@@ -20,7 +20,7 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
+import Form from '../../components/Form';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import Section from '../../components/Section';
@@ -71,6 +71,10 @@ class ValidationStep extends React.Component {
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+    }
+
+    componentWillUnmount() {
+        BankAccounts.resetReimbursementAccount();
     }
 
     /**
@@ -156,6 +160,12 @@ class ValidationStep extends React.Component {
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
 
+        const currentStep = lodashGet(
+            this.props,
+            'reimbursementAccount.achData.currentStep',
+            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+        );
+
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -183,10 +193,10 @@ class ValidationStep extends React.Component {
                     </View>
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
-                    <ReimbursementAccountForm
-                        reimbursementAccount={this.props.reimbursementAccount}
+                    <Form
+                        submitButtonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
-                        buttonText={this.props.translate('validationStep.buttonText')}
+                        style={[styles.mh5, styles.mb5]}
                     >
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mb5]}>
@@ -222,7 +232,7 @@ class ValidationStep extends React.Component {
                                 errorText={this.getErrorText('amount3')}
                             />
                         </View>
-                    </ReimbursementAccountForm>
+                    </Form>
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
