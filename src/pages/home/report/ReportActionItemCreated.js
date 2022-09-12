@@ -1,5 +1,6 @@
 import React from 'react';
 import {Pressable, View} from 'react-native';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -8,6 +9,7 @@ import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -37,24 +39,29 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const pendingAction = isPolicyExpenseChat ? lodashGet(props.report, 'pendingFields.addWorkspaceRoom', '') : '';
 
     return (
-        <View style={[
-            styles.chatContent,
-            styles.pb8,
-            styles.p5,
-        ]}
+        <OfflineWithFeedback
+            pendingAction={pendingAction}
         >
-            <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
-                    <RoomHeaderAvatars
-                        icons={icons}
-                        shouldShowLargeAvatars={isPolicyExpenseChat}
-                    />
-                </Pressable>
-                <ReportWelcomeText report={props.report} />
+            <View style={[
+                styles.chatContent,
+                styles.pb8,
+                styles.p5,
+            ]}
+            >
+                <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
+                    <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
+                        <RoomHeaderAvatars
+                            icons={icons}
+                            shouldShowLargeAvatars={isPolicyExpenseChat}
+                        />
+                    </Pressable>
+                    <ReportWelcomeText report={props.report} />
+                </View>
             </View>
-        </View>
+        </OfflineWithFeedback>
     );
 };
 
