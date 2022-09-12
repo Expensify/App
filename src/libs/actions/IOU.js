@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -13,8 +14,19 @@ import Log from '../Log';
 import DateUtils from '../DateUtils';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import lodashGet from 'lodash/get';
-import * as NumberUtils from "../NumberUtils";
+import * as NumberUtils from '../NumberUtils';
+
+const iouReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    callback: (iouReport, key) => {
+        if (!iouReport || !key || !iouReport.ownerEmail) {
+            return;
+        }
+
+        iouReports[key] = iouReport;
+    },
+});
 
 /**
  * Gets the IOU Reports for new transaction
@@ -106,17 +118,10 @@ function startLoadingAndResetError() {
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
     const chatReport = lodashGet(report, 'reportID', null) ? report : Report.buildOptimisticChatReport(participants);
     const optimisticTransactionID = NumberUtils.rand64();
-    const existingIOUReportID = chatReport.hasOutstandingIOU ? chatReport.iouReportID : 0;
-    let IOUReport = null;
-    if (existingIOUReportID) {
-        Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${existingIOUReportID}`,
-            callback: val => IOUReport = val,
-        });
-    } else {
-        IOUReport = ReportUtils.buildOptimisticIOUReport(debtorEmail, recipientEmail, amount, chatReport.reportID, currency, 'en');
-    }
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', '', optimisticTransactionID, optimisticIOUReport.reportID);
+    console.log(recipientEmail);
+    const IOUReport = chatReport.hasOutstandingIOU ? iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`]
+        : ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', '', optimisticTransactionID, IOUReport.reportID);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -159,7 +164,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         amount,
         currency,
         comment,
-        iouReportID: optimisticIOUReport.reportID,
+        iouReportID: IOUReport.reportID,
         chatReportID: chatReport.reportID,
         transactionID: optimisticTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
