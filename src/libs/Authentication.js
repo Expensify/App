@@ -1,6 +1,3 @@
-/* eslint-disable rulesdir/no-api-in-views,rulesdir/no-api-side-effects-method */
-
-import _ from 'underscore';
 import requireParameters from './requireParameters';
 import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
@@ -9,8 +6,6 @@ import redirectToSignIn from './actions/SignInRedirect';
 import CONST from '../CONST';
 import Log from './Log';
 import * as ErrorUtils from './ErrorUtils';
-import * as API from './API';
-import ONYXKEYS from '../ONYXKEYS';
 import CONFIG from '../CONFIG';
 
 /**
