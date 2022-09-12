@@ -12,6 +12,7 @@ import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 import {policyPropTypes} from '../pages/workspace/withPolicy';
+import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
@@ -39,6 +40,9 @@ const propTypes = {
 
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
 };
 
 const defaultProps = {
@@ -49,6 +53,7 @@ const defaultProps = {
     bankAccountList: {},
     cardList: {},
     userWallet: {},
+    walletTerms: {},
 };
 
 const AvatarWithIndicator = (props) => {
@@ -73,6 +78,9 @@ const AvatarWithIndicator = (props) => {
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
+
+        // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
+        () => !_.isEmpty(props.walletTerms.errors) && !props.walletTerms.chatReportID,
     ];
     const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
 
@@ -111,5 +119,8 @@ export default withOnyx({
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
+    },
+    walletTerms: {
+        key: ONYXKEYS.WALLET_TERMS,
     },
 })(AvatarWithIndicator);

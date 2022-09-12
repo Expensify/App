@@ -585,7 +585,7 @@ function fetchAllReports(
 }
 
 /**
- * Creates an optimistic chat report with a randomly generated reportID and as much information as we currently have
+ * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
  *
  * @param {Array} participantList
  * @param {String} reportName
@@ -596,7 +596,7 @@ function fetchAllReports(
  * @param {String} oldPolicyName
  * @returns {Object}
  */
-function createOptimisticChatReport(
+function buildOptimisticChatReport(
     participantList,
     reportName = 'Chat Report',
     chatType = '',
@@ -635,7 +635,7 @@ function createOptimisticChatReport(
  * @param {String} ownerEmail
  * @returns {Object}
  */
-function createOptimisticCreatedReportAction(ownerEmail) {
+function buildOptimisticCreatedReportAction(ownerEmail) {
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -675,8 +675,8 @@ function createOptimisticCreatedReportAction(ownerEmail) {
  * @param {String} policyName
  * @returns {Object}
  */
-function createOptimisticWorkspaceChats(policyID, policyName) {
-    const announceChatData = createOptimisticChatReport(
+function buildOptimisticWorkspaceChats(policyID, policyName) {
+    const announceChatData = buildOptimisticChatReport(
         [currentUserEmail],
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
@@ -686,15 +686,15 @@ function createOptimisticWorkspaceChats(policyID, policyName) {
         policyName,
     );
     const announceChatReportID = announceChatData.reportID;
-    const announceReportActionData = createOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
 
-    const adminsChatData = createOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
     const adminsChatReportID = adminsChatData.reportID;
-    const adminsReportActionData = createOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
-    const expenseChatData = createOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportActionData = createOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
 
     return {
         announceChatReportID,
@@ -1559,6 +1559,15 @@ function viewNewReportAction(reportID, action) {
     });
 }
 
+/**
+ * Clear the errors associated with the IOUs of a given report.
+ *
+ * @param {Number} reportID
+ */
+function clearIOUError(reportID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
+}
+
 // We are using this map to ensure actions are only handled once
 const handledReportActions = {};
 Onyx.connect({
@@ -1631,9 +1640,10 @@ export {
     readOldestAction,
     openReport,
     openPaymentDetailsPage,
-    createOptimisticWorkspaceChats,
-    createOptimisticChatReport,
-    createOptimisticCreatedReportAction,
+    buildOptimisticWorkspaceChats,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
+    clearIOUError,
 };
