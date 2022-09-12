@@ -169,6 +169,7 @@ class ValidationStep extends React.Component {
                             <TextInput
                                 isFormInput
                                 inputID="amount1"
+                                shouldSaveDraft
                                 defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
@@ -177,6 +178,7 @@ class ValidationStep extends React.Component {
                             <TextInput
                                 isFormInput
                                 inputID="amount2"
+                                shouldSaveDraft
                                 defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
@@ -184,6 +186,7 @@ class ValidationStep extends React.Component {
                             />
                             <TextInput
                                 isFormInput
+                                shouldSaveDraft
                                 inputID="amount3"
                                 defaultValue=""
                                 containerStyles={[styles.mb1]}
