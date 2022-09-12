@@ -47,40 +47,7 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-
-        this.state = {
-            amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
-            amount2: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount2', ''),
-            amount3: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount3', ''),
-        };
-
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.validate = this.validate.bind(this);
-    }
-
-    componentWillUnmount() {
-        BankAccounts.resetReimbursementAccount();
-    }
-
-    /**
-    * @param {Object} value
-    */
-    setValue(value) {
-        BankAccounts.updateReimbursementAccountDraft(value);
-        this.setState(value);
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setValue({[inputKey]: value});
-        this.clearError(inputKey);
     }
 
     /**
@@ -96,13 +63,12 @@ class ValidationStep extends React.Component {
         };
 
         _.each(['amount1', 'amount2', 'amount3'], (inputKey) => {
-            if (ValidationUtils.isRequiredFulfilled(filteredValues[inputKey]) || !values[inputKey]) {
+            if (ValidationUtils.isRequiredFulfilled(filteredValues[inputKey])) {
                 return;
             }
 
             errors[inputKey] = this.props.translate('common.error.invalidAmount');
         });
-
         return errors;
     }
 
@@ -180,7 +146,7 @@ class ValidationStep extends React.Component {
                         </Text>
                     </View>
                 )}
-                {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
+                {true && (
                     <Form
                         formID={ONYXKEYS.FORMS.VALIDATION_STEP_FORM}
                         submitButtonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
@@ -198,33 +164,33 @@ class ValidationStep extends React.Component {
                         </View>
                         <View style={[styles.mv5, styles.flex1]}>
                             <TextInput
+                                isFormInput
+                                inputID="amount1"
+                                defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="decimal-pad"
-                                value={this.state.amount1}
-                                onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
-                                errorText={this.getErrorText('amount1')}
                             />
                             <TextInput
+                                isFormInput
+                                inputID="amount2"
+                                defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="decimal-pad"
-                                value={this.state.amount2}
-                                onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
-                                errorText={this.getErrorText('amount2')}
                             />
                             <TextInput
+                                isFormInput
+                                inputID="amount3"
+                                defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="decimal-pad"
-                                value={this.state.amount3}
-                                onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
-                                errorText={this.getErrorText('amount3')}
                             />
                         </View>
                     </Form>
                 )}
-                {isVerifying && (
+                {false && (
                     <View style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
