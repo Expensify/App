@@ -54,21 +54,10 @@ class ValidationStep extends React.Component {
             amount3: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount3', ''),
         };
 
-        this.requiredFields = [
-            'amount1',
-            'amount2',
-            'amount3',
-        ];
-
-        this.errorTranslationKeys = {
-            amount1: 'common.error.invalidAmount',
-            amount2: 'common.error.invalidAmount',
-            amount3: 'common.error.invalidAmount',
-        };
-
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.validate = this.validate.bind(this);
     }
 
     componentWillUnmount() {
@@ -95,25 +84,26 @@ class ValidationStep extends React.Component {
     }
 
     /**
+     * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    validate() {
+    validate(values) {
         const errors = {};
-        const values = {
-            amount1: this.filterInput(this.state.amount1),
-            amount2: this.filterInput(this.state.amount2),
-            amount3: this.filterInput(this.state.amount3),
+        const filteredValues = {
+            amount1: this.filterInput(values.amount1),
+            amount2: this.filterInput(values.amount2),
+            amount3: this.filterInput(values.amount3),
         };
 
-        _.each(this.requiredFields, (inputKey) => {
-            if (ValidationUtils.isRequiredFulfilled(values[inputKey])) {
+        _.each(['amount1', 'amount2', 'amount3'], (inputKey) => {
+            if (ValidationUtils.isRequiredFulfilled(filteredValues[inputKey]) || !values[inputKey]) {
                 return;
             }
 
-            errors[inputKey] = true;
+            errors[inputKey] = this.props.translate('common.error.invalidAmount');
         });
-        BankAccounts.setBankAccountFormValidationErrors(errors);
-        return _.size(errors) === 0;
+
+        return errors;
     }
 
     submit() {
@@ -204,6 +194,7 @@ class ValidationStep extends React.Component {
                         formID={ONYXKEYS.FORMS.VALIDATION_STEP_FORM}
                         submitButtonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
+                        validate={this.validate}
                         style={[styles.mh5, styles.mb5]}
                     >
                         <View style={[styles.mb2]}>
