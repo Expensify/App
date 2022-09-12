@@ -17,17 +17,17 @@ import Growl from '../../../libs/Growl';
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as User from '../../../libs/actions/User';
-import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 
 const propTypes = {
     /** Account details for PayPal.Me */
-    payPalMeUserDetails: bankAccountPropTypes,
+    payPalMeData: paypalMeDataPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    payPalMeUserDetails: {},
+    payPalMeData: {},
 };
 
 class AddPayPalMePage extends React.Component {
@@ -35,7 +35,7 @@ class AddPayPalMePage extends React.Component {
         super(props);
 
         this.state = {
-            payPalMeUsername: props.payPalMeUserDetails.description,
+            payPalMeUsername: props.payPalMeData.description,
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
@@ -90,8 +90,8 @@ class AddPayPalMePage extends React.Component {
                         onPress={this.setPayPalMeUsername}
                         pressOnEnter
                         style={[styles.mt3]}
-                        isDisabled={this.state.payPalMeUsername === this.props.payPalMeUserDetails.description}
-                        text={this.props.payPalMeUserDetails.description
+                        isDisabled={this.state.payPalMeUsername === this.props.payPalMeData.description}
+                        text={this.props.payPalMeData.description
                             ? this.props.translate('addPayPalMePage.editPayPalAccount')
                             : this.props.translate('addPayPalMePage.addPayPalAccount')}
                     />
@@ -108,7 +108,7 @@ AddPayPalMePage.displayName = 'AddPayPalMePage';
 export default compose(
     withLocalize,
     withOnyx({
-        payPalMeUserDetails: {
+        payPalMeData: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
