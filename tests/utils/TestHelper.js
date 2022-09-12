@@ -42,7 +42,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 
     // Simulate user entering their login and populating the credentials.login
     Session.beginSignIn(login);
-    Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
     return waitForPromisesToResolve()
         .then(() => {
             // Response is the same for calls to Authenticate and CreateLogin
