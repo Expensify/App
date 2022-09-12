@@ -7,6 +7,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import * as SessionUtils from '../libs/SessionUtils';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
@@ -24,6 +26,10 @@ class LogOutPreviousUserPage extends Component {
                 const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
                 if (isLoggingInAsNewUser) {
                     Session.signOutAndRedirectToSignIn();
+                } else {
+                    const exitTo = lodashGet(this.props, 'route.params.exitTo');
+                    Navigation.dismissModal();
+                    Navigation.navigate(exitTo || ROUTES.HOME);
                 }
             });
     }
