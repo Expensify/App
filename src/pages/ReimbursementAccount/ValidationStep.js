@@ -106,17 +106,8 @@ class ValidationStep extends React.Component {
         return errors;
     }
 
-    submit() {
-        if (!this.validate()) {
-            BankAccounts.showBankAccountErrorModal();
-            return;
-        }
-
-        const amount1 = this.filterInput(this.state.amount1);
-        const amount2 = this.filterInput(this.state.amount2);
-        const amount3 = this.filterInput(this.state.amount3);
-
-        const validateCode = [amount1, amount2, amount3].join(',');
+    submit(values) {
+        const validateCode = [values.amount1, values.amount2, values.amount3].join(',');
 
         // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
         const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
