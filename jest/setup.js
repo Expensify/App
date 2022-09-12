@@ -13,3 +13,10 @@ jest.mock('../src/libs/Notification/PushNotification', () => ({
 }));
 
 jest.mock('react-native-blob-util', () => ({}));
+
+// Set up manual mocks for the Log.info method,
+// this is needed because during some tests the Logging queue will get flushed,
+// causing erroneous calls to HttpUtils.xhr() which could cause mock mismatches and flaky tests.
+jest.mock('../src/libs/Log', () => ({
+    info: jest.fn(),
+}));
