@@ -194,6 +194,7 @@ class ValidationStep extends React.Component {
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <Form
+                        formID={ONYXKEYS.FORMS.VALIDATION_STEP_FORM}
                         submitButtonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
                         style={[styles.mh5, styles.mb5]}
@@ -278,6 +279,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        validationStepForm: {
+            key: ONYXKEYS.FORMS.VALIDATION_STEP_FORM,
         },
     }),
 )(ValidationStep);
