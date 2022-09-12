@@ -2,11 +2,11 @@ import requireParameters from './requireParameters';
 import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
+import CONFIG from '../CONFIG';
 import redirectToSignIn from './actions/SignInRedirect';
 import CONST from '../CONST';
 import Log from './Log';
 import * as ErrorUtils from './ErrorUtils';
-import CONFIG from '../CONFIG';
 
 /**
  * @param {Object} parameters
