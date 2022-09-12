@@ -642,7 +642,6 @@ function createOptimisticCreatedReportAction(ownerEmail) {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
             message: [
                 {
