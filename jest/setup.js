@@ -25,13 +25,9 @@ jest.mock('../src/libs/BootSplash', () => ({
 
 jest.mock('react-native-blob-util', () => ({}));
 
-// Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
-jest.spyOn(console, 'debug').mockImplementation((...params) => {
-    if (params[0].indexOf('Timing:') === 0) {
-        return;
-    }
-
-    // Send the message to console.log but don't re-used console.debug or else this mock method is called in an infinite loop. Instead, just prefix the output with the word "DEBUG"
-    // eslint-disable-next-line no-console
-    console.log('DEBUG', ...params);
-});
+// Set up manual mocks for the Log.info method,
+// this is needed because during some tests the Logging queue will get flushed,
+// causing erroneous calls to HttpUtils.xhr() which could cause mock mismatches and flaky tests.
+jest.mock('../src/libs/Log', () => ({
+    info: jest.fn(),
+}));
