@@ -11,7 +11,7 @@ import * as errors from './errors';
  * @param {String} validateCode
  */
 function validateBankAccount(bankAccountID, validateCode) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.FORMS.VALIDATION_STEP_FORM, {isSubmitting: true});
 
     DeprecatedAPI.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
@@ -34,20 +34,24 @@ function validateBankAccount(bankAccountID, validateCode) {
 
             // User has input the validate code incorrectly many times so we will return early in this case and not let them enter the amounts again.
             if (response.message === CONST.BANK_ACCOUNT.ERROR.MAX_VALIDATION_ATTEMPTS_REACHED) {
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, maxAttemptsReached: true});
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {maxAttemptsReached: true});
+                Onyx.merge(ONYXKEYS.FORMS.VALIDATION_STEP_FORM, {isSubmitting: false});
                 return;
             }
 
             // If the validation amounts entered were incorrect, show specific error
             if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
                 errors.showBankAccountErrorModal(Localize.translateLocal('bankAccount.error.validationAmounts'));
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                Onyx.merge(ONYXKEYS.FORMS.VALIDATION_STEP_FORM, {isSubmitting: false});
                 return;
             }
 
             // We are generically showing any other backend errors that might pop up in the validate step
             errors.showBankAccountErrorModal(response.message);
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.FORMS.VALIDATION_STEP_FORM, {
+                isSubmitting: false,
+                error: response.message,
+            });
         });
 }
 
