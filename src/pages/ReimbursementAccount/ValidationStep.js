@@ -148,7 +148,7 @@ class ValidationStep extends React.Component {
                         </Text>
                     </View>
                 )}
-                {true && (
+                {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <Form
                         formID={ONYXKEYS.FORMS.VALIDATION_STEP_FORM}
                         submitButtonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
@@ -192,7 +192,7 @@ class ValidationStep extends React.Component {
                         </View>
                     </Form>
                 )}
-                {false && (
+                {isVerifying && (
                     <View style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
