@@ -28,6 +28,7 @@ import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -233,31 +234,39 @@ class ReportScreen extends React.Component {
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
                 keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
-                <HeaderView
-                    reportID={reportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                />
-
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                <OfflineWithFeedback
+                    pendingAction={lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom', '')}
                 >
-                    {this.shouldShowLoader()
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={this.state.skeletonViewContainerHeight}
-                            />
-                        )
-                        : (
-                            <ReportActionsView
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                            />
-                        )}
-                    {(hideComposer || this.props.session.shouldShowComposeInput) && (
+                    <HeaderView
+                        reportID={reportID}
+                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    />
+                </OfflineWithFeedback>
+
+                <OfflineWithFeedback
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    pendingAction={lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom', '')}
+                >
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                    >
+                        {this.shouldShowLoader()
+                            ? (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )
+                            : (
+                                <ReportActionsView
+                                    reportActions={this.props.reportActions}
+                                    report={this.props.report}
+                                    session={this.props.session}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                />
+                            )}
+                        {(hideComposer || this.props.session.shouldShowComposeInput) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             {isArchivedRoom && (
                                 <ArchivedReportFooter
@@ -283,8 +292,9 @@ class ReportScreen extends React.Component {
                                     </SwipeableView>
                                 )}
                         </View>
-                    )}
-                </View>
+                        )}
+                    </View>
+                </OfflineWithFeedback>
             </ScreenWrapper>
         );
     }
