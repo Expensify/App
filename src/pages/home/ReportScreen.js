@@ -227,7 +227,7 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom', '');
+        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const hasAddWorkspaceRoomError = !_.isEmpty(lodashGet(this.props.report, 'errorFields.addWorkspaceRoom', {}));
 
         // Hide the composer for an archived room or when there is an error adding the room
