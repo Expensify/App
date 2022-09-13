@@ -19,18 +19,18 @@ import Picker from '../../components/Picker';
 import TextInput from '../../components/TextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
-    ...policyPropTypes,
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    ...policyDefaultProps,
+    ...fullPolicyDefaultProps,
 };
 
 class WorkspaceSettingsPage extends React.Component {
@@ -162,7 +162,7 @@ WorkspaceSettingsPage.propTypes = propTypes;
 WorkspaceSettingsPage.defaultProps = defaultProps;
 
 export default compose(
-    withPolicy,
+    withFullPolicy,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
