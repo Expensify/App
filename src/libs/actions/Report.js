@@ -1559,6 +1559,15 @@ function viewNewReportAction(reportID, action) {
     });
 }
 
+/**
+ * Clear the errors associated with the IOUs of a given report.
+ *
+ * @param {Number} reportID
+ */
+function clearIOUError(reportID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
+}
+
 // We are using this map to ensure actions are only handled once
 const handledReportActions = {};
 Onyx.connect({
@@ -1636,4 +1645,5 @@ export {
     buildOptimisticCreatedReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
+    clearIOUError,
 };
