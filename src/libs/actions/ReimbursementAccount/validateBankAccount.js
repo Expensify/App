@@ -20,8 +20,6 @@ function validateBankAccount(bankAccountID, validateCode) {
                 DeprecatedAPI.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {
-                            loading: false,
-                            error: '',
                             achData: {state: BankAccount.STATE.OPEN},
                         };
 
