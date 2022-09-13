@@ -12,6 +12,7 @@ import md5 from './md5';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import * as NumberFormatUtils from './NumberFormatUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -204,6 +205,15 @@ function getPolicyType(report, policies) {
 }
 
 /**
+ * Returns true if there are any guides accounts (team.expensify.com) in emails
+ * @param {Array} emails
+ * @returns {Boolean}
+ */
+function hasExpensifyGuidesEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -215,7 +225,9 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE);
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
+            || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
+            || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
     return _.last(sortedReports);
@@ -560,6 +572,29 @@ function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
 }
 
+/*
+ * Builds an optimistic IOU report with a randomly generated reportID
+ */
+function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.format(locale,
+        total, {
+            style: 'currency',
+            currency,
+        });
+    return {
+        cachedTotal: formattedTotal,
+        chatReportID,
+        currency,
+        hasOutstandingIOU: true,
+        managerEmail: recipientEmail,
+        ownerEmail,
+        reportID: generateReportID(),
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: 1,
+        total,
+    };
+}
+
 /**
  * Builds an optimistic IOU reportAction object
  *
@@ -648,6 +683,7 @@ export {
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
+    hasExpensifyGuidesEmails,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -660,6 +696,7 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     isUnread,
 };
