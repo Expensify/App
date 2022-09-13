@@ -118,12 +118,12 @@ describe('NetworkTests', () => {
                         const callsToChatList = _.filter(HttpUtils.xhr.mock.calls, ([command, params]) => (
                             command === 'Get' && params.returnValueList === 'chatList'
                         ));
-                        const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
-                            command === 'Authenticate'
+                        const callsToReauthenticateUser = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
+                            command === 'ReauthenticateUser'
                         ));
 
                         expect(callsToChatList.length).toBe(3);
-                        expect(callsToAuthenticate.length).toBe(2);
+                        expect(callsToReauthenticateUser.length).toBe(2);
                     });
             });
     });
