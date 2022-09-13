@@ -36,9 +36,8 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.arrayOf(PropTypes.shape({
-
-        /** Phone/Email associated with user */
+    loginList: PropTypes.objectOf(PropTypes.shape({
+        /** Phone/Emails associated with user */
         partnerUserID: PropTypes.string,
     })),
 
@@ -76,9 +75,9 @@ const propTypes = {
     /** The policyID of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
 
-    // The NVP describing a user's block status
+    /** The NVP describing a user's block status */
     blockedFromConcierge: PropTypes.shape({
-        // The date that the user will be unblocked
+        /** The date that the user will be unblocked */
         expiresAt: PropTypes.string,
     }),
 
@@ -93,7 +92,7 @@ const defaultProps = {
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
     blockedFromConcierge: {},
-    loginList: [],
+    loginList: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -157,12 +156,12 @@ class RequestCallPage extends Component {
     /**
      * Gets the user's phone number from their secondary login.
      * Returns null if it doesn't exist.
-     * @param {Array<Object>} loginList
+     * @param {Object} loginList
      *
      * @returns {String|null}
      */
     getPhoneNumber(loginList) {
-        const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
+        const secondaryLogin = _.find(Object.values(loginList), login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : '';
     }
 
