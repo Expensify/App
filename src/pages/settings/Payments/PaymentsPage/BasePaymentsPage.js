@@ -275,7 +275,14 @@ class BasePaymentsPage extends React.Component {
                     {Permissions.canUseWallet(this.props.betas) && (
                         <>
                             <View style={[styles.mv5]}>
-                                <CurrentWalletBalance />
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={this.props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    <CurrentWalletBalance />
+                                </OfflineWithFeedback>
                             </View>
                             {this.props.userWallet.currentBalance > 0 && (
                                 <KYCWall
@@ -462,6 +469,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(BasePaymentsPage);

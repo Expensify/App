@@ -129,7 +129,8 @@ function deletePolicy(policyID) {
 
             Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
 
-            // Removing the workspace data from Onyx as well
+            // Removing the workspace data from Onyx and local array as well
+            delete allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
         })
         .then(() => Report.fetchAllReports(false))
@@ -795,7 +796,7 @@ function createWorkspace() {
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
-    } = Report.createOptimisticWorkspaceChats(policyID, workspaceName);
+    } = Report.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     // We need to use makeRequestWithSideEffects as we try to redirect to the policy right after creation
     // The policy hasn't been merged in Onyx data at this point, leading to an intermittent Not Found screen
