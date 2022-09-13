@@ -7,7 +7,7 @@ import * as ActiveClients from '../actions/ActiveClients';
 const clientID = Str.guid();
 const maxClients = 20;
 
-let activeClients;
+let activeClients = [];
 
 let resolveIsReadyPromise;
 const isReadyPromise = new Promise((resolve) => {
@@ -24,7 +24,9 @@ function isReady() {
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
-        activeClients = !val ? [] : val;
+        if (val) {
+            activeClients = _.unique(activeClients.concat(val));
+        }
         if (activeClients.length >= maxClients) {
             activeClients.shift();
             ActiveClients.setActiveClients(activeClients);
