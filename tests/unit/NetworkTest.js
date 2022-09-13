@@ -636,16 +636,7 @@ describe('NetworkTests', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr')
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
-            .mockResolvedValue({
-                jsonCode: CONST.JSON_CODE.SUCCESS,
-                onyxData: [{
-                    key: ONYXKEYS.SESSION,
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    value: {
-                        authToken: 'newToken',
-                    },
-                }],
-            });
+            .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, authToken: 'newToken'});
 
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'oldToken'},
