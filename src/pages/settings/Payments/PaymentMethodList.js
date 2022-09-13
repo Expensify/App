@@ -129,25 +129,13 @@ class PaymentMethodList extends Component {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
         }
 
-        combinedPaymentMethods = _.map(combinedPaymentMethods, (paymentMethod) => {
-            let paymentMethodStyles = [];
-
-            if (this.isPaymentMethodActive(paymentMethod)) {
-                paymentMethodStyles.push(StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED));
-            }
-
-            if (paymentMethod.isPending) {
-                paymentMethodStyles.push(styles.offlineFeedback.pending);
-            }
-
-            return {
-                ...paymentMethod,
-                type: MENU_ITEM,
-                onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
-                iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-                wrapperStyle: paymentMethodStyles,
-            };
-        });
+        combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
+            ...paymentMethod,
+            type: MENU_ITEM,
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
+            iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
+        }));
 
         return combinedPaymentMethods;
     }
@@ -249,6 +237,7 @@ class PaymentMethodList extends Component {
                         shouldShowSelectedState={this.props.shouldShowSelectedState}
                         isSelected={this.props.selectedMethodID === item.methodID}
                         brickRoadIndicator={!_.isEmpty(item.errors) && item.isPending ? 'error' : null}
+                        pending={item.isPending}
                     />
                 </OfflineWithFeedback>
             );

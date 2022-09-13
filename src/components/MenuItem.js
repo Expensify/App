@@ -37,6 +37,7 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     disabled: false,
+    pending: false,
     isSelected: false,
     subtitle: undefined,
     iconType: 'icon',
@@ -76,7 +77,7 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.flex1, (props.pending ? styles.offlineFeedback.pending : undefined)]}>
                         {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                             <View
                                 style={[
