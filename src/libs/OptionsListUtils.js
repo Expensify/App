@@ -27,7 +27,18 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: val => loginList = _.isEmpty(val) ? {} : val,
+    callback: (val) => {
+        if (_.isArray(loginList)) {
+            // TODO: remove this once the server is always sending back the correct format!
+            // https://github.com/Expensify/App/issues/10960
+            loginList = loginList.reduce((allLogins, login) => {
+                allLogins[login.partnerUserID] = login;
+                return allLogins;
+            }, {})
+        } else {
+            loginList = _.isEmpty(loginList) ? {} : val;
+        }
+    },
 });
 
 let countryCodeByIP;
