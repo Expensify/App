@@ -39,11 +39,10 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
-    const pendingAction = isPolicyExpenseChat ? lodashGet(props.report, 'pendingFields.addWorkspaceRoom', '') : '';
 
     return (
         <OfflineWithFeedback
-            pendingAction={pendingAction}
+            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom', '')}
         >
             <View style={[
                 styles.chatContent,
