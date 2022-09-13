@@ -3,6 +3,7 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
+import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
@@ -43,9 +44,11 @@ function clearPlaid() {
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
- * 
+ *
  * @returns {Object}
  */
+// We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
+/* eslint-disable no-unused-vars */
 function getVBBADataForOnyx() {
     return {
         optimisticData: [
