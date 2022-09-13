@@ -42,6 +42,48 @@ function clearPlaid() {
 }
 
 /**
+ * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
+ * 
+ * @returns {Object}
+ */
+function getVBBADataForOnyx() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
+                },
+            },
+        ],
+    };
+}
+
+/**
  * Adds a bank account via Plaid
  *
  * @param {Object} account
