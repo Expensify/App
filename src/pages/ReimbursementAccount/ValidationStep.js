@@ -67,6 +67,9 @@ class ValidationStep extends React.Component {
     }
 
     submit(values) {
+        if (this.props.validationStepForm.isSubmitting) {
+            return;
+        }
         const validateCode = [values.amount1, values.amount2, values.amount3].join(',');
 
         // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
@@ -140,7 +143,7 @@ class ValidationStep extends React.Component {
                         </Text>
                     </View>
                 )}
-                {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
+                {true && (
                     <Form
                         formID={ONYXKEYS.FORMS.VALIDATION_STEP_FORM}
                         submitButtonText={
@@ -188,7 +191,7 @@ class ValidationStep extends React.Component {
                         </View>
                     </Form>
                 )}
-                {isVerifying && (
+                {false && (
                     <View style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
