@@ -16,7 +16,7 @@ jest.mock('react-native-blob-util', () => ({}));
 
 // Set up manual mocks for any Logging methods that are supposed hit the 'server',
 // this is needed because before, the Logging queue would get flushed while tests were running,
-// causing erroneous calls to HttpUtils.xhr() which would cause mock mismatches and flaky tests.
+// causing unexpected calls to HttpUtils.xhr() which would cause mock mismatches and flaky tests.
 /* eslint-disable no-console */
 jest.mock('../src/libs/Log', () => ({
     info: message => console.log(`[info] ${message} (mocked)`),
