@@ -30,7 +30,6 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import Log from '../../../libs/Log';
 
 const propTypes = {
     /* Onyx Props */
