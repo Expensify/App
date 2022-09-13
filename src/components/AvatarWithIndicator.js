@@ -11,6 +11,7 @@ import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
+import {fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as Policy from '../libs/actions/Policy';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
@@ -29,7 +30,7 @@ const propTypes = {
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
 
     /** All the user's policies (from Onyx via withFullPolicy) */
-    policies: PropTypes.objectOf(policyPropTypes.policy),
+    policies: PropTypes.objectOf(fullPolicyPropTypes.policy),
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
