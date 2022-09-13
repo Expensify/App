@@ -1,14 +1,15 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 
-let shouldUseSecureStaging = false;
+let shouldUseStagingServer = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
+    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', true),
 });
 
 let shouldFailAllRequests = false;
@@ -94,10 +95,11 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
         formData.append(key, val);
     });
+
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (shouldUseSecure && shouldUseSecureStaging) {
-        apiRoot = CONST.STAGING_SECURE_URL;
+    if (CONFIG.IS_IN_STAGING && shouldUseStagingServer) {
+        apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
     }
 
     return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);

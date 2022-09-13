@@ -166,6 +166,10 @@ function uniqFast(items) {
  * Returns a string with all relevant search terms.
  * Default should be serachable by policy/domain name but not by participants.
  *
+ * This method must be incredibly performant. It was found to be a big performance bottleneck
+ * when dealing with accounts that have thousands of reports. For loops are more efficient than _.each
+ * Array.prototype.push.apply is faster than using the spread operator, and concat() is faster than push().
+ *
  * @param {Object} report
  * @param {String} reportName
  * @param {Array} personalDetailList
@@ -194,8 +198,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         }
     }
 
-    const finalSearchTerms = uniqFast(searchTerms).join(' ');
-    return finalSearchTerms;
+    return uniqFast(searchTerms).join(' ');
 }
 
 /**
@@ -254,6 +257,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
+        isDefaultRoom: false,
         isPinned: false,
         hasOutstandingIOU: false,
         iouReportID: null,
@@ -280,7 +284,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
         result.ownerEmail = report.ownerEmail;
         result.reportID = report.reportID;
-        result.isUnread = report.unreadActionCount > 0;
+        result.isUnread = ReportUtils.isUnread(report);
         result.hasDraftComment = report.hasDraft;
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
@@ -461,6 +465,9 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
+        if (!report) {
+            return;
+        }
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -468,7 +475,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
         const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
-        if (!report || !report.reportID || shouldFilterNoParticipants) {
+        if (!report.reportID || shouldFilterNoParticipants) {
             return;
         }
 
@@ -489,7 +496,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
 
-        if (report.reportID !== activeReportID
+        if (report.reportID.toString() !== activeReportID
             && (!report.isPinned || isDefaultRoom)
             && !hasDraftComment
             && shouldFilterReport
@@ -501,8 +508,14 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+        // We create policy rooms for all policies, however we don't show them unless
+        // - It's a free plan workspace
+        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
+        if (!Permissions.canUseDefaultRooms(betas)
+            && ReportUtils.isDefaultRoom(report)
+            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(logins)
+        ) {
             return;
         }
 

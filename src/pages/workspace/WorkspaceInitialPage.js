@@ -20,8 +20,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
-import * as PolicyActions from '../../libs/actions/Policy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
@@ -30,7 +30,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
 
     /** The employee list of this policy (coming from Onyx) */
@@ -38,7 +38,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...fullPolicyDefaultProps,
+    ...policyDefaultProps,
     policyMemberList: {},
 };
 
@@ -74,7 +74,7 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        PolicyActions.deletePolicy(this.props.policy.id);
+        Policy.deletePolicy(this.props.policy.id);
         this.toggleDeleteModal(false);
     }
 
@@ -145,7 +145,7 @@ class WorkspaceInitialPage extends React.Component {
                             {
                                 icon: Expensicons.Plus,
                                 text: this.props.translate('workspace.new.newWorkspace'),
-                                onSelected: () => PolicyActions.createAndNavigate(),
+                                onSelected: () => Policy.createWorkspace(),
                             }, {
                                 icon: Expensicons.Trashcan,
                                 text: this.props.translate('workspace.common.delete'),
@@ -245,11 +245,10 @@ class WorkspaceInitialPage extends React.Component {
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
-WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withPolicy,
     withOnyx({
         policyMemberList: {
             key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
