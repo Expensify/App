@@ -24,6 +24,7 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import FormSubmit from '../../components/FormSubmit';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -261,84 +262,86 @@ class WorkspaceInvitePage extends React.Component {
                                 shouldShowBackButton
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
-                            <View style={[styles.flex1]}>
-                                {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                                {didScreenTransitionEnd && (
-                                <OptionsSelector
-                                    autoFocus={false}
-                                    canSelectMultipleOptions
-                                    sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchValue}
-                                    onSelectRow={this.toggleOption}
-                                    onChangeText={(searchValue = '') => {
-                                        const {
-                                            personalDetails,
-                                            userToInvite,
-                                        } = OptionsListUtils.getMemberInviteOptions(
-                                            this.props.personalDetails,
-                                            this.props.betas,
-                                            searchValue,
-                                            this.getExcludedUsers(),
-                                        );
-                                        this.setState({
-                                            searchValue,
-                                            userToInvite,
-                                            personalDetails,
-                                        });
-                                    }}
-                                    onConfirmSelection={this.inviteUser}
-                                    headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    hideAdditionalOptionStates
-                                    forceTextUnreadStyle
-                                    shouldFocusOnSelectRow
-                                />
-                                )}
-                            </View>
-                            <View style={[styles.flexShrink0]}>
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <TextInput
-                                        label={this.props.translate('workspace.invite.personalMessagePrompt')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        numberOfLines={4}
-                                        textAlignVertical="top"
-                                        multiline
-                                        containerStyles={[styles.workspaceInviteWelcome]}
-                                        value={this.state.welcomeNote}
-                                        onChangeText={text => this.setState({welcomeNote: text})}
+                            <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
+                                <View style={[styles.flex1]}>
+                                    {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
+                                    {didScreenTransitionEnd && (
+                                    <OptionsSelector
+                                        autoFocus={false}
+                                        canSelectMultipleOptions
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchValue}
+                                        onSelectRow={this.toggleOption}
+                                        onChangeText={(searchValue = '') => {
+                                            const {
+                                                personalDetails,
+                                                userToInvite,
+                                            } = OptionsListUtils.getMemberInviteOptions(
+                                                this.props.personalDetails,
+                                                this.props.betas,
+                                                searchValue,
+                                                this.getExcludedUsers(),
+                                            );
+                                            this.setState({
+                                                searchValue,
+                                                userToInvite,
+                                                personalDetails,
+                                            });
+                                        }}
+                                        onConfirmSelection={this.inviteUser}
+                                        headerMessage={headerMessage}
+                                        hideSectionHeaders
+                                        hideAdditionalOptionStates
+                                        forceTextUnreadStyle
+                                        shouldFocusOnSelectRow
                                     />
-                                </View>
-                                <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length}
-                                    isAlertVisible={this.getShouldShowAlertPrompt()}
-                                    buttonText={this.props.translate('common.invite')}
-                                    onSubmit={this.inviteUser}
-                                    onFixTheErrorsLinkPressed={() => {}}
-                                    message={this.props.policy.alertMessage}
-                                    containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                                />
-                                <Pressable
-                                    onPress={(e) => {
-                                        e.preventDefault();
-                                        Link.openExternalLink(CONST.PRIVACY_URL);
-                                    }}
-                                    accessibilityRole="link"
-                                    href={CONST.PRIVACY_URL}
-                                    style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <View style={[styles.flexRow]}>
-                                            <Text
-                                                style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
-                                            >
-                                                {this.props.translate('common.privacyPolicy')}
-                                            </Text>
-                                        </View>
                                     )}
-                                </Pressable>
-                            </View>
+                                </View>
+                                <View style={[styles.flexShrink0]}>
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        <TextInput
+                                            label={this.props.translate('workspace.invite.personalMessagePrompt')}
+                                            autoCompleteType="off"
+                                            autoCorrect={false}
+                                            numberOfLines={4}
+                                            textAlignVertical="top"
+                                            multiline
+                                            containerStyles={[styles.workspaceInviteWelcome]}
+                                            value={this.state.welcomeNote}
+                                            onChangeText={text => this.setState({welcomeNote: text})}
+                                        />
+                                    </View>
+                                    <FormAlertWithSubmitButton
+                                        isDisabled={!this.state.selectedOptions.length}
+                                        isAlertVisible={this.getShouldShowAlertPrompt()}
+                                        buttonText={this.props.translate('common.invite')}
+                                        onSubmit={this.inviteUser}
+                                        onFixTheErrorsLinkPressed={() => {}}
+                                        message={this.props.policy.alertMessage}
+                                        containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                    />
+                                    <Pressable
+                                        onPress={(e) => {
+                                            e.preventDefault();
+                                            Link.openExternalLink(CONST.PRIVACY_URL);
+                                        }}
+                                        accessibilityRole="link"
+                                        href={CONST.PRIVACY_URL}
+                                        style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
+                                    >
+                                        {({hovered, pressed}) => (
+                                            <View style={[styles.flexRow]}>
+                                                <Text
+                                                    style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
+                                                >
+                                                    {this.props.translate('common.privacyPolicy')}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </Pressable>
+                                </View>
+                            </FormSubmit>
                         </>
                     </FullPageNotFoundView>
                 )}
