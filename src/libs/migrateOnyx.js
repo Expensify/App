@@ -5,6 +5,7 @@ import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
+import ReformatLoginList from './migrations/ReformatLoginList';
 
 export default function () {
     const startTime = Date.now();
@@ -18,6 +19,7 @@ export default function () {
             RenamePriorityModeKey,
             AddEncryptedAuthToken,
             RenameExpensifyNewsStatus,
+            ReformatLoginList,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
