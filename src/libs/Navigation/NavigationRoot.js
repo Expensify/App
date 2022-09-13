@@ -28,6 +28,16 @@ const propTypes = {
 };
 
 class NavigationRoot extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            currentPath: '',
+        };
+
+        this.parseAndLogRoute = this.parseAndLogRoute.bind(this);
+    }
+
     /**
      * Intercept navigation state changes and log it
      * @param {NavigationState} state
@@ -47,6 +57,8 @@ class NavigationRoot extends Component {
         }
 
         UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
+
+        this.setState({currentPath});
     }
 
     render() {
@@ -67,7 +79,7 @@ class NavigationRoot extends Component {
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} />
+                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
             </NavigationContainer>
         );
     }
