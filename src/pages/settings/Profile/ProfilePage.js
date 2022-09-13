@@ -33,7 +33,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.arrayOf(PropTypes.shape({
+    loginList: PropTypes.objectOf(PropTypes.shape({
 
         /** Value of partner name */
         partnerName: PropTypes.string,
@@ -49,7 +49,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    loginList: [],
+    loginList: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -84,7 +84,7 @@ class ProfilePage extends Component {
         let stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
-        if (this.props.loginList !== prevProps.loginList) {
+        if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
             stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
         }
 
@@ -99,11 +99,11 @@ class ProfilePage extends Component {
     /**
      * Get the most validated login of each type
      *
-     * @param {Array} loginList
+     * @param {Object} loginList
      * @returns {Object}
      */
     getLogins(loginList) {
-        return _.reduce(loginList, (logins, currentLogin) => {
+        return _.reduce(_.values(loginList), (logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
