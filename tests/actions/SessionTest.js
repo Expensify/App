@@ -64,15 +64,9 @@ test('Authenticate is called with saved credentials when a session expires', () 
                 // The next call should be Authenticate since we are reauthenticating
                 .mockImplementationOnce(() => Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
-                    onyxData: [{
-                        key: ONYXKEYS.SESSION,
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        value: {
-                            accountID: TEST_USER_ACCOUNT_ID,
-                            authToken: TEST_REFRESHED_AUTH_TOKEN,
-                            email: TEST_USER_LOGIN,
-                        },
-                    }],
+                    accountID: TEST_USER_ACCOUNT_ID,
+                    authToken: TEST_REFRESHED_AUTH_TOKEN,
+                    email: TEST_USER_LOGIN,
                 }));
 
             // When we attempt to fetch the chatList via the API
