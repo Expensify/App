@@ -232,7 +232,6 @@ const CONST = {
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
-    STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -285,6 +284,9 @@ const CONST = {
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
+        },
+        STATE: {
+            SUBMITTED: 'SUBMITTED',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -348,6 +350,7 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
+        SIDEBAR_LINKS_FILTER_REPORTS: 'sidebar_links_filter_reports',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
@@ -512,6 +515,7 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+        GUIDES_DOMAIN: 'team.expensify.com',
     },
 
     ENVIRONMENT: {
@@ -667,6 +671,7 @@ const CONST = {
             FREE: 'free',
             PERSONAL: 'personal',
             CORPORATE: 'corporate',
+            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
