@@ -36,7 +36,7 @@ class InvertedFlatList extends React.Component {
             this.props.innerRef(this.list);
         }
 
-        if (_.isUndefined(this.list)) {
+        if (!this.list) {
             return;
         }
 
