@@ -45,12 +45,12 @@ let reportActions;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
-        reportActions = actions;
         if (!key || !actions) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         lastReportActions[reportID] = _.last(_.toArray(actions));
+        reportActions[key] = actions;
     },
 });
 
@@ -73,12 +73,6 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val,
 });
-
-// let loginList;
-// Onyx.connect({
-//     key: ONYXKEYS.LOGIN_LIST,
-//     callback: val => loginList = val,
-// });
 
 let preferredLocale;
 Onyx.connect({
