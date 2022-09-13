@@ -285,7 +285,7 @@ export default compose(
             key: ONYXKEYS.CARD_LIST,
         },
         payPalMeData: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            key: ONYXKEYS.NVP_PAYPAL,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

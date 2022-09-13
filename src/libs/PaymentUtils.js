@@ -55,7 +55,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         });
     });
 
-    if (payPalMeData) {
+    if (!_.isEmpty(payPalMeData)) {
         combinedPaymentMethods.push({
             ...payPalMeData,
         });
