@@ -283,7 +283,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: _.object(logins, Array(logins.length).fill({
                 errors: {
-                    [DateUtils.getMicroseconds()]: 'some generic error',
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
                 },
             })),
         },
