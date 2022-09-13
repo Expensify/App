@@ -621,7 +621,7 @@ function buildOptimisticIOUReportAction(type, amount, comment, iouCurrency = '',
         type,
     };
     const formattedTotal = NumberFormatUtils.format('en',
-        amount, {
+        amount / 100, {
             style: 'currency',
             currency,
         });

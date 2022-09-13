@@ -118,8 +118,13 @@ function startLoadingAndResetError() {
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
     const chatReport = lodashGet(report, 'reportID', null) ? report : Report.buildOptimisticChatReport(participants);
     const optimisticTransactionID = NumberUtils.rand64();
-    const IOUReport = chatReport.hasOutstandingIOU ? iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`]
-        : ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
+    let IOUReport;
+    if (chatReport.hasOutstandingIOU) {
+        IOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
+        IOUReport.total += amount;
+    } else {
+        IOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
+    }
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', currency, '', optimisticTransactionID, IOUReport.reportID, debtorEmail);
     const optimisticData = [
         {
@@ -164,7 +169,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         currency,
         comment,
         iouReportID: IOUReport.reportID,
-        chatReportID: chatReport.reportID,
+        reportID: chatReport.reportID,
         transactionID: optimisticTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
     }, {optimisticData, failureData});
