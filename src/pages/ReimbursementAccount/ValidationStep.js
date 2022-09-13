@@ -16,7 +16,6 @@ import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
