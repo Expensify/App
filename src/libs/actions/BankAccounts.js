@@ -159,9 +159,20 @@ function deletePaymentBankAccount(bankAccountID) {
     });
 }
 
+/**
+ * Verify the user's identity via Onfido
+ * @param {Object} onfidoData 
+ */
+function verifyIdentityForBankAccount(onfidoData) {
+    API.write('VerifyIdentityForBankAccount', {
+        onfidoData
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    verifyIdentityForBankAccount,
 };
