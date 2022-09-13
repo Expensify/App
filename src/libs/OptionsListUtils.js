@@ -28,7 +28,7 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: val => loginList = _.isEmpty(val) ? [] : val,
+    callback: val => loginList = _.isEmpty(val) ? {} : val,
 });
 
 let countryCodeByIP;
@@ -423,14 +423,13 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 }
 
 /**
- * Returns the given userDetails is currentUser or not.
+ * Checks if the given userDetails is currentUser or not.
  * @param {Object} userDetails
  * @returns {Boolean}
  */
 
 function isCurrentUser(userDetails) {
     if (!userDetails) {
-        // If userDetails is null or undefined
         return false;
     }
 
@@ -438,17 +437,14 @@ function isCurrentUser(userDetails) {
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
     // Initial check with currentUserLogin
-    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    let index = 0;
-
-    // Checking userDetailsLogin against to current user login options.
-    while (index < loginList.length && !result) {
-        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
-            result = true;
-        }
-        index++;
+    if (currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase()) {
+        return true;
     }
-    return result;
+
+    // Check if userDetails login exists in loginList
+    return Object.keys(loginList).some((login) => {
+        return login.partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase();
+    });
 }
 
 /**
