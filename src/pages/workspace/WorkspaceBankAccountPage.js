@@ -21,7 +21,7 @@ import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
-import withPolicy from './withPolicy';
+import withFullPolicy from './withFullPolicy';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -131,5 +131,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-    withPolicy,
+    withFullPolicy,
 )(WorkspaceBankAccountPage);
