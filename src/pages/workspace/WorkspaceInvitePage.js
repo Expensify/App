@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -53,12 +53,12 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...policyPropTypes,
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...networkPropTypes,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = fullPolicyDefaultProps;
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -352,7 +352,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withFullPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {
