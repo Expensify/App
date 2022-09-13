@@ -74,7 +74,7 @@ export default compose(
     withLocalize,
     withOnyx({
         payPalMeData: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            key: ONYXKEYS.NVP_PAYPAL,
         },
         betas: {
             key: ONYXKEYS.BETAS,
