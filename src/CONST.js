@@ -286,6 +286,9 @@ const CONST = {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
         },
+        STATE: {
+            SUBMITTED: 'SUBMITTED',
+        },
         STATE_NUM: {
             OPEN: 0,
             PROCESSING: 1,
@@ -512,6 +515,7 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+        GUIDES_DOMAIN: 'team.expensify.com',
     },
 
     ENVIRONMENT: {
