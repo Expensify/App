@@ -292,6 +292,7 @@ class AuthScreens extends React.Component {
                     name="IOU_Details"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.IOUDetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="AddPersonalBankAccount"
