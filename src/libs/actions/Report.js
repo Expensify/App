@@ -1263,6 +1263,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 isEdited: true,
                 html: htmlForNewComment,
                 text: textForNewComment,
+                type: originalReportAction.message[0].type,
             }],
         },
     };
