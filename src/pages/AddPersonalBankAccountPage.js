@@ -160,6 +160,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         </FixedFooter>
                     </>
                 ) : (
+                    <>
                     <FormScrollView>
                         <View style={[styles.mh5, styles.mb5]}>
                             <OfflineWithFeedback
@@ -193,20 +194,23 @@ class AddPersonalBankAccountPage extends React.Component {
                                         />
                                     </View>
                                 )}
-                                {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                    <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
-                                        <Button
-                                            success
-                                            pressOnEnter
-                                            text={this.props.translate('common.saveAndContinue')}
-                                            onPress={this.submit}
-                                            isLoading={loading}
-                                        />
-                                    </View>
-                                )}
                             </OfflineWithFeedback>
                         </View>
                     </FormScrollView>
+                    {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                        // <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+                        <FixedFooter>
+                            <Button
+                                success
+                                pressOnEnter
+                                text={this.props.translate('common.saveAndContinue')}
+                                onPress={this.submit}
+                                isLoading={loading}
+                            />
+                        </FixedFooter>
+                        // </View>
+                    )}
+                    </>
                 )}
             </ScreenWrapper>
         );
