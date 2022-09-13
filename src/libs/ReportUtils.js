@@ -12,6 +12,7 @@ import md5 from './md5';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import * as NumberFormatUtils from './NumberFormatUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -257,8 +258,11 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+    const policyName = (
+        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
+        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
+    ) || '';
+    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -508,7 +512,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
+        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
@@ -523,11 +527,9 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
-        participants.length > 1,
-    );
-    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const isMultipleParticipantReport = participants.length > 1;
+    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
+    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -569,6 +571,29 @@ function generateReportID() {
  */
 function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
+}
+
+/*
+ * Builds an optimistic IOU report with a randomly generated reportID
+ */
+function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.format(locale,
+        total, {
+            style: 'currency',
+            currency,
+        });
+    return {
+        cachedTotal: formattedTotal,
+        chatReportID,
+        currency,
+        hasOutstandingIOU: true,
+        managerEmail: recipientEmail,
+        ownerEmail,
+        reportID: generateReportID(),
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: 1,
+        total,
+    };
 }
 
 /**
@@ -636,8 +661,8 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = lodashGet(report, 'lastReadSequenceNumber', 0);
-    const maxSequenceNumber = lodashGet(report, 'maxSequenceNumber', 0);
+    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
+    const maxSequenceNumber = report.maxSequenceNumber || 0;
     return lastReadSequenceNumber < maxSequenceNumber;
 }
 
@@ -672,6 +697,7 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     isUnread,
 };
