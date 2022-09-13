@@ -1440,7 +1440,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  * @param {String} visibility
  */
 function addWorkspaceRoom(policy, reportName, visibility) {
-    const workspaceRoom = createOptimisticChatReport(
+    const workspaceRoom = buildOptimisticChatReport(
         policy.emailList,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -1450,7 +1450,7 @@ function addWorkspaceRoom(policy, reportName, visibility) {
         '',
         visibility,
     );
-    const createdActionData = createOptimisticCreatedReportAction(workspaceRoom.ownerEmail);
+    const createdActionData = buildOptimisticCreatedReportAction(workspaceRoom.ownerEmail);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
