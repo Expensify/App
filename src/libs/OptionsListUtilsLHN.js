@@ -19,6 +19,7 @@ Onyx.connect({
 let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
+    waitForCollectionCallback: true,
     callback: val => personalDetails = val,
 });
 
@@ -108,7 +109,7 @@ function getOrderedReportIDs() {
         }
 
         const hasDraftComment = report.hasDraft || false;
-        const iouReport = report.iouReportID && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        const iouReport = report.iouReportID && iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
         const iouReportOwner = report.hasOutstandingIOU && iouReport
             ? iouReport.ownerEmail
             : '';
@@ -243,7 +244,7 @@ function getOptionData(reportID) {
     result.brickRoadIndicator = OptionsListUtils.getBrickRoadIndicatorStatusForReport(report, reportActions);
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
-    result.isUnread = report.unreadActionCount > 0;
+    result.isUnread = ReportUtils.isUnread(report);
     result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -283,7 +284,7 @@ function getOptionData(reportID) {
     }
 
     if (result.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
+        const iouReport = (iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`]) || null;
         if (iouReport) {
             result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
             result.iouReportAmount = iouReport.total;
