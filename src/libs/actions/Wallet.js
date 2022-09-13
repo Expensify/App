@@ -97,6 +97,15 @@ function setWalletShouldShowFailedKYC(shouldShowFailedKYC) {
 }
 
 /**
+ * Save the ID of the chat whose IOU triggered showing the KYC wall.
+ *
+ * @param {Number} chatReportID
+ */
+function setKYCWallSourceChatReportID(chatReportID) {
+    Onyx.merge(ONYXKEYS.WALLET_TERMS, {chatReportID});
+}
+
+/**
  * Transforms a list of Idology errors to a translated displayable error string.
  * @param {Array} idologyErrors
  * @return {String}
@@ -186,8 +195,8 @@ function updatePersonalDetails(personalDetails) {
     const ssn = personalDetails.ssn || '';
     const phoneNumber = personalDetails.phoneNumber || '';
     API.write('UpdatePersonalDetailsForWallet', {
-        firstName,
-        lastName,
+        legalFirstName: firstName,
+        legalLastName: lastName,
         dob,
         addressStreet,
         addressCity,
@@ -452,6 +461,7 @@ function verifyIdentity(parameters) {
  *
  * @param {Object} parameters
  * @param {Boolean} parameters.hasAcceptedTerms
+ * @param {Number} parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters) {
     const optimisticData = [
@@ -485,7 +495,7 @@ function acceptWalletTerms(parameters) {
         },
     ];
 
-    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -542,4 +552,5 @@ export {
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
+    setKYCWallSourceChatReportID,
 };
