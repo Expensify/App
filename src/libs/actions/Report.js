@@ -1440,8 +1440,10 @@ function createPolicyRoom(policyID, reportName, visibility) {
  * @param {String} visibility
  */
 function addWorkspaceRoom(policy, reportName, visibility) {
+    // The participants include the current user (admin) and the employees. Participants must not be empty.
+    const participants = [currentUserEmail, ...policy.employeeList];
     const workspaceRoom = buildOptimisticChatReport(
-        policy.emailList,
+        participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policy.id,
