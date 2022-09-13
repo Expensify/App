@@ -247,6 +247,7 @@ export default {
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
+            genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
         },
     },
     notificationPreferences: {
