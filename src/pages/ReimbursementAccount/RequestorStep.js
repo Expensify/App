@@ -41,6 +41,7 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.submitOnfidoVerification = this.submitOnfidoVerification.bind(this);
         this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
 
         this.state = {
@@ -159,6 +160,16 @@ class RequestorStep extends React.Component {
         };
 
         BankAccounts.setupWithdrawalAccount(payload);
+    }
+
+    submitOnfidoVerification() {
+        if (!this.validate()) {
+            return;
+        }
+
+        BankAccounts.verifyIdentityForBankAccount({
+            ...this.state,
+        });
     }
 
     render() {
