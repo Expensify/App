@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
+import FormSubmit from '../components/FormSubmit';
 
 const propTypes = {
     /* Onyx Props */
@@ -108,26 +109,26 @@ class SetPasswordPage extends Component {
                     shouldShowWelcomeText
                     welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
                 >
-                    <View style={[styles.mb4]}>
-                        {/* The prop onSubmitEditing is required, but it needs to stay as a no-op because the form is submitted and validated from the button below */}
-                        <NewPasswordForm
-                            onSubmitEditing={() => {}}
-                            password={this.state.password}
-                            updatePassword={password => this.setState({password})}
-                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                        />
-                    </View>
-                    <View>
-                        <FormAlertWithSubmitButton
-                            buttonText={buttonText}
-                            isLoading={this.props.account.isLoading}
-                            onSubmit={this.validateAndSubmitForm}
-                            containerStyles={[styles.mb2, styles.mh0]}
-                            message={error}
-                            isAlertVisible={!_.isEmpty(error)}
-                            isDisabled={!this.state.isFormValid}
-                        />
-                    </View>
+                    <FormSubmit onSubmit={this.validateAndSubmitForm}>
+                        <View style={[styles.mb4]}>
+                            <NewPasswordForm
+                                password={this.state.password}
+                                updatePassword={password => this.setState({password})}
+                                updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
+                            />
+                        </View>
+                        <View>
+                            <FormAlertWithSubmitButton
+                                buttonText={buttonText}
+                                isLoading={this.props.account.isLoading}
+                                onSubmit={this.validateAndSubmitForm}
+                                containerStyles={[styles.mb2, styles.mh0]}
+                                message={error}
+                                isAlertVisible={!_.isEmpty(error)}
+                                isDisabled={!this.state.isFormValid}
+                            />
+                        </View>
+                    </FormSubmit>
                 </SignInPageLayout>
             </SafeAreaView>
         );

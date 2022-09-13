@@ -61,7 +61,6 @@ const FormAlertWithSubmitButton = props => (
         ) : (
             <Button
                 success
-                pressOnEnter
                 text={props.buttonText}
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
