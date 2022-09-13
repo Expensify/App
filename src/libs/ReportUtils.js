@@ -660,8 +660,8 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
-    const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
+function buildOptimisticIOUReportAction(type, amount, comment, iouCurrency = '', paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0, debtorEmail = '') {
+    const currency = iouCurrency || lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
     const originalMessage = {
@@ -672,6 +672,17 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         IOUReportID,
         type,
     };
+    const formattedTotal = NumberFormatUtils.format('en',
+        amount, {
+            style: 'currency',
+            currency,
+        });
+    const message = [{
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        isEdited: false,
+        html: `Requested ${formattedTotal} from ${debtorEmail}`,
+        text: `Requested ${formattedTotal} from ${debtorEmail}`,
+    }];
 
     // We store amount, comment, currency in IOUDetails when type = pay
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -693,6 +704,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         // We are changing that as we roll out the optimistiReportAction IDs and related refactors.
         clientID: sequenceNumber,
         isAttachment: false,
+        message,
         originalMessage,
         person: [{
             style: 'strong',
