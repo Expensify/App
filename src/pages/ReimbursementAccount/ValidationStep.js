@@ -38,8 +38,6 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        errorFields: {},
-        errors: {},
         maxAttemptsReached: false,
     },
 };
@@ -162,7 +160,6 @@ class ValidationStep extends React.Component {
                         </View>
                         <View style={[styles.mv5, styles.flex1]}>
                             <TextInput
-                                isFormInput
                                 inputID="amount1"
                                 shouldSaveDraft
                                 defaultValue=""
@@ -171,7 +168,6 @@ class ValidationStep extends React.Component {
                                 keyboardType="decimal-pad"
                             />
                             <TextInput
-                                isFormInput
                                 inputID="amount2"
                                 shouldSaveDraft
                                 defaultValue=""
@@ -180,7 +176,6 @@ class ValidationStep extends React.Component {
                                 keyboardType="decimal-pad"
                             />
                             <TextInput
-                                isFormInput
                                 shouldSaveDraft
                                 inputID="amount3"
                                 defaultValue=""
