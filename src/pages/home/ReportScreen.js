@@ -224,6 +224,7 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
+        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom', '');
         const hasAddWorkspaceRoomError = !_.isEmpty(lodashGet(this.props.report, 'errorFields.addWorkspaceRoom', {}));
 
         // Hide the composer for an archived room or when there is an error adding the room
@@ -234,7 +235,7 @@ class ReportScreen extends React.Component {
                 keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
                 <OfflineWithFeedback
-                    pendingAction={lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom', '')}
+                    pendingAction={addWorkspaceRoomPendingAction}
                 >
                     <HeaderView
                         reportID={reportID}
@@ -276,13 +277,17 @@ class ReportScreen extends React.Component {
                                 )
                                 : (
                                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                        <ReportActionCompose
-                                            onSubmit={this.onSubmitComment}
-                                            reportID={reportID}
-                                            reportActions={this.props.reportActions}
-                                            report={this.props.report}
-                                            isComposerFullSize={this.props.isComposerFullSize}
-                                        />
+                                        <OfflineWithFeedback
+                                            pendingAction={addWorkspaceRoomPendingAction}
+                                        >
+                                            <ReportActionCompose
+                                                onSubmit={this.onSubmitComment}
+                                                reportID={reportID}
+                                                reportActions={this.props.reportActions}
+                                                report={this.props.report}
+                                                isComposerFullSize={this.props.isComposerFullSize}
+                                            />
+                                        </OfflineWithFeedback>
                                     </SwipeableView>
                                 )}
                         </View>
