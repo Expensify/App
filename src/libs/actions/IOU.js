@@ -118,10 +118,9 @@ function startLoadingAndResetError() {
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
     const chatReport = lodashGet(report, 'reportID', null) ? report : Report.buildOptimisticChatReport(participants);
     const optimisticTransactionID = NumberUtils.rand64();
-    console.log(recipientEmail);
     const IOUReport = chatReport.hasOutstandingIOU ? iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`]
         : ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', '', optimisticTransactionID, IOUReport.reportID);
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', currency, '', optimisticTransactionID, IOUReport.reportID, debtorEmail);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
