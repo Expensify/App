@@ -65,14 +65,7 @@ class BaseOptionsListLHN extends Component {
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
      * @param {Array} data - This is the same as the data we pass into the component
-     * @param {Number} flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
-     *
-     *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
-     *     2. Each section includes a header, even if we don't provide/render one.
-     *
-     *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
-     *
-     *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
+     * @param {Number} index the current item's index in the set of data
      *
      * @returns {Object}
      */
