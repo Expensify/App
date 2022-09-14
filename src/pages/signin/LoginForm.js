@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
@@ -21,6 +21,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -62,7 +63,6 @@ class LoginForm extends React.Component {
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
-            formError: false,
             login: '',
         };
 
@@ -100,7 +100,6 @@ class LoginForm extends React.Component {
     onTextInput(text) {
         this.setState({
             login: text,
-            formError: null,
         });
 
         if (this.props.account.errors) {
@@ -125,7 +124,11 @@ class LoginForm extends React.Component {
 
         const login = this.state.login.trim();
         if (!login) {
-            this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {
+                errors: {
+                    0: this.props.translate('common.pleaseEnterEmailOrPhoneNumber'),
+                },
+            });
             return;
         }
 
@@ -134,15 +137,23 @@ class LoginForm extends React.Component {
 
         if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {
-                this.setState({formError: 'common.error.phoneNumber'});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
+                    errors: {
+                        1: this.props.translate('common.error.phoneNumber'),
+                    },
+                });
             } else {
-                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
+                    errors: {
+                        2: this.props.translate('loginForm.error.invalidFormatEmailLogin'),
+                    },
+                });
             }
             return;
         }
 
-        this.setState({
-            formError: null,
+        Onyx.merge(ONYXKEYS.ACCOUNT, {
+            errors: null,
         });
 
         // Check if this login has an account associated with it or not
@@ -150,7 +161,6 @@ class LoginForm extends React.Component {
     }
 
     render() {
-        const error = this.state.formError && this.props.translate(this.state.formError);
         return (
             <>
                 <View style={[styles.mt3]}>
@@ -174,16 +184,19 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
+                {!_.isEmpty(this.props.account.errors) && (
+                    <DotIndicatorMessage style={[styles.mt5]} type="error" messages={this.props.account.errors} />
+                )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
-                  // key handler gets unsubscribed and does not conflict with the Password Form
+                  // key handler gets unsubscribed and does not conflict with the Password Form.
+                  // Setting isAlertVisible to false as all errors are displayed by DotIndicatorMessage.
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
                                 buttonText={this.props.translate('common.continue')}
                                 isLoading={this.props.account.isLoading}
                                 onSubmit={this.validateAndSubmitForm}
-                                message={error}
-                                isAlertVisible={!_.isEmpty(error)}
+                                isAlertVisible={false}
                                 containerStyles={[styles.mh0]}
                             />
                         </View>
