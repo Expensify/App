@@ -17,7 +17,7 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Policy from '../../../libs/actions/Policy';
-import withPolicy from '../withPolicy';
+import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import {withNetwork} from '../../../components/OnyxProvider';
@@ -302,7 +302,7 @@ class WorkspaceReimburseView extends React.Component {
 WorkspaceReimburseView.propTypes = propTypes;
 
 export default compose(
-    withPolicy,
+    withFullPolicy,
     withLocalize,
     withNetwork(),
     withOnyx({
