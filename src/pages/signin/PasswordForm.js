@@ -178,7 +178,7 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
 
-                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <Text style={[styles.formError]}>
                         {ErrorUtils.getLatestErrorMessage(this.props.account)}
                     </Text>
