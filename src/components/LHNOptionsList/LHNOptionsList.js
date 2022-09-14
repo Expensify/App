@@ -39,10 +39,6 @@ class LHNOptionsList extends Component {
         this.didLayout = false;
     }
 
-    shouldComponentUpdate(nextProps) {
-        return nextProps.focusedIndex !== this.props.focusedIndex;
-    }
-
     onViewableItemsChanged() {
         if (this.didLayout || !this.props.onLayout) {
             return;
