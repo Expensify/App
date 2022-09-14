@@ -348,7 +348,7 @@ function setPassword(password, validateCode, accountID) {
             }
 
             // This request can fail if the password is not complex enough
-            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds]: response.message}});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: response.message}});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
