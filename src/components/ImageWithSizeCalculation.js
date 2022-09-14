@@ -3,8 +3,8 @@ import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
-import makeCancellablePromise from '../libs/MakeCancellablePromise';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
+import FastImage from '@pieter-pot/react-native-fast-image';
 
 const propTypes = {
     /** Url for image to display */
@@ -39,61 +39,10 @@ class ImageWithSizeCalculation extends PureComponent {
 
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
         this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
+        this.onError = this.onError.bind(this);
+        this.imageLoadedSuccessfuly = this.imageLoadedSuccessfuly.bind(this);
     }
 
-    componentDidMount() {
-        this.calculateImageSize();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.url === this.props.url) {
-            return;
-        }
-
-        this.calculateImageSize();
-    }
-
-    componentWillUnmount() {
-        if (!this.getImageSizePromise) {
-            return;
-        }
-
-        this.getImageSizePromise.cancel();
-    }
-
-    /**
-     * @param {String} url
-     * @returns {Promise}
-     */
-    getImageSize(url) {
-        return new Promise((resolve, reject) => {
-            Image.getSize(url, (width, height) => {
-                resolve({width, height});
-            }, (error) => {
-                reject(error);
-            });
-        });
-    }
-
-    calculateImageSize() {
-        if (!this.props.url) {
-            return;
-        }
-
-        this.getImageSizePromise = makeCancellablePromise(this.getImageSize(this.props.url));
-        this.getImageSizePromise.promise
-            .then(({width, height}) => {
-                if (!width || !height) {
-                    // Image didn't load properly
-                    return;
-                }
-
-                this.props.onMeasure({width, height});
-            })
-            .catch((error) => {
-                Log.hmmm('Unable to fetch image to calculate size', {error, url: this.props.url});
-            });
-    }
 
     imageLoadingStart() {
         this.setState({isLoading: true});
@@ -101,6 +50,22 @@ class ImageWithSizeCalculation extends PureComponent {
 
     imageLoadingEnd() {
         this.setState({isLoading: false});
+        console.log('loaded', this.props.url)
+    }
+
+    imageLoadedSuccessfuly(event) {
+        if (!event?.nativeEvent?.width || !event?.nativeEvent?.height) {
+            // Image didn't load properly
+            return;
+        }
+
+        console.log('dimentions');
+
+        this.props.onMeasure({width: event.nativeEvent.width, height: event.nativeEvent.height});
+    }
+
+    onError() {
+        Log.hmmm('Unable to fetch image to calculate size', {url: this.props.url});
     }
 
     render() {
@@ -112,15 +77,17 @@ class ImageWithSizeCalculation extends PureComponent {
                     this.props.style,
                 ]}
             >
-                <Image
+                <FastImage
                     style={[
                         styles.w100,
                         styles.h100,
                     ]}
                     source={{uri: this.props.url}}
-                    resizeMode="contain"
+                    resizeMode={FastImage.resizeMode.contain}
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
+                    onError={this.onError}
+                    onLoad={this.imageLoadedSuccessfuly}
                 />
                 {this.state.isLoading && (
                     <FullscreenLoadingIndicator
