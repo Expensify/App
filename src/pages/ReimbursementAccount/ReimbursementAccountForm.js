@@ -34,6 +34,11 @@ class ReimbursementAccountForm extends React.Component {
         BankAccounts.resetReimbursementAccount();
     }
 
+    getErrorMessage() {
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount);
+        return this.props.reimbursementAccount.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+    }
+
     render() {
         const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
             || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
@@ -59,7 +64,7 @@ class ReimbursementAccountForm extends React.Component {
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
-                    message={this.props.reimbursementAccount.error || ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount.errors)}
+                    message={this.getErrorMessage()}
                     isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
                     isLoading={this.props.reimbursementAccount.loading || this.props.reimbursementAccount.isLoading}
                 />
