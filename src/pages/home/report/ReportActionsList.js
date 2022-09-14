@@ -110,6 +110,7 @@ class ReportActionsList extends React.Component {
      * We use the reportActionID that is a string representation of a random 64-bit int, which should be
      * random enough to avoid collisions
      * @param {Object} item
+     * @param {Object} item.action
      * @return {String}
      */
     keyExtractor(item) {
@@ -177,7 +178,7 @@ class ReportActionsList extends React.Component {
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
-                    testID="report-actions-list"
+                    accessibilityLabel="List of chat messages"
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}

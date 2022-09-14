@@ -166,6 +166,7 @@ class BaseOptionsList extends Component {
     renderItem({item, index, section}) {
         return (
             <OptionRow
+                accessibilityHint={this.props.optionRowAccessibilityHint}
                 option={item}
                 mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
@@ -223,7 +224,6 @@ class BaseOptionsList extends Component {
                     </View>
                 ) : null}
                 <SectionList
-                    testID="options-list"
                     ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"

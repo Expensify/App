@@ -62,7 +62,7 @@ class FloatingMessageCounter extends PureComponent {
 
     render() {
         return (
-            <FloatingMessageCounterContainer testID="new-messages-badge" containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}>
+            <FloatingMessageCounterContainer accessibilityHint="Scroll to newest messages" containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}>
                 <View style={styles.floatingMessageCounter}>
                     <View style={[
                         styles.flexRow,

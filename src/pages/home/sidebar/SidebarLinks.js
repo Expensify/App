@@ -154,7 +154,7 @@ class SidebarLinks extends React.Component {
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
-            <View testID="sidebar-links" style={[styles.flex1, styles.h100]}>
+            <View accessibilityLabel="List of chats" style={[styles.flex1, styles.h100]}>
                 <View
                     style={[
                         styles.flexRow,
@@ -194,6 +194,7 @@ class SidebarLinks extends React.Component {
                     </TouchableOpacity>
                 </View>
                 <OptionsList
+                    optionRowAccessibilityHint="Navigates to a chat"
                     contentContainerStyles={[
                         styles.sidebarListContainer,
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},

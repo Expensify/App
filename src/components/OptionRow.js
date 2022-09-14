@@ -148,7 +148,7 @@ const OptionRow = (props) => {
                         props.isDisabled && styles.cursorDisabled,
                     ]}
                 >
-                    <View testID="option-row" style={sidebarInnerRowStyle}>
+                    <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
                         <View
                             style={[
                                 styles.flexRow,
@@ -186,7 +186,7 @@ const OptionRow = (props) => {
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    testID="option-row-display-name"
+                                    accessibilityLabel="Chat user display names"
                                     fullTitle={props.option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={props.showTitleTooltip}
@@ -196,7 +196,6 @@ const OptionRow = (props) => {
                                 />
                                 {props.option.alternateText ? (
                                     <Text
-                                        testID="option-row-alternate-text"
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
