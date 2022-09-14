@@ -121,11 +121,11 @@ function openPaymentsPage() {
  * @param {String} password
  * @param {Number} bankAccountID
  * @param {Number} fundID
- * @param {Number} previousPaymentMethodID
- * @param {String} previousPaymentMethodType
+ * @param {Object} previousPaymentMethod
+ * @param {Object} currentPaymentMethod
  *
  */
-function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethodID, previousPaymentMethodType) {
+function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod) {
     API.write('MakeDefaultPaymentMethod', {
         password,
         bankAccountID,
@@ -141,14 +141,34 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
                     errors: null,
                 },
             },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+                value: {
+                    [previousPaymentMethod.methodID]: {
+                        ...previousPaymentMethod,
+                        isDefault: false,
+                    },
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+                value: {
+                    [currentPaymentMethod.methodID]: {
+                        ...currentPaymentMethod,
+                        isDefault: true,
+                    },
+                },
+            },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.USER_WALLET,
                 value: {
-                    walletLinkedAccountID: previousPaymentMethodID,
-                    walletLinkedAccountType: previousPaymentMethodType,
+                    walletLinkedAccountID: previousPaymentMethod.methodID,
+                    walletLinkedAccountType: previousPaymentMethod.accountType,
                 },
             },
         ],
