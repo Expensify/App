@@ -67,9 +67,6 @@ class ValidationStep extends React.Component {
     }
 
     submit(values) {
-        if (this.props.validationStepForm.isSubmitting) {
-            return;
-        }
         const validateCode = [values.amount1, values.amount2, values.amount3].join(',');
 
         // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
