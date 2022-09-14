@@ -592,7 +592,7 @@ class ReportActionCompose extends React.Component {
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
                                     <Composer
-                                        autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
+                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1)}
                                         multiline
                                         ref={this.setTextInputRef}
                                         textAlignVertical="top"
