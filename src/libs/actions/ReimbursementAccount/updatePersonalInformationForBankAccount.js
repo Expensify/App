@@ -1,12 +1,10 @@
 import * as API from '../../API';
-import * as BankAccounts from '../BankAccounts';
+import * as BankAccountUtils from '../../BankAccountUtils';
 
 /**
-* Create or update the bank account in db with the updated data.
+* Update the user's personal information on the bank account in database.
 *
-* This action is called by several steps in the Verified Bank Account flow and is coupled tightly with SetupWithdrawalAccount in Auth
-* Each time the command is called the state of the bank account progresses a bit further and when handling the response we redirect
-* to the appropriate next step in the flow.
+* This action is called by the requestor step in the Verified Bank Account flow
 *
 * @param {Object} params
 *
@@ -24,7 +22,7 @@ import * as BankAccounts from '../BankAccounts';
 * @param {Boolean} [params.isOnfidoSetupComplete]
 */
 function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, BankAccounts.getVBBADataForOnyx());
+    API.write('UpdatePersonalInformationForBankAccount', params, BankAccountUtils.getVBBADataForOnyx());
 }
 
 export default updatePersonalInformationForBankAccount;

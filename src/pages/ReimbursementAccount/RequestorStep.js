@@ -139,7 +139,7 @@ class RequestorStep extends React.Component {
             dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
 
-        BankAccounts.setupWithdrawalAccount(payload);
+        BankAccounts.updatePersonalInformationForBankAccount(payload);
     }
 
     render() {
