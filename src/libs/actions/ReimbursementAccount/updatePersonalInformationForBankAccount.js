@@ -1,5 +1,5 @@
 import * as API from '../../API';
-import * as BankAccountUtils from '../../BankAccountUtils';
+import BankAccountUtils from '../../BankAccountUtils';
 
 /**
 * Update the user's personal information on the bank account in database.

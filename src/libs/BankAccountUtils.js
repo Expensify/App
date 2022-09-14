@@ -1,5 +1,7 @@
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
+import * as Localize from './Localize';
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
@@ -44,4 +46,6 @@ function getVBBADataForOnyx() {
     };
 }
 
-export {getVBBADataForOnyx};
+export default {
+    getVBBADataForOnyx,
+};
