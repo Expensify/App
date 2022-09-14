@@ -25,6 +25,8 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,

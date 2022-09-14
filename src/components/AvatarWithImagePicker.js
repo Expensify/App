@@ -20,6 +20,7 @@ import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
+import * as FileUtils from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -122,6 +123,17 @@ class AvatarWithImagePicker extends React.Component {
 
     hideErrorModal() {
         this.setState({isErrorModalVisible: false});
+    }
+
+    /**
+     * Check if the attachment extension is allowed.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
+     */
+    isValidExtension(image) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(image.name);
+        return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension);
     }
 
     /**
