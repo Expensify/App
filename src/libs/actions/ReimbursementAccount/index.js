@@ -5,6 +5,7 @@ import setupWithdrawalAccount from './setupWithdrawalAccount';
 import fetchFreePlanVerifiedBankAccount from './fetchFreePlanVerifiedBankAccount';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
+import updatePersonalInformationForBankAccount from './updatePersonalInformationForBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {
@@ -65,4 +66,5 @@ export {
     requestResetFreePlanBankAccount,
     cancelResetFreePlanBankAccount,
     deleteFromBankAccountList,
+    updatePersonalInformationForBankAccount,
 };
