@@ -227,11 +227,11 @@ class BankAccountStep extends React.Component {
                             text={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                             disabled={this.props.isPlaidDisabled || !validated}
-                            style={[styles.mt5, styles.mh3]}
-                            iconStyles={[styles.mr5]}
+                            style={[styles.mt5, styles.buttonCTA]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             success
-                            extraLarge
+                            large
                         />
                         {this.props.error && (
                             <Text style={[styles.formError, styles.mh5]}>
@@ -275,7 +275,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
                             <AddPlaidBankAccount
                                 text={this.props.translate('bankAccount.plaidBodyCopy')}
                                 onSelect={(params) => {

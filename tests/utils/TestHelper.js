@@ -91,6 +91,7 @@ function setPersonalDetails(login, accountID) {
         accountID,
         login,
         avatar,
+        avatarThumbnail: avatar,
         displayName: 'Test User',
         firstName: 'Test',
         lastName: 'User',
@@ -98,7 +99,6 @@ function setPersonalDetails(login, accountID) {
         timezone: CONST.DEFAULT_TIME_ZONE,
         payPalMeAddress: '',
         phoneNumber: '',
-        avatarHighResolution: avatar,
     };
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
         [login]: details,

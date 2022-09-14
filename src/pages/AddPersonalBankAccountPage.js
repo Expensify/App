@@ -162,7 +162,7 @@ class AddPersonalBankAccountPage extends React.Component {
                 ) : (
                     <>
                     <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
                                 errors={lodashGet(this.props.personalBankAccount, 'errorFields.plaidSelector', null)}
@@ -221,7 +221,6 @@ class AddPersonalBankAccountPage extends React.Component {
 
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.defaultProps = defaultProps;
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default compose(
     withLocalize,

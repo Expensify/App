@@ -19,7 +19,7 @@ import Popover from '../../../../components/Popover';
 import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
 import * as PaymentMethods from '../../../../libs/actions/PaymentMethods';
-import getClickedElementLocation from '../../../../libs/getClickedElementLocation';
+import getClickedTargetLocation from '../../../../libs/getClickedTargetLocation';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import CurrentWalletBalance from '../../../../components/CurrentWalletBalance';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -89,7 +89,7 @@ class BasePaymentsPage extends React.Component {
         if (!this.state.addPaymentMethodButton) {
             return;
         }
-        const buttonPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
+        const buttonPosition = getClickedTargetLocation(this.state.addPaymentMethodButton);
         this.setPositionAddPaymentMenu(buttonPosition);
     }
 
@@ -128,9 +128,9 @@ class BasePaymentsPage extends React.Component {
      * @param {Boolean} isDefault
      */
     paymentMethodPressed(nativeEvent, accountType, account, isDefault) {
-        const position = getClickedElementLocation(nativeEvent);
+        const position = getClickedTargetLocation(nativeEvent.currentTarget);
         this.setState({
-            addPaymentMethodButton: nativeEvent,
+            addPaymentMethodButton: nativeEvent.currentTarget,
         });
         if (accountType) {
             let formattedSelectedPaymentMethod;
@@ -255,7 +255,14 @@ class BasePaymentsPage extends React.Component {
                     {Permissions.canUseWallet(this.props.betas) && (
                         <>
                             <View style={[styles.mv5]}>
-                                <CurrentWalletBalance />
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={this.props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    <CurrentWalletBalance />
+                                </OfflineWithFeedback>
                             </View>
                             {this.props.userWallet.currentBalance > 0 && (
                                 <KYCWall
@@ -445,6 +452,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(BasePaymentsPage);

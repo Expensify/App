@@ -262,19 +262,6 @@ function Report_GetHistory(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Number} parameters.reportActionID
- * @param {String} parameters.reportComment
- * @returns {Promise}
- */
-function Report_EditComment(parameters) {
-    const commandName = 'Report_EditComment';
-    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -493,29 +480,6 @@ function User_IsUsingExpensifyCard() {
 
 /**
  * @param {Object} parameters
- * @param {String} [parameters.type]
- * @param {String} [parameters.policyName]
- * @returns {Promise}
- */
-function Policy_Create(parameters) {
-    const commandName = 'Policy_Create';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.value
- * @returns {Promise}
- */
-function Policy_CustomUnit_Update(parameters) {
-    const commandName = 'Policy_CustomUnit_Update';
-    requireParameters(['policyID', 'customUnit'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.policyID
  * @param {String} parameters.customUnitID
  * @param {String} parameters.value
@@ -650,7 +614,6 @@ export {
     Policy_Employees_Merge,
     RejectTransaction,
     Report_GetHistory,
-    Report_EditComment,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
@@ -666,8 +629,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    Policy_Create,
-    Policy_CustomUnit_Update,
     Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,
