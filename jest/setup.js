@@ -26,11 +26,16 @@ jest.mock('@react-native-firebase/crashlytics', () => () => ({
     recordError: jest.fn(),
 }));
 
+// The main app uses a NativeModule called BootSplash to show/hide a splash screen. Since we can't use this in the node environment
+// where tests run we simulate a behavior where the splash screen is always hidden (similar to web which has no splash screen at all).
 jest.mock('../src/libs/BootSplash', () => ({
     hide: jest.fn(),
     getVisibilityStatus: jest.fn().mockResolvedValue('hidden'),
 }));
 
+// Local notifications (a.k.a. browser notifications) do not run in native code. Our jest tests will also run against
+// any index.native.js files as they are using a react-native plugin. However, it is useful to mock this behavior so that we
+// can test the expected web behavior and see if a browser notification would be shown or not.
 jest.mock('../src/libs/Notification/LocalNotification', () => ({
     showCommentNotification: jest.fn(),
 }));
@@ -48,7 +53,10 @@ function mockImages(imagePath) {
     });
 }
 
-// Mock all images so that Icons and other assets cannot break tests
+// We are mock all images so that Icons and other assets cannot break tests. In the testing environment, importing things like .svg
+// directly will lead to undefined variables instead of a component or string (which is what React expects). Loading these assets is
+// not required as the test environment does not actually render any UI anywhere and just needs them to noop so the test renderer
+// (which is a virtual implemented DOM) can do it's thing.
 mockImages('images');
 mockImages('images/avatars');
 mockImages('images/bankicons');

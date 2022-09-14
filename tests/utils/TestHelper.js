@@ -11,7 +11,7 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
  * @param {String} login
  * @param {Number} accountID
  * @param {String} [firstName]
- * @returns {Promise}
+ * @returns {Object}
  */
 function buildPersonalDetails(login, accountID, firstName = 'Test') {
     const avatar = ReportUtils.getDefaultAvatar(login);

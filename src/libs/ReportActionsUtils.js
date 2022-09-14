@@ -110,7 +110,11 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const lastMessageIndex = _.findLastIndex(sortedActions, action => (
         !isDeletedAction(action)
     ));
-    const htmlText = lodashGet(actions, [lastMessageIndex, 'message', 0, 'html'], '');
+    if (lastMessageIndex < 0) {
+        return '';
+    }
+
+    const htmlText = lodashGet(sortedActions, [lastMessageIndex, 'message', 0, 'html'], '');
     const messageText = parser.htmlToText(htmlText);
     return ReportUtils.formatReportLastMessageText(messageText);
 }
@@ -140,7 +144,7 @@ function getNewLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge =
         return 0;
     }
 
-    return actions[lastMessageIndex].sequenceNumber;
+    return sortedActions[lastMessageIndex].sequenceNumber;
 }
 
 export {
