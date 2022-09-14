@@ -124,11 +124,7 @@ class LoginForm extends React.Component {
 
         const login = this.state.login.trim();
         if (!login) {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {
-                errors: {
-                    0: this.props.translate('common.pleaseEnterEmailOrPhoneNumber'),
-                },
-            });
+            Session.setAccountErrors(0, this.props.translate('common.pleaseEnterEmailOrPhoneNumber'));
             return;
         }
 
@@ -137,24 +133,14 @@ class LoginForm extends React.Component {
 
         if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    errors: {
-                        1: this.props.translate('common.error.phoneNumber'),
-                    },
-                });
+                Session.setAccountErrors(1, this.props.translate('common.pleaseEnterEmailOrPhoneNumber'));
             } else {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    errors: {
-                        2: this.props.translate('loginForm.error.invalidFormatEmailLogin'),
-                    },
-                });
+                Session.setAccountErrors(2, this.props.translate('common.pleaseEnterEmailOrPhoneNumber'));
             }
             return;
         }
 
-        Onyx.merge(ONYXKEYS.ACCOUNT, {
-            errors: null,
-        });
+        Session.clearAccountErrors();
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);

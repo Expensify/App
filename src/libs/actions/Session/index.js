@@ -392,7 +392,7 @@ function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         error: '',
         success: '',
-        errors: [],
+        errors: null,
         isLoading: false,
     });
 }
@@ -522,6 +522,24 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
     Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
 }
 
+/**
+ * @param {Number} key Since this is manually set, the key will help prevent duplicates.
+ * @param {String} value
+ */
+function setAccountErrors(key, value) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        errors: {
+            [key]: value,
+        },
+    });
+}
+
+function clearAccountErrors() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        errors: null,
+    });
+}
+
 export {
     beginSignIn,
     setPassword,
@@ -541,4 +559,6 @@ export {
     changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,
+    setAccountErrors,
+    clearAccountErrors,
 };
