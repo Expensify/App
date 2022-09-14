@@ -10,6 +10,7 @@ import Modal from './Modal';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import * as FileUtils from '../libs/fileDownload/FileUtils';
 import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
@@ -111,19 +112,6 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * Returns the filename split into fileName and fileExtension
-     *
-     * @param {String} fullFileName
-     * @returns {Object}
-     */
-    splitExtensionFromFileName(fullFileName) {
-        const fileName = fullFileName.trim();
-        const splitFileName = fileName.split('.');
-        const fileExtension = splitFileName.pop();
-        return {fileName: splitFileName.join('.'), fileExtension};
-    }
-
-    /**
      * Execute the onConfirm callback and close the modal.
      */
     submitAndClose() {
@@ -170,7 +158,7 @@ class AttachmentModal extends PureComponent {
             return false;
         }
 
-        const {fileExtension} = this.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
         if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
             const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
             this.setState({
@@ -243,7 +231,7 @@ class AttachmentModal extends PureComponent {
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, attachmentViewPaddingStyles];
 
-        const {fileName, fileExtension} = this.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
+        const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
         return (
             <>
