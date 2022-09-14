@@ -7,6 +7,7 @@ import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
@@ -27,6 +28,16 @@ const propTypes = {
 };
 
 class NavigationRoot extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            currentPath: '',
+        };
+
+        this.parseAndLogRoute = this.parseAndLogRoute.bind(this);
+    }
+
     /**
      * Intercept navigation state changes and log it
      * @param {NavigationState} state
@@ -44,6 +55,10 @@ class NavigationRoot extends Component {
         } else {
             Log.info('Navigating to route', false, {path: currentPath});
         }
+
+        UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
+
+        this.setState({currentPath});
     }
 
     render() {
@@ -64,7 +79,7 @@ class NavigationRoot extends Component {
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} />
+                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
             </NavigationContainer>
         );
     }
