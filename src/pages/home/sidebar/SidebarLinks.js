@@ -24,7 +24,7 @@ import withCurrentUserPersonalDetails from '../../../components/withCurrentUserP
 import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import OptionsListLHN from '../../../components/LHNOptionsList';
-import OptionsListUtilsLHN from '../../../libs/OptionsListUtilsLHN';
+import OptionsListUtilsLHN from '../../../libs/SidebarUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
