@@ -328,7 +328,6 @@ class IOUConfirmationList extends Component {
         const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const isLoading = this.props.iou.loading && !this.props.network.isOffline;
         const recipient = this.state.participants[0];
         return (
             <OptionsSelector
@@ -354,7 +353,6 @@ class IOUConfirmationList extends Component {
                     ? (
                         <SettlementButton
                             isDisabled={shouldDisableButton}
-                            isLoading={isLoading}
                             onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
@@ -365,7 +363,6 @@ class IOUConfirmationList extends Component {
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
-                            isLoading={isLoading}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.splitOrRequestOptions}
                         />
