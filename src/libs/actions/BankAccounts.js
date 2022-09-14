@@ -7,6 +7,7 @@ import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
+    updatePersonalInformationForBankAccount,
     fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
@@ -51,7 +52,6 @@ function updatePlaidData(plaidData) {
  * @returns {Object}
  */
 // We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
-/* eslint-disable no-unused-vars */
 function getVBBADataForOnyx() {
     return {
         optimisticData: [
@@ -241,7 +241,5 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
-    validateBankAccount,
-    connectBankAccountWithPlaid,
-    updatePlaidData,
+    getVBBADataForOnyx,
 };
