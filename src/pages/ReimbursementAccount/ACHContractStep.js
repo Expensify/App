@@ -149,7 +149,7 @@ class ACHContractStep extends React.Component {
         this.setState(prevState => ({
             beneficialOwners: !prevState.hasOtherBeneficialOwners ? [] : prevState.beneficialOwners,
         }),
-        () => BankAccounts.setupWithdrawalAccount({...this.state}));
+        () => BankAccounts.updateBeneficialOwnersForBankAccount({...this.state}));
     }
 
     /**

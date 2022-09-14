@@ -1,9 +1,11 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -47,8 +49,6 @@ function clearPlaid() {
  *
  * @returns {Object}
  */
-// We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
-/* eslint-disable no-unused-vars */
 function getVBBADataForOnyx() {
     return {
         optimisticData: [
@@ -159,9 +159,27 @@ function deletePaymentBankAccount(bankAccountID) {
     });
 }
 
+/**
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
+ *
+ * @param {Object} achContractStepData
+ */
+ function updateBeneficialOwnersForBankAccount(achContractStepData) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+    API.write('updateBeneficialOwnersForBankAccount', {
+        bankAccountID,
+        ownsMoreThan25Percent: achContractStepData.ownsMoreThan25Percent,
+        hasOtherBeneficialOwners: achContractStepData.hasOtherBeneficialOwners,
+        didAcceptTermsAndConditions: achContractStepData.didAcceptTermsAndConditions,
+        didCertifyTrueInformation: achContractStepData.didCertifyTrueInformation,
+        beneficialOwners: achContractStepData.beneficialOwners,
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    updateBeneficialOwnersForBankAccount,
 };
