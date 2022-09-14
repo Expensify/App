@@ -4,6 +4,8 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import lodashGet from 'lodash/get';
+import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -161,11 +163,13 @@ function deletePaymentBankAccount(bankAccountID) {
 
 /**
  * Verify the user's identity via Onfido
- * @param {Object} onfidoData 
+ * @param {Object} onfidoData
  */
 function verifyIdentityForBankAccount(onfidoData) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
     API.write('VerifyIdentityForBankAccount', {
-        onfidoData
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
     }, getVBBADataForOnyx());
 }
 
