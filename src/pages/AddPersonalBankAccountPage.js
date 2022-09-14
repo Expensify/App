@@ -198,17 +198,19 @@ class AddPersonalBankAccountPage extends React.Component {
                         </View>
                     </FormScrollView>
                     {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                        // <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
                         <FixedFooter>
-                            <Button
-                                success
-                                pressOnEnter
-                                text={this.props.translate('common.saveAndContinue')}
-                                onPress={this.submit}
-                                isLoading={loading}
-                            />
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
+                            >
+                                <Button
+                                    success
+                                    pressOnEnter
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    onPress={this.submit}
+                                    isLoading={loading}
+                                />
+                            </OfflineWithFeedback>
                         </FixedFooter>
-                        // </View>
                     )}
                     </>
                 )}
