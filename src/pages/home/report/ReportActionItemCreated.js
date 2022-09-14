@@ -39,7 +39,7 @@ const ReportActionItemCreated = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <View
-            testID="report-action-created"
+            accessibilityLabel="Chat welcome message"
             style={[
                 styles.chatContent,
                 styles.pb8,

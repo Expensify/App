@@ -13,7 +13,6 @@ import * as TestHelper from '../utils/TestHelper';
 import appSetup from '../../src/setup';
 import fontWeightBold from '../../src/styles/fontWeight/bold';
 import * as AppActions from '../../src/libs/actions/App';
-import ReportHeaderViewBackButton from '../../src/pages/home/ReportHeaderViewBackButton';
 import ReportActionsView from '../../src/pages/home/report/ReportActionsView';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import LocalNotification from '../../src/libs/Notification/LocalNotification';
@@ -37,7 +36,7 @@ beforeAll(() => {
  * @param {RenderAPI} renderedApp
  */
 function scrollUpToRevealNewMessagesBadge(renderedApp) {
-    fireEvent.scroll(renderedApp.getByTestId('report-actions-list'), {
+    fireEvent.scroll(renderedApp.getByA11yLabel('List of chat messages'), {
         nativeEvent: {
             contentOffset: {
                 y: 250,
@@ -65,7 +64,7 @@ function scrollUpToRevealNewMessagesBadge(renderedApp) {
  * @return {Boolean}
  */
 function isNewMessagesBadgeVisible(renderedApp) {
-    const badge = renderedApp.getByTestId('new-messages-badge');
+    const badge = renderedApp.getByA11yHint('Scroll to newest messages');
     return badge.props.style.transform[0].translateY === 10;
 }
 
@@ -74,8 +73,7 @@ function isNewMessagesBadgeVisible(renderedApp) {
  * @return {Promise}
  */
 async function navigateToSidebar(renderedApp) {
-    const reportHeader = renderedApp.getByTestId('report-header');
-    const reportHeaderBackButton = await reportHeader.findByType(ReportHeaderViewBackButton);
+    const reportHeaderBackButton = renderedApp.getByA11yHint('Navigate back to chats list');
     fireEvent(reportHeaderBackButton, 'press');
     return waitForPromisesToResolve();
 }
@@ -86,7 +84,7 @@ async function navigateToSidebar(renderedApp) {
  * @return {Promise}
  */
 function navigateToSidebarOption(renderedApp, index) {
-    const optionRows = renderedApp.getAllByTestId('option-row');
+    const optionRows = renderedApp.getAllByA11yHint('Navigates to a chat');
     fireEvent(optionRows[index], 'press');
     return waitForPromisesToResolve();
 }
@@ -96,7 +94,7 @@ function navigateToSidebarOption(renderedApp, index) {
  * @return {Boolean}
  */
 function isDrawerOpen(renderedApp) {
-    const reportScreen = renderedApp.getByTestId('report-screen');
+    const reportScreen = renderedApp.getByA11yLabel('Main chat area');
     return reportScreen.findByType(ReportActionsView).props.isDrawerOpen;
 }
 
@@ -119,7 +117,7 @@ describe('Unread Indicators', () => {
             await waitForPromisesToResolve();
         });
 
-        const loginForm = renderedApp.queryAllByTestId('login-form');
+        const loginForm = renderedApp.queryAllByA11yLabel('Login form');
         expect(loginForm.length).toBe(1);
 
         await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
@@ -163,7 +161,7 @@ describe('Unread Indicators', () => {
         expect(LocalNotification.showCommentNotification.mock.calls.length).toBe(0);
 
         // Verify the sidebar links are rendered
-        const sidebarLinks = renderedApp.queryAllByTestId('sidebar-links');
+        const sidebarLinks = renderedApp.queryAllByA11yLabel('List of chats');
         expect(sidebarLinks.length).toBe(1);
 
         // And verify that the Report screen is rendered after manually setting the sidebar as loaded
@@ -174,11 +172,11 @@ describe('Unread Indicators', () => {
         expect(isDrawerOpen(renderedApp)).toBe(true);
 
         // Verify there is only one option in the sidebar
-        let optionRows = renderedApp.getAllByTestId('option-row');
+        let optionRows = renderedApp.getAllByA11yHint('Navigates to a chat');
         expect(optionRows.length).toBe(1);
 
         // And that the text is bold
-        const displayNameText = renderedApp.getByTestId('option-row-display-name');
+        const displayNameText = renderedApp.getByA11yLabel('Chat user display names');
         expect(lodashGet(displayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
 
         await navigateToSidebarOption(renderedApp, 0);
@@ -187,14 +185,14 @@ describe('Unread Indicators', () => {
         expect(isDrawerOpen(renderedApp)).toBe(false);
 
         // That the report actions are visible along with the created action
-        const createdAction = renderedApp.getByTestId('report-action-created');
+        const createdAction = renderedApp.getByA11yLabel('Chat welcome message');
         expect(createdAction).toBeTruthy();
-        const reportComments = renderedApp.getAllByTestId('report-action-item');
+        const reportComments = renderedApp.getAllByA11yLabel('Chat message');
         expect(reportComments.length).toBe(9);
 
         // Since the last read sequenceNumber is 1 we should have an unread indicator above the next "unread" action which will
         // have a sequenceNumber of 2
-        let unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        let unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
         let sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
         expect(sequenceNumber).toBe(2);
@@ -204,7 +202,7 @@ describe('Unread Indicators', () => {
         expect(isNewMessagesBadgeVisible(renderedApp)).toBe(true);
 
         // And that the option row in the LHN is no longer bold (since OpenReport marked it as read)
-        const updatedDisplayNameText = renderedApp.getByTestId('option-row-display-name');
+        const updatedDisplayNameText = renderedApp.getByA11yLabel('Chat user display names');
         expect(lodashGet(updatedDisplayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
 
         // Tap on the back button to return to the sidebar
@@ -217,7 +215,7 @@ describe('Unread Indicators', () => {
         await navigateToSidebarOption(renderedApp, 0);
 
         // Verify the unread indicator is no longer present
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
         expect(isDrawerOpen(renderedApp)).toBe(false);
 
@@ -267,11 +265,11 @@ describe('Unread Indicators', () => {
         await navigateToSidebar(renderedApp);
 
         // Verify the new report option appears in the LHN
-        optionRows = renderedApp.getAllByTestId('option-row');
+        optionRows = renderedApp.getAllByA11yHint('Navigates to a chat');
         expect(optionRows.length).toBe(2);
 
         // Verify the text for the new chat is bold and above the previous indicating it has not yet been read
-        let displayNameTexts = renderedApp.queryAllByTestId('option-row-display-name');
+        let displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
         expect(displayNameTexts.length).toBe(2);
         const firstReportOption = displayNameTexts[0];
         expect(lodashGet(firstReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
@@ -285,7 +283,7 @@ describe('Unread Indicators', () => {
         await navigateToSidebarOption(renderedApp, 0);
 
         // Verify that all report options appear in a "read" state
-        displayNameTexts = renderedApp.queryAllByTestId('option-row-display-name');
+        displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
         expect(displayNameTexts.length).toBe(2);
         expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
         expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
@@ -301,7 +299,7 @@ describe('Unread Indicators', () => {
         await waitForPromisesToResolve();
 
         // Verify the indicator appears above the last action
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
         sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
         expect(sequenceNumber).toBe(3);
@@ -314,7 +312,7 @@ describe('Unread Indicators', () => {
         await navigateToSidebar(renderedApp);
 
         // Verify the report is marked as unread in the sidebar
-        displayNameTexts = renderedApp.queryAllByTestId('option-row-display-name');
+        displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
         expect(displayNameTexts.length).toBe(2);
         expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
         expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
@@ -324,7 +322,7 @@ describe('Unread Indicators', () => {
         await navigateToSidebar(renderedApp);
 
         // Verify the report is now marked as read
-        displayNameTexts = renderedApp.queryAllByTestId('option-row-display-name');
+        displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
         expect(displayNameTexts.length).toBe(2);
         expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
         expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
@@ -332,7 +330,7 @@ describe('Unread Indicators', () => {
         // Navigate to the report again and verify the new line indicator is missing
         await navigateToSidebarOption(renderedApp, 1);
         await waitForPromisesToResolve();
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
 
         // Scroll up and verify the badge is hidden
@@ -349,7 +347,7 @@ describe('Unread Indicators', () => {
         });
         await waitForPromisesToResolve();
 
-        displayNameTexts = renderedApp.queryAllByTestId('option-row-display-name');
+        displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
         expect(displayNameTexts.length).toBe(2);
         expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
         expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
@@ -358,19 +356,19 @@ describe('Unread Indicators', () => {
 
         // Navigate to the report again and verify the indicator exists
         await navigateToSidebarOption(renderedApp, 1);
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
 
         // Leave a comment as the current user and verify the indicator is removed
         Report.addComment(REPORT_ID, 'Current User Comment 1');
         await waitForPromisesToResolve();
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
 
         // Mark a previous comment as unread and verify the unread action indicator returns
         Report.markCommentAsUnread(REPORT_ID, 9);
         await waitForPromisesToResolve();
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
 
         // Trigger the app going inactive and active again
@@ -378,7 +376,7 @@ describe('Unread Indicators', () => {
         AppState.emitCurrentTestState('active');
 
         // Verify the new line is cleared
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
 
         // As the current user add several comments
@@ -394,7 +392,7 @@ describe('Unread Indicators', () => {
         // Mark the last comment as "unread" and verify the unread indicator appears
         Report.markCommentAsUnread(REPORT_ID, 14);
         await waitForPromisesToResolve();
-        unreadIndicator = renderedApp.queryAllByTestId('unread-action-indicator');
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
     });
 });

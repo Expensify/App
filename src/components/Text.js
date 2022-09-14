@@ -26,9 +26,6 @@ const propTypes = {
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
-
-    /** Optional testID for testing library */
-    testID: PropTypes.string,
 };
 const defaultProps = {
     color: themeColors.text,
@@ -37,7 +34,6 @@ const defaultProps = {
     textAlign: 'left',
     children: null,
     style: {},
-    testID: undefined,
 };
 
 const Text = React.forwardRef(({

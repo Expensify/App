@@ -19,6 +19,7 @@ const ReportHeaderViewBackButton = props => (
         <Pressable
             onPress={props.onPress}
             style={[styles.LHNToggle]}
+            accessibilityHint="Navigate back to chats list"
         >
             <Icon src={Expensicons.BackArrow} />
         </Pressable>
