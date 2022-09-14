@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -169,88 +170,19 @@ function deletePaymentBankAccount(bankAccountID) {
 }
 
 /**
- * Verify the user's identity via Onfido
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
  *
- * @param {Number} bankAccountID
- * @param {Object} onfidoData
+ * @param {Object} achContractStepData
  */
-function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
-    API.write('VerifyIdentityForBankAccount', {
+ function updateBeneficialOwnersForBankAccount(achContractStepData) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+    API.write('updateBeneficialOwnersForBankAccount', {
         bankAccountID,
-        validateCode,
-    }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-            },
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        }],
-    });
-}
-
-/**
- * Updates the bank account in the database with the company step data
- *
- * @param {Object} bankAccount
- * @param {Number} [bankAccount.bankAccountID]
- *
- * Fields from BankAccount step
- * @param {String} [bankAccount.routingNumber]
- * @param {String} [bankAccount.accountNumber]
- * @param {String} [bankAccount.bankName]
- * @param {String} [bankAccount.plaidAccountID]
- * @param {String} [bankAccount.plaidAccessToken]
- * @param {Boolean} [bankAccount.isSavings]
- *
- * Fields from Company step
- * @param {String} [bankAccount.companyName]
- * @param {String} [bankAccount.addressStreet]
- * @param {String} [bankAccount.addressCity]
- * @param {String} [bankAccount.addressState]
- * @param {String} [bankAccount.addressZipCode]
- * @param {String} [bankAccount.companyPhone]
- * @param {String} [bankAccount.website]
- * @param {String} [bankAccount.companyTaxID]
- * @param {String} [bankAccount.incorporationType]
- * @param {String} [bankAccount.incorporationState]
- * @param {String} [bankAccount.incorporationDate]
- * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
- */
-function updateCompanyInformationForBankAccount(bankAccount) {
-    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
-}
-
-/**
- * Create the bank account with manually entered data.
- *
- * @param {String} [bankAccountID]
- * @param {String} [accountNumber]
- * @param {String} [routingNumber]
- * @param {String} [plaidMask]
- *
- */
-function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
-    API.write('ConnectBankAccountManually', {
-        bankAccountID,
-        accountNumber,
-        routingNumber,
-        plaidMask,
+        ownsMoreThan25Percent: achContractStepData.ownsMoreThan25Percent,
+        hasOtherBeneficialOwners: achContractStepData.hasOtherBeneficialOwners,
+        didAcceptTermsAndConditions: achContractStepData.didAcceptTermsAndConditions,
+        didCertifyTrueInformation: achContractStepData.didCertifyTrueInformation,
+        beneficialOwners: achContractStepData.beneficialOwners,
     }, getVBBADataForOnyx());
 }
 
@@ -260,10 +192,5 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfidoToken,
-    updatePersonalInformationForBankAccount,
-    validateBankAccount,
-    updateCompanyInformationForBankAccount,
-    connectBankAccountWithPlaid,
-    updatePlaidData,
+    updateBeneficialOwnersForBankAccount,
 };
