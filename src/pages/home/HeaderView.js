@@ -26,7 +26,6 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
-import ReportHeaderViewBackButton from './ReportHeaderViewBackButton';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -94,10 +93,15 @@ const HeaderView = (props) => {
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <ReportHeaderViewBackButton
-                        tooltipText={props.translate('common.back')}
-                        onPress={props.onNavigationMenuButtonClicked}
-                    />
+                    <Tooltip text={props.tooltipText}>
+                        <Pressable
+                            onPress={props.onNavigationMenuButtonClicked}
+                            style={[styles.LHNToggle]}
+                            accessibilityHint="Navigate back to chats list"
+                        >
+                            <Icon src={Expensicons.BackArrow} />
+                        </Pressable>
+                    </Tooltip>
                 )}
                 {Boolean(props.report && title) && (
                     <View
