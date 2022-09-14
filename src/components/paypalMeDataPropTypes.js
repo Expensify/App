@@ -1,15 +1,15 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
-    /** The name of the institution (bank of america, etc */
+    /** This is always 'PayPal.me' */
     title: PropTypes.string,
 
-    /** The masked bank account number */
-    description: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    /** The paypalMe address */
+    description: PropTypes.string,
 
-    /** The bankAccountID in the bankAccounts db */
-    methodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    /** This is always 'payPalMe' */
+    methodID: PropTypes.string,
 
-    /** The bank account type */
+    /** This is always 'payPalMe' */
     accountType: PropTypes.string,
 });
