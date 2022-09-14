@@ -15,7 +15,6 @@ import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import networkPropTypes from './networkPropTypes';
-import {withNetwork} from './OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -381,7 +380,6 @@ IOUConfirmationList.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
