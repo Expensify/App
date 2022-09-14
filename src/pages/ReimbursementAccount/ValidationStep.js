@@ -50,24 +50,31 @@ class ValidationStep extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
+     * @returns {Ojbect}
      */
     validate(values) {
         const errors = {};
 
-        _.chain(values).keys().each((inputKey) => {
-            const filteredValue = this.filterInput(values[inputKey]);
+        _.each(values, (value, key) => {
+            const filteredValue = this.filterInput(value);
             if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
-            errors[inputKey] = this.props.translate('common.error.invalidAmount');
+            errors[key] = this.props.translate('common.error.invalidAmount');
         });
 
         return errors;
     }
 
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     */
     submit(values) {
-        const validateCode = [values.amount1, values.amount2, values.amount3].join(',');
+        const amount1 = this.filterInput(values.amount1);
+        const amount2 = this.filterInput(values.amount2);
+        const amount3 = this.filterInput(values.amount3);
+
+        const validateCode = [amount1, amount2, amount3].join(',');
 
         // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
         const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
@@ -84,7 +91,7 @@ class ValidationStep extends React.Component {
      * @returns {String}
      */
     filterInput(amount) {
-        let value = amount.trim();
+        let value = amount ? amount.trim() : '';
         if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
             return '';
         }
@@ -107,12 +114,6 @@ class ValidationStep extends React.Component {
 
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
-
-        const currentStep = lodashGet(
-            this.props,
-            'reimbursementAccount.achData.currentStep',
-            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
-        );
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -143,14 +144,10 @@ class ValidationStep extends React.Component {
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <Form
                         formID={ONYXKEYS.FORMS.VALIDATION_STEP_FORM}
-                        submitButtonText={
-                            currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION
-                                ? this.props.translate('validationStep.buttonText')
-                                : this.props.translate('common.saveAndContinue')
-                        }
+                        submitButtonText={this.props.translate('validationStep.buttonText')}
                         onSubmit={this.submit}
                         validate={this.validate}
-                        style={[styles.mh5, styles.mb5]}
+                        style={[styles.mh5, styles.flexGrow1]}
                     >
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mb5]}>
@@ -164,7 +161,6 @@ class ValidationStep extends React.Component {
                             <TextInput
                                 inputID="amount1"
                                 shouldSaveDraft
-                                defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="decimal-pad"
@@ -172,7 +168,6 @@ class ValidationStep extends React.Component {
                             <TextInput
                                 inputID="amount2"
                                 shouldSaveDraft
-                                defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="decimal-pad"
@@ -180,7 +175,6 @@ class ValidationStep extends React.Component {
                             <TextInput
                                 shouldSaveDraft
                                 inputID="amount3"
-                                defaultValue=""
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="decimal-pad"
@@ -227,14 +221,8 @@ ValidationStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        validationStepForm: {
-            key: ONYXKEYS.FORMS.VALIDATION_STEP_FORM,
         },
     }),
 )(ValidationStep);
