@@ -132,6 +132,8 @@
     "@storybook/addon-essentials": "^6.5.9",
     "@storybook/addon-react-native-web": "0.0.19--canary.37.cb55428.0",
     "@storybook/addons": "^6.5.9",
+    "@storybook/builder-webpack5": "^6.5.10",
+    "@storybook/manager-webpack5": "^6.5.10",
     "@storybook/react": "^6.5.9",
     "@storybook/theming": "^6.5.9",
     "@svgr/webpack": "^5.5.0",
