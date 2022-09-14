@@ -59,7 +59,7 @@ class ReimbursementAccountForm extends React.Component {
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
-                    message={this.props.reimbursementAccount.error || ErrorUtils.getLastestErrorMessage(this.props.reimbursementAccount.errors)}
+                    message={this.props.reimbursementAccount.error || ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount.errors)}
                     isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
                     isLoading={this.props.reimbursementAccount.loading || this.props.reimbursementAccount.isLoading}
                 />
