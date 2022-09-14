@@ -56,7 +56,6 @@ function clearOnfidoToken() {
  *
  * @returns {Object}
  */
-// We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
 function getVBBADataForOnyx() {
     return {
         optimisticData: [
