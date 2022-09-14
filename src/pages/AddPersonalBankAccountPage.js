@@ -161,57 +161,57 @@ class AddPersonalBankAccountPage extends React.Component {
                     </>
                 ) : (
                     <>
-                    <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
-                            <OfflineWithFeedback
-                                pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
-                                errors={lodashGet(this.props.personalBankAccount, 'errorFields.plaidSelector', null)}
-                                onClose={PaymentMethods.clearPersonalBankAccountErrors}
-                            >
-                                <AddPlaidBankAccount
-                                    onSelect={(params) => {
-                                        this.setState({
-                                            selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                        });
-                                    }}
-                                    onExitPlaid={Navigation.goBack}
-                                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                    selectedPlaidIndex={selectedPlaidIndex}
-                                />
-                                {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                    <View style={[styles.mb5]}>
-                                        <TextInput
-                                            label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                            secureTextEntry
-                                            value={this.state.password}
-                                            autoCompleteType="password"
-                                            textContentType="password"
-                                            autoCapitalize="none"
-                                            autoFocus={canFocusInputOnScreenFocus()}
-                                            onChangeText={text => this.setState({password: text})}
-                                            errorText={this.getErrorText('password')}
-                                            hasError={this.getErrors().password}
-                                        />
-                                    </View>
-                                )}
-                            </OfflineWithFeedback>
-                        </View>
-                    </FormScrollView>
-                    {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                        <FixedFooter>
-                            <OfflineWithFeedback
-                                pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
-                            >
-                                <Button
-                                    success
-                                    pressOnEnter
-                                    text={this.props.translate('common.saveAndContinue')}
-                                    onPress={this.submit}
-                                    isLoading={loading}
-                                />
-                            </OfflineWithFeedback>
-                        </FixedFooter>
-                    )}
+                        <FormScrollView>
+                            <View style={[styles.mh5, styles.mb5, styles.flex1]}>
+                                <OfflineWithFeedback
+                                    pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
+                                    errors={lodashGet(this.props.personalBankAccount, 'errorFields.plaidSelector', null)}
+                                    onClose={PaymentMethods.clearPersonalBankAccountErrors}
+                                >
+                                    <AddPlaidBankAccount
+                                        onSelect={(params) => {
+                                            this.setState({
+                                                selectedPlaidBankAccount: params.selectedPlaidBankAccount,
+                                            });
+                                        }}
+                                        onExitPlaid={Navigation.goBack}
+                                        receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                        selectedPlaidIndex={selectedPlaidIndex}
+                                    />
+                                    {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                                        <View style={[styles.mb5]}>
+                                            <TextInput
+                                                label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                                secureTextEntry
+                                                value={this.state.password}
+                                                autoCompleteType="password"
+                                                textContentType="password"
+                                                autoCapitalize="none"
+                                                autoFocus={canFocusInputOnScreenFocus()}
+                                                onChangeText={text => this.setState({password: text})}
+                                                errorText={this.getErrorText('password')}
+                                                hasError={this.getErrors().password}
+                                            />
+                                        </View>
+                                    )}
+                                </OfflineWithFeedback>
+                            </View>
+                        </FormScrollView>
+                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                            <FixedFooter>
+                                <OfflineWithFeedback
+                                    pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
+                                >
+                                    <Button
+                                        success
+                                        pressOnEnter
+                                        text={this.props.translate('common.saveAndContinue')}
+                                        onPress={this.submit}
+                                        isLoading={loading}
+                                    />
+                                </OfflineWithFeedback>
+                            </FixedFooter>
+                        )}
                     </>
                 )}
             </ScreenWrapper>

@@ -282,6 +282,7 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  * @param {Object} bankList
  * @param {Object} cardList
+ * @param {Object} personalBankAccount
  * @returns {Boolean}
  */
 function hasPaymentMethodError(bankList, cardList, personalBankAccount) {

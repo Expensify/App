@@ -58,6 +58,7 @@ const defaultProps = {
     policiesMemberList: {},
     policies: {},
     bankAccountList: {},
+    personalBankAccount: {},
     cardList: {},
     userWallet: {},
     walletTerms: {},
