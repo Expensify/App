@@ -203,7 +203,7 @@ class AuthScreens extends React.Component {
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
                     getComponent={() => {
-                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage');
+                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
                         return LogOutPreviousUserPage;
                     }}
                 />
@@ -211,7 +211,7 @@ class AuthScreens extends React.Component {
                     name="Concierge"
                     options={defaultScreenOptions}
                     getComponent={() => {
-                        const ConciergePage = require('../../../pages/ConciergePage');
+                        const ConciergePage = require('../../../pages/ConciergePage').default;
                         return ConciergePage;
                     }}
                 />
