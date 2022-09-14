@@ -166,6 +166,13 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      */
     showAvatarCropModal(image) {
+        if (!this.isValidExtension(image)) {
+            this.showErrorModal(
+                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                `${this.props.translate('avatarWithImagePicker.notAllowedExtension')} ${CONST.AVATAR_ALLOWED_EXTENSIONS.join(', ')}.`,
+            );
+            return;
+        }
         if (!this.isValidSize(image)) {
             this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),
