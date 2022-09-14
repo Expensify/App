@@ -40,6 +40,7 @@ class BaseOptionsListLHN extends Component {
             return true;
         }
 
+        // @TODO: remove this prop and the one below since they are not used anymore
         if (nextProps.headerMessage !== this.props.headerMessage) {
             return true;
         }
@@ -63,6 +64,8 @@ class BaseOptionsListLHN extends Component {
     /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
+     *
+     * @TODO: we can probably remove this method entirely since we don't need to scroll to items outside the virtual render window (was only used for arrow key navigation)
      *
      * @param {Array} data - This is the same as the data we pass into the component
      * @param {Number} index the current item's index in the set of data
@@ -92,8 +95,7 @@ class BaseOptionsListLHN extends Component {
             <OptionRowLHN
                 reportID={item}
                 viewMode={this.props.optionMode}
-                optionIsFocused={!this.props.disableFocusOptions
-                        && this.props.focusedIndex === index}
+                isFocused={this.props.focusedIndex === index}
                 onSelectRow={this.props.onSelectRow}
             />
         );
