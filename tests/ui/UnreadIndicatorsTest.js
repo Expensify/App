@@ -94,8 +94,8 @@ function navigateToSidebarOption(renderedApp, index) {
  * @return {Boolean}
  */
 function isDrawerOpen(renderedApp) {
-    const reportScreen = renderedApp.getByA11yLabel('Main chat area');
-    return reportScreen.findByType(ReportActionsView).props.isDrawerOpen;
+    const sidebarLinks = renderedApp.queryAllByA11yLabel('List of chats');
+    return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
 
 describe('Unread Indicators', () => {

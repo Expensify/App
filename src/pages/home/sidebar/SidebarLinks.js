@@ -25,8 +25,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
-import Timing from '../../../libs/actions/Timing';
-import reportActionPropTypes from '../report/reportActionPropTypes';
+import withDrawerState from '../../../components/withDrawerState';
+import withWindowDimensions from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -154,7 +154,11 @@ class SidebarLinks extends React.Component {
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
-            <View accessibilityLabel="List of chats" style={[styles.flex1, styles.h100]}>
+            <View
+                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityLabel="List of chats"
+                style={[styles.flex1, styles.h100]}
+            >
                 <View
                     style={[
                         styles.flexRow,
@@ -225,6 +229,8 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
+    withDrawerState,
+    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
