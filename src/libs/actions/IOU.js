@@ -115,6 +115,17 @@ function startLoadingAndResetError() {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 }
 
+/**
+ * Request money from another user
+ *
+ * @param {Object} report
+ * @param {Array} participants
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} recipientEmail
+ * @param {String} debtorEmail
+ * @param {String} comment
+ */
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
     const chatReport = lodashGet(report, 'reportID', null) ? report : Report.buildOptimisticChatReport(participants);
     const optimisticTransactionID = NumberUtils.rand64();
