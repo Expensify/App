@@ -5,16 +5,13 @@ import _ from 'underscore';
 
 require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
 
-// Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 jest.mock('react-native-blob-util', () => ({}));
 
+// These two mocks are required as per setup instructions for react-navigation testing
+// https://reactnavigation.org/docs/testing/#mocking-native-modules
+jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 jest.mock('react-native-reanimated', () => {
     const Reanimated = require('react-native-reanimated/mock');
-
-    // The mock for `call` immediately calls the callback which is incorrect
-    // So we override it with a no-op
     Reanimated.default.call = () => {};
     return Reanimated;
 });
