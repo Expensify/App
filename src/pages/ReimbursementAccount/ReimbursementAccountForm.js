@@ -13,6 +13,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import CONST from '../../CONST';
 import FormScrollView from '../../components/FormScrollView';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Data for the bank account actively being set up */
@@ -58,7 +59,7 @@ class ReimbursementAccountForm extends React.Component {
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
-                    message={this.props.reimbursementAccount.error || _.values(this.props.reimbursementAccount.errors)[0]}
+                    message={this.props.reimbursementAccount.error || ErrorUtils.getLastestErrorMessage(this.props.reimbursementAccount.errors)}
                     isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
                     isLoading={this.props.reimbursementAccount.loading || this.props.reimbursementAccount.isLoading}
                 />
