@@ -23,7 +23,7 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
-import OptionsListUtilsLHN from '../../libs/OptionsListUtilsLHN';
+import OptionsListUtilsLHN from '../../libs/SidebarUtils';
 
 const propTypes = {
     /** Style for hovered state */
