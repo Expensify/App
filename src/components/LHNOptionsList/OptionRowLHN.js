@@ -34,7 +34,7 @@ const propTypes = {
     reportID: PropTypes.string.isRequired,
 
     /** Whether this option is currently in focus so we can modify its style */
-    optionIsFocused: PropTypes.bool,
+    isFocused: PropTypes.bool,
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
@@ -51,7 +51,7 @@ const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
     viewMode: 'default',
     onSelectRow: () => {},
-    optionIsFocused: false,
+    isFocused: false,
     style: null,
 };
 
@@ -62,7 +62,7 @@ const OptionRowLHN = (props) => {
     }
 
     let touchableRef = null;
-    const textStyle = props.optionIsFocused
+    const textStyle = props.isFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
     const textUnreadStyle = [textStyle];
@@ -115,8 +115,8 @@ const OptionRowLHN = (props) => {
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
                         StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
-                        props.optionIsFocused ? styles.sidebarLinkActive : null,
-                        hovered && !props.optionIsFocused ? props.hoverStyle : null,
+                        props.isFocused ? styles.sidebarLinkActive : null,
+                        hovered && !props.isFocused ? props.hoverStyle : null,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
@@ -143,10 +143,10 @@ const OptionRowLHN = (props) => {
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                                props.optionIsFocused
+                                                props.isFocused
                                                     ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                     : undefined,
-                                                hovered && !props.optionIsFocused
+                                                hovered && !props.isFocused
                                                     ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                     : undefined,
                                             ]}
