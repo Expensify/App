@@ -1,30 +1,34 @@
 import _ from 'underscore';
-import React, {forwardRef, Component} from 'react';
+import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import OptionRowLHN from './OptionRowLHN';
 import variables from '../../styles/variables';
-import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultPropTypes} from './optionsListPropTypesLHN';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** Determines whether the keyboard gets dismissed in response to a drag */
-    keyboardDismissMode: PropTypes.string,
+    /** Extra styles for the section list container */
+    // eslint-disable-next-line react/forbid-prop-types
+    contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
 
-    /** Called when the user begins to drag the scroll view */
-    onScrollBeginDrag: PropTypes.func,
+    /** Sections for the section list */
+    data: PropTypes.arrayOf(PropTypes.string).isRequired,
 
-    ...optionsListPropTypes,
+    /** Index for option to focus on */
+    focusedIndex: PropTypes.number.isRequired,
+
+    /** Callback to fire when a row is selected */
+    onSelectRow: PropTypes.func.isRequired,
+
+    /** Toggle between compact and default view of the option */
+    optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)).isRequired,
+
+    /** Callback to execute when the SectionList lays out */
+    onLayout: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-    keyboardDismissMode: 'none',
-    onScrollBeginDrag: () => {},
-    ...optionsListDefaultPropTypes,
-};
-
-class BaseOptionsListLHN extends Component {
+class LHNOptionsList extends Component {
     constructor(props) {
         super(props);
 
@@ -36,20 +40,7 @@ class BaseOptionsListLHN extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        if (nextProps.focusedIndex !== this.props.focusedIndex) {
-            return true;
-        }
-
-        // @TODO: remove this prop and the one below since they are not used anymore
-        if (nextProps.headerMessage !== this.props.headerMessage) {
-            return true;
-        }
-
-        if (!_.isEqual(nextProps.sections, this.props.data)) {
-            return true;
-        }
-
-        return false;
+        return nextProps.focusedIndex !== this.props.focusedIndex;
     }
 
     onViewableItemsChanged() {
@@ -105,11 +96,8 @@ class BaseOptionsListLHN extends Component {
         return (
             <View style={[styles.flex1]}>
                 <FlatList
-                    ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
-                    keyboardDismissMode={this.props.keyboardDismissMode}
-                    onScrollBeginDrag={this.props.onScrollBeginDrag}
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
                     data={this.props.data}
@@ -129,10 +117,6 @@ class BaseOptionsListLHN extends Component {
     }
 }
 
-BaseOptionsListLHN.propTypes = propTypes;
-BaseOptionsListLHN.defaultProps = defaultProps;
+LHNOptionsList.propTypes = propTypes;
 
-export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseOptionsListLHN {...props} innerRef={ref} />
-));
+export default LHNOptionsList;
