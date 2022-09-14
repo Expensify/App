@@ -237,7 +237,6 @@ class ReportScreen extends React.Component {
                 />
 
                 <View
-                    accessibilityLabel="Main chat area"
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                     onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
