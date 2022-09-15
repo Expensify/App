@@ -388,7 +388,7 @@ So, if a new language feature isn't something we have agreed to support it's off
 
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
-- **Async/Await** - Use the native `Promise` instead. Async/Await is permitted in test files only.
+- **Async/Await** - Use the native `Promise` instead
 - **Optional Chaining** - Use `lodashGet()` to fetch a nested value instead
 - **Null Coalescing Operator** - Use `lodashGet()` or `||` to set a default value for a possibly `undefined` or `null` variable
 
