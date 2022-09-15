@@ -31,5 +31,11 @@ export default PropTypes.shape({
     errors: PropTypes.objectOf(PropTypes.oneOfType([
         PropTypes.bool,
         PropTypes.arrayOf(PropTypes.objectOf(PropTypes.bool)),
+
+        /**
+         * Errors from api calls on the specific user
+         * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
+         */
+        PropTypes.string,
     ])),
 });

@@ -20,11 +20,13 @@ import * as Policy from '../../../libs/actions/Policy';
 import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 import networkPropTypes from '../../../components/networkPropTypes';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -39,7 +41,7 @@ const propTypes = {
                 attributes: PropTypes.shape({
                     unit: PropTypes.string,
                 }),
-                onyxRates: PropTypes.objectOf(
+                rates: PropTypes.objectOf(
                     PropTypes.shape({
                         customUnitRateID: PropTypes.string,
                         name: PropTypes.string,
@@ -62,7 +64,7 @@ class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'onyxRates', {}), rate => rate.name === 'Default Rate');
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
 
         this.state = {
             unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
@@ -98,7 +100,7 @@ class WorkspaceReimburseView extends React.Component {
                 .values()
                 .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
                 .value();
-            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'onyxRates', {}), rate => rate.name === 'Default Rate');
+            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
             this.setState({
                 unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
                 unitName: lodashGet(distanceCustomUnit, 'name', ''),
@@ -117,19 +119,29 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getRateDisplayValue(value) {
-        const numValue = parseFloat(value);
+        const numValue = this.getNumericValue(value);
         if (Number.isNaN(numValue)) {
             return '';
+        }
+        return numValue.toString().replace('.', this.props.toLocaleDigit('.')).substring(0, value.length);
+    }
+
+    getNumericValue(value) {
+        const numValue = parseFloat(value.toString().replace(this.props.toLocaleDigit('.'), '.'));
+        if (Number.isNaN(numValue)) {
+            return NaN;
         }
 
         return numValue.toFixed(3);
     }
 
     setRate(value) {
-        const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
+        const decimalSeparator = this.props.toLocaleDigit('.');
+        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
+        const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
 
         this.setState(prevState => ({
-            unitRateValue: !isInvalidRateValue ? value : prevState.unitRateValue,
+            unitRateValue: !isInvalidRateValue ? this.getRateDisplayValue(value) : prevState.unitRateValue,
         }), () => {
             // Set the corrected value with a delay and sync to the server
             this.updateRateValueDebounced(this.state.unitRateValue);
@@ -142,6 +154,12 @@ class WorkspaceReimburseView extends React.Component {
         }
 
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+        if (!distanceCustomUnit) {
+            Log.warn('Policy has no customUnits, returning early.', {
+                policyID: this.props.policyID,
+            });
+            return;
+        }
 
         Policy.updateWorkspaceCustomUnit(this.props.policyID, distanceCustomUnit, {
             customUnitID: this.state.unitID,
@@ -159,21 +177,17 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     updateRateValue(value) {
-        const numValue = parseFloat(value);
+        const numValue = this.getNumericValue(value);
 
         if (_.isNaN(numValue)) {
             return;
         }
 
-        this.setState({
-            unitRateValue: numValue.toFixed(3),
-        });
-
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['onyxRates', this.state.unitRateID], {});
+        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
         Policy.updateCustomUnitRate(this.props.policyID, currentCustomUnitRate, this.state.unitID, {
             ...currentCustomUnitRate,
-            rate: numValue.toFixed(3) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+            rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
         });
     }
 
@@ -216,10 +230,10 @@ class WorkspaceReimburseView extends React.Component {
                         <OfflineWithFeedback
                             errors={{
                                 ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
-                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'onyxRates', this.state.unitRateID, 'errors'], {}),
+                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
                             }}
                             pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
-                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'onyxRates', this.state.unitRateID, 'pendingAction'])}
+                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
                             onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID, this.state.unitRateID)}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
