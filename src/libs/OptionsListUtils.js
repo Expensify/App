@@ -329,6 +329,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         }
     } else {
         result.keyForList = personalDetail.login;
+        result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
     if (result.hasOutstandingIOU) {
@@ -343,7 +344,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.login = personalDetail.login;
         result.phoneNumber = personalDetail.phoneNumber;
         result.payPalMeAddress = personalDetail.payPalMeAddress;
-        result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
     const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
