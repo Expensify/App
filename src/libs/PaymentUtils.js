@@ -34,6 +34,11 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
+        // Add all bank accounts besides the wallet
+        if (bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET) {
+            return;
+        }
+
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'accountData.additionalData.bankName', ''));
         combinedPaymentMethods.push({
             ...bankAccount,
