@@ -619,7 +619,7 @@ function buildOptimisticChatReport(
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
-        notificationPreference: '',
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
         oldPolicyName,
         ownerEmail,
         participants: participantList,
