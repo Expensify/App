@@ -236,7 +236,7 @@ class PaymentMethodList extends Component {
                                         icon={Expensicons.CreditCard}
                                         onPress={e => this.props.onPress(e)}
                                         isDisabled={this.props.isLoadingPayments || isOffline}
-                                        style={[styles.buttonCTA]}
+                                        style={[styles.mh4, styles.mb4, styles.buttonCTA]}
                                         iconStyles={[styles.buttonCTAIcon]}
                                         key="addPaymentMethodButton"
                                         success
