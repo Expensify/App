@@ -285,15 +285,16 @@ class WorkspaceMembersPage extends React.Component {
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         const removableMembers = [];
-        let data = _.map(policyMemberList, (policyMember, email) => {
+        let data = [];
+        _.each(policyMemberList, (policyMember, email) => {
             if (email !== this.props.session.email && email !== this.props.policy.owner) {
                 removableMembers.push(email);
             }
             const details = this.props.personalDetails[email];
-            return {
+            data.push({
                 ...policyMember,
                 ...details,
-            };
+            });
         });
         data = _.sortBy(data, value => value.displayName.toLowerCase());
         const policyID = lodashGet(this.props.route, 'params.policyID');
