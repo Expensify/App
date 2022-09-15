@@ -295,10 +295,9 @@ function resetPassword() {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
-                    isLoading: true,
+                    errors: null,
                     forgotPassword: true,
                     message: null,
-                    errors: null,
                 },
             },
         ],
@@ -308,7 +307,6 @@ function resetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: null,
                 },
             },
         ],
@@ -318,7 +316,6 @@ function resetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: null,
                 },
             },
         ],
@@ -358,7 +355,6 @@ function resendResetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: null,
                 },
             },
         ],
