@@ -126,7 +126,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
  * @param {Number} lastReadSequenceNumber
  * @return {String}
  */
-function getNewLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge = {}, deletedSequenceNumber, lastReadSequenceNumber) {
+function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge = {}, deletedSequenceNumber, lastReadSequenceNumber) {
     // If the action we are deleting is unread then just return the current last read sequence number
     if (deletedSequenceNumber > lastReadSequenceNumber) {
         return lastReadSequenceNumber;
@@ -148,7 +148,7 @@ function getNewLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge =
 }
 
 export {
-    getNewLastReadSequenceNumberForDeletedAction,
+    getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
     getSortedReportActions,
     getMostRecentIOUReportSequenceNumber,
