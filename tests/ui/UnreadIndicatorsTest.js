@@ -13,7 +13,6 @@ import * as TestHelper from '../utils/TestHelper';
 import appSetup from '../../src/setup';
 import fontWeightBold from '../../src/styles/fontWeight/bold';
 import * as AppActions from '../../src/libs/actions/App';
-import ReportActionsView from '../../src/pages/home/report/ReportActionsView';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
@@ -27,7 +26,6 @@ beforeAll(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
 
     // We need a bit more time for this test in some places
-    jest.setTimeout(30000);
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
 });
@@ -98,64 +96,77 @@ function isDrawerOpen(renderedApp) {
     return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
 
-describe('Unread Indicators', () => {
-    it('Shows correct LHN Status, “New Messages” badge, and New Line Indicators', async () => {
-        const REPORT_ID = 1;
-        const USER_A_ACCOUNT_ID = 1;
-        const USER_A_EMAIL = 'user_a@test.com';
-        const USER_B_ACCOUNT_ID = 2;
-        const USER_B_EMAIL = 'user_b@test.com';
-        const USER_C_ACCOUNT_ID = 3;
-        const USER_C_EMAIL = 'user_c@test.com';
+const REPORT_ID = 1;
+const USER_A_ACCOUNT_ID = 1;
+const USER_A_EMAIL = 'user_a@test.com';
+const USER_B_ACCOUNT_ID = 2;
+const USER_B_EMAIL = 'user_b@test.com';
+const USER_C_ACCOUNT_ID = 3;
+const USER_C_EMAIL = 'user_c@test.com';
 
-        // Render the App and sign in as a test user.
-        const renderedApp = render(<App />);
+/**
+ * @returns {RenderAPI}
+ */
+async function signInAndGetAppWithUnreadChat() {
+    // Render the App and sign in as a test user.
+    const renderedApp = render(<App />);
 
-        // Note: act() is necessary since react-navigation's NavigationContainer has an internal state update that will throw some
-        // warnings related to async code. See: https://callstack.github.io/react-native-testing-library/docs/understanding-act/#asynchronous-act
-        await act(async () => {
-            await waitForPromisesToResolve();
-        });
-
-        const loginForm = renderedApp.queryAllByA11yLabel('Login form');
-        expect(loginForm.length).toBe(1);
-
-        await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-
-        const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
-
-        // Simulate setting an unread report and personal details
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-            reportID: REPORT_ID,
-            reportName: 'Chat Report',
-            maxSequenceNumber: 9,
-            lastReadSequenceNumber: 1,
-            lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc(),
-            lastMessageText: 'Test',
-            participants: [USER_B_EMAIL],
-        });
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-            0: {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                automatic: false,
-                sequenceNumber: 0,
-                timestamp: MOMENT_TEN_MINUTES_AGO.unix(),
-                reportActionID: NumberUtils.rand64(),
-            },
-            1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').unix()),
-            2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').unix()),
-            3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').unix()),
-            4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.add(40, 'seconds').unix()),
-            5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.add(50, 'seconds').unix()),
-            6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.add(60, 'seconds').unix()),
-            7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.add(70, 'seconds').unix()),
-            8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.add(80, 'seconds').unix()),
-            9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').unix()),
-        });
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-            [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-        });
+    // Note: act() is necessary since react-navigation's NavigationContainer has an internal state update that will throw some
+    // warnings related to async code. See: https://callstack.github.io/react-native-testing-library/docs/understanding-act/#asynchronous-act
+    await act(async () => {
         await waitForPromisesToResolve();
+    });
+
+    const loginForm = renderedApp.queryAllByA11yLabel('Login form');
+    expect(loginForm.length).toBe(1);
+
+    await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+
+    const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
+
+    // Simulate setting an unread report and personal details
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+        reportID: REPORT_ID,
+        reportName: 'Chat Report',
+        maxSequenceNumber: 9,
+        lastReadSequenceNumber: 1,
+        lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc(),
+        lastMessageText: 'Test',
+        participants: [USER_B_EMAIL],
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            automatic: false,
+            sequenceNumber: 0,
+            timestamp: MOMENT_TEN_MINUTES_AGO.unix(),
+            reportActionID: NumberUtils.rand64(),
+        },
+        1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').unix()),
+        2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').unix()),
+        3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').unix()),
+        4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.add(40, 'seconds').unix()),
+        5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.add(50, 'seconds').unix()),
+        6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.add(60, 'seconds').unix()),
+        7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.add(70, 'seconds').unix()),
+        8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.add(80, 'seconds').unix()),
+        9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').unix()),
+    });
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+        [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+    });
+
+    // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
+    AppActions.setSidebarLoaded(true);
+    await waitForPromisesToResolve();
+    return renderedApp;
+}
+
+describe('Unread Indicators', () => {
+    afterEach(Onyx.clear);
+
+    it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', async () => {
+        const renderedApp = await signInAndGetAppWithUnreadChat();
 
         // Verify no notifications are created for these older messages
         expect(LocalNotification.showCommentNotification.mock.calls.length).toBe(0);
@@ -163,16 +174,10 @@ describe('Unread Indicators', () => {
         // Verify the sidebar links are rendered
         const sidebarLinks = renderedApp.queryAllByA11yLabel('List of chats');
         expect(sidebarLinks.length).toBe(1);
-
-        // And verify that the Report screen is rendered after manually setting the sidebar as loaded
-        // since the onLayout event does not fire in tests
-        AppActions.setSidebarLoaded(true);
-        await waitForPromisesToResolve();
-
         expect(isDrawerOpen(renderedApp)).toBe(true);
 
         // Verify there is only one option in the sidebar
-        let optionRows = renderedApp.getAllByA11yHint('Navigates to a chat');
+        const optionRows = renderedApp.getAllByA11yHint('Navigates to a chat');
         expect(optionRows.length).toBe(1);
 
         // And that the text is bold
@@ -192,36 +197,50 @@ describe('Unread Indicators', () => {
 
         // Since the last read sequenceNumber is 1 we should have an unread indicator above the next "unread" action which will
         // have a sequenceNumber of 2
-        let unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
+        const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
-        let sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
+        const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
         expect(sequenceNumber).toBe(2);
 
         // Scroll up and verify that the "New messages" badge appears
         scrollUpToRevealNewMessagesBadge(renderedApp);
         expect(isNewMessagesBadgeVisible(renderedApp)).toBe(true);
+    });
 
-        // And that the option row in the LHN is no longer bold (since OpenReport marked it as read)
-        const updatedDisplayNameText = renderedApp.getByA11yLabel('Chat user display names');
-        expect(lodashGet(updatedDisplayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+    it('Clear the new line indicator and bold when we navigate away from a chat that is now read', async () => {
+        const renderedApp = await signInAndGetAppWithUnreadChat();
 
-        // Tap on the back button to return to the sidebar
+        // Navigate to the unread chat from the sidebar
+        await navigateToSidebarOption(renderedApp, 0);
+        expect(isDrawerOpen(renderedApp)).toBe(false);
+
+        // Then navigate back to the sidebar
         await navigateToSidebar(renderedApp);
 
         // Verify the LHN is now open
         expect(isDrawerOpen(renderedApp)).toBe(true);
 
-        // Navigate to the report again
+        // Verify that the option row in the LHN is no longer bold (since OpenReport marked it as read)
+        const updatedDisplayNameText = renderedApp.getByA11yLabel('Chat user display names');
+        expect(lodashGet(updatedDisplayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+
+        // Tap on the chat again
         await navigateToSidebarOption(renderedApp, 0);
 
-        // Verify the unread indicator is no longer present
-        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
+        // Verify the unread indicator is not present
+        const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
         expect(isDrawerOpen(renderedApp)).toBe(false);
 
-        // Scroll and verify that the new messages badge is hidden
+        // Scroll and verify that the new messages badge is also hidden
         scrollUpToRevealNewMessagesBadge(renderedApp);
         expect(isNewMessagesBadgeVisible(renderedApp)).toBe(false);
+    });
+
+    it('Shows a browser notification and bold text when a new message arrives for a chat that is read', async () => {
+        const renderedApp = await signInAndGetAppWithUnreadChat();
+
+        // Read the chat by navigating to it then return to the LHN
 
         // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
         const NEW_REPORT_ID = 2;
@@ -261,14 +280,14 @@ describe('Unread Indicators', () => {
         // Verify notification was created as the new message that has arrived is very recent
         expect(LocalNotification.showCommentNotification.mock.calls.length).toBe(1);
 
-        // Navigate back to the sidebar
+        // // Navigate back to the sidebar
         await navigateToSidebar(renderedApp);
 
-        // Verify the new report option appears in the LHN
-        optionRows = renderedApp.getAllByA11yHint('Navigates to a chat');
+        // // Verify the new report option appears in the LHN
+        const optionRows = renderedApp.getAllByA11yHint('Navigates to a chat');
         expect(optionRows.length).toBe(2);
 
-        // Verify the text for the new chat is bold and above the previous indicating it has not yet been read
+        // Verify the text for both chats are bold indicating that nothing has not yet been read
         let displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
         expect(displayNameTexts.length).toBe(2);
         const firstReportOption = displayNameTexts[0];
@@ -276,22 +295,26 @@ describe('Unread Indicators', () => {
         expect(lodashGet(firstReportOption, ['props', 'children'])).toBe('C User');
 
         const secondReportOption = displayNameTexts[1];
-        expect(lodashGet(secondReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+        expect(lodashGet(secondReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
         expect(lodashGet(secondReportOption, ['props', 'children'])).toBe('B User');
 
         // Tap the new report option and navigate back to the sidebar again via the back button
         await navigateToSidebarOption(renderedApp, 0);
 
-        // Verify that all report options appear in a "read" state
+        // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
         displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
         expect(displayNameTexts.length).toBe(2);
         expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
         expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
-        expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+        expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
         expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
+    });
 
-        // Tap the previous report between User A and User B
-        await navigateToSidebarOption(renderedApp, 1);
+    it('Manually marking a chat message as read shows the new line indicator and updates the LHN', async () => {
+        const renderedApp = await signInAndGetAppWithUnreadChat();
+
+        // Navigate to the unread report
+        await navigateToSidebarOption(renderedApp, 0);
 
         // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
         // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
@@ -299,9 +322,9 @@ describe('Unread Indicators', () => {
         await waitForPromisesToResolve();
 
         // Verify the indicator appears above the last action
-        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
+        let unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
-        sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
+        const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
         expect(sequenceNumber).toBe(3);
 
         // Scroll up and verify the new messages badge appears
@@ -312,56 +335,73 @@ describe('Unread Indicators', () => {
         await navigateToSidebar(renderedApp);
 
         // Verify the report is marked as unread in the sidebar
-        displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
-        expect(displayNameTexts.length).toBe(2);
-        expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
-        expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
+        let displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
+        expect(displayNameTexts.length).toBe(1);
+        expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+        expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
         // Navigate to the report again and back to the sidebar
-        await navigateToSidebarOption(renderedApp, 1);
+        await navigateToSidebarOption(renderedApp, 0);
         await navigateToSidebar(renderedApp);
 
         // Verify the report is now marked as read
         displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
-        expect(displayNameTexts.length).toBe(2);
-        expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
-        expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
+        expect(displayNameTexts.length).toBe(1);
+        expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+        expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
         // Navigate to the report again and verify the new line indicator is missing
-        await navigateToSidebarOption(renderedApp, 1);
-        await waitForPromisesToResolve();
+        await navigateToSidebarOption(renderedApp, 0);
         unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
 
-        // Scroll up and verify the badge is hidden
+        // Scroll up and verify the "New messages" badge is hidden
         scrollUpToRevealNewMessagesBadge(renderedApp);
         expect(isNewMessagesBadgeVisible(renderedApp)).toBe(false);
-        expect(isDrawerOpen(renderedApp)).toBe(false);
+    });
 
-        // Navigate to the LHN
-        await navigateToSidebar(renderedApp);
+    it('Removes the new line indicator when a new message is created by the current user', async () => {
+        const renderedApp = await signInAndGetAppWithUnreadChat();
 
-        // Simulate another new message on the report with User B
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-            10: TestHelper.buildTestReportComment(USER_B_EMAIL, 10, moment().unix()),
-        });
-        await waitForPromisesToResolve();
+        // Verify we are on the LHN and that the chat shows as unread in the LHN
+        expect(isDrawerOpen(renderedApp)).toBe(true);
 
-        displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
-        expect(displayNameTexts.length).toBe(2);
-        expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
-        expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
-        expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
-        expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+        const displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
+        expect(displayNameTexts.length).toBe(1);
+        expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
+        expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
 
-        // Navigate to the report again and verify the indicator exists
-        await navigateToSidebarOption(renderedApp, 1);
-        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
+        // Navigate to the report and verify the indicator is present
+        await navigateToSidebarOption(renderedApp, 0);
+        let unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(1);
 
         // Leave a comment as the current user and verify the indicator is removed
         Report.addComment(REPORT_ID, 'Current User Comment 1');
         await waitForPromisesToResolve();
+        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
+        expect(unreadIndicator.length).toBe(0);
+    });
+
+    it('Clears the new line indicator when the user moves the App to the background', async () => {
+        const renderedApp = await signInAndGetAppWithUnreadChat();
+
+        // Verify we are on the LHN and that the chat shows as unread in the LHN
+        expect(isDrawerOpen(renderedApp)).toBe(true);
+
+        const displayNameTexts = renderedApp.queryAllByA11yLabel('Chat user display names');
+        expect(displayNameTexts.length).toBe(1);
+        expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
+        expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+
+        // Navigate to the chat and verify the new line indicator is present
+        await navigateToSidebarOption(renderedApp, 0);
+        let unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
+        expect(unreadIndicator.length).toBe(1);
+
+        // Then back to the LHN - then back to the chat again and verify the new line indicator has cleared
+        await navigateToSidebar(renderedApp);
+        await navigateToSidebarOption(renderedApp, 0);
         unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
 
@@ -378,21 +418,5 @@ describe('Unread Indicators', () => {
         // Verify the new line is cleared
         unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
         expect(unreadIndicator.length).toBe(0);
-
-        // As the current user add several comments
-        Report.addComment(REPORT_ID, 'Current User Comment 2');
-        await waitForPromisesToResolve();
-
-        Report.addComment(REPORT_ID, 'Current User Comment 3');
-        await waitForPromisesToResolve();
-
-        Report.addComment(REPORT_ID, 'Current User Comment 4');
-        await waitForPromisesToResolve();
-
-        // Mark the last comment as "unread" and verify the unread indicator appears
-        Report.markCommentAsUnread(REPORT_ID, 14);
-        await waitForPromisesToResolve();
-        unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
-        expect(unreadIndicator.length).toBe(1);
     });
 });
