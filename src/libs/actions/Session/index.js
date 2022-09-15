@@ -262,15 +262,7 @@ function signIn(password, twoFactorAuthCode) {
         },
     ];
 
-    API.write('SigninUser', {
-        email: credentials.login,
-        password,
-        twoFactorAuthCode,
-    }, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write('SigninUser', {email: credentials.login, password, twoFactorAuthCode,}, {optimisticData, successData, failureData});
 }
 
 /**
