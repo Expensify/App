@@ -68,7 +68,7 @@ export default {
     NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
     // Contains the user's payPalMe data
-    NVP_PAYPAL: 'nvp_paypalMe',
+    PAYPAL: 'paypal',
 
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
