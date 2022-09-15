@@ -34,6 +34,8 @@ const ReportActionItemCreated = (props) => {
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom')}
+            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom')}
+            errorRowStyles={styles.addWorkspaceRoomErrorRow}
         >
             <View style={[
                 styles.chatContent,
