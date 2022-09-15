@@ -267,7 +267,7 @@ export default {
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
-        notAllowedExtension: 'La foto de perfil debe ser de uno de los siguientes tipos:',
+        notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Perfil',
