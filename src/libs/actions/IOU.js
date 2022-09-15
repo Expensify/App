@@ -129,14 +129,14 @@ function startLoadingAndResetError() {
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
     const chatReport = lodashGet(report, 'reportID', null) ? report : Report.buildOptimisticChatReport(participants);
     const optimisticTransactionID = NumberUtils.rand64();
-    let IOUReport;
+    let iouReport;
     if (chatReport.hasOutstandingIOU) {
-        IOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
+        iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
         IOUReport.total += amount;
     } else {
-        IOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
+        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
     }
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, 'comment', currency, '', optimisticTransactionID, IOUReport.reportID, debtorEmail);
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, comment, currency, '', optimisticTransactionID, IOUReport.reportID, debtorEmail);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -155,8 +155,8 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${IOUReport.reportID}`,
-            value: IOUReport,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
+            value: iouReport,
         },
     ];
     const failureData = [
@@ -179,7 +179,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         amount,
         currency,
         comment,
-        iouReportID: IOUReport.reportID,
+        iouReportID: iouReport.reportID,
         reportID: chatReport.reportID,
         transactionID: optimisticTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
