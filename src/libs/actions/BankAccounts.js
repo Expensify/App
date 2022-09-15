@@ -188,11 +188,25 @@ function updatePersonalInformationForBankAccount(params) {
     API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
 }
 
-function updateCompanyInformationForBankAccount() {
-    API.write('UpdateCompanyInformationForBankAccount', {
-        routingNumber: 'routingNumber',
-    },
-    getVBBADataForOnyx());
+/**
+ * Updates the bank account in db with the company step data
+ *
+ * @param {Object} params
+ * @param {String} [params.companyName]
+ * @param {String} [params.addressStreet]
+ * @param {String} [params.addressCity]
+ * @param {String} [params.addressState]
+ * @param {String} [params.addressZipCode]
+ * @param {String} [params.companyPhone]
+ * @param {String} [params.website]
+ * @param {String} [params.companyTaxID]
+ * @param {String} [params.incorporationType]
+ * @param {String} [params.incorporationState]
+ * @param {String} [params.incorporationDate]
+ * @param {Boolean} [params.hasNoConnectionToCannabis]
+ */
+function updateCompanyInformationForBankAccount(params) {
+    API.write('UpdateCompanyInformationForBankAccount', params, getVBBADataForOnyx());
 }
 
 export {
