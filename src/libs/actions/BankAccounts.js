@@ -54,6 +54,7 @@ function clearOnfido() {
  *
  * @returns {Object}
  */
+// We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
 function getVBBADataForOnyx() {
     return {
         optimisticData: [
@@ -187,12 +188,19 @@ function updatePersonalInformationForBankAccount(params) {
     API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
 }
 
+function updateCompanyInformationForBankAccount() {
+    API.write('UpdateCompanyInformationForBankAccount', {
+        routingNumber: 'routingNumber',
+    },
+    getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfido,
-    updatePersonalInformationForBankAccount,
+    validateBankAccount,
+    updateCompanyInformationForBankAccount,
 };
