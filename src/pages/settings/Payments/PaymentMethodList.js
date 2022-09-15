@@ -22,8 +22,6 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
 
-const MENU_ITEM = 'menuItem';
-
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
@@ -122,7 +120,6 @@ class PaymentMethodList extends Component {
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
-            type: MENU_ITEM,
             onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
@@ -137,17 +134,7 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     createPaymentMethodList() {
-        const combinedPaymentMethods = this.getFilteredPaymentMethods();
-
-        // If we have not added any payment methods, show a default empty state
-        if (_.isEmpty(combinedPaymentMethods)) {
-            combinedPaymentMethods.push({
-                key: 'addFirstPaymentMethodHelpText',
-                text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
-            });
-        }
-
-        return combinedPaymentMethods;
+        return this.getFilteredPaymentMethods();
     }
 
     /**
@@ -189,37 +176,42 @@ class PaymentMethodList extends Component {
      * @return {React.Component}
      */
     renderItem({item}) {
-        if (item.type === MENU_ITEM) {
-            return (
-                <OfflineWithFeedback
-                    onClose={() => this.dismissError(item)}
-                    pendingAction={item.pendingAction}
-                    errors={item.errors}
-                    errorRowStyles={styles.ph6}
-                >
-                    <MenuItem
-                        onPress={item.onPress}
-                        title={item.title}
-                        description={item.description}
-                        icon={item.icon}
-                        disabled={item.disabled}
-                        iconFill={item.iconFill}
-                        iconHeight={item.iconSize}
-                        iconWidth={item.iconSize}
-                        badgeText={this.getDefaultBadgeText(item.isDefault)}
-                        wrapperStyle={item.wrapperStyle}
-                        shouldShowSelectedState={this.props.shouldShowSelectedState}
-                        isSelected={this.props.selectedMethodID === item.methodID}
-                    />
-                </OfflineWithFeedback>
-            );
-        }
+        return (
+            <OfflineWithFeedback
+                onClose={() => this.dismissError(item)}
+                pendingAction={item.pendingAction}
+                errors={item.errors}
+                errorRowStyles={styles.ph6}
+            >
+                <MenuItem
+                    onPress={item.onPress}
+                    title={item.title}
+                    description={item.description}
+                    icon={item.icon}
+                    disabled={item.disabled}
+                    iconFill={item.iconFill}
+                    iconHeight={item.iconSize}
+                    iconWidth={item.iconSize}
+                    badgeText={this.getDefaultBadgeText(item.isDefault)}
+                    wrapperStyle={item.wrapperStyle}
+                    shouldShowSelectedState={this.props.shouldShowSelectedState}
+                    isSelected={this.props.selectedMethodID === item.methodID}
+                />
+            </OfflineWithFeedback>
+        );
+    }
 
+    /**
+     * Create a component if the list is empty
+     *
+     * @return {React.Component}
+     */
+    renderListEmptyComponent() {
         return (
             <Text
                 style={[styles.popoverMenuItem]}
             >
-                {item.text}
+                {this.props.translate('paymentMethodList.addFirstPaymentMethod')}
             </Text>
         );
     }
@@ -231,6 +223,7 @@ class PaymentMethodList extends Component {
                     data={this.createPaymentMethodList()}
                     renderItem={this.renderItem}
                     keyExtractor={item => item.key}
+                    ListEmptyComponent={this.renderListEmptyComponent()}
                 />
                 {
                     this.props.shouldShowAddPaymentMethodButton
