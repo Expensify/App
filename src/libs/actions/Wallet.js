@@ -529,7 +529,7 @@ function updateCurrentStep(currentStep) {
 }
 
 /**
- * @param {Object} answers
+ * @param {Array} answers
  * @param {String} idNumber
  */
 function answerQuestionsForWallet(answers, idNumber) {
