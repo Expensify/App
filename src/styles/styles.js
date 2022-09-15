@@ -2671,6 +2671,12 @@ const styles = {
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
     },
+
+    addWorkspaceRoomErrorRow: {
+        padding: 20,
+        maxWidth: 450,
+        alignSelf: 'center',
+    },
 };
 
 export default styles;
