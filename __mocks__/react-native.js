@@ -1,13 +1,10 @@
-/* eslint-disable arrow-body-style */
 // eslint-disable-next-line no-restricted-imports
 import * as ReactNative from 'react-native';
 import _ from 'underscore';
 
 jest.doMock('react-native', () => {
     let url = 'https://new.expensify.com/';
-    const getInitialURL = () => {
-        return Promise.resolve(url);
-    };
+    const getInitialURL = () => Promise.resolve(url);
 
     let appState = 'active';
     let count = 0;
@@ -57,6 +54,7 @@ jest.doMock('react-native', () => {
                 ...ReactNative.Dimensions,
                 addEventListener: jest.fn(),
                 get: () => ({
+                    // Tests will run with the app in a typical small screen size
                     width: 300, height: 700, scale: 1, fontScale: 1,
                 }),
             },
