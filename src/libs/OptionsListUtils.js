@@ -343,6 +343,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.login = personalDetail.login;
         result.phoneNumber = personalDetail.phoneNumber;
         result.payPalMeAddress = personalDetail.payPalMeAddress;
+        result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
     const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
