@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -40,6 +42,15 @@ function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
+
+/** Reimbursement account actively being set up */
+let reimbursementAccountInSetup = {};
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    callback: (val) => {
+        reimbursementAccountInSetup = lodashGet(val, 'achData', {});
+    },
+});
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
@@ -192,6 +203,33 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
+ * @param {Object} data
+ * @returns {Object}
+ */
+function mergeWithLocalACHData(data) {
+    const updatedACHData = {
+        ...reimbursementAccountInSetup,
+        ...data,
+
+        // This param tells Web-Secure that this bank account is from NewDot so we can modify links back to the correct
+        // app in any communications. It also will be used to provision a customer for the Expensify card automatically
+        // once their bank account is successfully validated.
+        enableCardAfterVerified: true,
+    };
+
+    if (data && !_.isUndefined(data.isSavings)) {
+        updatedACHData.isSavings = Boolean(data.isSavings);
+    }
+    if (!updatedACHData.setupType) {
+        updatedACHData.setupType = updatedACHData.plaidAccountID
+            ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
+            : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+    }
+
+    return updatedACHData;
+}
+
+/**
  * Updates the bank account in db with the company step data
  *
  * @param {Object} params
@@ -209,7 +247,8 @@ function validateBankAccount(bankAccountID, validateCode) {
  * @param {Boolean} [params.hasNoConnectionToCannabis]
  */
 function updateCompanyInformationForBankAccount(params) {
-    API.write('UpdateCompanyInformationForBankAccount', params, getVBBADataForOnyx());
+    const achData = mergeWithLocalACHData(params);
+    API.write('UpdateCompanyInformationForBankAccount', achData, getVBBADataForOnyx());
 }
 
 export {
