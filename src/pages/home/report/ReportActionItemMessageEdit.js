@@ -175,10 +175,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
-        if (e && e.key === 'Enter' && !e.shiftKey) {
+        if (!e || VirtualKeyboard.shouldAssumeIsOpen()) {
+            return;
+        }
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
-        } else if (e && e.key === 'Escape') {
+        } else if (e.key === 'Escape') {
             e.preventDefault();
             this.deleteDraft();
         }
@@ -196,7 +199,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
-                        defaultValue={this.state.draft}
+                        value={this.state.draft}
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {

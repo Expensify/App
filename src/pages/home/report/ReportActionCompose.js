@@ -57,7 +57,7 @@ const propTypes = {
     comment: PropTypes.string,
 
     /** The ID of the report actions will be created for */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** Details about any modals being used */
     modal: PropTypes.shape({
@@ -444,8 +444,6 @@ class ReportActionCompose extends React.Component {
         }
         this.setState({isFullComposerAvailable: false});
 
-        // Important to reset the selection on Submit action
-        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
         return trimmedComment;
     }
 
@@ -496,7 +494,11 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <View style={[
+                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+                this.props.isComposerFullSize && styles.chatItemFullComposeRow,
+            ]}
+            >
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -673,8 +675,8 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <OfflineIndicator />
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, !this.props.isSmallScreenWidth && styles.chatItemComposeSecondaryRow]}>
+                    {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>

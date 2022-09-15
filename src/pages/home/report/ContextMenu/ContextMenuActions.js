@@ -90,7 +90,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION
             && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU
-            && !ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''))),
+            && !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])))),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -125,7 +125,15 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: (type, reportAction, betas) => Permissions.canUseCommentLinking(betas),
+        successIcon: Expensicons.Checkmark,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        shouldShow: (type, reportAction, betas, menuTarget) => {
+            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
+
+            // Only hide the copylink menu item when context menu is opened over img element.
+            const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
+            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
+        },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL()
                 .then((environmentURL) => {

@@ -1,14 +1,14 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {getPathFromState, NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import * as App from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import Log from '../Log';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -31,27 +31,34 @@ class NavigationRoot extends Component {
     constructor(props) {
         super(props);
 
-        this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
+        this.state = {
+            currentPath: '',
+        };
+
+        this.parseAndLogRoute = this.parseAndLogRoute.bind(this);
     }
 
     /**
-     * Intercept state changes and perform different logic
+     * Intercept navigation state changes and log it
      * @param {NavigationState} state
      */
-    parseAndStoreRoute(state) {
+    parseAndLogRoute(state) {
         if (!state) {
             return;
         }
 
-        const path = getPathFromState(state, linkingConfig.config);
+        const currentPath = getPathFromState(state, linkingConfig.config);
 
         // Don't log the route transitions from OldDot because they contain authTokens
-        if (path.includes('/transition')) {
+        if (currentPath.includes('/transition')) {
             Log.info('Navigating from transition link from OldDot using short lived authToken');
         } else {
-            Log.info('Navigating to route', false, {path});
+            Log.info('Navigating to route', false, {path: currentPath});
         }
-        App.setCurrentURL(path);
+
+        UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
+
+        this.setState({currentPath});
     }
 
     render() {
@@ -63,7 +70,7 @@ class NavigationRoot extends Component {
                         style={styles.navigatorFullScreenLoading}
                     />
                 )}
-                onStateChange={this.parseAndStoreRoute}
+                onStateChange={this.parseAndLogRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}
                 ref={Navigation.navigationRef}
@@ -72,7 +79,7 @@ class NavigationRoot extends Component {
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} />
+                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
             </NavigationContainer>
         );
     }

@@ -46,12 +46,19 @@ const propTypes = {
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
+    /** Object with various information about the user */
+    user: PropTypes.shape({
+        /** Is the user account validated? */
+        validated: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    user: {},
 };
 
 class BankAccountStep extends React.Component {
@@ -180,7 +187,7 @@ class BankAccountStep extends React.Component {
         const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
         const error = lodashGet(this.props, 'reimbursementAccount.error', '');
         const loading = lodashGet(this.props, 'reimbursementAccount.loading', false);
-
+        const validated = lodashGet(this.props, 'user.validated', false);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -219,12 +226,12 @@ class BankAccountStep extends React.Component {
                             icon={Expensicons.Bank}
                             text={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
-                            disabled={this.props.isPlaidDisabled || !this.props.user.validated}
-                            style={[styles.mt5, styles.mh3]}
-                            iconStyles={[styles.mr5]}
+                            disabled={this.props.isPlaidDisabled || !validated}
+                            style={[styles.mt5, styles.buttonCTA]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             success
-                            extraLarge
+                            large
                         />
                         {this.props.error && (
                             <Text style={[styles.formError, styles.mh5]}>
@@ -234,11 +241,11 @@ class BankAccountStep extends React.Component {
                         <MenuItem
                             icon={Expensicons.Connect}
                             title={this.props.translate('bankAccount.connectManually')}
-                            disabled={!this.props.user.validated}
+                            disabled={!validated}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                             shouldShowRightIcon
                         />
-                        {!this.props.user.validated && (
+                        {!validated && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                                 <Text style={[styles.mutedTextLabel, styles.mr4]}>
                                     <Icon src={Expensicons.Exclamation} fill={colors.red} />
@@ -268,7 +275,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
                             <AddPlaidBankAccount
                                 text={this.props.translate('bankAccount.plaidBodyCopy')}
                                 onSelect={(params) => {

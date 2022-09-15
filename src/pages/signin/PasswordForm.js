@@ -26,14 +26,11 @@ const propTypes = {
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        /** Whether or not the account already exists */
-        accountExists: PropTypes.bool,
-
         /** Whether or not two factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
         /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -49,6 +46,7 @@ class PasswordForm extends React.Component {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.resetPassword = this.resetPassword.bind(this);
+        this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
             formError: false,
@@ -71,6 +69,9 @@ class PasswordForm extends React.Component {
         if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
             this.clearPassword();
         }
+        if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
+            this.input2FA.focus();
+        }
     }
 
     /**
@@ -87,7 +88,16 @@ class PasswordForm extends React.Component {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
+        this.setState({formError: false});
         Session.resetPassword();
+    }
+
+    /**
+    * Clears local and Onyx sign in states
+    */
+    clearSignInData() {
+        this.setState({twoFactorAuthCode: '', formError: false});
+        Session.clearSignInData();
     }
 
     /**
@@ -183,10 +193,10 @@ class PasswordForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={this.props.account.loading}
+                        isLoading={this.props.account.isLoading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
+                    <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
             </>
         );

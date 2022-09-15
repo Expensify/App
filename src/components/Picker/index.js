@@ -21,6 +21,7 @@ const propTypes = {
     errorText: PropTypes.string,
 
     /** Customize the Picker container */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** The ID used to uniquely identify the input in a Form */

@@ -1,13 +1,9 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
-import * as ReimbursementAccount from './ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../Growl';
 import * as Localize from '../Localize';
-import * as store from './ReimbursementAccount/store';
+import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
@@ -31,9 +27,10 @@ export {
     openPlaidBankLogin,
 } from './Plaid';
 export {
-    fetchOnfidoToken,
+    openOnfidoFlow,
     activateWallet,
-    fetchUserWallet,
+    verifyIdentity,
+    acceptWalletTerms,
 } from './Wallet';
 
 function clearPersonalBankAccount() {
@@ -43,6 +40,50 @@ function clearPersonalBankAccount() {
 function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+}
+
+/**
+ * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
+ *
+ * @returns {Object}
+ */
+// We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
+/* eslint-disable no-unused-vars */
+function getVBBADataForOnyx() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
+                },
+            },
+        ],
+    };
 }
 
 /**
@@ -104,36 +145,23 @@ function addPersonalBankAccount(account, password) {
     API.write(commandName, parameters, onyxData);
 }
 
-/**
- * Deletes a bank account
- *
- * @param {Number} bankAccountID
- */
-function deleteBankAccount(bankAccountID) {
-    const reimbursementBankAccountId = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-
-    // Early return as DeleteBankAccount API is called inside `resetFreePlanBankAccount`
-    if (reimbursementBankAccountId === bankAccountID) {
-        ReimbursementAccount.resetFreePlanBankAccount();
-        return;
-    }
-    DeprecatedAPI.DeleteBankAccount({
+function deletePaymentBankAccount(bankAccountID) {
+    API.write('DeletePaymentBankAccount', {
         bankAccountID,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            ReimbursementAccount.deleteFromBankAccountList(bankAccountID);
-            Growl.show(Localize.translateLocal('paymentsPage.deleteBankAccountSuccess'), CONST.GROWL.SUCCESS, 3000);
-        } else {
-            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-        }
-    }).catch(() => {
-        Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
     });
 }
 
 export {
     addPersonalBankAccount,
-    deleteBankAccount,
+    deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
 };

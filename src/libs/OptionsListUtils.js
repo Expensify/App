@@ -41,18 +41,6 @@ Onyx.connect({
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
-const reportsWithDraft = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
-    callback: (hasDraft, key) => {
-        if (!key) {
-            return;
-        }
-
-        reportsWithDraft[key] = hasDraft;
-    },
-});
-
 const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -117,7 +105,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
         if (!personalDetail) {
             personalDetail = {
                 login,
-                displayName: login,
+                displayName: Str.removeSMSDomain(login),
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
@@ -155,8 +143,33 @@ function getParticipantNames(personalDetailList) {
 }
 
 /**
+ * A very optimized method to remove unique items from an array.
+ * Taken from https://stackoverflow.com/a/9229821/9114791
+ *
+ * @param {Array} items
+ * @returns {Array}
+ */
+function uniqFast(items) {
+    const seenItems = {};
+    const result = [];
+    let j = 0;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (seenItems[item] !== 1) {
+            seenItems[item] = 1;
+            result[j++] = item;
+        }
+    }
+    return result;
+}
+
+/**
  * Returns a string with all relevant search terms.
  * Default should be serachable by policy/domain name but not by participants.
+ *
+ * This method must be incredibly performant. It was found to be a big performance bottleneck
+ * when dealing with accounts that have thousands of reports. For loops are more efficient than _.each
+ * Array.prototype.push.apply is faster than using the spread operator, and concat() is faster than push().
  *
  * @param {Object} report
  * @param {String} reportName
@@ -165,40 +178,51 @@ function getParticipantNames(personalDetailList) {
  * @return {String}
  */
 function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat) {
-    const searchTerms = [];
+    let searchTerms = [];
 
     if (!isChatRoomOrPolicyExpenseChat) {
-        _.each(personalDetailList, (personalDetail) => {
-            searchTerms.push(personalDetail.displayName);
-            searchTerms.push(personalDetail.login.replace(/\./g, ''));
-        });
+        for (let i = 0; i < personalDetailList.length; i++) {
+            const personalDetail = personalDetailList[i];
+            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login.replace(/\./g, '')]);
+        }
     }
     if (report) {
-        searchTerms.push(...reportName);
-        searchTerms.push(..._.map(reportName.split(','), name => name.trim()));
+        Array.prototype.push.apply(searchTerms, reportName.split(''));
+        Array.prototype.push.apply(searchTerms, reportName.split(','));
 
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-            searchTerms.push(...chatRoomSubtitle);
-            searchTerms.push(..._.map(chatRoomSubtitle.split(','), name => name.trim()));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(''));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(','));
         } else {
-            searchTerms.push(...report.participants);
+            searchTerms = searchTerms.concat(report.participants);
         }
     }
 
-    return _.unique(searchTerms).join(' ');
+    return uniqFast(searchTerms).join(' ');
 }
 
 /**
- * Determines whether a report has a draft comment.
+ * If the report or the report actions have errors, return
+ * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
  *
  * @param {Object} report
- * @return {Boolean}
+ * @param {Object} reportActions
+ * @returns {String}
  */
-function hasReportDraftComment(report) {
-    return report
-        && reportsWithDraft
-        && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
+function getBrickRoadIndicatorStatusForReport(report, reportActions) {
+    const reportErrors = lodashGet(report, 'errors', {});
+    const reportErrorFields = lodashGet(report, 'errorFields', {});
+    const reportID = lodashGet(report, 'reportID');
+    const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+
+    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
+    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
+
+    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
+        return '';
+    }
+    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
 }
 
 /**
@@ -207,86 +231,128 @@ function hasReportDraftComment(report) {
  * @param {Array<String>} logins
  * @param {Object} personalDetails
  * @param {Object} report
+ * @param {Object} reportActions
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(logins, personalDetails, report, {
-    showChatPreviewLine = false, forcePolicyNamePreview = false,
+function createOption(logins, personalDetails, report, reportActions = {}, {
+    showChatPreviewLine = false,
+    forcePolicyNamePreview = false,
 }) {
-    const isChatRoom = ReportUtils.isChatRoom(report);
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const result = {
+        text: null,
+        alternateText: null,
+        brickRoadIndicator: null,
+        icons: null,
+        tooltipText: null,
+        ownerEmail: null,
+        subtitle: null,
+        participantsList: null,
+        login: null,
+        reportID: null,
+        phoneNumber: null,
+        payPalMeAddress: null,
+        isUnread: null,
+        hasDraftComment: false,
+        keyForList: null,
+        searchText: null,
+        isDefaultRoom: false,
+        isPinned: false,
+        hasOutstandingIOU: false,
+        iouReportID: null,
+        isIOUReportOwner: null,
+        iouReportAmount: 0,
+        isChatRoom: false,
+        isArchivedRoom: false,
+        shouldShowSubscript: false,
+        isPolicyExpenseChat: false,
+    };
+
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
     const personalDetail = personalDetailList[0];
-    const hasDraftComment = hasReportDraftComment(report);
-    const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
-    const iouReport = hasOutstandingIOU
-        ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
-        : {};
+    let hasMultipleParticipants = personalDetailList.length > 1;
+    let subtitle;
 
-    const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
-    const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
-        ? `[${Localize.translateLocal('common.attachment')}]`
-        : Str.htmlDecode(lodashGet(report, 'lastMessageText', ''));
-    let lastMessageText = report && hasMultipleParticipants && lastActorDetails
-        ? `${lastActorDetails.displayName}: `
-        : '';
-    lastMessageText += report ? lastMessageTextFromReport : '';
+    if (report) {
+        result.isChatRoom = ReportUtils.isChatRoom(report);
+        result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
+        result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
+        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+        result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
+        result.ownerEmail = report.ownerEmail;
+        result.reportID = report.reportID;
+        result.isUnread = ReportUtils.isUnread(report);
+        result.hasDraftComment = report.hasDraft;
+        result.isPinned = report.isPinned;
+        result.iouReportID = report.iouReportID;
+        result.keyForList = String(report.reportID);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
+        result.hasOutstandingIOU = report.hasOutstandingIOU;
 
-    if (isPolicyExpenseChat && isArchivedRoom) {
-        const archiveReason = lodashGet(lastReportActions[report.reportID], 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: lodashGet(lastActorDetails, 'displayName', report.lastActorEmail),
-            policyName: ReportUtils.getPolicyName(report, policies),
-        });
-    }
+        hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
-    const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
-    let alternateText;
-    if (isChatRoom || isPolicyExpenseChat) {
-        alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
-            ? lastMessageText
-            : subtitle;
+        let lastMessageTextFromReport = '';
+        if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+            lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+        } else {
+            lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+        }
+
+        const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
+        let lastMessageText = hasMultipleParticipants && lastActorDetails
+            ? `${lastActorDetails.displayName}: `
+            : '';
+        lastMessageText += report ? lastMessageTextFromReport : '';
+
+        if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+            const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
+                || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                displayName: archiveReason.displayName || report.lastActorEmail,
+                policyName: ReportUtils.getPolicyName(report, policies),
+            });
+        }
+
+        if (result.isChatRoom || result.isPolicyExpenseChat) {
+            result.alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
+                ? lastMessageText
+                : subtitle;
+        } else {
+            result.alternateText = (showChatPreviewLine && lastMessageText)
+                ? lastMessageText
+                : Str.removeSMSDomain(personalDetail.login);
+        }
     } else {
-        alternateText = (showChatPreviewLine && lastMessageText)
-            ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login);
+        result.keyForList = personalDetail.login;
     }
-    return {
-        text: reportName,
-        alternateText,
-        icons: ReportUtils.getIcons(report, personalDetails, policies, lodashGet(personalDetail, ['avatar'])),
-        tooltipText,
-        ownerEmail: lodashGet(report, ['ownerEmail']),
-        subtitle,
-        participantsList: personalDetailList,
 
-        // It doesn't make sense to provide a login in the case of a report with multiple participants since
-        // there isn't any one single login to refer to for a report.
-        login: !hasMultipleParticipants ? personalDetail.login : null,
-        reportID: report ? report.reportID : null,
-        phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
-        payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
-        isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment,
-        keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, reportName, personalDetailList, isChatRoom || isPolicyExpenseChat),
-        isPinned: lodashGet(report, 'isPinned', false),
-        hasOutstandingIOU,
-        iouReportID: lodashGet(report, 'iouReportID'),
-        isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
-        iouReportAmount: lodashGet(iouReport, 'total', 0),
-        isChatRoom,
-        isArchivedRoom,
-        shouldShowSubscript: isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isArchivedRoom,
-        isPolicyExpenseChat,
-    };
+    if (result.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
+        if (iouReport) {
+            result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
+            result.iouReportAmount = iouReport.total;
+        }
+    }
+
+    if (!hasMultipleParticipants) {
+        result.login = personalDetail.login;
+        result.phoneNumber = personalDetail.phoneNumber;
+        result.payPalMeAddress = personalDetail.payPalMeAddress;
+    }
+
+    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    result.text = reportName;
+    result.subtitle = subtitle;
+    result.participantsList = personalDetailList;
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+
+    return result;
 }
 
 /**
@@ -347,12 +413,13 @@ function isCurrentUser(userDetails) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Number} activeReportID
+ * @param {String} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
  */
 function getOptions(reports, personalDetails, activeReportID, {
+    reportActions = {},
     betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
@@ -390,6 +457,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     if (sortByAlphaAsc) {
         sortProperty = ['reportName'];
     }
+
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
     let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
 
@@ -398,20 +466,24 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
+        if (!report) {
+            return;
+        }
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const logins = lodashGet(report, ['participants'], []);
+        const logins = report.participants || [];
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
         const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
-        if (!report || !report.reportID || shouldFilterNoParticipants) {
+        if (!report.reportID || shouldFilterNoParticipants) {
             return;
         }
 
-        const hasDraftComment = hasReportDraftComment(report);
-        const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
-            ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
+        const hasDraftComment = report.hasDraft || false;
+        const iouReport = report.iouReportID && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        const iouReportOwner = report.hasOutstandingIOU && iouReport
+            ? iouReport.ownerEmail
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
@@ -422,10 +494,11 @@ function getOptions(reports, personalDetails, activeReportID, {
                 // not give archived rooms this exception since they do not need to be higlihted.
                 && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
 
-        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID !== activeReportID
-            && !report.isPinned
+
+        if (report.reportID.toString() !== activeReportID
+            && (!report.isPinned || isDefaultRoom)
             && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
@@ -436,8 +509,14 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+        // We create policy rooms for all policies, however we don't show them unless
+        // - It's a free plan workspace
+        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
+        if (!Permissions.canUseDefaultRooms(betas)
+            && ReportUtils.isDefaultRoom(report)
+            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(logins)
+        ) {
             return;
         }
 
@@ -456,17 +535,21 @@ function getOptions(reports, personalDetails, activeReportID, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-        allReportOptions.push(createOption(logins, personalDetails, report, {
+        allReportOptions.push(createOption(logins, personalDetails, report, reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
         }));
     });
 
-    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], {
+    let allPersonalDetailsOptions = _.map(personalDetails, personalDetail => createOption(
+        [personalDetail.login],
+        personalDetails,
+        reportMapForLogins[personalDetail.login],
+        reportActions,
+        {
             showChatPreviewLine,
             forcePolicyNamePreview,
-        })
+        },
     ));
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -508,8 +591,10 @@ function getOptions(reports, personalDetails, activeReportID, {
             }
 
             // If the report is pinned and we are using the option to display pinned reports on top then we need to
-            // collect the pinned reports so we can sort them alphabetically once they are collected
-            if (prioritizePinnedReports && reportOption.isPinned) {
+            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
+            // default archived rooms.
+            if (prioritizePinnedReports && reportOption.isPinned
+                && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
                 pinnedReportOptions.push(reportOption);
             } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
                 iouDebtReportOptions.push(reportOption);
@@ -584,7 +669,7 @@ function getOptions(reports, personalDetails, activeReportID, {
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
-        userToInvite = createOption([login], personalDetails, null, {
+        userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
         userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
@@ -746,15 +831,10 @@ function getMemberInviteOptions(
  * @param {Number} activeReportID
  * @param {String} priorityMode
  * @param {Array<String>} betas
+ * @param {Object} reportActions
  * @returns {Object}
  */
-function getSidebarOptions(
-    reports,
-    personalDetails,
-    activeReportID,
-    priorityMode,
-    betas,
-) {
+function getSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
     let sideBarOptions = {
         prioritizeIOUDebts: true,
         prioritizeReportsWithDraftComments: true,
@@ -774,6 +854,7 @@ function getSidebarOptions(
         showChatPreviewLine: true,
         prioritizePinnedReports: true,
         ...sideBarOptions,
+        reportActions,
     });
 }
 
@@ -817,7 +898,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
     const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.searchText)));
+        isSearchStringMatch(searchValue, currencyOption.text)));
 
     return {
         // returns filtered options i.e. options with string match if search text is entered

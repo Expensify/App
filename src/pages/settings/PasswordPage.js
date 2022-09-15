@@ -14,7 +14,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
@@ -147,86 +146,84 @@ class PasswordPage extends Component {
                 this.currentPasswordInputRef.focus();
             }}
             >
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('passwordPage.changePassword')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
-                    />
-                    {!_.isEmpty(this.props.account.success)
-                        ? (
-                            <PasswordConfirmationScreen />
-                        ) : (
-                            <>
-                                <ScrollView
-                                    style={styles.flex1}
-                                    contentContainerStyle={styles.p5}
+                <HeaderWithCloseButton
+                    title={this.props.translate('passwordPage.changePassword')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                {!_.isEmpty(this.props.account.success)
+                    ? (
+                        <PasswordConfirmationScreen />
+                    ) : (
+                        <>
+                            <ScrollView
+                                style={styles.flex1}
+                                contentContainerStyle={styles.p5}
 
-                                    // Allow the user to click show password while password input is focused.
-                                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                    keyboardShouldPersistTaps="always"
-                                >
-                                    <Text style={[styles.mb6]}>
-                                        {this.props.translate('passwordPage.changingYourPasswordPrompt')}
-                                    </Text>
-                                    <View style={styles.mb6}>
-                                        <TextInput
-                                            label={`${this.props.translate('passwordPage.currentPassword')}*`}
-                                            ref={el => this.currentPasswordInputRef = el}
-                                            secureTextEntry
-                                            autoCompleteType="password"
-                                            textContentType="password"
-                                            value={this.state.currentPassword}
-                                            onChangeText={text => this.clearErrorAndSetValue('currentPassword', text)}
-                                            returnKeyType="done"
-                                            hasError={this.state.errors.currentPassword}
-                                            errorText={this.getErrorText('currentPassword')}
-                                            onSubmitEditing={this.submit}
-                                        />
-                                    </View>
-                                    <View style={styles.mb6}>
-                                        <TextInput
-                                            label={`${this.props.translate('passwordPage.newPassword')}*`}
-                                            secureTextEntry
-                                            autoCompleteType="password"
-                                            textContentType="password"
-                                            value={this.state.newPassword}
-                                            hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
-                                            errorText={this.state.errors.newPasswordSameAsOld
-                                                ? this.getErrorText('newPasswordSameAsOld')
-                                                : this.getErrorText('newPassword')}
-                                            onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
-                                            onSubmitEditing={this.submit}
-                                        />
-                                        {shouldShowNewPasswordPrompt && (
-                                            <Text
-                                                style={[
-                                                    styles.textLabelSupporting,
-                                                    styles.mt1,
-                                                ]}
-                                            >
-                                                {this.props.translate('passwordPage.newPasswordPrompt')}
-                                            </Text>
-                                        )}
-                                    </View>
-                                    {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
-                                        <Text style={styles.formError}>
-                                            {this.props.account.error}
-                                        </Text>
-                                    )}
-                                </ScrollView>
-                                <FixedFooter style={[styles.flexGrow0]}>
-                                    <Button
-                                        success
-                                        isLoading={this.props.account.loading}
-                                        text={this.props.translate('common.save')}
-                                        onPress={this.submit}
+                                // Allow the user to click show password while password input is focused.
+                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                keyboardShouldPersistTaps="always"
+                            >
+                                <Text style={[styles.mb6]}>
+                                    {this.props.translate('passwordPage.changingYourPasswordPrompt')}
+                                </Text>
+                                <View style={styles.mb6}>
+                                    <TextInput
+                                        label={`${this.props.translate('passwordPage.currentPassword')}*`}
+                                        ref={el => this.currentPasswordInputRef = el}
+                                        secureTextEntry
+                                        autoCompleteType="password"
+                                        textContentType="password"
+                                        value={this.state.currentPassword}
+                                        onChangeText={text => this.clearErrorAndSetValue('currentPassword', text)}
+                                        returnKeyType="done"
+                                        hasError={this.state.errors.currentPassword}
+                                        errorText={this.getErrorText('currentPassword')}
+                                        onSubmitEditing={this.submit}
                                     />
-                                </FixedFooter>
-                            </>
-                        )}
-                </KeyboardAvoidingView>
+                                </View>
+                                <View style={styles.mb6}>
+                                    <TextInput
+                                        label={`${this.props.translate('passwordPage.newPassword')}*`}
+                                        secureTextEntry
+                                        autoCompleteType="password"
+                                        textContentType="password"
+                                        value={this.state.newPassword}
+                                        hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
+                                        errorText={this.state.errors.newPasswordSameAsOld
+                                            ? this.getErrorText('newPasswordSameAsOld')
+                                            : this.getErrorText('newPassword')}
+                                        onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
+                                        onSubmitEditing={this.submit}
+                                    />
+                                    {shouldShowNewPasswordPrompt && (
+                                    <Text
+                                        style={[
+                                            styles.textLabelSupporting,
+                                            styles.mt1,
+                                        ]}
+                                    >
+                                        {this.props.translate('passwordPage.newPasswordPrompt')}
+                                    </Text>
+                                    )}
+                                </View>
+                                {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
+                                <Text style={styles.formError}>
+                                    {this.props.account.error}
+                                </Text>
+                                )}
+                            </ScrollView>
+                            <FixedFooter style={[styles.flexGrow0]}>
+                                <Button
+                                    success
+                                    isLoading={this.props.account.loading}
+                                    text={this.props.translate('common.save')}
+                                    onPress={this.submit}
+                                />
+                            </FixedFooter>
+                        </>
+                    )}
             </ScreenWrapper>
         );
     }
