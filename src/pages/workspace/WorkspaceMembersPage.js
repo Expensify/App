@@ -25,7 +25,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OptionRow from '../../components/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -45,13 +45,13 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...policyPropTypes,
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...networkPropTypes,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = fullPolicyDefaultProps;
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -373,7 +373,7 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withFullPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {
