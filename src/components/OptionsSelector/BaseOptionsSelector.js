@@ -145,6 +145,8 @@ class BaseOptionsSelector extends Component {
      */
     flattenSections() {
         const allOptions = [];
+        this.disabledOptionsIndexes = [];
+        let index = 0;
         _.each(this.props.sections, (section, sectionIndex) => {
             _.each(section.data, (option, optionIndex) => {
                 allOptions.push({
@@ -152,6 +154,10 @@ class BaseOptionsSelector extends Component {
                     sectionIndex,
                     index: optionIndex,
                 });
+                if (section.isDisabled || option.isDisabled) {
+                    this.disabledOptionsIndexes.push(index);
+                }
+                index += 1;
             });
         });
         return allOptions;
@@ -266,8 +272,9 @@ class BaseOptionsSelector extends Component {
         ) : <FullScreenLoadingIndicator />;
         return (
             <ArrowKeyFocusManager
+                disabledIndexes={this.disabledOptionsIndexes}
                 focusedIndex={this.state.focusedIndex}
-                maxIndex={this.props.canSelectMultipleOptions ? this.state.allOptions.length : this.state.allOptions.length - 1}
+                maxIndex={this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>

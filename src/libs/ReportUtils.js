@@ -258,8 +258,11 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+    const policyName = (
+        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
+        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
+    ) || '';
+    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -509,7 +512,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
+        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
@@ -524,11 +527,9 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
-        participants.length > 1,
-    );
-    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const isMultipleParticipantReport = participants.length > 1;
+    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
+    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -674,8 +675,8 @@ function buildOptimisticIOUReportAction(type, amount, comment, iouCurrency = '',
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = lodashGet(report, 'lastReadSequenceNumber', 0);
-    const maxSequenceNumber = lodashGet(report, 'maxSequenceNumber', 0);
+    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
+    const maxSequenceNumber = report.maxSequenceNumber || 0;
     return lastReadSequenceNumber < maxSequenceNumber;
 }
 

@@ -25,6 +25,7 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 import networkPropTypes from '../../../components/networkPropTypes';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -142,6 +143,12 @@ class WorkspaceReimburseView extends React.Component {
         }
 
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+        if (!distanceCustomUnit) {
+            Log.warn('Policy has no customUnits, returning early.', {
+                policyID: this.props.policyID,
+            });
+            return;
+        }
 
         Policy.updateWorkspaceCustomUnit(this.props.policyID, distanceCustomUnit, {
             customUnitID: this.state.unitID,
