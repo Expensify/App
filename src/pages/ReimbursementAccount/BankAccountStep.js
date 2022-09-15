@@ -231,7 +231,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <Form
-                        formID={ONYXKEYS.FORMS.BANK_ACCOUNT_STEP_FORM_PLAID}
+                        formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                         validate={this.validatePlaidAccount}
                         onSubmit={this.addPlaidAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
@@ -249,7 +249,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <Form
-                        formID={ONYXKEYS.FORMS.BANK_ACCOUNT_STEP_FORM_MANUAL}
+                        formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                         validate={this.validate}
                         onSubmit={this.addManualAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}

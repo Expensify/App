@@ -171,7 +171,5 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
-        BANK_ACCOUNT_STEP_FORM_MANUAL: 'bankAccountStepFormManual',
-        BANK_ACCOUNT_STEP_FORM_PLAID: 'bankAccountStepFormPlaid',
     },
 };
