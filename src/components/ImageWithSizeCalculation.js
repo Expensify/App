@@ -43,14 +43,12 @@ class ImageWithSizeCalculation extends PureComponent {
         this.imageLoadedSuccessfuly = this.imageLoadedSuccessfuly.bind(this);
     }
 
-
     imageLoadingStart() {
         this.setState({isLoading: true});
     }
 
     imageLoadingEnd() {
         this.setState({isLoading: false});
-        console.log('loaded', this.props.url)
     }
 
     imageLoadedSuccessfuly(event) {
@@ -58,8 +56,6 @@ class ImageWithSizeCalculation extends PureComponent {
             // Image didn't load properly
             return;
         }
-
-        console.log('dimentions');
 
         this.props.onMeasure({width: event.nativeEvent.width, height: event.nativeEvent.height});
     }
@@ -77,10 +73,16 @@ class ImageWithSizeCalculation extends PureComponent {
                     this.props.style,
                 ]}
             >
+                {(this.state.isLoading) && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent, { zIndex: 1 }]}
+                    />
+                )}
                 <FastImage
                     style={[
                         styles.w100,
                         styles.h100,
+                        { zIndex: 2 }
                     ]}
                     source={{uri: this.props.url}}
                     resizeMode={FastImage.resizeMode.contain}
@@ -89,11 +91,6 @@ class ImageWithSizeCalculation extends PureComponent {
                     onError={this.onError}
                     onLoad={this.imageLoadedSuccessfuly}
                 />
-                {this.state.isLoading && (
-                    <FullscreenLoadingIndicator
-                        style={[styles.opacity1, styles.bgTransparent]}
-                    />
-                )}
             </View>
         );
     }
