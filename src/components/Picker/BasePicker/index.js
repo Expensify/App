@@ -37,7 +37,6 @@ class BasePicker extends React.Component {
                 pickerProps={{
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,
-                    ref: this.props.innerRef,
                 }}
                 ref={el => {
                     if (!_.isFunction(this.props.innerRef)) {
