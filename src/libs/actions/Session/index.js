@@ -300,7 +300,7 @@ function resetPassword() {
                     message: null,
                 },
             },
-        ]
+        ],
     });
 }
 
