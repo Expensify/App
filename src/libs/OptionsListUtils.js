@@ -349,7 +349,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = personalDetailList;
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
 
     return result;
