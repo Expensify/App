@@ -104,10 +104,11 @@ const defaultProps = {
  * @param {Object} route
  * @param {Object} route.params
  * @param {String} route.params.reportID
- * @returns {String}
+ * @returns {Number}
  */
 function getReportID(route) {
-    return route.params.reportID.toString();
+    const params = route.params;
+    return Number.parseInt(params.reportID, 10);
 }
 
 class ReportScreen extends React.Component {

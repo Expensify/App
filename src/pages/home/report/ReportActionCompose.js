@@ -57,7 +57,7 @@ const propTypes = {
     comment: PropTypes.string,
 
     /** The ID of the report actions will be created for */
-    reportID: PropTypes.string.isRequired,
+    reportID: PropTypes.number.isRequired,
 
     /** Details about any modals being used */
     modal: PropTypes.shape({
