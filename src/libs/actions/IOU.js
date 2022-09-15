@@ -132,11 +132,11 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
     let iouReport;
     if (chatReport.hasOutstandingIOU) {
         iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
-        IOUReport.total += amount;
+        iouReport.total += amount;
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
     }
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, comment, currency, '', optimisticTransactionID, IOUReport.reportID, debtorEmail);
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, comment, currency, '', optimisticTransactionID, iouReport.reportID, debtorEmail);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
