@@ -8,7 +8,7 @@ class TextInputLabel extends PureComponent {
         if (!this.props.for) {
             return;
         }
-        this.label.setNativeProps({for: this.props.for});
+        this.label.setAttribute('for', this.props.for);
     }
 
     render() {
