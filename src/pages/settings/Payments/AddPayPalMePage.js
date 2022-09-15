@@ -109,7 +109,7 @@ export default compose(
     withLocalize,
     withOnyx({
         payPalMeData: {
-            key: ONYXKEYS.NVP_PAYPAL,
+            key: ONYXKEYS.PAYPAL,
         },
     }),
 )(AddPayPalMePage);
