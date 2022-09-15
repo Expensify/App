@@ -39,7 +39,12 @@ class BasePicker extends React.Component {
                     onBlur: this.executeOnCloseAndOnBlur,
                     ref: this.props.innerRef,
                 }}
-                ref={this.props.innerRef}
+                ref={el => {
+                    if (!_.isFunction(this.props.innerRef)) {
+                        return;
+                    }
+                    this.props.innerRef(el);
+                }}
             />
         );
     }
