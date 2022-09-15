@@ -274,7 +274,7 @@ function addPaypalMeAddress(address) {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PAYPAL,
+            key: ONYXKEYS.PAYPAL,
             value: {
                 title: 'PayPal.me',
                 description: address,
@@ -306,7 +306,7 @@ function deletePaypalMeAddress() {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.NVP_PAYPAL,
+            key: ONYXKEYS.PAYPAL,
             value: {},
         },
     ];
