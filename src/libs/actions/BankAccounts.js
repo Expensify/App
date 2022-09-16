@@ -173,6 +173,7 @@ function validateBankAccount(bankAccountID, validateCode) {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
                 isLoading: true,
+                error: '',
                 errors: null,
             },
         }],
@@ -200,3 +201,4 @@ export {
     clearPlaid,
     validateBankAccount,
 };
+
