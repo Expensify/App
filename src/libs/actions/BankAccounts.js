@@ -30,6 +30,7 @@ export {
 export {
     openOnfidoFlow,
     activateWallet,
+    answerQuestionsForWallet,
     verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
