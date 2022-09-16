@@ -348,6 +348,7 @@ function setPassword(password, validateCode, accountID) {
             }
 
             // This request can fail if the password is not complex enough
+            // eslint-disable-next-line rulesdir/prefer-localization
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .finally(() => {
