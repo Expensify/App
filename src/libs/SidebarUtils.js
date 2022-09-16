@@ -19,7 +19,6 @@ Onyx.connect({
 let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    waitForCollectionCallback: true,
     callback: val => personalDetails = val,
 });
 
