@@ -157,7 +157,6 @@
     "electron": "^17.4.11",
     "electron-builder": "23.3.1",
     "electron-notarize": "^1.2.1",
-    "electron-reloader": "^1.2.1",
     "eslint": "^7.6.0",
     "eslint-config-expensify": "2.0.30",
     "eslint-loader": "^4.0.2",
