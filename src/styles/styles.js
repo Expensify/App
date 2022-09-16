@@ -2673,7 +2673,7 @@ const styles = {
     },
 
     addWorkspaceRoomErrorRow: {
-        padding: 20,
+        paddingHorizontal: 20,
         maxWidth: 450,
         alignSelf: 'center',
     },
