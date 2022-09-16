@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -15,16 +15,25 @@ import defaultTheme from '../../styles/themes/default';
 import FixedFooter from '../../components/FixedFooter';
 import Button from '../../components/Button';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import walletTermsPropTypes from './walletTermsPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The user's wallet */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
 };
 
 const defaultProps = {
     userWallet: {},
+    walletTerms: {
+        chatReportID: 0,
+    },
 };
 
 class ActivateStep extends React.Component {
@@ -35,6 +44,8 @@ class ActivateStep extends React.Component {
     }
 
     renderGoldWalletActivationStep() {
+        // The text of the "Continue" button depends on whether the action comes from an IOU (i.e. with an attached chat), or a balance transfer
+        const continueButtonText = this.props.walletTerms.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
         return (
             <>
                 <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -55,7 +66,7 @@ class ActivateStep extends React.Component {
                 </View>
                 <FixedFooter>
                     <Button
-                        text={this.props.translate('common.continue')}
+                        text={continueButtonText}
                         onPress={PaymentMethods.continueSetup}
                         style={[styles.mt4]}
                         iconStyles={[styles.mr5]}
@@ -88,5 +99,12 @@ class ActivateStep extends React.Component {
 
 ActivateStep.propTypes = propTypes;
 ActivateStep.defaultProps = defaultProps;
-ActivateStep.displayName = 'ActivateStep';
-export default withLocalize(ActivateStep);
+
+export default compose(
+    withLocalize,
+    withOnyx({
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
+        },
+    }),
+)(ActivateStep);

@@ -709,6 +709,8 @@ export default {
         activatedTitle: '¡Billetera  activada!',
         activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
         checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
+        continueToPayment: 'Continuar al pago',
+        continueToTransfer: 'Continuar a la transferencia',
     },
     companyStep: {
         headerTitle: 'Información de la empresa',
@@ -794,7 +796,6 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             settlementFrequency: 'Frecuencia de liquidación',
-            growlMessageOnCreate: 'El espacio de trabajo ha sido creado',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
@@ -804,7 +805,6 @@ export default {
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
-            genericFailureMessage: 'Se ha producido un error al intentar crear el espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
