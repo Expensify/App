@@ -38,7 +38,7 @@ class BasePicker extends React.Component {
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,
                 }}
-                ref={el => {
+                ref={(el) => {
                     if (!_.isFunction(this.props.innerRef)) {
                         return;
                     }
