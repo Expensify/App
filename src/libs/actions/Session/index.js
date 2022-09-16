@@ -250,9 +250,7 @@ function signIn(password, twoFactorAuthCode) {
                     Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: false});
                     return;
                 }
-
-                // eslint-disable-next-line rulesdir/prefer-localization
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: errorMessage}, isLoading: false});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}, isLoading: false});
                 return;
             }
 
