@@ -100,7 +100,7 @@ function getOrderedReportIDs() {
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const participants = (report && report.participants) || [];
+        const participants = report.participants || [];
 
         // Skip this report if it has no participants and if it's not a type of report supported in the LHN
         if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
@@ -121,9 +121,9 @@ function getOrderedReportIDs() {
             // not give archived rooms this exception since they do not need to be higlihted.
             && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
 
-        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID.toString() !== currentlyViewedReportID.toString()
+        if (report.reportID.toString() !== currentlyViewedReportID
             && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
