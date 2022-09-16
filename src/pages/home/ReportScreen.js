@@ -272,7 +272,7 @@ class ReportScreen extends React.Component {
                             />
                         </View>
                     )}
-                    {(!hideComposer) && (
+                    {(!hideComposer && this.props.session.shouldShowComposeInput) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                 <OfflineWithFeedback
