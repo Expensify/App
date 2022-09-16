@@ -1,7 +1,6 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -17,20 +16,17 @@ import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import walletTermsPropTypes from './walletTermsPropTypes';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
-    walletTerms: PropTypes.shape({
-        /** Any additional error message to show */
-        errors: PropTypes.objectOf(PropTypes.string),
-    }),
+    walletTerms: walletTermsPropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    walletTerms: {
-        errors: null,
-    },
+    walletTerms: {},
 };
 
 class TermsStep extends React.Component {
@@ -123,6 +119,7 @@ class TermsStep extends React.Component {
                             BankAccounts.acceptWalletTerms({
                                 hasAcceptedTerms: this.state.hasAcceptedDisclosure
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                                chatReportID: this.props.walletTerms.chatReportID,
                             });
                         }}
                         message={errorMessage}
@@ -142,6 +139,9 @@ export default compose(
     withOnyx({
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(TermsStep);
