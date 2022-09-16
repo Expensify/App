@@ -93,7 +93,7 @@ const HeaderView = (props) => {
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <Tooltip text={props.tooltipText}>
+                    <Tooltip text={props.translate('common.back')}>
                         <Pressable
                             onPress={props.onNavigationMenuButtonClicked}
                             style={[styles.LHNToggle]}

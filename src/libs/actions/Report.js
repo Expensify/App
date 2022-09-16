@@ -11,6 +11,7 @@ import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
+import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -25,7 +26,6 @@ import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as NumberUtils from '../NumberUtils';
-import Visibility from '../Visibility';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -805,7 +805,7 @@ function addActions(reportID, text = '', file) {
     const actionCount = text && file ? 2 : 1;
     const newSequenceNumber = highestSequenceNumber + actionCount;
 
-    // We guess at what these sequenceNumbers are to enable marking as unread while offline
+    // We're giving our best guess at what these sequenceNumbers are to enable marking as unread while offline.
     if (text && file) {
         reportCommentAction.sequenceNumber = highestSequenceNumber + 1;
         attachmentAction.sequenceNumber = highestSequenceNumber + 2;
