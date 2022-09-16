@@ -144,6 +144,7 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
+            value: props.comment,
         };
     }
 
@@ -311,9 +312,6 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         const newComment = this.comment.slice(0, this.state.selection.start)
             + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
         this.setState(prevState => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
@@ -372,9 +370,9 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
-        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+            value: newComment,
         });
 
         // Indicate that draft has been created.
@@ -627,7 +625,6 @@ class ReportActionCompose extends React.Component {
                                             this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        defaultValue={this.props.comment}
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
@@ -640,6 +637,7 @@ class ReportActionCompose extends React.Component {
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
                                         setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                         isComposerFullSize={this.props.isComposerFullSize}
+                                        value={this.state.value}
                                     />
                                 </View>
                             </>
