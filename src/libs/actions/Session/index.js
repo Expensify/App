@@ -250,7 +250,9 @@ function signIn(password, twoFactorAuthCode) {
                     Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: false});
                     return;
                 }
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}, isLoading: false});
+
+                // eslint-disable-next-line rulesdir/prefer-localization
+                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: errorMessage}, isLoading: false});
                 return;
             }
 
@@ -348,6 +350,7 @@ function setPassword(password, validateCode, accountID) {
             }
 
             // This request can fail if the password is not complex enough
+            // eslint-disable-next-line rulesdir/prefer-localization
             Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: response.message}});
         })
         .finally(() => {
