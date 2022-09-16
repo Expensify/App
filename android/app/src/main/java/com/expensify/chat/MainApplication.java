@@ -49,11 +49,6 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         protected String getJSMainModuleName() {
           return "index";
         }
-
-        @Override
-        protected JSIModulePackage getJSIModulePackage() {
-          return new ReanimatedJSIModulePackage();
-        }
       };
 
   // TODO: Use this to enable new architecture.
@@ -76,7 +71,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       // If you opted-in for the New Architecture, we enable the TurboModule system
       ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
       SoLoader.init(this, /* native exopackage */ false);
-      initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+     // initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
       if (BuildConfig.DEBUG) {
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
       }

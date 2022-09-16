@@ -103,7 +103,7 @@
     "react-native-plaid-link-sdk": "^7.2.0",
     "react-native-quick-sqlite": "^4.0.7",
     "react-native-quick-websql": "^0.2.0",
-    "react-native-reanimated": "2.9.1",
+    "react-native-reanimated": "2.10.0",
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-screens": "^3.10.1",
