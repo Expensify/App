@@ -24,7 +24,6 @@ import * as store from './store';
 */
 function updatePersonalInformationForBankAccount(params) {
     const bankAccount = store.getReimbursementAccountInSetup();
-    console.log(bankAccount);
     API.write('UpdatePersonalInformationForBankAccount', {bankAccountID: bankAccount.bankAccountID, additionalData: JSON.stringify(params)}, BankAccountUtils.getVBBADataForOnyx());
 }
 
