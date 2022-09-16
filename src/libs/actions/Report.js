@@ -1529,6 +1529,15 @@ function addWorkspaceRoom(policy, reportName, visibility) {
 }
 
 /**
+ * @param {Number} reportID The reportID of the workspace room
+ */
+function navigateToConciergeChatAndDeleteWorkspaceRoom(reportID) {
+    navigateToConciergeChat();
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
+}
+
+/**
  * @param {Object} policyRoomReport
  * @param {Number} policyRoomReport.reportID
  * @param {String} policyRoomReport.reportName
@@ -1732,6 +1741,7 @@ export {
     setReportWithDraft,
     createPolicyRoom,
     addWorkspaceRoom,
+    navigateToConciergeChatAndDeleteWorkspaceRoom,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,

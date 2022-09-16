@@ -10,10 +10,14 @@ import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
     /** The report currently being looked at */
     report: PropTypes.shape({
+        /** The id of the report */
+        reportID: PropTypes.number,
+
         /**  Avatars corresponding to a chat */
         icons: PropTypes.arrayOf(PropTypes.string),
 
@@ -45,6 +49,7 @@ const ReportActionItemCreated = (props) => {
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom')}
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom')}
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
+            onClose={() => Report.navigateToConciergeChatAndDeleteWorkspaceRoom(props.report.reportID)}
         >
             <View style={[
                 styles.chatContent,
