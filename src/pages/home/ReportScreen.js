@@ -266,12 +266,21 @@ class ReportScreen extends React.Component {
                                 isComposerFullSize={this.props.isComposerFullSize}
                             />
                         )}
-                    {isArchivedRoom && (
-                        <View style={styles.chatFooter}>
-                            <ArchivedReportFooter
-                                reportClosedAction={reportClosedAction}
-                                report={this.props.report}
-                            />
+                    {(isArchivedRoom || hideComposer) && (
+                        <View style={[styles.chatFooter]}>
+                            {isArchivedRoom && (
+                                <ArchivedReportFooter
+                                    reportClosedAction={reportClosedAction}
+                                    report={this.props.report}
+                                />
+                            )}
+                            {!this.props.isSmallScreenWidth && (
+                                <View style={styles.offlineIndicatorRow}>
+                                    {hideComposer && (
+                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                                    )}
+                                </View>
+                            )}
                         </View>
                     )}
                     {(!hideComposer && this.props.session.shouldShowComposeInput) && (
@@ -290,9 +299,6 @@ class ReportScreen extends React.Component {
                                 </OfflineWithFeedback>
                             </SwipeableView>
                         </View>
-                    )}
-                    {(hideComposer && !this.props.isSmallScreenWidth) && (
-                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow, styles.chatFooter]} />
                     )}
                 </View>
             </ScreenWrapper>
