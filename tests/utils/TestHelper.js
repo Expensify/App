@@ -137,7 +137,7 @@ function buildTestReportComment(actorEmail, sequenceNumber, timestamp) {
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         sequenceNumber,
         timestamp,
-        message: [{type: 'COMMENT', html: 'Comment 1', text: `Comment ${sequenceNumber}`}],
+        message: [{type: 'COMMENT', html: `Comment ${sequenceNumber}`, text: `Comment ${sequenceNumber}`}],
         reportActionID: NumberUtils.rand64(),
     };
 }

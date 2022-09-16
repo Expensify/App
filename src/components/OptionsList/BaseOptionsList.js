@@ -166,6 +166,7 @@ class BaseOptionsList extends Component {
     renderItem({item, index, section}) {
         return (
             <OptionRow
+                alternateTextAccessibilityLabel={this.props.optionRowAlternateTextAccessibilityLabel}
                 accessibilityHint={this.props.optionRowAccessibilityHint}
                 option={item}
                 mode={this.props.optionMode}

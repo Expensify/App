@@ -196,6 +196,7 @@ const OptionRow = (props) => {
                                 />
                                 {props.option.alternateText ? (
                                     <Text
+                                        accessibilityLabel={props.alternateTextAccessibilityLabel}
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
