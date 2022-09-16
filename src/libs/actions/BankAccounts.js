@@ -247,8 +247,11 @@ function mergeWithLocalACHData(data) {
  * @param {Boolean} [params.hasNoConnectionToCannabis]
  */
 function updateCompanyInformationForBankAccount(params) {
-    const achData = mergeWithLocalACHData(params);
-    API.write('UpdateCompanyInformationForBankAccount', achData, getVBBADataForOnyx());
+    API.write(
+        'UpdateCompanyInformationForBankAccount',
+        mergeWithLocalACHData(params),
+        getVBBADataForOnyx(),
+    );
 }
 
 export {
