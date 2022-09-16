@@ -538,6 +538,42 @@ function updateCurrentStep(currentStep) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
+/**
+ * @param {Array} answers
+ * @param {String} idNumber
+ */
+function answerQuestionsForWallet(answers, idNumber) {
+    const idologyAnswers = JSON.stringify(answers);
+    API.write('AnswerQuestionsForWallet',
+        {
+            idologyAnswers,
+            idNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                },
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+        });
+}
+
 export {
     openOnfidoFlow,
     activateWallet,
@@ -549,6 +585,7 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    answerQuestionsForWallet,
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
