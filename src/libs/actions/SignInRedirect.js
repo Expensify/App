@@ -3,7 +3,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
 // eslint-disable-next-line import/no-cycle
 import DateUtils from '../DateUtils';
-import * as Localize from '../Localize';
 
 let currentActiveClients;
 Onyx.connect({
