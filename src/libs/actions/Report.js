@@ -1494,26 +1494,6 @@ function addWorkspaceRoom(policy, reportName, visibility) {
             },
         },
     ];
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceRoom.reportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
-                },
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
-            value: {
-                0: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
 
     API.write(
         'AddWorkspaceRoom',
@@ -1523,7 +1503,7 @@ function addWorkspaceRoom(policy, reportName, visibility) {
             visibility,
             reportID: workspaceRoom.reportID,
         },
-        {optimisticData, successData, failureData},
+        {optimisticData, successData},
     );
     Navigation.navigate(ROUTES.getReportRoute(workspaceRoom.reportID));
 }

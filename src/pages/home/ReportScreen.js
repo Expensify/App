@@ -228,10 +228,10 @@ class ReportScreen extends React.Component {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
-        const hasAddWorkspaceRoomError = !_.isEmpty(lodashGet(this.props.report, 'errorFields.addWorkspaceRoom', {}));
+        const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
 
         // Hide the composer for an archived room or when there is an error adding the room
-        const hideComposer = isArchivedRoom || hasAddWorkspaceRoomError;
+        const hideComposer = isArchivedRoom || !_.isEmpty(addWorkspaceRoomErrors);
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -239,6 +239,8 @@ class ReportScreen extends React.Component {
             >
                 <OfflineWithFeedback
                     pendingAction={addWorkspaceRoomPendingAction}
+                    errors={addWorkspaceRoomErrors}
+                    errorRowStyles={styles.dNone}
                 >
                     <HeaderView
                         reportID={reportID}
