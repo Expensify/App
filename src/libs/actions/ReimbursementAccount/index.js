@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import validateBankAccount from './validateBankAccount';
-import setupWithdrawalAccount from './setupWithdrawalAccount';
+import {setupWithdrawalAccount, connectBankAccountManually} from './setupWithdrawalAccount';
 import fetchFreePlanVerifiedBankAccount from './fetchFreePlanVerifiedBankAccount';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
@@ -65,4 +65,5 @@ export {
     requestResetFreePlanBankAccount,
     cancelResetFreePlanBankAccount,
     deleteFromBankAccountList,
+    connectBankAccountManually,
 };
