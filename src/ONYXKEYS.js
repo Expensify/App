@@ -183,7 +183,6 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
-        VALIDATION_STEP_FORM: 'validationStepForm',
     },
 
     // Whether we should show the compose input or not

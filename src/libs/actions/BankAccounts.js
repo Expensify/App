@@ -174,8 +174,32 @@ function deletePaymentBankAccount(bankAccountID) {
 function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
     API.write('VerifyIdentityForBankAccount', {
         bankAccountID,
-        onfidoData: JSON.stringify(onfidoData),
-    }, getVBBADataForOnyx());
+        validateCode,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: true,
+                error: '',
+                errors: null,
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+    });
 }
 
 export {
@@ -189,3 +213,4 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
 };
+
