@@ -412,12 +412,6 @@ function Policy_Employees_Merge(parameters) {
     return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
-function BankAccount_Validate(parameters) {
-    const commandName = 'ValidateBankAccount';
-    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
-}
-
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -476,17 +470,6 @@ function GetLocalCurrency(parameters) {
  */
 function User_IsUsingExpensifyCard() {
     return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
- * @param {Object} parameters
- * @param {String} [parameters.type]
- * @param {String} [parameters.policyName]
- * @returns {Promise}
- */
-function Policy_Create(parameters) {
-    const commandName = 'Policy_Create';
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -603,7 +586,6 @@ function GetStatementPDF(parameters) {
 
 export {
     BankAccount_SetupWithdrawal,
-    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -640,7 +622,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    Policy_Create,
     Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,
