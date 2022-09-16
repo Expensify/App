@@ -2,6 +2,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
+import _ from 'underscore';
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
@@ -46,6 +47,12 @@ function getVBBADataForOnyx() {
     };
 }
 
+function getOnfidoSDKTokenFromACHData(achData) {
+    const sdkToken = _.get(achData, ['verifications', 'externalApiResponses', 'requestorIdentityOnfido', 'apiResult', 'sdkToken']);
+    return sdkToken ? sdkToken : achData.sdkToken;
+}
+
 export default {
     getVBBADataForOnyx,
+    getOnfidoSDKTokenFromACHData,
 };
