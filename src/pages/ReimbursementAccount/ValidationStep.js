@@ -143,7 +143,7 @@ class ValidationStep extends React.Component {
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <Form
-                        formID={ONYXKEYS.FORMS.VALIDATION_STEP_FORM}
+                        formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                         submitButtonText={this.props.translate('validationStep.buttonText')}
                         onSubmit={this.submit}
                         validate={this.validate}

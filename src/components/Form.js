@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../libs/compose';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -73,6 +74,11 @@ class Form extends React.Component {
      */
     setTouchedInput(inputID) {
         this.touchedInputs[inputID] = true;
+    }
+
+    getErrorMessage() {
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.formState);
+        return this.props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
     }
 
     submit() {
@@ -186,9 +192,9 @@ class Form extends React.Component {
                         {this.childrenWrapperWithProps(this.props.children)}
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage())}
                             isLoading={this.props.formState.isLoading}
-                            message={this.props.formState.error}
+                            message={this.getErrorMessage()}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
