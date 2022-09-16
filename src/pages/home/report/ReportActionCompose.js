@@ -190,6 +190,10 @@ class ReportActionCompose extends React.Component {
         ReportActionComposeFocusManager.clear();
     }
 
+    isNewChat() {
+        return _.size(this.props.reportActions) === 1;
+    }
+
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
     }
@@ -246,7 +250,7 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
 
-        if (_.size(this.props.reportActions) === 1) {
+        if (this.isNewChat()) {
             return this.props.translate('reportActionCompose.sayHello');
         }
 
@@ -592,7 +596,7 @@ class ReportActionCompose extends React.Component {
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
                                     <Composer
-                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1)}
+                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isNewChat())}
                                         multiline
                                         ref={this.setTextInputRef}
                                         textAlignVertical="top"
