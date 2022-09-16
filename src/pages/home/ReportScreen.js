@@ -264,36 +264,31 @@ class ReportScreen extends React.Component {
                                 isComposerFullSize={this.props.isComposerFullSize}
                             />
                         )}
-                    {(hideComposer || this.props.session.shouldShowComposeInput) && (
+                    {isArchivedRoom && (
+                        <ArchivedReportFooter
+                            reportClosedAction={reportClosedAction}
+                            report={this.props.report}
+                        />
+                    )}
+                    {(this.props.shouldShowComposeInput && !hideComposer) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            {isArchivedRoom && (
-                                <ArchivedReportFooter
-                                    reportClosedAction={reportClosedAction}
-                                    report={this.props.report}
-                                />
-                            )}
-                            {hideComposer
-                                ? (
-                                    !this.props.isSmallScreenWidth && (
-                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                    )
-                                )
-                                : (
-                                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                        <OfflineWithFeedback
-                                            pendingAction={addWorkspaceRoomPendingAction}
-                                        >
-                                            <ReportActionCompose
-                                                onSubmit={this.onSubmitComment}
-                                                reportID={reportID}
-                                                reportActions={this.props.reportActions}
-                                                report={this.props.report}
-                                                isComposerFullSize={this.props.isComposerFullSize}
-                                            />
-                                        </OfflineWithFeedback>
-                                    </SwipeableView>
-                                )}
+                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                <OfflineWithFeedback
+                                    pendingAction={addWorkspaceRoomPendingAction}
+                                >
+                                    <ReportActionCompose
+                                        onSubmit={this.onSubmitComment}
+                                        reportID={reportID}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                    />
+                                </OfflineWithFeedback>
+                            </SwipeableView>
                         </View>
+                    )}
+                    {(hideComposer && !this.props.isSmallScreenWidth) && (
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
                     )}
                 </View>
             </ScreenWrapper>
