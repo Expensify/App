@@ -34,25 +34,13 @@ class LHNOptionsList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
-        this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
-        this.didLayout = false;
-    }
-
-    onViewableItemsChanged() {
-        if (this.didLayout || !this.props.onLayout) {
-            return;
-        }
-
-        this.didLayout = true;
-        this.props.onLayout();
     }
 
     /**
-     * This function is used to compute the layout of any given item in our list.
-     * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
-     *
-     * @TODO: we can probably remove this method entirely since we don't need to scroll to items outside the virtual render window (was only used for arrow key navigation)
+     * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
+     * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
+     * lists.
      *
      * @param {Array} data - This is the same as the data we pass into the component
      * @param {Number} index the current item's index in the set of data
@@ -106,7 +94,7 @@ class LHNOptionsList extends Component {
                     maxToRenderPerBatch={5}
                     windowSize={5}
                     viewabilityConfig={this.viewabilityConfig}
-                    onViewableItemsChanged={this.onViewableItemsChanged}
+                    onLayout={this.props.onLayout}
                 />
             </View>
         );
