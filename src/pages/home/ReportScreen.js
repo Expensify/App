@@ -296,7 +296,7 @@ class ReportScreen extends React.Component {
                         </View>
                     )}
                     {(hideComposer && !this.props.isSmallScreenWidth) && (
-                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow, styles.chatFooter]} />
                     )}
                 </View>
             </ScreenWrapper>
