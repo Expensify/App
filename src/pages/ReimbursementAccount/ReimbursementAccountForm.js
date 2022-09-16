@@ -43,8 +43,6 @@ class ReimbursementAccountForm extends React.Component {
         const errors = lodashGet(this.props, 'reimbursementAccount.errors', {});
         const isErrorVisible = _.size(errors) > 0
             || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
-        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
-        const error = lodashGet(this.props, 'reimbursementAccount.error', '') || errorMessage;
         const currentStep = lodashGet(
             this.props,
             'reimbursementAccount.achData.currentStep',
