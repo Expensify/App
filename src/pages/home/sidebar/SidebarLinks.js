@@ -25,7 +25,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
-import withDrawerState from '../../../components/withDrawerState';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
@@ -222,7 +221,6 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
-    withDrawerState,
     withWindowDimensions,
     withOnyx({
         reports: {

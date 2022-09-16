@@ -61,5 +61,12 @@ mockImages('images/product-illustrations');
 jest.mock('../src/components/Icon/Expensicons', () => {
     const reduce = require('underscore').reduce;
     const Expensicons = jest.requireActual('../src/components/Icon/Expensicons');
-    return reduce(Expensicons, (prev, _curr, key) => ({...prev, [key]: () => ''}), {});
+    return reduce(Expensicons, (prev, _curr, key) => {
+        const fn = () => '';
+        Object.defineProperty(fn, 'name', {
+            value: key,
+            configurable: true,
+        });
+        return {...prev, [key]: fn};
+    }, {});
 });
