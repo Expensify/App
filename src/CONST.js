@@ -415,7 +415,7 @@ const CONST = {
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
+    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', loading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
