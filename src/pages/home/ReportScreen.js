@@ -265,12 +265,14 @@ class ReportScreen extends React.Component {
                             />
                         )}
                     {isArchivedRoom && (
-                        <ArchivedReportFooter
-                            reportClosedAction={reportClosedAction}
-                            report={this.props.report}
-                        />
+                        <View style={styles.chatFooter}>
+                            <ArchivedReportFooter
+                                reportClosedAction={reportClosedAction}
+                                report={this.props.report}
+                            />
+                        </View>
                     )}
-                    {(this.props.shouldShowComposeInput && !hideComposer) && (
+                    {(!hideComposer) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                 <OfflineWithFeedback
