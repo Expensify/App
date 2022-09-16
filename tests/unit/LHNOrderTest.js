@@ -300,47 +300,41 @@ describe('Sidebar', () => {
                 .then(sidebarLinks.unmount);
         });
 
-        // @TODO: this test broke after merging the PR which moved hasDraft onto the
-        // report object. Due to the difficulty of debugging setDerivedStateFromProps() (it's called dozens
-        // of times in this simple flow, with many different data formats that is difficult to reason
-        // about), the plan is to refactor and remove setDerivedStateFromProps(). As part of that refactor
-        // the goal will be to have this test running again.
-        // Also, it's important to note that while this test is broken, the UI works correctly when
-        // being tested manually (a real head-scratcher).
-        // test('doesn\'t change the order when adding a draft to the active report', () => {
-        //     // GIVEN the sidebar is rendered in default mode (most recent first)
-        //     // while currently viewing report 1
-        //     const sidebarLinks = getDefaultRenderedSidebarLinks();
-        //
-        //     return waitForPromisesToResolve()
-        //
-        //         // WHEN Onyx is updated with some personal details and multiple reports
-        //         // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
-        //         .then(() => Onyx.multiSet({
-        //             [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-        //             [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-        //             [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-        //             [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
-        //             [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-        //             [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-        //             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-        //             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-        //             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-        //         }))
-        //
-        //         // THEN there should be a pencil icon and report one should still be the last one
-        //         .then(() => {
-        //             const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
-        //             expect(pencilIcon).toHaveLength(1);
-        //
-        //             // console.log(sidebarLinks.toJSON().children[1].children[0].props.data[0].data)
-        //
-        //             // The reports should be in the order 3 > 2 > 1
-        //             const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-        //             expect(reportOptions).toHaveLength(3);
-        //             expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-        //         });
-        // });
+        test('doesn\'t change the order when adding a draft to the active report', () => {
+            // GIVEN the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+
+                // WHEN Onyx is updated with some personal details and multiple reports
+                // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                }))
+
+                // THEN there should be a pencil icon and report one should still be the last one because putting a draft on the active report should not change it's location
+                // in the ordered list
+                .then(() => {
+                    const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
+                    expect(pencilIcon).toHaveLength(1);
+
+                    // The reports should be in the order 3 > 2 > 1
+                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    expect(reportOptions).toHaveLength(3);
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                })
+
+                .then(sidebarLinks.unmount);
+        });
 
         test('reorders the reports to always have the most recently updated one on top', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks();
