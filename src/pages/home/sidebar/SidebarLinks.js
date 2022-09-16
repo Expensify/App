@@ -190,6 +190,7 @@ class SidebarLinks extends React.Component {
                     </TouchableOpacity>
                 </View>
                 <OptionsList
+                    optionRowAlternateTextAccessibilityLabel="Last chat message preview"
                     optionRowAccessibilityHint="Navigates to a chat"
                     contentContainerStyles={[
                         styles.sidebarListContainer,

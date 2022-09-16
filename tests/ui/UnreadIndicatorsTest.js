@@ -16,6 +16,7 @@ import * as AppActions from '../../src/libs/actions/App';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
+import * as CollectionUtils from '../../src/libs/CollectionUtils';
 
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
@@ -462,6 +463,59 @@ describe('Unread Indicators', () => {
                 // Verify the new line is cleared
                 unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
                 expect(unreadIndicator.length).toBe(0);
+            });
+    });
+
+    it('Displays the correct chat message preview in the LHN when a comment is added then deleted', () => {
+        let reportActions;
+        let lastReportAction;
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+            callback: val => reportActions = val,
+        });
+        let renderedApp;
+        return signInAndGetAppWithUnreadChat()
+            .then((testInstance) => {
+                renderedApp = testInstance;
+
+                // Navigate to the chat and simulate leaving a comment from the current user
+                return navigateToSidebarOption(renderedApp, 0);
+            })
+            .then(() => {
+                // Leave a comment as the current user
+                Report.addComment(REPORT_ID, 'Current User Comment 1');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Simulate the response from the server so that the comment can be deleted in this test
+                lastReportAction = {...CollectionUtils.lastItem(reportActions)};
+                delete lastReportAction[lastReportAction.clientID];
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    lastMessageText: lastReportAction.message[0].text,
+                    lastMessageTimestamp: lastReportAction.timestamp,
+                    lastActorEmail: lastReportAction.actorEmail,
+                    maxSequenceNumber: lastReportAction.sequenceNumber,
+                    reportID: REPORT_ID,
+                });
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                    [lastReportAction.clientID]: null,
+                    10: lastReportAction,
+                });
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Verify the chat preview text matches the last comment from the current user
+                const alternateText = renderedApp.queryAllByA11yLabel('Last chat message preview');
+                expect(alternateText.length).toBe(1);
+                expect(alternateText[0].props.children).toBe('Current User Comment 1');
+
+                Report.deleteReportComment(REPORT_ID, lastReportAction);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                const alternateText = renderedApp.queryAllByA11yLabel('Last chat message preview');
+                expect(alternateText.length).toBe(1);
+                expect(alternateText[0].props.children).toBe('Comment 9');
             });
     });
 });
