@@ -10,6 +10,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     wrapperStyle: stylePropTypes,
 
+    /** Used to apply offline styles to child text components */
+    style: stylePropTypes,
+
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 
@@ -67,9 +70,8 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
-    /** If we need to show a brick road indicator or not. For now only value allowed is `error`,
-     * but we will add `success` later for manual requests */
-    brickRoadIndicator: PropTypes.oneOf(['error']),
+    /** The type of brick road indicator to show. */
+    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
 };
 
 export default propTypes;

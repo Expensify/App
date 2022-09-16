@@ -20,27 +20,32 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
+        onyxData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.CREDENTIALS,
+                value: {
+                    login,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    validated: true,
+                },
+            },
+        ],
         jsonCode: 200,
-        accountExists: true,
-        requiresTwoFactorAuth: false,
-        normalizedLogin: login,
     }));
 
     // Simulate user entering their login and populating the credentials.login
-    Session.fetchAccountDetails(login);
+    Session.beginSignIn(login);
     return waitForPromisesToResolve()
         .then(() => {
-            // First call to Authenticate
+            // Response is the same for calls to Authenticate and CreateLogin
             HttpUtils.xhr
-                .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 200,
-                    accountID,
-                    authToken,
-                    email: login,
-                }))
-
-                // Next call to CreateLogin
-                .mockImplementationOnce(() => Promise.resolve({
+                .mockImplementation(() => Promise.resolve({
                     jsonCode: 200,
                     accountID,
                     authToken,
@@ -86,6 +91,7 @@ function setPersonalDetails(login, accountID) {
         accountID,
         login,
         avatar,
+        avatarThumbnail: avatar,
         displayName: 'Test User',
         firstName: 'Test',
         lastName: 'User',
@@ -93,7 +99,6 @@ function setPersonalDetails(login, accountID) {
         timezone: CONST.DEFAULT_TIME_ZONE,
         payPalMeAddress: '',
         phoneNumber: '',
-        avatarHighResolution: avatar,
     };
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
         [login]: details,

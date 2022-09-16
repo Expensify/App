@@ -11,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -28,6 +27,7 @@ import FormHelper from '../../libs/FormHelper';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -36,13 +36,13 @@ const propTypes = {
     /** Stores additional information about the additional details step e.g. loading state and errors with fields */
     walletAdditionalDetails: PropTypes.shape({
         /** Are we waiting for a response? */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
 
         /** Which field needs attention? */
         errorFields: PropTypes.objectOf(PropTypes.bool),
 
         /** Any additional error message to show */
-        additionalErrorMessage: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Questions returned by Idology */
         questions: PropTypes.arrayOf(PropTypes.shape({
@@ -54,8 +54,8 @@ const propTypes = {
         /** ExpectID ID number related to those questions */
         idNumber: PropTypes.string,
 
-        /** If we should ask for the full SSN (when LexisNexis failed retrieving the first 5 from the last 4) */
-        shouldAskForFullSSN: PropTypes.bool,
+        /** Error code to determine additional behavior */
+        errorCode: PropTypes.string,
     }),
 
     /** Stores the personal details typed by the user */
@@ -65,11 +65,11 @@ const propTypes = {
 const defaultProps = {
     walletAdditionalDetails: {
         errorFields: {},
-        loading: false,
-        additionalErrorMessage: '',
+        isLoading: false,
+        errors: {},
         questions: [],
         idNumber: '',
-        shouldAskForFullSSN: false,
+        errorCode: '',
     },
     walletAdditionalDetailsDraft: {
         legalFirstName: '',
@@ -184,7 +184,7 @@ class AdditionalDetailsStep extends React.Component {
             errors.phoneNumber = true;
         }
 
-        if (this.props.walletAdditionalDetails.shouldAskForFullSSN) {
+        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
                 errors.ssnFull9 = true;
             }
@@ -208,13 +208,11 @@ class AdditionalDetailsStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-
-        BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-            personalDetails: {
-                ...this.props.walletAdditionalDetailsDraft,
-                phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
-            },
-        });
+        const personalDetails = {
+            ...this.props.walletAdditionalDetailsDraft,
+            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
+        };
+        Wallet.updatePersonalDetails(personalDetails);
     }
 
     /**
@@ -264,10 +262,12 @@ class AdditionalDetailsStep extends React.Component {
             );
         }
 
+        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
         const isErrorVisible = _.size(this.getErrors()) > 0
-            || lodashGet(this.props, 'walletAdditionalDetails.additionalErrorMessage', '').length > 0;
-        const shouldAskForFullSSN = this.props.walletAdditionalDetails.shouldAskForFullSSN;
+            || !_.isEmpty(errors);
+        const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
 
         return (
             <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
@@ -364,10 +364,11 @@ class AdditionalDetailsStep extends React.Component {
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
-                            message={this.props.walletAdditionalDetails.additionalErrorMessage}
-                            isLoading={this.props.walletAdditionalDetails.loading}
+                            message={errorMessage}
+                            isLoading={this.props.walletAdditionalDetails.isLoading}
                             buttonText={this.props.translate('common.saveAndContinue')}
                         />
+                        <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>
             </ScreenWrapper>

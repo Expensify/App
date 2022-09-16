@@ -26,15 +26,6 @@ Request.use(Middleware.Retry);
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
- * @param {Object} parameters
- * @returns {Promise}
- */
-function AddBillingCard(parameters) {
-    const commandName = 'User_AddBillingCard';
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {{password: String, oldPassword: String}} parameters
  * @param {String} parameters.authToken
  * @param {String} parameters.password
@@ -96,17 +87,6 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.fundID
- * @returns {Promise}
- */
-function DeleteFund(parameters) {
-    const commandName = 'DeleteFund';
-    requireParameters(['fundID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -132,18 +112,6 @@ function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} parameters.forceNetworkRequest
- * @returns {Promise}
- */
-function GetAccountStatus(parameters) {
-    const commandName = 'GetAccountStatus';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -294,19 +262,6 @@ function Report_GetHistory(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Number} parameters.reportActionID
- * @param {String} parameters.reportComment
- * @returns {Promise}
- */
-function Report_EditComment(parameters) {
-    const commandName = 'Report_EditComment';
-    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -344,17 +299,6 @@ function SetPassword(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
- * @returns {Promise}
- */
-function User_ReopenAccount(parameters) {
-    const commandName = 'User_ReopenAccount';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -373,16 +317,6 @@ function User_UploadAvatar(parameters) {
     const commandName = 'User_UploadAvatar';
     requireParameters(['file'], parameters, commandName);
     return Network.post(commandName, parameters);
-}
-
-/**
- * Runs command that will fix malformed data in a users account and also run migrations.
- *
- * @returns {Promise}
- */
-function User_FixAccount() {
-    const commandName = 'User_FixAccount';
-    return Network.post(commandName);
 }
 
 /**
@@ -478,12 +412,6 @@ function Policy_Employees_Merge(parameters) {
     return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
-function BankAccount_Validate(parameters) {
-    const commandName = 'ValidateBankAccount';
-    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
-}
-
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -528,18 +456,6 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.bankAccountID
- * @param {String} parameters.ownerEmail
- * @returns {Promise}
- */
-function DeleteBankAccount(parameters) {
-    const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} [parameters.latitude]
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
@@ -554,29 +470,6 @@ function GetLocalCurrency(parameters) {
  */
 function User_IsUsingExpensifyCard() {
     return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
- * @param {Object} parameters
- * @param {String} [parameters.type]
- * @param {String} [parameters.policyName]
- * @returns {Promise}
- */
-function Policy_Create(parameters) {
-    const commandName = 'Policy_Create';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.value
- * @returns {Promise}
- */
-function Policy_CustomUnit_Update(parameters) {
-    const commandName = 'Policy_CustomUnit_Update';
-    requireParameters(['policyID', 'customUnit'], parameters, commandName);
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -666,19 +559,6 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
- * Renames a user-created policy room
- * @param {Object} parameters
- * @param {String} parameters.reportID
- * @param {String} parameters.reportName
- * @return {Promise}
- */
-function RenameReport(parameters) {
-    const commandName = 'RenameReport';
-    requireParameters(['reportID', 'reportName'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -705,19 +585,13 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    AddBillingCard,
     BankAccount_SetupWithdrawal,
-    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
     CreatePolicyRoom,
-    RenameReport,
-    DeleteFund,
     DeleteLogin,
-    DeleteBankAccount,
     Get,
-    GetAccountStatus,
     GetStatementPDF,
     GetIOUReport,
     GetFullPolicy,
@@ -733,17 +607,14 @@ export {
     Policy_Employees_Merge,
     RejectTransaction,
     Report_GetHistory,
-    Report_EditComment,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
     UpdatePolicy,
     User_SignUp,
     User_IsUsingExpensifyCard,
-    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
-    User_FixAccount,
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
@@ -751,8 +622,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    Policy_Create,
-    Policy_CustomUnit_Update,
     Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,

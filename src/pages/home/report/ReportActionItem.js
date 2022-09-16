@@ -31,6 +31,8 @@ import styles from '../../../styles/styles';
 import SelectionScraper from '../../../libs/SelectionScraper';
 import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReportActions from '../../../libs/actions/ReportActions';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -185,17 +187,30 @@ class ReportActionItem extends Component {
                                     (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
-                                {!this.props.displayAsGroup
-                                    ? (
-                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                            {children}
-                                        </ReportActionItemSingle>
-                                    )
-                                    : (
-                                        <ReportActionItemGrouped>
-                                            {children}
-                                        </ReportActionItemGrouped>
-                                    )}
+                                <OfflineWithFeedback
+                                    onClose={() => {
+                                        if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber);
+                                        } else {
+                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
+                                        }
+                                    }}
+                                    pendingAction={this.props.action.pendingAction}
+                                    errors={this.props.action.errors}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    {!this.props.displayAsGroup
+                                        ? (
+                                            <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
+                                                {children}
+                                            </ReportActionItemSingle>
+                                        )
+                                        : (
+                                            <ReportActionItemGrouped>
+                                                {children}
+                                            </ReportActionItemGrouped>
+                                        )}
+                                </OfflineWithFeedback>
                             </View>
                             <MiniReportActionContextMenu
                                 reportID={this.props.reportID}

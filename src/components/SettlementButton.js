@@ -8,8 +8,11 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -21,12 +24,19 @@ const propTypes = {
     /** Should we show paypal option */
     shouldShowPaypal: PropTypes.bool,
 
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
+    /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
+    chatReportID: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
+    chatReportID: 0,
 };
 
 class SettlementButton extends React.Component {
@@ -62,6 +72,10 @@ class SettlementButton extends React.Component {
         };
     }
 
+    componentDidMount() {
+        PaymentMethods.openPaymentsPage();
+    }
+
     render() {
         return (
             <KYCWall
@@ -69,10 +83,12 @@ class SettlementButton extends React.Component {
                 enablePaymentsRoute={this.props.enablePaymentsRoute}
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
+                isDisabled={this.props.network.isOffline}
+                chatReportID={this.props.chatReportID}
             >
                 {triggerKYCFlow => (
                     <ButtonWithMenu
-                        isDisabled={this.props.isDisabled}
+                        isDisabled={this.props.isDisabled || this.props.network.isOffline}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
                             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
@@ -96,6 +112,7 @@ SettlementButton.defaultProps = defaultProps;
 export default compose(
     withNavigation,
     withLocalize,
+    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,

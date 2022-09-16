@@ -18,12 +18,12 @@ import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
-import * as ValidationUtils from '../../ValidationUtils';
 import * as Authentication from '../../Authentication';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
+import DateUtils from '../../DateUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -45,28 +45,6 @@ function setSuccessfulSignInData(data) {
         shouldShowComposeInput: true,
         error: null,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
-    });
-}
-
-/**
- * Create an account for the user logging in.
- * This will send them a notification with a link to click on to validate the account and set a password
- *
- * @param {String} login
- */
-function createAccount(login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
-
-    DeprecatedAPI.User_SignUp({
-        email: login,
-    }).then((response) => {
-        // A 405 means that the account needs to be validated. We should let the user proceed to the ResendValidationForm view.
-        if (response.jsonCode === 200 || response.jsonCode === 405) {
-            return;
-        }
-
-        Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message || `Unknown API Error: ${response.jsonCode}`});
     });
 }
 
@@ -107,29 +85,38 @@ function signOutAndRedirectToSignIn() {
 }
 
 /**
- * Reopen the account and send the user a link to set password
- *
- * @param {String} [login]
- */
-function reopenAccount(login = credentials.login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    DeprecatedAPI.User_ReopenAccount({email: login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
-}
-
-/**
  * Resend the validation link to the user that is validating their account
  *
  * @param {String} [login]
  */
 function resendValidationLink(login = credentials.login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    DeprecatedAPI.ResendValidateCode({email: login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+
+    API.write('RequestAccountValidationLink', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -137,45 +124,42 @@ function resendValidationLink(login = credentials.login) {
  *
  * @param {String} login
  */
-function fetchAccountDetails(login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+function beginSignIn(login) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
 
-    DeprecatedAPI.GetAccountStatus({email: login, forceNetworkRequest: true})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {
-                    login: response.normalizedLogin,
-                });
-                Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    accountExists: response.accountExists,
-                    validated: response.validated,
-                    closed: response.isClosed,
-                    forgotPassword: false,
-                    validateCodeExpired: false,
-                });
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
-                if (!response.accountExists) {
-                    createAccount(login);
-                } else if (response.isClosed) {
-                    reopenAccount(login);
-                } else if (!response.validated) {
-                    resendValidationLink(login);
-                }
-            } else if (response.jsonCode === 402) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    error: ValidationUtils.isNumericWithSpecialChars(login)
-                        ? Localize.translateLocal('common.error.phoneNumber')
-                        : Localize.translateLocal('loginForm.error.invalidFormatEmailLogin'),
-                });
-            } else if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('session.offlineMessageRetry')});
-            } else {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
-            }
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
+                },
+            },
+        },
+    ];
+
+    API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -235,7 +219,7 @@ function createTemporaryLogin(authToken, email) {
             return createLoginResponse;
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 
@@ -248,7 +232,7 @@ function createTemporaryLogin(authToken, email) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     Authentication.Authenticate({
         useExpensifyLogin: true,
@@ -263,10 +247,10 @@ function signIn(password, twoFactorAuthCode) {
             if (response.jsonCode !== 200) {
                 const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
                 if (errorMessage === 'passwordForm.error.twoFactorAuthenticationEnabled') {
-                    Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, loading: false});
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: false});
                     return;
                 }
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(errorMessage), loading: false});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(errorMessage), isLoading: false});
                 return;
             }
 
@@ -283,7 +267,7 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} exitTo
  */
 function signInWithShortLivedToken(email, shortLivedToken) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     createTemporaryLogin(shortLivedToken, email)
         .then((response) => {
@@ -294,7 +278,7 @@ function signInWithShortLivedToken(email, shortLivedToken) {
             User.getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
         }).finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 
@@ -308,31 +292,33 @@ function resetPassword() {
     {
         optimisticData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
                     forgotPassword: true,
+                    message: null,
+                    errors: null,
                 },
             },
         ],
         successData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    validateCodeExpired: false,
+                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
                 },
             },
         ],
         failureData: [
             {
-                onyxMethod: 'merge',
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    validateCodeExpired: false,
+                    message: null,
                 },
             },
         ],
@@ -349,7 +335,7 @@ function resetPassword() {
  * @param {Number} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validateCodeExpired: false});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
     DeprecatedAPI.SetPassword({
         password,
         validateCode,
@@ -365,7 +351,7 @@ function setPassword(password, validateCode, accountID) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 
@@ -403,11 +389,16 @@ function cleanupSession() {
 }
 
 function clearAccountMessages() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        error: '',
+        success: '',
+        errors: [],
+        isLoading: false,
+    });
 }
 
 /**
- * Calls change password and signs if if successful. Otherwise, we request a new magic link
+ * Calls change password and signs if successful. Otherwise, we request a new magic link
  * if we know the account email. Otherwise or finally we redirect to the root of the nav.
  * @param {String} authToken
  * @param {String} password
@@ -419,7 +410,6 @@ function changePasswordAndSignIn(authToken, password) {
         password,
     })
         .then((responsePassword) => {
-            Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: null});
             if (responsePassword.jsonCode === 200) {
                 signIn(password);
                 return;
@@ -432,7 +422,7 @@ function changePasswordAndSignIn(authToken, password) {
             }
             if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 // authToken has expired, and we have the account email, so we request a new magic link.
-                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validateCodeExpired: true, error: null});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: null});
                 resetPassword();
                 Navigation.navigate(ROUTES.HOME);
                 return;
@@ -448,7 +438,6 @@ function changePasswordAndSignIn(authToken, password) {
  * @param {String} authToken
  */
 function validateEmail(accountID, validateCode) {
-    Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: true});
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
     DeprecatedAPI.ValidateEmail({
         accountID,
@@ -456,19 +445,16 @@ function validateEmail(accountID, validateCode) {
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.USER_SIGN_UP, {authToken: responseValidate.authToken});
-                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email});
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email, authToken: responseValidate.authToken});
                 return;
             }
             if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {accountExists: true, validated: true});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
             }
             if (responseValidate.jsonCode === 401) {
                 Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
             }
-        })
-        .finally(Onyx.merge(ONYXKEYS.USER_SIGN_UP, {isValidating: false}));
+        });
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -537,13 +523,12 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 }
 
 export {
-    fetchAccountDetails,
+    beginSignIn,
     setPassword,
     signIn,
     signInWithShortLivedToken,
     signOut,
     signOutAndRedirectToSignIn,
-    reopenAccount,
     resendValidationLink,
     resetPassword,
     clearSignInData,

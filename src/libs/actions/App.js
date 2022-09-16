@@ -6,18 +6,15 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
-import * as Report from './Report';
-import * as BankAccounts from './BankAccounts';
 import * as Policy from './Policy';
-import NetworkConnection from '../NetworkConnection';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
+import getCurrentUrl from '../Navigation/currentUrl';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -39,18 +36,21 @@ Onyx.connect({
 let myPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val[currentUserEmail],
-});
-
-const allPolicies = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!val || !key) {
+    callback: (val) => {
+        if (!val || !currentUserEmail) {
             return;
         }
 
-        allPolicies[key] = {...allPolicies[key], ...val};
+        myPersonalDetails = val[currentUserEmail];
+    },
+});
+
+let policyIDList = [];
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (policies) => {
+        policyIDList = _.compact(_.pluck(policies, 'id'));
     },
 });
 
@@ -99,37 +99,24 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- * @returns {Promise}
  */
-function getAppData() {
-    BankAccounts.fetchUserWallet();
-
-    // We should update the syncing indicator when personal details and reports are both done fetching.
-    return Promise.all([
-        Report.fetchAllReports(true),
-    ]);
-}
-
-/**
- * Gets a comma separated list of locally stored policy ids
- *
- * @param {Array} policies
- * @return {String}
- */
-function getPolicyIDList(policies) {
-    return _.chain(policies)
-        .filter(Boolean)
-        .map(policy => policy.id)
-        .join(',');
-}
-
-/**
- * Fetches data needed for app initialization
- * @param {Array} policies
- */
-function openApp(policies) {
-    API.read('OpenApp', {
-        policyIDList: getPolicyIDList(policies),
+function openApp() {
+    API.read('OpenApp', {policyIDList}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 
@@ -137,24 +124,23 @@ function openApp(policies) {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {
-        policyIDList: getPolicyIDList(allPolicies),
+    API.read('ReconnectApp', {policyIDList}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
-}
-
-/**
- * Run FixAccount to check if we need to fix anything for the user or run migrations. Reinitialize the data if anything changed
- * because some migrations might create new chat reports or their change data.
- */
-function fixAccountAndReloadData() {
-    DeprecatedAPI.User_FixAccount()
-        .then((response) => {
-            if (!response.changed) {
-                return;
-            }
-            Log.info('FixAccount found updates for this user, so data will be reinitialized', true, response);
-            getAppData();
-        });
 }
 
 /**
@@ -170,35 +156,28 @@ function fixAccountAndReloadData() {
  * will occur.
 
  * When the exitTo route is 'workspace/new', we create a new
- * workspace and navigate to it via Policy.createAndGetPolicyList.
+ * workspace and navigate to it
  *
  * We subscribe to the session using withOnyx in the AuthScreens and
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
- * @param {string} currentPath
  */
-function setUpPoliciesAndNavigate(session, currentPath) {
-    if (!session || !currentPath || !currentPath.includes('exitTo')) {
+function setUpPoliciesAndNavigate(session) {
+    const currentUrl = getCurrentUrl();
+    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
     }
 
-    let exitTo;
-    try {
-        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
-        exitTo = url.searchParams.get('exitTo');
-    } catch (error) {
-        // URLSearchParams is unsupported on iOS so we catch th error and
-        // silence it here since this is primarily a Web flow
-        return;
-    }
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const url = new URL(currentUrl);
+    const exitTo = url.searchParams.get('exitTo');
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createAndGetPolicyList();
+        Policy.createWorkspace();
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
@@ -245,18 +224,11 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-// When the app reconnects from being offline, fetch all initialization data
-NetworkConnection.onReconnect(() => {
-    getAppData();
-    reconnectApp();
-});
-
 export {
     setLocale,
     setSidebarLoaded,
-    getAppData,
-    fixAccountAndReloadData,
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
+    reconnectApp,
 };

@@ -147,7 +147,9 @@ class EmojiPickerMenu extends Component {
 
         this.keyDownHandler = (keyBoardEvent) => {
             if (keyBoardEvent.key.startsWith('Arrow')) {
-                keyBoardEvent.preventDefault();
+                if (!this.state.isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
+                    keyBoardEvent.preventDefault();
+                }
 
                 // Move the highlight when arrow keys are pressed
                 this.highlightAdjacentEmoji(keyBoardEvent.key);

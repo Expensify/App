@@ -6,6 +6,8 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import * as Report from '../../src/libs/actions/Report';
 
+const TEST_MAX_SEQUENCE_NUMBER = 10;
+
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS = {
@@ -16,7 +18,9 @@ describe('OptionsListUtils', () => {
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             reportName: 'Iron Man, Mister Fantastic',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+            hasDraft: true,
         },
         2: {
             lastVisitedTimestamp: 1610666739296,
@@ -25,7 +29,8 @@ describe('OptionsListUtils', () => {
             reportID: 2,
             participants: ['peterparker@expensify.com'],
             reportName: 'Spider-Man',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // This is the only report we are pinning in this test
@@ -36,7 +41,8 @@ describe('OptionsListUtils', () => {
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
             reportName: 'Mister Fantastic',
-            unreadActionCount: 0,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         4: {
             lastVisitedTimestamp: 1610666739298,
@@ -45,7 +51,8 @@ describe('OptionsListUtils', () => {
             reportID: 4,
             participants: ['tchalla@expensify.com'],
             reportName: 'Black Panther',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         5: {
             lastVisitedTimestamp: 1610666739299,
@@ -54,7 +61,8 @@ describe('OptionsListUtils', () => {
             reportID: 5,
             participants: ['suestorm@expensify.com'],
             reportName: 'Invisible Woman',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         6: {
             lastVisitedTimestamp: 1610666739300,
@@ -63,7 +71,8 @@ describe('OptionsListUtils', () => {
             reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
-            unreadActionCount: 0,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // Note: This report has the largest lastMessageTimestamp
@@ -74,7 +83,8 @@ describe('OptionsListUtils', () => {
             reportID: 7,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // Note: This report has no lastMessageTimestamp
@@ -85,7 +95,8 @@ describe('OptionsListUtils', () => {
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
             reportName: 'Silver Surfer',
-            unreadActionCount: 0,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // Note: This report has an IOU
@@ -96,7 +107,8 @@ describe('OptionsListUtils', () => {
             reportID: 9,
             participants: ['mistersinister@marauders.com'],
             reportName: 'Mister Sinister',
-            unreadActionCount: 0,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
             iouReportID: 100,
             hasOutstandingIOU: true,
         },
@@ -112,6 +124,8 @@ describe('OptionsListUtils', () => {
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
@@ -172,7 +186,8 @@ describe('OptionsListUtils', () => {
             reportID: 11,
             participants: ['concierge@expensify.com'],
             reportName: 'Concierge',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
@@ -185,7 +200,8 @@ describe('OptionsListUtils', () => {
             reportID: 12,
             participants: ['chronos@expensify.com'],
             reportName: 'Chronos',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
@@ -198,7 +214,8 @@ describe('OptionsListUtils', () => {
             reportID: 13,
             participants: ['receipts@expensify.com'],
             reportName: 'Receipts',
-            unreadActionCount: 1,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
@@ -211,7 +228,8 @@ describe('OptionsListUtils', () => {
             reportID: 14,
             participants: ['d_email@email.com'],
             reportName: 'D report name',
-            unreadActionCount: 0,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         15: {
             lastVisitedTimestamp: 1610666732302,
@@ -220,7 +238,8 @@ describe('OptionsListUtils', () => {
             reportID: 15,
             participants: ['z_email@email.com'],
             reportName: 'Z Report Name',
-            unreadActionCount: 0,
+            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
@@ -683,6 +702,7 @@ describe('OptionsListUtils', () => {
                     personalDetailsWithNewParticipant,
                     0,
                     CONST.PRIORITY_MODE.DEFAULT,
+                    [],
                 );
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
@@ -696,19 +716,17 @@ describe('OptionsListUtils', () => {
                 expect(results.personalDetails.length).toBe(0);
 
                 // And the most recent pinned report is first in the list of reports
-                let index = 0;
-                expect(results.recentReports[index].text).toBe('Captain Britain');
-                expect(results.recentReports[index].login).toBe('captain_britain@expensify.com');
+                expect(results.recentReports[0].text).toBe('Captain Britain');
+                expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
 
                 // And the third report is the report with an IOU debt
-                index += 2;
-                expect(results.recentReports[index].login).toBe('mistersinister@marauders.com');
+                expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
 
                 // And the fourth report is the report with a draft comment
-                expect(results.recentReports[++index].text).toBe('Iron Man, Mister Fantastic');
+                expect(results.recentReports[3].text).toBe('Iron Man, Mister Fantastic');
 
                 // And the fifth report is the report with the lastMessage timestamp
-                expect(results.recentReports[++index].login).toBe('steverogers@expensify.com');
+                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
 
                 expect(_.last(results.recentReports).text).toBe("SHIELD's workspace");
             });
@@ -718,7 +736,13 @@ describe('OptionsListUtils', () => {
         () => Report.setReportWithDraft(1, true)
             .then(() => {
                 // When we call getSidebarOptions() with no search value
-                const results = OptionsListUtils.getSidebarOptions(REPORTS_WITH_MORE_PINS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
+                const results = OptionsListUtils.getSidebarOptions(
+                    REPORTS_WITH_MORE_PINS,
+                    PERSONAL_DETAILS,
+                    0,
+                    CONST.PRIORITY_MODE.GSD,
+                    [],
+                );
 
                 // Then expect all of the reports to be shown both multiple and single participant except the
                 // report that has no lastMessageTimestamp and the chat with Thor who's message is read
@@ -775,7 +799,8 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 10,
                 reportName: '',
-                unreadActionCount: 0,
+                lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
                 visibility: undefined,
             },
 
@@ -791,7 +816,8 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 11,
                 reportName: '',
-                unreadActionCount: 0,
+                lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
                 visibility: undefined,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
@@ -808,7 +834,8 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 12,
                 reportName: '#admins',
-                unreadActionCount: 0,
+                lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
                 visibility: undefined,
             },
 
@@ -823,7 +850,8 @@ describe('OptionsListUtils', () => {
                 policyID: 'ABC123',
                 reportID: 13,
                 reportName: '#admins',
-                unreadActionCount: 0,
+                lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
                 visibility: undefined,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
@@ -836,6 +864,7 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS,
             0,
             CONST.PRIORITY_MODE.DEFAULT,
+            [],
         );
 
         // Then expect all of the reports to be shown except the archived policyExpenseChats and defaultRooms

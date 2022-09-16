@@ -31,11 +31,14 @@
 These instructions should get you set up ready to work on New Expensify 🙌
 
 ## Getting Started
-1. Install `node` & `npm`: `brew install node`
+1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
+
+## Recommended `node` setup
+In order to have more consistent builds, we use a strict `node` and `npm` version as defined in the `package.json` `engines` field and `.nvmrc` file. `npm install` will fail if you do not use the version defined, so it is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
@@ -48,7 +51,6 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
-
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`
@@ -65,7 +67,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into CORS errors like (in the browser dev console)
    ```sh
-   Access to fetch at 'https://www.expensify.com/api?command=GetAccountStatus' from origin 'http://localhost:8080' has been blocked by CORS policy
+   Access to fetch at 'https://www.expensify.com/api?command=BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
    ```
    You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
 
@@ -93,7 +95,6 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 
-
 ----
 
 # Running the tests
@@ -118,8 +119,12 @@ Alternatively, you can also set up debugger using [Flipper](https://fbflipper.co
 Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
 1. Navigate to `chrome://inspect`
 2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
-3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
+3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
+
+## Web
+
+To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
 
 ---
 
@@ -164,7 +169,7 @@ That action will then call `Onyx.merge()` to [set default data and a loading sta
 
 ```js
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
     Authentication.Authenticate({
         ...defaultParams,
         password,
@@ -177,7 +182,7 @@ function signIn(password, twoFactorAuthCode) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message});
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         });
 }
 ```
@@ -188,7 +193,7 @@ Keeping our `Onyx.merge()` out of the view layer and in actions helps organize t
 // Bad
 validateAndSubmitForm() {
     // validate...
-    this.setState({loading: true});
+    this.setState({isLoading: true});
     signIn()
         .then((response) => {
             if (result.jsonCode === 200) {
@@ -198,7 +203,7 @@ validateAndSubmitForm() {
             this.setState({error: response.message});
         })
         .finally(() => {
-            this.setState({loading: false});
+            this.setState({isLoading: false});
         });
 }
 
@@ -216,9 +221,9 @@ created to house a collection of items in plural form and using camelCase (eg: p
 - components: React native components that are re-used in several places.
 - libs: Library classes/functions, these are not React native components (ie: they are not UI)
 - pages: These are components that define pages in the app. The component that defines the page itself should be named
-`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
+`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`
 - styles: These files define styles used among components/pages
-- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo.
+- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo
 
 **Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
 
@@ -324,7 +329,7 @@ This application is built with the following principles.
 
 1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
+    1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
 

@@ -50,21 +50,21 @@ function updatePassword(oldPassword, password) {
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {...CONST.DEFAULT_ACCOUNT_DATA, loading: true},
+                value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
             },
         ],
         successData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {loading: false},
+                value: {isLoading: false},
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
-                value: {loading: false},
+                value: {isLoading: false},
             },
         ],
     });
@@ -177,7 +177,7 @@ function updateNewsletterSubscription(isSubscribed) {
  * @returns {Promise}
  */
 function setSecondaryLoginAndNavigate(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     return DeprecatedAPI.User_SecondaryLogin_Send({
         email: login,
@@ -202,7 +202,7 @@ function setSecondaryLoginAndNavigate(login, password) {
 
         Onyx.merge(ONYXKEYS.USER, {error});
     }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
     });
 }
 
@@ -215,7 +215,7 @@ function setSecondaryLoginAndNavigate(login, password) {
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     DeprecatedAPI.ValidateEmail({
         accountID,
@@ -236,7 +236,7 @@ function validateLogin(accountID, validateCode) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error});
         }
     }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         Navigation.navigate(redirectRoute);
     });
 }
@@ -426,10 +426,10 @@ function updateChatPriorityMode(mode) {
 }
 
 /**
- * @param {Boolean} shouldUseSecureStaging
+ * @param {Boolean} shouldUseStagingServer
  */
-function setShouldUseSecureStaging(shouldUseSecureStaging) {
-    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
+function setShouldUseStagingServer(shouldUseStagingServer) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 
 function clearUserErrorMessage() {
@@ -484,7 +484,7 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
-    setShouldUseSecureStaging,
+    setShouldUseStagingServer,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,

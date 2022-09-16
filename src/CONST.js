@@ -14,7 +14,7 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml'],
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
         // 50 megabytes in bytes
         MAX_SIZE: 52428800,
@@ -52,8 +52,6 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
-            MAX_VALIDATION_ATTEMPTS_REACHED: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
-            INCORRECT_VALIDATION_AMOUNTS: 'The validate code you entered is incorrect, please try again.',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -97,6 +95,7 @@ const CONST = {
         STATE: {
             VERIFYING: 'VERIFYING',
             PENDING: 'PENDING',
+            OPEN: 'OPEN',
         },
         MAX_LENGTH: {
             SSN: 4,
@@ -232,7 +231,6 @@ const CONST = {
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
-    STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -268,6 +266,7 @@ const CONST = {
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
+                TEXT: 'TEXT',
             },
         },
         TYPE: {
@@ -280,6 +279,13 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        },
+        WORKSPACE_CHAT_ROOMS: {
+            ANNOUNCE: '#announce',
+            ADMINS: '#admins',
+        },
+        STATE: {
+            SUBMITTED: 'SUBMITTED',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -343,6 +349,7 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
+        SIDEBAR_LINKS_FILTER_REPORTS: 'sidebar_links_filter_reports',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
@@ -507,6 +514,7 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+        GUIDES_DOMAIN: 'team.expensify.com',
     },
 
     ENVIRONMENT: {
@@ -539,6 +547,10 @@ const CONST = {
             },
         },
         ERROR: {
+            // If these get updated, we need to update the codes on the Web side too
+            SSN: 'ssnError',
+            KBA: 'kbaNeeded',
+            KYC: 'kycFailed',
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
@@ -636,6 +648,9 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        REPORT_ACTION_TYPE: {
+            PAY: 'pay',
+        },
         AMOUNT_MAX_LENGTH: 10,
     },
 
@@ -654,11 +669,18 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+            CORPORATE: 'corporate',
+            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
         },
         ROOM_PREFIX: '#',
+        CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
+    },
+
+    CUSTOM_UNITS: {
+        NAME_DISTANCE: 'Distance',
     },
 
     TERMS: {
@@ -702,7 +724,6 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -753,6 +774,7 @@ const CONST = {
     // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
     MAX_COMMENT_LENGTH: 60000,
 
+    FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -776,6 +798,34 @@ const CONST = {
         ADD: 'add',
         DELETE: 'delete',
         UPDATE: 'update',
+    },
+    BRICK_ROAD_INDICATOR_STATUS: {
+        ERROR: 'error',
+    },
+    REPORT_DETAILS_MENU_ITEM: {
+        MEMBERS: 'member',
+        SETTINGS: 'settings',
+        INVITE: 'invite',
+        LEAVE_ROOM: 'leaveRoom',
+    },
+    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+
+    // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
+    // generate them each with a random number generator with only 32-bits of precision.
+    MAX_64BIT_LEFT_PART: 92233,
+    MAX_64BIT_MIDDLE_PART: 7203685,
+    MAX_64BIT_RIGHT_PART: 4775807,
+
+    // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
+    MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
+    IOS_KEYBOARD_SPACE_OFFSET: -30,
+
+    PDF_PASSWORD_FORM: {
+        // Constants for password-related error responses received from react-pdf.
+        REACT_PDF_PASSWORD_RESPONSES: {
+            NEED_PASSWORD: 1,
+            INCORRECT_PASSWORD: 2,
+        },
     },
 };
 
