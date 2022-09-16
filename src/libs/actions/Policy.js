@@ -255,17 +255,17 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key containing {pendingAction: ‘add’}
-            value: _.object(logins, Array(logins.length).fill({pendingAction: 'add'})),
+            value: _.object(logins, Array(logins.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
     ];
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key clearing pendingAction. We don’t
@@ -276,7 +276,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key containing the error. We don’t
