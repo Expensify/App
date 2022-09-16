@@ -129,15 +129,6 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     *
-     * @returns {Array}
-     */
-    createPaymentMethodList() {
-        return this.getFilteredPaymentMethods();
-    }
-
-    /**
      * Dismisses the error on the payment method
      * @param {Object} item
      */
@@ -202,7 +193,7 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * Create a component if the list is empty
+     * Show add first payment copy when payment methods are
      *
      * @return {React.Component}
      */
@@ -220,7 +211,7 @@ class PaymentMethodList extends Component {
         return (
             <>
                 <FlatList
-                    data={this.createPaymentMethodList()}
+                    data={this.getFilteredPaymentMethods()}
                     renderItem={this.renderItem}
                     keyExtractor={item => item.key}
                     ListEmptyComponent={this.renderListEmptyComponent()}
