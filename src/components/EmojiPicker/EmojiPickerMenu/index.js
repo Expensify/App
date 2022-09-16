@@ -440,6 +440,7 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
                 onHover={() => this.setState({highlightedIndex: index})}
+                onHoverOut={() => this.setState({highlightedIndex: -1})}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
             />
