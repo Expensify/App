@@ -1,0 +1,65 @@
+diff --git a/node_modules/react-native-quick-websql/src/sqlite-database.ts b/node_modules/react-native-quick-websql/src/sqlite-database.ts
+index 3131d72..01d3421 100644
+--- a/node_modules/react-native-quick-websql/src/sqlite-database.ts
++++ b/node_modules/react-native-quick-websql/src/sqlite-database.ts
+@@ -28,31 +28,39 @@ class SQLiteDatabase {
+     _readOnly: boolean,
+     callback: NodeCallback<SQLResultSet[]>
+   ) {
+-    try {
+-      const results: SQLResultSet[] = []
++      const results: SQLResultSet[] = new Array(queries.length).fill(null);
++      let index = 0;
++      let left = queries.length;
++
+       for (const { sql, args } of queries) {
+-        const response = QuickSQLite.executeSql(this._name, sql, args)
+-        const rows: SQLResultSetRowList = Object.assign(
+-          [...(response.rows?._array || [])],
+-          {
+-            item(this: SQLResultSetRowList, idx: number) {
+-              this[idx]
+-            },
++        const ind = index++;
++        QuickSQLite.asyncExecuteSql(this._name, sql, args, (response) => {
++          if (response.status != 0) {
++            callback(massageError(response.message as string));
++          }
++          const rows: SQLResultSetRowList = Object.assign(
++            [...(response.rows?._array || [])],
++            {
++              item(this: SQLResultSetRowList, idx: number) {
++                this[idx]
++              },
++            }
++          )
++  
++          const resultSet: SQLResultSet = {
++            insertId: response.insertId || 0,
++            rowsAffected: response.rowsAffected,
++            rows: rows,
+           }
+-        )
+-
+-        const resultSet: SQLResultSet = {
+-          insertId: response.insertId || 0,
+-          rowsAffected: response.rowsAffected,
+-          rows: rows,
+-        }
+-        results.push(resultSet)
++          results[ind] = resultSet;
++          left--;
++          if (left === 0) {
++            callback(undefined, results);
++          }
++        });
++      
+       }
+-      callback(undefined, results)
+-    } catch (e) {
+-      callback(massageError(e as Error))
+     }
+-  }
+ }
+ 
+ export default SQLiteDatabase
