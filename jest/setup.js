@@ -16,13 +16,6 @@ jest.mock('react-native-reanimated', () => {
     return Reanimated;
 });
 
-// <App> uses <ErrorBoundary> and we need to mock the imported crashlytics module
-// due to an error that happens otherwise https://github.com/invertase/react-native-firebase/issues/2475
-jest.mock('@react-native-firebase/crashlytics', () => () => ({
-    log: jest.fn(),
-    recordError: jest.fn(),
-}));
-
 // The main app uses a NativeModule called BootSplash to show/hide a splash screen. Since we can't use this in the node environment
 // where tests run we simulate a behavior where the splash screen is always hidden (similar to web which has no splash screen at all).
 jest.mock('../src/libs/BootSplash', () => ({
