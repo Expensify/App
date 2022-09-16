@@ -30,6 +30,9 @@ const propTypes = {
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
+
+    /** A callback method that is called when the value changes and it received the selected value as an argument */
+    onInputChange: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -48,6 +51,23 @@ class Picker extends PureComponent {
         this.state = {
             isOpen: false,
         };
+
+        this.onInputChange = this.onInputChange.bind(this);
+    }
+
+    /**
+     * Forms use inputID to set values. But Picker passes an index as the second parameter to onInputChange
+     * We are overriding this behavior to make Picker work with Form
+     * @param {String} value
+     * @param {Number} index
+     */
+    onInputChange(value, index) {
+        if (this.props.inputID) {
+            this.props.onInputChange(value, this.props.inputID);
+            return;
+        }
+
+        this.props.onInputChange(value, index);
     }
 
     render() {
@@ -73,6 +93,7 @@ class Picker extends PureComponent {
                         value={this.props.value}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
+                        onInputChange={this.onInputChange}
                     />
                 </View>
                 <InlineErrorText styles={[styles.mh3]}>
