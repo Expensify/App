@@ -34,7 +34,6 @@ class LHNOptionsList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
-        this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
     }
 
     /**
@@ -93,7 +92,6 @@ class LHNOptionsList extends Component {
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
                     windowSize={5}
-                    viewabilityConfig={this.viewabilityConfig}
                     onLayout={this.props.onLayout}
                 />
             </View>
