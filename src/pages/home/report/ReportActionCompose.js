@@ -190,10 +190,6 @@ class ReportActionCompose extends React.Component {
         ReportActionComposeFocusManager.clear();
     }
 
-    isEmptyChat() {
-        return _.size(this.props.reportActions) === 1;
-    }
-
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
     }
@@ -305,6 +301,10 @@ class ReportActionCompose extends React.Component {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
         this.setState({maxLines});
+    }
+
+    isEmptyChat() {
+        return _.size(this.props.reportActions) === 1;
     }
 
     /**
