@@ -260,7 +260,9 @@ describe('Sidebar', () => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
                     expect(sidebarLinks.toJSON().children.length).toBe(2);
                     expect(sidebarLinks.getAllByText('ReportID, One')).toHaveLength(1);
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
 
         test('orders items with most recently updated on top', () => {
@@ -293,7 +295,9 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
 
         // @TODO: this test broke after merging the PR which moved hasDraft onto the
@@ -369,7 +373,9 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
 
         test('reorders the reports to keep draft reports on top', () => {
@@ -404,7 +410,9 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
 
         test('removes the pencil icon when draft is removed', () => {
@@ -438,7 +446,9 @@ describe('Sidebar', () => {
                 // THEN the pencil icon goes away
                 .then(() => {
                     expect(sidebarLinks.queryAllByAccessibilityHint('Pencil Icon')).toHaveLength(0);
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
 
         test('removes the pin icon when chat is unpinned', () => {
@@ -471,11 +481,13 @@ describe('Sidebar', () => {
                 // THEN the pencil icon goes away
                 .then(() => {
                     expect(sidebarLinks.queryAllByAccessibilityHint('Pin Icon')).toHaveLength(0);
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
 
         test('puts draft reports at the top when the page refreshes', () => {
-            getDefaultRenderedSidebarLinks();
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
             let sidebarAfterRefresh;
 
             return waitForPromisesToResolve()
@@ -513,6 +525,11 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                })
+
+                .then(() => {
+                    sidebarLinks.unmount();
+                    sidebarAfterRefresh.unmount();
                 });
         });
 
@@ -551,7 +568,9 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
     });
 
@@ -606,7 +625,9 @@ describe('Sidebar', () => {
                 .then(() => {
                     expect(sidebarLinks.queryAllByText(/ReportID, /)).toHaveLength(2);
                     expect(sidebarLinks.queryAllByText(/ReportID, One/)).toHaveLength(0);
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
 
         it('alphabetizes chats', () => {
@@ -648,7 +669,6 @@ describe('Sidebar', () => {
                 }))
 
                 // THEN they are still in alphabetical order
-
                 .then(() => {
                     const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
                     expect(reportOptions).toHaveLength(4);
@@ -656,7 +676,9 @@ describe('Sidebar', () => {
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[3].children[0].props.children).toBe('ReportID, Two');
-                });
+                })
+
+                .then(sidebarLinks.unmount);
         });
     });
 });
