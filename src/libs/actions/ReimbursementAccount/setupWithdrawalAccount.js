@@ -132,7 +132,7 @@ function mergeParamsWithLocalACHData(data) {
     return updatedACHData;
 }
 
-function getVBADataForOnyx() {
+function getVBBADataForOnyx() {
     return {
         optimisticData: [
             {
@@ -173,15 +173,15 @@ function getVBADataForOnyx() {
  *
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
- * @param {Boolean} [acceptTerms]
+ * @param {String} [plaidMask]
  *
  */
-function connectBankAccountManually(accountNumber, routingNumber, acceptTerms) {
+function connectBankAccountManually(accountNumber, routingNumber, plaidMask) {
     API.write('ConnectBankAccountManually', {
         accountNumber,
         routingNumber,
-        acceptTerms,
-    }, getVBADataForOnyx());
+        plaidMask,
+    }, getVBBADataForOnyx());
 }
 
 /**

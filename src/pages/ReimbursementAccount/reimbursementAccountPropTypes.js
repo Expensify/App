@@ -27,9 +27,10 @@ export default PropTypes.shape({
     /** Alert message to display above submit button */
     error: PropTypes.string,
 
-    /** Which field needs attention? */
-    errorFields: PropTypes.objectOf(PropTypes.bool),
-
-    /** Any additional error message to show */
-    errors: PropTypes.objectOf(PropTypes.string),
+    /** Object containing various errors. We'll remove the bool options after refactoring */
+    errors: PropTypes.objectOf(PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.bool,
+        PropTypes.arrayOf(PropTypes.objectOf(PropTypes.bool)),
+    ])),
 });
