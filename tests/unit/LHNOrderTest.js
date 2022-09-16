@@ -198,6 +198,16 @@ function getDefaultRenderedSidebarLinks() {
     ));
 }
 
+jest.mock('@react-navigation/drawer', () => {
+    const drawer = jest.requireActual('@react-navigation/drawer');
+    return {
+        ...drawer,
+        useDrawerStatus() {
+            return 'open';
+        },
+    };
+});
+
 describe('Sidebar', () => {
     describe('in default mode', () => {
         // Clear out Onyx after each test so that each test starts with a clean slate
