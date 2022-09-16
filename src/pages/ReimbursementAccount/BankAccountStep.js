@@ -137,7 +137,7 @@ class BankAccountStep extends React.Component {
         BankAccounts.connectBankAccountManually(
             this.state.accountNumber,
             this.state.routingNumber,
-            this.state.hasAcceptedTerms,
+            '',
         );
     }
 
@@ -179,7 +179,9 @@ class BankAccountStep extends React.Component {
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
         const plaidDesktopMessage = getPlaidDesktopMessage();
         const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
-        const error = lodashGet(this.props, 'reimbursementAccount.error', '');
+        const errors = lodashGet(this.props, 'reimbursementAccount.errors', {});
+        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
+        const error = lodashGet(this.props, 'reimbursementAccount.error', '') || errorMessage;
         const loading = lodashGet(this.props, 'reimbursementAccount.loading', false);
         const validated = lodashGet(this.props, 'user.validated', false);
         return (
