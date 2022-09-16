@@ -10,8 +10,13 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import Tooltip from '../Tooltip';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import styles from '../../styles/styles';
-import withWindowDimensions from '../withWindowDimensions';
-import {propTypes, defaultProps} from './anchorForCommentsOnlyPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps} from './anchorForCommentsOnlyPropTypes';
+
+const propTypes = {
+    ...anchorForCommentsOnlyPropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 /*
  * This is a default anchor component for regular links.
