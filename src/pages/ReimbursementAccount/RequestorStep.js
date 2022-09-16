@@ -23,6 +23,7 @@ import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Link from '../../libs/actions/Link';
+import BankAccountUtils from '../../libs/BankAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -154,10 +155,10 @@ class RequestorStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
+                {this.props.achData.useOnfido && BankAccountUtils.getOnfidoSDKTokenFromACHData(this.props.achData) && !this.state.isOnfidoSetupComplete ? (
                     <ScrollView contentContainerStyle={styles.flex1}>
                         <Onfido
-                            sdkToken={this.props.achData.sdkToken}
+                            sdkToken={BankAccountUtils.getOnfidoSDKTokenFromACHData(this.props.achData)}
                             onUserExit={() => {
                             // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
                                 BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);

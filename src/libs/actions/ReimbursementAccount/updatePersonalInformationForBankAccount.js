@@ -1,5 +1,6 @@
 import * as API from '../../API';
 import BankAccountUtils from '../../BankAccountUtils';
+import * as store from './store';
 
 /**
 * Update the user's personal information on the bank account in database.
@@ -22,7 +23,9 @@ import BankAccountUtils from '../../BankAccountUtils';
 * @param {Boolean} [params.isOnfidoSetupComplete]
 */
 function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, BankAccountUtils.getVBBADataForOnyx());
+    const bankAccount = store.getReimbursementAccountInSetup();
+    console.log(bankAccount);
+    API.write('UpdatePersonalInformationForBankAccount', {bankAccountID: bankAccount.bankAccountID, additionalData: JSON.stringify(params)}, BankAccountUtils.getVBBADataForOnyx());
 }
 
 export default updatePersonalInformationForBankAccount;
