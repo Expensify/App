@@ -13,3 +13,14 @@ jest.mock('../src/libs/Notification/PushNotification', () => ({
 }));
 
 jest.mock('react-native-blob-util', () => ({}));
+
+// Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
+jest.spyOn(console, 'debug').mockImplementation((...params) => {
+    if (params[0].indexOf('Timing:') === 0) {
+        return;
+    }
+
+    // Send the message to console.log but don't re-used console.debug or else this mock method is called in an infinite loop. Instead, just prefix the output with the word "DEBUG"
+    // eslint-disable-next-line no-console
+    console.log('DEBUG', ...params);
+});
