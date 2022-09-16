@@ -15,7 +15,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Handles what to do when we hover over this item with our cursor */
-    onHover: PropTypes.func,
+    onHoverIn: PropTypes.func,
 
     /** Handles what to do when the hover is out */
     onHoverOut: PropTypes.func,
@@ -36,7 +36,7 @@ const EmojiPickerMenuItem = props => (
             styles.emojiItem,
         ])}
     >
-        <Hoverable onHoverIn={props.onHover} onHoverOut={props.onHoverOut}>
+        <Hoverable onHoverIn={props.onHoverIn} onHoverOut={props.onHoverOut}>
             <Text style={[styles.emojiText]}>
                 {props.emoji}
             </Text>
@@ -48,7 +48,7 @@ EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 EmojiPickerMenuItem.defaultProps = {
     isHighlighted: false,
-    onHover: () => {},
+    onHoverIn: () => {},
     onHoverOut: () => {},
 };
 
