@@ -164,7 +164,7 @@ class AddPersonalBankAccountPage extends React.Component {
                     </>
                 ) : (
                     <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
                             <AddPlaidBankAccount
                                 onSelect={(params) => {
                                     this.setState({
