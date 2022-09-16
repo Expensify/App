@@ -290,7 +290,7 @@ class WorkspaceMembersPage extends React.Component {
             if (email !== this.props.session.email && email !== this.props.policy.owner) {
                 removableMembers.push(email);
             }
-            const details = this.props.personalDetails[email];
+            const details = this.props.personalDetails[email] || {displayName: email, login: email};
             data.push({
                 ...policyMember,
                 ...details,
