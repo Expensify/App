@@ -53,7 +53,7 @@ It’s possible that you found a bug or enhancement that we haven’t posted to 
 
 Please follow these steps to propose a job:
 
-1. Check to ensure an issue does not already exist for this topic in the [New Expensify Issue list](https://github.com/Expensify/App/issues) or as a reported "Bug:" in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#asking-questions) Slack channel. Please use your best judgement by searching for similar titles and issue descriptions.
+1. Check to ensure an issue does not already exist for this topic in the [New Expensify Issue list](https://github.com/Expensify/App/issues) or as a reported `Bug:` in the [#expensify-open-source](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#asking-questions) Slack channel. Please use your best judgement by searching for similar titles and issue descriptions.
 2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it will help solve the issue.
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
