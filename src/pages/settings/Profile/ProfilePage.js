@@ -260,7 +260,7 @@ class ProfilePage extends Component {
                                 value: '',
                                 label: this.props.translate('profilePage.selectYourPronouns'),
                             }}
-                            defaultValue={pronounsPickerValue}
+                            value={pronounsPickerValue}
                         />
                         {this.state.hasSelfSelectedPronouns && (
                             <View style={styles.mt2}>
@@ -290,7 +290,6 @@ class ProfilePage extends Component {
                             label={this.props.translate('profilePage.timezone')}
                             items={timezones}
                             isDisabled={this.state.isAutomaticTimezone}
-                            defaultValue={this.state.selectedTimezone}
                             value={this.state.selectedTimezone}
                         />
                     </View>

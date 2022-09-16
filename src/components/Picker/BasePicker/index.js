@@ -28,7 +28,7 @@ class BasePicker extends React.Component {
                 style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled, hasError, this.props.focused) : styles.pickerSmall}
                 useNativeAndroidPickerStyle={false}
                 placeholder={this.props.placeholder}
-                value={this.props.value || this.props.defaultValue}
+                value={this.props.value}
                 Icon={() => this.props.icon(this.props.size)}
                 disabled={this.props.disabled}
                 fixAndroidTouchableBug
