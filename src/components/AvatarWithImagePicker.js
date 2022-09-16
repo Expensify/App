@@ -132,7 +132,7 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Boolean}
      */
     isValidExtension(image) {
-        const fileExtension = lodashGet(FileUtils.splitExtensionFromFileName(image.name), 'fileExtension', '');
+      const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
         return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     }
 
