@@ -13,7 +13,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import TextInput from '../../../components/TextInput';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
-import FixedFooter from '../../../components/FixedFooter';
 import ConfirmModal from '../../../components/ConfirmModal';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
