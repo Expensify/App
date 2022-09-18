@@ -144,7 +144,7 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
-            conciergePlaceholderRandomIndex: Math.floor(Math.random() * this.props.translate('reportActionCompose.conciergePlaceholderOptions').length),
+            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
     }
 
