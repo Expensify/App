@@ -1,4 +1,3 @@
-import _ from 'underscore';
 
 class TrieNode {
     constructor() {
@@ -19,7 +18,7 @@ class TrieNode {
     * @returns {Boolean}
     */
     isCompleteWord() {
-        return _.keys(this.children).length === 0;
+        return this.leaf;
     }
 
     /**

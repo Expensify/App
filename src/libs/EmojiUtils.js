@@ -207,13 +207,28 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
  */
 function replaceEmojis(text) {
     let newText = text;
-    const emojiData = text.match(/:[\w+-]+:/g);
+    const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) { return text; }
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.isWord(emojiData[i].slice(1, -1));
-        newText = newText.replace(emojiData[i], checkEmoji.getMetaData().code);
+        if (checkEmoji && checkEmoji.getMetaData().code) {
+            newText = newText.replace(emojiData[i], checkEmoji.getMetaData().code);
+        }
     }
     return newText;
+}
+
+/**
+ * Suggest emojis when typing emojis prefix after colon
+ * @param {String} text
+ * @returns {String}
+ */
+function suggestEmojis(text) {
+    const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
+    if (emojiData) {
+        return emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1));
+    }
+    return [];
 }
 
 export {
@@ -223,4 +238,5 @@ export {
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
+    suggestEmojis,
 };
