@@ -49,7 +49,7 @@ const propTypes = {
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -60,6 +60,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
+    policies: {},
     report: null,
 };
 
@@ -96,6 +97,7 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={props.onNavigationMenuButtonClicked}
                             style={[styles.LHNToggle]}
+                            accessibilityHint="Navigate back to chats list"
                         >
                             <Icon src={Expensicons.BackArrow} />
                         </Pressable>
