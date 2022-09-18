@@ -144,7 +144,7 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
-            conciergePlaceholder: _.sample(this.props.translate('reportActionCompose.conciergePlaceholderOptions')),
+            conciergePlaceholderRandomIndex: Math.floor(Math.random() * this.props.translate('reportActionCompose.conciergePlaceholderOptions').length),
         };
     }
 
@@ -248,7 +248,7 @@ class ReportActionCompose extends React.Component {
                 return this.props.translate('reportActionCompose.blockedFromConcierge');
             }
 
-            return this.state.conciergePlaceholder;
+            return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
         if (_.size(this.props.reportActions) === 1) {
