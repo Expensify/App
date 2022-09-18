@@ -46,7 +46,26 @@ class Trie {
             node = node.children[word[0]];
             word = word.substring(1);
         }
-        return node.children[word];
+        return node.children[word] && node.children[word].isCompleteWord() ? node.children[word] : null;
+    }
+
+    /**
+    * Update a word data in the Trie.
+    * @param {String} newWord
+    * @param {Object} metaData
+    * @returns {void}
+    */
+    update(newWord, metaData) {
+        let word = newWord;
+        let node = this.root;
+        while (word.length > 1) {
+            if (!node.children[word[0]]) {
+                return null;
+            }
+            node = node.children[word[0]];
+            word = word.substring(1);
+        }
+        node.children[word].setMetaData(metaData);
     }
 
     /**
@@ -80,8 +99,19 @@ class Trie {
         if (matching.length > 4) {
             return matching;
         }
-        if (node.leaf) {
-            matching.unshift(prefix);
+        if (node.isCompleteWord()) {
+            if (node.getMetaData().code && !_.find(matching, obj => obj.code === node.getMetaData().code && obj.name === prefix)) {
+                matching.unshift({code: node.getMetaData().code, name: prefix});
+            }
+            const suggestions = node.getMetaData().suggestions;
+            for (let i = 0; i < suggestions.length; i++) {
+                if (matching.length > 4) {
+                    return matching;
+                }
+                if (!_.find(matching, obj => obj.code === node.getMetaData().code && obj.name === prefix)) {
+                    matching.unshift(suggestions[i]);
+                }
+            }
         }
         _.keys(node.children).forEach(nodeChar => this.getChildMatching(node.children[nodeChar], prefix + nodeChar, matching));
         return matching;

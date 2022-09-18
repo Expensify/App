@@ -13,24 +13,24 @@ describe('Trie', () => {
 
     it('Test finding all leaf nodes starting with a substring', () => {
         const wordTrie = new Trie();
-        wordTrie.add('John');
-        wordTrie.add('Robert');
-        wordTrie.add('Robertson');
-        wordTrie.add('Rock');
-        const expected = ['Robert', 'Robertson', 'Rock'];
-        expect(wordTrie.getAllMatchingWords('Ro').sort()).toEqual(expected.sort());
+        wordTrie.add('John', {code: '👨🏿', suggestions: []});
+        wordTrie.add('Robert', {code: '👨🏾', suggestions: []});
+        wordTrie.add('Robertson', {code: '👨🏽', suggestions: []});
+        wordTrie.add('Rock', {code: '👨🏼', suggestions: []});
+        const expected = [{name: 'Rock', code: '👨🏼'}, {name: 'Robertson', code: '👨🏽'}, {name: 'Robert', code: '👨🏾'}];
+        expect(wordTrie.getAllMatchingWords('Ro')).toEqual(expected);
     });
 
     it('Test finding only the first 5 matching emojis', () => {
         const wordTrie = new Trie();
-        wordTrie.add('John');
-        wordTrie.add('Robert');
-        wordTrie.add('Robertson');
-        wordTrie.add('Rock');
-        wordTrie.add('Rob');
-        wordTrie.add('Rocco');
-        wordTrie.add('Roger');
-        wordTrie.add('Roni');
+        wordTrie.add('John', {code: '👨🏼', suggestions: []});
+        wordTrie.add('Robert', {code: '👨🏾', suggestions: []});
+        wordTrie.add('Robertson', {code: '👨🏼', suggestions: []});
+        wordTrie.add('Rock', {code: '👨🏽', suggestions: []});
+        wordTrie.add('Rob', {code: '👨🏻', suggestions: []});
+        wordTrie.add('Rocco', {code: '👨🏿', suggestions: []});
+        wordTrie.add('Roger', {code: '👨🏼', suggestions: []});
+        wordTrie.add('Roni', {code: '👨🏻', suggestions: []});
         expect(wordTrie.getAllMatchingWords('Ro').length).toBe(5);
     });
 
