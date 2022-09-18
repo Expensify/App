@@ -128,7 +128,10 @@ const OptionRow = (props) => {
                 <TouchableOpacity
                     ref={el => touchableRef = el}
                     onPress={(e) => {
-                        e.preventDefault();
+                        if (e) {
+                            e.preventDefault();
+                        }
+
                         props.onSelectRow(props.option, touchableRef);
                     }}
                     disabled={props.isDisabled}
@@ -145,7 +148,7 @@ const OptionRow = (props) => {
                         props.isDisabled && styles.cursorDisabled,
                     ]}
                 >
-                    <View style={sidebarInnerRowStyle}>
+                    <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
                         <View
                             style={[
                                 styles.flexRow,
@@ -183,6 +186,7 @@ const OptionRow = (props) => {
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
+                                    accessibilityLabel="Chat user display names"
                                     fullTitle={props.option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={props.showTitleTooltip}
@@ -192,6 +196,7 @@ const OptionRow = (props) => {
                                 />
                                 {props.option.alternateText ? (
                                     <Text
+                                        accessibilityLabel={props.alternateTextAccessibilityLabel}
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
