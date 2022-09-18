@@ -126,7 +126,7 @@ class ReportActionCompose extends React.Component {
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
-        this.setInputPlaceholder = this.setInputPlaceholder.bind(this);
+        this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
 
@@ -144,7 +144,6 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
-            inputPlaceholder: '',
         };
     }
 
@@ -156,7 +155,6 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
-        this.setInputPlaceholder();
         this.setMaxLines();
         this.updateComment(this.comment);
     }
@@ -239,27 +237,25 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Set the placeholder to display in the chat input.
+     * Get the placeholder to display in the chat input.
      *
+     * @return {String}
      */
-    setInputPlaceholder() {
+    getInputPlaceholder() {
         if (ReportUtils.chatIncludesConcierge(this.props.report)) {
             if (User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
-                this.setState({inputPlaceholder: this.props.translate('reportActionCompose.blockedFromConcierge')});
-                return;
+                return this.props.translate('reportActionCompose.blockedFromConcierge');
             }
 
             // Randomly pick one of the Concierge placeholder messages from the list
-            this.setState({inputPlaceholder: _.shuffle(this.props.translate('reportActionCompose.conciergePlaceholderOptions'))[0]});
-            return;
+            return _.shuffle(this.props.translate('reportActionCompose.conciergePlaceholderOptions'))[0];
         }
 
-        if (_.size(this.props.reportActions) <= 1) {
-            this.setState({inputPlaceholder: this.props.translate('reportActionCompose.sayHello')});
-            return;
+        if (_.size(this.props.reportActions) === 1) {
+            return this.props.translate('reportActionCompose.sayHello');
         }
 
-        this.setState({inputPlaceholder: this.props.translate('reportActionCompose.writeSomething')});
+        return this.props.translate('reportActionCompose.writeSomething');
     }
 
     /**
@@ -499,6 +495,7 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
+        const inputPlaceholder = this.getInputPlaceholder();
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
@@ -604,7 +601,7 @@ class ReportActionCompose extends React.Component {
                                         multiline
                                         ref={this.setTextInputRef}
                                         textAlignVertical="top"
-                                        placeholder={this.state.inputPlaceholder}
+                                        placeholder={inputPlaceholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         onChangeText={this.updateComment}
                                         onKeyPress={this.triggerHotkeyActions}
