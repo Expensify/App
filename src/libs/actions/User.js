@@ -18,6 +18,7 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import DateUtils from '../DateUtils';
 
 let sessionAuthToken = '';
 let currentUserAccountID = '';
@@ -232,8 +233,7 @@ function validateLogin(accountID, validateCode) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {success});
             }
         } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('resendValidationForm.validationCodeFailedMessage')}});
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
