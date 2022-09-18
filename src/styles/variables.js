@@ -77,7 +77,6 @@ export default {
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     inputHeight: getValueUsingPixelRatio(52, 72),
-    pickerIconTop: getValueUsingPixelRatio(16, 26),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
