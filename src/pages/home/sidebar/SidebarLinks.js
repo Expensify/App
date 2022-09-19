@@ -21,6 +21,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
+import withWindowDimensions from '../../../components/withWindowDimensions';
 import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
@@ -105,7 +106,11 @@ class SidebarLinks extends React.Component {
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
-            <View style={[styles.flex1, styles.h100]}>
+            <View
+                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityLabel="List of chats"
+                style={[styles.flex1, styles.h100]}
+            >
                 <View
                     style={[
                         styles.flexRow,
@@ -145,6 +150,8 @@ class SidebarLinks extends React.Component {
                     </TouchableOpacity>
                 </View>
                 <LHNOptionsList
+                    optionRowAlternateTextAccessibilityLabel="Last chat message preview"
+                    optionRowAccessibilityHint="Navigates to a chat"
                     contentContainerStyles={[
                         styles.sidebarListContainer,
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
@@ -172,6 +179,7 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
+    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
