@@ -119,7 +119,7 @@ const OptionRowLHN = (props) => {
                         hovered && !props.isFocused ? props.hoverStyle : null,
                     ]}
                 >
-                    <View style={sidebarInnerRowStyle}>
+                    <View accessibilityHint="Navigates to a chat" style={sidebarInnerRowStyle}>
                         <View
                             style={[
                                 styles.flexRow,
@@ -168,6 +168,7 @@ const OptionRowLHN = (props) => {
                                     <Text
                                         style={alternateTextStyle}
                                         numberOfLines={1}
+                                        accessibilityLabel="Last chat message preview"
                                     >
                                         {optionItem.alternateText}
                                     </Text>
