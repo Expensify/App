@@ -65,7 +65,8 @@ const OptionRowLHN = (props) => {
     const textStyle = props.isFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = [textStyle];
+    const textUnreadStyle = optionItem.isUnread
+        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle], props.style);
@@ -160,6 +161,7 @@ const OptionRowLHN = (props) => {
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
+                                    accessibilityLabel="Chat user display names"
                                     fullTitle={optionItem.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
