@@ -104,7 +104,10 @@ const OptionRowLHN = (props) => {
                 <TouchableOpacity
                     ref={el => touchableRef = el}
                     onPress={(e) => {
-                        e.preventDefault();
+                        if (e) {
+                            e.preventDefault();
+                        }
+
                         props.onSelectRow(optionItem, touchableRef);
                     }}
                     activeOpacity={0.8}
