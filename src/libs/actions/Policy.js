@@ -941,6 +941,11 @@ function createWorkspace() {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: null,
         }],
+    }).then(() => {
+        Navigation.isNavigationReady()
+            .then(() => {
+                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            });
     });
 
     Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
