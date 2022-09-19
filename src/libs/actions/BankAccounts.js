@@ -209,8 +209,6 @@ function validateBankAccount(bankAccountID, validateCode) {
 
 export {
     addPersonalBankAccount,
-    clearPersonalBankAccount,
-    clearPlaid,
     deletePaymentBankAccount,
     validateBankAccount,
 };

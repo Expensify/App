@@ -123,7 +123,13 @@ class PaymentMethodList extends Component {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(this.props.cardList, card => card.additionalData.isP2PDebitCard);
 
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.personalBankAccount, this.props.payPalMeUsername, this.props.userWallet);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            filteredCardList,
+            this.props.personalBankAccount,
+            this.props.payPalMeUsername,
+            this.props.userWallet,
+        );
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
