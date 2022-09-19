@@ -1,6 +1,6 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {render} from '@testing-library/react-native';
+import {render, cleanup} from '@testing-library/react-native';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
@@ -194,9 +194,13 @@ function getDefaultRenderedSidebarLinks() {
 }
 
 describe('Sidebar', () => {
+    // Clear out Onyx after each test so that each test starts with a clean slate
+    afterEach(() => {
+        cleanup();
+        Onyx.clear();
+    });
+
     describe('in default mode', () => {
-        // Clear out Onyx after each test so that each test starts with a clean slate
-        afterEach(Onyx.clear);
 
         test('is not rendered when there are no props passed to it', () => {
             // Given all the default props are passed to SidebarLinks
@@ -248,9 +252,7 @@ describe('Sidebar', () => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
                     expect(sidebarLinks.toJSON().children.length).toBe(2);
                     expect(sidebarLinks.getAllByText('ReportID, One')).toHaveLength(1);
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         test('orders items with most recently updated on top', () => {
@@ -283,9 +285,7 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         test('doesn\'t change the order when adding a draft to the active report', () => {
@@ -319,9 +319,7 @@ describe('Sidebar', () => {
                     const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
                     expect(reportOptions).toHaveLength(3);
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         test('reorders the reports to always have the most recently updated one on top', () => {
@@ -355,9 +353,7 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         test('reorders the reports to keep draft reports on top', () => {
@@ -392,9 +388,7 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         test('removes the pencil icon when draft is removed', () => {
@@ -428,9 +422,7 @@ describe('Sidebar', () => {
                 // Then the pencil icon goes away
                 .then(() => {
                     expect(sidebarLinks.queryAllByAccessibilityHint('Pencil Icon')).toHaveLength(0);
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         test('removes the pin icon when chat is unpinned', () => {
@@ -463,9 +455,7 @@ describe('Sidebar', () => {
                 // Then the pencil icon goes away
                 .then(() => {
                     expect(sidebarLinks.queryAllByAccessibilityHint('Pin Icon')).toHaveLength(0);
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
@@ -503,9 +493,7 @@ describe('Sidebar', () => {
                     expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
     });
 
@@ -560,9 +548,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     expect(sidebarLinks.queryAllByText(/ReportID, /)).toHaveLength(2);
                     expect(sidebarLinks.queryAllByText(/ReportID, One/)).toHaveLength(0);
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
 
         it('alphabetizes chats', () => {
@@ -611,9 +597,7 @@ describe('Sidebar', () => {
                     expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
                     expect(reportOptions[2].children[0].props.children).toBe('ReportID, Three');
                     expect(reportOptions[3].children[0].props.children).toBe('ReportID, Two');
-                })
-
-                .then(sidebarLinks.unmount);
+                });
         });
     });
 });
