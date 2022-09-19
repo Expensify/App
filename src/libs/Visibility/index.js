@@ -1,3 +1,4 @@
+import {AppState} from 'react-native';
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 /**
@@ -7,12 +8,18 @@ import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
  * so we ask the main process synchronously whether the
  * BrowserWindow.isFocused()
  *
+ * However, when the AppState is active, we want to use document.visibilityState.
+ * For example, when expanding the window after minimizing, BrowserWindow.isFocused()
+ * is false even if it is fully visible in the foreground.
+ *
  * @returns {Boolean}
  */
 function isVisible() {
-    return window.electron
-        ? window.electron.sendSync(ELECTRON_EVENTS.REQUEST_VISIBILITY)
-        : document.visibilityState === 'visible';
+    if (window.electron && AppState.currentState !== 'active') {
+        return window.electron.sendSync(ELECTRON_EVENTS.REQUEST_VISIBILITY);
+    }
+
+    return document.visibilityState === 'visible';
 }
 
 export default {
