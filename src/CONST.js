@@ -826,6 +826,13 @@ const CONST = {
             INCORRECT_PASSWORD: 2,
         },
     },
+    TESTING: {
+        SCREEN_SIZE: {
+            SMALL: {
+                width: 300, height: 700, scale: 1, fontScale: 1,
+            },
+        },
+    },
 };
 
 export default CONST;

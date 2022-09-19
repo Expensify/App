@@ -295,6 +295,25 @@ function resetPassword() {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
+                    errors: null,
+                    forgotPassword: true,
+                    message: null,
+                },
+            },
+        ],
+    });
+}
+
+function resendResetPassword() {
+    API.write('ResendRequestPasswordReset', {
+        email: credentials.login,
+    },
+    {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
                     isLoading: true,
                     forgotPassword: true,
                     message: null,
@@ -318,7 +337,6 @@ function resetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: null,
                 },
             },
         ],
@@ -348,6 +366,7 @@ function setPassword(password, validateCode, accountID) {
             }
 
             // This request can fail if the password is not complex enough
+            // eslint-disable-next-line rulesdir/prefer-localization
             Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: response.message}});
         })
         .finally(() => {
@@ -596,6 +615,7 @@ export {
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resetPassword,
+    resendResetPassword,
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
