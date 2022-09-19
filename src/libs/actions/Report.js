@@ -1470,7 +1470,6 @@ function addWorkspaceRoom(policy, reportName, visibility) {
         '',
         visibility,
     );
-    const createdActionData = buildOptimisticCreatedReportAction(workspaceRoom.ownerEmail);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // storeCurrentlyViewedReport is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
@@ -1489,7 +1488,7 @@ function addWorkspaceRoom(policy, reportName, visibility) {
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
-            value: createdActionData,
+            value: buildOptimisticCreatedReportAction(workspaceRoom.ownerEmail),
         },
     ];
     const successData = [
