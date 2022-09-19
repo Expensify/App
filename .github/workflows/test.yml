@@ -10,11 +10,42 @@ jobs:
   test:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
+    name: test (job ${{ matrix.chunk }})
+    env:
+      CI: true
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: [0, 1, 2, 3]
+
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
+      - name: Cache Jest cache
+        id: cache-jest-cache
+        uses: actions/cache@v1
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest
+
+      - name: All Unit Tests
+      # Job 0 and job 1 will split all tests except loginTest.js and will run in parallel.
+        if: ${{ fromJSON(matrix.chunk) < 2 }}
+        run: npx jest --listTests --json --testPathIgnorePatterns=loginTest.js | jq -cM '[_nwise(length / 2 | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs npm test
+      
+      - name: Login Unit Tests
+       # loginTest.js takes most time to run and blocks other tests execution so running this in separate runner/job in parallel.
+        if: ${{ fromJSON(matrix.chunk) == 2 }}
+        run: npm test -- tests/unit/loginTest.js
+
+      - name: Pull Request Tests
+        # Pull request related tests will be run in separate runner in parallel.
+        if: ${{ fromJSON(matrix.chunk) == 3 }}
+        run: tests/unit/getPullRequestsMergedBetweenTest.sh
+      
       # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
       - name: Check Provisioning Style
+        if: ${{ fromJSON(matrix.chunk) == 3 }}
         run: |
           if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
             exit 0
@@ -22,11 +53,3 @@ jobs:
             echo "Error: Automatic provisioning style is not allowed!"
             exit 1
           fi
-
-      - name: Jest Unit Tests
-        run: npm run test
-        env:
-          CI: true
-
-      - name: Pull Request Tests
-        run: tests/unit/getPullRequestsMergedBetweenTest.sh
