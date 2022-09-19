@@ -71,7 +71,6 @@
     "htmlparser2": "^7.2.0",
     "localforage": "^1.10.0",
     "lodash": "4.17.21",
-    "memoize-one": "^6.0.0",
     "metro-config": "^0.71.3",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",
