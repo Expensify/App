@@ -5,16 +5,16 @@ import {Linking} from 'react-native';
  *
  * @param {Promise} promise
  * @param {string}  url
- * @param {Boolean} skipCheck
+ * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-export default function asyncOpenURL(promise, url, skipCheck) {
+export default function asyncOpenURL(promise, url, shouldSkipCustomSafariLogic) {
     if (!url) {
         return;
     }
 
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    if (!isSafari || skipCheck) {
+    if (!isSafari || shouldSkipCustomSafariLogic) {
         promise.then((params) => {
             Linking.openURL(typeof url === 'string' ? url : url(params));
         });
