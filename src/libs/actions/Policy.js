@@ -968,6 +968,7 @@ function createWorkspace() {
     }).then(() => {
         Navigation.isNavigationReady()
             .then(() => {
+                Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
                 Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
             });
     });
