@@ -26,6 +26,7 @@ import addViewportResizeListener from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
+import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -80,6 +81,8 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    ...withDrawerPropTypes,
 };
 
 const defaultProps = {
@@ -104,11 +107,10 @@ const defaultProps = {
  * @param {Object} route
  * @param {Object} route.params
  * @param {String} route.params.reportID
- * @returns {Number}
+ * @returns {String}
  */
 function getReportID(route) {
-    const params = route.params;
-    return Number.parseInt(params.reportID, 10);
+    return route.params.reportID.toString();
 }
 
 class ReportScreen extends React.Component {
@@ -250,6 +252,7 @@ class ReportScreen extends React.Component {
                                 report={this.props.report}
                                 session={this.props.session}
                                 isComposerFullSize={this.props.isComposerFullSize}
+                                isDrawerOpen={this.props.isDrawerOpen}
                             />
                         )}
                     {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
@@ -285,6 +288,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withDrawerState,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
