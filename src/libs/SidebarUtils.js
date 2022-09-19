@@ -9,6 +9,14 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import Permissions from './Permissions';
 
+// Note: It is very important that the keys subscribed to here are the same
+// keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
+// for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
+// There are a couple of keys here which are OK to have stale data. iouReports for example, doesn't need to exist in withOnyx() because
+// when IOUs change, it also triggers a change on the reports collection. Having redudant subscriptions causes more re-renders which should be avoided.
+// Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
+// data anyway and cause SidebarLinks to rerender.
+
 let reports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
