@@ -43,7 +43,6 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
-
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom')}
@@ -51,11 +50,13 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
             onClose={() => Report.navigateToConciergeChatAndDeleteWorkspaceRoom(props.report.reportID)}
         >
-            <View style={[
-                styles.chatContent,
-                styles.pb8,
-                styles.p5,
-            ]}
+            <View
+                accessibilityLabel="Chat welcome message"
+                style={[
+                    styles.chatContent,
+                    styles.pb8,
+                    styles.p5,
+                ]}
             >
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>

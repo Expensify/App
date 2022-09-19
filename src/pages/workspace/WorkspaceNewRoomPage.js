@@ -3,6 +3,7 @@ import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './withFullPolicy';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -20,7 +21,6 @@ import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -38,12 +38,12 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    ...policyPropTypes,
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
-    ...policyDefaultProps,
+    ...fullPolicyDefaultProps,
 };
 
 class WorkspaceNewRoomPage extends React.Component {
@@ -197,6 +197,7 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 
 export default compose(
+    withFullPolicy,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,

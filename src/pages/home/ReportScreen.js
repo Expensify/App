@@ -29,6 +29,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -85,6 +86,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
+    ...withDrawerPropTypes,
 };
 
 const defaultProps = {
@@ -264,6 +266,7 @@ class ReportScreen extends React.Component {
                                 report={this.props.report}
                                 session={this.props.session}
                                 isComposerFullSize={this.props.isComposerFullSize}
+                                isDrawerOpen={this.props.isDrawerOpen}
                             />
                         )}
                     {(isArchivedRoom || hideComposer) && (
@@ -311,6 +314,7 @@ ReportScreen.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withDrawerState,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
