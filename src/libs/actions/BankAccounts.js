@@ -181,7 +181,6 @@ function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
                 isLoading: true,
-                error: '',
                 errors: null,
             },
         }],
@@ -213,4 +212,3 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
 };
-
