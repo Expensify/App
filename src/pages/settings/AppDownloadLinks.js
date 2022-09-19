@@ -41,7 +41,7 @@ const AppDownloadLinksPage = (props) => {
             icon: Expensicons.Apple,
             iconRight: Expensicons.NewWindow,
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS);
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
         },

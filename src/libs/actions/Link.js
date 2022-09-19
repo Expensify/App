@@ -62,13 +62,14 @@ function openOldDotLink(url) {
 
 /**
  * @param {String} url
+ * @param {Boolean} skipCheck
  */
-function openExternalLink(url) {
+function openExternalLink(url, skipCheck = false) {
     if (showGrowlIfOffline()) {
         return;
     }
 
-    asyncOpenURL(Promise.resolve(), url);
+    asyncOpenURL(Promise.resolve(), url, skipCheck);
 }
 
 export {

@@ -5,15 +5,16 @@ import {Linking} from 'react-native';
  *
  * @param {Promise} promise
  * @param {string}  url
+ * @param {Boolean} skipCheck
  */
-export default function asyncOpenURL(promise, url) {
+export default function asyncOpenURL(promise, url, skipCheck) {
     if (!url) {
         return;
     }
 
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    if (!isSafari) {
+    if (!isSafari || skipCheck) {
         promise.then((params) => {
             Linking.openURL(typeof url === 'string' ? url : url(params));
         });
