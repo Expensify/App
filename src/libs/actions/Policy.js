@@ -966,7 +966,10 @@ function createWorkspace() {
             value: null,
         }],
     }).then(() => {
-        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+        Navigation.isNavigationReady()
+            .then(() => {
+                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            });
     });
 }
 

@@ -181,9 +181,12 @@ function setUpPoliciesAndNavigate(session) {
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        // We must call dismissModal() to remove the /transition route from history
-        Navigation.dismissModal();
-        Navigation.navigate(exitTo);
+        Navigation.isNavigationReady()
+            .then(() => {
+                // We must call dismissModal() to remove the /transition route from history
+                Navigation.dismissModal();
+                Navigation.navigate(exitTo);
+            });
     }
 }
 
