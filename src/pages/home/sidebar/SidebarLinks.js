@@ -25,7 +25,7 @@ import withWindowDimensions from '../../../components/withWindowDimensions';
 import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
-import OptionsListUtilsLHN from '../../../libs/SidebarUtils';
+import SidebarUtils from '../../../libs/SidebarUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -102,7 +102,7 @@ class SidebarLinks extends React.Component {
         }
 
         Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
-        const optionListItems = OptionsListUtilsLHN.getOrderedReportIDs();
+        const optionListItems = SidebarUtils.getOrderedReportIDs();
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
