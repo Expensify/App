@@ -20,6 +20,7 @@ import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
@@ -183,9 +184,9 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
 
-                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <Text style={[styles.formError]}>
-                        {this.props.account.error}
+                        {ErrorUtils.getLatestErrorMessage(this.props.account)}
                     </Text>
                 )}
 

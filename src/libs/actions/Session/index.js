@@ -42,7 +42,7 @@ function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
     Onyx.merge(ONYXKEYS.SESSION, {
         shouldShowComposeInput: true,
-        error: null,
+        errors: null,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
     });
 }
@@ -187,7 +187,7 @@ function createTemporaryLogin(authToken, email) {
     })
         .then((createLoginResponse) => {
             if (createLoginResponse.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: createLoginResponse.message});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translate('createLoginResponse.message')}});
                 return createLoginResponse;
             }
 
@@ -354,7 +354,8 @@ function setPassword(password, validateCode, accountID) {
             }
 
             // This request can fail if the password is not complex enough
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
+            // eslint-disable-next-line rulesdir/prefer-localization
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: response.message}});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
@@ -396,7 +397,6 @@ function cleanupSession() {
 
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
-        error: '',
         success: '',
         errors: [],
         isLoading: false,
@@ -428,13 +428,78 @@ function changePasswordAndSignIn(authToken, password) {
             }
             if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 // authToken has expired, and we have the account email, so we request a new magic link.
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: null});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: null});
                 resetPassword();
                 Navigation.navigate(ROUTES.HOME);
                 return;
             }
-            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.passwordNotSet'});
+            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet')}});
         });
+}
+
+/**
+ * Validates new user login, sets a new password and authenticates them
+ * @param {Number} accountID
+ * @param {String} validateCode
+ * @param {String} password
+ */
+function setPasswordForNewAccountAndSignin(accountID, validateCode, password) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet'),
+                },
+            },
+        },
+    ];
+    API.write('SetPasswordForNewAccountAndSignin', {
+        accountID, validateCode, password,
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -444,7 +509,7 @@ function changePasswordAndSignIn(authToken, password) {
  * @param {String} authToken
  */
 function validateEmail(accountID, validateCode) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.SESSION, {errors: null});
     DeprecatedAPI.ValidateEmail({
         accountID,
         validateCode,
@@ -458,7 +523,7 @@ function validateEmail(accountID, validateCode) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
             }
             if (responseValidate.jsonCode === 401) {
-                Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.setPasswordLinkInvalid'});
+                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translate('setPasswordPage.setPasswordLinkInvalid')}});
             }
         });
 }
@@ -531,6 +596,7 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 export {
     beginSignIn,
     setPassword,
+    setPasswordForNewAccountAndSignin,
     signIn,
     signInWithShortLivedToken,
     signOut,
