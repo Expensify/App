@@ -197,5 +197,11 @@ export default compose(
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
     }),
 )(SidebarLinks);
