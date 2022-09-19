@@ -686,24 +686,6 @@ function updateLastAccessedWorkspace(policyID) {
 }
 
 /**
- * Subscribe to public-policyEditor-[policyID] events.
- */
-function subscribeToPolicyEvents() {
-    _.each(allPolicies, (policy) => {
-        const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
-        Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, defaultRoomChatIDs}) => {
-            // Remove the default chats if we are one of the users getting removed
-            if (!removedEmails.includes(sessionEmail) || _.isEmpty(defaultRoomChatIDs)) {
-                return;
-            }
-            _.each(defaultRoomChatIDs, (chatID) => {
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatID}`, null);
-            });
-        });
-    });
-}
-
-/**
  * Removes an error after trying to delete a member
  *
  * @param {String} policyID
@@ -987,7 +969,6 @@ export {
     updateWorkspaceCustomUnit,
     updateCustomUnitRate,
     updateLastAccessedWorkspace,
-    subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
     openWorkspaceReimburseView,

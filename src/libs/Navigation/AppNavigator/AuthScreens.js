@@ -110,7 +110,6 @@ class AuthScreens extends React.Component {
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
             User.subscribeToUserEvents();
-            Policy.subscribeToPolicyEvents();
         });
 
         // Listen for report changes and fetch some data we need on initialization
