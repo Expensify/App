@@ -23,7 +23,7 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
-import OptionsListUtilsLHN from '../../libs/SidebarUtils';
+import SidebarUtils from '../../libs/SidebarUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -56,7 +56,7 @@ const defaultProps = {
 };
 
 const OptionRowLHN = (props) => {
-    const optionItem = OptionsListUtilsLHN.getOptionData(props.reportID);
+    const optionItem = SidebarUtils.getOptionData(props.reportID);
     if (!optionItem) {
         return null;
     }
