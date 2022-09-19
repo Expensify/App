@@ -9,46 +9,7 @@ jobs:
     uses: Expensify/App/.github/workflows/lint.yml@main
 
   test:
-    # uses: Expensify/App/.github/workflows/test.yml@main
-    runs-on: ubuntu-latest
-    name: jest (job ${{ matrix.chunk }})
-    strategy:
-      fail-fast: false
-      matrix:
-        chunk: [0, 1, 2, 3]
-    env:
-      CI: true
-    steps:
-      # if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
-      # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
-      - name: Check Provisioning Style
-        run: |
-          if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
-            exit 0
-          else
-            echo "Error: Automatic provisioning style is not allowed!"
-            exit 1
-          fi
-
-      - name: Cache Jest cache
-        id: cache-jest-cache
-        uses: actions/cache@v1
-        with:
-          path: .jest-cache
-          key: ${{ runner.os }}-jest
-
-      - name: All Unit Tests
-        if: ${{ fromJSON(matrix.chunk) < 2 }}
-        run: npx jest --listTests --json --testPathIgnorePatterns=loginTest.js | jq -cM '[_nwise(length / 2 | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs npm test
-      
-      - name: Login Unit Tests
-        if: ${{ fromJSON(matrix.chunk) == 2 }}
-        run: npm test -- tests/unit/loginTest.js
-
-      - name: Pull Request Tests
-        if: ${{ fromJSON(matrix.chunk) == 3 }}
-        run: tests/unit/getPullRequestsMergedBetweenTest.sh
+    uses: Expensify/App/.github/workflows/test.yml@main
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
