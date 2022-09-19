@@ -5,6 +5,8 @@ import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 
+const TEST_MAX_SEQUENCE_NUMBER = 10;
+
 const fakeInsets = {
     top: 0,
     left: 0,
@@ -72,7 +74,8 @@ const fakePersonalDetails = {
 const fakeReport1 = {
     reportID: 1,
     reportName: 'Report One',
-    unreadActionCount: 0,
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
 
     // This report's last comment will be in the past
     lastMessageTimestamp: Date.now() - 3000,
@@ -81,21 +84,24 @@ const fakeReport1 = {
 const fakeReport2 = {
     reportID: 2,
     reportName: 'Report Two',
-    unreadActionCount: 0,
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
     lastMessageTimestamp: Date.now() - 2000,
     participants: ['email3@test.com', 'email4@test.com'],
 };
 const fakeReport3 = {
     reportID: 3,
     reportName: 'Report Three',
-    unreadActionCount: 0,
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
     lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
 };
 const fakeReportIOU = {
     reportID: 4,
     reportName: 'Report IOU Four',
-    unreadActionCount: 0,
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
     lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
     ownerEmail: 'email2@test.com',
@@ -152,28 +158,45 @@ Onyx.init({
 });
 
 function getDefaultRenderedSidebarLinks() {
+    // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
+    // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
+    // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
+    // With the ErrorBoundary, those errors are caught and logged to the console so you can find exactly which error
+    // might be causing a rendering issue when developing tests.
+    class ErrorBoundary extends React.Component {
+        // Error boundaries have to implement this method. It's for providing a fallback UI, but
+        // we don't need that for unit testing, so this is basically a no-op.
+        static getDerivedStateFromError(error) {
+            return {error};
+        }
+
+        componentDidCatch(error, errorInfo) {
+            console.error(error, errorInfo);
+        }
+
+        render() {
+            // eslint-disable-next-line react/prop-types
+            return this.props.children;
+        }
+    }
+
     // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     return render((
         <LocaleContextProvider>
-            <SidebarLinks
-                onLinkClick={() => {}}
-                insets={fakeInsets}
-                onAvatarClick={() => {}}
-                isSmallScreenWidth={false}
-            />
+            <ErrorBoundary>
+                <SidebarLinks
+                    onLinkClick={() => {}}
+                    insets={fakeInsets}
+                    onAvatarClick={() => {}}
+                    isSmallScreenWidth={false}
+                />
+            </ErrorBoundary>
         </LocaleContextProvider>
     ));
 }
-
-// Icons need to be explicitly mocked. The testing library throws an error when trying to render them
-jest.mock('../../src/components/Icon/Expensicons', () => ({
-    MagnifyingGlass: () => '',
-    Pencil: () => '',
-    Pin: () => '',
-}));
 
 describe('Sidebar', () => {
     describe('in default mode', () => {
@@ -537,8 +560,8 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, unreadActionCount: 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
@@ -554,7 +577,7 @@ describe('Sidebar', () => {
                 })
 
                 // WHEN report3 becomes unread
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {unreadActionCount: 1}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1}))
 
                 // THEN all three chats are showing
                 .then(() => {
@@ -562,7 +585,7 @@ describe('Sidebar', () => {
                 })
 
                 // WHEN report 1 becomes read (it's the active report)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {unreadActionCount: 0}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER}))
 
                 // THEN all three chats are still showing
                 .then(() => {
@@ -590,9 +613,9 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, unreadActionCount: 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, unreadActionCount: 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, unreadActionCount: 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
@@ -611,7 +634,8 @@ describe('Sidebar', () => {
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
                     reportID: 4,
                     reportName: 'Report Four',
-                    unreadActionCount: 1,
+                    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
                     lastMessageTimestamp: Date.now(),
                     participants: ['email7@test.com', 'email8@test.com'],
                 }))

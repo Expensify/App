@@ -48,7 +48,7 @@ import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
@@ -57,7 +57,7 @@ const propTypes = {
     comment: PropTypes.string,
 
     /** The ID of the report actions will be created for */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** Details about any modals being used */
     modal: PropTypes.shape({
@@ -102,6 +102,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     comment: '',
     modal: {},
     report: {},
