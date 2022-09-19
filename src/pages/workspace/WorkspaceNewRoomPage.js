@@ -160,6 +160,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             policyID={this.state.policyID}
                             errorText={this.state.errors.roomName}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
+                            value={this.state.roomName}
                         />
                     </View>
                     <View style={styles.mb5}>
