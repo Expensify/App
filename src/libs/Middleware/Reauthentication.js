@@ -7,6 +7,7 @@ import * as Authentication from '../Authentication';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as Request from '../Request';
 import Log from '../Log';
+import NetworkConnection from '../NetworkConnection';
 
 /**
  * Reauthentication middleware
@@ -35,7 +36,8 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
                 const shouldRetry = lodashGet(request, 'data.shouldRetry');
-                if (!shouldRetry) {
+                const apiRequestType = lodashGet(request, 'data.apiRequestType');
+                if (!shouldRetry && !apiRequestType) {
                     if (isFromSequentialQueue) {
                         return data;
                     }
@@ -62,16 +64,21 @@ function Reauthentication(response, request, isFromSequentialQueue) {
 
                 return Authentication.reauthenticate(request.commandName)
                     .then((authenticateResponse) => {
-                        if (isFromSequentialQueue) {
-                            return Request.processWithMiddleware(request, true);
+                        if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                            return Request.processWithMiddleware(request, isFromSequentialQueue);
+                        }
+
+                        if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
+                            NetworkConnection.triggerReconnectionCallbacks();
+                            return Promise.resolve();
                         }
 
                         MainQueue.replay(request);
                         return authenticateResponse;
                     })
                     .catch(() => {
-                        if (isFromSequentialQueue) {
-                            throw new Error('Unable to reauthenticate sequential queue request because we failed to reauthenticate');
+                        if (isFromSequentialQueue || apiRequestType) {
+                            throw new Error('Failed to reauthenticate');
                         }
 
                         // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
