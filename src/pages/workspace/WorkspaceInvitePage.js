@@ -319,6 +319,7 @@ class WorkspaceInvitePage extends React.Component {
                                     onFixTheErrorsLinkPressed={() => {}}
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                    enabledWhenOffline
                                 />
                                 <Pressable
                                     onPress={(e) => {
