@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import {useNavigationState} from '@react-navigation/native';
 import CONST from '../../CONST';
@@ -10,9 +9,6 @@ import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
-
-let previousRouteName = '';
-let previousRoutePolicyID = '';
 
 /**
  * @param {Object} route
@@ -22,20 +18,7 @@ function getPolicyIDFromRoute(route) {
     return lodashGet(route, 'params.policyID', '');
 }
 
-/**
- * @param {String} routeName
- * @param {String} policyID
- * @returns {Boolean}
- */
-function isPreviousRouteInSameWorkspace(routeName, policyID) {
-    return (
-        Str.startsWith(routeName, 'Workspace')
-        && Str.startsWith(previousRouteName, 'Workspace')
-        && policyID === previousRoutePolicyID
-    );
-}
-
-const fullPolicyPropTypes = {
+const policyPropTypes = {
     /** The policy object for the current route */
     policy: PropTypes.shape({
         /** The ID of the policy */
@@ -78,12 +61,12 @@ const fullPolicyPropTypes = {
     policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
-const fullPolicyDefaultProps = {
+const policyDefaultProps = {
     policy: {},
 };
 
 /*
- * HOC for loading a full policy. It checks the route params and if current route has a policyID that the previous route did not, it full-loads that policy.
+ * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
 export default function (WrappedComponent) {
     const propTypes = {
@@ -91,46 +74,39 @@ export default function (WrappedComponent) {
           * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
         forwardedRef: PropTypes.func,
 
-        ...fullPolicyPropTypes,
+        ...policyPropTypes,
     };
 
     const defaultProps = {
         forwardedRef: () => {},
 
-        ...fullPolicyDefaultProps,
+        ...policyDefaultProps,
     };
 
-    const WithFullPolicy = (props) => {
+    const WithPolicy = (props) => {
         const currentRoute = _.last(useNavigationState(state => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
-        const isFromFullPolicy = lodashGet(props, 'policy.isFromFullPolicy', false) || lodashGet(props, `policy.policy_${policyID}.isFromFullPolicy`, false);
 
-        if (_.isString(policyID) && !_.isEmpty(policyID) && (!isFromFullPolicy || !isPreviousRouteInSameWorkspace(currentRoute.name, policyID))) {
-            Policy.loadFullPolicy(policyID);
+        if (_.isString(policyID) && !_.isEmpty(policyID)) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
-        previousRouteName = currentRoute.name;
-        previousRoutePolicyID = policyID;
-
-        const rest = _.omit(props, ['forwardedRef', 'policy', 'policyMemberList']);
+        const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 ref={props.forwardedRef}
-                policy={props.policy}
-                policyMemberList={props.policyMemberList}
             />
         );
     };
 
-    WithFullPolicy.propTypes = propTypes;
-    WithFullPolicy.defaultProps = defaultProps;
-    WithFullPolicy.displayName = `withFullPolicy(${getComponentDisplayName(WrappedComponent)})`;
-    const withFullPolicy = React.forwardRef((props, ref) => (
+    WithPolicy.propTypes = propTypes;
+    WithPolicy.defaultProps = defaultProps;
+    WithPolicy.displayName = `withFullPolicy(${getComponentDisplayName(WrappedComponent)})`;
+    const withPolicy = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithFullPolicy {...props} forwardedRef={ref} />
+        <WithPolicy {...props} forwardedRef={ref} />
     ));
 
     return withOnyx({
@@ -140,10 +116,10 @@ export default function (WrappedComponent) {
         policyMemberList: {
             key: props => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${getPolicyIDFromRoute(props.route)}`,
         },
-    })(withFullPolicy);
+    })(withPolicy);
 }
 
 export {
-    fullPolicyPropTypes,
-    fullPolicyDefaultProps,
+    policyPropTypes,
+    policyDefaultProps,
 };
