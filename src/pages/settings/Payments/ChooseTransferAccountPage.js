@@ -44,17 +44,6 @@ const ChooseTransferAccountPage = (props) => {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     };
 
-    /**
-     * @param {String} paymentType
-     */
-    const navigateToAddPaymentMethodPage = () => {
-        if (props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
-    };
-
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -73,7 +62,7 @@ const ChooseTransferAccountPage = (props) => {
                 />
             </View>
             <MenuItem
-                onPress={navigateToAddPaymentMethodPage}
+                onPress={PaymentMethods.navigateToAddPaymentMethodPage(props.walletTransfer.filterPaymentMethodType, false)}
                 title={props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
                     ? props.translate('paymentMethodList.addNewBankAccount')
                     : props.translate('paymentMethodList.addNewDebitCard')}
