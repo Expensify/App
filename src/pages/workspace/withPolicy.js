@@ -88,12 +88,9 @@ export default function (WrappedComponent) {
         const policyID = getPolicyIDFromRoute(currentRoute);
 
         if (_.isString(policyID) && !_.isEmpty(policyID) && (!isFromFullPolicy || !isPreviousRouteInSameWorkspace(currentRoute.name, policyID))) {
-            console.log(">>>> loading full policy");
             Policy.loadFullPolicy(policyID);
             Policy.updateLastAccessedWorkspace(policyID);
         }
-
-        console.log(">>>> withFullPolicy policy", props.policy);
 
         previousRouteName = currentRoute.name;
         previousRoutePolicyID = policyID;
