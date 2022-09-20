@@ -40,9 +40,7 @@ Onyx.connect({
 
         // Save the clients back to onyx, if they changed
         if (removed) {
-            ActiveClients.setActiveClients(activeClients).then(() => {
-                resolveSavedSelfPromise();
-            });
+            ActiveClients.setActiveClients(activeClients);
         }
     },
 });
@@ -53,7 +51,7 @@ Onyx.connect({
 function init() {
     activeClients = _.without(activeClients, clientID);
     activeClients.push(clientID);
-    ActiveClients.setActiveClients(activeClients);
+    ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
 }
 
 /**
