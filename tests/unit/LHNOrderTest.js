@@ -206,7 +206,6 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-
         test('is not rendered when there are no props passed to it', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
