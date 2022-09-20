@@ -46,7 +46,8 @@ Onyx.connect({
 });
 
 /**
- * Add our client ID to the list of active IDs
+ * Add our client ID to the list of active IDs.
+ * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
  */
 function init() {
     activeClients = _.without(activeClients, clientID);
