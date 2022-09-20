@@ -134,7 +134,15 @@ class KYCWall extends React.Component {
                     shouldShowPaypal={false}
                     onItemSelected={(item) => {
                         this.setState({shouldShowAddPaymentMenu: false});
-                        PaymentMethods.navigateToAddPaymentMethodPage(item, false);
+                        if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+                            // If we are adding a new bank account and starting over, clear all plaid data, tokens, and saved personal bank account data
+                            PaymentMethods.clearPersonalBankAccount();
+                            PaymentMethods.clearPlaid();
+
+                            Navigation.navigate(this.props.addBankAccountRoute);
+                        } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+                            Navigation.navigate(this.props.addDebitCardRoute);
+                        }
                     }}
                 />
                 {this.props.isLoadingPaymentMethods && !this.props.isDisabled
