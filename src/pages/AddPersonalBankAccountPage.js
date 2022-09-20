@@ -39,7 +39,7 @@ const defaultProps = {
     personalBankAccount: {
         error: '',
         shouldShowSuccess: false,
-        loading: false,
+        isLoading: false,
     },
 };
 
@@ -117,7 +117,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
-        const loading = lodashGet(this.props, 'personalBankAccount.loading', false);
+        const isLoading = lodashGet(this.props, 'personalBankAccount.isLoading', false);
         const selectedPlaidIndex = lodashGet(this.props, 'personalBankAccount.pendingFields.selectedPlaidIndex', undefined);
 
         return (
@@ -204,7 +204,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                         pressOnEnter
                                         text={this.props.translate('common.saveAndContinue')}
                                         onPress={this.submit}
-                                        isLoading={loading}
+                                        isLoading={isLoading}
                                     />
                                 </OfflineWithFeedback>
                             </FixedFooter>

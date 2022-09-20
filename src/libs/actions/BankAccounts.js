@@ -105,7 +105,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: true,
+                    isLoading: true,
                     errorFields: {
                         plaidSelector: null,
                     },
@@ -122,7 +122,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     shouldShowSuccess: true,
                     errorFields: null,
                     pendingFields: null,
@@ -144,7 +144,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     errorFields: {
                         plaidSelector: null,
                     },

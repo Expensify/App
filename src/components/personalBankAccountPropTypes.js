@@ -51,5 +51,5 @@ export default PropTypes.shape({
     shouldShowSuccess: PropTypes.bool,
 
     /** Show loader if still awaiting response */
-    loading: PropTypes.bool,
+    isLoading: PropTypes.bool,
 });
