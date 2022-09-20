@@ -64,8 +64,6 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
  * @param {String} [fullPolicyOrPolicySummary.avatar]
  * @param {String} [fullPolicyOrPolicySummary.value.avatar]
- * @param {String} [fullPolicyOrPolicySummary.avatarURL]
- * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
  * @param {Boolean} isFromFullPolicy,
@@ -84,9 +82,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatar will be nested within the key "value"
         avatar: fullPolicyOrPolicySummary.avatar
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
-            || fullPolicyOrPolicySummary.avatarURL
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
@@ -529,7 +525,7 @@ function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
-                onyxRates: {
+                rates: {
                     [customUnitRateID]: {
                         errors: null,
                         pendingAction: null,
@@ -626,7 +622,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        onyxRates: {
+                        rates: {
                             [newCustomUnitRate.customUnitRateID]: {
                                 ...newCustomUnitRate,
                                 errors: null,
@@ -646,7 +642,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        onyxRates: {
+                        rates: {
                             [newCustomUnitRate.customUnitRateID]: {
                                 pendingAction: null,
                             },
@@ -664,7 +660,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        onyxRates: {
+                        rates: {
                             [currentCustomUnitRate.customUnitRateID]: {
                                 ...currentCustomUnitRate,
                                 errors: {
