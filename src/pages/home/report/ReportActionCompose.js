@@ -310,15 +310,16 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
+        + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
         this.textInput.setNativeProps({
             text: newComment,
         });
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
             },
         }));
         this.updateComment(newComment);
