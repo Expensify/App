@@ -24,6 +24,9 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
+import FormScrollView from '../../components/FormScrollView';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
@@ -144,8 +147,7 @@ const BankAccountStep = (props) => {
         const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
         const plaidDesktopMessage = getPlaidDesktopMessage();
         const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
-        const errors = lodashGet(this.props, 'reimbursementAccount.errors', {});
-        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
+        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount);
         const error = lodashGet(this.props, 'reimbursementAccount.error', '') || errorMessage;
         const loading = lodashGet(this.props, 'reimbursementAccount.loading', false);
         const validated = lodashGet(this.props, 'user.validated', false);
