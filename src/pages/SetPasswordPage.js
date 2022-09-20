@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import * as ErrorUtils from '../libs/ErrorUtils';
+import OfflineIndicator from '../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -125,6 +126,7 @@ class SetPasswordPage extends Component {
                             isDisabled={!this.state.isFormValid}
                         />
                     </View>
+                    <OfflineIndicator containerStyles={[styles.mv1]} />
                 </SignInPageLayout>
             </SafeAreaView>
         );
