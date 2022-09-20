@@ -87,11 +87,18 @@ export default function (WrappedComponent) {
         const currentRoute = _.last(useNavigationState(state => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
 
-        if (_.isString(policyID) && !_.isEmpty(policyID)) {
+        if (_.isString(policyID) && !_.isEmpty(policyID) && (!isFromFullPolicy || !isPreviousRouteInSameWorkspace(currentRoute.name, policyID))) {
+            console.log(">>>> loading full policy");
+            Policy.loadFullPolicy(policyID);
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
-        const rest = _.omit(props, ['forwardedRef']);
+        console.log(">>>> withFullPolicy policy", props.policy);
+
+        previousRouteName = currentRoute.name;
+        previousRoutePolicyID = policyID;
+
+        const rest = _.omit(props, ['forwardedRef', 'policy', 'policyMemberList']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
