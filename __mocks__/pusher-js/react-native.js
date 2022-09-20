@@ -1,3 +1,9 @@
 import {PusherMock} from 'pusher-js-mock';
 
-export default PusherMock;
+class PusherMockWithDisconnect extends PusherMock {
+    disconnect() {
+        return jest.fn();
+    }
+}
+
+export default PusherMockWithDisconnect;
