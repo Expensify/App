@@ -32,7 +32,7 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        error: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Success message to display when necessary */
         success: PropTypes.string,
@@ -155,7 +155,7 @@ class LoginForm extends React.Component {
         const error = formErrorTranslated || ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
-                <View style={[styles.mt3]}>
+                <View accessibilityLabel="Login form" style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}

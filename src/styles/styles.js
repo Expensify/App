@@ -729,7 +729,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
@@ -1329,10 +1328,6 @@ const styles = {
         maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
-    },
-
-    chatItemUnsentMessage: {
-        opacity: 0.6,
     },
 
     chatItemMessageLink: {
