@@ -16,7 +16,6 @@ export {
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
-    validateBankAccount,
     hideBankAccountErrors,
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
@@ -31,6 +30,7 @@ export {
 export {
     openOnfidoFlow,
     activateWallet,
+    answerQuestionsForWallet,
     verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
@@ -164,7 +164,7 @@ function deletePaymentBankAccount(bankAccountID) {
  *
  * @param {Object} achContractStepData
  */
- function updateBeneficialOwnersForBankAccount(achContractStepData) {
+function updateBeneficialOwnersForBankAccount(achContractStepData) {
     const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
     API.write('updateBeneficialOwnersForBankAccount', {
         bankAccountID,
@@ -176,10 +176,45 @@ function deletePaymentBankAccount(bankAccountID) {
     }, getVBBADataForOnyx());
 }
 
+/**
+ * @param {Number} bankAccountID
+ * @param {String} validateCode
+ */
+function validateBankAccount(bankAccountID, validateCode) {
+    API.write('ValidateBankAccountWithTransactions', {
+        bankAccountID,
+        validateCode,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+    });
+}
+
 export {
     addPersonalBankAccount,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
     updateBeneficialOwnersForBankAccount,
+    validateBankAccount,
 };
