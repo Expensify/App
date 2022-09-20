@@ -1451,16 +1451,16 @@ function createPolicyRoom(policyID, reportName, visibility) {
 }
 
 /**
- * Add a workspace room optimistically and navigate to it.
+ * Add a policy report (workspace room) optimistically and navigate to it.
  *
  * @param {Object} policy
  * @param {String} reportName
  * @param {String} visibility
  */
-function addWorkspaceRoom(policy, reportName, visibility) {
+function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
     const participants = [currentUserEmail, ...policy.employeeList];
-    const workspaceRoom = buildOptimisticChatReport(
+    const policyReport = buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -1474,27 +1474,28 @@ function addWorkspaceRoom(policy, reportName, visibility) {
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // storeCurrentlyViewedReport is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
     // If there was an error creating the room, then fetchChatReportsByIDs throws an error and the user is navigated away from the report instead of showing the RBR error message.
+    // Therefore, Onyx.set is used instead of Onyx.merge.
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceRoom.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
             value: {
                 pendingFields: {
                     addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-                ...workspaceRoom,
+                ...policyReport,
             },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
-            value: buildOptimisticCreatedReportAction(workspaceRoom.ownerEmail),
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
+            value: buildOptimisticCreatedReportAction(policyReport.ownerEmail),
         },
     ];
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceRoom.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
             value: {
                 pendingFields: {
                     addWorkspaceRoom: null,
@@ -1503,7 +1504,7 @@ function addWorkspaceRoom(policy, reportName, visibility) {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceRoom.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {
                 0: {
                     pendingAction: null,
@@ -1515,20 +1516,20 @@ function addWorkspaceRoom(policy, reportName, visibility) {
     API.write(
         'AddWorkspaceRoom',
         {
-            policyID: workspaceRoom.policyID,
+            policyID: policyReport.policyID,
             reportName,
             visibility,
-            reportID: workspaceRoom.reportID,
+            reportID: policyReport.reportID,
         },
         {optimisticData, successData},
     );
-    Navigation.navigate(ROUTES.getReportRoute(workspaceRoom.reportID));
+    Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
 }
 
 /**
- * @param {Number} reportID The reportID of the workspace room
+ * @param {Number} reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteWorkspaceRoom(reportID) {
+function navigateToConciergeChatAndDeletePolicyReport(reportID) {
     navigateToConciergeChat();
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
@@ -1744,8 +1745,8 @@ export {
     handleInaccessibleReport,
     setReportWithDraft,
     createPolicyRoom,
-    addWorkspaceRoom,
-    navigateToConciergeChatAndDeleteWorkspaceRoom,
+    addPolicyReport,
+    navigateToConciergeChatAndDeletePolicyReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,

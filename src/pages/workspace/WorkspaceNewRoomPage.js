@@ -58,7 +58,7 @@ class WorkspaceNewRoomPage extends React.Component {
             workspaceOptions: [],
         };
 
-        this.validateAndAddWorkspaceRoom = this.validateAndAddWorkspaceRoom.bind(this);
+        this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
     }
 
     componentDidMount() {
@@ -79,12 +79,12 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
-    validateAndAddWorkspaceRoom() {
+    validateAndAddPolicyReport() {
         if (!this.validate()) {
             return;
         }
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`];
-        Report.addWorkspaceRoom(policy, this.state.roomName, this.state.visibility);
+        Report.addPolicyReport(policy, this.state.roomName, this.state.visibility);
     }
 
     /**
@@ -183,7 +183,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     <Button
                         success
                         pressOnEnter
-                        onPress={this.validateAndAddWorkspaceRoom}
+                        onPress={this.validateAndAddPolicyReport}
                         style={[styles.w100]}
                         text={this.props.translate('newRoomPage.createRoom')}
                     />
