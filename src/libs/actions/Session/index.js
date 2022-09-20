@@ -295,6 +295,25 @@ function resetPassword() {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
+                    errors: null,
+                    forgotPassword: true,
+                    message: null,
+                },
+            },
+        ],
+    });
+}
+
+function resendResetPassword() {
+    API.write('ResendRequestPasswordReset', {
+        email: credentials.login,
+    },
+    {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
                     isLoading: true,
                     forgotPassword: true,
                     message: null,
@@ -318,42 +337,10 @@ function resetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: null,
                 },
             },
         ],
     });
-}
-
-/**
- * Set the password for the current account.
- * Then it will create a temporary login for them which is used when re-authenticating
- * after an authToken expires.
- *
- * @param {String} password
- * @param {String} validateCode
- * @param {Number} accountID
- */
-function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-    DeprecatedAPI.SetPassword({
-        password,
-        validateCode,
-        accountID,
-    })
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                createTemporaryLogin(response.authToken, response.email);
-                return;
-            }
-
-            // This request can fail if the password is not complex enough
-            // eslint-disable-next-line rulesdir/prefer-localization
-            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: response.message}});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        });
 }
 
 function invalidateCredentials() {
@@ -497,6 +484,63 @@ function setPasswordForNewAccountAndSignin(accountID, validateCode, password) {
 }
 
 /**
+ * Updates a password and authenticates them
+ * @param {Number} accountID
+ * @param {String} validateCode
+ * @param {String} password
+ */
+function updatePasswordAndSignin(accountID, validateCode, password) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write('UpdatePasswordAndSignin', {
+        accountID, validateCode, password,
+    }, {optimisticData, successData, failureData});
+}
+
+/**
  * @param {Number} accountID
  * @param {String} validateCode
  * @param {String} login
@@ -589,14 +633,15 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 
 export {
     beginSignIn,
-    setPassword,
     setPasswordForNewAccountAndSignin,
+    updatePasswordAndSignin,
     signIn,
     signInWithShortLivedToken,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resetPassword,
+    resendResetPassword,
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
