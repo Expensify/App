@@ -41,7 +41,7 @@ const propTypes = {
                 attributes: PropTypes.shape({
                     unit: PropTypes.string,
                 }),
-                onyxRates: PropTypes.objectOf(
+                rates: PropTypes.objectOf(
                     PropTypes.shape({
                         customUnitRateID: PropTypes.string,
                         name: PropTypes.string,
@@ -64,7 +64,7 @@ class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'onyxRates', {}), rate => rate.name === 'Default Rate');
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
 
         this.state = {
             unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
@@ -100,7 +100,7 @@ class WorkspaceReimburseView extends React.Component {
                 .values()
                 .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
                 .value();
-            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'onyxRates', {}), rate => rate.name === 'Default Rate');
+            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
             this.setState({
                 unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
                 unitName: lodashGet(distanceCustomUnit, 'name', ''),
@@ -184,7 +184,7 @@ class WorkspaceReimburseView extends React.Component {
         }
 
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['onyxRates', this.state.unitRateID], {});
+        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
         Policy.updateCustomUnitRate(this.props.policyID, currentCustomUnitRate, this.state.unitID, {
             ...currentCustomUnitRate,
             rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
@@ -230,10 +230,10 @@ class WorkspaceReimburseView extends React.Component {
                         <OfflineWithFeedback
                             errors={{
                                 ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
-                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'onyxRates', this.state.unitRateID, 'errors'], {}),
+                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
                             }}
                             pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
-                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'onyxRates', this.state.unitRateID, 'pendingAction'])}
+                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
                             onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID, this.state.unitRateID)}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>

@@ -272,7 +272,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const personalDetail = personalDetailList[0];
+    const personalDetail = personalDetailList[0] || {};
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
 
@@ -329,6 +329,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         }
     } else {
         result.keyForList = personalDetail.login;
+        result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
     if (result.hasOutstandingIOU) {
@@ -349,7 +350,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = personalDetailList;
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
 
     return result;
