@@ -819,7 +819,7 @@ function createWorkspace() {
     },
     {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 id: policyID,
