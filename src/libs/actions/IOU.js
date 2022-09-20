@@ -180,7 +180,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         currency,
         comment,
         iouReportID: iouReport.reportID,
-        reportID: chatReport.reportID,
+        chatReportID: chatReport.reportID,
         transactionID: optimisticTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
     }, {optimisticData, failureData});
