@@ -69,7 +69,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                         }
 
                         if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                            NetworkConnection.triggerReconnectionCallbacks();
+                            NetworkConnection.triggerReconnectionCallbacks('read request made with expired authToken');
                             return Promise.resolve();
                         }
 
