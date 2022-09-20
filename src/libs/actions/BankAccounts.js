@@ -194,7 +194,7 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Create the bank account in db with manually entered data.
+ * Create the bank account with manually entered data.
  *
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
