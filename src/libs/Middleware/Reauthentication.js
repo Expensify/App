@@ -48,16 +48,8 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                     return data;
                 }
 
-                // We are already authenticating
-                if (NetworkStore.isAuthenticating()) {
-                    if (isFromSequentialQueue) {
-                        // This should never happen in theory. If we go offline while we are Authenticating or handling a response with a 407 jsonCode then isAuthenticating should be
-                        // set to false. If we do somehow get here, we will log about it since we will never know it happened otherwise and it would be difficult to diagnose.
-                        const message = 'Cannot complete sequential request because we are already authenticating';
-                        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} ${message}`);
-                        throw new Error(message);
-                    }
-
+                // We are already authenticating and using the DeprecatedAPI so we will replay the request
+                if (!apiRequestType && NetworkStore.isAuthenticating()) {
                     MainQueue.replay(request);
                     return data;
                 }
