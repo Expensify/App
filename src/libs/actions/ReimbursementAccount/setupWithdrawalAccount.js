@@ -137,58 +137,6 @@ function mergeParamsWithLocalACHData(data) {
     return updatedACHData;
 }
 
-function getVBBADataForOnyx() {
-    return {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: true,
-                    errors: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
-                    },
-                },
-            },
-        ],
-    };
-}
-
-/**
- * Create the bank account in db with manually entered data.
- *
- * @param {String} [accountNumber]
- * @param {String} [routingNumber]
- * @param {String} [plaidMask]
- *
- */
-function connectBankAccountManually(accountNumber, routingNumber, plaidMask) {
-    API.write('ConnectBankAccountManually', {
-        accountNumber,
-        routingNumber,
-        plaidMask,
-    }, getVBBADataForOnyx());
-}
-
 /**
  * Create or update the bank account in db with the updated data.
  *
@@ -304,7 +252,4 @@ function setupWithdrawalAccount(params) {
         });
 }
 
-export {
-    setupWithdrawalAccount,
-    connectBankAccountManually,
-};
+export default setupWithdrawalAccount;

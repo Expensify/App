@@ -20,7 +20,6 @@ export {
     updateReimbursementAccountDraft,
     requestResetFreePlanBankAccount,
     cancelResetFreePlanBankAccount,
-    connectBankAccountManually,
 } from './ReimbursementAccount';
 export {
     openPlaidBankAccountSelector,
@@ -194,8 +193,25 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
+/**
+ * Create the bank account in db with manually entered data.
+ *
+ * @param {String} [accountNumber]
+ * @param {String} [routingNumber]
+ * @param {String} [plaidMask]
+ *
+ */
+function connectBankAccountManually(accountNumber, routingNumber, plaidMask) {
+    API.write('ConnectBankAccountManually', {
+        accountNumber,
+        routingNumber,
+        plaidMask,
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
+    connectBankAccountManually,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
