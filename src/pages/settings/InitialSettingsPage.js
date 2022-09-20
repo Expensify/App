@@ -28,6 +28,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
+import personalBankAccountPropTypes from '../../components/personalBankAccountPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
@@ -75,11 +76,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Personal Bank Account */
-    personalBankAccount: PropTypes.shape({
-        error: PropTypes.string,
-        shouldShowSuccess: PropTypes.bool,
-        loading: PropTypes.bool,
-    }),
+    personalBankAccount: PropTypes.objectOf(personalBankAccountPropTypes),
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),

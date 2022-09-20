@@ -28,14 +28,11 @@ import TextInput from '../components/TextInput';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus/index.native';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import ROUTES from '../ROUTES';
+import personalBankAccountPropTypes from '../components/personalBankAccountPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
-    personalBankAccount: PropTypes.shape({
-        error: PropTypes.string,
-        shouldShowSuccess: PropTypes.bool,
-        loading: PropTypes.bool,
-    }),
+    personalBankAccount: PropTypes.objectOf(personalBankAccountPropTypes),
 };
 
 const defaultProps = {

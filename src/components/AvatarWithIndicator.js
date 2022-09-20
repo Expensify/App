@@ -10,6 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
+import personalBankAccountPropTypes from './personalBankAccountPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 import {fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
@@ -39,11 +40,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Personal Bank Account */
-    personalBankAccount: PropTypes.shape({
-        error: PropTypes.string,
-        shouldShowSuccess: PropTypes.bool,
-        loading: PropTypes.bool,
-    }),
+    personalBankAccount: PropTypes.objectOf(personalBankAccountPropTypes),
 
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,

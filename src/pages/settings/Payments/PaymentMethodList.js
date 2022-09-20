@@ -16,6 +16,7 @@ import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
+import personalBankAccountPropTypes from '../../../components/personalBankAccountPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -39,11 +40,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Personal Bank Account */
-    personalBankAccount: PropTypes.shape({
-        error: PropTypes.string,
-        shouldShowSuccess: PropTypes.bool,
-        loading: PropTypes.bool,
-    }),
+    personalBankAccount: PropTypes.objectOf(personalBankAccountPropTypes),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
