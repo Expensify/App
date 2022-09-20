@@ -32,6 +32,9 @@ const propTypes = {
 
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
+
+    /** Should the button be enabled when offline */
+    enabledWhenOffline: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -41,6 +44,7 @@ const defaultProps = {
     containerStyles: [],
     isLoading: false,
     onFixTheErrorsPressed: () => {},
+    enabledWhenOffline: false,
 };
 
 const FormAlertWithSubmitButton = props => (
@@ -51,12 +55,14 @@ const FormAlertWithSubmitButton = props => (
         message={props.message}
         onFixTheErrorsPressed={props.onFixTheErrorsPressed}
     >
-        {isOffline => (isOffline ? (
+        {isOffline => ((isOffline && !props.enabledWhenOffline) ? (
             <Button
                 success
-                isDisabled
+                pressOnEnter
                 text={props.buttonText}
-                style={[styles.mb3]}
+                onPress={props.onSubmit}
+                isDisabled={props.isDisabled}
+                isLoading={props.isLoading}
             />
         ) : (
             <Button
