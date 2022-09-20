@@ -34,8 +34,9 @@ class ReimbursementAccountForm extends React.Component {
     }
 
     render() {
-        const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
-            || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
+        const hasErrorFields = _.size(this.props.reimbursementAccount.errorFields) > 0;
+        const error = _.last(_.values(this.props.reimbursementAccount.errors));
+        const isErrorVisible = hasErrorFields || Boolean(error);
 
         const currentStep = lodashGet(
             this.props,
@@ -58,7 +59,7 @@ class ReimbursementAccountForm extends React.Component {
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
-                    message={this.props.reimbursementAccount.error}
+                    message={error}
                     isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
                     isLoading={this.props.reimbursementAccount.loading}
                 />
