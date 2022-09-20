@@ -838,6 +838,11 @@ const CONST = {
             },
         },
     },
+    API_REQUEST_TYPE: {
+        READ: 'read',
+        WRITE: 'write',
+        MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
 };
 
 export default CONST;
