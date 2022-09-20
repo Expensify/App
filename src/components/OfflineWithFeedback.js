@@ -74,10 +74,7 @@ function applyStrikeThrough(children) {
 
 const OfflineWithFeedback = (props) => {
     const hasErrors = !_.isEmpty(props.errors);
-    const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
-    const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
-    const isAddError = hasErrors && props.pendingAction === 'add';
-    const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
+    const needsOpacity = props.network.isOffline && props.pendingAction === 'add';
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
