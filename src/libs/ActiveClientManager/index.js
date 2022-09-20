@@ -1,5 +1,5 @@
 /**
- * When you have many tabs in one browser, the data pf Onyx is shared between all of them. Since we persist write requests in Onyx, we need to ensure that
+ * When you have many tabs in one browser, the data of Onyx is shared between all of them. Since we persist write requests in Onyx, we need to ensure that
  * only one tab is processing those saved requests or we would be duplicating data (or creating errors).
  * This file ensures exactly that by tracking all the clientIDs connected, storing the most recent one last and it considers that last clientID the "leader".
  */
