@@ -72,7 +72,7 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
-    selectedPlaidIndex: undefined,
+    selectedPlaidIndex: null,
 };
 
 class AddPlaidBankAccount extends React.Component {
