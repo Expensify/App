@@ -56,13 +56,14 @@ Onyx.connect({
 
 // When we reconnect the app, we don't want to fetch workspaces created optimistically while offline since they don't exist yet in the back-end.
 // If we fetched them then they'd return as empty objects which would clear out the optimistic policy values initially created locally.
-// Once the re-queued call updating the excluded workspace returns, its contents should be correctly saved into Onyx.
+// Once the re-queued call to CreateWorkspace returns, the contents of the workspace excluded here should be correctly saved into Onyx.
 let policyIDListExcludingWorkspacesWithPendingActions = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (policies) => {
-        const policiesExcludingWorkspacesWithPendingActions = _.reject(policies, policy => lodashGet(policy, 'pendingAction', null)
+        const policiesExcludingWorkspacesWithPendingActions = _.reject(policies,
+            policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
             && lodashGet(policy, 'type', null) === CONST.POLICY.TYPE.FREE);
         policyIDListExcludingWorkspacesWithPendingActions = _.compact(_.pluck(policiesExcludingWorkspacesWithPendingActions, 'id'));
     },
