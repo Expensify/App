@@ -12,12 +12,7 @@ import * as ActiveClients from '../actions/ActiveClients';
 
 const clientID = Str.guid();
 const maxClients = 20;
-let addedSelf = false;
 let activeClients = [];
-let resolveInitedPromise;
-const initedPromise = new Promise((resolve) => {
-    resolveInitedPromise = resolve;
-});
 let resolveSavedSelfPromise;
 const savedSelfPromise = new Promise((resolve) => {
     resolveSavedSelfPromise = resolve;
@@ -28,18 +23,13 @@ const savedSelfPromise = new Promise((resolve) => {
  * @returns {Promise}
  */
 function isReady() {
-    return Promise.all([initedPromise, savedSelfPromise]);
+    return savedSelfPromise;
 }
 
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
-        // We only add this client once, ensuring it is the last in the array (that determines who is leader)
-        if (!addedSelf) {
-            activeClients = _.without(val, clientID);
-            activeClients.push(clientID);
-            ActiveClients.setActiveClients(activeClients);
-        }
+        activeClients = val;
 
         // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them
         let removed = false;
@@ -49,16 +39,11 @@ Onyx.connect({
         }
 
         // Save the clients back to onyx, if they changed
-        if (removed || !addedSelf) {
+        if (removed) {
             ActiveClients.setActiveClients(activeClients).then(() => {
-                // If we just added ourselves, we need to resolve the promise so that isReady fires
-                if (addedSelf) {
-                    return;
-                }
                 resolveSavedSelfPromise();
             });
         }
-        addedSelf = true;
     },
 });
 
@@ -66,7 +51,9 @@ Onyx.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    resolveInitedPromise();
+    activeClients = _.without(activeClients, clientID);
+    activeClients.push(clientID);
+    ActiveClients.setActiveClients(activeClients);
 }
 
 /**
