@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as BankAccounts from './actions/BankAccounts';
 import FormHelper from './FormHelper';
@@ -36,10 +37,22 @@ function getErrorText(props, errorTranslationKeys, inputKey) {
     return errors[inputKey] ? props.translate(errorTranslationKeys[inputKey]) : '';
 }
 
+/**
+ * Helper method to get the onfido sdk token from the bank account's achdata
+ *
+ * @param {Object} achData
+ * @returns {string}
+ */
+function getOnfidoSDKTokenFromACHData(achData) {
+    const sdkToken = _.get(achData, ['verifications', 'externalApiResponses', 'requestorIdentityOnfido', 'apiResult', 'sdkToken'], '');
+    return sdkToken || _.get(achData, ['sdkToken'], '');
+}
+
 export {
     getDefaultStateForField,
     getErrors,
     clearError,
     clearErrors,
     getErrorText,
+    getOnfidoSDKTokenFromACHData,
 };
