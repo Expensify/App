@@ -1,0 +1,175 @@
+diff --git a/node_modules/react-native-onyx/lib/Onyx.js b/node_modules/react-native-onyx/lib/Onyx.js
+index 323152f..6026e7d 100644
+--- a/node_modules/react-native-onyx/lib/Onyx.js
++++ b/node_modules/react-native-onyx/lib/Onyx.js
+@@ -1,6 +1,7 @@
+ import _ from 'underscore';
+ import Str from 'expensify-common/lib/str';
+-import lodashMerge from 'lodash/merge';
++//import lodashMerge from 'lodash/merge';
++import { merge as lodashMerge } from './fastMerge';
+ import lodashGet from 'lodash/get';
+ import Storage from './storage';
+ import * as Logger from './Logger';
+@@ -652,22 +653,30 @@ function applyMerge(key, data) {
+     if (_.isArray(data) || _.every(mergeValues, _.isArray)) {
+         // Array values will always just concatenate
+         // more items onto the end of the array
+-        return _.reduce(mergeValues, (modifiedData, mergeValue) => [
++        const before = performance.now();
++        const res =  _.reduce(mergeValues, (modifiedData, mergeValue) => [
+             ...modifiedData,
+             ...mergeValue,
+         ], data || []);
++        const after = performance.now();
++        console.log('merge took', after - before, "for key", key);
++        return res;
+     }
+ 
+     if (_.isObject(data) || _.every(mergeValues, _.isObject)) {
+         // Object values are merged one after the other
+-        return _.reduce(mergeValues, (modifiedData, mergeValue) => {
+-            const newData = lodashMerge({}, modifiedData, mergeValue);
++        const before = performance.now();
++        const res =  _.reduce(mergeValues, (modifiedData, mergeValue) => {
++            const newData = Object.assign({}, lodashMerge(modifiedData, mergeValue));
+ 
+             // We will also delete any object keys that are undefined or null.
+             // Deleting keys is not supported by AsyncStorage so we do it this way.
+             // Remove all first level keys that are explicitly set to null.
+             return _.omit(newData, (value, finalObjectKey) => _.isNull(mergeValue[finalObjectKey]));
+         }, data || {});
++        const after = performance.now();
++        console.log('merge took', after - before, "for key", key);
++        return res;
+     }
+ 
+     // If we have anything else we can't merge it so we'll
+diff --git a/node_modules/react-native-onyx/lib/OnyxCache.js b/node_modules/react-native-onyx/lib/OnyxCache.js
+index 287bc3b..ffc3faa 100644
+--- a/node_modules/react-native-onyx/lib/OnyxCache.js
++++ b/node_modules/react-native-onyx/lib/OnyxCache.js
+@@ -1,5 +1,6 @@
+ import _ from 'underscore';
+-import lodashMerge from 'lodash/merge';
++//import lodashMerge from 'lodash/merge';
++import { merge as lodashMerge } from './fastMerge';
+ 
+ const isDefined = _.negate(_.isUndefined);
+ 
+@@ -110,7 +111,10 @@ class OnyxCache {
+      * @param {Record<string, *>} data - a map of (cache) key - values
+      */
+     merge(data) {
+-        this.storageMap = lodashMerge({}, this.storageMap, data);
++        const before = performance.now();
++        this.storageMap = Object.assign({}, lodashMerge(this.storageMap, data));
++        const after = performance.now();
++        console.log("aaa merge cache took", after - before);
+ 
+         const storageKeys = this.getAllKeys();
+         const mergedKeys = _.keys(data);
+diff --git a/node_modules/react-native-onyx/lib/fastMerge.js b/node_modules/react-native-onyx/lib/fastMerge.js
+new file mode 100644
+index 0000000..f3adbc8
+--- /dev/null
++++ b/node_modules/react-native-onyx/lib/fastMerge.js
+@@ -0,0 +1,97 @@
++/**
++ * Is the object Mergeable
++ *
++ * @param val
++ * @returns {*|boolean}
++ */
++ function isMergeableObject(val) {
++  var nonNullObject = val && typeof val === 'object';
++  return nonNullObject &&
++      Object.prototype.toString.call(val) !== '[object RegExp]' &&
++      Object.prototype.toString.call(val) !== '[object Date]';
++}
++/**
++* Empty the Target
++*
++* @param val
++* @returns {*}
++*/
++function emptyTarget(val) {
++  return Array.isArray(val) ? [] : {}
++}
++/**
++* Clone if Necessary
++*
++* @param value
++* @param optionsArgument
++* @returns {*}
++*/
++function cloneIfNecessary(value, optionsArgument) {
++  var clone = optionsArgument && optionsArgument.clone === true;
++  return (clone && isMergeableObject(value)) ?     merge(emptyTarget(value), value, optionsArgument) : value;
++}
++/**
++* Default Array Merge
++*
++* @param target
++* @param source
++* @param optionsArgument
++* @returns {*}
++*/
++let valArr;
++function defaultArrayMerge(target, source, optionsArgument) {
++  var destination = target.slice();
++  for (let i = 0; i < source.length; ++i) {
++    valArr = source[i];
++    if (i >= destination.length) {
++      destination.push(cloneIfNecessary(valArr, optionsArgument));
++    } else if (typeof destination[i] === 'undefined') {
++      destination[i] = cloneIfNecessary(valArr, optionsArgument);
++    } else if (isMergeableObject(valArr)) {
++      destination[i] = merge(target[i], valArr, optionsArgument);
++    }
++  }
++  return destination;
++}
++/**
++* Merge Object
++*
++* @param target
++* @param source
++* @param optionsArgument
++* @returns {{}}
++*/
++function mergeObject(target, source, optionsArgument) {
++  var destination = {};
++  if (isMergeableObject(target)) {
++      Object.keys(target).forEach(function (key) {
++          destination[key] = cloneIfNecessary(target[key], optionsArgument)
++      })
++  }
++  Object.keys(source).forEach(function (key) {
++      if (!isMergeableObject(source[key]) || !target[key]) {
++          destination[key] = cloneIfNecessary(source[key], optionsArgument)
++      } else {
++          destination[key] = merge(target[key], source[key], optionsArgument)
++      }
++  });
++  return destination
++}
++/**
++* Merge Object and Arrays
++*
++* @param target
++* @param source
++* @param optionsArgument
++* @returns {*}
++*/
++export function merge(target, source, optionsArgument) {
++  var array = Array.isArray(source);
++  var options = optionsArgument || {arrayMerge: defaultArrayMerge};
++  var arrayMerge = options.arrayMerge || defaultArrayMerge;
++  if (array) {
++      return Array.isArray(target) ? arrayMerge(target, source, optionsArgument) : cloneIfNecessary(source, optionsArgument);
++  } else {
++      return mergeObject(target, source, optionsArgument);
++  }
++}
+\ No newline at end of file
