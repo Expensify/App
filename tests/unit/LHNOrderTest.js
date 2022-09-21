@@ -1,18 +1,9 @@
-import React from 'react';
 import Onyx from 'react-native-onyx';
-import {render, cleanup} from '@testing-library/react-native';
-import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
+import {cleanup} from '@testing-library/react-native';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import {LocaleContextProvider} from '../../src/components/withLocalize';
+import * as LHNUtils from '../utils/LHNUtils';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
-
-const fakeInsets = {
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-};
 
 const fakePersonalDetails = {
     'email1@test.com': {
@@ -157,47 +148,6 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
-function getDefaultRenderedSidebarLinks() {
-    // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
-    // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
-    // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
-    // With the ErrorBoundary, those errors are caught and logged to the console so you can find exactly which error
-    // might be causing a rendering issue when developing tests.
-    class ErrorBoundary extends React.Component {
-        // Error boundaries have to implement this method. It's for providing a fallback UI, but
-        // we don't need that for unit testing, so this is basically a no-op.
-        static getDerivedStateFromError(error) {
-            return {error};
-        }
-
-        componentDidCatch(error, errorInfo) {
-            console.error(error, errorInfo);
-        }
-
-        render() {
-            // eslint-disable-next-line react/prop-types
-            return this.props.children;
-        }
-    }
-
-    // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
-    // are passed to the component. If this is not done, then all the locale props are missing
-    // and there are a lot of render warnings. It needs to be done like this because normally in
-    // our app (App.js) is when the react application is wrapped in the context providers
-    return render((
-        <LocaleContextProvider>
-            <ErrorBoundary>
-                <SidebarLinks
-                    onLinkClick={() => {}}
-                    insets={fakeInsets}
-                    onAvatarClick={() => {}}
-                    isSmallScreenWidth={false}
-                />
-            </ErrorBoundary>
-        </LocaleContextProvider>
-    ));
-}
-
 describe('Sidebar', () => {
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
@@ -209,7 +159,7 @@ describe('Sidebar', () => {
         test('is not rendered when there are no props passed to it', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             // Then it should render nothing and be null
             // This is expected because there is an early return when there are no personal details
@@ -218,7 +168,7 @@ describe('Sidebar', () => {
 
         test('is rendered with an empty list when personal details exist', () => {
             // Given the sidebar is rendered with default props
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -238,7 +188,7 @@ describe('Sidebar', () => {
         test('contains one report when a report is in Onyx', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -262,7 +212,7 @@ describe('Sidebar', () => {
         test('orders items with most recently updated on top', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -295,7 +245,7 @@ describe('Sidebar', () => {
         test('doesn\'t change the order when adding a draft to the active report', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -327,7 +277,7 @@ describe('Sidebar', () => {
         });
 
         test('reorders the reports to always have the most recently updated one on top', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -361,7 +311,7 @@ describe('Sidebar', () => {
         });
 
         test('reorders the reports to keep draft reports on top', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -396,7 +346,7 @@ describe('Sidebar', () => {
         });
 
         test('removes the pencil icon when draft is removed', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -430,7 +380,7 @@ describe('Sidebar', () => {
         });
 
         test('removes the pin icon when chat is unpinned', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -463,7 +413,7 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -503,7 +453,7 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('hides unread chats', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -556,7 +506,7 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes chats', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
