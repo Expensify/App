@@ -667,18 +667,52 @@ function isUnread(report) {
     return lastReadSequenceNumber < maxSequenceNumber;
 }
 
-function shouldReportBeInOptionList(report, currentlyViewedReportID) {
+/**
+ * Determines if a report has an outstanding IOU that doesn't belong to the currently logged in user
+ *
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {boolean} report.    if (!report || !report.iouReportID || report.hasOutstandingIOU) {
+ * @param {String} currentUserLogin
+ * @param {Object[]} iouReports
+ * @param {String} iouReports[].ownerEmail
+ * @returns {boolean}
+ */
+function hasOutstandingIOU(report, currentUserLogin, iouReports) {
+    if (!report || !report.iouReportID || report.hasOutstandingIOU) {
+        return false;
+    }
+
+    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    if (!iouReport || !iouReport.ownerEmail) {
+        return false;
+    }
+
+    return iouReport.ownerEmail !== currentUserLogin;
+}
+
+function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports) {
     // Do not include reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
         return false;
     }
 
-    // Always include the currently viewed report ID. If we filtered out the currently viewed report, then there
+    // Always include the currently viewed report ID. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
     if (report.reportID.toString() === currentlyViewedReportID) {
         return true;
+    }
+
+    // Always include reports if they have a draft, are pinned, or have an outstanding IOU
+    if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, currentUserLogin, iouReports)) {
+        return true;
+    }
+
+    // Always hide unread reports when in GSD mode
+    if (isInGSDMode && !isUnread(report)) {
+        return false;
     }
 
     return true;
