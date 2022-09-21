@@ -26,6 +26,7 @@ import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -111,35 +112,37 @@ class EnableStep extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.flex1]}>
-                    <Section
-                        title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
-                        // eslint-disable-next-line max-len
-                        IconComponent={() => (!isUsingExpensifyCard ? <Icon src={Illustrations.ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
-                        menuItems={menuItems}
-                    >
-                        <MenuItem
-                            title={bankName}
-                            description={formattedBankAccountNumber}
-                            icon={icon}
-                            iconWidth={iconSize}
-                            iconHeight={iconSize}
-                            disabled
-                            interactive={false}
-                            wrapperStyle={[styles.ph0, styles.mb3]}
-                        />
-                        <Text>
-                            {!isUsingExpensifyCard
-                                ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
-                                : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
-                        </Text>
-                    </Section>
-                    {this.props.user.isCheckingDomain && (
-                        <Text style={[styles.formError, styles.m5]}>
-                            {this.props.translate('workspace.card.checkingDomain')}
-                        </Text>
-                    )}
-                </View>
+                <FullPageOfflineBlockingView>
+                    <View style={[styles.flex1]}>
+                        <Section
+                            title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
+                            // eslint-disable-next-line max-len
+                            IconComponent={() => (!isUsingExpensifyCard ? <Icon src={Illustrations.ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
+                            menuItems={menuItems}
+                        >
+                            <MenuItem
+                                title={bankName}
+                                description={formattedBankAccountNumber}
+                                icon={icon}
+                                iconWidth={iconSize}
+                                iconHeight={iconSize}
+                                disabled
+                                interactive={false}
+                                wrapperStyle={[styles.ph0, styles.mb3]}
+                            />
+                            <Text>
+                                {!isUsingExpensifyCard
+                                    ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
+                                    : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
+                            </Text>
+                        </Section>
+                        {this.props.user.isCheckingDomain && (
+                            <Text style={[styles.formError, styles.m5]}>
+                                {this.props.translate('workspace.card.checkingDomain')}
+                            </Text>
+                        )}
+                    </View>
+                </FullPageOfflineBlockingView>
             </View>
         );
     }
