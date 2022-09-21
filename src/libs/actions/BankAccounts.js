@@ -9,8 +9,6 @@ export {
     setupWithdrawalAccount,
     fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
-    showBankAccountErrorModal,
-    showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
@@ -41,6 +39,62 @@ function clearPersonalBankAccount() {
 function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+}
+
+function updatePlaidData(plaidData) {
+    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
+}
+
+function getOnyxDataForVBBA() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: 'merge',
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
+                },
+            },
+        ],
+    };
+}
+
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+    const commandName = 'ConnectBankAccountWithPlaid';
+
+    const parameters = {
+        bankAccountID,
+        routingNumber: selectedPlaidBankAccount.routingNumber,
+        accountNumber: selectedPlaidBankAccount.accountNumber,
+        bank: selectedPlaidBankAccount.bankName,
+        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
+        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+    };
+
+    API.write(commandName, parameters, getOnyxDataForVBBA());
 }
 
 /**
@@ -115,7 +169,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: true,
+                    isLoading: true,
                     error: '',
                 },
             },
@@ -125,7 +179,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     error: '',
                     shouldShowSuccess: true,
                 },
@@ -136,7 +190,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
                 },
             },
@@ -200,4 +254,6 @@ export {
     clearPersonalBankAccount,
     clearPlaid,
     validateBankAccount,
+    connectBankAccountWithPlaid,
+    updatePlaidData,
 };

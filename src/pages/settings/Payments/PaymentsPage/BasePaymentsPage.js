@@ -395,47 +395,72 @@ class BasePaymentsPage extends React.Component {
                                     {this.props.translate('common.delete')}
                                 </Text>
                             </TouchableOpacity>
-                        </View>
-                    </Popover>
-                    <PasswordPopover
-                        isVisible={this.state.shouldShowPasswordPrompt}
-                        onClose={this.hidePasswordPrompt}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            right: this.state.anchorPositionRight,
-                        }}
-                        onSubmit={(password) => {
-                            this.hidePasswordPrompt();
-                            this.makeDefaultPaymentMethod(password);
-                        }}
-                        submitButtonText={this.state.passwordButtonText}
-                        isDangerousAction
-                    />
-                    <ConfirmPopover
-                        contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
-                        isVisible={this.state.shouldShowConfirmPopover}
-                        title={this.props.translate('paymentsPage.deleteAccount')}
-                        prompt={this.props.translate('paymentsPage.deleteConfirmation')}
-                        confirmText={this.props.translate('common.delete')}
-                        cancelText={this.props.translate('common.cancel')}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            right: this.state.anchorPositionRight,
-                        }}
-                        onConfirm={() => {
-                            this.setState({
-                                shouldShowConfirmPopover: false,
-                            });
-                            this.deletePaymentMethod();
-                        }}
-                        onCancel={() => {
-                            this.setState({shouldShowConfirmPopover: false});
-                        }}
-                        shouldShowCancelButton
-                        danger
-                    />
-                    <OfflineIndicator containerStyles={[styles.ml5, styles.mb2]} />
-                </KeyboardAvoidingView>
+                        )}
+                        <TouchableOpacity
+                            onPress={() => {
+                                this.setState({
+                                    shouldShowDefaultDeleteMenu: false,
+                                });
+                                InteractionManager.runAfterInteractions(() => {
+                                    this.setState({
+                                        shouldShowConfirmPopover: true,
+                                    });
+                                });
+                            }}
+                            style={[
+                                styles.button,
+                                styles.buttonDanger,
+                                shouldShowMakeDefaultButton && styles.mt4,
+                                styles.alignSelfCenter,
+                                styles.w100,
+                            ]}
+                        >
+                            <Text style={[styles.buttonText, styles.textWhite]}>
+                                {this.props.translate('common.delete')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </Popover>
+                <PasswordPopover
+                    isVisible={this.state.shouldShowPasswordPrompt}
+                    onClose={this.hidePasswordPrompt}
+                    anchorPosition={{
+                        top: this.state.anchorPositionTop,
+                        left: this.state.anchorPositionLeft,
+                    }}
+                    onSubmit={(password) => {
+                        this.hidePasswordPrompt();
+                        this.makeDefaultPaymentMethod(password);
+                    }}
+                    submitButtonText={this.state.passwordButtonText}
+                    isDangerousAction
+                />
+                <ConfirmPopover
+                    contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
+                    isVisible={this.state.shouldShowConfirmPopover}
+                    title={this.props.translate('paymentsPage.deleteAccount')}
+                    prompt={this.props.translate('paymentsPage.deleteConfirmation')}
+                    confirmText={this.props.translate('common.delete')}
+                    cancelText={this.props.translate('common.cancel')}
+                    anchorPosition={{
+                        top: this.state.anchorPositionTop,
+                        left: this.state.anchorPositionLeft,
+                    }}
+                    onConfirm={() => {
+                        this.setState({
+                            shouldShowConfirmPopover: false,
+                        });
+                        this.deletePaymentMethod();
+                    }}
+                    onCancel={() => {
+                        this.setState({shouldShowConfirmPopover: false});
+                    }}
+                    shouldShowCancelButton
+                    danger
+                />
+                <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]}>
+                    <div />
+                </OfflineWithFeedback>
             </ScreenWrapper>
         );
     }

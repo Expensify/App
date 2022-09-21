@@ -58,7 +58,7 @@ const defaultProps = {
         bankName: '',
         plaidAccessToken: '',
         bankAccounts: [],
-        loading: false,
+        isLoading: false,
         error: '',
     },
     plaidLinkToken: '',
@@ -77,11 +77,6 @@ class AddPlaidBankAccount extends React.Component {
 
         this.selectAccount = this.selectAccount.bind(this);
         this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
-
-        this.state = {
-            selectedIndex: undefined,
-            institution: {},
-        };
     }
 
     componentDidMount() {
@@ -91,8 +86,9 @@ class AddPlaidBankAccount extends React.Component {
             return;
         }
 
-        BankAccounts.clearPlaid();
-        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+        if (_.isEmpty(this.props.plaidData)) {
+            BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+        }
     }
 
     /**
@@ -119,30 +115,30 @@ class AddPlaidBankAccount extends React.Component {
 
     /**
      * Triggered when user selects a Plaid bank account.
-     * @param {String} index
+     * @param {String} plaidAccountID
      */
-    selectAccount(index) {
-        this.setState({selectedIndex: Number(index)}, () => {
-            const selectedPlaidBankAccount = this.getPlaidBankAccounts()[this.state.selectedIndex];
-            selectedPlaidBankAccount.bankName = this.props.plaidData.bankName;
-            selectedPlaidBankAccount.plaidAccessToken = this.props.plaidData.plaidAccessToken;
-            this.props.onSelect({selectedPlaidBankAccount});
-        });
+    selectAccount(plaidAccountID) {
+        const selectedPlaidBankAccount = _.findWhere(this.getPlaidBankAccounts(), {plaidAccountID});
+        selectedPlaidBankAccount.bankName = this.props.plaidData.bankName;
+        selectedPlaidBankAccount.plaidAccessToken = this.props.plaidData.plaidAccessToken;
+        this.props.onSelect({selectedPlaidBankAccount});
     }
 
     render() {
         const plaidBankAccounts = this.getPlaidBankAccounts();
         const token = this.getPlaidLinkToken();
-        const options = _.map(plaidBankAccounts, (account, index) => ({
-            value: index, label: `${account.addressName} ${account.mask}`,
+        const options = _.map(plaidBankAccounts, account => ({
+            value: account.plaidAccountID, label: `${account.addressName} ${account.mask}`,
         }));
-        const {icon, iconSize} = getBankIcon(this.state.institution.name);
+        const institutionName = lodashGet(this.props, 'plaidData.institution.name', '');
+        const selectedPlaidBankAacount = lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {});
+        const {icon, iconSize} = getBankIcon();
 
         // Plaid Link view
         if (!plaidBankAccounts.length) {
             return (
                 <FullPageOfflineBlockingView>
-                    {(!token || this.props.plaidData.loading)
+                    {(!token || this.props.plaidData.isLoading)
                     && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />
@@ -159,7 +155,7 @@ class AddPlaidBankAccount extends React.Component {
                             onSuccess={({publicToken, metadata}) => {
                                 Log.info('[PlaidLink] Success!');
                                 BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, this.props.allowDebit);
-                                this.setState({institution: metadata.institution});
+                                BankAccounts.updatePlaidData({institution: metadata.institution});
                             }}
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);
@@ -187,18 +183,18 @@ class AddPlaidBankAccount extends React.Component {
                         height={iconSize}
                         width={iconSize}
                     />
-                    <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
+                    <Text style={[styles.ml3, styles.textStrong]}>{institutionName}</Text>
                 </View>
                 <View style={[styles.mb5]}>
                     <Picker
                         label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                         onInputChange={this.selectAccount}
                         items={options}
-                        placeholder={_.isUndefined(this.state.selectedIndex) ? {
+                        placeholder={_.isUndefined(this.props.plaidData.selectedPlaidBankAccount) ? {
                             value: '',
                             label: this.props.translate('bankAccount.chooseAnAccount'),
                         } : {}}
-                        value={this.state.selectedIndex}
+                        value={selectedPlaidBankAacount.plaidAccountID}
                     />
                 </View>
             </View>

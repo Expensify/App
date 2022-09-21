@@ -3,7 +3,7 @@ import * as BankAccounts from './actions/BankAccounts';
 import FormHelper from './FormHelper';
 
 const formHelper = new FormHelper({
-    errorPath: 'reimbursementAccount.errors',
+    errorPath: 'reimbursementAccount.errorFields',
     setErrors: BankAccounts.setBankAccountFormValidationErrors,
 });
 
@@ -32,7 +32,7 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
  * @returns {String}
  */
 function getErrorText(props, errorTranslationKeys, inputKey) {
-    const errors = getErrors(props);
+    const errors = getErrors(props) || {};
     return errors[inputKey] ? props.translate(errorTranslationKeys[inputKey]) : '';
 }
 

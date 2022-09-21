@@ -35,7 +35,7 @@ function getBankAccountListAndGoToValidateStep(updatedACHData) {
             achData.bankAccountInReview = achData.state === BankAccount.STATE.VERIFYING;
 
             navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false});
         });
 }
 
@@ -73,19 +73,15 @@ function getNextStep(updatedACHData) {
  */
 function showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData) {
     let error = verificationsError;
-    let isErrorHTML = false;
     const responseACHData = lodashGet(response, 'achData', {});
 
     if (response.jsonCode === 666 || response.jsonCode === 404) {
-        // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
-        error = response.htmlMessage || response.message;
-        isErrorHTML = Boolean(response.htmlMessage);
+        error = response.message;
     }
 
     if (response.jsonCode === 402) {
         if (hasAccountOrRoutingError(response)) {
             errors.setBankAccountFormValidationErrors({routingNumber: true});
-            errors.showBankAccountErrorModal();
         } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
             error = Localize.translateLocal('bankAccount.error.incorporationState');
         } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
@@ -97,7 +93,6 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
 
     if (error) {
         errors.showBankAccountFormValidationError(error);
-        errors.showBankAccountErrorModal(error, isErrorHTML);
     }
 
     const nextStep = response.jsonCode === 200 && !error ? getNextStep(updatedACHData) : updatedACHData.currentStep;
@@ -105,7 +100,7 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
         ...responseACHData,
         subStep: hasAccountOrRoutingError(response) ? CONST.BANK_ACCOUNT.SUBSTEP.MANUAL : responseACHData.subStep,
     });
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false});
 }
 
 /**
@@ -193,7 +188,7 @@ function mergeParamsWithLocalACHData(data) {
  * @param {Array} [params.beneficialOwners]
  */
 function setupWithdrawalAccount(params) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: '', errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true, error: '', errors: null});
     const updatedACHData = mergeParamsWithLocalACHData(params);
     DeprecatedAPI.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
@@ -225,7 +220,7 @@ function setupWithdrawalAccount(params) {
                     ...(_.omit(responseACHData, 'nextStepValues')),
                     ...responseACHData.nextStepValues,
                 });
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false});
                 return;
             }
 
@@ -241,12 +236,12 @@ function setupWithdrawalAccount(params) {
             } else {
                 navigation.goToWithdrawalAccountSetupStep(nextStep, responseACHData);
             }
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false});
         })
         .catch((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false, achData: {...updatedACHData}});
             console.error(response.stack);
-            errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
+            errors.showBankAccountFormValidationError('common.genericErrorMessage');
         });
 }
 
