@@ -75,9 +75,6 @@ const propTypes = {
         selectedCurrencyCode: PropTypes.string,
     }),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,

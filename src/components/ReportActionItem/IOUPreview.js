@@ -75,6 +75,12 @@ const propTypes = {
         email: PropTypes.string,
     }).isRequired,
 
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
+
+    /** Pending action, if any */
+    pendingAction: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -84,6 +90,8 @@ const defaultProps = {
     onPayButtonPressed: null,
     onPreviewPressed: () => {},
     containerStyles: [],
+    walletTerms: {},
+    pendingAction: null,
 };
 
 const IOUPreview = (props) => {
@@ -124,10 +132,18 @@ const IOUPreview = (props) => {
                 {reportIsLoading
                     ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
                     : (
-                        <View>
-                            <View style={styles.flexRow}>
-                                <View style={styles.flex1}>
-                                    <View style={styles.flexRow}>
+                        <OfflineWithFeedback
+                            pendingAction={props.pendingAction}
+                            errors={props.walletTerms.errors}
+                            onClose={() => {
+                                PaymentMethods.clearWalletTermsError();
+                                Report.clearIOUError(props.chatReportID);
+                            }}
+                            errorRowStyles={[styles.mbn1]}
+                        >
+                            <View>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow]}>
                                         <Text style={styles.h1}>
                                             {cachedTotal}
                                         </Text>
