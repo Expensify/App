@@ -13,6 +13,7 @@ import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
+import Permissions from './Permissions';
 
 let sessionEmail;
 Onyx.connect({
@@ -664,6 +665,23 @@ function isUnread(report) {
     const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
     const maxSequenceNumber = report.maxSequenceNumber || 0;
     return lastReadSequenceNumber < maxSequenceNumber;
+}
+
+function shouldReportBeInOptionList(report, currentlyViewedReportID) {
+    // Do not include reports that have no data because there wouldn't be anything to show in the option item.
+    // This can happen if data is currently loading from the server or a report is in various stages of being created.
+    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
+        return false;
+    }
+
+    // Always include the currently viewed report ID. If we filtered out the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
+    if (report.reportID.toString() === currentlyViewedReportID) {
+        return true;
+    }
+
+    return true;
 }
 
 export {
