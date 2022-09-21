@@ -3,12 +3,14 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as LHNUtils from '../utils/LHNUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import CONST from '../../src/CONST';
 
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
+    BETAS: 'betas',
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
@@ -29,7 +31,7 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-        it('Excludes a report with no participants', () => {
+        it('excludes a report with no participants', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             // Given a report with no participants
@@ -46,6 +48,58 @@ describe('Sidebar', () => {
                 .then(() => {
                     const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
+                });
+        });
+
+        it('excludes policy expense chats when user is not in the policy expense beta', () => {
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a policy expense report
+            // and the user not being in any betas
+            const fakeReport = {
+                ...LHNUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const betas = [];
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: betas,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                }))
+
+                // Then no reports are rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(0);
+                });
+        });
+
+        it('includes policy expense chats when user is in the policy expense beta', () => {
+            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a policy expense report
+            // and the user on the policy expense chat beta
+            const fakeReport = {
+                ...LHNUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const betas = [CONST.BETAS.POLICY_EXPENSE_CHAT];
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: betas,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                }))
+
+                // Then one report is rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(1);
                 });
         });
     });
