@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
     /** Whether we are loading the data via the API */
-    loading: PropTypes.bool,
+    isLoading: PropTypes.bool,
 
     /** A date that indicates the user has been throttled */
     throttledDate: PropTypes.string,
@@ -28,7 +28,7 @@ export default PropTypes.shape({
     error: PropTypes.string,
 
     /** Object containing various errors */
-    errors: PropTypes.objectOf(PropTypes.oneOfType([
+    errorFields: PropTypes.objectOf(PropTypes.oneOfType([
         PropTypes.bool,
         PropTypes.arrayOf(PropTypes.objectOf(PropTypes.bool)),
 

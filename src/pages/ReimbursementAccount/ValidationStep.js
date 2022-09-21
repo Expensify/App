@@ -27,6 +27,7 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
+import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,7 +38,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        errors: {},
+        errorFields: {},
         maxAttemptsReached: false,
     },
 };
@@ -72,21 +73,13 @@ class ValidationStep extends React.Component {
     }
 
     /**
-    * @param {Object} value
-    */
-    setValue(value) {
-        BankAccounts.updateReimbursementAccountDraft(value);
-        this.setState(value);
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
      * @param {String} inputKey
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setValue({[inputKey]: value});
+        const newState = {[inputKey]: value};
+        this.setState(newState);
+        ReimbursementAccount.updateReimbursementAccountDraft(newState);
         this.clearError(inputKey);
     }
 
@@ -114,7 +107,6 @@ class ValidationStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            BankAccounts.showBankAccountErrorModal();
             return;
         }
 
@@ -193,6 +185,7 @@ class ValidationStep extends React.Component {
                     <ReimbursementAccountForm
                         reimbursementAccount={this.props.reimbursementAccount}
                         onSubmit={this.submit}
+                        buttonText={this.props.translate('validationStep.buttonText')}
                     >
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mb5]}>
