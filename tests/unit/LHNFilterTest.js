@@ -35,7 +35,7 @@ describe('Sidebar', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             // Given a report with no participants
-            const fakeReport = LHNUtils.getFakeReport();
+            const fakeReport = LHNUtils.getFakeReport([]);
 
             return waitForPromisesToResolve()
 
@@ -67,6 +67,7 @@ describe('Sidebar', () => {
                 // When Onyx is updated to contain that data
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.BETAS]: betas,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
                 }))
 
@@ -93,6 +94,7 @@ describe('Sidebar', () => {
                 // When Onyx is updated to contain that data
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.BETAS]: betas,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
                 }))
 

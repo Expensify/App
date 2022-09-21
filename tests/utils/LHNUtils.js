@@ -68,7 +68,7 @@ let lastFakeReportID = 0;
  * @param {String[]} participants
  * @returns {Object}
  */
-function getFakeReport(participants = []) {
+function getFakeReport(participants = ['email1@test.com', 'email2@test.com']) {
     return {
         reportID: ++lastFakeReportID,
         reportName: 'Report',
