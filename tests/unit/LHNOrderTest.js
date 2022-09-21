@@ -156,7 +156,7 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-        test('is not rendered when there are no props passed to it', () => {
+        it('is not rendered when there are no props passed to it', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
@@ -166,7 +166,7 @@ describe('Sidebar', () => {
             expect(sidebarLinks.toJSON()).toBe(null);
         });
 
-        test('is rendered with an empty list when personal details exist', () => {
+        it('is rendered with an empty list when personal details exist', () => {
             // Given the sidebar is rendered with default props
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
@@ -185,7 +185,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('contains one report when a report is in Onyx', () => {
+        it('contains one report when a report is in Onyx', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
@@ -209,7 +209,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('orders items with most recently updated on top', () => {
+        it('orders items with most recently updated on top', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
@@ -242,7 +242,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('doesn\'t change the order when adding a draft to the active report', () => {
+        it('doesn\'t change the order when adding a draft to the active report', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
@@ -276,7 +276,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('reorders the reports to always have the most recently updated one on top', () => {
+        it('reorders the reports to always have the most recently updated one on top', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
@@ -310,7 +310,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('reorders the reports to keep draft reports on top', () => {
+        it('reorders the reports to keep draft reports on top', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
@@ -345,7 +345,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('removes the pencil icon when draft is removed', () => {
+        it('removes the pencil icon when draft is removed', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
@@ -379,7 +379,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('removes the pin icon when chat is unpinned', () => {
+        it('removes the pin icon when chat is unpinned', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
