@@ -153,6 +153,7 @@ const BankAccountStep = (props) => {
 
 BankAccountStep.propTypes = propTypes;
 BankAccountStep.defaultProps = defaultProps;
+BankAccountStep.displayName = 'BankAccountStep';
 
 export default compose(
     withLocalize,

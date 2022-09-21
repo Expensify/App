@@ -38,6 +38,7 @@ function resetReimbursementAccount() {
  */
 function showBankAccountFormValidationError(error) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        // eslint-disable-next-line rulesdir/prefer-localization
         errors: {
             [DateUtils.getMicroseconds()]: error,
         },
