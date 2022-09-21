@@ -347,8 +347,7 @@ class IOUConfirmationList extends Component {
                 forceTextUnreadStyle
                 autoFocus
                 shouldTextInputAppearBelowOptions
-                shouldShowOfflineMessage
-                optionHoveredStyle={this.props.canModifyParticipants ? styles.hoveredComponentBG : {}}
+                optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={shouldShowSettlementButton
                     ? (
                         <SettlementButton
