@@ -145,8 +145,8 @@ const IOUPreview = (props) => {
                             errorRowStyles={[styles.mbn1]}
                         >
                             <View>
-                                <View style={styles.flexRow}>
-                                    <View style={[styles.flex1, styles.flexRow]}>
+                                <View style={[styles.flexRow]}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={styles.h1}>
                                             {cachedTotal}
                                         </Text>
