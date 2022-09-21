@@ -10,7 +10,7 @@ export default PropTypes.shape({
     }),
 
     pendingFields: PropTypes.shape({
-        /** Index of the bank account they selected among those given to us by Plaid */
+        /** Index of the bank account the user selected among those given to us by Plaid */
         selectedPlaidIndex: PropTypes.number,
 
         /** Data we need for the API command "AddPersonalBankAccount" */

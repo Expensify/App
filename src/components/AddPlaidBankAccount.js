@@ -126,7 +126,7 @@ class AddPlaidBankAccount extends React.Component {
      * @param {String} index
      */
     selectAccount(index) {
-        if (index === undefined) {
+        if (_.isNull(index)) {
             return;
         }
 
