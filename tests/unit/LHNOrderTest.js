@@ -232,7 +232,7 @@ describe('Sidebar', () => {
                 // Then the component should be rendered with the mostly recently updated report first
                 .then(() => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
-                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, (One|Two|Three)/);
                     expect(reportOptions).toHaveLength(3);
 
                     // The reports should be in the order 3 > 2 > 1
@@ -452,59 +452,6 @@ describe('Sidebar', () => {
     });
 
     describe('in #focus mode', () => {
-        it('hides unread chats', () => {
-            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
-
-            return waitForPromisesToResolve()
-
-                // Given the sidebar is rendered in #focus mode (hides read chats)
-                // with report 1 and 2 having unread actions
-                .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-                }))
-
-                // Then the reports 1 and 2 are shown and 3 is not
-                .then(() => {
-                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
-                    expect(reportOptions).toHaveLength(2);
-                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
-                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
-                })
-
-                // When report3 becomes unread
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1}))
-
-                // Then all three chats are showing
-                .then(() => {
-                    expect(sidebarLinks.queryAllByText(/ReportID, /)).toHaveLength(3);
-                })
-
-                // When report 1 becomes read (it's the active report)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER}))
-
-                // Then all three chats are still showing
-                .then(() => {
-                    expect(sidebarLinks.queryAllByText(/ReportID, /)).toHaveLength(3);
-                })
-
-                // When report 2 becomes the active report
-                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, '2'))
-
-                // Then report 1 should now disappear
-                .then(() => {
-                    expect(sidebarLinks.queryAllByText(/ReportID, /)).toHaveLength(2);
-                    expect(sidebarLinks.queryAllByText(/ReportID, One/)).toHaveLength(0);
-                });
-        });
-
         it('alphabetizes chats', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
