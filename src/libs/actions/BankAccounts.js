@@ -166,13 +166,13 @@ function deletePaymentBankAccount(bankAccountID) {
  */
 function updateBeneficialOwnersForBankAccount(achContractStepData) {
     const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-    API.write('updateBeneficialOwnersForBankAccount', {
+    API.write('UpdateBeneficialOwnersForBankAccount', {
         bankAccountID,
         ownsMoreThan25Percent: achContractStepData.ownsMoreThan25Percent,
         hasOtherBeneficialOwners: achContractStepData.hasOtherBeneficialOwners,
-        didAcceptTermsAndConditions: achContractStepData.didAcceptTermsAndConditions,
-        didCertifyTrueInformation: achContractStepData.didCertifyTrueInformation,
-        beneficialOwners: achContractStepData.beneficialOwners,
+        didAcceptTermsAndConditions: achContractStepData.acceptTermsAndConditions,
+        didCertifyTrueInformation: achContractStepData.certifyTrueInformation,
+        beneficialOwners: JSON.stringify(achContractStepData.beneficialOwners),
     }, getVBBADataForOnyx());
 }
 
