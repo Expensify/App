@@ -19,14 +19,20 @@ import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import withDrawerState from '../../../../components/withDrawerState';
+import {withNetwork} from '../../../../components/OnyxProvider';
+import compose from '../../../../libs/compose';
+import networkPropTypes from '../../../../components/networkPropTypes';
 
 const propTypes = {
 
-    /* Callback function when the menu is shown */
+    /** Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
-    /* Callback function before the menu is hidden */
+    /** Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...sidebarPropTypes,
 };
@@ -151,7 +157,7 @@ class BaseSidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseIOU(this.props.betas) ? [
+                                ...(Permissions.canUseIOU(this.props.betas) && !this.props.network.isOffline ? [
                                     {
                                         icon: Expensicons.MoneyCircle,
                                         text: this.props.translate('iou.requestMoney'),
@@ -187,4 +193,7 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default withDrawerState(BaseSidebarScreen);
+export default compose(
+    withDrawerState,
+    withNetwork(),
+)(BaseSidebarScreen);
