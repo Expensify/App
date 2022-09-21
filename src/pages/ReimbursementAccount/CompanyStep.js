@@ -158,7 +158,7 @@ class CompanyStep extends React.Component {
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
         BankAccounts.setupWithdrawalAccount({
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'),
+            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
 
             // Fields from bankAccount step
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber'),
@@ -177,7 +177,7 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID');
+        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
         const shouldDisableCompanyName = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName');
         const shouldDisableCompanyTaxID = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID');
 

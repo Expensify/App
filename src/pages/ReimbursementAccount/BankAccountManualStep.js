@@ -74,7 +74,7 @@ class BankAccountManualStep extends React.Component {
         }
 
         BankAccounts.setupWithdrawalAccount({
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'),
+            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
             plaidMask: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
             ...this.state,
         });
@@ -92,7 +92,7 @@ class BankAccountManualStep extends React.Component {
     }
 
     render() {
-        const shouldDisableInputs = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID');
+        const shouldDisableInputs = Boolean(ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'));
 
         return (
             <>
