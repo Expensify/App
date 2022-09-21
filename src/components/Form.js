@@ -40,6 +40,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
 
+    /** Should we show the form button */
+    isSubmitButtonVisible: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -49,6 +52,7 @@ const defaultProps = {
         error: '',
     },
     draftValues: {},
+    isSubmitButtonVisible: true,
 };
 
 class Form extends React.Component {
@@ -184,17 +188,19 @@ class Form extends React.Component {
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
-                        <FormAlertWithSubmitButton
-                            buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
-                            isLoading={this.props.formState.isLoading}
-                            message={this.props.formState.error}
-                            onSubmit={this.submit}
-                            onFixTheErrorsLinkPressed={() => {
-                                this.inputRefs[_.first(_.keys(this.state.errors))].focus();
-                            }}
-                            containerStyles={[styles.mh0, styles.mt5]}
-                        />
+                        {this.props.isSubmitButtonVisible && (
+                            <FormAlertWithSubmitButton
+                                buttonText={this.props.submitButtonText}
+                                isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
+                                isLoading={this.props.formState.isLoading}
+                                message={this.props.formState.error}
+                                onSubmit={this.submit}
+                                onFixTheErrorsLinkPressed={() => {
+                                    this.inputRefs[_.first(_.keys(this.state.errors))].focus();
+                                }}
+                                containerStyles={[styles.mh0, styles.mt5]}
+                            />
+                        )}
                     </View>
                 </ScrollView>
             </>
