@@ -1,4 +1,4 @@
-import React from '@types/react';
+import React from 'react';
 import {render} from '@testing-library/react-native';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
