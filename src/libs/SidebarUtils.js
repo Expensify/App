@@ -8,7 +8,6 @@ import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import Permissions from './Permissions';
-import {isDefaultRoom, isUserCreatedPolicyRoom} from './ReportUtils';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -102,24 +101,19 @@ function getOrderedReportIDs() {
     const draftReportOptions = [];
 
     const filteredReports = _.filter(reports, (report) => {
-        // if (!report || !report.reportID) {
-        //     return false;
-        // }
+        if (!report || !report.reportID) {
+            return false;
+        }
 
-        // -POLICY_ROOM
-        // -POLICY_ADMINS
-        // -POLICY_ANNOUNCE
-        // -DOMAIN_ALL
-        // -POLICY_EXPENSE_CHAT
-        // const isChatRoom = ReportUtils.isUserCreatedPolicyRoom(report) || ReportUtils.isDefaultRoom(report);
-        // const isDefaultRoom = ReportUtils.isDefaultRoom(report);
-        // const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        // const participants = report.participants || [];
-        //
-        // // Skip this report if it has no participants and if it's not a type of report supported in the LHN
-        // if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
-        //     return false;
-        // }
+        const isChatRoom = ReportUtils.isUserCreatedPolicyRoom(report) || ReportUtils.isDefaultRoom(report);
+        const isDefaultRoom = ReportUtils.isDefaultRoom(report);
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        const participants = report.participants || [];
+
+        // Skip this report if it has no participants and if it's not a type of report supported in the LHN
+        if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
+            return false;
+        }
 
         const hasDraftComment = report.hasDraft || false;
         const iouReport = report.iouReportID && iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
@@ -141,8 +135,7 @@ function getOrderedReportIDs() {
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (
-            // report.reportID.toString() !== currentlyViewedReportID
+        if (report.reportID.toString() !== currentlyViewedReportID
             && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
