@@ -96,9 +96,7 @@ class SetPasswordPage extends Component {
 
     render() {
         const buttonText = this.props.translate('setPasswordPage.setPassword');
-        const sessionError = this.props.session.errors && ErrorUtils.getLatestErrorMessage(this.props.session);
-        const accountError = this.props.account.errors && ErrorUtils.getLatestErrorMessage(this.props.account);
-        const error = accountError || sessionError;
+        const error = ErrorUtils.getLatestErrorMessage(this.props.account) || ErrorUtils.getLatestErrorMessage(this.props.session);
         const isErrorVisible = !this.props.account.isLoading && !_.isEmpty(error);
         return (
             <SafeAreaView style={[styles.signInPage]}>
