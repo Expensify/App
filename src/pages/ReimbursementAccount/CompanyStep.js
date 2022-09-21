@@ -163,10 +163,11 @@ class CompanyStep extends React.Component {
             // Fields from bankAccount step
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber'),
             accountNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'accountNumber'),
-            bank: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
+            bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
             plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
             isSavings: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'isSavings'),
             plaidAccessToken: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccessToken'),
+            acceptTerms: true,
 
             // Fields from company step
             ...this.state,
@@ -226,8 +227,7 @@ class CompanyStep extends React.Component {
                             };
                             _.each(values, (value, inputKey) => {
                                 const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                ReimbursementAccount.updateReimbursementAccountDraft({[renamedInputKey]: value});
-                                this.clearError(renamedInputKey);
+                                this.clearErrorAndSetValue(renamedInputKey, value);
                             });
                         }}
                     />
