@@ -9,6 +9,31 @@ import * as Request from '../Request';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 
+// We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
+let isAuthenticating = null;
+
+/**
+ * @param {String} commandName
+ * @returns {Promise}
+ */
+function reauthenticate(commandName) {
+    if (isAuthenticating) {
+        return isAuthenticating;
+    }
+
+    isAuthenticating = Authentication.reauthenticate(commandName)
+        .then((response) => {
+            isAuthenticating = null;
+            return response;
+        })
+        .catch((error) => {
+            isAuthenticating = null;
+            throw error;
+        });
+
+    return isAuthenticating;
+}
+
 /**
  * Reauthentication middleware
  *
@@ -54,7 +79,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                     return data;
                 }
 
-                return Authentication.reauthenticate(request.commandName)
+                return reauthenticate(request.commandName)
                     .then((authenticateResponse) => {
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
                             return Request.processWithMiddleware(request, isFromSequentialQueue);
