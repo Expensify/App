@@ -960,8 +960,11 @@ function createWorkspace() {
         }],
     });
 
-    Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
-    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+    Navigation.isNavigationReady()
+        .then(() => {
+            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+        });
 }
 
 function openWorkspaceReimburseView(policyID) {
