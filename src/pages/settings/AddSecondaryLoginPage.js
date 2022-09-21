@@ -54,8 +54,6 @@ class AddSecondaryLoginPage extends Component {
         this.submitForm = this.submitForm.bind(this);
         this.onSecondaryLoginChange = this.onSecondaryLoginChange.bind(this);
         this.validateForm = this.validateForm.bind(this);
-
-        this.phoneNumberInputRef = null;
     }
 
     componentWillUnmount() {
