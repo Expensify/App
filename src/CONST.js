@@ -25,6 +25,8 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
@@ -312,6 +314,7 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
+        OWNER_EMAIL_FAKE: '__FAKE__',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -676,6 +679,7 @@ const CONST = {
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
+        OWNER_EMAIL_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
