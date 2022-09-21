@@ -62,6 +62,9 @@ const BankAccountStep = (props) => {
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.validate = this.validate.bind(this);
         this.validatePlaidAccount = this.validatePlaidAccount.bind(this);
+        this.state = {
+            selectedPlaidBankAccount: undefined,
+        };
     }
 
     /**
@@ -84,9 +87,10 @@ const BankAccountStep = (props) => {
         return errors;
     }
 
-    validatePlaidAccount(values) {
+    validatePlaidAccount() {
+        const selectedPlaidBankAccount = this.state.selectedPlaidBankAccount;
         const errors = {};
-        if (_.isUndefined(values.selectedPlaidBankAccount)) {
+        if (_.isUndefined(selectedPlaidBankAccount)) {
             errors.selectedPlaidBankAccount = this.props.translate('bankAccount.error.noBankAccountSelected');
         }
 
@@ -111,9 +115,11 @@ const BankAccountStep = (props) => {
      * Add the Bank account retrieved via Plaid in db
      * @param {Object} values - form input values passed by the Form component
      */
-    addPlaidAccount(values) {
-        const selectedPlaidBankAccount = values.selectedPlaidBankAccount;
-
+    addPlaidAccount() {
+        const selectedPlaidBankAccount = this.state.selectedPlaidBankAccount;
+        if (!this.state.selectedPlaidBankAccount) {
+            return;
+        }
         BankAccounts.setupWithdrawalAccount({
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
@@ -268,11 +274,15 @@ const BankAccountStep = (props) => {
                         validate={this.validatePlaidAccount}
                         onSubmit={this.addPlaidAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
-                        style={[styles.mh5, styles.mb5, styles.flex1]}
+                        style={[styles.mh5, styles.flexGrow1]}
+                        isSubmitButtonVisible={!_.isUndefined(this.state.selectedPlaidBankAccount)}
                     >
                         <AddPlaidBankAccount
-                            inputID="selectedPlaidBankAccount"
-                            text={this.props.translate('bankAccount.plaidBodyCopy')}
+                            onSelect={(params) => {
+                                this.setState({
+                                    selectedPlaidBankAccount: params.selectedPlaidBankAccount,
+                                });
+                            }}
                             onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                             receivedRedirectURI={this.props.receivedRedirectURI}
                             plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
