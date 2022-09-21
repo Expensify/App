@@ -691,27 +691,73 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     return iouReport.ownerEmail !== currentUserLogin;
 }
 
-function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports) {
-    // Do not include reports that have no data because there wouldn't be anything to show in the option item.
+function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+    // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
         return false;
     }
 
-    // Always include the currently viewed report ID. If we excluded the currently viewed report, then there
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
     if (report.reportID.toString() === currentlyViewedReportID) {
         return true;
     }
 
-    // Always include reports if they have a draft, are pinned, or have an outstanding IOU
+    // Exclude archived reports
+    // These are for deleted policies so no one should be allowed to access them
+    if (isArchivedRoom(report)) {
+        return false;
+    }
+
+    // Exclude unread reports when in GSD mode
+    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInGSDMode && !isUnread(report)) {
+        return false;
+    }
+
+    // Include reports if they have a draft, are pinned, or have an outstanding IOU
+    // These are always relevant to the user no matter what view mode the user prefers
     if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, currentUserLogin, iouReports)) {
         return true;
     }
 
-    // Always hide unread reports when in GSD mode
-    if (isInGSDMode && !isUnread(report)) {
+    // Include reports that have errors from trying to add a workspace
+    // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
+    if (report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom)) {
+        return true;
+    }
+
+    // Include default rooms and policy expense chats, even when there are no comments
+    // because they are immediately highlighted in the LHN when they are created
+    const hasNoComments = report.lastMessageTimestamp === 0;
+    if (hasNoComments && (isDefaultRoom(report) || isPolicyExpenseChat(report))) {
+        return true;
+    }
+
+    // Exclude reports that have no comments
+    if (hasNoComments) {
+        return false;
+    }
+
+    // Include default rooms for free plan policies
+    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Exclude default rooms unless you're on the default room beta
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        return false;
+    }
+
+    // Exclude user created policy rooms if the user isn't on the policy rooms beta
+    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
+    }
+
+    // Exclude policy expense chats if the user isn't in the policy expense chat beta
+    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
         return false;
     }
 
