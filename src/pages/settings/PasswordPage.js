@@ -59,7 +59,6 @@ class PasswordPage extends Component {
         this.getErrorText = this.getErrorText.bind(this);
         this.validate = this.validate.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
-        this.currentPasswordInputRef = null;
 
         this.errorKeysMap = {
             currentPassword: 'passwordPage.errors.currentPassword',
