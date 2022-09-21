@@ -59,7 +59,14 @@ class AddPayPalMePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (!this.payPalMeInputRef) {
+                    return;
+                }
+
+                this.payPalMeInputRef.focus();
+            }}
+            >
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payPalMe')}
                     shouldShowBackButton
@@ -72,6 +79,7 @@ class AddPayPalMePage extends React.Component {
                             {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                         </Text>
                         <TextInput
+                            ref={el => this.payPalMeInputRef = el}
                             label={this.props.translate('addPayPalMePage.payPalMe')}
                             autoCompleteType="off"
                             autoCorrect={false}
