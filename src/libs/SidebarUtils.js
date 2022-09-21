@@ -44,7 +44,7 @@ Onyx.connect({
 
 let betas;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    key: ONYXKEYS.BETAS,
     callback: val => betas = val,
 });
 
