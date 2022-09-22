@@ -1,18 +1,18 @@
 PODS:
-  - Airship (16.9.3):
-    - Airship/Automation (= 16.9.3)
-    - Airship/Basement (= 16.9.3)
-    - Airship/Core (= 16.9.3)
-    - Airship/ExtendedActions (= 16.9.3)
-    - Airship/MessageCenter (= 16.9.3)
-  - Airship/Automation (16.9.3):
+  - Airship (16.8.0):
+    - Airship/Automation (= 16.8.0)
+    - Airship/Basement (= 16.8.0)
+    - Airship/Core (= 16.8.0)
+    - Airship/ExtendedActions (= 16.8.0)
+    - Airship/MessageCenter (= 16.8.0)
+  - Airship/Automation (16.8.0):
     - Airship/Core
-  - Airship/Basement (16.9.3)
-  - Airship/Core (16.9.3):
+  - Airship/Basement (16.8.0)
+  - Airship/Core (16.8.0):
     - Airship/Basement
-  - Airship/ExtendedActions (16.9.3):
+  - Airship/ExtendedActions (16.8.0):
     - Airship/Core
-  - Airship/MessageCenter (16.9.3):
+  - Airship/MessageCenter (16.8.0):
     - Airship/Core
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
@@ -470,7 +470,7 @@ PODS:
     - React-Core
   - react-native-image-manipulator (1.0.5):
     - React
-  - react-native-image-picker (4.10.0):
+  - react-native-image-picker (4.8.5):
     - React-Core
   - react-native-netinfo (8.3.1):
     - React-Core
@@ -487,7 +487,7 @@ PODS:
     - React-Core
   - react-native-safe-area-context (3.4.1):
     - React-Core
-  - react-native-webview (11.23.1):
+  - react-native-webview (11.23.0):
     - React-Core
   - React-perflogger (0.70.4)
   - React-RCTActionSheet (0.70.4):
@@ -555,7 +555,7 @@ PODS:
     - React-jsi (= 0.69.4)
     - React-logger (= 0.69.4)
     - React-perflogger (= 0.69.4)
-  - RNCAsyncStorage (1.17.10):
+  - RNCAsyncStorage (1.17.9):
     - React-Core
   - RNCClipboard (1.5.1):
     - React-Core
@@ -615,7 +615,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.17.0):
+  - RNScreens (3.15.0):
     - React-Core
     - React-RCTImage
   - RNSVG (12.4.4):
@@ -627,8 +627,8 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.0)
-  - urbanairship-react-native (14.4.3):
-    - Airship (= 16.9.3)
+  - urbanairship-react-native (14.4.1):
+    - Airship (= 16.8.0)
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -908,7 +908,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: e695e80794ce7036d94d2bd0e837c7a24efa5c65
+  Airship: 4657c3d5118441240e04674d9445cbd6e363c956
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -970,7 +970,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
-  react-native-image-picker: 4bc9ed38c8be255b515d8c88babbaf74973f91a8
+  react-native-image-picker: cd420f97f6ed6ff74fc4686d27dbcfdbd051db91
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-plaid-link-sdk: 77052f329310ff5a36ddda276793f40d27c02bc4
@@ -978,7 +978,7 @@ SPEC CHECKSUMS:
   react-native-progress-view: 4d3bbe6a099ba027b1fedb1548c2c87f74249b70
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
-  react-native-webview: d33e2db8925d090871ffeb232dfa50cb3a727581
+  react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
   React-perflogger: cb386fd44c97ec7f8199c04c12b22066b0f2e1e0
   React-RCTActionSheet: f803a85e46cf5b4066c2ac5e122447f918e9c6e5
   React-RCTAnimation: 19c80fa950ccce7f4db76a2a7f2cf79baae07fc7
@@ -991,7 +991,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: 9adb4a3cbb598d1bbd46a05256f445e4b8c70603
   React-runtimeexecutor: 61ee22a8cdf8b6bb2a7fb7b4ba2cc763e5285196
   ReactCommon: 8f67bd7e0a6afade0f20718f859dc8c2275f2e83
-  RNCAsyncStorage: 0c357f3156fcb16c8589ede67cc036330b6698ca
+  RNCAsyncStorage: b2489b49e38c85e10ed45a888d13a2a4c7b32ea1
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
   RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
@@ -1004,12 +1004,12 @@ SPEC CHECKSUMS:
   RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: 2cf7451318bb9cc430abeec8d67693f9cf4e039c
-  RNScreens: 0df01424e9e0ed7827200d6ed1087ddd06c493f9
+  RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   RNSVG: ecd661f380a07ba690c9c5929c475a44f432d674
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  urbanairship-react-native: a4a361ec3c66aa87e15c8fa31973a028a58ccf9d
+  urbanairship-react-native: 7e2e9a84c541b1d04798e51f7f390a2d5806eac0
   Yoga: ff994563b2fd98c982ca58e8cd9db2cdaf4dda74
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
