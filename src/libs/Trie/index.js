@@ -100,15 +100,15 @@ class Trie {
             return matching;
         }
         if (node.isCompleteWord()) {
-            if (node.getMetaData().code && !_.find(matching, obj => obj.code === node.getMetaData().code && obj.name === prefix)) {
-                matching.unshift({code: node.getMetaData().code, name: prefix});
+            if (node.getCode() && !_.find(matching, obj => obj.code === node.getCode() && obj.name === prefix)) {
+                matching.unshift({code: node.getCode(), name: prefix});
             }
             const suggestions = node.getMetaData().suggestions;
             for (let i = 0; i < suggestions.length; i++) {
                 if (matching.length > 4) {
                     return matching;
                 }
-                if (!_.find(matching, obj => obj.code === node.getMetaData().code && obj.name === prefix)) {
+                if (!_.find(matching, obj => obj.code === node.getCode() && obj.name === prefix)) {
                     matching.unshift(suggestions[i]);
                 }
             }

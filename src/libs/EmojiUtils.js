@@ -211,8 +211,8 @@ function replaceEmojis(text) {
     if (!emojiData || emojiData.length === 0) { return text; }
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.isWord(emojiData[i].slice(1, -1));
-        if (checkEmoji && checkEmoji.getMetaData().code) {
-            newText = newText.replace(emojiData[i], checkEmoji.getMetaData().code);
+        if (checkEmoji && checkEmoji.getCode()) {
+            newText = newText.replace(emojiData[i], checkEmoji.getCode());
         }
     }
     return newText;
