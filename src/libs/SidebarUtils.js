@@ -101,7 +101,9 @@ function getOrderedReportIDs() {
     const draftReportOptions = [];
 
     const filteredReports = _.filter(reports, (report) => {
+        console.log(0)
         if (!report || !report.reportID) {
+            console.log(1, 'no')
             return false;
         }
 
@@ -112,6 +114,7 @@ function getOrderedReportIDs() {
 
         // Skip this report if it has no participants and if it's not a type of report supported in the LHN
         if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
+            console.log(2, 'no')
             return false;
         }
 
@@ -140,22 +143,29 @@ function getOrderedReportIDs() {
             && !hasDraftComment
             && shouldFilterReport
             && !reportContainsIOUDebt) {
+            console.log(3, 'no')
             return false;
         }
 
         // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
         if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+
+            console.log(4, 'no')
             return false;
         }
 
         if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+            console.log(5, 'no')
             return false;
         }
 
+        console.log(5.5, isPolicyExpenseChat, Permissions.canUsePolicyExpenseChat(betas), betas)
         if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
+            console.log(6, 'no')
             return false;
         }
 
+        console.log(7, 'yes')
         return true;
     });
 
