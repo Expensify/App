@@ -122,8 +122,7 @@ describe('Sidebar', () => {
                 // Then the component should be rendered with an empty list since it will get past the early return
                 .then(() => {
                     expect(sidebarLinks.toJSON()).not.toBe(null);
-                    expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.queryAllByText('ReportID, One')).toHaveLength(0);
+                    expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(0);
                 });
         });
 
