@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -46,10 +47,14 @@ Onyx.connect({
     },
 });
 
+let personalDetails;
 let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => currentUserPersonalDetails = lodashGet(val, currentUserEmail),
+    callback: (val) => {
+        currentUserPersonalDetails = lodashGet(val, currentUserEmail);
+        personalDetails = val;
+    },
 });
 
 /**
@@ -354,15 +359,15 @@ function hasExpensifyEmails(emails) {
 
 /**
  * Whether the time row should be shown for a report.
- * @param {Array<Object>} personalDetails
+ * @param {Array<Object>} providedPersonalDetails
  * @param {Object} report
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, report) {
+function canShowReportRecipientLocalTime(providedPersonalDetails, report) {
     const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
     const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
     const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
-    const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
+    const reportRecipient = providedPersonalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasMultipleParticipants
         && !isChatRoom(report)
@@ -398,12 +403,12 @@ function getDefaultAvatar(login = '') {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
- * @param {Object} personalDetails
+ * @param {Object} providedPersonalDetails
  * @param {Object} policies
  * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, policies, defaultIcon = null) {
+function getIcons(report, providedPersonalDetails, policies, defaultIcon = null) {
     if (!report) {
         return [defaultIcon || getDefaultAvatar()];
     }
@@ -435,15 +440,15 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [
-            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            lodashGet(providedPersonalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
             policyExpenseChatAvatarSource,
         ];
     }
 
     // Return avatar sources for Group chats
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
+        firstName: lodashGet(providedPersonalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(providedPersonalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
     })).sort((first, second) => first.firstName - second.firstName);
     return _.map(sortedParticipants, item => item.avatar);
 }
@@ -573,6 +578,65 @@ function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
 }
 
+/**
+ * @param {String} [text]
+ * @param {File} [file]
+ * @returns {Object}
+ */
+function buildOptimisticReportAction(text, file) {
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+    const parser = new ExpensiMark();
+    const commentText = text.length < 10000 ? parser.replace(text) : text;
+    const isAttachment = _.isEmpty(text) && file !== undefined;
+    const attachmentInfo = isAttachment ? file : {};
+    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+
+    // Remove HTML from text when applying optimistic offline comment
+    const textForNewComment = isAttachment ? '[Attachment]'
+        : parser.htmlToText(htmlForNewComment);
+
+    const optimisticReportActionSequenceNumber = NumberUtils.generateReportActionSequenceNumber();
+
+    return {
+        commentText,
+        reportAction: {
+            reportActionID: NumberUtils.rand64(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
+            person: [
+                {
+                    style: 'strong',
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
+
+            // Callers of this method are responsible for adding a sequenceNumber. It must be a number. It cannot and should not be
+            // a clientID, reportActionID, or anything else besides an estimate of what the next sequenceNumber will be for the
+            // optimistic report action.
+            sequenceNumber: null,
+            clientID: optimisticReportActionSequenceNumber,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: htmlForNewComment,
+                    text: textForNewComment,
+                },
+            ],
+            isFirstItem: false,
+            isAttachment,
+            attachmentInfo,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            shouldShow: true,
+        },
+    };
+}
+
 /*
  * Builds an optimistic IOU report with a randomly generated reportID
  */
@@ -657,6 +721,132 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
 }
 
 /**
+ * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
+ *
+ * @param {Array} participantList
+ * @param {String} reportName
+ * @param {String} chatType
+ * @param {String} policyID
+ * @param {String} ownerEmail
+ * @param {Boolean} isOwnPolicyExpenseChat
+ * @param {String} oldPolicyName
+ * @param {String} visibility
+ * @returns {Object}
+ */
+function buildOptimisticChatReport(
+    participantList,
+    reportName = 'Chat Report',
+    chatType = '',
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+    visibility = undefined,
+) {
+    return {
+        chatType,
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: 0,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        oldPolicyName,
+        ownerEmail,
+        participants: participantList,
+        policyID,
+        reportID: generateReportID(),
+        reportName,
+        stateNum: 0,
+        statusNum: 0,
+        visibility,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+function buildOptimisticCreatedReportAction(ownerEmail) {
+    return {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'normal',
+                    text: ' created this report',
+                },
+            ],
+            person: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            shouldShow: true,
+        },
+    };
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} policyName
+ * @returns {Object}
+ */
+function buildOptimisticWorkspaceChats(policyID, policyName) {
+    const announceChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
+    const announceChatReportID = announceChatData.reportID;
+    const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+
+    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatReportID = adminsChatData.reportID;
+    const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+
+    return {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+    };
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -697,7 +887,11 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    isUnread,
+    buildOptimisticWorkspaceChats,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
-    isUnread,
+    buildOptimisticReportAction,
 };

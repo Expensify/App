@@ -25,7 +25,6 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as NumberUtils from '../NumberUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -46,12 +45,6 @@ let lastViewedReportID;
 Onyx.connect({
     key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     callback: val => lastViewedReportID = val ? Number(val) : null,
-});
-
-let personalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
 });
 
 const allReports = {};
@@ -584,190 +577,6 @@ function fetchAllReports(
 }
 
 /**
- * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
- *
- * @param {Array} participantList
- * @param {String} reportName
- * @param {String} chatType
- * @param {String} policyID
- * @param {String} ownerEmail
- * @param {Boolean} isOwnPolicyExpenseChat
- * @param {String} oldPolicyName
- * @param {String} visibility
- * @returns {Object}
- */
-function buildOptimisticChatReport(
-    participantList,
-    reportName = 'Chat Report',
-    chatType = '',
-    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
-    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
-    isOwnPolicyExpenseChat = false,
-    oldPolicyName = '',
-    visibility = undefined,
-) {
-    return {
-        chatType,
-        hasOutstandingIOU: false,
-        isOwnPolicyExpenseChat,
-        isPinned: false,
-        lastActorEmail: '',
-        lastMessageHtml: '',
-        lastMessageText: null,
-        lastReadSequenceNumber: 0,
-        lastMessageTimestamp: 0,
-        lastVisitedTimestamp: 0,
-        maxSequenceNumber: 0,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        oldPolicyName,
-        ownerEmail,
-        participants: participantList,
-        policyID,
-        reportID: ReportUtils.generateReportID(),
-        reportName,
-        stateNum: 0,
-        statusNum: 0,
-        visibility,
-    };
-}
-
-/**
- * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
- * @param {String} ownerEmail
- * @returns {Object}
- */
-function buildOptimisticCreatedReportAction(ownerEmail) {
-    return {
-        0: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            actorAccountID: currentUserAccountID,
-            message: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'strong',
-                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
-                },
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'normal',
-                    text: ' created this report',
-                },
-            ],
-            person: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'strong',
-                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
-                },
-            ],
-            automatic: false,
-            sequenceNumber: 0,
-            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
-            timestamp: moment().unix(),
-            shouldShow: true,
-        },
-    };
-}
-
-/**
- * @param {String} policyID
- * @param {String} policyName
- * @returns {Object}
- */
-function buildOptimisticWorkspaceChats(policyID, policyName) {
-    const announceChatData = buildOptimisticChatReport(
-        [currentUserEmail],
-        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
-        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-        policyID,
-        null,
-        false,
-        policyName,
-    );
-    const announceChatReportID = announceChatData.reportID;
-    const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
-
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
-    const adminsChatReportID = adminsChatData.reportID;
-    const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
-
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
-    const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
-
-    return {
-        announceChatReportID,
-        announceChatData,
-        announceReportActionData,
-        adminsChatReportID,
-        adminsChatData,
-        adminsReportActionData,
-        expenseChatReportID,
-        expenseChatData,
-        expenseReportActionData,
-    };
-}
-
-/**
- * @param {Number} reportID
- * @param {String} [text]
- * @param {File} [file]
- * @returns {Object}
- */
-function createOptimisticReportAction(reportID, text, file) {
-    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
-    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
-    const parser = new ExpensiMark();
-    const commentText = text.length < 10000 ? parser.replace(text) : text;
-    const isAttachment = _.isEmpty(text) && file !== undefined;
-    const attachmentInfo = isAttachment ? file : {};
-    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
-
-    // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? '[Attachment]'
-        : parser.htmlToText(htmlForNewComment);
-
-    const optimisticReportActionSequenceNumber = NumberUtils.generateReportActionSequenceNumber();
-
-    return {
-        commentText,
-        reportAction: {
-            reportActionID: NumberUtils.rand64(),
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-            actorEmail: currentUserEmail,
-            actorAccountID: currentUserAccountID,
-            person: [
-                {
-                    style: 'strong',
-                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
-                    type: 'TEXT',
-                },
-            ],
-            automatic: false,
-
-            // Use the client generated ID as a optimistic action ID so we can remove it later
-            sequenceNumber: optimisticReportActionSequenceNumber,
-            clientID: optimisticReportActionSequenceNumber,
-            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], ReportUtils.getDefaultAvatar(currentUserEmail)),
-            timestamp: moment().unix(),
-            message: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                    html: htmlForNewComment,
-                    text: textForNewComment,
-                },
-            ],
-            isFirstItem: false,
-            isAttachment,
-            attachmentInfo,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            shouldShow: true,
-        },
-    };
-}
-
-/**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
  * - Adding one comment
@@ -785,7 +594,7 @@ function addActions(reportID, text = '', file) {
     let commandName = 'AddComment';
 
     if (text) {
-        const reportComment = createOptimisticReportAction(reportID, text);
+        const reportComment = ReportUtils.buildOptimisticReportAction(text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -794,7 +603,7 @@ function addActions(reportID, text = '', file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = createOptimisticReportAction(reportID, '', file);
+        const attachment = ReportUtils.buildOptimisticReportAction('', file);
         attachmentAction = attachment.reportAction;
     }
 
@@ -1460,7 +1269,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
 function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
     const participants = [currentUserEmail, ...policy.employeeList];
-    const policyReport = buildOptimisticChatReport(
+    const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -1489,7 +1298,7 @@ function addPolicyReport(policy, reportName, visibility) {
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
-            value: buildOptimisticCreatedReportAction(policyReport.ownerEmail),
+            value: ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail),
         },
     ];
     const successData = [
@@ -1753,9 +1562,6 @@ export {
     readOldestAction,
     openReport,
     openPaymentDetailsPage,
-    buildOptimisticWorkspaceChats,
-    buildOptimisticChatReport,
-    buildOptimisticCreatedReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
