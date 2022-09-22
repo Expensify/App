@@ -5,14 +5,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 
-// The permissions module needs to be mocked because canUseAllBetas() always returns true due to the code
-// being in the "development" environment. Only the permission we are testing for is mocked. Due to how
-// Jest hoists the mocking code to the top of the callstack, it cannot contain any higher scoped variables
-// like CONST or _ so those have been removed from the mocked implementation.
-jest.mock('../../src/libs/Permissions', () => ({
-    ...(jest.requireActual('../../src/libs/Permissions')),
-    canUsePolicyExpenseChat: betas => betas && betas.indexOf('policyExpenseChat') > -1,
-}));
+// Be sure to include the mocked permissions library or else the beta tests won't work
+jest.mock('../../src/libs/Permissions');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
