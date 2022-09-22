@@ -91,6 +91,8 @@ class ThumbnailImage extends PureComponent {
             ? addEncryptedAuthTokenToURL(this.props.previewSourceURL)
             : this.props.previewSourceURL;
 
+        console.log("url", url);
+
         return (
             <View style={[this.props.style, styles.overflowHidden]}>
                 <View
