@@ -1,25 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import lodashMerge from 'lodash/merge';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Onyx from 'react-native-onyx';
-import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import * as ReportUtils from './ReportUtils';
-
-const allReportActions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
-    },
-});
 
 /**
  * @param {Object} reportAction
@@ -41,9 +22,7 @@ function getSortedReportActions(reportActions) {
     return _.chain(reportActions)
         .sortBy('sequenceNumber')
         .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-
-            // All comment actions are shown unless they are deleted and non-pending
-            || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && (!isDeletedAction(action) || !_.isEmpty(action.pendingAction)))
+            || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !isDeletedAction(action))
             || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
             || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
         .map((item, index) => ({action: item, index}))
@@ -97,59 +76,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     return currentAction.action.actorEmail === previousAction.action.actorEmail;
 }
 
-/**
- * Get the message text for the last action that was not deleted
- * @param {Number} reportID
- * @param {Object} [actionsToMerge]
- * @return {String}
- */
-function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
-    const parser = new ExpensiMark();
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action)
-    ));
-    if (lastMessageIndex < 0) {
-        return '';
-    }
-
-    const htmlText = lodashGet(sortedActions, [lastMessageIndex, 'message', 0, 'html'], '');
-    const messageText = parser.htmlToText(htmlText);
-    return ReportUtils.formatReportLastMessageText(messageText);
-}
-
-/**
- * @param {Number} reportID
- * @param {Object} [actionsToMerge]
- * @param {Number} deletedSequenceNumber
- * @param {Number} lastReadSequenceNumber
- * @return {Number}
- */
-function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge = {}, deletedSequenceNumber, lastReadSequenceNumber) {
-    // If the action we are deleting is unread then just return the current last read sequence number
-    if (deletedSequenceNumber > lastReadSequenceNumber) {
-        return lastReadSequenceNumber;
-    }
-
-    // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
-    ));
-
-    // It's possible we won't find any and in that case the last read should be reset
-    if (lastMessageIndex < 0) {
-        return 0;
-    }
-
-    return sortedActions[lastMessageIndex].sequenceNumber;
-}
-
 export {
-    getOptimisticLastReadSequenceNumberForDeletedAction,
-    getLastVisibleMessageText,
     getSortedReportActions,
     getMostRecentIOUReportSequenceNumber,
     isDeletedAction,

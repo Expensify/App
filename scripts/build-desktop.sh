@@ -19,7 +19,7 @@ title "Bundling Desktop js Bundle Using Webpack"
 info " • ELECTRON_ENV: $ELECTRON_ENV"
 info " • ENV file: $ENV_FILE"
 info ""
-"$LOCAL_PACKAGES/webpack" --config config/webpack/webpack.desktop.js --env envFile=$ENV_FILE
+"$LOCAL_PACKAGES/webpack" --config config/webpack/webpack.desktop.js --env.envFile=$ENV_FILE
 
 title "Building Desktop App Archive Using Electron"
 info ""

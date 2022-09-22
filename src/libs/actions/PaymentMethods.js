@@ -372,13 +372,6 @@ function clearWalletError() {
     Onyx.merge(ONYXKEYS.USER_WALLET, {errors: null});
 }
 
-/**
- * Clear any error(s) related to the user's wallet terms
- */
-function clearWalletTermsError() {
-    Onyx.merge(ONYXKEYS.WALLET_TERMS, {errors: null});
-}
-
 function deletePaymentCard(fundID) {
     API.write('DeletePaymentCard', {
         fundID,
@@ -412,5 +405,4 @@ export {
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
     clearWalletError,
-    clearWalletTermsError,
 };

@@ -60,7 +60,7 @@ This is the pattern where we queue the request to be sent when the user is onlin
 - the user should be given instant feedback and
 - the user does not need to know when the change is done on the server in the background
 
-**How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need `successData` or `failureData` as we don't care what response comes back at all.
+**How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failureData as we don't care what response comes back at all.
 
 **Example:** Pinning a chat.
 
@@ -78,10 +78,6 @@ When the user is offline:
 - Use API.write() to implement this pattern 
 - Optimistic data should include `pendingAction` ([with these possible values](https://github.com/Expensify/App/blob/15f7fa622805ee2971808d6bc67181c4715f0c62/src/CONST.js#L775-L779))
 - To ensure the UI is shown as described above, you should enclose the components that contain the data that was added/updated/deleted with the OfflineWithFeedback component
-- Include this data in the action call:
-    - `optimisticData` - always include this object when using the Pattern B
-    - `successData` - include this if the action is `update` or `delete`. You do not have to include this if the action is `add` (same data was already passed using the `optimisticData` object)
-    - `failureData` - always include this object. In case of `add` action, you will want to add some generic error which covers some unexpected failures which were not handled in the backend
 
 **Handling errors:**
 - The [OfflineWithFeedback component](https://github.com/Expensify/App/blob/main/src/components/OfflineWithFeedback.js) already handles showing errors too, as long as you pass the error field in the [errors prop](https://github.com/Expensify/App/blob/128ea378f2e1418140325c02f0b894ee60a8e53f/src/components/OfflineWithFeedback.js#L29-L31)

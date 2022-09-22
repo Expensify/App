@@ -241,6 +241,7 @@ class ReportSettingsPage extends Component {
 
 ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.defaultProps = defaultProps;
+ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default compose(
     withLocalize,

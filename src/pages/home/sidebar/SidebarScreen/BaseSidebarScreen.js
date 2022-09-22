@@ -18,7 +18,6 @@ import * as Policy from '../../../../libs/actions/Policy';
 import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
-import withDrawerState from '../../../../components/withDrawerState';
 
 const propTypes = {
 
@@ -114,7 +113,6 @@ class BaseSidebarScreen extends Component {
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
-                                isDrawerOpen={this.props.isDrawerOpen}
                             />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
@@ -175,7 +173,7 @@ class BaseSidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => Policy.createWorkspace(),
+                                        onSelected: () => Policy.createAndNavigate(),
                                     },
                                 ] : []),
                             ]}
@@ -190,4 +188,4 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default withDrawerState(BaseSidebarScreen);
+export default BaseSidebarScreen;

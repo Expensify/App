@@ -28,9 +28,6 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
-    /** Notify parent that the UI should be modified to accommodate keyboard */
-    onToggleKeyboard: PropTypes.func,
-
     ...withLocalizePropTypes,
 };
 
@@ -40,7 +37,6 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
-    onToggleKeyboard: () => {},
 };
 
 const AttachmentView = (props) => {
@@ -52,7 +48,6 @@ const AttachmentView = (props) => {
             <PDFView
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}
-                onToggleKeyboard={props.onToggleKeyboard}
             />
         );
     }

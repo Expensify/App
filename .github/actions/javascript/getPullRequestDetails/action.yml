@@ -19,5 +19,5 @@ outputs:
   MERGE_ACTOR:
     description: 'The actor who merged the pull request'
 runs:
-  using: 'node16'
+  using: 'node12'
   main: './index.js'

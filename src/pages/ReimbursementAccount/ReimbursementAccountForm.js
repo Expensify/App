@@ -12,7 +12,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FormScrollView from '../../components/FormScrollView';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Data for the bank account actively being set up */
@@ -40,11 +39,6 @@ class ReimbursementAccountForm extends React.Component {
         BankAccounts.resetReimbursementAccount();
     }
 
-    getErrorMessage() {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount);
-        return this.props.reimbursementAccount.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
-    }
-
     render() {
         const errorMessage = this.getErrorMessage();
 
@@ -69,9 +63,9 @@ class ReimbursementAccountForm extends React.Component {
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
-                    message={this.getErrorMessage()}
+                    message={this.props.reimbursementAccount.error}
                     isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
-                    isLoading={this.props.reimbursementAccount.loading || this.props.reimbursementAccount.isLoading}
+                    isLoading={this.props.reimbursementAccount.loading}
                 />
             </FormScrollView>
         );

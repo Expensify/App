@@ -59,7 +59,7 @@ class WalletStatementModal extends React.Component {
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
-
+WalletStatementModal.displayName = 'WalletStatementModal';
 export default compose(
     withLocalize,
     withOnyx({

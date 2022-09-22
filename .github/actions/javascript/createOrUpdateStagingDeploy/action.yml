@@ -8,5 +8,5 @@ inputs:
         description: The new NPM version of the StagingDeployCash issue.
         required: false
 runs:
-    using: 'node16'
+    using: 'node12'
     main: './index.js'

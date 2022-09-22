@@ -19,8 +19,6 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
-import * as ErrorUtils from '../libs/ErrorUtils';
-import OfflineIndicator from '../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -28,13 +26,10 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        errors: PropTypes.objectOf(PropTypes.string),
+        error: PropTypes.string,
 
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
-
-        /** If account is validated or not */
-        validated: PropTypes.bool,
     }),
 
     /** The credentials of the logged in person */
@@ -49,7 +44,7 @@ const propTypes = {
     /** Session object */
     session: PropTypes.shape({
         /** An error message to display to the user */
-        errors: PropTypes.objectOf(PropTypes.string),
+        error: PropTypes.string,
     }),
 
     /** The accountID and validateCode are passed via the URL */
@@ -63,7 +58,7 @@ const defaultProps = {
     credentials: {},
     route: validateLinkDefaultProps,
     session: {
-        errors: null,
+        error: '',
         authToken: '',
     },
 };
@@ -80,6 +75,15 @@ class SetPasswordPage extends Component {
         };
     }
 
+    componentDidMount() {
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        if (this.props.credentials.authToken) {
+            return;
+        }
+        Session.validateEmail(accountID, validateCode);
+    }
+
     validateAndSubmitForm() {
         if (!this.state.isFormValid) {
             return;
@@ -87,17 +91,17 @@ class SetPasswordPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        if (this.props.account.validated) {
-            Session.updatePasswordAndSignin(accountID, validateCode, this.state.password);
+        if (this.props.credentials.authToken) {
+            Session.changePasswordAndSignIn(this.props.credentials.authToken, this.state.password);
         } else {
-            Session.setPasswordForNewAccountAndSignin(accountID, validateCode, this.state.password);
+            Session.setPassword(this.state.password, validateCode, accountID);
         }
     }
 
     render() {
-        const buttonText = this.props.translate('setPasswordPage.setPassword');
-        const error = ErrorUtils.getLatestErrorMessage(this.props.account) || ErrorUtils.getLatestErrorMessage(this.props.session);
-        const isErrorVisible = !this.props.account.isLoading && !_.isEmpty(error);
+        const buttonText = !this.props.account.validated ? this.props.translate('setPasswordPage.validateAccount') : this.props.translate('setPasswordPage.setPassword');
+        const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
+        const error = sessionError || this.props.account.error;
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
@@ -120,11 +124,10 @@ class SetPasswordPage extends Component {
                             onSubmit={this.validateAndSubmitForm}
                             containerStyles={[styles.mb2, styles.mh0]}
                             message={error}
-                            isAlertVisible={isErrorVisible}
+                            isAlertVisible={!_.isEmpty(error)}
                             isDisabled={!this.state.isFormValid}
                         />
                     </View>
-                    <OfflineIndicator containerStyles={[styles.mv1]} />
                 </SignInPageLayout>
             </SafeAreaView>
         );

@@ -6,7 +6,7 @@ import 'shim-keyboard-event-key';
 import checkForUpdates from '../../libs/checkForUpdates';
 import Config from '../../CONFIG';
 import DateUtils from '../../libs/DateUtils';
-import pkg from '../../../package.json';
+import {version as currentVersion} from '../../../package.json';
 import Visibility from '../../libs/Visibility';
 
 /**
@@ -17,7 +17,7 @@ function webUpdate() {
     fetch('/version.json', {cache: 'no-cache'})
         .then(response => response.json())
         .then(({version}) => {
-            if (version === pkg.version) {
+            if (version === currentVersion) {
                 return;
             }
 

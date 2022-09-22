@@ -18,7 +18,6 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
-import DateUtils from '../DateUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -232,7 +231,8 @@ function validateLogin(accountID, validateCode) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {success});
             }
         } else {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('resendValidationForm.validationCodeFailedMessage')}});
+            const error = lodashGet(response, 'message', 'Unable to validate login.');
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
@@ -445,10 +445,10 @@ function updateChatPriorityMode(mode) {
 }
 
 /**
- * @param {Boolean} shouldUseStagingServer
+ * @param {Boolean} shouldUseSecureStaging
  */
-function setShouldUseStagingServer(shouldUseStagingServer) {
-    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
+function setShouldUseSecureStaging(shouldUseSecureStaging) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
 }
 
 function clearUserErrorMessage() {
@@ -523,7 +523,7 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
-    setShouldUseStagingServer,
+    setShouldUseSecureStaging,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,

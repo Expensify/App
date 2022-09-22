@@ -1,9 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
-// eslint-disable-next-line import/no-cycle
-import DateUtils from '../DateUtils';
-import * as Localize from '../Localize';
 
 let currentActiveClients;
 Onyx.connect({
@@ -46,10 +43,8 @@ function clearStorageAndRedirect(errorMessage) {
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline});
             }
 
-            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
-            if (errorMessage) {
-                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
-            }
+            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
+            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
         });
 }
 

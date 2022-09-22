@@ -6,9 +6,7 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-// eslint-disable-next-line import/no-cycle
 import * as DeprecatedAPI from '../deprecatedAPI';
-// eslint-disable-next-line import/no-cycle
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
@@ -73,7 +71,7 @@ function getDisplayName(login, personalDetail) {
  * @returns {String}
  */
 function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
 }
 
 /**
@@ -262,6 +260,7 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 function updateProfile(firstName, lastName, pronouns, timezone) {
+    const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
         firstName,
         lastName,
@@ -281,6 +280,19 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                         firstName,
                         lastName,
                     }),
+                },
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName: myPersonalDetails.firstName,
+                    lastName: myPersonalDetails.lastName,
+                    pronouns: myPersonalDetails.pronouns,
+                    timezone: myPersonalDetails.timeZone,
+                    displayName: myPersonalDetails.displayName,
                 },
             },
         }],

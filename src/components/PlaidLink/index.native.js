@@ -32,6 +32,4 @@ const PlaidLink = (props) => {
 
 PlaidLink.propTypes = plaidLinkPropTypes;
 PlaidLink.defaultProps = plaidLinkDefaultProps;
-PlaidLink.displayName = 'PlaidLink';
-
 export default PlaidLink;

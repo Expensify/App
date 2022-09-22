@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import updateUnread from './updateUnread';
-import * as ReportUtils from '../ReportUtils';
 
-const reports = {};
+// Stash the unread action counts for each report
+const unreadActionCounts = {};
 
 /**
  * Updates the title and favicon of the current browser tab and Mac OS or iOS dock icon with an unread indicator.
@@ -12,7 +13,14 @@ const reports = {};
  * a user has and how often they are updated.
  */
 const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
-    const totalCount = _.filter(reports, ReportUtils.isUnread).length;
+    const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + Math.max(reportCount, 0), 0);
+
+    // When we don't have an exact count we just let the user know there's something new
+    if (totalCount === 0 && _.some(unreadActionCounts, count => count === -1)) {
+        updateUnread(1);
+        return;
+    }
+
     updateUnread(totalCount);
 }, 100, {leading: false});
 
@@ -30,7 +38,17 @@ function listenForReportChanges() {
                 return;
             }
 
-            reports[report.reportID] = report;
+            if (report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
+                return;
+            }
+
+            // An unreadActionCount of -1 signifies that we're not interested in showing exact count
+            if (report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY
+                && report.unreadActionCount > 0) {
+                unreadActionCounts[report.reportID] = -1;
+            } else {
+                unreadActionCounts[report.reportID] = report.unreadActionCount || 0;
+            }
             throttledUpdatePageTitleAndUnreadCount();
         },
     });
@@ -50,5 +68,4 @@ function stopListeningForReportChanges() {
 export default {
     listenForReportChanges,
     stopListeningForReportChanges,
-    throttledUpdatePageTitleAndUnreadCount,
 };

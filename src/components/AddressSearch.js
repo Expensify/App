@@ -237,7 +237,6 @@ const AddressSearch = (props) => {
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
-AddressSearch.displayName = 'AddressSearch';
 
 export default withLocalize(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading

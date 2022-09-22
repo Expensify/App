@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, TouchableOpacity, InteractionManager, LayoutAnimation,
+    View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -49,8 +49,7 @@ class BasePaymentsPage extends React.Component {
                 title: '',
             },
             anchorPositionTop: 0,
-            anchorPositionBottom: 0,
-            anchorPositionRight: 0,
+            anchorPositionLeft: 0,
             addPaymentMethodButton: null,
             methodID: null,
         };
@@ -68,17 +67,24 @@ class BasePaymentsPage extends React.Component {
 
     componentDidMount() {
         this.fetchData();
+        if (this.props.shouldListenForResize) {
+            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
+        }
     }
 
     componentDidUpdate(prevProps) {
-        if (this.shouldListenForResize) {
-            this.setMenuPosition();
-        }
-
         if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
+
         this.fetchData();
+    }
+
+    componentWillUnmount() {
+        if (!this.props.shouldListenForResize || !this.dimensionsSubscription) {
+            return;
+        }
+        this.dimensionsSubscription.remove();
     }
 
     setMenuPosition() {
@@ -108,11 +114,10 @@ class BasePaymentsPage extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.top + position.height,
-            anchorPositionBottom: this.props.windowHeight - position.top,
+            anchorPositionTop: position.bottom,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionRight: (this.props.windowWidth - position.right) + 13,
+            anchorPositionLeft: position.left + 13,
         });
     }
 
@@ -130,8 +135,6 @@ class BasePaymentsPage extends React.Component {
         this.setState({
             addPaymentMethodButton: nativeEvent.currentTarget,
         });
-
-        // The delete/default menu
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -170,7 +173,6 @@ class BasePaymentsPage extends React.Component {
         this.setState({
             shouldShowAddPaymentMenu: true,
         });
-
         this.setPositionAddPaymentMenu(position);
     }
 
@@ -274,14 +276,7 @@ class BasePaymentsPage extends React.Component {
                     {Permissions.canUseWallet(this.props.betas) && (
                         <>
                             <View style={[styles.mv5]}>
-                                <OfflineWithFeedback
-                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                    errors={this.props.walletTerms.errors}
-                                    onClose={PaymentMethods.clearWalletTermsError}
-                                    errorRowStyles={[styles.ml10, styles.mr2]}
-                                >
-                                    <CurrentWalletBalance />
-                                </OfflineWithFeedback>
+                                <CurrentWalletBalance />
                             </View>
                             {this.props.userWallet.currentBalance > 0 && (
                                 <KYCWall
@@ -327,8 +322,8 @@ class BasePaymentsPage extends React.Component {
                     isVisible={this.state.shouldShowAddPaymentMenu}
                     onClose={this.hideAddPaymentMenu}
                     anchorPosition={{
-                        bottom: this.state.anchorPositionBottom,
-                        right: this.state.anchorPositionRight - 10,
+                        top: this.state.anchorPositionTop,
+                        left: this.state.anchorPositionLeft,
                     }}
                     onItemSelected={method => this.addPaymentMethodTypePressed(method)}
                 />
@@ -337,7 +332,7 @@ class BasePaymentsPage extends React.Component {
                     onClose={this.hideDefaultDeleteMenu}
                     anchorPosition={{
                         top: this.state.anchorPositionTop,
-                        right: this.state.anchorPositionRight,
+                        left: this.state.anchorPositionLeft,
                     }}
                 >
                     <View
@@ -484,7 +479,7 @@ class BasePaymentsPage extends React.Component {
                     onClose={this.hidePasswordPrompt}
                     anchorPosition={{
                         top: this.state.anchorPositionTop,
-                        right: this.state.anchorPositionRight,
+                        left: this.state.anchorPositionLeft,
                     }}
                     onSubmit={(password) => {
                         this.hidePasswordPrompt();
@@ -502,7 +497,7 @@ class BasePaymentsPage extends React.Component {
                     cancelText={this.props.translate('common.cancel')}
                     anchorPosition={{
                         top: this.state.anchorPositionTop,
-                        right: this.state.anchorPositionRight,
+                        left: this.state.anchorPositionLeft,
                     }}
                     onConfirm={() => {
                         this.setState({
@@ -543,9 +538,6 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
-        },
-        walletTerms: {
-            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(BasePaymentsPage);

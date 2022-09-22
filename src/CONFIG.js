@@ -9,8 +9,6 @@ import CONST from './CONST';
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
 const newExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
 const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
-const stagingExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
-const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
 const ngrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const secureNgrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
 const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
@@ -48,15 +46,12 @@ export default {
         SECURE_EXPENSIFY_URL: secureURLRoot,
         NEW_EXPENSIFY_URL: newExpensifyURL,
         URL_API_ROOT: expensifyURLRoot,
-        STAGING_EXPENSIFY_URL: stagingExpensifyURL,
-        STAGING_SECURE_EXPENSIFY_URL: stagingSecureExpensifyUrl,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
         CONCIERGE_URL: conciergeUrl,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
-    IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),

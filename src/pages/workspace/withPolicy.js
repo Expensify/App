@@ -42,6 +42,9 @@ const policyPropTypes = {
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
 
+        /** A list of emails for the employees on the policy */
+        employeeList: PropTypes.arrayOf(PropTypes.string),
+
         /** Errors on the policy keyed by microtime */
         errors: PropTypes.objectOf(PropTypes.string),
 
