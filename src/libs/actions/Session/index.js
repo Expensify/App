@@ -456,12 +456,12 @@ function changePasswordAndSignIn(authToken, password) {
 }
 
 /**
- * Validates new user login, sets a new password and authenticates them
+ * Updates a password and authenticates them
  * @param {Number} accountID
  * @param {String} validateCode
  * @param {String} password
  */
-function setPasswordForNewAccountAndSignin(accountID, validateCode, password) {
+function updatePasswordAndSignin(accountID, validateCode, password) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -513,63 +513,6 @@ function setPasswordForNewAccountAndSignin(accountID, validateCode, password) {
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet'),
                 },
-            },
-        },
-    ];
-    API.write('SetPasswordForNewAccountAndSignin', {
-        accountID, validateCode, password,
-    }, {optimisticData, successData, failureData});
-}
-
-/**
- * Updates a password and authenticates them
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} password
- */
-function updatePasswordAndSignin(accountID, validateCode, password) {
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
             },
         },
     ];
@@ -672,7 +615,6 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 
 export {
     beginSignIn,
-    setPasswordForNewAccountAndSignin,
     updatePasswordAndSignin,
     signIn,
     signInWithShortLivedToken,
