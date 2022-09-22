@@ -505,7 +505,7 @@ describe('Sidebar', () => {
 
             return waitForPromisesToResolve()
 
-                // Given the sidebar is rendered in #focus mode (hides read chats)
+                // Given the sidebar is rendered in default mode
                 // with all reports being pinned
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
