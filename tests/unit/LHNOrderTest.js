@@ -233,7 +233,7 @@ describe('Sidebar', () => {
                 }))
 
                 // When a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastMessageTimestamp: Date.now()}))
 
                 // Then the order of the reports should be 1 > 3 > 2
                 //                                         ^--- (1 goes to the front and pushes other two down)
