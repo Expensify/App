@@ -261,11 +261,18 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const policyName = (
-        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
-        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
-    ) || '';
-    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    if (_.isEmpty(policies)) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    if (!policy) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    return policy.name
+        || report.oldPolicyName
+        || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
