@@ -217,21 +217,26 @@ describe('Sidebar', () => {
         it('reorders the reports to always have the most recently updated one on top', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            // Given three reports in the recently updated order of 3, 2, 1
+            // And the first report has a draft
+            // And the currently viewed report is the first report
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                hasDraft: true,
+            };
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const currentlyViewedReportID = report1.reportID;
+
             return waitForPromisesToResolve()
 
-                // Given the sidebar is rendered in default mode (most recent first)
-                // while currently viewing report 1
-                // with reports in top-to-bottom order of 3 > 2 > 1
+                // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: report3,
                 }))
 
                 // When a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
@@ -240,11 +245,11 @@ describe('Sidebar', () => {
                 // Then the order of the reports should be 1 > 3 > 2
                 //                                         ^--- (1 goes to the front and pushes other two down)
                 .then(() => {
-                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-                    expect(reportOptions).toHaveLength(3);
-                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
-                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
-                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                 });
         });
 
