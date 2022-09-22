@@ -90,6 +90,43 @@ describe('Sidebar', () => {
                     expect(optionRows).toHaveLength(1);
                 });
         });
+
+        it('includes or excludes user created policy rooms depending on the beta', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a user created policy room report
+            // and the user not being in any betas
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            };
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                }))
+
+                // Then no reports are rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(0);
+                })
+
+                // When the user is added to the policy rooms beta and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: [CONST.BETAS.POLICY_ROOMS],
+                }))
+
+                // Then there is one report rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(1);
+                });
+        });
     });
 
     describe('in #focus mode', () => {
