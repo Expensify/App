@@ -100,7 +100,6 @@ class RequestCallPage extends Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.validate = this.validate.bind(this);
-        this.unsubscribe = () => {};
         Inbox.clearDidRequestCallSucceed();
     }
 
@@ -111,6 +110,10 @@ class RequestCallPage extends Component {
 
     componentWillUnmount() {
         Inbox.clearDidRequestCallSucceed();
+        if (!this.unsubscribe) {
+            return;
+        }
+
         this.unsubscribe();
     }
 
