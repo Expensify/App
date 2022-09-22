@@ -386,12 +386,7 @@ describe('Sidebar', () => {
 
             return waitForPromisesToResolve()
 
-                // Given the sidebar is rendered in default mode (most recent first)
-                // while currently viewing report 2 (the one in the middle)
-                // with a draft on report 2
-                // with the current user set to email9@
-                // with a report that has a draft, a report that is pinned, and
-                //    an outstanding IOU report that doesn't belong to the current user
+                // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
@@ -405,7 +400,6 @@ describe('Sidebar', () => {
                 // Then the reports are ordered by Pinned > IOU > Draft
                 // there is a pencil icon
                 // there is a pinned icon
-                // there is an IOU badge
                 .then(() => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
