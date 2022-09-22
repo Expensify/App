@@ -6,8 +6,24 @@ on:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
 
+env:
+  CHUNKS: 3
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    name: Define matrix parameters
+    outputs:
+      MATRIX: ${{ steps.set-matrix.outputs.MATRIX }}
+    steps:
+      - name: Set Matrix
+        id: set-matrix
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setOutput('MATRIX', Array.from({ length: process.env.CHUNKS + 1 }, (v, i) => i));
+
   test:
+    needs: config
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     name: test (job ${{ matrix.chunk }})
@@ -16,10 +32,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        chunk: [0, 1, 2, 3]
+        chunk: ${{fromJson(needs.config.outputs.MATRIX)}}
 
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
+      - name: Check Provisioning Style
+        run: |
+          if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
+            exit 0
+          else
+            echo "Error: Automatic provisioning style is not allowed!"
+            exit 1
+          fi
 
       - name: Cache Jest cache
         id: cache-jest-cache
@@ -29,27 +55,11 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: All Unit Tests
-      # Job 0 and job 1 will split all tests except loginTest.js and will run in parallel.
-        if: ${{ fromJSON(matrix.chunk) < 2 }}
-        run: npx jest --listTests --json --testPathIgnorePatterns=loginTest.js | jq -cM '[_nwise(length / 2 | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs npm test
-      
-      - name: Login Unit Tests
-       # loginTest.js takes most time to run and blocks other tests execution so running this in separate runner/job in parallel.
-        if: ${{ fromJSON(matrix.chunk) == 2 }}
-        run: npm test -- tests/unit/loginTest.js
+        if: ${{ matrix.chunk < env.CHUNKS }}
+        run: npx jest --listTests --json | jq -cM '[_nwise(length / ${{ env.CHUNKS }} | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs npm test
 
       - name: Pull Request Tests
         # Pull request related tests will be run in separate runner in parallel.
-        if: ${{ fromJSON(matrix.chunk) == 3 }}
+        if: ${{ matrix.chunk == env.CHUNKS }}
         run: tests/unit/getPullRequestsMergedBetweenTest.sh
-      
-      # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
-      - name: Check Provisioning Style
-        if: ${{ fromJSON(matrix.chunk) == 3 }}
-        run: |
-          if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
-            exit 0
-          else
-            echo "Error: Automatic provisioning style is not allowed!"
-            exit 1
-          fi
+
