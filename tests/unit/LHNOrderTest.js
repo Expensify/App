@@ -357,6 +357,38 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
+
+            // Given three reports in the recently updated order of 3, 2, 1
+            // with the current user set to email9@ (someone not participating in any of the chats)
+            // with a report that has a draft, a report that is pinned, and
+            //    an outstanding IOU report that doesn't belong to the current user
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                isPinned: true,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                hasDraft: true,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                hasOutstandingIOU: true,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const iouReport = {
+                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
+                ownerEmail: 'email2@test.com',
+                hasOutstandingIOU: true,
+                total: 10000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+            report3.iouReportID = iouReport.reportID.toString();
+            const currentlyViewedReportID = report2.reportID;
+            const currentlyLoggedInUserEmail = 'email9@test.com';
+
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
@@ -368,29 +400,27 @@ describe('Sidebar', () => {
                 // with a report that has a draft, a report that is pinned, and
                 //    an outstanding IOU report that doesn't belong to the current user
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
-                    [ONYXKEYS.SESSION]: {email: 'email9@test.com'},
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, isPinned: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, iouReportID: '4', hasOutstandingIOU: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}4`]: {...fakeReportIOU, chatReportID: 3},
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
+                    [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`]: iouReport,
                 }))
 
-                // Then the reports are ordered by IOU > Pinned > Draft
+                // Then the reports are ordered by Pinned > IOU > Draft
                 // there is a pencil icon
                 // there is a pinned icon
                 // there is an IOU badge
                 .then(() => {
-                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
-                    expect(reportOptions).toHaveLength(3);
-                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Two');
-                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
-                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
+                    expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                 });
         });
     });
