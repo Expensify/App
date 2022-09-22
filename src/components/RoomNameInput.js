@@ -12,8 +12,8 @@ const propTypes = {
     /** Callback to execute when the text input is modified correctly */
     onChangeText: PropTypes.func,
 
-    /** Initial room name to show in input field. This should include the '#' already prefixed to the name */
-    initialValue: PropTypes.string,
+    /** Room name to show in input field. This should include the '#' already prefixed to the name */
+    value: PropTypes.string,
 
     /** Whether we should show the input as disabled */
     disabled: PropTypes.bool,
@@ -50,7 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     onChangeText: () => {},
-    initialValue: '',
+    value: '',
     disabled: false,
     errorText: '',
     ...fullPolicyDefaultProps,
@@ -101,7 +101,7 @@ class RoomNameInput extends Component {
                 prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                 placeholder={this.props.translate('newRoomPage.social')}
                 onChange={this.setModifiedRoomName}
-                defaultValue={this.props.initialValue.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
+                value={this.props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                 errorText={this.props.errorText}
                 autoCapitalize="none"
             />
