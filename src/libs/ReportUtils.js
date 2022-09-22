@@ -600,8 +600,6 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
     const textForNewComment = isAttachment ? '[Attachment]'
         : parser.htmlToText(htmlForNewComment);
 
-    const optimisticReportActionSequenceNumber = NumberUtils.generateReportActionSequenceNumber();
-
     return {
         commentText,
         reportAction: {
@@ -618,7 +616,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
             ],
             automatic: false,
             sequenceNumber,
-            clientID: optimisticReportActionSequenceNumber,
+            clientID: NumberUtils.generateReportActionClientID(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
             message: [
@@ -677,7 +675,6 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
     const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
-    const clientID = NumberUtils.generateReportActionSequenceNumber();
     const originalMessage = {
         amount,
         comment,
@@ -702,7 +699,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
-        clientID,
+        clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
         person: [{
