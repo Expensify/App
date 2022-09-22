@@ -5,6 +5,15 @@ import * as LHNUtils from '../utils/LHNUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 
+// The permissions module needs to be mocked because canUseAllBetas() always returns true due to the code
+// being in the "development" environment. Only the permission we are testing for is mocked. Due to how
+// Jest hoists the mocking code to the top of the callstack, it cannot contain any higher scoped variables
+// like CONST or _ so those have been removed from the mocked implementation.
+jest.mock('../../src/libs/Permissions', () => ({
+    ...(jest.requireActual('../../src/libs/Permissions')),
+    canUsePolicyExpenseChat: betas => betas.indexOf('policyExpenseChat') > -1,
+}));
+
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
@@ -51,54 +60,37 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('excludes policy expense chats when user is not in the policy expense beta', () => {
+        it('includes or excludes policy expense chats depending on the user being in the policy expense beta', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             // Given a policy expense report
             // and the user not being in any betas
-            const fakeReport = {
+            const report = {
                 ...LHNUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
-            const betas = [];
 
             return waitForPromisesToResolve()
 
-                // When Onyx is updated to contain that data
+                // When Onyx is updated to contain that data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.BETAS]: betas,
+                    [ONYXKEYS.BETAS]: [],
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
                     const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
-                });
-        });
+                })
 
-        it('includes policy expense chats when user is in the policy expense beta', () => {
-            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
-
-            // Given a policy expense report
-            // and the user on the policy expense chat beta
-            const fakeReport = {
-                ...LHNUtils.getFakeReport(),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
-            const betas = [CONST.BETAS.POLICY_EXPENSE_CHAT];
-
-            return waitForPromisesToResolve()
-
-                // When Onyx is updated to contain that data
+                // When the user is added to the policy expense beta and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.BETAS]: betas,
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                    [ONYXKEYS.BETAS]: [CONST.BETAS.POLICY_EXPENSE_CHAT],
                 }))
 
-                // Then one report is rendered in the LHN
+                // Then there is one report rendered in the LHN
                 .then(() => {
                     const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(1);
