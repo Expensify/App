@@ -287,7 +287,7 @@ function dismissSuccessfulTransferBalancePage() {
  */
 function hasPaymentMethodError(bankList, cardList, personalBankAccount) {
     // Check if there is a pending bank account
-    const hasPendingBankAccountError = !_.isEmpty(lodashGet(personalBankAccount, 'errorFields.plaidSelector', {}));
+    const hasPendingBankAccountError = !_.isEmpty(lodashGet(personalBankAccount, 'errors', {}));
     const combinedPaymentMethods = lodashMerge(bankList, cardList);
     return hasPendingBankAccountError || _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
 }

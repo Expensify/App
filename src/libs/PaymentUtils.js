@@ -42,7 +42,7 @@ function formatPaymentMethods(bankAccountList, cardList, personalBankAccount = {
     // See if we need to show a pending bank account in the payment methods list
     if (!_.isEmpty(pendingBankAccount)) {
         // Get error from errorFields and pass it into the pendingBankAccount Object
-        const pendingAccountErrors = lodashGet(personalBankAccount, 'errorFields.plaidSelector', {});
+        const pendingAccountErrors = lodashGet(personalBankAccount, 'errors', {});
         const sortedErrors = _.chain(pendingAccountErrors)
             .keys()
             .sortBy()
