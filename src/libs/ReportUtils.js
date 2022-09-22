@@ -579,11 +579,15 @@ function hasReportNameError(report) {
 }
 
 /**
+ * @param {Number} sequenceNumber sequenceNumber must be provided and it must be a number. It cannot and should not be a clientID,
+ *                                reportActionID, or anything else besides an estimate of what the next sequenceNumber will be for the
+ *                                optimistic report action. Until we deprecate sequenceNumbers please assume that all report actions
+ *                                have them and they should be numbers.
  * @param {String} [text]
  * @param {File} [file]
  * @returns {Object}
  */
-function buildOptimisticReportAction(text, file) {
+function buildOptimisticReportAction(sequenceNumber, text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -613,11 +617,7 @@ function buildOptimisticReportAction(text, file) {
                 },
             ],
             automatic: false,
-
-            // Callers of this method are responsible for adding a sequenceNumber. It must be a number. It cannot and should not be
-            // a clientID, reportActionID, or anything else besides an estimate of what the next sequenceNumber will be for the
-            // optimistic report action.
-            sequenceNumber: null,
+            sequenceNumber,
             clientID: optimisticReportActionSequenceNumber,
             avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
@@ -663,6 +663,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
 /**
  * Builds an optimistic IOU reportAction object
  *
+ * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} comment - User comment for the IOU.
@@ -672,11 +673,11 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
     const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
-    const sequenceNumber = NumberUtils.generateReportActionSequenceNumber();
+    const clientID = NumberUtils.generateReportActionSequenceNumber();
     const originalMessage = {
         amount,
         comment,
@@ -701,10 +702,7 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
         actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
-
-        // For now, the clientID and sequenceNumber are the same.
-        // We are changing that as we roll out the optimisticReportAction IDs and related refactors.
-        clientID: sequenceNumber,
+        clientID,
         isAttachment: false,
         originalMessage,
         person: [{

@@ -593,37 +593,31 @@ function addActions(reportID, text = '', file) {
     let attachmentAction;
     let commandName = 'AddComment';
 
+    const highestSequenceNumber = getMaxSequenceNumber(reportID);
+
     if (text) {
-        const reportComment = ReportUtils.buildOptimisticReportAction(text);
+        const nextSequenceNumber = highestSequenceNumber + 1;
+        const reportComment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
 
     if (file) {
+        const nextSequenceNumber = (text && file) ? highestSequenceNumber + 2 : highestSequenceNumber + 1;
+
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = ReportUtils.buildOptimisticReportAction('', file);
+        const attachment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, '', file);
         attachmentAction = attachment.reportAction;
     }
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    // We need a newSequenceNumber that is n larger than the current depending on how many actions we are adding.
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
+    // Our report needs a new maxSequenceNumber that is n larger than the current depending on how many actions we are adding.
     const actionCount = text && file ? 2 : 1;
     const newSequenceNumber = highestSequenceNumber + actionCount;
-
-    // We're giving our best guess at what these sequenceNumbers are to enable marking as unread while offline.
-    if (text && file) {
-        reportCommentAction.sequenceNumber = highestSequenceNumber + 1;
-        attachmentAction.sequenceNumber = highestSequenceNumber + 2;
-    } else if (file) {
-        attachmentAction.sequenceNumber = highestSequenceNumber + 1;
-    } else {
-        reportCommentAction.sequenceNumber = highestSequenceNumber + 1;
-    }
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
