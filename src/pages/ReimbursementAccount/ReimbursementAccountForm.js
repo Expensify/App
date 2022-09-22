@@ -19,19 +19,15 @@ const propTypes = {
 
     /** Called when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
-
     buttonText: PropTypes.string,
-
     hideSubmitButton: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reimbursementAccount: {
         isLoading: false,
-        errors: '',
-        isErrorHtml: false,
+        errors: {},
         errorFields: {},
     },
     buttonText: '',
@@ -43,14 +39,9 @@ class ReimbursementAccountForm extends React.Component {
         BankAccounts.resetReimbursementAccount();
     }
 
-    getErrorMessage() {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount);
-        return this.props.reimbursementAccount.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
-    }
-
     render() {
         const hasErrorFields = _.size(this.props.reimbursementAccount.errorFields) > 0;
-        const error = _.last(_.values(this.props.reimbursementAccount.errors));
+        const error = this.props.reimbursementAccount.error || ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount) || '';
         const isErrorVisible = hasErrorFields || Boolean(error);
 
         return (
