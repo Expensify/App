@@ -47,13 +47,13 @@ Onyx.connect({
     },
 });
 
-let personalDetails;
+let allPersonalDetails;
 let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
         currentUserPersonalDetails = lodashGet(val, currentUserEmail);
-        personalDetails = val;
+        allPersonalDetails = val;
     },
 });
 
@@ -359,15 +359,15 @@ function hasExpensifyEmails(emails) {
 
 /**
  * Whether the time row should be shown for a report.
- * @param {Array<Object>} providedPersonalDetails
+ * @param {Array<Object>} personalDetails
  * @param {Object} report
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(providedPersonalDetails, report) {
+function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
     const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
     const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
-    const reportRecipient = providedPersonalDetails[participantsWithoutExpensifyEmails[0]];
+    const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     return !hasMultipleParticipants
         && !isChatRoom(report)
@@ -403,12 +403,12 @@ function getDefaultAvatar(login = '') {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
- * @param {Object} providedPersonalDetails
+ * @param {Object} personalDetails
  * @param {Object} policies
  * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getIcons(report, providedPersonalDetails, policies, defaultIcon = null) {
+function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (!report) {
         return [defaultIcon || getDefaultAvatar()];
     }
@@ -440,15 +440,15 @@ function getIcons(report, providedPersonalDetails, policies, defaultIcon = null)
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [
-            lodashGet(providedPersonalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
             policyExpenseChatAvatarSource,
         ];
     }
 
     // Return avatar sources for Group chats
     const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(providedPersonalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(providedPersonalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
     })).sort((first, second) => first.firstName - second.firstName);
     return _.map(sortedParticipants, item => item.avatar);
 }
@@ -612,14 +612,14 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
             person: [
                 {
                     style: 'strong',
-                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
                     type: 'TEXT',
                 },
             ],
             automatic: false,
             sequenceNumber,
             clientID: optimisticReportActionSequenceNumber,
-            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
             message: [
                 {
@@ -793,12 +793,12 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                     style: 'strong',
-                    text: lodashGet(personalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
                 },
             ],
             automatic: false,
             sequenceNumber: 0,
-            avatar: lodashGet(personalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             timestamp: moment().unix(),
             shouldShow: true,
         },
