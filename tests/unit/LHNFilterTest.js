@@ -11,7 +11,7 @@ import CONST from '../../src/CONST';
 // like CONST or _ so those have been removed from the mocked implementation.
 jest.mock('../../src/libs/Permissions', () => ({
     ...(jest.requireActual('../../src/libs/Permissions')),
-    canUsePolicyExpenseChat: betas => betas.indexOf('policyExpenseChat') > -1,
+    canUsePolicyExpenseChat: betas => betas && betas.indexOf('policyExpenseChat') > -1,
 }));
 
 const ONYXKEYS = {
