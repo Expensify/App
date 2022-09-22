@@ -139,11 +139,11 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
             const report2 = {
-                ...LHNTestUtils.getFakeReport(),
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const report3 = {
-                ...LHNTestUtils.getFakeReport(),
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             };
 
@@ -215,6 +215,57 @@ describe('Sidebar', () => {
                     const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
                 });
+        });
+
+        describe('handles all booleans', () => {
+            const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+            const policy = {
+                name: 'Policy One',
+                policyID: '1',
+                type: CONST.POLICY.TYPE.FREE,
+            };
+
+            // Taken from https://stackoverflow.com/a/39734979/9114791 to generate all possible boolean combinations
+            const AMOUNT_OF_VARIABLES = 7;
+            // eslint-disable-next-line no-bitwise
+            for (let i = 0; i < (1 << AMOUNT_OF_VARIABLES); i++) {
+                const boolArr = [];
+                for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
+                    // eslint-disable-next-line no-bitwise
+                    boolArr.push(Boolean(i & (1 << j)));
+                }
+
+                it(`handles the booleans ${JSON.stringify(boolArr)}`, () => {
+                    const report2 = {
+                        ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
+                        policyID: policy.policyID,
+                    };
+                    const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+                    return waitForPromisesToResolve()
+
+                        // When Onyx is updated to contain that data and the sidebar re-renders
+                        .then(() => Onyx.multiSet({
+                            [ONYXKEYS.BETAS]: [
+                                CONST.BETAS.DEFAULT_ROOMS,
+                                CONST.BETAS.POLICY_ROOMS,
+                                CONST.BETAS.POLICY_EXPENSE_CHAT,
+                            ],
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                            [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                        }))
+
+                        .then(() => {
+                            expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(1);
+                            expect(sidebarLinks.queryAllByA11yLabel('Chat user display names')).toHaveLength(1);
+                            const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                            expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
+                        });
+                });
+            }
         });
     });
 
