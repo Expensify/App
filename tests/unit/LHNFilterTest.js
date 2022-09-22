@@ -38,13 +38,13 @@ describe('Sidebar', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a report with no participants
-            const fakeReport = LHNTestUtils.getFakeReport([]);
+            const report = LHNTestUtils.getFakeReport([]);
 
             return waitForPromisesToResolve()
 
                 // When Onyx is updated to contain that report
                 .then(() => Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
                 // Then no reports are rendered in the LHN

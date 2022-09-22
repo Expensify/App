@@ -127,26 +127,22 @@ describe('Sidebar', () => {
         });
 
         it('contains one report when a report is in Onyx', () => {
-            // Given the sidebar is rendered in default mode (most recent first)
-            // while currently viewing report 1
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a single report
+            const report = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
 
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with some personal details and a report
+                // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
-                // Then the component should be rendered with an item for the fake report
+                // Then the component should be rendered with an item for the report
                 .then(() => {
-                    expect(sidebarLinks.toJSON()).not.toBe(null);
-                    expect(sidebarLinks.toJSON().children.length).toBe(2);
-                    expect(sidebarLinks.getAllByText('ReportID, One')).toHaveLength(1);
+                    expect(sidebarLinks.getAllByText('One, Two')).toHaveLength(1);
                 });
         });
 
