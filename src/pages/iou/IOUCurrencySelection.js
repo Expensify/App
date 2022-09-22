@@ -79,7 +79,6 @@ class IOUCurrencySelection extends Component {
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
             text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
-            searchText: `${currencyCode} ${currencyInfo.symbol}`,
             currencyCode,
             keyForList: currencyCode,
         }));

@@ -29,6 +29,8 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,6 +54,9 @@ const propTypes = {
 
         /** The user's role in the policy */
         role: PropTypes.string,
+
+        /** The current action that is waiting to happen on the policy */
+        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
 
     /** List of policy members */
@@ -72,6 +77,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -84,6 +92,7 @@ const defaultProps = {
     },
     betas: [],
     policyMembers: {},
+    walletTerms: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -93,7 +102,8 @@ class InitialSettingsPage extends React.Component {
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItems = this.getMenuItems.bind(this);
+        this.getMenuItemsList = this.getMenuItemsList.bind(this);
+        this.getMenuItem = this.getMenuItem.bind(this);
     }
 
     componentDidMount() {
@@ -137,7 +147,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
+                    || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -156,7 +167,7 @@ class InitialSettingsPage extends React.Component {
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      * @returns {Array} the menu item list
      */
-    getMenuItems() {
+    getMenuItemsList() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .map(policy => ({
@@ -168,11 +179,53 @@ class InitialSettingsPage extends React.Component {
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                pendingAction: policy.pendingAction,
+                isPolicy: true,
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
 
         return menuItems;
+    }
+
+    getMenuItem(item, index) {
+        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+        const isPaymentItem = item.translationKey === 'common.payments';
+
+        if (item.isPolicy) {
+            return (
+                <OfflineWithFeedback key={`${keyTitle}_${index}`} pendingAction={item.pendingAction}>
+                    <MenuItem
+                        title={keyTitle}
+                        icon={item.icon}
+                        iconType={item.iconType}
+                        onPress={item.action}
+                        iconStyles={item.iconStyles}
+                        iconFill={item.iconFill}
+                        shouldShowRightIcon
+                        badgeText={this.getWalletBalance(isPaymentItem)}
+                        fallbackIcon={item.fallbackIcon}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                    />
+                </OfflineWithFeedback>
+            );
+        }
+
+        return (
+            <MenuItem
+                key={`${keyTitle}_${index}`}
+                title={keyTitle}
+                icon={item.icon}
+                iconType={item.iconType}
+                onPress={item.action}
+                iconStyles={item.iconStyles}
+                iconFill={item.iconFill}
+                shouldShowRightIcon
+                badgeText={this.getWalletBalance(isPaymentItem)}
+                fallbackIcon={item.fallbackIcon}
+                brickRoadIndicator={item.brickRoadIndicator}
+            />
+        );
     }
 
     openProfileSettings() {
@@ -222,25 +275,7 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItems(), (item, index) => {
-                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-                            const isPaymentItem = item.translationKey === 'common.payments';
-                            return (
-                                <MenuItem
-                                    key={`${keyTitle}_${index}`}
-                                    title={keyTitle}
-                                    icon={item.icon}
-                                    iconType={item.iconType}
-                                    onPress={item.action}
-                                    iconStyles={item.iconStyles}
-                                    iconFill={item.iconFill}
-                                    shouldShowRightIcon
-                                    badgeText={this.getWalletBalance(isPaymentItem)}
-                                    fallbackIcon={item.fallbackIcon}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                />
-                            );
-                        })}
+                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
@@ -250,7 +285,6 @@ class InitialSettingsPage extends React.Component {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
@@ -276,6 +310,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(InitialSettingsPage);

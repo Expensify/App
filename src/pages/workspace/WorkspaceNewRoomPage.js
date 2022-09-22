@@ -35,16 +35,14 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
-    /** Are we loading the createPolicyRoom command */
-    isLoadingCreatePolicyRoom: PropTypes.bool,
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...fullPolicyPropTypes,
-
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
-    isLoadingCreatePolicyRoom: false,
     ...fullPolicyDefaultProps,
 };
 
@@ -60,7 +58,7 @@ class WorkspaceNewRoomPage extends React.Component {
             workspaceOptions: [],
         };
 
-        this.validateAndCreatePolicyRoom = this.validateAndCreatePolicyRoom.bind(this);
+        this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
     }
 
     componentDidMount() {
@@ -81,15 +79,12 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
-    validateAndCreatePolicyRoom() {
+    validateAndAddPolicyReport() {
         if (!this.validate()) {
             return;
         }
-        Report.createPolicyRoom(
-            this.state.policyID,
-            this.state.roomName,
-            this.state.visibility,
-        );
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`];
+        Report.addPolicyReport(policy, this.state.roomName, this.state.visibility);
     }
 
     /**
@@ -186,10 +181,9 @@ class WorkspaceNewRoomPage extends React.Component {
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        isLoading={this.props.isLoadingCreatePolicyRoom}
                         success
                         pressOnEnter
-                        onPress={this.validateAndCreatePolicyRoom}
+                        onPress={this.validateAndAddPolicyReport}
                         style={[styles.w100]}
                         text={this.props.translate('newRoomPage.createRoom')}
                     />
@@ -213,9 +207,6 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        isLoadingCreatePolicyRoom: {
-            key: ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM,
         },
     }),
     withLocalize,

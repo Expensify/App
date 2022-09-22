@@ -3,6 +3,7 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
+import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
@@ -13,7 +14,6 @@ export {
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
-    validateBankAccount,
     hideBankAccountErrors,
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
@@ -28,6 +28,7 @@ export {
 export {
     openOnfidoFlow,
     activateWallet,
+    answerQuestionsForWallet,
     verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
@@ -39,6 +40,50 @@ function clearPersonalBankAccount() {
 function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+}
+
+/**
+ * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
+ *
+ * @returns {Object}
+ */
+// We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
+/* eslint-disable no-unused-vars */
+function getVBBADataForOnyx() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
+                },
+            },
+        ],
+    };
 }
 
 /**
@@ -114,9 +159,44 @@ function deletePaymentBankAccount(bankAccountID) {
     });
 }
 
+/**
+ * @param {Number} bankAccountID
+ * @param {String} validateCode
+ */
+function validateBankAccount(bankAccountID, validateCode) {
+    API.write('ValidateBankAccountWithTransactions', {
+        bankAccountID,
+        validateCode,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+    });
+}
+
 export {
     addPersonalBankAccount,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    validateBankAccount,
 };
