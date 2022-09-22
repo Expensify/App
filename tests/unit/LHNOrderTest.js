@@ -327,29 +327,28 @@ describe('Sidebar', () => {
         it('removes the pin icon when chat is unpinned', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            // Given a single report
+            // And the report is pinned
+            const report = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                isPinned: true,
+            };
+
             return waitForPromisesToResolve()
 
-                // Given the sidebar is rendered in default mode (most recent first)
-                // while currently viewing report 2 (the one in the middle)
-                // with report 2 pinned
+                // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, isPinned: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
+                // Then there should be a pencil icon showing
                 .then(() => {
                     expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
                 })
 
-                // When the chat is unpinned
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {isPinned: false}))
+                // When the draft is removed
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: false}))
 
                 // Then the pencil icon goes away
                 .then(() => {
