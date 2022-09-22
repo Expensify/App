@@ -66,15 +66,16 @@ let lastFakeReportID = 0;
 
 /**
  * @param {String[]} participants
+ * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  * @returns {Object}
  */
-function getFakeReport(participants = ['email1@test.com', 'email2@test.com']) {
+function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0) {
     return {
         reportID: ++lastFakeReportID,
         reportName: 'Report',
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        lastMessageTimestamp: Date.now(),
+        lastMessageTimestamp: Date.now() - millisecondsInThePast,
         participants,
     };
 }
