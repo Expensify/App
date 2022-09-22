@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     Keyboard,
-    AppState,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -30,6 +29,7 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import withWindowVisibility, {windowVisibilityPropTypes} from '../../../components/withWindowVisibility';
 
 const propTypes = {
     /* Onyx Props */
@@ -65,6 +65,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
+    ...windowVisibilityPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
 };
@@ -77,8 +78,6 @@ const defaultProps = {
 class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
-
-        this.appStateChangeListener = null;
 
         this.didLayout = false;
 
@@ -100,17 +99,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', () => {
-            if (!this.getIsReportFullyVisible()) {
-                return;
-            }
-
-            // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
-            // e.g. they could have read these messages on another device and only just become active here
-            Report.openReport(this.props.report.reportID);
-            this.setState({newMarkerSequenceNumber: 0});
-        });
-
         Report.subscribeToReportTypingEvents(this.props.report.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
@@ -167,6 +155,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (this.props.isWindowVisible !== nextProps.isWindowVisible) {
+            return true;
+        }
+
         return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
@@ -183,6 +175,13 @@ class ReportActionsView extends React.Component {
             } else {
                 Report.reconnect(this.props.report.reportID);
             }
+        }
+
+        if (this.props.isWindowVisible !== prevProps.isWindowVisible && isReportFullyVisible) {
+            // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
+            // e.g. they could have read these messages on another device and only just become active here
+            Report.openReport(this.props.report.reportID);
+            this.setState({newMarkerSequenceNumber: 0});
         }
 
         const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
@@ -250,10 +249,6 @@ class ReportActionsView extends React.Component {
     componentWillUnmount() {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
-        }
-
-        if (this.appStateChangeListener) {
-            this.appStateChangeListener.remove();
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
@@ -380,6 +375,7 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
+    withWindowVisibility,
     withLocalize,
     withNetwork(),
 )(ReportActionsView);
