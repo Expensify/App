@@ -39,6 +39,7 @@ class AddPayPalMePage extends React.Component {
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
+        this.focusPayPalMeInput = this.focusPayPalMeInput.bind(this);
     }
 
     /**
@@ -70,7 +71,7 @@ class AddPayPalMePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => this.focusPayPalMeInput()}>
+            <ScreenWrapper onTransitionEnd={this.focusPayPalMeInput}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payPalMe')}
                     shouldShowBackButton
