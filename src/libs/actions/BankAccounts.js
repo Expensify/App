@@ -231,7 +231,7 @@ function mergeWithLocalACHData(data) {
 }
 
 /**
- * Updates the bank account in db with the company step data
+ * Updates the bank account in the database with the company step data
  *
  * @param {Object} params
  * @param {String} [params.companyName]
