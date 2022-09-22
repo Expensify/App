@@ -4,7 +4,6 @@ import {Pressable} from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
-import Hoverable from '../Hoverable';
 import Text from '../Text';
 
 const propTypes = {
@@ -27,20 +26,20 @@ const propTypes = {
 const EmojiPickerMenuItem = props => (
     <Pressable
         onPress={() => props.onPress(props.emoji)}
+        onHoverIn={props.onHoverIn}
+        onHoverOut={props.onHoverOut}
         style={({
             pressed,
         }) => ([
-            styles.p1,
+            styles.pv1,
             StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted ? styles.emojiItemHighlighted : {},
             styles.emojiItem,
         ])}
     >
-        <Hoverable onHoverIn={props.onHoverIn} onHoverOut={props.onHoverOut}>
-            <Text style={[styles.emojiText]}>
-                {props.emoji}
-            </Text>
-        </Hoverable>
+        <Text style={[styles.emojiText]}>
+            {props.emoji}
+        </Text>
     </Pressable>
 
 );
