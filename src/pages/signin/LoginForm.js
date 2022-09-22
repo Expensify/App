@@ -22,8 +22,6 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
-import DotIndicatorMessage from '../../components/DotIndicatorMessage';
-import * as CloseAccount from '../../libs/actions/CloseAccount';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */

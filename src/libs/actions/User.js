@@ -18,6 +18,7 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import DateUtils from '../DateUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -219,8 +220,24 @@ function validateLogin(accountID, validateCode) {
     API.write('ValidateLogin', {
         accountID,
         validateCode,
-    }, {optimisticData});
-    Navigation.navigate(redirectRoute);
+    }).then((response) => {
+        if (response.jsonCode === 200) {
+            const {email} = response;
+
+            if (isLoggedIn) {
+                getUserDetails();
+            } else {
+                // Let the user know we've successfully validated their login
+                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
+                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
+            }
+        } else {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('resendValidationForm.validationCodeFailedMessage')}});
+        }
+    }).finally(() => {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+        Navigation.navigate(redirectRoute);
+    });
 }
 
 /**

@@ -27,9 +27,15 @@ export default PropTypes.shape({
     /** Alert message to display above submit button */
     error: PropTypes.string,
 
-    /** Which field needs attention? */
-    errorFields: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.bool, PropTypes.array])),
+    /** Object containing various errors */
+    errors: PropTypes.objectOf(PropTypes.oneOfType([
+        PropTypes.bool,
+        PropTypes.arrayOf(PropTypes.objectOf(PropTypes.bool)),
 
-    /** Any additional error message to show */
-    errors: PropTypes.objectOf(PropTypes.string),
+        /**
+         * Errors from api calls on the specific user
+         * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
+         */
+        PropTypes.string,
+    ])),
 });

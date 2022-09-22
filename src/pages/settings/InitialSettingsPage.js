@@ -31,7 +31,9 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
+import * as Wallet from '../../libs/actions/Wallet';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -111,12 +113,10 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-const InitialSettingsPage = (props) => {
-    // On the very first sign in or after clearing storage these
-    // details will not be present on the first render so we'll just
-    // return nothing for now.
-    if (_.isEmpty(props.currentUserPersonalDetails)) {
-        return null;
+        this.getWalletBalance = this.getWalletBalance.bind(this);
+        this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
+        this.getMenuItemsList = this.getMenuItemsList.bind(this);
+        this.getMenuItem = this.getMenuItem.bind(this);
     }
 
     const walletBalance = props.numberFormat(
@@ -249,9 +249,6 @@ const InitialSettingsPage = (props) => {
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .sortBy(policy => policy.title)
             .value();
@@ -278,7 +275,6 @@ const InitialSettingsPage = (props) => {
                         badgeText={this.getWalletBalance(isPaymentItem)}
                         fallbackIcon={item.fallbackIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
-                        disabled={item.disabled}
                     />
                 </OfflineWithFeedback>
             );
@@ -347,65 +343,13 @@ const InitialSettingsPage = (props) => {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItems(), (item, index) => {
-                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-                            const isPaymentItem = item.translationKey === 'common.payments';
-                            return (
-                                <OfflineWithFeedback
-                                    key={`${keyTitle}_${index}`}
-                                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
-                                    onClose={item.dismissError || (() => {})}
-                                    pendingAction={item.pendingAction}
-                                    errors={item.errors}
-                                >
-                                    <MenuItem
-                                        title={keyTitle}
-                                        icon={item.icon}
-                                        iconType={item.iconType}
-                                        onPress={item.action}
-                                        iconStyles={item.iconStyles}
-                                        iconFill={item.iconFill}
-                                        shouldShowRightIcon
-                                        badgeText={this.getWalletBalance(isPaymentItem)}
-                                        fallbackIcon={item.fallbackIcon}
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                    />
-                                </OfflineWithFeedback>
-                            );
-                        })}
+                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
                     </View>
-                    {_.map(menuItems, (item, index) => {
-                        const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;
-                        const isPaymentItem = item.translationKey === 'common.payments';
-                        const doNothing = () => {};
-                        return (
-                            <OfflineWithFeedback
-                                key={`${keyTitle}_${index}`}
-                                errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
-                                onClose={item.dismissError || doNothing}
-                                pendingAction={item.pendingAction}
-                                errors={item.errors}>
-                                <MenuItem
-                                    disabled={item.disabled || false}
-                                    title={keyTitle}
-                                    icon={item.icon}
-                                    iconType={item.iconType}
-                                    onPress={item.action}
-                                    iconStyles={item.iconStyles}
-                                    iconFill={item.iconFill}
-                                    shouldShowRightIcon
-                                    badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
-                                    fallbackIcon={item.fallbackIcon}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                />
-                            </OfflineWithFeedback>
-                        );
-                    })}
-                </View>
-            </ScrollView>
-        </ScreenWrapper>
-    );
-};
+                </ScrollView>
+            </ScreenWrapper>
+        );
+    }
+}
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;

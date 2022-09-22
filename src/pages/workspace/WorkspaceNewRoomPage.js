@@ -34,8 +34,10 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 };
 const defaultProps = {
@@ -56,7 +58,6 @@ class WorkspaceNewRoomPage extends React.Component {
         };
 
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
-        this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
     }
 
     componentDidMount() {

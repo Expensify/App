@@ -27,7 +27,13 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    report: PropTypes.shape({
+        /** The largest sequenceNumber on this report */
+        maxSequenceNumber: PropTypes.number,
+
+        /** Whether there is an outstanding amount in IOU */
+        hasOutstandingIOU: PropTypes.bool,
+    }).isRequired,
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({

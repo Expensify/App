@@ -1,6 +1,8 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -15,7 +17,6 @@ import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import walletTermsPropTypes from './walletTermsPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */

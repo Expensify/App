@@ -483,6 +483,18 @@ function fade(fadeAnimation) {
     };
 }
 
+/**
+ * Return style for opacity animation.
+ *
+ * @param {Animated.Value} fadeAnimation
+ * @returns {Object}
+ */
+function fade(fadeAnimation) {
+    return {
+        opacity: fadeAnimation,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -512,5 +524,7 @@ export {
     combineStyles,
     getPaddingLeft,
     convertToLTR,
+    hasSafeAreas,
+    getHeight,
     fade,
 };

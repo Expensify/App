@@ -327,8 +327,8 @@ class BasePaymentsPage extends React.Component {
                     isVisible={this.state.shouldShowAddPaymentMenu}
                     onClose={this.hideAddPaymentMenu}
                     anchorPosition={{
-                        top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
+                        bottom: this.state.anchorPositionBottom,
+                        right: this.state.anchorPositionRight - 10,
                     }}
                     onItemSelected={method => this.addPaymentMethodTypePressed(method)}
                 />
@@ -337,7 +337,7 @@ class BasePaymentsPage extends React.Component {
                     onClose={this.hideDefaultDeleteMenu}
                     anchorPosition={{
                         top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
+                        right: this.state.anchorPositionRight,
                     }}
                 >
                     <View
@@ -484,7 +484,7 @@ class BasePaymentsPage extends React.Component {
                     onClose={this.hidePasswordPrompt}
                     anchorPosition={{
                         top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
+                        right: this.state.anchorPositionRight,
                     }}
                     onSubmit={(password) => {
                         this.hidePasswordPrompt();
@@ -502,7 +502,7 @@ class BasePaymentsPage extends React.Component {
                     cancelText={this.props.translate('common.cancel')}
                     anchorPosition={{
                         top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
+                        right: this.state.anchorPositionRight,
                     }}
                     onConfirm={() => {
                         this.setState({

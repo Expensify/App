@@ -1,7 +1,5 @@
 const path = require('path');
-const {
-    IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin,
-} = require('webpack');
+const {IgnorePlugin, DefinePlugin, ProvidePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -70,7 +68,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
-        new EnvironmentPlugin({JEST_WORKER_ID: null}),
         new IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/,

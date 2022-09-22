@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -40,15 +41,14 @@ const ActivateStep = (props) => {
     const illustration = isGoldWallet ? Illustrations.TadaBlue : Illustrations.ReceiptsSearchYellow;
     const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
-    return (
-        <>
-            <HeaderWithCloseButton
-                title={props.translate('activateStep.headerTitle')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <View style={styles.flex1}>
+        this.renderGoldWalletActivationStep = this.renderGoldWalletActivationStep.bind(this);
+    }
+
+    renderGoldWalletActivationStep() {
+        // The text of the "Continue" button depends on whether the action comes from an IOU (i.e. with an attached chat), or a balance transfer
+        const continueButtonText = this.props.walletTerms.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
+        return (
+            <>
                 <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={illustration}
@@ -100,7 +100,6 @@ const ActivateStep = (props) => {
 
 ActivateStep.propTypes = propTypes;
 ActivateStep.defaultProps = defaultProps;
-ActivateStep.displayName = 'ActivateStep';
 
 export default compose(
     withLocalize,

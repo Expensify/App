@@ -190,16 +190,13 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         }
     }
     if (report) {
-        Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
+        Array.prototype.push.apply(searchTerms, reportName.split(''));
+        Array.prototype.push.apply(searchTerms, reportName.split(','));
 
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-
-            // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
-            // It's OK to ignore this and just add a null check in here to keep code from crashing.
-            if (chatRoomSubtitle) {
-                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
-            }
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(''));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(','));
         } else {
             searchTerms = searchTerms.concat(report.participants);
         }
@@ -214,15 +211,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
  * @param {Object} reportActions
  * @returns {Object}
  */
-function getAllReportErrors(report, reportActions) {
+function getBrickRoadIndicatorStatusForReport(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
     const reportID = report.reportID;
     const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
-    const reportActionErrors = {};
-    _.chain(reportsActions)
-        .filter(action => !_.isEmpty(action.errors))
-        .map(action => _.extend(reportActionErrors, action.errors));
 
     // All error objects related to the report. Each value in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -259,8 +252,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const result = {
         text: null,
         alternateText: null,
-        pendingAction: null,
-        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -293,16 +284,13 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
 
-    result.participantsList = personalDetailList;
-
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
+        result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-        result.allReportErrors = getAllReportErrors(report, reportActions);
-        result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
+        result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
         result.ownerEmail = report.ownerEmail;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
@@ -368,9 +356,10 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     result.text = reportName;
-    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.subtitle = subtitle;
+    result.participantsList = personalDetailList;
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
 
     return result;
 }
@@ -433,6 +422,7 @@ function isCurrentUser(userDetails) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
+ * @param {String} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
@@ -487,8 +477,8 @@ function getOptions(reports, personalDetails, {
         if (!report) {
             return;
         }
-
         const isChatRoom = ReportUtils.isChatRoom(report);
+        const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
 
@@ -519,7 +509,7 @@ function getOptions(reports, personalDetails, {
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
 
-        if (report.reportID !== activeReportID
+        if (report.reportID.toString() !== activeReportID
             && (!report.isPinned || isDefaultRoom)
             && !hasDraftComment
             && shouldFilterReport
@@ -612,7 +602,19 @@ function getOptions(reports, personalDetails, {
                 continue;
             }
 
-            recentReportOptions.push(reportOption);
+            // If the report is pinned and we are using the option to display pinned reports on top then we need to
+            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
+            // default archived rooms.
+            if (prioritizePinnedReports && reportOption.isPinned
+                && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
+                pinnedReportOptions.push(reportOption);
+            } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
+                iouDebtReportOptions.push(reportOption);
+            } else if (prioritizeReportsWithDraftComments && reportOption.hasDraftComment) {
+                draftReportOptions.push(reportOption);
+            } else {
+                recentReportOptions.push(reportOption);
+            }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
@@ -813,6 +815,41 @@ function getMemberInviteOptions(
 }
 
 /**
+ * Build the options for the Sidebar a.k.a. LHN
+ *
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Number} activeReportID
+ * @param {String} priorityMode
+ * @param {Array<String>} betas
+ * @param {Object} reportActions
+ * @returns {Object}
+ */
+function getSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
+    let sideBarOptions = {
+        prioritizeIOUDebts: true,
+        prioritizeReportsWithDraftComments: true,
+    };
+    if (priorityMode === CONST.PRIORITY_MODE.GSD) {
+        sideBarOptions = {
+            hideReadReports: true,
+            sortByAlphaAsc: true,
+        };
+    }
+
+    return getOptions(reports, personalDetails, activeReportID, {
+        betas,
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        maxRecentReportsToShow: 0, // Unlimited
+        showChatPreviewLine: true,
+        prioritizePinnedReports: true,
+        ...sideBarOptions,
+        reportActions,
+    });
+}
+
+/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  *
  * @param {Boolean} hasSelectableOptions
@@ -872,5 +909,5 @@ export {
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
-    getAllReportErrors,
+    getBrickRoadIndicatorStatusForReport,
 };

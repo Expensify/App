@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -319,7 +319,6 @@ class WorkspaceInvitePage extends React.Component {
                                     onFixTheErrorsLinkPressed={() => {}}
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                                    enabledWhenOffline
                                 />
                                 <Pressable
                                     onPress={(e) => {
@@ -354,7 +353,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withFullPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {

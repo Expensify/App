@@ -373,7 +373,7 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withFullPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {

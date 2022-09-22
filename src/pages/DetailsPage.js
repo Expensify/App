@@ -82,7 +82,7 @@ class DetailsPage extends React.PureComponent {
     }
 
     render() {
-        const details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+        const details = this.props.personalDetails[lodashGet(this.props.route.params, 'login')];
         if (!details) {
             // Personal details have not loaded yet
             return <FullscreenLoadingIndicator />;
@@ -207,7 +207,6 @@ class DetailsPage extends React.PureComponent {
 }
 
 DetailsPage.propTypes = propTypes;
-DetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

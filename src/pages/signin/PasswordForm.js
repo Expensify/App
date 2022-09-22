@@ -20,9 +20,7 @@ import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
-import OfflineIndicator from '../../components/OfflineIndicator';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */

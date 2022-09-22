@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useFlipper} from '@react-navigation/devtools';
-import Navigation, {navigationRef} from './Navigation';
+import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -27,26 +27,62 @@ const propTypes = {
     onReady: PropTypes.func.isRequired,
 };
 
-/**
- * Intercept navigation state changes and log it
- * @param {NavigationState} state
- */
-function parseAndLogRoute(state) {
-    if (!state) {
-        return;
+class NavigationRoot extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            currentPath: '',
+        };
+
+        this.parseAndLogRoute = this.parseAndLogRoute.bind(this);
     }
 
-    const currentPath = getPathFromState(state, linkingConfig.config);
+    /**
+     * Intercept navigation state changes and log it
+     * @param {NavigationState} state
+     */
+    parseAndLogRoute(state) {
+        if (!state) {
+            return;
+        }
 
-    // Don't log the route transitions from OldDot because they contain authTokens
-    if (currentPath.includes('/transition')) {
-        Log.info('Navigating from transition link from OldDot using short lived authToken');
-    } else {
-        Log.info('Navigating to route', false, {path: currentPath});
+        const currentPath = getPathFromState(state, linkingConfig.config);
+
+        // Don't log the route transitions from OldDot because they contain authTokens
+        if (currentPath.includes('/transition')) {
+            Log.info('Navigating from transition link from OldDot using short lived authToken');
+        } else {
+            Log.info('Navigating to route', false, {path: currentPath});
+        }
+
+        UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
+
+        this.setState({currentPath});
     }
 
-    UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
-    Navigation.setIsNavigationReady();
+    render() {
+        return (
+            <NavigationContainer
+                fallback={(
+                    <FullScreenLoadingIndicator
+                        logDetail={{name: 'Navigation Fallback Loader', authenticated: this.props.authenticated}}
+                        style={styles.navigatorFullScreenLoading}
+                    />
+                )}
+                onStateChange={this.parseAndLogRoute}
+                onReady={this.props.onReady}
+                theme={navigationTheme}
+                ref={Navigation.navigationRef}
+                linking={linkingConfig}
+                documentTitle={{
+                    enabled: false,
+                }}
+            >
+                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
+            </NavigationContainer>
+        );
+    }
 }
 
 const NavigationRoot = (props) => {

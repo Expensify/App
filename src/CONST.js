@@ -314,7 +314,8 @@ const CONST = {
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
-        LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
+        LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
+        OWNER_EMAIL_FAKE: '__FAKE__',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -351,6 +352,8 @@ const CONST = {
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
+        PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
+        SIDEBAR_LINKS_FILTER_REPORTS: 'sidebar_links_filter_reports',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
@@ -417,8 +420,7 @@ const CONST = {
         PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', loading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -847,8 +849,6 @@ const CONST = {
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
-
-    TFA_CODE_LENGTH: 6,
 };
 
 export default CONST;

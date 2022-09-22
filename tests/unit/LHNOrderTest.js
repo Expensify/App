@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import {cleanup} from '@testing-library/react-native';
-import lodashGet from 'lodash/get';
+import {render, cleanup} from '@testing-library/react-native';
+import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 
@@ -156,11 +156,7 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
-/**
- * @param {String} [reportIDFromRoute]
- * @returns {RenderAPI}
- */
-function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
+function getDefaultRenderedSidebarLinks() {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
     // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
     // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
@@ -195,7 +191,6 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
                     insets={fakeInsets}
                     onAvatarClick={() => {}}
                     isSmallScreenWidth={false}
-                    reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
         </LocaleContextProvider>
@@ -203,11 +198,6 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
 }
 
 describe('Sidebar', () => {
-    beforeAll(() => Onyx.init({
-        keys: ONYXKEYS,
-        registerStorageEventListener: () => {},
-    }));
-
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
         cleanup();
@@ -215,19 +205,19 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-        it('is not rendered when there are no props passed to it', () => {
+        test('is not rendered when there are no props passed to it', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             // Then it should render nothing and be null
             // This is expected because there is an early return when there are no personal details
             expect(sidebarLinks.toJSON()).toBe(null);
         });
 
-        it('is rendered with an empty list when personal details exist', () => {
+        test('is rendered with an empty list when personal details exist', () => {
             // Given the sidebar is rendered with default props
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -243,21 +233,21 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('contains one report when a report is in Onyx', () => {
-            // Given a single report
-            const report = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+        test('contains one report when a report is in Onyx', () => {
+            // Given the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // When Onyx is updated with some personal details and a report
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
-                // Then the component should be rendered with an item for the report
+                // Then the component should be rendered with an item for the fake report
                 .then(() => {
                     expect(sidebarLinks.queryAllByText('One, Two')).toHaveLength(1);
                 });
@@ -269,7 +259,7 @@ describe('Sidebar', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // When Onyx is updated with some personal details and multiple reports
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
@@ -291,27 +281,25 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('doesn\'t change the order when adding a draft to the active report', () => {
-            // Given three reports in the recently updated order of 3, 2, 1
-            // And the first report has a draft
-            // And the currently viewed report is the first report
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                hasDraft: true,
-            };
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
-            const reportIDFromRoute = report1.reportID;
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+        test('doesn\'t change the order when adding a draft to the active report', () => {
+            // Given the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
+
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // When Onyx is updated with some personal details and multiple reports
+                // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
                 }))
 
                 // Then there should be a pencil icon and report one should still be the last one because putting a draft on the active report should not change it's location
@@ -320,11 +308,10 @@ describe('Sidebar', () => {
                     const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
                     expect(pencilIcon).toHaveLength(1);
 
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
-                    expect(displayNames).toHaveLength(3);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                    // The reports should be in the order 3 > 2 > 1
+                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
+                    expect(reportOptions).toHaveLength(3);
+                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
                 });
         });
 
@@ -332,7 +319,9 @@ describe('Sidebar', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // Given the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 1
+                // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
@@ -345,7 +334,7 @@ describe('Sidebar', () => {
                 }))
 
                 // When a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastMessageTimestamp: Date.now()}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
 
                 // Then the order of the reports should be 1 > 3 > 2
                 //                                         ^--- (1 goes to the front and pushes other two down)
@@ -373,7 +362,10 @@ describe('Sidebar', () => {
 
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // Given the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with a draft on report 2
+                // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
@@ -383,12 +375,7 @@ describe('Sidebar', () => {
                 }))
 
                 // When the currently active chat is switched to report 1 (the one on the bottom)
-                .then(() => {
-                    // The changing of a route itself will re-render the component in the App, but since we are not performing this test
-                    // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('1');
-                    return waitForPromisesToResolve();
-                })
+                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, '1'))
 
                 // Then the order of the reports should be 2 > 3 > 1
                 //                                         ^--- (2 goes to the front and pushes 3 down)
@@ -405,7 +392,10 @@ describe('Sidebar', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // Given the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with a draft on report 2
+                // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
@@ -422,8 +412,8 @@ describe('Sidebar', () => {
                     expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
                 })
 
-                // When the draft is removed
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {hasDraft: null}))
+                // When the draft on report 2 is removed
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {hasDraft: null}))
 
                 // Then the pencil icon goes away
                 .then(() => {
@@ -435,7 +425,9 @@ describe('Sidebar', () => {
             const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // Given the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with report 2 pinned
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
@@ -452,8 +444,8 @@ describe('Sidebar', () => {
                     expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
                 })
 
-                // When the draft is removed
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: false}))
+                // When the chat is unpinned
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {isPinned: false}))
 
                 // Then the pencil icon goes away
                 .then(() => {
@@ -462,97 +454,28 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
-            // Given three reports in the recently updated order of 3, 2, 1
-            // with the current user set to email9@ (someone not participating in any of the chats)
-            // with a report that has a draft, a report that is pinned, and
-            //    an outstanding IOU report that doesn't belong to the current user
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                isPinned: true,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                hasDraft: true,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                hasOutstandingIOU: true,
-
-                // This has to be added after the IOU report is generated
-                iouReportID: null,
-            };
-            const iouReport = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
-                ownerEmail: 'email2@test.com',
-                hasOutstandingIOU: true,
-                total: 10000,
-                currency: 'USD',
-                chatReportID: report3.reportID,
-            };
-            report3.iouReportID = iouReport.reportID;
-            const reportIDFromRoute = report2.reportID;
-            const currentlyLoggedInUserEmail = 'email9@test.com';
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+            const sidebarLinks = getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with the data and the sidebar re-renders
+                // Given the sidebar is rendered in default mode (most recent first)
+                // while currently viewing report 2 (the one in the middle)
+                // with a draft on report 2
+                // with the current user set to email9@
+                // with a report that has a draft, a report that is pinned, and
+                //    an outstanding IOU report that doesn't belong to the current user
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`]: iouReport,
                 }))
 
-                // Then the reports are ordered by Pinned > IOU > Draft
+                // Then the reports are ordered by IOU > Pinned > Draft
                 // there is a pencil icon
                 // there is a pinned icon
-                .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
-                    expect(displayNames).toHaveLength(3);
-                    expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
-                    expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
-                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
-                });
-        });
-
-        it('alphabetizes all the chats that are pinned', () => {
-            // Given three reports in the recently updated order of 3, 2, 1
-            // and they are all pinned
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                isPinned: true,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                isPinned: true,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                isPinned: true,
-            };
-            const report4 = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
-                isPinned: true,
-            };
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-            return waitForPromisesToResolve()
-
-                // When Onyx is updated with the data and the sidebar re-renders
-                .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
-                }))
-
-                // Then the reports are in alphabetical order
+                // there is an IOU badge
                 .then(() => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
@@ -694,6 +617,7 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
@@ -727,12 +651,7 @@ describe('Sidebar', () => {
                 })
 
                 // When report 2 becomes the active report
-                .then(() => {
-                    // The changing of a route itself will re-render the component in the App, but since we are not performing this test
-                    // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    sidebarLinks = getDefaultRenderedSidebarLinks('2');
-                    return waitForPromisesToResolve();
-                })
+                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, '2'))
 
                 // Then report 1 should now disappear
                 .then(() => {
@@ -746,10 +665,11 @@ describe('Sidebar', () => {
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in #focus mode (hides read chats)
-                // with all reports having unread comments
+                // with all reports having unread chats
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},

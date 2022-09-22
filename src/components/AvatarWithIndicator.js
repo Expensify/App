@@ -11,9 +11,9 @@ import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
-import {policyPropTypes} from '../pages/workspace/withPolicy';
+import {fullPolicyPropTypes} from '../pages/workspace/withFullPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
-import * as Policy from '../libs/actions/Policy';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
@@ -39,7 +39,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** The user's wallet (coming from Onyx) */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,

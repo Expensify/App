@@ -18,8 +18,17 @@ import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
+import {withNetwork} from '../../../components/OnyxProvider';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
+import networkPropTypes from '../../../components/networkPropTypes';
+import Log from '../../../libs/Log';
 
 const propTypes = {
+    /** The policy ID currently being configured */
+    policyID: PropTypes.string.isRequired,
+
     /** Policy values needed in the component */
     policy: PropTypes.shape({
         id: PropTypes.string,
@@ -86,7 +95,7 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     componentDidMount() {
-        Policy.openWorkspaceReimburseView(this.props.policy.id);
+        Policy.openWorkspaceReimburseView(this.props.policyID);
     }
 
     componentDidUpdate(prevProps) {
@@ -110,7 +119,7 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        Policy.openWorkspaceReimburseView(this.props.policy.id);
+        Policy.openWorkspaceReimburseView(this.props.policyID);
     }
 
     getRateDisplayValue(value) {
@@ -136,7 +145,7 @@ class WorkspaceReimburseView extends React.Component {
         const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
 
         this.setState(prevState => ({
-            rateValue: !isInvalidRateValue ? this.getRateDisplayValue(value) : prevState.rateValue,
+            unitRateValue: !isInvalidRateValue ? this.getRateDisplayValue(value) : prevState.unitRateValue,
         }), () => {
             // Set the corrected value with a delay and sync to the server
             this.updateRateValueDebounced(this.state.unitRateValue);
@@ -154,7 +163,15 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        Policy.updateWorkspaceCustomUnit(this.props.policy.id, distanceCustomUnit, {
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+        if (!distanceCustomUnit) {
+            Log.warn('Policy has no customUnits, returning early.', {
+                policyID: this.props.policyID,
+            });
+            return;
+        }
+
+        Policy.updateWorkspaceCustomUnit(this.props.policyID, distanceCustomUnit, {
             customUnitID: this.state.unitID,
             customUnitName: this.state.unitName,
             attributes: {unit: value},
@@ -178,7 +195,7 @@ class WorkspaceReimburseView extends React.Component {
 
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
         const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
-        Policy.updateCustomUnitRate(this.props.policy.id, currentCustomUnitRate, this.state.unitID, {
+        Policy.updateCustomUnitRate(this.props.policyID, currentCustomUnitRate, this.state.unitID, {
             ...currentCustomUnitRate,
             rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
         });
@@ -194,7 +211,7 @@ class WorkspaceReimburseView extends React.Component {
                         menuItems={[
                             {
                                 title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                                onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                                onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
                                 icon: Expensicons.Receipt,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
@@ -227,7 +244,7 @@ class WorkspaceReimburseView extends React.Component {
                             }}
                             pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
                                 || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
-                            onClose={() => Policy.clearCustomUnitErrors(this.props.policy.id, this.state.unitID, this.state.unitRateID)}
+                            onClose={() => Policy.clearCustomUnitErrors(this.props.policyID, this.state.unitID, this.state.unitRateID)}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
                                 <View style={[styles.rateCol]}>
@@ -251,18 +268,10 @@ class WorkspaceReimburseView extends React.Component {
                                     />
                                 </View>
                             </View>
-                            <View style={[styles.unitCol]}>
-                                <Picker
-                                    label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                    items={this.unitItems}
-                                    value={this.state.unitValue}
-                                    onInputChange={value => this.setUnit(value)}
-                                />
-                            </View>
-                        </View>
+                        </OfflineWithFeedback>
                     </Section>
 
-                    {!this.props.policy.hasVBA && (
+                    {!this.props.hasVBA && (
                         <Section
                             title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                             icon={Illustrations.JewelBoxGreen}
@@ -272,7 +281,7 @@ class WorkspaceReimburseView extends React.Component {
                             </View>
                             <Button
                                 text={this.props.translate('workspace.common.bankAccount')}
-                                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
+                                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policyID)}
                                 icon={Expensicons.Bank}
                                 style={[styles.mt4]}
                                 iconStyles={[styles.buttonCTAIcon]}
@@ -282,14 +291,14 @@ class WorkspaceReimburseView extends React.Component {
                             />
                         </Section>
                     )}
-                    {this.props.policy.hasVBA && (
+                    {this.props.hasVBA && (
                         <Section
                             title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                             icon={Illustrations.BankUserGreen}
                             menuItems={[
                                 {
                                     title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                    onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                    onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
                                     icon: Expensicons.Bank,
                                     shouldShowRightIcon: true,
                                     iconRight: Expensicons.NewWindow,
@@ -312,4 +321,9 @@ WorkspaceReimburseView.propTypes = propTypes;
 export default compose(
     withLocalize,
     withNetwork(),
+    withOnyx({
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+    }),
 )(WorkspaceReimburseView);

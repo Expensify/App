@@ -121,15 +121,8 @@ class AddPersonalBankAccountPage extends React.Component {
                         </View>
                     </>
                 ) : (
-                    <Form
-                        formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
-                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
-                        submitButtonText={this.props.translate('common.saveAndContinue')}
-                        onSubmit={this.submit}
-                        validate={this.validate}
-                        style={[styles.mh5, styles.flex1]}
-                    >
-                        <>
+                    <FormScrollView>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
                             <AddPlaidBankAccount
                                 onSelect={(selectedPlaidAccountID) => {
                                     this.setState({selectedPlaidAccountID});

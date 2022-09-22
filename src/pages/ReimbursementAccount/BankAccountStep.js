@@ -244,26 +244,31 @@ const BankAccountStep = (props) => {
                     </ScrollView>
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
-                    <Form
-                        formID={ONYXKEYS.FORMS.BANK_FORM}
-                        validate={() => ({})}
-                        onSubmit={this.addPlaidAccount}
-                        submitButtonText={this.props.translate('common.saveAndContinue')}
-                        style={[styles.mh5, styles.flexGrow1]}
-                        isSubmitButtonVisible={!_.isUndefined(this.state.selectedPlaidBankAccount)}
-                    >
-                        <AddPlaidBankAccount
-                            onSelect={(params) => {
-                                this.setState({
-                                    selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                });
-                            }}
-                            onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
-                            receivedRedirectURI={this.props.receivedRedirectURI}
-                            plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
-                            allowDebit
-                        />
-                    </Form>
+                    <FormScrollView>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
+                            <AddPlaidBankAccount
+                                text={this.props.translate('bankAccount.plaidBodyCopy')}
+                                onSelect={(params) => {
+                                    this.setState({
+                                        selectedPlaidBankAccount: params.selectedPlaidBankAccount,
+                                    });
+                                }}
+                                onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                                receivedRedirectURI={this.props.receivedRedirectURI}
+                                plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
+                                allowDebit
+                            />
+                        </View>
+                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={Boolean(error)}
+                                buttonText={this.props.translate('common.saveAndContinue')}
+                                onSubmit={this.addPlaidAccount}
+                                message={error}
+                                isLoading={loading}
+                            />
+                        )}
+                    </FormScrollView>
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <Form

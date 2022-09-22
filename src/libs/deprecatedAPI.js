@@ -3,6 +3,7 @@ import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
+// eslint-disable-next-line import/no-cycle
 import * as Middleware from './Middleware';
 import CONST from '../CONST';
 
@@ -508,13 +509,6 @@ function GetLocalCurrency(parameters) {
  */
  function User_IsUsingExpensifyCard() {
     return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
- * @returns {Promise}
- */
-function GetCurrencyList() {
-    return Mobile_GetConstants({data: ['currencyList']});
 }
 
 /**

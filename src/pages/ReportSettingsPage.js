@@ -240,6 +240,7 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
+ReportSettingsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

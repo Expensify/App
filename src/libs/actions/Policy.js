@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import * as API from '../API';
+import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import Str from 'expensify-common/lib/str';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -101,52 +102,66 @@ function updateLastAccessedWorkspace(policyID) {
 }
 
 /**
- * Delete the workspace
+ * Delete the policy
  *
- * @param {String} policyID
- * @param {Array<Object>} reports
+ * @param {String} [policyID]
+ * @returns {Promise}
  */
-function deleteWorkspace(policyID, reports) {
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: null,
-            },
-        },
-        ..._.map(reports, ({reportID}) => ({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-            },
-        })),
-    ];
+function deletePolicy(policyID) {
+    return DeprecatedAPI.Policy_Delete({policyID})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
 
-    // Restore the old report stateNum and statusNum
-    const failureData = [
-        ..._.map(reports, ({reportID, stateNum, statusNum}) => ({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum,
-                statusNum,
-            },
-        })),
-    ];
+            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
 
-    // We don't need success data since the push notification will update
-    // the onyxData for all connected clients.
-    const successData = [];
-    API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
+            // Removing the workspace data from Onyx and local array as well
+            delete allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
+        })
+        .then(() => Report.fetchAllReports(false))
+        .then(() => {
+            Navigation.goBack();
+            return Promise.resolve();
+        });
+}
 
-    // Reset the lastAccessedWorkspacePolicyID
-    if (policyID === lastAccessedWorkspacePolicyID) {
-        updateLastAccessedWorkspace(null);
-    }
+/**
+ * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
+ *
+ * More specifically, this action will:
+ * 1. Optionally create a new policy.
+ * 2. Fetch policy summaries.
+ * 3. Optionally navigate to the new policy.
+ * 4. Then fetch full policies.
+ *
+ * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
+ * and we also don't have to wait for full policies to load before navigating to the new policy.
+ */
+function getPolicyList() {
+    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
+    DeprecatedAPI.GetPolicySummaryList()
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
+                return;
+            }
+
+            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
+                ...memo,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy, false),
+            }), {});
+
+            if (!_.isEmpty(policyCollection)) {
+                updateAllPolicies(policyCollection);
+            }
+
+            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
+        });
 }
 
 /**
@@ -646,6 +661,52 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
     }, {optimisticData, successData, failureData});
 }
 
+    const successData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [newCustomUnitRate.customUnitRateID]: {
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [currentCustomUnitRate.customUnitRateID]: {
+                                ...currentCustomUnitRate,
+                                errors: {
+                                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('UpdateWorkspaceCustomUnitRate', {
+        policyID,
+        customUnitID,
+        customUnitRate: JSON.stringify(newCustomUnitRate),
+    }, {optimisticData, successData, failureData});
+}
+
 /**
  * Removes an error after trying to delete a member
  *
@@ -670,18 +731,6 @@ function clearDeleteMemberError(policyID, memberEmail) {
 function clearAddMemberError(policyID, memberEmail) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
         [memberEmail]: null,
-    });
-}
-
-/**
- * Removes an error after trying to delete a workspace
- *
- * @param {String} policyID
- */
-function clearDeleteWorkspaceError(policyID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        pendingAction: null,
-        errors: null,
     });
 }
 
@@ -736,13 +785,10 @@ function generatePolicyID() {
 
 /**
  * Optimistically creates a new workspace and default workspace chats
- *
- * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
- * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
+function createWorkspace() {
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName(ownerEmail);
+    const workspaceName = generateDefaultWorkspaceName();
 
     const {
         announceChatReportID,
@@ -754,15 +800,13 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+    } = Report.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     API.write('CreateWorkspace', {
         policyID,
         announceChatReportID,
         adminsChatReportID,
         expenseChatReportID,
-        ownerEmail,
-        makeMeAdmin,
         policyName: workspaceName,
         type: CONST.POLICY.TYPE.FREE,
     },
@@ -907,36 +951,16 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: null,
         }],
-    }).then(() => {
-        Navigation.isNavigationReady()
-            .then(() => {
-                Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
-                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-            });
     });
 
-    Navigation.isNavigationReady()
-        .then(() => {
-            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-        });
+    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
 }
 
 function openWorkspaceReimburseView(policyID) {
-    if (!policyID) {
-        Log.warn('openWorkspaceReimburseView invalid params', {policyID});
-        return;
-    }
-
     API.read('OpenWorkspaceReimburseView', {policyID});
 }
 
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
-    if (!policyID || !clientMemberEmails) {
-        Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
-        return;
-    }
-
     API.read('OpenWorkspaceMembersPage', {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
@@ -944,11 +968,6 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
 }
 
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
-    if (!policyID || !clientMemberEmails) {
-        Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
-        return;
-    }
-
     API.read('OpenWorkspaceInvitePage', {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
@@ -960,23 +979,24 @@ export {
     removeMembers,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
+    update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
-    deleteWorkspace,
-    clearDeleteWorkspaceError,
-    createAndNavigate,
-    createAndGetPolicyList,
-    setCustomUnit,
-    setCustomUnitRate,
+    deletePolicy,
+    updateWorkspaceCustomUnit,
+    updateCustomUnitRate,
     updateLastAccessedWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,
+    openWorkspaceReimburseView,
+    generateDefaultWorkspaceName,
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
+    createWorkspace,
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
 };

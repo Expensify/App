@@ -34,7 +34,19 @@ const propTypes = {
     /* Onyx Props */
 
     /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    report: PropTypes.shape({
+        /** The ID of the report actions will be created for */
+        reportID: PropTypes.number.isRequired,
+
+        /** The largest sequenceNumber on this report */
+        maxSequenceNumber: PropTypes.number,
+
+        /** Whether there is an outstanding amount in IOU */
+        hasOutstandingIOU: PropTypes.bool,
+
+        /** Are we loading more report actions? */
+        isLoadingMoreReportActions: PropTypes.bool,
+    }).isRequired,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -88,14 +100,14 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+        this.appStateChangeListener = AppState.addEventListener('change', () => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
 
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
-            this.openReportIfNecessary();
+            Report.openReport(this.props.report.reportID);
             this.setState({newMarkerSequenceNumber: 0});
         });
 

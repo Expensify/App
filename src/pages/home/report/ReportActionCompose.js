@@ -145,7 +145,7 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
-            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
+            value: props.comment,
         };
     }
 
@@ -321,10 +321,7 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-        + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
+            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
                 start: prevState.selection.start + emojiWithSpace.length,
@@ -384,7 +381,6 @@ class ReportActionCompose extends React.Component {
      */
     updateComment(comment) {
         const newComment = EmojiUtils.replaceEmojis(comment);
-        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
             value: newComment,

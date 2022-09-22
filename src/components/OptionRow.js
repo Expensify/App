@@ -132,44 +132,39 @@ const OptionRow = (props) => {
     const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
-        <OfflineWithFeedback
-            pendingAction={props.option.pendingAction}
-            errors={props.option.allReportErrors}
-            shouldShowErrorMessages={false}
-        >
-            <Hoverable>
-                {hovered => (
-                    <TouchableOpacity
-                        ref={el => touchableRef = el}
-                        onPress={(e) => {
-                            if (e) {
-                                e.preventDefault();
-                            }
+        <Hoverable>
+            {hovered => (
+                <TouchableOpacity
+                    ref={el => touchableRef = el}
+                    onPress={(e) => {
+                        if (e) {
+                            e.preventDefault();
+                        }
 
-                            props.onSelectRow(props.option, touchableRef);
-                        }}
-                        disabled={props.isDisabled}
-                        activeOpacity={0.8}
-                        style={[
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            styles.sidebarLinkInner,
-                            StyleUtils.getBackgroundColorStyle(props.backgroundColor),
-                            props.optionIsFocused ? styles.sidebarLinkActive : null,
-                            hovered && !props.optionIsFocused ? props.hoverStyle : null,
-                            props.isDisabled && styles.cursorDisabled,
-                        ]}
-                    >
-                        <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
-                            <View
-                                style={[
-                                    styles.flexRow,
-                                    styles.alignItemsCenter,
-                                ]}
-                            >
-                                {
+                        props.onSelectRow(props.option, touchableRef);
+                    }}
+                    disabled={props.isDisabled}
+                    activeOpacity={0.8}
+                    style={[
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.justifyContentBetween,
+                        styles.sidebarLink,
+                        styles.sidebarLinkInner,
+                        StyleUtils.getBackgroundColorStyle(props.backgroundColor),
+                        props.optionIsFocused ? styles.sidebarLinkActive : null,
+                        hovered && !props.optionIsFocused ? props.hoverStyle : null,
+                        props.isDisabled && styles.cursorDisabled,
+                    ]}
+                >
+                    <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                            ]}
+                        >
+                            {
                                 !_.isEmpty(props.option.icons)
                                 && (
                                     props.option.shouldShowSubscript ? (
@@ -198,12 +193,20 @@ const OptionRow = (props) => {
                                     )
                                 )
                             }
-                                <View style={contentContainerStyles}>
-                                    <DisplayNames
-                                        accessibilityLabel="Chat user display names"
-                                        fullTitle={props.option.text}
-                                        displayNamesWithTooltips={displayNamesWithTooltips}
-                                        tooltipEnabled={props.showTitleTooltip}
+                            <View style={contentContainerStyles}>
+                                <DisplayNames
+                                    accessibilityLabel="Chat user display names"
+                                    fullTitle={props.option.text}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                    tooltipEnabled={props.showTitleTooltip}
+                                    numberOfLines={1}
+                                    textStyles={displayNameStyle}
+                                    shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
+                                />
+                                {props.option.alternateText ? (
+                                    <Text
+                                        accessibilityLabel={props.alternateTextAccessibilityLabel}
+                                        style={alternateTextStyle}
                                         numberOfLines={1}
                                         textStyles={displayNameStyle}
                                         shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}

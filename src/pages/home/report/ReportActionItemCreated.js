@@ -11,11 +11,15 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
-import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /** The id of the report */
-    reportID: PropTypes.number.isRequired,
+    /** The report currently being looked at */
+    report: PropTypes.shape({
+        /** The id of the report */
+        reportID: PropTypes.number,
+
+        /**  Avatars corresponding to a chat */
+        icons: PropTypes.arrayOf(PropTypes.string),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -38,19 +42,20 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
-
     return (
         <OfflineWithFeedback
-            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
-            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
+            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom')}
+            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom')}
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
-            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+            onClose={() => Report.navigateToConciergeChatAndDeletePolicyReport(props.report.reportID)}
         >
-            <View style={[
-                styles.chatContent,
-                styles.pb8,
-                styles.p5,
-            ]}
+            <View
+                accessibilityLabel="Chat welcome message"
+                style={[
+                    styles.chatContent,
+                    styles.pb8,
+                    styles.p5,
+                ]}
             >
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>

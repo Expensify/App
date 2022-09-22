@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+// eslint-disable-next-line import/no-cycle
 import * as DeprecatedAPI from '../deprecatedAPI';
 
 /**

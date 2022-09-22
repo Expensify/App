@@ -589,4 +589,5 @@ export {
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
+    setKYCWallSourceChatReportID,
 };
