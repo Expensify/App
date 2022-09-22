@@ -127,6 +127,53 @@ describe('Sidebar', () => {
                     expect(optionRows).toHaveLength(1);
                 });
         });
+
+        it('includes or excludes default policy rooms depending on the beta', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a default policy room report
+            // and the user not being in any betas
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            };
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                }))
+
+                // Then no reports are rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(0);
+                })
+
+                // When the user is added to the default policy rooms beta and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+                }))
+
+                // Then all three reports are showing in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(3);
+                });
+        });
     });
 
     describe('in #focus mode', () => {
