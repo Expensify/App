@@ -4,70 +4,11 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNUtils from '../utils/LHNUtils';
 import CONST from '../../src/CONST';
 
-const TEST_MAX_SEQUENCE_NUMBER = 10;
-
-const fakePersonalDetails = {
-    'email1@test.com': {
-        login: 'email1@test.com',
-        displayName: 'Email One',
-        avatar: 'none',
-        firstName: 'ReportID',
-    },
-    'email2@test.com': {
-        login: 'email2@test.com',
-        displayName: 'Email Two',
-        avatar: 'none',
-        firstName: 'One',
-    },
-    'email3@test.com': {
-        login: 'email3@test.com',
-        displayName: 'Email Three',
-        avatar: 'none',
-        firstName: 'ReportID',
-    },
-    'email4@test.com': {
-        login: 'email4@test.com',
-        displayName: 'Email Four',
-        avatar: 'none',
-        firstName: 'Two',
-    },
-    'email5@test.com': {
-        login: 'email5@test.com',
-        displayName: 'Email Five',
-        avatar: 'none',
-        firstName: 'ReportID',
-    },
-    'email6@test.com': {
-        login: 'email6@test.com',
-        displayName: 'Email Six',
-        avatar: 'none',
-        firstName: 'Three',
-    },
-    'email7@test.com': {
-        login: 'email7@test.com',
-        displayName: 'Email Seven',
-        avatar: 'none',
-        firstName: 'ReportID',
-    },
-    'email8@test.com': {
-        login: 'email8@test.com',
-        displayName: 'Email Eight',
-        avatar: 'none',
-        firstName: 'Four',
-    },
-    'email9@test.com': {
-        login: 'email9@test.com',
-        displayName: 'Email Nine',
-        avatar: 'none',
-        firstName: 'EmailNine',
-    },
-};
-
 const fakeReport1 = {
     reportID: 1,
     reportName: 'Report One',
-    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    maxSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
 
     // This report's last comment will be in the past
     lastMessageTimestamp: Date.now() - 3000,
@@ -76,24 +17,24 @@ const fakeReport1 = {
 const fakeReport2 = {
     reportID: 2,
     reportName: 'Report Two',
-    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    maxSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
     lastMessageTimestamp: Date.now() - 2000,
     participants: ['email3@test.com', 'email4@test.com'],
 };
 const fakeReport3 = {
     reportID: 3,
     reportName: 'Report Three',
-    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    maxSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
     lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
 };
 const fakeReportIOU = {
     reportID: 4,
     reportName: 'Report IOU Four',
-    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    maxSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
     lastMessageTimestamp: Date.now() - 1000,
     participants: ['email5@test.com', 'email6@test.com'],
     ownerEmail: 'email2@test.com',
@@ -175,7 +116,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with some personal details
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                 }))
 
                 // Then the component should be rendered with an empty list since it will get past the early return
@@ -196,7 +137,7 @@ describe('Sidebar', () => {
                 // When Onyx is updated with some personal details and a report
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
@@ -220,7 +161,7 @@ describe('Sidebar', () => {
                 // When Onyx is updated with some personal details and multiple reports
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
@@ -254,7 +195,7 @@ describe('Sidebar', () => {
                 // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
@@ -287,7 +228,7 @@ describe('Sidebar', () => {
                 // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
@@ -322,7 +263,7 @@ describe('Sidebar', () => {
                 // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: {hasDraft: true, ...fakeReport2},
@@ -357,7 +298,7 @@ describe('Sidebar', () => {
                 // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: {hasDraft: true, ...fakeReport2},
@@ -390,7 +331,7 @@ describe('Sidebar', () => {
                 // with report 2 pinned
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, isPinned: true},
@@ -426,7 +367,7 @@ describe('Sidebar', () => {
                 //    an outstanding IOU report that doesn't belong to the current user
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [ONYXKEYS.SESSION]: {email: 'email9@test.com'},
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
@@ -462,11 +403,11 @@ describe('Sidebar', () => {
                 // with all reports having unread chats
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
@@ -485,8 +426,8 @@ describe('Sidebar', () => {
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
                     reportID: 4,
                     reportName: 'Report Four',
-                    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-                    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+                    maxSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER,
+                    lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
                     lastMessageTimestamp: Date.now(),
                     participants: ['email7@test.com', 'email8@test.com'],
                 }))
