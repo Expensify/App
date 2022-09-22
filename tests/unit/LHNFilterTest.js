@@ -1,7 +1,7 @@
 import {cleanup} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import * as LHNUtils from '../utils/LHNUtils';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 
@@ -41,10 +41,10 @@ describe('Sidebar', () => {
 
     describe('in default mode', () => {
         it('excludes a report with no participants', () => {
-            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a report with no participants
-            const fakeReport = LHNUtils.getFakeReport([]);
+            const fakeReport = LHNTestUtils.getFakeReport([]);
 
             return waitForPromisesToResolve()
 
@@ -61,12 +61,12 @@ describe('Sidebar', () => {
         });
 
         it('includes or excludes policy expense chats depending on the beta', () => {
-            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a policy expense report
             // and the user not being in any betas
             const report = {
-                ...LHNUtils.getFakeReport(),
+                ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
 
@@ -75,7 +75,7 @@ describe('Sidebar', () => {
                 // When Onyx is updated to contain that data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.BETAS]: [],
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
@@ -100,11 +100,11 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('hides unread chats', () => {
-            const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const report1 = LHNUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
-            const report2 = LHNUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
-            const report3 = LHNUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
 
             return waitForPromisesToResolve()
 
@@ -112,10 +112,10 @@ describe('Sidebar', () => {
                 // with report 1 and 2 having unread actions
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: {...report1, lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: {...report2, lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: {...report1, lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: {...report2, lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
@@ -128,7 +128,7 @@ describe('Sidebar', () => {
                 })
 
                 // When report3 becomes unread
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1}))
 
                 // Then all three chats are showing
                 .then(() => {
@@ -136,7 +136,7 @@ describe('Sidebar', () => {
                 })
 
                 // When report 1 becomes read (it's the active report)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER}))
 
                 // Then all three chats are still showing
                 .then(() => {
