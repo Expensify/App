@@ -18,6 +18,7 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_IOUS: 'reportIOUs_',
+        POLICY: 'policy_',
     },
 };
 
@@ -131,7 +132,7 @@ describe('Sidebar', () => {
         it('includes or excludes default policy rooms depending on the beta', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given a default policy room report
+            // Given three reports with the three different types of default policy rooms
             // and the user not being in any betas
             const report1 = {
                 ...LHNTestUtils.getFakeReport(),
@@ -172,6 +173,47 @@ describe('Sidebar', () => {
                 .then(() => {
                     const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(3);
+                });
+        });
+
+        it('includes default policy rooms for free policies, regardless of the beta', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a default policy room report on a free policy
+            // and the user not being in any betas
+            const policy = {
+                policyID: '1',
+                type: CONST.POLICY.TYPE.FREE,
+            };
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID: policy.policyID,
+            };
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                }))
+
+                // Then the report is rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(1);
+                })
+
+                // When the policy is a paid policy
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`, {type: CONST.POLICY.TYPE.TEAM}))
+
+                // Then the report is not rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(0);
                 });
         });
     });
