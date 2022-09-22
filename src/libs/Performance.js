@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashTransform from 'lodash/transform';
 import React, {Profiler, forwardRef} from 'react';
-import {Alert} from 'react-native';
+import {Alert, InteractionManager} from 'react-native';
 
 import * as Metrics from './Metrics';
 import getComponentDisplayName from './getComponentDisplayName';
@@ -92,8 +92,13 @@ if (Metrics.canCapturePerformanceMetrics()) {
 
                         // Capture any custom measures or metrics below
                         if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                            rnPerformance.measure('TTI', 'nativeLaunchStart', mark.name);
-                            Performance.printPerformanceMetrics();
+                            // Make sure TTI is captured when the app is really usable
+                            InteractionManager.runAfterInteractions(() => {
+                                requestAnimationFrame(() => {
+                                    rnPerformance.measure('TTI', 'nativeLaunchStart', mark.name);
+                                    Performance.printPerformanceMetrics();
+                                });
+                            });
                         }
                     } catch (error) {
                         // Sometimes there might be no start mark recorded and the measure will fail with an error
