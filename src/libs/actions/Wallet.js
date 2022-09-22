@@ -97,15 +97,6 @@ function setWalletShouldShowFailedKYC(shouldShowFailedKYC) {
 }
 
 /**
- * Save the ID of the chat whose IOU triggered showing the KYC wall.
- *
- * @param {Number} chatReportID
- */
-function setKYCWallSourceChatReportID(chatReportID) {
-    Onyx.merge(ONYXKEYS.WALLET_TERMS, {chatReportID});
-}
-
-/**
  * Transforms a list of Idology errors to a translated displayable error string.
  * @param {Array} idologyErrors
  * @return {String}
@@ -195,8 +186,8 @@ function updatePersonalDetails(personalDetails) {
     const ssn = personalDetails.ssn || '';
     const phoneNumber = personalDetails.phoneNumber || '';
     API.write('UpdatePersonalDetailsForWallet', {
-        legalFirstName: firstName,
-        legalLastName: lastName,
+        firstName,
+        lastName,
         dob,
         addressStreet,
         addressCity,
@@ -461,7 +452,6 @@ function verifyIdentity(parameters) {
  *
  * @param {Object} parameters
  * @param {Boolean} parameters.hasAcceptedTerms
- * @param {Number} parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters) {
     const optimisticData = [
@@ -495,7 +485,7 @@ function acceptWalletTerms(parameters) {
         },
     ];
 
-    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID}, {optimisticData, successData, failureData});
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -538,42 +528,6 @@ function updateCurrentStep(currentStep) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
-/**
- * @param {Array} answers
- * @param {String} idNumber
- */
-function answerQuestionsForWallet(answers, idNumber) {
-    const idologyAnswers = JSON.stringify(answers);
-    API.write('AnswerQuestionsForWallet',
-        {
-            idologyAnswers,
-            idNumber,
-        },
-        {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                value: {
-                    isLoading: true,
-                },
-            }],
-            successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            }],
-            failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            }],
-        });
-}
-
 export {
     openOnfidoFlow,
     activateWallet,
@@ -585,9 +539,7 @@ export {
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
-    answerQuestionsForWallet,
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
-    setKYCWallSourceChatReportID,
 };

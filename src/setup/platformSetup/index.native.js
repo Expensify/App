@@ -23,7 +23,7 @@ export default function () {
     Report.subscribeToReportCommentPushNotifications();
 
     // Setup Flipper plugins when on dev
-    if (__DEV__ && typeof jest === 'undefined') {
+    if (__DEV__) {
         require('flipper-plugin-bridgespy-client');
     }
 

@@ -20,7 +20,7 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** Error to display when there is an account error returned */
-        errors: PropTypes.objectOf(PropTypes.string),
+        error: PropTypes.string,
 
         /** Whether the account is validated */
         validated: PropTypes.bool,

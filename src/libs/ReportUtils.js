@@ -12,7 +12,6 @@ import md5 from './md5';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
-import * as NumberFormatUtils from './NumberFormatUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -101,7 +100,6 @@ function canEditReportAction(reportAction) {
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -117,7 +115,6 @@ function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -207,15 +204,6 @@ function getPolicyType(report, policies) {
 }
 
 /**
- * Returns true if there are any guides accounts (team.expensify.com) in emails
- * @param {Array} emails
- * @returns {Boolean}
- */
-function hasExpensifyGuidesEmails(emails) {
-    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
-}
-
-/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -227,9 +215,7 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
-            || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
-            || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE);
     }
 
     return _.last(sortedReports);
@@ -260,11 +246,8 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const policyName = (
-        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
-        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
-    ) || '';
-    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
 }
 
 /**
@@ -425,6 +408,8 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
+        ]) || lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]) || Expensicons.Workspace;
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
@@ -512,7 +497,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
+        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
@@ -527,9 +512,11 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const isMultipleParticipantReport = participants.length > 1;
-    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
-    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
+        participants.length > 1,
+    );
+    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 }
 
 /**
@@ -571,29 +558,6 @@ function generateReportID() {
  */
 function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
-}
-
-/*
- * Builds an optimistic IOU report with a randomly generated reportID
- */
-function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
-    const formattedTotal = NumberFormatUtils.format(locale,
-        total, {
-            style: 'currency',
-            currency,
-        });
-    return {
-        cachedTotal: formattedTotal,
-        chatReportID,
-        currency,
-        hasOutstandingIOU: true,
-        managerEmail: recipientEmail,
-        ownerEmail,
-        reportID: generateReportID(),
-        state: CONST.REPORT.STATE.SUBMITTED,
-        stateNum: 1,
-        total,
-    };
 }
 
 /**
@@ -639,7 +603,7 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
 
         // For now, the clientID and sequenceNumber are the same.
-        // We are changing that as we roll out the optimisticReportAction IDs and related refactors.
+        // We are changing that as we roll out the optimistiReportAction IDs and related refactors.
         clientID: sequenceNumber,
         isAttachment: false,
         originalMessage,
@@ -654,16 +618,6 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
         timestamp: moment().unix(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
-}
-
-/**
- * @param {Object} report
- * @returns {Boolean}
- */
-function isUnread(report) {
-    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
-    const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
 }
 
 export {
@@ -684,7 +638,6 @@ export {
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
-    hasExpensifyGuidesEmails,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -697,7 +650,5 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
-    buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
-    isUnread,
 };

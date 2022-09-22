@@ -11,7 +11,6 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
 import {propTypes, defaultProps} from './kycWallPropTypes';
-import * as Wallet from '../../libs/actions/Wallet';
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
@@ -36,7 +35,6 @@ class KYCWall extends React.Component {
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
-        Wallet.setKYCWallSourceChatReportID(this.props.chatReportID);
     }
 
     componentWillUnmount() {

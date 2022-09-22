@@ -15,6 +15,5 @@ defaultProps.keyboardAvoidingViewBehavior = 'height';
 
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
-ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default ScreenWrapper;

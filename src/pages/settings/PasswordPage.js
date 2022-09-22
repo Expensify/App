@@ -18,7 +18,6 @@ import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 import PasswordConfirmationScreen from './PasswordConfirmationScreen';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -26,7 +25,7 @@ const propTypes = {
     /** Holds information about the users account that is logging in */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        errors: PropTypes.objectOf(PropTypes.string),
+        error: PropTypes.string,
 
         /** Success message to display when necessary */
         success: PropTypes.string,
@@ -209,9 +208,9 @@ class PasswordPage extends Component {
                                     </Text>
                                     )}
                                 </View>
-                                {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.errors) && (
+                                {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
                                 <Text style={styles.formError}>
-                                    {ErrorUtils.getLatestErrorMessage(this.props.account)}
+                                    {this.props.account.error}
                                 </Text>
                                 )}
                             </ScrollView>

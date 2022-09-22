@@ -14,8 +14,7 @@ let isOffline = false;
 let hasPendingNetworkCheck = false;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
-let callbackID = 0;
-const reconnectionCallbacks = {};
+const reconnectionCallbacks = [];
 
 /**
  * Loop over all reconnection callbacks and fire each one
@@ -100,13 +99,9 @@ function stopListeningForReconnect() {
  * Register callback to fire when we reconnect
  *
  * @param {Function} callback - must return a Promise
- * @returns {Function} unsubscribe method
  */
 function onReconnect(callback) {
-    const currentID = callbackID;
-    callbackID++;
-    reconnectionCallbacks[currentID] = callback;
-    return () => delete reconnectionCallbacks[currentID];
+    reconnectionCallbacks.push(callback);
 }
 
 /**

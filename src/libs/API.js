@@ -2,8 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as Request from './Request';
 import * as SequentialQueue from './Network/SequentialQueue';
-import pkg from '../../package.json';
-import CONST from '../CONST';
+import {version} from '../../package.json';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
@@ -27,8 +26,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
     // Assemble the data we'll send to the API
     const data = {
         ...apiCommandParameters,
-        appversion: pkg.version,
-        apiRequestType: CONST.API_REQUEST_TYPE.WRITE,
+        appversion: version,
     };
 
     // Assemble all the request data we'll be storing in the queue
@@ -64,11 +62,9 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
  * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param {String} [apiRequestType] - Can be either 'read', 'write', or 'makeRequestWithSideEffects'. We use this to either return the chained
- *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
  * @returns {Promise}
  */
-function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}) {
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -77,8 +73,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
     // Assemble the data we'll send to the API
     const data = {
         ...apiCommandParameters,
-        appversion: pkg.version,
-        apiRequestType,
+        appversion: version,
     };
 
     // Assemble all the request data we'll be storing
@@ -105,7 +100,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
-    makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ);
+    makeRequestWithSideEffects(command, apiCommandParameters, onyxData);
 }
 
 export {

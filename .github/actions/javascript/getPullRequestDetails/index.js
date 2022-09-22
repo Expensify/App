@@ -97,14 +97,10 @@ if (pullRequestNumber) {
         ...DEFAULT_PAYLOAD,
         state: 'all',
     })
-        .then(({data}) => _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title)).number)
-        .then(matchingPRNum => GithubUtils.octokit.pulls.get({
-            ...DEFAULT_PAYLOAD,
-            pull_number: matchingPRNum,
-        }))
         .then(({data}) => {
-            outputMergeCommitHash(data);
-            outputMergeActor(data);
+            const matchingPR = _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title));
+            outputMergeCommitHash(matchingPR);
+            outputMergeActor(matchingPR);
         });
 }
 
@@ -649,7 +645,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.paginate(this.octokit.issues.listEvents, {
+        return this.octokit.paginate(this.octokit.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,

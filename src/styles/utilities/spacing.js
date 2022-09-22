@@ -322,10 +322,6 @@ export default {
         paddingTop: 16,
     },
 
-    pt5: {
-        paddingTop: 20,
-    },
-
     pb1: {
         paddingBottom: 4,
     },

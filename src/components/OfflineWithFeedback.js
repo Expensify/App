@@ -7,12 +7,14 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import stylePropTypes from '../styles/stylePropTypes';
+import Text from './Text';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
-import DotIndicatorMessage from './DotIndicatorMessage';
+import colors from '../styles/colors';
+import variables from '../styles/variables';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -81,6 +83,11 @@ const OfflineWithFeedback = (props) => {
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
+    const sortedErrors = _.chain(props.errors)
+        .keys()
+        .sortBy()
+        .map(key => props.errors[key])
+        .value();
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
@@ -95,7 +102,14 @@ const OfflineWithFeedback = (props) => {
             )}
             {hasErrors && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage messages={props.errors} type="error" />
+                    <View style={styles.offlineFeedback.errorDot}>
+                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+                    </View>
+                    <View style={styles.offlineFeedback.textContainer}>
+                        {_.map(sortedErrors, (error, i) => (
+                            <Text key={i} style={styles.offlineFeedback.text}>{error}</Text>
+                        ))}
+                    </View>
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}

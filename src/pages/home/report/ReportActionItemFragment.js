@@ -51,12 +51,6 @@ const propTypes = {
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
 
-    // Additional styles to add after local styles
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
-
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -75,7 +69,6 @@ const defaultProps = {
     isSingleLine: false,
     tooltipText: '',
     source: '',
-    style: [],
 };
 
 const ReportActionItemFragment = (props) => {
@@ -126,7 +119,7 @@ const ReportActionItemFragment = (props) => {
                 <Text
                     family="EMOJI_TEXT_FONT"
                     selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
+                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     {props.fragment.isEdited && (

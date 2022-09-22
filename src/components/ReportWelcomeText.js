@@ -39,14 +39,13 @@ const propTypes = {
     policies: PropTypes.shape({
         /** The policy name */
         name: PropTypes.string,
-    }),
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
-    policies: {},
 };
 
 const ReportWelcomeText = (props) => {

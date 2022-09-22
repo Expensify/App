@@ -462,6 +462,18 @@ function getPaddingLeft(paddingLeft) {
 }
 
 /**
+ * Get animated opacity for report chat list
+ * @param {Animated.Value} fadeInAnimation
+ * @returns {Object}
+ */
+function getReportListAnimationStyle(fadeInAnimation) {
+    return {
+        ...styles.flex1,
+        opacity: fadeInAnimation,
+    };
+}
+
+/**
  * Android only - convert RTL text to a LTR text using Unicode controls.
  * https://www.w3.org/International/questions/qa-bidi-unicode-controls
  * @param {String} text
@@ -493,19 +505,6 @@ function getHeight(keyboardHeight) {
         height: keyboardHeight,
     };
 }
-
-/**
- * Return style for opacity animation.
- *
- * @param {Animated.Value} fadeAnimation
- * @returns {Object}
- */
-function fade(fadeAnimation) {
-    return {
-        opacity: fadeAnimation,
-    };
-}
-
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -534,8 +533,8 @@ export {
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
+    getReportListAnimationStyle,
     convertToLTR,
     hasSafeAreas,
     getHeight,
-    fade,
 };

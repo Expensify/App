@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
 import _ from 'underscore';
@@ -17,16 +17,16 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Localize from '../../../libs/Localize';
 import compose from '../../../libs/compose';
+import Button from '../../../components/Button';
+import FixedFooter from '../../../components/FixedFooter';
 import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
+import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import Form from '../../../components/Form';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
@@ -65,19 +65,24 @@ class ProfilePage extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-        this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar};
-        this.pronouns = props.currentUserPersonalDetails.pronouns;
+        const currentUserDetails = this.props.currentUserPersonalDetails || {};
         this.state = {
+            firstName: currentUserDetails.firstName || '',
+            hasFirstNameError: false,
+            lastName: currentUserDetails.lastName || '',
+            hasLastNameError: false,
+            pronouns: currentUserDetails.pronouns || '',
+            hasPronounError: false,
+            hasSelfSelectedPronouns: !_.isEmpty(currentUserDetails.pronouns) && !currentUserDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            selectedTimezone: lodashGet(currentUserDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(currentUserDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.loginList),
-            selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
         };
 
         this.getLogins = this.getLogins.bind(this);
-        this.validate = this.validate.bind(this);
+        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
+        this.validateInputs = this.validateInputs.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -94,6 +99,18 @@ class ProfilePage extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(stateToUpdate);
+    }
+
+    /**
+     * Set the form to use automatic timezone
+     *
+     * @param {Boolean} isAutomaticTimezone
+     */
+    setAutomaticTimezone(isAutomaticTimezone) {
+        this.setState(({selectedTimezone}) => ({
+            isAutomaticTimezone,
+            selectedTimezone: isAutomaticTimezone ? moment.tz.guess() : selectedTimezone,
+        }));
     }
 
     /**
@@ -128,65 +145,34 @@ class ProfilePage extends Component {
 
     /**
      * Submit form to update personal details
-     * @param {Object} values
-     * @param {String} values.firstName
-     * @param {String} values.lastName
-     * @param {String} values.pronouns
-     * @param {Boolean} values.isAutomaticTimezone
-     * @param {String} values.timezone
-     * @param {String} values.selfSelectedPronoun
      */
-    updatePersonalDetails(values) {
+    updatePersonalDetails() {
+        if (!this.validateInputs()) {
+            return;
+        }
+
         PersonalDetails.updateProfile(
-            values.firstName.trim(),
-            values.lastName.trim(),
-            (this.state.hasSelfSelectedPronouns) ? values.selfSelectedPronoun.trim() : values.pronouns.trim(),
+            this.state.firstName.trim(),
+            this.state.lastName.trim(),
+            this.state.pronouns.trim(),
             {
-                automatic: values.isAutomaticTimezone,
-                selected: values.timezone,
+                automatic: this.state.isAutomaticTimezone,
+                selected: this.state.selectedTimezone,
             },
         );
     }
 
-    /**
-     * @param {Object} values - An object containing the value of each inputID
-     * @param {String} values.firstName
-     * @param {String} values.lastName
-     * @param {String} values.pronouns
-     * @param {Boolean} values.isAutomaticTimezone
-     * @param {String} values.timezone
-     * @param {String} values.selfSelectedPronoun
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    validate(values) {
-        const errors = {};
-
-        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.FORM_CHARACTER_LIMIT,
-            [values.firstName, values.lastName, values.pronouns],
+    validateInputs() {
+        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimit(
+            50,
+            [this.state.firstName.trim(), this.state.lastName.trim(), this.state.pronouns.trim()],
         );
-
-        const hasSelfSelectedPronouns = values.pronouns === CONST.PRONOUNS.SELF_SELECT;
-        this.pronouns = hasSelfSelectedPronouns ? '' : values.pronouns;
         this.setState({
-            hasSelfSelectedPronouns,
-            isAutomaticTimezone: values.isAutomaticTimezone,
-            selectedTimezone: values.isAutomaticTimezone ? moment.tz.guess() : values.timezone,
+            hasFirstNameError,
+            hasLastNameError,
+            hasPronounError,
         });
-
-        if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
-
-        if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
-
-        if (hasPronounError) {
-            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
-
-        return errors;
+        return !hasFirstNameError && !hasLastNameError && !hasPronounError;
     }
 
     render() {
@@ -194,8 +180,16 @@ class ProfilePage extends Component {
             label: value,
             value: `${CONST.PRONOUNS.PREFIX}${key}`,
         }));
+
+        // Disables button if none of the form values have changed
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
-        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
+        const isButtonDisabled = (currentUserDetails.firstName === this.state.firstName.trim())
+            && (currentUserDetails.lastName === this.state.lastName.trim())
+            && (lodashGet(currentUserDetails, 'timezone.selected') === this.state.selectedTimezone)
+            && (lodashGet(currentUserDetails, 'timezone.automatic') === this.state.isAutomaticTimezone)
+            && (currentUserDetails.pronouns === this.state.pronouns.trim());
+
+        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
         return (
             <ScreenWrapper>
@@ -205,16 +199,10 @@ class ProfilePage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={CONST.PROFILE_SETTINGS_FORM}
-                    validate={this.validate}
-                    onSubmit={this.updatePersonalDetails}
-                    submitButtonText={this.props.translate('common.save')}
-                >
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <OfflineWithFeedback
-                        pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                        errors={lodashGet(this.props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                        pendingAction={lodashGet(currentUserDetails, 'pendingFields.avatar', null)}
+                        errors={lodashGet(currentUserDetails, 'errorFields.avatar', null)}
                         errorRowStyles={[styles.mt6]}
                         onClose={PersonalDetails.clearAvatarErrors}
                     >
@@ -225,49 +213,45 @@ class ProfilePage extends Component {
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
+
                         />
                     </OfflineWithFeedback>
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>
-
-                    <View style={[styles.flexRow, styles.mt4, styles.mb4]}>
-                        <View style={styles.flex1}>
-                            <TextInput
-                                inputID="firstName"
-                                name="fname"
-                                label={this.props.translate('common.firstName')}
-                                defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
-                                placeholder={this.props.translate('profilePage.john')}
-                            />
-                        </View>
-                        <View style={[styles.flex1, styles.ml2]}>
-                            <TextInput
-                                inputID="lastName"
-                                name="lname"
-                                label={this.props.translate('common.lastName')}
-                                defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
-                                placeholder={this.props.translate('profilePage.doe')}
-                            />
-                        </View>
-                    </View>
+                    <FullNameInputRow
+                        firstName={this.state.firstName}
+                        firstNameError={PersonalDetails.getMaxCharacterError(this.state.hasFirstNameError)}
+                        lastName={this.state.lastName}
+                        lastNameError={PersonalDetails.getMaxCharacterError(this.state.hasLastNameError)}
+                        onChangeFirstName={firstName => this.setState({firstName})}
+                        onChangeLastName={lastName => this.setState({lastName})}
+                        style={[styles.mt4, styles.mb4]}
+                    />
                     <View style={styles.mb6}>
                         <Picker
-                            inputID="pronouns"
                             label={this.props.translate('profilePage.preferredPronouns')}
+                            onInputChange={(pronouns) => {
+                                const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                this.setState({
+                                    pronouns: hasSelfSelectedPronouns ? '' : pronouns,
+                                    hasSelfSelectedPronouns,
+                                });
+                            }}
                             items={pronounsList}
                             placeholder={{
                                 value: '',
                                 label: this.props.translate('profilePage.selectYourPronouns'),
                             }}
-                            defaultValue={pronounsPickerValue}
+                            value={pronounsPickerValue}
                         />
                         {this.state.hasSelfSelectedPronouns && (
                             <View style={styles.mt2}>
                                 <TextInput
-                                    inputID="selfSelectedPronoun"
-                                    defaultValue={this.pronouns}
+                                    value={this.state.pronouns}
+                                    onChangeText={pronouns => this.setState({pronouns})}
                                     placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                    errorText={PersonalDetails.getMaxCharacterError(this.state.hasPronounError)}
                                 />
                             </View>
                         )}
@@ -276,30 +260,37 @@ class ProfilePage extends Component {
                         label={this.props.translate('profilePage.emailAddress')}
                         type="email"
                         login={this.state.logins.email}
-                        defaultValue={this.state.logins.email}
                     />
                     <LoginField
                         label={this.props.translate('common.phoneNumber')}
                         type="phone"
                         login={this.state.logins.phone}
-                        defaultValue={this.state.logins.phone}
                     />
                     <View style={styles.mb3}>
                         <Picker
-                            inputID="timezone"
                             label={this.props.translate('profilePage.timezone')}
+                            onInputChange={selectedTimezone => this.setState({selectedTimezone})}
                             items={timezones}
                             isDisabled={this.state.isAutomaticTimezone}
-                            defaultValue={this.state.selectedTimezone}
                             value={this.state.selectedTimezone}
                         />
                     </View>
                     <CheckboxWithLabel
-                        inputID="isAutomaticTimezone"
                         label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                        defaultValue={this.state.isAutomaticTimezone}
+                        isChecked={this.state.isAutomaticTimezone}
+                        onInputChange={this.setAutomaticTimezone}
                     />
-                </Form>
+                </ScrollView>
+                <FixedFooter>
+                    <Button
+                        success
+                        isDisabled={isButtonDisabled}
+                        onPress={this.updatePersonalDetails}
+                        style={[styles.w100]}
+                        text={this.props.translate('common.save')}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }
@@ -307,6 +298,7 @@ class ProfilePage extends Component {
 
 ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
+ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,

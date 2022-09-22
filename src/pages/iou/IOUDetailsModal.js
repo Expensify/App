@@ -145,7 +145,6 @@ class IOUDetailsModal extends Component {
                                     enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
                                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
-                                    chatReportID={Number(this.props.route.params.chatReportID)}
                                 />
                             </FixedFooter>
                         ))}

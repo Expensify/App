@@ -3,7 +3,6 @@ import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import CONFIG from '../CONFIG';
-// eslint-disable-next-line import/no-cycle
 import redirectToSignIn from './actions/SignInRedirect';
 import CONST from '../CONST';
 import Log from './Log';

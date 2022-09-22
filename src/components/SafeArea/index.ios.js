@@ -13,6 +13,5 @@ SafeArea.propTypes = {
     /** App content */
     children: PropTypes.node.isRequired,
 };
-SafeArea.displayName = 'SafeArea';
 
 export default SafeArea;

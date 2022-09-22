@@ -4,5 +4,5 @@ outputs:
   BUNDLE_VERSIONS_MATCH:
     description: Whether or not the bundle versions match
 runs:
-  using: 'node16'
+  using: 'node12'
   main: './index.js'

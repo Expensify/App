@@ -14,7 +14,7 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withDrawerPropTypes} from '../../../components/withDrawerState';
+import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -29,7 +29,6 @@ import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +37,9 @@ const propTypes = {
     report: PropTypes.shape({
         /** The ID of the report actions will be created for */
         reportID: PropTypes.number.isRequired,
+
+        /** Number of actions unread */
+        unreadActionCount: PropTypes.number,
 
         /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
@@ -84,7 +86,7 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerSequenceNumber: ReportUtils.isUnread(props.report)
+            newMarkerSequenceNumber: props.report.unreadActionCount > 0
                 ? props.report.lastReadSequenceNumber + 1
                 : 0,
         };
@@ -100,15 +102,18 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', () => {
+        this.appStateChangeListener = AppState.addEventListener('change', (state) => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
 
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
+            if (state === 'active' && this.props.report.unreadActionCount === 0) {
+                this.setState({newMarkerSequenceNumber: 0});
+            }
+
             Report.openReport(this.props.report.reportID);
-            this.setState({newMarkerSequenceNumber: 0});
         });
 
         Report.subscribeToReportTypingEvents(this.props.report.reportID);
@@ -209,10 +214,6 @@ class ReportActionsView extends React.Component {
                 } else if (this.state.newMarkerSequenceNumber === 0) {
                     this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
                 }
-            } else if (this.state.newMarkerSequenceNumber === 0) {
-                // The report is not in view and we received a comment from another user while the new marker is not set
-                // so we will set the new marker now.
-                this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
             }
         }
 
@@ -223,7 +224,7 @@ class ReportActionsView extends React.Component {
         const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
         if (didReportBecomeVisible) {
             this.setState({
-                newMarkerSequenceNumber: !ReportUtils.isUnread(this.props.report)
+                newMarkerSequenceNumber: this.props.report.unreadActionCount === 0
                     ? 0
                     : this.props.report.lastReadSequenceNumber + 1,
             });
@@ -233,15 +234,15 @@ class ReportActionsView extends React.Component {
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
         // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
         const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
-        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
+        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && this.props.report.unreadActionCount === 0;
         if (didUserNavigateToSidebarAfterReadingReport) {
             this.setState({newMarkerSequenceNumber: 0});
         }
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadSequenceNumber
-        // changes it will be because we marked the entire report as read.
+        // changes it will be because we marked the entire report as read and there should be an unreadActionCount of 0.
         const didManuallyMarkReportAsUnread = (prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber)
-            && ReportUtils.isUnread(this.props.report);
+            && this.props.report.unreadActionCount > 0;
         if (didManuallyMarkReportAsUnread) {
             this.setState({newMarkerSequenceNumber: this.props.report.lastReadSequenceNumber + 1});
         }
@@ -380,6 +381,7 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
+    withDrawerState,
     withLocalize,
     withNetwork(),
 )(ReportActionsView);

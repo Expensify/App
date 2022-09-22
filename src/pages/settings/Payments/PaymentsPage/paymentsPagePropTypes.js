@@ -6,7 +6,6 @@ import networkPropTypes from '../../../../components/networkPropTypes';
 import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../../components/cardPropTypes';
 import userWalletPropTypes from '../../../EnablePayments/userWalletPropTypes';
-import walletTermsPropTypes from '../../../EnablePayments/walletTermsPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -22,7 +21,7 @@ const propTypes = {
     shouldListenForResize: PropTypes.bool,
 
     /** The user's wallet account */
-    userWallet: userWalletPropTypes,
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -32,9 +31,6 @@ const propTypes = {
 
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** Information about the user accepting the terms for payments */
-    walletTerms: walletTermsPropTypes,
 
     ...withLocalizePropTypes,
 
@@ -51,7 +47,6 @@ const defaultProps = {
     userWallet: {},
     bankAccountList: {},
     cardList: {},
-    walletTerms: {},
 };
 
 export {propTypes, defaultProps};

@@ -120,7 +120,7 @@ class WalletStatementPage extends React.Component {
 
 WalletStatementPage.propTypes = propTypes;
 WalletStatementPage.defaultProps = defaultProps;
-
+WalletStatementPage.displayName = 'WalletStatementPage';
 export default compose(
     withLocalize,
     withOnyx({

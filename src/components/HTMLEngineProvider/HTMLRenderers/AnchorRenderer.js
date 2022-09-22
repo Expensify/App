@@ -85,7 +85,7 @@ const AnchorRenderer = (props) => {
             displayName={displayName}
 
             // Only pass the press handler for internal links, for public links fallback to default link handling
-            onPress={(internalNewExpensifyPath || internalExpensifyPath) ? navigateToLink : undefined}
+            onPress={internalNewExpensifyPath || internalExpensifyPath ? navigateToLink : undefined}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>

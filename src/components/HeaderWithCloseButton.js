@@ -220,6 +220,7 @@ class HeaderWithCloseButton extends Component {
 
 HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
+HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
 export default compose(
     withLocalize,

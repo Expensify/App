@@ -1,14 +1,13 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
+import {getPathFromState, NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import Log from '../Log';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
-import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -35,14 +34,14 @@ class NavigationRoot extends Component {
             currentPath: '',
         };
 
-        this.parseAndLogRoute = this.parseAndLogRoute.bind(this);
+        this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
     }
 
     /**
-     * Intercept navigation state changes and log it
+     * Intercept state changes and perform different logic
      * @param {NavigationState} state
      */
-    parseAndLogRoute(state) {
+    parseAndStoreRoute(state) {
         if (!state) {
             return;
         }
@@ -56,8 +55,6 @@ class NavigationRoot extends Component {
             Log.info('Navigating to route', false, {path: currentPath});
         }
 
-        UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
-
         this.setState({currentPath});
     }
 
@@ -70,7 +67,7 @@ class NavigationRoot extends Component {
                         style={styles.navigatorFullScreenLoading}
                     />
                 )}
-                onStateChange={this.parseAndLogRoute}
+                onStateChange={this.parseAndStoreRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}
                 ref={Navigation.navigationRef}

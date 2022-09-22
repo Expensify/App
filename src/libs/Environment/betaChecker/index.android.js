@@ -1,5 +1,5 @@
 import CONST from '../../../CONST';
-import pkg from '../../../../package.json';
+import {version} from '../../../../package.json';
 
 /**
  * Check the Google Play store listing to see if the current build is a beta build or production build
@@ -20,7 +20,7 @@ function isBetaBuild() {
 
                 // If we have a match for the production version regex and the current version is not the same
                 // as the production version, we are on a beta build
-                const isBeta = productionVersion && productionVersionSearch[0].trim() !== pkg.version;
+                const isBeta = productionVersion && productionVersionSearch[0].trim() !== version;
                 resolve(isBeta);
             })
             .catch(() => {

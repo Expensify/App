@@ -1,5 +1,5 @@
 const path = require('path');
-const {IgnorePlugin, DefinePlugin, ProvidePlugin} = require('webpack');
+const {IgnorePlugin, DefinePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -34,7 +34,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         app: './index.js',
     },
     output: {
-        filename: '[name]-[contenthash].bundle.js',
+        filename: '[name]-[hash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
     },
@@ -44,9 +44,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             template: 'web/index.html',
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
-        }),
-        new ProvidePlugin({
-            process: 'process/browser',
         }),
 
         // Copies favicons into the dist/ folder to use for unread status
@@ -66,10 +63,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
-        new IgnorePlugin({
-            resourceRegExp: /^\.\/locale$/,
-            contextRegExp: /moment$/,
-        }),
+        new IgnorePlugin(/^\.\/locale$/, /moment$/),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(
@@ -168,14 +162,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
-        fallback: {
-            'process/browser': require.resolve('process/browser'),
-        },
-    },
-    devServer: {
-        client: {
-            overlay: false,
-        },
     },
 });
 

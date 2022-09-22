@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as Wallet from '../../libs/actions/Wallet';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -27,7 +28,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** The user's wallet */
-    userWallet: userWalletPropTypes,
+    userWallet: PropTypes.objectOf(userWalletPropTypes),
 
     ...withLocalizePropTypes,
 };

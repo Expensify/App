@@ -54,20 +54,19 @@ class ThreeDotsMenu extends Component {
     constructor(props) {
         super(props);
 
-        this.hidePopoverMenu = this.hidePopoverMenu.bind(this);
-        this.showPopoverMenu = this.showPopoverMenu.bind(this);
+        this.togglePopupMenu = this.togglePopupMenu.bind(this);
         this.state = {
             isPopupMenuVisible: false,
         };
-        this.button = null;
     }
 
-    showPopoverMenu() {
-        this.setState({isPopupMenuVisible: true});
-    }
-
-    hidePopoverMenu() {
-        this.setState({isPopupMenuVisible: false});
+    /**
+     * Toggles the popup menu visibility
+     */
+    togglePopupMenu() {
+        this.setState(prevState => ({
+            isPopupMenuVisible: !prevState.isPopupMenuVisible,
+        }));
     }
 
     render() {
@@ -77,12 +76,11 @@ class ThreeDotsMenu extends Component {
                     <Tooltip text={this.props.translate(this.props.iconTooltip)}>
                         <Pressable
                             onPress={() => {
-                                this.showPopoverMenu();
+                                this.togglePopupMenu();
                                 if (this.props.onIconPress) {
                                     this.props.onIconPress();
                                 }
                             }}
-                            ref={el => this.button = el}
                             style={[styles.touchableButtonImage, ...this.props.iconStyles]}
                         >
                             <Icon
@@ -93,10 +91,10 @@ class ThreeDotsMenu extends Component {
                     </Tooltip>
                 </View>
                 <PopoverMenu
-                    onClose={this.hidePopoverMenu}
+                    onClose={this.togglePopupMenu}
                     isVisible={this.state.isPopupMenuVisible}
                     anchorPosition={this.props.anchorPosition}
-                    onItemSelected={this.hidePopoverMenu}
+                    onItemSelected={() => this.togglePopupMenu()}
                     menuItems={this.props.menuItems}
                 />
             </>
@@ -106,7 +104,7 @@ class ThreeDotsMenu extends Component {
 
 ThreeDotsMenu.propTypes = propTypes;
 ThreeDotsMenu.defaultProps = defaultProps;
-
+ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 export default withLocalize(ThreeDotsMenu);
 
 export {ThreeDotsMenuItemPropTypes};
