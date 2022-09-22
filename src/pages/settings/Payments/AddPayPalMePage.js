@@ -57,16 +57,20 @@ class AddPayPalMePage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
 
+    /**
+     * Sets the focus on payPalMeUsername input
+     */
+    focusPayPalMeInput() {
+        if (!this.payPalMeInputRef) {
+            return;
+        }
+
+        this.payPalMeInputRef.focus();
+    }
+
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => {
-                if (!this.payPalMeInputRef) {
-                    return;
-                }
-
-                this.payPalMeInputRef.focus();
-            }}
-            >
+            <ScreenWrapper onTransitionEnd={() => this.focusPayPalMeInput()}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payPalMe')}
                     shouldShowBackButton
