@@ -193,10 +193,46 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
+function openReimbursementAccountPage() {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    error: '',
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+    };
+
+    return API.read('OpenReimbursementAccountPage', {}, onyxData);
+}
+
 export {
     addPersonalBankAccount,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    openReimbursementAccountPage,
     validateBankAccount,
 };
