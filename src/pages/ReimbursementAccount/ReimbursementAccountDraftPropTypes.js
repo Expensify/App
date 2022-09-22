@@ -6,7 +6,7 @@ export default PropTypes.shape({
     /** Props needed for BankAccountStep */
     accountNumber: PropTypes.string,
     routingNumber: PropTypes.string,
-    hasAcceptedTerms: PropTypes.bool,
+    acceptTerms: PropTypes.bool,
     plaidAccountID: PropTypes.string,
     plaidMask: PropTypes.string,
 

@@ -33,7 +33,7 @@ class BankAccountManualStep extends React.Component {
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
 
         this.state = {
-            hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
+            acceptTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
             accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
         };
@@ -42,7 +42,7 @@ class BankAccountManualStep extends React.Component {
         this.errorTranslationKeys = {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
-            hasAcceptedTerms: 'common.error.acceptedTerms',
+            acceptTerms: 'common.error.acceptedTerms',
         };
     }
 
@@ -59,8 +59,8 @@ class BankAccountManualStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
             errorFields.routingNumber = true;
         }
-        if (!this.state.hasAcceptedTerms) {
-            errorFields.hasAcceptedTerms = true;
+        if (!this.state.acceptTerms) {
+            errorFields.acceptTerms = true;
         }
 
         ReimbursementAccount.setBankAccountFormValidationErrors(errorFields);
@@ -136,8 +136,8 @@ class BankAccountManualStep extends React.Component {
                     />
                     <CheckboxWithLabel
                         style={styles.mt4}
-                        isChecked={this.state.hasAcceptedTerms}
-                        onInputChange={value => this.clearErrorAndSetValue('hasAcceptedTerms', value)}
+                        isChecked={this.state.acceptTerms}
+                        onInputChange={value => this.clearErrorAndSetValue('acceptTerms', value)}
                         LabelComponent={() => (
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <Text>
@@ -148,7 +148,7 @@ class BankAccountManualStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        errorText={this.getErrorText('hasAcceptedTerms')}
+                        errorText={this.getErrorText('acceptTerms')}
                     />
                 </ReimbursementAccountForm>
             </>

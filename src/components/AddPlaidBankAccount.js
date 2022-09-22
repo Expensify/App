@@ -81,14 +81,11 @@ class AddPlaidBankAccount extends React.Component {
 
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        // Otherwise, clear the existing token and fetch a new one
-        if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
+        if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) || !_.isEmpty(this.props.plaidData)) {
             return;
         }
 
-        if (_.isEmpty(this.props.plaidData)) {
-            BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
-        }
+        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
     }
 
     /**
@@ -131,7 +128,7 @@ class AddPlaidBankAccount extends React.Component {
             value: account.plaidAccountID, label: `${account.addressName} ${account.mask}`,
         }));
         const institutionName = lodashGet(this.props, 'plaidData.institution.name', '');
-        const selectedPlaidBankAacount = lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {});
+        const selectedPlaidBankAccount = lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {});
         const {icon, iconSize} = getBankIcon();
 
         // Plaid Link view
@@ -194,7 +191,7 @@ class AddPlaidBankAccount extends React.Component {
                             value: '',
                             label: this.props.translate('bankAccount.chooseAnAccount'),
                         } : {}}
-                        value={selectedPlaidBankAacount.plaidAccountID}
+                        value={selectedPlaidBankAccount.plaidAccountID}
                     />
                 </View>
             </View>

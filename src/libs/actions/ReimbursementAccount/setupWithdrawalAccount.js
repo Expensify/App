@@ -241,7 +241,7 @@ function setupWithdrawalAccount(params) {
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false, achData: {...updatedACHData}});
             console.error(response.stack);
-            errors.showBankAccountFormValidationError('common.genericErrorMessage');
+            errors.showBankAccountFormValidationError(Localize.translateLocal('common.genericErrorMessage'));
         });
 }
 

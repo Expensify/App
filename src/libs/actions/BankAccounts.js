@@ -44,58 +44,6 @@ function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
-function getOnyxDataForVBBA() {
-    return {
-        optimisticData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: true,
-                    errors: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                    errors: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
-                    },
-                },
-            },
-        ],
-    };
-}
-
-function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
-    const commandName = 'ConnectBankAccountWithPlaid';
-
-    const parameters = {
-        bankAccountID,
-        routingNumber: selectedPlaidBankAccount.routingNumber,
-        accountNumber: selectedPlaidBankAccount.accountNumber,
-        bank: selectedPlaidBankAccount.bankName,
-        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
-        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
-    };
-
-    API.write(commandName, parameters, getOnyxDataForVBBA());
-}
-
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  *
@@ -138,6 +86,27 @@ function getVBBADataForOnyx() {
             },
         ],
     };
+}
+
+/**
+ * Submit Bank Account step with Plaid data so php can perform some checks.
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} selectedPlaidBankAccount
+ */
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+    const commandName = 'ConnectBankAccountWithPlaid';
+
+    const parameters = {
+        bankAccountID,
+        routingNumber: selectedPlaidBankAccount.routingNumber,
+        accountNumber: selectedPlaidBankAccount.accountNumber,
+        bank: selectedPlaidBankAccount.bankName,
+        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
+        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+    };
+
+    API.write(commandName, parameters, getVBBADataForOnyx());
 }
 
 /**
