@@ -218,22 +218,15 @@ describe('Sidebar', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three reports in the recently updated order of 3, 2, 1
-            // And the first report has a draft
-            // And the currently viewed report is the first report
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                hasDraft: true,
-            };
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
             const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
-            const currentlyViewedReportID = report1.reportID;
 
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
