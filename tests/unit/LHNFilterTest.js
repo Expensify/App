@@ -60,7 +60,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('includes or excludes policy expense chats depending on the user being in the policy expense beta', () => {
+        it('includes or excludes policy expense chats depending on the beta', () => {
             const sidebarLinks = LHNUtils.getDefaultRenderedSidebarLinks();
 
             // Given a policy expense report
@@ -111,7 +111,7 @@ describe('Sidebar', () => {
                 // Given the sidebar is rendered in #focus mode (hides read chats)
                 // with report 1 and 2 having unread actions
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: {...report1, lastReadSequenceNumber: LHNUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
