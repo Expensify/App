@@ -17,7 +17,7 @@ target 'NewExpensify' do
   flags = get_default_flags()
 
   use_react_native!(
-    :path => config["reactNativePath"],
+    :path => config[:reactNativePath],
     :hermes_enabled => true,
     :fabric_enabled => flags[:fabric_enabled],
     # An absolute path to your application root.
