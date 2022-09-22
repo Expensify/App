@@ -3,76 +3,6 @@ import {cleanup} from '@testing-library/react-native';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
-import lodashGet from 'lodash/get';
-
-const fakeReport1 = {
-    reportID: 1,
-    reportName: 'Report One',
-    maxSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-
-    // This report's last comment will be in the past
-    lastMessageTimestamp: Date.now() - 3000,
-    participants: ['email1@test.com', 'email2@test.com'],
-};
-const fakeReport2 = {
-    reportID: 2,
-    reportName: 'Report Two',
-    maxSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-    lastMessageTimestamp: Date.now() - 2000,
-    participants: ['email3@test.com', 'email4@test.com'],
-};
-const fakeReport3 = {
-    reportID: 3,
-    reportName: 'Report Three',
-    maxSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-    lastMessageTimestamp: Date.now() - 1000,
-    participants: ['email5@test.com', 'email6@test.com'],
-};
-const fakeReportIOU = {
-    reportID: 4,
-    reportName: 'Report IOU Four',
-    maxSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-    lastMessageTimestamp: Date.now() - 1000,
-    participants: ['email5@test.com', 'email6@test.com'],
-    ownerEmail: 'email2@test.com',
-    hasOutstandingIOU: true,
-    total: 10000,
-    currency: 'USD',
-};
-
-const fakeReport1Actions = {
-    actionName: 'ADDCOMMENT',
-    person: [],
-    sequenceNumber: 0,
-
-    // This comment will be in the past
-    timestamp: Date.now() - 2000,
-    message: [
-        {type: 'comment', reportID: 1, text: 'Comment One'},
-    ],
-};
-const fakeReport2Actions = {
-    actionName: 'ADDCOMMENT',
-    person: [],
-    sequenceNumber: 0,
-    timestamp: Date.now() - 1000,
-    message: [
-        {type: 'comment', reportID: 2, text: 'Comment Two'},
-    ],
-};
-const fakeReport3Actions = {
-    actionName: 'ADDCOMMENT',
-    person: [],
-    sequenceNumber: 0,
-    timestamp: Date.now(),
-    message: [
-        {type: 'comment', reportID: 2, text: 'Comment Three'},
-    ],
-};
 
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
@@ -86,12 +16,12 @@ const ONYXKEYS = {
     },
 };
 
-Onyx.init({
-    keys: ONYXKEYS,
-    registerStorageEventListener: () => {},
-});
-
 describe('Sidebar', () => {
+    beforeAll(() => Onyx.init({
+        keys: ONYXKEYS,
+        registerStorageEventListener: () => {},
+    }));
+
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
         cleanup();
