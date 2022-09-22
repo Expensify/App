@@ -58,9 +58,6 @@ class AddPayPalMePage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
 
-    /**
-     * Sets the focus on payPalMeUsername input
-     */
     focusPayPalMeInput() {
         if (!this.payPalMeInputRef) {
             return;
