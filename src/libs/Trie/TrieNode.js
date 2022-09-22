@@ -37,6 +37,14 @@ class TrieNode {
     getMetaData() {
         return this.metaData;
     }
+
+    /**
+    * Get code metadata for this node.
+    * @return {Object} code
+    */
+    getCode() {
+        return this.metaData.code ? this.metaData.code : null;
+    }
 }
 
 export default TrieNode;
