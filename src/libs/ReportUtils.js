@@ -425,8 +425,6 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]) || Expensicons.Workspace;
 
         // Return the workspace avatar if the user is the owner of the policy expense chat

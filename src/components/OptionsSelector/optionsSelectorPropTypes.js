@@ -81,9 +81,6 @@ const propTypes = {
     /** If true, the text input will be below the options in the selector, not above. */
     shouldTextInputAppearBelowOptions: PropTypes.bool,
 
-    /** If true, a message will display in the footer if the app is offline. */
-    shouldShowOfflineMessage: PropTypes.bool,
-
     /** Custom content to display in the footer instead of the default button. */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -111,7 +108,6 @@ const defaultProps = {
     confirmButtonText: undefined,
     onConfirmSelection: () => {},
     shouldTextInputAppearBelowOptions: false,
-    shouldShowOfflineMessage: false,
     footerContent: undefined,
     optionHoveredStyle: styles.hoveredComponentBG,
     shouldShowOptions: true,
