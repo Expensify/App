@@ -195,9 +195,9 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: report3,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // Then there should be a pencil icon and report one should still be the last one because putting a draft on the active report should not change it's location
@@ -234,9 +234,9 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: report3,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // When a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
@@ -273,9 +273,9 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: report3,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // When the currently active chat is switched to report 1 (the one on the bottom)
@@ -295,30 +295,28 @@ describe('Sidebar', () => {
         it('removes the pencil icon when draft is removed', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            // Given a single report
+            // And the report has a draft
+            const report = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                hasDraft: true,
+            };
+
             return waitForPromisesToResolve()
 
-                // Given the sidebar is rendered in default mode (most recent first)
-                // while currently viewing report 2 (the one in the middle)
-                // with a draft on report 2
-                // with reports in top-to-bottom order of 3 > 2 > 1
+                // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {hasDraft: true, ...fakeReport2},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
+                // Then there should be a pencil icon showing
                 .then(() => {
                     expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
                 })
 
-                // When the draft on report 2 is removed
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {hasDraft: null}))
+                // When the draft is removed
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {hasDraft: null}))
 
                 // Then the pencil icon goes away
                 .then(() => {
