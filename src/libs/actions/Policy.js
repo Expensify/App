@@ -16,6 +16,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
 import DateUtils from '../DateUtils';
+import * as ReportUtils from '../ReportUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -850,7 +851,7 @@ function createWorkspace() {
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
-    } = Report.buildOptimisticWorkspaceChats(policyID, workspaceName);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     API.write('CreateWorkspace', {
         policyID,
