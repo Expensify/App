@@ -31,6 +31,7 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -77,6 +78,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -89,6 +93,7 @@ const defaultProps = {
     },
     betas: [],
     policyMembers: {},
+    walletTerms: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -157,7 +162,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
+                    || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -329,6 +335,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(InitialSettingsPage);

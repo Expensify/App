@@ -101,6 +101,7 @@ function canEditReportAction(reportAction) {
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -116,6 +117,7 @@ function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -258,8 +260,11 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+    const policyName = (
+        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
+        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
+    ) || '';
+    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -420,8 +425,6 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]) || Expensicons.Workspace;
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
@@ -509,7 +512,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
+        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
@@ -524,11 +527,9 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
-        participants.length > 1,
-    );
-    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const isMultipleParticipantReport = participants.length > 1;
+    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
+    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -660,8 +661,8 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = lodashGet(report, 'lastReadSequenceNumber', 0);
-    const maxSequenceNumber = lodashGet(report, 'maxSequenceNumber', 0);
+    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
+    const maxSequenceNumber = report.maxSequenceNumber || 0;
     return lastReadSequenceNumber < maxSequenceNumber;
 }
 
