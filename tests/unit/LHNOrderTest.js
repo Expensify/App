@@ -3,6 +3,7 @@ import {cleanup} from '@testing-library/react-native';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
+import lodashGet from 'lodash/get';
 
 const fakeReport1 = {
     reportID: 1,
@@ -142,40 +143,35 @@ describe('Sidebar', () => {
 
                 // Then the component should be rendered with an item for the report
                 .then(() => {
-                    expect(sidebarLinks.getAllByText('One, Two')).toHaveLength(1);
+                    expect(sidebarLinks.queryAllByText('One, Two')).toHaveLength(1);
                 });
         });
 
         it('orders items with most recently updated on top', () => {
-            // Given the sidebar is rendered in default mode (most recent first)
-            // while currently viewing report 1
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given three reports
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 1);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 2);
 
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with some personal details and multiple reports
+                // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // Then the component should be rendered with the mostly recently updated report first
                 .then(() => {
-                    expect(sidebarLinks.toJSON()).not.toBe(null);
-                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, (One|Two|Three)/);
-                    expect(reportOptions).toHaveLength(3);
-
-                    // The reports should be in the order 3 > 2 > 1
-                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Three');
-                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Two');
-                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Five, Six');
                 });
         });
 
