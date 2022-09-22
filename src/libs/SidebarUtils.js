@@ -249,7 +249,7 @@ function getOptionData(reportID) {
 
     const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const personalDetail = personalDetailList[0];
+    const personalDetail = personalDetailList[0] || {};
 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
