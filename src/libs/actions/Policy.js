@@ -64,8 +64,6 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
  * @param {String} [fullPolicyOrPolicySummary.avatar]
  * @param {String} [fullPolicyOrPolicySummary.value.avatar]
- * @param {String} [fullPolicyOrPolicySummary.avatarURL]
- * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
  * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
  * @param {Boolean} isFromFullPolicy,
@@ -84,9 +82,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
         // avatar will be nested within the key "value"
         avatar: fullPolicyOrPolicySummary.avatar
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', '')
-            || fullPolicyOrPolicySummary.avatarURL
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
+            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
 }
@@ -529,7 +525,7 @@ function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
-                onyxRates: {
+                rates: {
                     [customUnitRateID]: {
                         errors: null,
                         pendingAction: null,
@@ -626,7 +622,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        onyxRates: {
+                        rates: {
                             [newCustomUnitRate.customUnitRateID]: {
                                 ...newCustomUnitRate,
                                 errors: null,
@@ -646,7 +642,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        onyxRates: {
+                        rates: {
                             [newCustomUnitRate.customUnitRateID]: {
                                 pendingAction: null,
                             },
@@ -664,7 +660,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        onyxRates: {
+                        rates: {
                             [currentCustomUnitRate.customUnitRateID]: {
                                 ...currentCustomUnitRate,
                                 errors: {
@@ -813,10 +809,7 @@ function createWorkspace() {
         expenseReportActionData,
     } = Report.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    // We need to use makeRequestWithSideEffects as we try to redirect to the policy right after creation
-    // The policy hasn't been merged in Onyx data at this point, leading to an intermittent Not Found screen
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('CreateWorkspace', {
+    API.write('CreateWorkspace', {
         policyID,
         announceChatReportID,
         adminsChatReportID,
@@ -826,7 +819,7 @@ function createWorkspace() {
     },
     {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 id: policyID,
@@ -839,7 +832,7 @@ function createWorkspace() {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
             value: {
                 [sessionEmail]: {
@@ -849,32 +842,32 @@ function createWorkspace() {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: announceChatData,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: announceReportActionData,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: adminsChatData,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: adminsReportActionData,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
             value: expenseChatData,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: expenseReportActionData,
         }],
@@ -965,9 +958,9 @@ function createWorkspace() {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: null,
         }],
-    }).then(() => {
-        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
+
+    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
 }
 
 function openWorkspaceReimburseView(policyID) {

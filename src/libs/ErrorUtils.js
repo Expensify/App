@@ -42,6 +42,9 @@ function getAuthenticateErrorMessage(response) {
  * @returns {String}
  */
 function getLatestErrorMessage(onyxData) {
+    if (_.isEmpty(onyxData.errors)) {
+        return '';
+    }
     return _.chain(onyxData.errors || [])
         .keys()
         .sortBy()

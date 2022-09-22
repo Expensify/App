@@ -666,6 +666,10 @@ const styles = {
         paddingBottom: 9,
     },
 
+    offlineIndicatorRow: {
+        height: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -1328,10 +1332,6 @@ const styles = {
         maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
-    },
-
-    chatItemUnsentMessage: {
-        opacity: 0.6,
     },
 
     chatItemMessageLink: {
@@ -2670,6 +2670,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
+    },
+
+    addWorkspaceRoomErrorRow: {
+        paddingHorizontal: 20,
+        maxWidth: 450,
+        alignSelf: 'center',
     },
 };
 

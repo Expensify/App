@@ -21,7 +21,6 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
-import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
@@ -594,16 +593,18 @@ function fetchAllReports(
  * @param {String} ownerEmail
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
+ * @param {String} visibility
  * @returns {Object}
  */
 function buildOptimisticChatReport(
     participantList,
     reportName = 'Chat Report',
     chatType = '',
-    policyID = '_FAKE_',
-    ownerEmail = '__FAKE__',
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
+    visibility = undefined,
 ) {
     return {
         chatType,
@@ -617,7 +618,7 @@ function buildOptimisticChatReport(
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
-        notificationPreference: '',
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
         oldPolicyName,
         ownerEmail,
         participants: participantList,
@@ -626,7 +627,7 @@ function buildOptimisticChatReport(
         reportName,
         stateNum: 0,
         statusNum: 0,
-        visibility: undefined,
+        visibility,
     };
 }
 
@@ -640,7 +641,6 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
             message: [
                 {
@@ -802,9 +802,19 @@ function addActions(reportID, text = '', file) {
     const lastAction = attachmentAction || reportCommentAction;
 
     // We need a newSequenceNumber that is n larger than the current depending on how many actions we are adding.
-    const actionCount = text && file ? 2 : 1;
     const highestSequenceNumber = getMaxSequenceNumber(reportID);
+    const actionCount = text && file ? 2 : 1;
     const newSequenceNumber = highestSequenceNumber + actionCount;
+
+    // We're giving our best guess at what these sequenceNumbers are to enable marking as unread while offline.
+    if (text && file) {
+        reportCommentAction.sequenceNumber = highestSequenceNumber + 1;
+        attachmentAction.sequenceNumber = highestSequenceNumber + 2;
+    } else if (file) {
+        attachmentAction.sequenceNumber = highestSequenceNumber + 1;
+    } else {
+        reportCommentAction.sequenceNumber = highestSequenceNumber + 1;
+    }
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
@@ -815,13 +825,14 @@ function addActions(reportID, text = '', file) {
         lastReadSequenceNumber: newSequenceNumber,
     };
 
-    // Optimistically add the new actions to the store before waiting to save them to the server
+    // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
+    // so that we can later unset these messages via the server by sending {[clientID]: null}
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.sequenceNumber] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.sequenceNumber] = attachmentAction;
+        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
     }
 
     const parameters = {
@@ -1159,26 +1170,32 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
-
-    // We are not updating the message content here so the message can re-appear as strike-throughed
-    // if the user goes offline. The API will update the message content to empty strings on success.
+    const deletedMessage = [{
+        type: 'COMMENT',
+        html: '',
+        text: '',
+        isEdited: true,
+    }];
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            previousMessage: reportAction.message,
+            message: deletedMessage,
         },
     };
 
-    // If we are deleting the last visible message, let's find the previous visible one
-    // and update the lastMessageText in the chat preview.
+    // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
+    // Similarly, we are deleting the last read comment will want to update the lastReadSequenceNumber to use the previous visible message.
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    const lastReadSequenceNumber = ReportActionsUtils.getOptimisticLastReadSequenceNumberForDeletedAction(
+        reportID,
+        optimisticReportActions,
+        reportAction.sequenceNumber,
+        getLastReadSequenceNumber(reportID),
+    );
     const optimisticReport = {
-        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
-            [sequenceNumber]: {
-                message: [{
-                    html: '',
-                    text: '',
-                }],
-            },
-        }),
+        lastMessageText,
+        lastReadSequenceNumber,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1191,6 +1208,7 @@ function deleteReportComment(reportID, reportAction) {
                 [sequenceNumber]: {
                     message: reportAction.message,
                     pendingAction: null,
+                    previousMessage: null,
                 },
             },
         },
@@ -1203,6 +1221,7 @@ function deleteReportComment(reportID, reportAction) {
             value: {
                 [sequenceNumber]: {
                     pendingAction: null,
+                    previousMessage: null,
                 },
             },
         },
@@ -1432,6 +1451,91 @@ function createPolicyRoom(policyID, reportName, visibility) {
 }
 
 /**
+ * Add a policy report (workspace room) optimistically and navigate to it.
+ *
+ * @param {Object} policy
+ * @param {String} reportName
+ * @param {String} visibility
+ */
+function addPolicyReport(policy, reportName, visibility) {
+    // The participants include the current user (admin) and the employees. Participants must not be empty.
+    const participants = [currentUserEmail, ...policy.employeeList];
+    const policyReport = buildOptimisticChatReport(
+        participants,
+        reportName,
+        CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        policy.id,
+        CONST.REPORT.OWNER_EMAIL_FAKE,
+        false,
+        '',
+        visibility,
+    );
+
+    // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
+    // storeCurrentlyViewedReport is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
+    // If there was an error creating the room, then fetchChatReportsByIDs throws an error and the user is navigated away from the report instead of showing the RBR error message.
+    // Therefore, Onyx.set is used instead of Onyx.merge.
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...policyReport,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
+            value: buildOptimisticCreatedReportAction(policyReport.ownerEmail),
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
+            value: {
+                0: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'AddWorkspaceRoom',
+        {
+            policyID: policyReport.policyID,
+            reportName,
+            visibility,
+            reportID: policyReport.reportID,
+        },
+        {optimisticData, successData},
+    );
+    Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
+}
+
+/**
+ * @param {Number} reportID The reportID of the policy report (workspace room)
+ */
+function navigateToConciergeChatAndDeletePolicyReport(reportID) {
+    navigateToConciergeChat();
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
+}
+
+/**
  * @param {Object} policyRoomReport
  * @param {Number} policyRoomReport.reportID
  * @param {String} policyRoomReport.reportName
@@ -1511,11 +1615,14 @@ function viewNewReportAction(reportID, action) {
     const lastReadSequenceNumber = getLastReadSequenceNumber(reportID);
     const updatedReportObject = {};
 
-    // When handling an action from the current user we can assume that their last read actionID has been updated in the server, but not necessarily reflected
-    // locally so we will update the lastReadSequenceNumber to mark the report as read.
+    // When handling an action from the current user we can assume that their last read actionID has been updated in the server,
+    // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
     if (isFromCurrentUser) {
         updatedReportObject.lastVisitedTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.pendingAction ? lastReadSequenceNumber : action.sequenceNumber;
+        updatedReportObject.maxSequenceNumber = action.sequenceNumber;
+    } else {
+        updatedReportObject.maxSequenceNumber = action.sequenceNumber;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
@@ -1589,7 +1696,9 @@ Onyx.connect({
                 return;
             }
 
-            if (action.isLoading) {
+            // We don't want to process any new actions that have a pendingAction field as this means they are "optimistic" and no notifications
+            // should be created for them
+            if (!_.isEmpty(action.pendingAction)) {
                 return;
             }
 
@@ -1599,6 +1708,8 @@ Onyx.connect({
 
             // If we are past the deadline to notify for this comment don't do it
             if (moment.utc(action.timestamp * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
+                handledReportActions[reportID] = handledReportActions[reportID] || {};
+                handledReportActions[reportID][action.sequenceNumber] = true;
                 return;
             }
 
@@ -1634,6 +1745,8 @@ export {
     handleInaccessibleReport,
     setReportWithDraft,
     createPolicyRoom,
+    addPolicyReport,
+    navigateToConciergeChatAndDeletePolicyReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
