@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {cleanup} from '@testing-library/react-native';
+import lodashGet from 'lodash/get';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
