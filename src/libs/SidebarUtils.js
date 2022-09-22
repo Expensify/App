@@ -195,7 +195,10 @@ function getOrderedReportIDs() {
 
     // Prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, 'text');
+    const sortedDraftReports = _.sortBy(draftReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedDraftReports.concat(recentReportOptions);
 
     // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
@@ -204,7 +207,10 @@ function getOrderedReportIDs() {
     recentReportOptions = sortedIOUReports.concat(recentReportOptions);
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
+    const sortedPinnedReports = _.sortBy(pinnedReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
     return _.chain(recentReportOptions)
