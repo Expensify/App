@@ -10,5 +10,6 @@ import CONST from '../../CONST';
 
 export default {
     ...(jest.requireActual('../Permissions')),
+    canUsePolicyRooms: betas => _.contains(betas, CONST.BETAS.POLICY_ROOMS),
     canUsePolicyExpenseChat: betas => _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT),
 };

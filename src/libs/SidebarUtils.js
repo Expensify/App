@@ -159,7 +159,6 @@ function getOrderedReportIDs() {
             return false;
         }
 
-        console.log(5.5, isPolicyExpenseChat, Permissions.canUsePolicyExpenseChat(betas), betas)
         if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
             console.log(6, 'no')
             return false;
