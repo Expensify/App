@@ -264,39 +264,97 @@ class BasePaymentsPage extends React.Component {
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('common.payments')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
-                    />
-                    <View style={styles.flex1}>
-                        {Permissions.canUseWallet(this.props.betas) && (
-                            <>
-                                <View style={[styles.mv5]}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.payments')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <View style={styles.flex1}>
+                    {Permissions.canUseWallet(this.props.betas) && (
+                        <>
+                            <View style={[styles.mv5]}>
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={this.props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
                                     <CurrentWalletBalance />
-                                </View>
-                                {this.props.userWallet.currentBalance > 0 && (
-                                    <KYCWall
-                                        onSuccessfulKYC={this.navigateToTransferBalancePage}
-                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                        addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                        addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                        popoverPlacement="bottom"
-                                    >
-                                        {triggerKYCFlow => (
-                                            <MenuItem
-                                                title={this.props.translate('common.transferBalance')}
-                                                icon={Expensicons.Transfer}
-                                                onPress={triggerKYCFlow}
-                                                shouldShowRightIcon
-                                                disabled={this.props.network.isOffline}
-                                            />
-                                        )}
-                                    </KYCWall>
-                                )}
-                            </>
+                                </OfflineWithFeedback>
+                            </View>
+                            {this.props.userWallet.currentBalance > 0 && (
+                                <KYCWall
+                                    onSuccessfulKYC={this.navigateToTransferBalancePage}
+                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                    popoverPlacement="bottom"
+                                >
+                                    {triggerKYCFlow => (
+                                        <MenuItem
+                                            title={this.props.translate('common.transferBalance')}
+                                            icon={Expensicons.Transfer}
+                                            onPress={triggerKYCFlow}
+                                            shouldShowRightIcon
+                                            disabled={this.props.network.isOffline}
+                                        />
+                                    )}
+                                </KYCWall>
+                            )}
+                        </>
+                    )}
+                    <Text
+                        style={[styles.ph5, styles.mt6, styles.formLabel]}
+                    >
+                        {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                    </Text>
+                    <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]}>
+                        <PaymentMethodList
+                            onPress={this.paymentMethodPressed}
+                            style={[styles.flex4]}
+                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
+                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.state.selectedPaymentMethodType
+                                : ''}
+                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.getSelectedPaymentMethodID()
+                                : ''}
+                        />
+                    </OfflineWithFeedback>
+                </View>
+                <AddPaymentMethodMenu
+                    isVisible={this.state.shouldShowAddPaymentMenu}
+                    onClose={this.hideAddPaymentMenu}
+                    anchorPosition={{
+                        top: this.state.anchorPositionTop,
+                        left: this.state.anchorPositionLeft,
+                    }}
+                    onItemSelected={method => this.addPaymentMethodTypePressed(method)}
+                />
+                <Popover
+                    isVisible={this.state.shouldShowDefaultDeleteMenu}
+                    onClose={this.hideDefaultDeleteMenu}
+                    anchorPosition={{
+                        top: this.state.anchorPositionTop,
+                        left: this.state.anchorPositionLeft,
+                    }}
+                >
+                    <View
+                        style={[
+                            styles.m5,
+                            !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
+                        ]}
+                    >
+                        {isPopoverBottomMount && (
+                            <MenuItem
+                                title={this.state.formattedSelectedPaymentMethod.title || ''}
+                                icon={this.state.formattedSelectedPaymentMethod.icon}
+                                description={this.state.formattedSelectedPaymentMethod.description}
+                                wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
+                                disabled
+                                interactive={false}
+                            />
                         )}
                         <Text
                             style={[styles.ph5, styles.mt6, styles.formLabel]}
@@ -458,7 +516,6 @@ class BasePaymentsPage extends React.Component {
                     shouldShowCancelButton
                     danger
                 />
-                <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]} />
             </ScreenWrapper>
         );
     }
