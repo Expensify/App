@@ -150,10 +150,10 @@ describe('Sidebar', () => {
         it('orders items with most recently updated on top', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given three reports
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 1);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 2);
+            // Given three reports in the recently updated order of 3, 2, 1
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
 
             return waitForPromisesToResolve()
 
@@ -169,31 +169,35 @@ describe('Sidebar', () => {
                 .then(() => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
                 });
         });
 
         it('doesn\'t change the order when adding a draft to the active report', () => {
-            // Given the sidebar is rendered in default mode (most recent first)
-            // while currently viewing report 1
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given three reports in the recently updated order of 3, 2, 1
+            // And the first report has a draft
+            // And the currently viewed report is the first report
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                hasDraft: true,
+            };
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const currentlyViewedReportID = report1.reportID;
 
             return waitForPromisesToResolve()
 
-                // When Onyx is updated with some personal details and multiple reports
-                // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
+                // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: report3,
                 }))
 
                 // Then there should be a pencil icon and report one should still be the last one because putting a draft on the active report should not change it's location
@@ -202,10 +206,11 @@ describe('Sidebar', () => {
                     const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
                     expect(pencilIcon).toHaveLength(1);
 
-                    // The reports should be in the order 3 > 2 > 1
-                    const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-                    expect(reportOptions).toHaveLength(3);
-                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
                 });
         });
 
