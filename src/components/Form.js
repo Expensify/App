@@ -107,6 +107,7 @@ class Form extends React.Component {
      */
     validate(values) {
         FormActions.setErrorMessage(this.props.formID, '');
+        FormActions.setErrors(this.props.formID, '');
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
