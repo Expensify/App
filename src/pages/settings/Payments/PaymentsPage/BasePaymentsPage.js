@@ -33,6 +33,7 @@ import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
+import NetworkConnection from '../../../../libs/NetworkConnection';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -67,17 +68,23 @@ class BasePaymentsPage extends React.Component {
 
     componentDidMount() {
         this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.shouldListenForResize) {
-            this.setMenuPosition();
-        }
-
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+    componentDidUpdate() {
+        if (!this.shouldListenForResize) {
             return;
         }
-        this.fetchData();
+
+        this.setMenuPosition();
+    }
+
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
+            return;
+        }
+
+        this.unsubscribe();
     }
 
     setMenuPosition() {

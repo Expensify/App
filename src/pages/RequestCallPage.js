@@ -26,10 +26,9 @@ import * as LoginUtils from '../libs/LoginUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
-import {withNetwork} from '../components/OnyxProvider';
-import networkPropTypes from '../components/networkPropTypes';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
 import Form from '../components/Form';
+import NetworkConnection from '../libs/NetworkConnection';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -81,9 +80,6 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
-
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -104,24 +100,18 @@ class RequestCallPage extends Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.validate = this.validate.bind(this);
-
+        this.unsubscribe = () => {};
         Inbox.clearDidRequestCallSucceed();
     }
 
     componentDidMount() {
         this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
     componentWillUnmount() {
         Inbox.clearDidRequestCallSucceed();
+        this.unsubscribe();
     }
 
     /**
@@ -331,7 +321,6 @@ RequestCallPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         loginList: {

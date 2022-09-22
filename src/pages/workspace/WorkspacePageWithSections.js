@@ -16,13 +16,9 @@ import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import withFullPolicy from './withFullPolicy';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const propTypes = {
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
-
     /** The text to display in the header */
     headerText: PropTypes.string.isRequired,
 
@@ -70,14 +66,15 @@ const defaultProps = {
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
         this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
             return;
         }
 
-        this.fetchData();
+        this.unsubscribe();
     }
 
     fetchData() {
@@ -91,7 +88,6 @@ class WorkspacePageWithSections extends React.Component {
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
-
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -107,9 +103,7 @@ class WorkspacePageWithSections extends React.Component {
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
                     <View style={[styles.w100, styles.flex1]}>
-
                         {this.props.children(hasVBA, policyID, isUsingECard)}
-
                     </View>
                 </ScrollView>
                 {this.props.footer}
@@ -132,5 +126,4 @@ export default compose(
         },
     }),
     withFullPolicy,
-    withNetwork(),
 )(WorkspacePageWithSections);

@@ -7,8 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import CONST from '../../CONST';
 import userWalletPropTypes from './userWalletPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 
 // Steps
 import OnfidoStep from './OnfidoStep';
@@ -21,11 +19,9 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const propTypes = {
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
-
     /** The user's wallet */
     userWallet: userWalletPropTypes,
 
@@ -39,14 +35,15 @@ const defaultProps = {
 class EnablePaymentsPage extends React.Component {
     componentDidMount() {
         Wallet.openEnablePaymentsPage();
+        this.unsubscribe = NetworkConnection.onReconnect(Wallet.openEnablePaymentsPage);
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
             return;
         }
 
-        Wallet.openEnablePaymentsPage();
+        this.unsubscribe();
     }
 
     render() {
@@ -101,5 +98,4 @@ export default compose(
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
         },
     }),
-    withNetwork(),
 )(EnablePaymentsPage);

@@ -21,12 +21,11 @@ import withFullPolicy from '../withFullPolicy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
-import {withNetwork} from '../../../components/OnyxProvider';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
-import networkPropTypes from '../../../components/networkPropTypes';
 import Log from '../../../libs/Log';
+import NetworkConnection from '../../../libs/NetworkConnection';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -53,9 +52,6 @@ const propTypes = {
         outputCurrency: PropTypes.string,
         hasVBA: PropTypes.bool,
     }).isRequired,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -91,31 +87,27 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     componentDidMount() {
-        Policy.openWorkspaceReimburseView(this.props.policyID);
+        this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
-            const distanceCustomUnit = _.chain(lodashGet(this.props, 'policy.customUnits', []))
-                .values()
-                .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
-                .value();
-            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
-            this.setState({
-                unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
-                unitName: lodashGet(distanceCustomUnit, 'name', ''),
-                unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-                unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
-                unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
-            });
-        }
-
-        const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
-        if (!reconnecting) {
+        if (prevProps.policy.customUnits === this.props.policy.customUnits) {
             return;
         }
 
-        Policy.openWorkspaceReimburseView(this.props.policyID);
+        const distanceCustomUnit = _.chain(lodashGet(this.props, 'policy.customUnits', []))
+            .values()
+            .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
+            .value();
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
+        this.setState({
+            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+            unitName: lodashGet(distanceCustomUnit, 'name', ''),
+            unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+            unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
+            unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
+        });
     }
 
     getRateDisplayValue(value) {
@@ -189,6 +181,10 @@ class WorkspaceReimburseView extends React.Component {
             ...currentCustomUnitRate,
             rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
         });
+    }
+
+    fetchData() {
+        Policy.openWorkspaceReimburseView(this.props.policyID);
     }
 
     render() {
@@ -311,7 +307,6 @@ WorkspaceReimburseView.propTypes = propTypes;
 export default compose(
     withFullPolicy,
     withLocalize,
-    withNetwork(),
     withOnyx({
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

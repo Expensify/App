@@ -26,8 +26,7 @@ import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import ROUTES from '../../ROUTES';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -44,9 +43,6 @@ const propTypes = {
         /** Participants associated with current report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
@@ -145,14 +141,12 @@ class IOUModal extends Component {
     componentDidMount() {
         PersonalDetails.openIOUModalPage();
         IOU.setIOUSelectedCurrency(this.props.currentUserPersonalDetails.localCurrencyCode);
+        this.unsubscribe = NetworkConnection.onReconnect(PersonalDetails.openIOUModalPage);
     }
 
     componentDidUpdate(prevProps) {
         const wasCreatingIOUTransaction = lodashGet(prevProps, 'iou.creatingIOUTransaction');
         const iouError = lodashGet(this.props, 'iou.error');
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            PersonalDetails.openIOUModalPage();
-        }
 
         // Successfully close the modal if transaction creation has ended and there is no error
         if (wasCreatingIOUTransaction && !lodashGet(this.props, 'iou.creatingIOUTransaction') && !iouError) {
@@ -170,6 +164,14 @@ class IOUModal extends Component {
         if (lodashGet(prevProps, 'iou.selectedCurrencyCode') !== currentSelectedCurrencyCode) {
             IOU.setIOUSelectedCurrency(currentSelectedCurrencyCode);
         }
+    }
+
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
+            return;
+        }
+
+        this.unsubscribe();
     }
 
     /**
@@ -465,7 +467,6 @@ IOUModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         report: {

@@ -16,8 +16,6 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -31,6 +29,7 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const propTypes = {
     /** Contains plaid data */
@@ -41,9 +40,6 @@ const propTypes = {
 
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
-
-    /** Information about the network  */
-    network: networkPropTypes.isRequired,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -81,12 +77,10 @@ const defaultProps = {
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
         this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            this.fetchData();
-        }
         const currentStep = lodashGet(
             this.props,
             'reimbursementAccount.achData.currentStep',
@@ -107,6 +101,14 @@ class ReimbursementAccountPage extends React.Component {
         // user left off in the flow.
         BankAccounts.hideBankAccountErrors();
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
+    }
+
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
+            return;
+        }
+
+        this.unsubscribe();
     }
 
     /**
@@ -253,7 +255,6 @@ ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
 
 export default compose(
-    withNetwork(),
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

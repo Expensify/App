@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import {withNetwork} from '../../components/OnyxProvider';
 import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -21,7 +20,7 @@ import CONST from '../../CONST';
 import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
-import networkPropTypes from '../../components/networkPropTypes';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const propTypes = {
     /** URL Route params */
@@ -67,9 +66,6 @@ const propTypes = {
         email: PropTypes.string,
     }).isRequired,
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -81,14 +77,15 @@ const defaultProps = {
 class IOUDetailsModal extends Component {
     componentDidMount() {
         this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
             return;
         }
 
-        this.fetchData();
+        this.unsubscribe();
     }
 
     fetchData() {
@@ -161,7 +158,6 @@ IOUDetailsModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withOnyx({
         iou: {
             key: ONYXKEYS.IOU,

@@ -21,9 +21,8 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
-import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import networkPropTypes from '../../components/networkPropTypes';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -55,7 +54,6 @@ const propTypes = {
 
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
-    ...networkPropTypes,
 };
 
 const defaultProps = fullPolicyDefaultProps;
@@ -89,18 +87,16 @@ class WorkspaceInvitePage extends React.Component {
     componentDidMount() {
         this.clearErrors();
 
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
+        this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
-    componentDidUpdate(prevProps) {
-        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
-        if (!isReconnecting) {
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
             return;
         }
 
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
+        this.unsubscribe();
     }
 
     getExcludedUsers() {
@@ -161,6 +157,11 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         return sections;
+    }
+
+    fetchData() {
+        const clientPolicyMembers = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
     }
 
     clearErrors() {
@@ -353,7 +354,6 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withFullPolicy,
-    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

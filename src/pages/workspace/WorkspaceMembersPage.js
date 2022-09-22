@@ -28,9 +28,8 @@ import Hoverable from '../../components/Hoverable';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import networkPropTypes from '../../components/networkPropTypes';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -48,7 +47,6 @@ const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    ...networkPropTypes,
 };
 
 const defaultProps = fullPolicyDefaultProps;
@@ -72,16 +70,19 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidMount() {
-        const clientMemberEmails = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+        this.fetchData();
+        this.unsubscribe = NetworkConnection.onReconnect(this.fetchData.bind(this));
     }
 
-    componentDidUpdate(prevProps) {
-        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
-        if (!isReconnecting) {
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
             return;
         }
 
+        this.unsubscribe();
+    }
+
+    fetchData() {
         const clientMemberEmails = _.keys(this.props.policyMemberList);
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
@@ -368,7 +369,6 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withFullPolicy,
-    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
