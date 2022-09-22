@@ -1,9 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextInput from './TextInput';
 
@@ -21,26 +18,6 @@ const propTypes = {
     errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
-
-    /* Onyx Props */
-
-    /** All reports shared with the user */
-    reports: PropTypes.shape({
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** ID of the report */
-        reportID: PropTypes.number,
-    }).isRequired,
-
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-
-        /** ID of the policy */
-        id: PropTypes.string,
-    }).isRequired,
 
     /** A ref forwarded to the TextInput */
     forwardedRef: PropTypes.func,
@@ -109,17 +86,9 @@ class RoomNameInput extends Component {
 RoomNameInput.propTypes = propTypes;
 RoomNameInput.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
-)(React.forwardRef((props, ref) => (
+export default withLocalize(
+    React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <RoomNameInput {...props} forwardedRef={ref} />
-)));
+        <RoomNameInput {...props} forwardedRef={ref} />
+    )),
+);
