@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import {cleanup} from '@testing-library/react-native';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNUtils from '../utils/LHNUtils';
+import CONST from '../../src/CONST';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
 
@@ -194,7 +195,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with some personal details and a report
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
@@ -218,7 +219,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with some personal details and multiple reports
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
@@ -252,7 +253,7 @@ describe('Sidebar', () => {
                 // When Onyx is updated with some personal details and multiple reports
                 // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
@@ -285,7 +286,7 @@ describe('Sidebar', () => {
                 // while currently viewing report 1
                 // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
@@ -320,7 +321,7 @@ describe('Sidebar', () => {
                 // with a draft on report 2
                 // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
@@ -355,7 +356,7 @@ describe('Sidebar', () => {
                 // with a draft on report 2
                 // with reports in top-to-bottom order of 3 > 2 > 1
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
@@ -388,7 +389,7 @@ describe('Sidebar', () => {
                 // while currently viewing report 2 (the one in the middle)
                 // with report 2 pinned
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
@@ -424,7 +425,7 @@ describe('Sidebar', () => {
                 // with a report that has a draft, a report that is pinned, and
                 //    an outstanding IOU report that doesn't belong to the current user
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '2',
                     [ONYXKEYS.SESSION]: {email: 'email9@test.com'},
@@ -460,7 +461,7 @@ describe('Sidebar', () => {
                 // Given the sidebar is rendered in #focus mode (hides read chats)
                 // with all reports having unread chats
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'gsd',
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1},
