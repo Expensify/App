@@ -674,7 +674,7 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, !this.props.isSmallScreenWidth && styles.chatItemComposeSecondaryRow]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}>
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
