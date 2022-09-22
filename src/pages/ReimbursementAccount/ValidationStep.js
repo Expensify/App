@@ -51,7 +51,7 @@ class ValidationStep extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Ojbect}
+     * @returns {Object}
      */
     validate(values) {
         const errors = {};
