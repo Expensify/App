@@ -2,6 +2,7 @@ import React from 'react';
 import {render} from '@testing-library/react-native';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
+import CONST from '../../src/CONST';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
 
@@ -80,6 +81,33 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
     };
 }
 
+/**
+ * There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
+ * additional reports in Onyx, so it's being left out for now.
+ *
+ * @param hasComments
+ * @param isArchived
+ * @param isUserCreatedPolicyRoom
+ * @param hasAddWorkspaceError
+ * @param isUnread
+ * @param isPinned
+ * @param hasDraft
+ * @returns {{hasDraft, reportID, reportName: string, stateNum: (number), lastReadSequenceNumber: (number|number), isPinned, lastMessageTimestamp: (number|number), maxSequenceNumber: number, errorFields: ({errorFields: {addWorkspaceRoom: string}}|null), participants: String[], chatType: (string), statusNum: (number)}}
+ */
+function getAdvancedFakeReport(hasComments, isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
+    return {
+        ...getFakeReport(),
+        chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        lastMessageTimestamp: hasComments ? Date.now() : 0,
+        statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
+        stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
+        errorFields: hasAddWorkspaceError ? {errorFields: {addWorkspaceRoom: 'blah'}} : null,
+        lastReadSequenceNumber: isUnread ? TEST_MAX_SEQUENCE_NUMBER - 1 : TEST_MAX_SEQUENCE_NUMBER,
+        isPinned,
+        hasDraft,
+    };
+}
+
 function getDefaultRenderedSidebarLinks() {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
     // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
@@ -129,6 +157,7 @@ function getDefaultRenderedSidebarLinks() {
 export {
     fakePersonalDetails,
     getDefaultRenderedSidebarLinks,
+    getAdvancedFakeReport,
     getFakeReport,
     TEST_MAX_SEQUENCE_NUMBER,
 };

@@ -101,11 +101,11 @@ function getOrderedReportIDs() {
     const draftReportOptions = [];
 
     const filteredReports = _.filter(reports, (report) => {
-        console.log(0)
         if (!report || !report.reportID) {
-            console.log(1, 'no')
+            // console.log(1, 'no')
             return false;
         }
+        // console.log(0, `ReportID: ${report.reportID}`)
 
         const isChatRoom = ReportUtils.isUserCreatedPolicyRoom(report) || ReportUtils.isDefaultRoom(report);
         const isDefaultRoom = ReportUtils.isDefaultRoom(report);
@@ -114,7 +114,7 @@ function getOrderedReportIDs() {
 
         // Skip this report if it has no participants and if it's not a type of report supported in the LHN
         if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
-            console.log(2, 'no')
+            // console.log(2, 'no')
             return false;
         }
 
@@ -131,40 +131,51 @@ function getOrderedReportIDs() {
             // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
             // highlight them in the LHN when they are created and have no messsages yet. We do
             // not give archived rooms this exception since they do not need to be higlihted.
-            && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
+            // POLICY_EXPENSE_CHAT
+            // POLICY_ADMINS
+            // POLICY_ANNOUNCE
+            // DOMAIN_ALL
+            // ---> POLICY_ROOM only one not in the logic
+            // && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
+            && (ReportUtils.isArchivedRoom(report) || ReportUtils.isUserCreatedPolicyRoom(report))
 
             // Also make an exception for workspace rooms that failed to be added
             && !hasAddWorkspaceRoomError;
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+        // console.log(2.7, 'no?', report.lastMessageTimestamp === 0, !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat)), !hasAddWorkspaceRoomError)
+        // console.log(2.8, 'no?', shouldFilterReportIfEmpty, shouldFilterReportIfRead)
+        // console.log(2.9, 'no?', report.reportID.toString() !== currentlyViewedReportID, !report.isPinned, !hasDraftComment, !reportContainsIOUDebt, shouldFilterReport)
         if (report.reportID.toString() !== currentlyViewedReportID
             && !report.isPinned
             && !hasDraftComment
-            && shouldFilterReport
-            && !reportContainsIOUDebt) {
-            console.log(3, 'no')
+            && !reportContainsIOUDebt
+            && shouldFilterReport) {
+            // console.log(3, 'no')
             return false;
         }
 
         // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
         if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
 
-            console.log(4, 'no')
+            // console.log(4, 'no')
             return false;
         }
 
         if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-            console.log(5, 'no')
+            // console.log(5, 'no')
             return false;
         }
 
         if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
-            console.log(6, 'no')
+            // console.log(6, 'no')
             return false;
         }
 
-        console.log(7, 'yes')
+        if (report.reportID != 1) {
+            console.log(7, 'yes', `ReportID: ${report.reportID}`)
+        }
         return true;
     });
 
