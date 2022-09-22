@@ -277,6 +277,7 @@ export default {
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
+        notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Profile',
@@ -717,6 +718,8 @@ export default {
         activatedTitle: 'Wallet activated!',
         activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
         checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+        continueToPayment: 'Continue to payment',
+        continueToTransfer: 'Continue to transfer',
     },
     companyStep: {
         headerTitle: 'Company information',
@@ -783,7 +786,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
-        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {

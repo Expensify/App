@@ -75,7 +75,7 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
     - [x] Android / Chrome
     - [x] MacOS / Chrome
     - [x] MacOS / Desktop
-- [x] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
+- [x] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
 - [x] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [x] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. \`toggleReport\` and not \`onIconClick\`).
     - [x] I verified that comments were added to code that is not self explanatory
@@ -107,6 +107,8 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
 
+// True if we are validating a contributor checklist, otherwise we are validating a contributor+ checklist
+const verifyingContributorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 
@@ -160,19 +162,19 @@ getPullRequestBody()
             }
         }
 
-        if (!contributorChecklistComplete) {
+        if (verifyingContributorChecklist && !contributorChecklistComplete) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
             core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        if (!contributorPlusChecklistComplete) {
+        if (!verifyingContributorChecklist && !contributorPlusChecklistComplete) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
-            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('Contributor+ checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        console.log('All checklists are complete 🎉');
+        console.log(`${verifyingContributorChecklist ? 'Contributor' : 'Contributor+'} checklist is complete 🎉`);
     });
 
 
@@ -670,7 +672,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.octokit.paginate(this.octokit.issues.listEvents, {
+        return this.paginate(this.octokit.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,

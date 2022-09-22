@@ -277,6 +277,7 @@ export default {
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
+        notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Perfil',
@@ -719,6 +720,8 @@ export default {
         activatedTitle: '¡Billetera  activada!',
         activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
         checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
+        continueToPayment: 'Continuar al pago',
+        continueToTransfer: 'Continuar a la transferencia',
     },
     companyStep: {
         headerTitle: 'Información de la empresa',
@@ -785,7 +788,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
-        offlineMessage: 'Parece que estás desconectado.',
     },
     workspace: {
         common: {
