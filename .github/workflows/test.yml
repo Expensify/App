@@ -7,6 +7,7 @@ on:
     branches-ignore: [staging, production]
 
 env:
+  # Number of parallel jobs for jest tests
   CHUNKS: 3
 jobs:
   config:
@@ -19,6 +20,7 @@ jobs:
         id: set-matrix
         uses: actions/github-script@v6
         with:
+          # Generate matrix array i.e. [0, 1, 2, ...., CHUNKS] for test job
           script: |
             core.setOutput('MATRIX', Array.from({ length: process.env.CHUNKS + 1 }, (v, i) => i));
 
@@ -56,6 +58,7 @@ jobs:
 
       - name: All Unit Tests
         if: ${{ matrix.chunk < env.CHUNKS }}
+        # Split the jest based test files in multiple chunks/groups and then execute them in parallel in different jobs/runners.
         run: npx jest --listTests --json | jq -cM '[_nwise(length / ${{ env.CHUNKS }} | ceil)]' | jq '.[${{ matrix.chunk }}] | .[] | @text' | xargs npm test
 
       - name: Pull Request Tests
