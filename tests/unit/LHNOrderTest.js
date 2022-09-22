@@ -350,6 +350,7 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three reports in the recently updated order of 3, 2, 1
             // with the current user set to email9@ (someone not participating in any of the chats)
@@ -381,8 +382,6 @@ describe('Sidebar', () => {
             report3.iouReportID = iouReport.reportID.toString();
             const currentlyViewedReportID = report2.reportID;
             const currentlyLoggedInUserEmail = 'email9@test.com';
-
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -416,6 +415,23 @@ describe('Sidebar', () => {
         it('alphabetizes chats', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+            const report4 = {
+                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 1),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in #focus mode (hides read chats)
@@ -423,42 +439,31 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // Then the reports are in alphabetical order
                 .then(() => {
-                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
-                    expect(reportOptions).toHaveLength(3);
-                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, One');
-                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, Three');
-                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, Two');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                 })
 
                 // When a new report is added
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
-                    reportID: 4,
-                    reportName: 'Report Four',
-                    maxSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
-                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-                    lastMessageTimestamp: Date.now(),
-                    participants: ['email7@test.com', 'email8@test.com'],
-                }))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4))
 
                 // Then they are still in alphabetical order
                 .then(() => {
-                    const reportOptions = sidebarLinks.queryAllByText(/ReportID, /);
-                    expect(reportOptions).toHaveLength(4);
-                    expect(reportOptions[0].children[0].props.children).toBe('ReportID, Four');
-                    expect(reportOptions[1].children[0].props.children).toBe('ReportID, One');
-                    expect(reportOptions[2].children[0].props.children).toBe('ReportID, Three');
-                    expect(reportOptions[3].children[0].props.children).toBe('ReportID, Two');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(4);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Seven, Eight');
                 });
         });
     });
