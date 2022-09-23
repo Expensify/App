@@ -6,6 +6,7 @@ import {Alert, InteractionManager} from 'react-native';
 import * as Metrics from './Metrics';
 import getComponentDisplayName from './getComponentDisplayName';
 import CONST from '../CONST';
+import * as E2E from './E2E';
 
 /** @type {import('react-native-performance').Performance} */
 let rnPerformance;
@@ -38,6 +39,7 @@ const Performance = {
     // When performance monitoring is disabled the implementations are blank
     diffObject,
     setupPerformanceObserver: () => {},
+    getPerformanceMetrics: () => [],
     printPerformanceMetrics: () => {},
     markStart: () => {},
     markEnd: () => {},
@@ -108,19 +110,25 @@ if (Metrics.canCapturePerformanceMetrics()) {
         }).observe({type: 'mark', buffered: true});
     };
 
+    Performance.getPerformanceMetrics = () => _.chain([
+        ...rnPerformance.getEntriesByName('nativeLaunch'),
+        ...rnPerformance.getEntriesByName('runJsBundle'),
+        ...rnPerformance.getEntriesByName('jsBundleDownload'),
+        ...rnPerformance.getEntriesByName('TTI'),
+    ])
+        .filter(entry => entry.duration > 0)
+        .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
+        .value();
+
     /**
      * Outputs performance stats. We alert these so that they are easy to access in release builds.
      */
     Performance.printPerformanceMetrics = () => {
-        const stats = _.chain([
-            ...rnPerformance.getEntriesByName('nativeLaunch'),
-            ...rnPerformance.getEntriesByName('runJsBundle'),
-            ...rnPerformance.getEntriesByName('jsBundleDownload'),
-            ...rnPerformance.getEntriesByName('TTI'),
-        ])
-            .filter(entry => entry.duration > 0)
-            .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
-            .value();
+        if (E2E.isE2ETestSession()) {
+            return;
+        }
+
+        const stats = Performance.getPerformanceMetrics();
 
         Alert.alert('Performance', stats.join('\n'));
     };
