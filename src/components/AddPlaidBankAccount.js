@@ -50,14 +50,10 @@ const propTypes = {
     /** Are we adding a withdrawal account? */
     allowDebit: PropTypes.bool,
 
-    /** The ID used to uniquely identify the input in a Form */
-    inputID: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    inputID: null,
     plaidData: {
         bankName: '',
         plaidAccessToken: '',
@@ -195,7 +191,6 @@ class AddPlaidBankAccount extends React.Component {
                 </View>
                 <View style={[styles.mb5]}>
                     <Picker
-                        inputID={this.props.inputID}
                         label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                         onInputChange={this.selectAccount}
                         items={options}
