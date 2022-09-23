@@ -177,9 +177,9 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
-        const shouldDisableCompanyName = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName');
-        const shouldDisableCompanyTaxID = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID');
+        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'bankAccountID', 0);
+        const shouldDisableCompanyName = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'companyName');
+        const shouldDisableCompanyTaxID = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'companyTaxID');
 
         return (
             <>
