@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import stylePropTypes from '../../styles/stylePropTypes';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     /** The URL to open */
@@ -25,8 +24,6 @@ const propTypes = {
 
     /** Press handler for the link, when not passed, default href is used to create a link like behaviour */
     onPress: PropTypes.func,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {

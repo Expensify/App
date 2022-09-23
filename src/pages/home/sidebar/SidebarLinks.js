@@ -3,7 +3,6 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import memoizeOne from 'memoize-one';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -13,20 +12,20 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
-import OptionsList from '../../../components/OptionsList';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
+import withWindowDimensions from '../../../components/withWindowDimensions';
 import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
+import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
+import SidebarUtils from '../../../libs/SidebarUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -40,6 +39,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** List of reports */
+    // eslint-disable-next-line react/no-unused-prop-types
     reports: PropTypes.objectOf(PropTypes.shape({
         /** ID of the report */
         reportID: PropTypes.number,
@@ -52,6 +52,7 @@ const propTypes = {
     })),
 
     /** All report actions for all reports */
+    // eslint-disable-next-line react/no-unused-prop-types
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** List of users' personal details */
@@ -90,32 +91,6 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
-    constructor(props) {
-        super(props);
-        this.getRecentReportsOptionListItems = memoizeOne(this.getRecentReportsOptionListItems.bind(this));
-    }
-
-    /**
-     * @param {String} activeReportID
-     * @param {String} priorityMode
-     * @param {Object[]} unorderedReports
-     * @param {Object} personalDetails
-     * @param {String[]} betas
-     * @param {Object} reportActions
-     * @returns {Object[]}
-     */
-    getRecentReportsOptionListItems(activeReportID, priorityMode, unorderedReports, personalDetails, betas, reportActions) {
-        const sidebarOptions = OptionsListUtils.getSidebarOptions(
-            unorderedReports,
-            personalDetails,
-            activeReportID,
-            priorityMode,
-            betas,
-            reportActions,
-        );
-        return sidebarOptions.recentReports;
-    }
-
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
@@ -127,24 +102,15 @@ class SidebarLinks extends React.Component {
         }
 
         Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
-        const optionListItems = this.getRecentReportsOptionListItems(
-            this.props.currentlyViewedReportID,
-            this.props.priorityMode,
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            this.props.reportActions,
-        );
-        const sections = [{
-            title: '',
-            indexOffset: 0,
-            data: optionListItems,
-            shouldShow: true,
-        }];
+        const optionListItems = SidebarUtils.getOrderedReportIDs();
         Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
 
         return (
-            <View style={[styles.flex1, styles.h100]}>
+            <View
+                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityLabel="List of chats"
+                style={[styles.flex1, styles.h100]}
+            >
                 <View
                     style={[
                         styles.flexRow,
@@ -183,22 +149,19 @@ class SidebarLinks extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
-                <OptionsList
+                <LHNOptionsList
                     contentContainerStyles={[
                         styles.sidebarListContainer,
                         {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
-                    sections={sections}
+                    data={optionListItems}
                     focusedIndex={_.findIndex(optionListItems, (
-                        option => option.reportID.toString() === this.props.currentlyViewedReportID
+                        option => option.toString() === this.props.currentlyViewedReportID
                     ))}
                     onSelectRow={(option) => {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
-                    optionBackgroundColor={themeColors.sidebar}
-                    hideSectionHeaders
-                    showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
@@ -214,7 +177,13 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
+    withWindowDimensions,
     withOnyx({
+        // Note: It is very important that the keys subscribed to here are the same
+        // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
+        // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
+        // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
+        // with 10,000 withOnyx() connections, it would have unknown performance implications.
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
@@ -232,6 +201,12 @@ export default compose(
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
 )(SidebarLinks);
