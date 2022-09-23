@@ -8,6 +8,7 @@ import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import Permissions from './Permissions';
+import lodashGet from 'lodash/get';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -143,8 +144,12 @@ function getOrderedReportIDs() {
             return false;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+        // We let Free Plan default rooms to be shown in the App, or rooms that also have a Guide in them.
+        // It's the two exceptions to the beta, otherwise do not show policy rooms in product
+        if (ReportUtils.isDefaultRoom(report)
+            && !Permissions.canUseDefaultRooms(betas)
+            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
             return false;
         }
 
