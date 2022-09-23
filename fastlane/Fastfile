@@ -21,17 +21,8 @@ platform :android do
 
     gradle(
       project_dir: './android',
-      # Without specifying :app, the build fails (also on main)
       task: ':app:assemble',
-      build_type: 'Release',
-      # Set debug signing config for release build
-      properties: {
-        # The current work directory is the fastlane dir for user scripts https://docs.fastlane.tools/advanced/fastlane/#directory-behavior
-        'android.injected.signing.store.file' => Dir.pwd + '/../android/app/debug.keystore',
-        'android.injected.signing.store.password' => 'android',
-        'android.injected.signing.key.alias' => 'androiddebugkey',
-        'android.injected.signing.key.password' => 'android',
-      }
+      build_type: 'E2eRelease',
     )
   end
 
