@@ -70,4 +70,18 @@ contextBridge.exposeInMainWorld('electron', {
         // Deliberately strip event as it includes `sender`
         ipcRenderer.on(channel, (event, ...args) => func(...args));
     },
+
+    /**
+     * Remove listeners for a single channel from the main process and sent to the renderer process.
+     *
+     * @param {String} channel
+     * @param {Function} func
+     */
+    removeAllListeners: (channel) => {
+        if (!_.contains(WHITELIST_CHANNELS_MAIN_TO_RENDERER, channel)) {
+            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
+        }
+
+        ipcRenderer.removeAllListeners(channel);
+    },
 });
