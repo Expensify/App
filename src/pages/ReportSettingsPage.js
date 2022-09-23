@@ -18,7 +18,6 @@ import Text from '../components/Text';
 import Button from '../components/Button';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
-import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 
@@ -31,7 +30,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 
     /* Onyx Props */
@@ -79,17 +77,6 @@ const propTypes = {
     }).isRequired,
 };
 
-const defaultProps = {
-    ...fullPolicyDefaultProps,
-    report: {
-        reportID: 0,
-        reportName: '',
-        policyID: '',
-        notificationPreference: '',
-        visibility: '',
-    },
-};
-
 class ReportSettingsPage extends Component {
     constructor(props) {
         super(props);
@@ -125,11 +112,6 @@ class ReportSettingsPage extends Component {
      */
     resetToPreviousName() {
         this.setState({newRoomName: this.props.report.reportName});
-
-        // Reset the input's value back to the previously saved report name
-        if (this.roomNameInputRef) {
-            this.roomNameInputRef.setNativeProps({text: this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '')});
-        }
         Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
@@ -229,7 +211,7 @@ class ReportSettingsPage extends Component {
                                             : (
                                                 <RoomNameInput
                                                     ref={el => this.roomNameInputRef = el}
-                                                    initialValue={this.state.newRoomName}
+                                                    value={this.state.newRoomName}
                                                     policyID={linkedWorkspace && linkedWorkspace.id}
                                                     errorText={this.state.errors.newRoomName}
                                                     onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
@@ -287,11 +269,9 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
-ReportSettingsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withFullPolicy,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,

@@ -593,16 +593,18 @@ function fetchAllReports(
  * @param {String} ownerEmail
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
+ * @param {String} visibility
  * @returns {Object}
  */
 function buildOptimisticChatReport(
     participantList,
     reportName = 'Chat Report',
     chatType = '',
-    policyID = '_FAKE_',
-    ownerEmail = '__FAKE__',
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
+    visibility = undefined,
 ) {
     return {
         chatType,
@@ -616,7 +618,7 @@ function buildOptimisticChatReport(
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
-        notificationPreference: '',
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
         oldPolicyName,
         ownerEmail,
         participants: participantList,
@@ -625,7 +627,7 @@ function buildOptimisticChatReport(
         reportName,
         stateNum: 0,
         statusNum: 0,
-        visibility: undefined,
+        visibility,
     };
 }
 
@@ -639,7 +641,6 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
             message: [
                 {
@@ -1450,6 +1451,91 @@ function createPolicyRoom(policyID, reportName, visibility) {
 }
 
 /**
+ * Add a policy report (workspace room) optimistically and navigate to it.
+ *
+ * @param {Object} policy
+ * @param {String} reportName
+ * @param {String} visibility
+ */
+function addPolicyReport(policy, reportName, visibility) {
+    // The participants include the current user (admin) and the employees. Participants must not be empty.
+    const participants = [currentUserEmail, ...policy.employeeList];
+    const policyReport = buildOptimisticChatReport(
+        participants,
+        reportName,
+        CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        policy.id,
+        CONST.REPORT.OWNER_EMAIL_FAKE,
+        false,
+        '',
+        visibility,
+    );
+
+    // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
+    // storeCurrentlyViewedReport is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
+    // If there was an error creating the room, then fetchChatReportsByIDs throws an error and the user is navigated away from the report instead of showing the RBR error message.
+    // Therefore, Onyx.set is used instead of Onyx.merge.
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...policyReport,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
+            value: buildOptimisticCreatedReportAction(policyReport.ownerEmail),
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
+            value: {
+                0: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'AddWorkspaceRoom',
+        {
+            policyID: policyReport.policyID,
+            reportName,
+            visibility,
+            reportID: policyReport.reportID,
+        },
+        {optimisticData, successData},
+    );
+    Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
+}
+
+/**
+ * @param {Number} reportID The reportID of the policy report (workspace room)
+ */
+function navigateToConciergeChatAndDeletePolicyReport(reportID) {
+    navigateToConciergeChat();
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
+}
+
+/**
  * @param {Object} policyRoomReport
  * @param {Number} policyRoomReport.reportID
  * @param {String} policyRoomReport.reportName
@@ -1659,6 +1745,8 @@ export {
     handleInaccessibleReport,
     setReportWithDraft,
     createPolicyRoom,
+    addPolicyReport,
+    navigateToConciergeChatAndDeletePolicyReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
