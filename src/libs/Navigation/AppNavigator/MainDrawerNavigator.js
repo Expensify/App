@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -13,6 +13,8 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import compose from '../../compose';
+import { withBetas } from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -55,45 +57,64 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => 
     return {reportID: String(reportID)};
 };
 
-const MainDrawerNavigator = (props) => {
-    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
-
-    // Wait until reports are fetched and there is a reportID in initialParams
-    if (!initialParams.reportID) {
-        return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams}} />;
+class MainDrawerNavigator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            initialParams: {},
+        };
     }
 
-    // After the app initializes and reports are available the home navigation is mounted
-    // This way routing information is updated (if needed) based on the initial report ID resolved.
-    // This is usually needed after login/create account and re-launches
-    return (
-        <BaseDrawerNavigator
-            drawerContent={() => <SidebarScreen />}
-            screens={[
-                {
-                    name: SCREENS.REPORT,
-                    component: ReportScreen,
-                    initialParams,
-                },
-            ]}
-            isMainScreen
-        />
-    );
-};
+    componentDidMount() {
+        this.connectionID = Onyx.connect({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (reports) => {
+                if (!reports) {
+                    return;
+                }
+
+                this.setState({initialParams: getInitialReportScreenParams(reports, !Permissions.canUseDefaultRooms(this.props.betas), this.props.policies)});
+                Onyx.disconnect(this.connectionID);
+            },
+        });
+    }
+
+    render() {
+        // Wait until reports are fetched and there is a reportID in initialParams
+        if (!this.state.initialParams.reportID) {
+            return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams: this.state.initialParams}} />;
+        }
+
+        // After the app initializes and reports are available the home navigation is mounted
+        // This way routing information is updated (if needed) based on the initial report ID resolved.
+        // This is usually needed after login/create account and re-launches
+        return (
+            <BaseDrawerNavigator
+                drawerContent={() => <SidebarScreen />}
+                screens={[
+                    {
+                        name: SCREENS.REPORT,
+                        component: ReportScreen,
+                        initialParams: this.state.initialParams,
+                    },
+                ]}
+                isMainScreen
+            />
+        );
+    }
+}
 
 MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;
 MainDrawerNavigator.displayName = 'MainDrawerNavigator';
 
-export default withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(MainDrawerNavigator);
+export default compose(
+    withBetas(),
+    withOnyx({
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
+)(MainDrawerNavigator);
 export {getInitialReportScreenParams};

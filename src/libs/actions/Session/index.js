@@ -25,6 +25,12 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
 
+let session = {};
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val = {}) => session = val,
+});
+
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -628,6 +634,11 @@ function authenticatePusher(socketID, channelName, callback) {
  * @param {Boolean} shouldShowComposeInput
  */
 function setShouldShowComposeInput(shouldShowComposeInput) {
+    if (session.shouldShowComposeInput === shouldShowComposeInput) {
+        return;
+    }
+
+    session.shouldShowComposeInput = shouldShowComposeInput;
     Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
 }
 

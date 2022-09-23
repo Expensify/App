@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Keyboard,
     AppState,
+    InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -100,28 +101,33 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', () => {
-            if (!this.getIsReportFullyVisible()) {
-                return;
+        console.log('marcaaron COMPONENT MOUNTED');
+        this.handle = InteractionManager.createInteractionHandle();
+
+        InteractionManager.runAfterInteractions(() => {
+            this.appStateChangeListener = AppState.addEventListener('change', () => {
+                if (!this.getIsReportFullyVisible()) {
+                    return;
+                }
+
+                // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
+                // e.g. they could have read these messages on another device and only just become active here
+                Report.openReport(this.props.report.reportID);
+                this.setState({newMarkerSequenceNumber: 0});
+            });
+
+            Report.subscribeToReportTypingEvents(this.props.report.reportID);
+            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
+                if (!ReportActionComposeFocusManager.isFocused()) {
+                    return;
+                }
+                ReportScrollManager.scrollToBottom();
+            });
+
+            if (this.getIsReportFullyVisible()) {
+                Report.openReport(this.props.report.reportID);
             }
-
-            // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
-            // e.g. they could have read these messages on another device and only just become active here
-            Report.openReport(this.props.report.reportID);
-            this.setState({newMarkerSequenceNumber: 0});
         });
-
-        Report.subscribeToReportTypingEvents(this.props.report.reportID);
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (!ReportActionComposeFocusManager.isFocused()) {
-                return;
-            }
-            ReportScrollManager.scrollToBottom();
-        });
-
-        if (this.getIsReportFullyVisible()) {
-            Report.openReport(this.props.report.reportID);
-        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -327,6 +333,8 @@ class ReportActionsView extends React.Component {
         if (this.didLayout) {
             return;
         }
+        InteractionManager.clearInteractionHandle(this.handle);
+        console.log('marcaaron ITEMS LAYOUT');
 
         this.didLayout = true;
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);

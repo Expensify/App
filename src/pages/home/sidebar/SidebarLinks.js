@@ -26,6 +26,7 @@ import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
+import {withPersonalDetails, withReportActions, withReports} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -178,18 +179,15 @@ export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
     withWindowDimensions,
+    withPersonalDetails(),
+    withReportActions(),
+    withReports(),
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
         // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
         // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
@@ -198,9 +196,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        reportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

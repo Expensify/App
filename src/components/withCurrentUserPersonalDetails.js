@@ -4,6 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
+import {withSession} from './OnyxProvider';
+import compose from '../libs/compose';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
@@ -56,14 +58,15 @@ export default function (WrappedComponent) {
         <WithCurrentUserPersonalDetails {...props} forwardedRef={ref} />
     ));
 
-    return withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(withCurrentUserPersonalDetails);
+    return compose(
+        withSession(),
+        withOnyx({
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS,
+            },
+
+        }),
+    )(withCurrentUserPersonalDetails);
 }
 
 export {

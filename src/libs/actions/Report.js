@@ -912,6 +912,10 @@ function saveReportComment(reportID, comment) {
  * @returns {Promise}
  */
 function setReportWithDraft(reportID, hasDraft) {
+    if (lodashGet(allReports, [reportID, 'hasDraft']) === hasDraft) {
+        return;
+    }
+
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 

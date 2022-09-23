@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Keyboard, Platform, View} from 'react-native';
+import {InteractionManager, Keyboard, Platform, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
@@ -23,7 +23,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import addViewportResizeListener from '../../libs/VisualViewport';
-import {withNetwork} from '../../components/OnyxProvider';
+import {withBetas, withNetwork, withSession} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -132,7 +132,9 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        this.storeCurrentlyViewedReport();
+        setTimeout(() => {
+            this.storeCurrentlyViewedReport();
+        }, 1000);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
@@ -140,7 +142,10 @@ class ReportScreen extends React.Component {
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
-        this.storeCurrentlyViewedReport();
+
+        setTimeout(() => {
+            this.storeCurrentlyViewedReport();
+        }, 1000);
     }
 
     componentWillUnmount() {
@@ -314,12 +319,11 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
+    withSession(),
+    withBetas(),
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
@@ -330,9 +334,6 @@ export default compose(
         },
         isComposerFullSize: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

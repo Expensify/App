@@ -13,6 +13,10 @@ const [
     withReportActionsDrafts,
     ReportActionsDraftsProvider,
 ] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
+const [withReportActions, ReportActionsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+const [withReports, ReportsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT);
+const [withBetas, BetasProvider] = createOnyxContext(ONYXKEYS.BETAS);
+const [withSession, SessionProvider] = createOnyxContext(ONYXKEYS.SESSION);
 
 const propTypes = {
     /** Rendered child component */
@@ -26,6 +30,10 @@ const OnyxProvider = props => (
             PersonalDetailsProvider,
             ReportActionsDraftsProvider,
             CurrentDateProvider,
+            ReportActionsProvider,
+            ReportsProvider,
+            BetasProvider,
+            SessionProvider,
         ]}
     >
         {props.children}
@@ -42,4 +50,9 @@ export {
     withPersonalDetails,
     withReportActionsDrafts,
     withCurrentDate,
+    withReportActions,
+    withReports,
+    withBetas,
+    withSession,
+    SessionProvider,
 };
