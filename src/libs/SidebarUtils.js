@@ -174,9 +174,9 @@ function getOrderedReportIDs() {
             return false;
         }
 
-        if (report.reportID != 1) {
-            console.log(7, 'yes', `ReportID: ${report.reportID}`)
-        }
+        // if (report.reportID != 1) {
+        //     console.log(7, 'yes', `ReportID: ${report.reportID}`)
+        // }
         return true;
     });
 
