@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
@@ -8,7 +9,6 @@ import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import Permissions from './Permissions';
-import lodashGet from 'lodash/get';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
