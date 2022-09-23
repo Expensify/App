@@ -1,12 +1,21 @@
 import e2eLogin from './appCommands/e2eLogin';
 import * as Session from '../actions/Session';
+import * as Commands from '../../../e2e/server/commands';
+import * as Config from '../../../e2e/config';
 
 // Connect to the websocket running on the host machine
-const ws = new WebSocket('ws://localhost:3000'); // TODO: this url breaks on platform when using emulators / android - get ip address
+const ws = new WebSocket(`ws://localhost:${Config.SERVER_PORT}`); // TODO: this url breaks on platform when using emulators / android - get ip address
 
 // a promise that resolves once we are connected with the server.
 const connectPromise = new Promise((resolve) => {
+    ws.onerror = (error) => {
+        console.debug('[CLIENT] Error connecting to server:', error.message);
+    };
+    ws.onclose = () => {
+        console.debug('[CLIENT] Connection to server closed');
+    };
     ws.onopen = () => {
+        console.debug('[CLIENT] Connected to server');
         resolve();
     };
 });
@@ -35,6 +44,15 @@ const executeWithStatus = (command, promise) => {
         .catch(() => sendStatus(command, 'error'));
 };
 
+let isAppSessionReadyResolve;
+const isAppSessionReady = new Promise((resolve) => {
+    isAppSessionReadyResolve = resolve;
+});
+
+const markAppReady = () => {
+    isAppSessionReadyResolve();
+};
+
 const listenForServerCommands = () => {
     // The app receiving commands from the server
     ws.onmessage = (event) => {
@@ -45,12 +63,15 @@ const listenForServerCommands = () => {
         // expect only string messages
         const command = event.data.toString();
         switch (command) {
-            case 'login':
+            case Commands.LOGIN:
                 executeWithStatus(command, e2eLogin());
                 break;
-            case 'logout':
+            case Commands.LOGOUT:
                 Session.signOutAndRedirectToSignIn();
                 sendStatus(command, 'success');
+                break;
+            case Commands.WAIT_FOR_APP_READY:
+                isAppSessionReady.then(() => sendStatus(command, 'success'));
                 break;
             default:
                 console.debug('Unknown command', event.data);
@@ -61,4 +82,5 @@ const listenForServerCommands = () => {
 export {
     listenForServerCommands,
     sendData,
+    markAppReady,
 };

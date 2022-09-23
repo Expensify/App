@@ -1,5 +1,5 @@
 const {execSync} = require('node:child_process');
-const {APP_PACKAGE} = require('../config');
+const {APP_PACKAGE} = require('../../config');
 
 module.exports = function (platform = 'android') {
     if (platform !== 'android') {
