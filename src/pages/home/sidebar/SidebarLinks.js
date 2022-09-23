@@ -160,6 +160,7 @@ class SidebarLinks extends React.Component {
                         option => option.toString() === this.props.currentlyViewedReportID
                     ))}
                     onSelectRow={(option) => {
+                        console.log('NAVIGATING TO CHAT');
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}

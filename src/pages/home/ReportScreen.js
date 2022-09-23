@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {InteractionManager, Keyboard, Platform, View} from 'react-native';
+import {Keyboard, Platform, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
@@ -123,6 +123,7 @@ class ReportScreen extends React.Component {
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.storeCurrentlyViewedReport = this.storeCurrentlyViewedReport.bind(this);
         this.removeViewportResizeListener = () => {};
 
         this.state = {
@@ -132,20 +133,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        setTimeout(() => {
-            this.storeCurrentlyViewedReport();
-        }, 1000);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
-            return;
-        }
-
-        setTimeout(() => {
-            this.storeCurrentlyViewedReport();
-        }, 1000);
     }
 
     componentWillUnmount() {
@@ -270,6 +258,7 @@ class ReportScreen extends React.Component {
                                 session={this.props.session}
                                 isComposerFullSize={this.props.isComposerFullSize}
                                 isDrawerOpen={this.props.isDrawerOpen}
+                                storeCurrentlyViewedReport={this.storeCurrentlyViewedReport}
                             />
                         )}
                     {(isArchivedRoom || hideComposer) && (

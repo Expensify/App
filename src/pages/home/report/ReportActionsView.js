@@ -254,15 +254,18 @@ class ReportActionsView extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.keyboardEvent) {
-            this.keyboardEvent.remove();
-        }
+        const reportID = this.props.report.reportID;
+        setTimeout(() => {
+            if (this.keyboardEvent) {
+                this.keyboardEvent.remove();
+            }
 
-        if (this.appStateChangeListener) {
-            this.appStateChangeListener.remove();
-        }
+            if (this.appStateChangeListener) {
+                this.appStateChangeListener.remove();
+            }
 
-        Report.unsubscribeFromReportChannel(this.props.report.reportID);
+            Report.unsubscribeFromReportChannel(reportID);
+        }, 1000);
     }
 
     /**
@@ -336,6 +339,7 @@ class ReportActionsView extends React.Component {
         InteractionManager.clearInteractionHandle(this.handle);
         console.log('marcaaron ITEMS LAYOUT');
 
+        this.props.storeCurrentlyViewedReport();
         this.didLayout = true;
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
 
