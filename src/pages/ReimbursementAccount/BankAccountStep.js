@@ -61,7 +61,6 @@ const BankAccountStep = (props) => {
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.validate = this.validate.bind(this);
-        this.validatePlaidAccount = this.validatePlaidAccount.bind(this);
         this.state = {
             selectedPlaidBankAccount: undefined,
         };
@@ -82,16 +81,6 @@ const BankAccountStep = (props) => {
         }
         if (!values.acceptedTerms) {
             errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
-        }
-
-        return errors;
-    }
-
-    validatePlaidAccount() {
-        const selectedPlaidBankAccount = this.state.selectedPlaidBankAccount;
-        const errors = {};
-        if (_.isUndefined(selectedPlaidBankAccount)) {
-            errors.selectedPlaidBankAccount = this.props.translate('bankAccount.error.noBankAccountSelected');
         }
 
         return errors;
@@ -270,8 +259,7 @@ const BankAccountStep = (props) => {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <Form
-                        formID={ONYXKEYS.FORMS.BANK_ACCOUNT_STEP_FORM_PLAID}
-                        validate={this.validatePlaidAccount}
+                        formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                         onSubmit={this.addPlaidAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
