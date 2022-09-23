@@ -104,6 +104,10 @@ class ReportActionsView extends React.Component {
         console.log('marcaaron COMPONENT MOUNTED');
         this.handle = InteractionManager.createInteractionHandle();
 
+        if (this.getIsReportFullyVisible()) {
+            Report.openReport(this.props.report.reportID);
+        }
+
         InteractionManager.runAfterInteractions(() => {
             this.appStateChangeListener = AppState.addEventListener('change', () => {
                 if (!this.getIsReportFullyVisible()) {
@@ -123,10 +127,6 @@ class ReportActionsView extends React.Component {
                 }
                 ReportScrollManager.scrollToBottom();
             });
-
-            if (this.getIsReportFullyVisible()) {
-                Report.openReport(this.props.report.reportID);
-            }
         });
     }
 
@@ -265,7 +265,7 @@ class ReportActionsView extends React.Component {
             }
 
             Report.unsubscribeFromReportChannel(reportID);
-        }, 1000);
+        }, 4000);
     }
 
     /**
