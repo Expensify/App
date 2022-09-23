@@ -16,6 +16,9 @@ const propTypes = {
     /** Text to be displayed in the submit button */
     submitButtonText: PropTypes.string.isRequired,
 
+    /** Should we show the submit button */
+    isSubmitButtonVisible: PropTypes.bool,
+
     /** Callback to validate the form */
     validate: PropTypes.func.isRequired,
 
@@ -39,9 +42,6 @@ const propTypes = {
     /** Contains draft values for each input in the form */
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
-
-    /** Should we show the form button */
-    isSubmitButtonVisible: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };

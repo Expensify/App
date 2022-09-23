@@ -60,7 +60,6 @@ class BankAccountStep extends React.Component {
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.validate = this.validate.bind(this);
-        this.validatePlaidAccount = this.validatePlaidAccount.bind(this);
         this.state = {
             selectedPlaidBankAccount: undefined,
         };
@@ -81,16 +80,6 @@ class BankAccountStep extends React.Component {
         }
         if (!values.acceptedTerms) {
             errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
-        }
-
-        return errors;
-    }
-
-    validatePlaidAccount() {
-        const selectedPlaidBankAccount = this.state.selectedPlaidBankAccount;
-        const errors = {};
-        if (_.isUndefined(selectedPlaidBankAccount)) {
-            errors.selectedPlaidBankAccount = this.props.translate('bankAccount.error.noBankAccountSelected');
         }
 
         return errors;
@@ -238,7 +227,6 @@ class BankAccountStep extends React.Component {
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <Form
                         formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                        validate={this.validatePlaidAccount}
                         onSubmit={this.addPlaidAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
