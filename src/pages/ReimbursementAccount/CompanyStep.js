@@ -167,7 +167,6 @@ class CompanyStep extends React.Component {
             plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
             isSavings: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'isSavings'),
             plaidAccessToken: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccessToken'),
-            acceptTerms: true,
 
             // Fields from company step
             ...this.state,
