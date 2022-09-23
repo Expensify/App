@@ -142,7 +142,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
+                [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -164,7 +164,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
+                [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
                     pendingAction: null,
                     error: {
@@ -183,6 +183,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         chatReportID: chatReport.reportID,
         transactionID: optimisticTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
+        clientID: optimisticReportAction.sequenceNumber,
     }, {optimisticData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
