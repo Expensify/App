@@ -18,7 +18,6 @@ function setPersonalBankAccountFormValidationErrorFields(errorFields) {
  * @param {Object} errorFields
  */
 function setBankAccountFormValidationErrors(errorFields) {
-    // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorFields: null});
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorFields});
 }

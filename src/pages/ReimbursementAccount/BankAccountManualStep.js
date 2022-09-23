@@ -160,7 +160,7 @@ BankAccountManualStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
-        // Needed, to retrieve errorFields
+        // Needed to retrieve errorFields
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
