@@ -157,8 +157,11 @@ For example:
 #### Web
 <!-- Insert screenshots of your changes on the web platform-->
 
-#### Mobile Web
-<!-- Insert screenshots of your changes on the web platform (from a mobile browser)-->
+#### Mobile Web - Chrome
+<!-- Insert screenshots of your changes on the web platform (from chrome mobile browser)-->
+
+#### Mobile Web - Safari
+<!-- Insert screenshots of your changes on the web platform (from safari mobile browser)-->
 
 #### Desktop
 <!-- Insert screenshots of your changes on the desktop platform-->
