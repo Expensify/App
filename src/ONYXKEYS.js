@@ -79,6 +79,9 @@ export default {
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 
+    // Token needed to initialize Onfido
+    ONFIDO_TOKEN: 'onfidoToken',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
