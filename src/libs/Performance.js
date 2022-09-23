@@ -100,13 +100,19 @@ if (Metrics.canCapturePerformanceMetrics()) {
                         measureFailSafe(name, start, end);
                     }
 
-                    // Capture any custom measures or metrics below
-                    if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                        // Make sure TTI is captured when the app is really usable
-                        InteractionManager.runAfterInteractions(() => {
-                            requestAnimationFrame(() => {
-                                measureFailSafe('TTI', 'nativeLaunchStart', mark.name);
-                                Performance.printPerformanceMetrics();
+                        // Capture any custom measures or metrics below
+                        if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                            // Make sure TTI is captured when the app is really usable
+                            InteractionManager.runAfterInteractions(() => {
+                                requestAnimationFrame(() => {
+                                    rnPerformance.measure('TTI', 'nativeLaunchStart', mark.name);
+
+                                    if (E2E.isE2ETestSession()) {
+                                        E2E.Client.markAppReady();
+                                    } else {
+                                        Performance.printPerformanceMetrics();
+                                    }
+                                });
                             });
                         });
                     }
@@ -128,10 +134,6 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * Outputs performance stats. We alert these so that they are easy to access in release builds.
      */
     Performance.printPerformanceMetrics = () => {
-        if (E2E.isE2ETestSession()) {
-            return;
-        }
-
         const stats = Performance.getPerformanceMetrics();
 
         if (stats.length > 0) {

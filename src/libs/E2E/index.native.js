@@ -10,4 +10,8 @@ const setup = () => {
     Client.listenForServerCommands();
 };
 
-export {isE2ETestSession, setup};
+export {
+    isE2ETestSession,
+    setup,
+    Client,
+};

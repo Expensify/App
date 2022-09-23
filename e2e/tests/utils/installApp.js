@@ -1,5 +1,5 @@
 const {execSync} = require('node:child_process');
-const {APP_PACKAGE} = require('../config');
+const {APP_PACKAGE} = require('../../config');
 
 const APP_PATH_FROM_ROOT = 'android/app/build/outputs/apk/release/app-release.apk';
 
@@ -14,6 +14,10 @@ module.exports = function (platform = 'android') {
     }
 
     // uninstall first, then install
-    execSync(`adb uninstall ${APP_PACKAGE}`);
+    try {
+        execSync(`adb uninstall ${APP_PACKAGE}`);
+    } catch (e) {
+        // ignored, the app might not be installed, which causes issues on some devices
+    }
     execSync(`adb install ${APP_PATH_FROM_ROOT}`);
 };
