@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
@@ -43,13 +44,17 @@ class ReimbursementAccountForm extends React.Component {
         const hasErrorFields = _.size(this.props.reimbursementAccount.errorFields) > 0;
         const error = this.props.reimbursementAccount.error || ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount) || '';
         const isErrorVisible = hasErrorFields || Boolean(error);
+        const viewStyles = [styles.mh5, styles.mb5];
+        if (lodashGet(this.props, 'children.props.plaidLinkOAuthToken') === '') {
+            viewStyles.push(styles.flex1);
+        }
 
         return (
             <FormScrollView
                 ref={el => this.form = el}
             >
                 {/* Form elements */}
-                <View style={[styles.mh5, styles.mb5]}>
+                <View style={viewStyles}>
                     {this.props.children}
                 </View>
                 {!this.props.hideSubmitButton && (
