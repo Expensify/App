@@ -85,14 +85,14 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
  * There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
  * additional reports in Onyx, so it's being left out for now.
  *
- * @param hasComments
- * @param isArchived
- * @param isUserCreatedPolicyRoom
- * @param hasAddWorkspaceError
- * @param isUnread
- * @param isPinned
- * @param hasDraft
- * @returns {{hasDraft, reportID, reportName: string, stateNum: (number), lastReadSequenceNumber: (number|number), isPinned, lastMessageTimestamp: (number|number), maxSequenceNumber: number, errorFields: ({errorFields: {addWorkspaceRoom: string}}|null), participants: String[], chatType: (string), statusNum: (number)}}
+ * @param {boolean} hasComments
+ * @param {boolean} isArchived
+ * @param {boolean} isUserCreatedPolicyRoom
+ * @param {boolean} hasAddWorkspaceError
+ * @param {boolean} isUnread
+ * @param {boolean} isPinned
+ * @param {boolean} hasDraft
+ * @returns {Object}
  */
 function getAdvancedFakeReport(hasComments, isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
