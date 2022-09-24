@@ -57,6 +57,9 @@ const runTests = async () => {
     // run tests on baseline branch
     await runTestsOnBranch(baselineBranch, 'baseline');
 
+    // run tests on current branch
+    await runTestsOnBranch('-', 'compare');
+
     await compare();
 
     process.exit(0);
