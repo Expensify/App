@@ -15,7 +15,7 @@
 const installApp = require('./utils/installApp');
 const launchApp = require('./utils/launchApp');
 const reversePort = require('./utils/androidReversePort');
-const startServer = require('./../server');
+const startTestingServer = require('./../server');
 
 console.debug('Installing app …');
 installApp('android');
@@ -24,7 +24,7 @@ reversePort();
 
 console.debug('Starting test server and launching app …');
 launchApp('android');
-return startServer().then((server) => {
+return startTestingServer().then((server) => {
     console.debug('Waiting for app to become ready …');
     return server.waitForAppReady().then(() => {
         console.debug('App is ready, test completed!');
