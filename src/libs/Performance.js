@@ -60,6 +60,15 @@ if (Metrics.canCapturePerformanceMetrics()) {
         return perfModuleInstance;
     };
 
+    const measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
+        try {
+            getPerfModule().measure(measureName, startOrMeasureOptions, endMark);
+        } catch (error) {
+            // Sometimes there might be no start mark recorded and the measure will fail with an error
+            console.debug(error.message);
+        }
+    };
+
     /**
      * Measures the TTI time. To be called when the app is considered to be interactive.
      * @param {String} [endMark] Optional end mark name
@@ -68,7 +77,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         // Make sure TTI is captured when the app is really usable
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                getPerfModule().measure('TTI', 'nativeLaunchStart', endMark);
+                measureFailSafe('TTI', 'nativeLaunchStart', endMark);
 
                 if (E2E.isE2ETestSession()) {
                     E2E.Client.markAppReady();
@@ -91,13 +100,13 @@ if (Metrics.canCapturePerformanceMetrics()) {
             list.getEntries()
                 .forEach((entry) => {
                     if (entry.name === 'nativeLaunchEnd') {
-                        rnPerformance.measure('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
+                        measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
                     }
                     if (entry.name === 'downloadEnd') {
-                        rnPerformance.measure('jsBundleDownload', 'downloadStart', 'downloadEnd');
+                        measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
                     }
                     if (entry.name === 'runJsBundleEnd') {
-                        rnPerformance.measure('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+                        measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
                     }
 
                     // We don't need to keep the observer past this point
@@ -111,21 +120,16 @@ if (Metrics.canCapturePerformanceMetrics()) {
         new getPerfModule().PerformanceObserver((list) => {
             list.getEntriesByType('mark')
                 .forEach((mark) => {
-                    try {
-                        if (mark.name.endsWith('_end')) {
-                            const end = mark.name;
-                            const name = end.replace(/_end$/, '');
-                            const start = `${name}_start`;
-                            rnPerformance.measure(name, start, end);
-                        }
+                    if (mark.name.endsWith('_end')) {
+                        const end = mark.name;
+                        const name = end.replace(/_end$/, '');
+                        const start = `${name}_start`;
+                        measureFailSafe(name, start, end);
+                    }
 
-                        // Capture any custom measures or metrics below
-                        if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                            Performance.measureTTI(mark.name);
-                        }
-                    } catch (error) {
-                        // Sometimes there might be no start mark recorded and the measure will fail with an error
-                        console.debug(error.message);
+                    // Capture any custom measures or metrics below
+                    if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                        Performance.measureTTI(mark.name);
                     }
                 });
         }).observe({type: 'mark', buffered: true});
@@ -147,7 +151,9 @@ if (Metrics.canCapturePerformanceMetrics()) {
     Performance.printPerformanceMetrics = () => {
         const stats = Performance.getPerformanceMetrics();
 
-        Alert.alert('Performance', stats.join('\n'));
+        if (stats.length > 0) {
+            Alert.alert('Performance', stats.join('\n'));
+        }
     };
 
     /**

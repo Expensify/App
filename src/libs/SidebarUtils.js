@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
@@ -143,8 +144,12 @@ function getOrderedReportIDs() {
             return false;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+        // We let Free Plan default rooms to be shown in the App, or rooms that also have a Guide in them.
+        // It's the two exceptions to the beta, otherwise do not show policy rooms in product
+        if (ReportUtils.isDefaultRoom(report)
+            && !Permissions.canUseDefaultRooms(betas)
+            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
             return false;
         }
 
