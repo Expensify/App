@@ -79,7 +79,7 @@ class ActivateStep extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('activateStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -92,7 +92,7 @@ class ActivateStep extends React.Component {
                         <Text>{this.props.translate('activateStep.checkBackLater')}</Text>
                     )}
                 </View>
-            </ScreenWrapper>
+            </>
         );
     }
 }
