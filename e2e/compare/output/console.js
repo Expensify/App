@@ -9,10 +9,10 @@ module.exports = (data) => {
 
     console.debug('❇️  Performance comparison results:');
 
-    console.debug('\n➡️  Signficant changes to render duration');
+    console.debug('\n➡️  Significant changes to duration');
     data.significant.forEach(printRegularLine);
 
-    console.debug('\n➡️  Meaningless changes to render duration');
+    console.debug('\n➡️  Meaningless changes to duration');
     data.meaningless.forEach(printRegularLine);
 
     console.debug('');
