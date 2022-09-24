@@ -9,6 +9,8 @@ module.exports = {
     // The amount of times a test should be executed for average performance metrics
     RUNS: 10,
 
+    DEFAULT_BASELINE_BRANCH: 'main',
+
     // The amount of outliers to remove from a dataset before calculating the average
     DROP_WORST: 1,
 
