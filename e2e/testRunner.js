@@ -1,12 +1,13 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 const fs = require('fs');
-const {execSync} = require('node:child_process');
 const {
-    OUTPUT_FILE_CURRENT,
     DEFAULT_BASELINE_BRANCH,
     OUTPUT_DIR,
+    OUTPUT_FILE_CURRENT,
 } = require('./config');
 const compare = require('./compare/compare');
+const Logger = require('./utils/logger');
+const execAsync = require('./utils/execAsync');
 
 /**
  * The test runner takes care of running the e2e tests.
@@ -24,36 +25,41 @@ const TESTS = [
     require('./tests/AppStartTimeTest.e2e'),
 ];
 
-// clear current results file
+// clear all files from previous jobs
 try {
-    fs.unlinkSync(OUTPUT_FILE_CURRENT);
+    fs.rmSync(OUTPUT_DIR, {recursive: true, force: true});
+    fs.mkdirSync(OUTPUT_DIR);
 } catch (error) {
     // do nothing
+    console.error(error);
 }
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
-    console.debug(`Checking out branch ${branch}`);
-    execSync(`git switch ${branch}`);
-    execSync('npm i');
+    const progress = Logger.progressInfo(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+    await execAsync(`git switch ${branch}`);
+    await execAsync('npm i');
 
     // build app
     if (!args.includes('--skipBuild')) {
-        console.debug('Building android app...');
-        execSync('npm run android-build-e2e');
+        await execAsync('npm run android-build-e2e');
     }
 
     // run tests
-    console.debug('Running tests...');
+    Logger.log('Running tests...');
+    progress.done();
+
     for (const testFunction of TESTS) {
         await testFunction();
     }
 
     // mv output file
     const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
-    execSync(`mv ${OUTPUT_FILE_CURRENT} ${outputFileName}`);
+    await execAsync(`mv ${OUTPUT_FILE_CURRENT} ${outputFileName}`);
 };
 
 const runTests = async () => {
+    Logger.info('Running e2e tests');
+
     // run tests on baseline branch
     await runTestsOnBranch(baselineBranch, 'baseline');
 

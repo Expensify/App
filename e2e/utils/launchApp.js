@@ -1,5 +1,5 @@
-const {execSync} = require('node:child_process');
 const {APP_PACKAGE} = require('../config');
+const execAsync = require('./execAsync');
 
 module.exports = function (platform = 'android') {
     if (platform !== 'android') {
@@ -7,5 +7,5 @@ module.exports = function (platform = 'android') {
     }
 
     // use adb to start the app
-    execSync(`adb shell monkey -p ${APP_PACKAGE} -c android.intent.category.LAUNCHER 1`);
+    return execAsync(`adb shell monkey -p ${APP_PACKAGE} -c android.intent.category.LAUNCHER 1`);
 };

@@ -18,4 +18,7 @@ module.exports = {
 
     // The file to write intermediate results to
     OUTPUT_FILE_CURRENT: `${OUTPUT_DIR}/current.json`,
+
+    // The file we write logs to
+    LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 };
