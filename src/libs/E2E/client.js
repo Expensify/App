@@ -3,6 +3,9 @@ import * as Session from '../actions/Session';
 import * as Commands from '../../../e2e/server/commands';
 import * as Config from '../../../e2e/config';
 
+// TODO: introduced a require cycle
+import Performance from '../Performance';
+
 // Connect to the websocket running on the host machine
 const ws = new WebSocket(`ws://localhost:${Config.SERVER_PORT}`); // TODO: this url breaks on platform when using emulators / android - get ip address
 
@@ -73,6 +76,16 @@ const listenForServerCommands = () => {
             case Commands.WAIT_FOR_APP_READY:
                 isAppSessionReady.then(() => sendStatus(command, 'success'));
                 break;
+            case Commands.REQUEST_PERFORMANCE_METRICS: {
+                console.debug('[CLIENT]  Received request for performance metrics');
+                const metrics = Performance.getPerformanceMetrics();
+                sendData({
+                    type: 'performance_metrics',
+                    metrics,
+                });
+                console.debug('[CLIENT]  Sent performance metrics');
+                break;
+            }
             default:
                 console.debug('Unknown command', event.data);
         }
