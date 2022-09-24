@@ -53,7 +53,7 @@ const runTest = async () => {
     await launchApp('android');
     progressLog.done();
 
-    progressLog = Logger.progressInfo(`Running test ${TEST_NAME}`);
+    progressLog = Logger.progressInfo(`Running test '${TEST_NAME}'`);
 
     const startNewAppSession = async () => {
         // kill and restart the app for a new session
@@ -70,7 +70,7 @@ const runTest = async () => {
 
     const results = [];
     for (let i = 0; i < RUNS; i++) {
-        progressLog.updateText(`Running test ${TEST_NAME} (iteration ${i + 1}/${RUNS})`);
+        progressLog.updateText(`Running test '${TEST_NAME}' (iteration ${i + 1}/${RUNS})`);
         await startNewAppSession();
 
         const metrics = await server.getPerformanceMetrics();
@@ -78,7 +78,7 @@ const runTest = async () => {
     }
     progressLog.done();
 
-    progressLog = Logger.progressInfo(`Saving results of test ${TEST_NAME}`);
+    progressLog = Logger.progressInfo(`Saving results of test '${TEST_NAME}'`);
     const resultsDict = createDictByName(results);
 
     const ttiStats = math.getStats(resultsDict.TTI);
