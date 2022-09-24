@@ -33,6 +33,7 @@ try {
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
     console.debug(`Checking out branch ${branch}`);
     execSync(`git switch ${branch}`);
+    execSync('npm i');
 
     // build app
     if (!args.includes('--skipBuild')) {
