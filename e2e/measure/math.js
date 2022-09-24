@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const {DROP_WORST} = require('../../config');
+const {DROP_WORST} = require('../config');
 
 const sortAndClean = (entries) => {
     // Drop the worst measurements outliers (usually warm up runs)

@@ -14,13 +14,14 @@
 // - Run the test procedures X times (X = 5)
 
 const _ = require('underscore');
-const installApp = require('./utils/installApp');
-const launchApp = require('./utils/launchApp');
-const killApp = require('./utils/killApp');
-const reversePort = require('./utils/androidReversePort');
+const installApp = require('../utils/installApp');
+const launchApp = require('../utils/launchApp');
+const killApp = require('../utils/killApp');
+const reversePort = require('../utils/androidReversePort');
 const startTestingServer = require('./../server');
+const writeTestStats = require('../measure/writeTestStats');
 const {RUNS} = require('../config');
-const math = require('./measure/math');
+const math = require('../measure/math');
 
 const createDictByName = (arr) => {
     const dict = {};
@@ -59,19 +60,23 @@ const runTest = async () => {
     await server.login(); // TODO: provide user credentials here instead of client
 
     const results = [];
-    for (let i = 0; i < RUNS; i++) {
+    for (let i = 0; i <= RUNS; i++) {
         await startNewAppSession();
 
         const metrics = await server.getPerformanceMetrics();
         results.push(...metrics);
     }
 
+    // TODO: do that for the other metrics as well
     const resultsDict = createDictByName(results);
     const ttiStats = math.getStats(resultsDict.TTI);
 
-    console.debug('TTI stats:', ttiStats);
+    await writeTestStats({
+        name: 'App start time (TTI)',
+        ...ttiStats,
+    });
 
     server.stopServer();
-    process.exit(0);
 };
-runTest();
+
+module.exports = runTest;

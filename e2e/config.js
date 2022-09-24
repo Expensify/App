@@ -1,3 +1,5 @@
+const OUTPUT_DIR = 'e2e/.results';
+
 module.exports = {
     APP_PACKAGE: 'com.expensify.chat',
 
@@ -9,4 +11,9 @@ module.exports = {
 
     // The amount of outliers to remove from a dataset before calculating the average
     DROP_WORST: 1,
+
+    OUTPUT_DIR,
+
+    // The file to write intermediate results to
+    OUTPUT_FILE_CURRENT: `${OUTPUT_DIR}/current.json`,
 };
