@@ -16,12 +16,13 @@ const printToConsole = require('./output/console');
 const PROBABILITY_CONSIDERED_SIGNIFICANT = 0.02;
 
 /**
- * Render duration threshold (in ms) for treating given difference as significant.
+ * Duration threshold (in ms) for treating given difference as significant.
+ * // TODO: for different scenarios this must have different values i feel
  *
  * This is additional filter, in addition to probability threshold above.
  * Too small duration difference might be result of measurement grain of 1 ms.
  */
-const DURATION_DIFF_THRESHOLD_SIGNIFICANT = 4;
+const DURATION_DIFF_THRESHOLD_SIGNIFICANT = 200;
 
 const loadFile = async (path) => {
     const data = await fs.readFile(path, 'utf8');
