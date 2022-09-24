@@ -113,7 +113,6 @@ function compareResults(compareEntries, baselineEntries) {
 module.exports = async (
     baselineFile = `${OUTPUT_DIR}/baseline.json`,
     compareFile = `${OUTPUT_DIR}/compare.json`,
-    outputFile = `${OUTPUT_DIR}/output.json`,
     outputFormat = 'all',
 ) => {
     const hasBaselineFile = fsSync.existsSync(baselineFile);
@@ -135,4 +134,6 @@ module.exports = async (
     const outputData = compareResults(compare, baseline);
 
     if (outputFormat === 'console' || outputFormat === 'all') { printToConsole(outputData); }
+
+    // TODO: output format markdown for CI systems
 };
