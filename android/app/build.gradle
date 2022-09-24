@@ -256,7 +256,6 @@ android {
         e2eRelease {
             initWith release
             matchingFallbacks = ['release']
-            debuggable true
             signingConfig signingConfigs.debug
         }
     }
