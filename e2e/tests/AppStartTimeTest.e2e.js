@@ -22,6 +22,7 @@ const startTestingServer = require('./../server');
 const writeTestStats = require('../measure/writeTestStats');
 const {RUNS} = require('../config');
 const math = require('../measure/math');
+const Logger = require('../utils/logger');
 
 const createDictByName = (arr) => {
     const dict = {};
@@ -38,21 +39,29 @@ const createDictByName = (arr) => {
     return dict;
 };
 
-const runTest = async () => {
-    console.debug('Installing app …');
-    installApp('android');
-    console.debug('Reversing port (for connecting to testing server) …');
-    reversePort();
+const TEST_NAME = 'App start time';
 
-    console.debug('Starting test server and launching app …');
+const runTest = async () => {
+    let progressLog = Logger.progressInfo('Installing app');
+    await installApp('android');
+    progressLog.done();
+    Logger.log('Reversing port (for connecting to testing server) …');
+    await reversePort();
+
+    progressLog = Logger.progressInfo('Starting test server and launching app');
     const server = startTestingServer();
-    launchApp('android');
+    await launchApp('android');
+    progressLog.done();
+
+    progressLog = Logger.progressInfo(`Running test ${TEST_NAME}`);
 
     const startNewAppSession = async () => {
         // kill and restart the app for a new session
         server.clearSession();
-        killApp('android');
-        launchApp('android');
+        Logger.log('Killing app …');
+        await killApp('android');
+        Logger.log('Launching app …');
+        await launchApp('android');
         await server.waitForAppReady();
     };
 
@@ -61,12 +70,15 @@ const runTest = async () => {
 
     const results = [];
     for (let i = 0; i < RUNS; i++) {
+        progressLog.updateText(`Running test ${TEST_NAME} (iteration ${i + 1}/${RUNS})`);
         await startNewAppSession();
 
         const metrics = await server.getPerformanceMetrics();
         results.push(...metrics);
     }
+    progressLog.done();
 
+    progressLog = Logger.progressInfo(`Saving results of test ${TEST_NAME}`);
     const resultsDict = createDictByName(results);
 
     const ttiStats = math.getStats(resultsDict.TTI);
@@ -84,6 +96,7 @@ const runTest = async () => {
         name: 'App start time (Run JS bundle)',
         ...runJsBundle,
     });
+    progressLog.done();
 
     server.stopServer();
 };

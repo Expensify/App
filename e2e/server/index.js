@@ -3,6 +3,7 @@ const {WebSocketServer} = require('ws');
 
 const Commands = require('./commands');
 const {SERVER_PORT} = require('../config');
+const Logger = require('../utils/logger');
 
 const tryParseJSON = (jsonString) => {
     try {
@@ -50,7 +51,7 @@ const start = () => {
     };
 
     wss.on('connection', (socket) => {
-        console.debug('[SERVER]  A device connected');
+        Logger.log('[SERVER]  A device connected');
 
         socketInstance = socket;
         waitForSocketResolve();
@@ -72,14 +73,14 @@ const start = () => {
                 return;
             }
             cleanup();
-            console.debug(`[SERVER]  Received response for command: ${command}`);
+            Logger.log(`[SERVER]  Received response for command: ${command}`);
             resolve();
         });
     });
 
     const sendAndWaitForSuccess = async (command) => {
         await waitForSocketPromise;
-        console.debug(`[SERVER]  Sending command: ${command}`);
+        Logger.log(`[SERVER]  Sending command: ${command}`);
         socketInstance.send(command);
         return waitForSuccessResponse(command);
     };

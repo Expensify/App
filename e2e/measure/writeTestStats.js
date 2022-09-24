@@ -2,10 +2,7 @@
 const fs = require('fs/promises');
 const {existsSync} = require('fs');
 
-const {
-    OUTPUT_FILE_CURRENT,
-    OUTPUT_DIR,
-} = require('../config');
+const {OUTPUT_FILE_CURRENT} = require('../config');
 
 /**
  * @param {Object} stats
@@ -20,9 +17,6 @@ module.exports = async (stats) => {
         throw new Error('Invalid stats object');
     }
 
-    if (!existsSync(OUTPUT_DIR)) {
-        await fs.mkdir(OUTPUT_DIR);
-    }
     if (!existsSync(OUTPUT_FILE_CURRENT)) {
         await fs.writeFile(OUTPUT_FILE_CURRENT, '[]');
     }

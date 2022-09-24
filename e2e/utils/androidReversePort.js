@@ -1,6 +1,6 @@
-const {execSync} = require('node:child_process');
 const {SERVER_PORT} = require('../config');
+const execAsync = require('./execAsync');
 
 module.exports = function () {
-    execSync(`adb reverse tcp:${SERVER_PORT} tcp:${SERVER_PORT}`);
+    return execAsync(`adb reverse tcp:${SERVER_PORT} tcp:${SERVER_PORT}`);
 };

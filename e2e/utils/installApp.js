@@ -1,5 +1,5 @@
-const {execSync} = require('node:child_process');
 const {APP_PACKAGE} = require('../config');
+const execAsync = require('./execAsync');
 
 const APP_PATH_FROM_ROOT = 'android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk';
 
@@ -8,16 +8,17 @@ const APP_PATH_FROM_ROOT = 'android/app/build/outputs/apk/e2eRelease/app-e2eRele
  * It removes the app first if it already exists, so it's a clean installation.
  * @param {string} platform
  */
-module.exports = function (platform = 'android') {
+// eslint-disable-next-line @lwc/lwc/no-async-await
+module.exports = async function (platform = 'android') {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
 
     // uninstall first, then install
     try {
-        execSync(`adb uninstall ${APP_PACKAGE}`);
+        await execAsync(`adb uninstall ${APP_PACKAGE}`);
     } catch (e) {
         // ignored, the app might not be installed, which causes issues on some devices
     }
-    execSync(`adb install ${APP_PATH_FROM_ROOT}`);
+    return execAsync(`adb install ${APP_PATH_FROM_ROOT}`);
 };
