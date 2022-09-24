@@ -43,11 +43,42 @@ const Performance = {
     printPerformanceMetrics: () => {},
     markStart: () => {},
     markEnd: () => {},
+    measureTTI: () => {},
     traceRender: () => {},
     withRenderTrace: () => Component => Component,
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
+    let perfModuleInstance;
+    const getPerfModule = () => {
+        if (perfModuleInstance != null) {
+            return perfModuleInstance;
+        }
+        const perfModule = require('react-native-performance');
+        perfModule.setResourceLoggingEnabled(true);
+        perfModuleInstance = perfModule.default;
+        return perfModuleInstance;
+    };
+
+    /**
+     * Measures the TTI time. To be called when the app is considered to be interactive.
+     * @param {String} [endMark] Optional end mark name
+     */
+    Performance.measureTTI = (endMark) => {
+        // Make sure TTI is captured when the app is really usable
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                getPerfModule().measure('TTI', 'nativeLaunchStart', endMark);
+
+                if (E2E.isE2ETestSession()) {
+                    E2E.Client.markAppReady();
+                } else {
+                    Performance.printPerformanceMetrics();
+                }
+            });
+        });
+    };
+
     /**
      * Sets up an observer to capture events recorded in the native layer before the app fully initializes.
      */
@@ -55,12 +86,8 @@ if (Metrics.canCapturePerformanceMetrics()) {
         const performanceReported = require('react-native-performance-flipper-reporter');
         performanceReported.setupDefaultFlipperReporter();
 
-        const perfModule = require('react-native-performance');
-        perfModule.setResourceLoggingEnabled(true);
-        rnPerformance = perfModule.default;
-
         // Monitor some native marks that we want to put on the timeline
-        new perfModule.PerformanceObserver((list, observer) => {
+        new getPerfModule().PerformanceObserver((list, observer) => {
             list.getEntries()
                 .forEach((entry) => {
                     if (entry.name === 'nativeLaunchEnd') {
@@ -81,7 +108,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         }).observe({type: 'react-native-mark', buffered: true});
 
         // Monitor for "_end" marks and capture "_start" to "_end" measures
-        new perfModule.PerformanceObserver((list) => {
+        new getPerfModule().PerformanceObserver((list) => {
             list.getEntriesByType('mark')
                 .forEach((mark) => {
                     try {
@@ -94,18 +121,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
 
                         // Capture any custom measures or metrics below
                         if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                            // Make sure TTI is captured when the app is really usable
-                            InteractionManager.runAfterInteractions(() => {
-                                requestAnimationFrame(() => {
-                                    rnPerformance.measure('TTI', 'nativeLaunchStart', mark.name);
-
-                                    if (E2E.isE2ETestSession()) {
-                                        E2E.Client.markAppReady();
-                                    } else {
-                                        Performance.printPerformanceMetrics();
-                                    }
-                                });
-                            });
+                            Performance.measureTTI(mark.name);
                         }
                     } catch (error) {
                         // Sometimes there might be no start mark recorded and the measure will fail with an error
