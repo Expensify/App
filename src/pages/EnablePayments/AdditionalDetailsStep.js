@@ -270,7 +270,7 @@ class AdditionalDetailsStep extends React.Component {
         const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
 
         return (
-            <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('additionalDetailsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -371,7 +371,7 @@ class AdditionalDetailsStep extends React.Component {
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>
-            </ScreenWrapper>
+            </>
         );
     }
 }
