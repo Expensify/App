@@ -26,6 +26,7 @@ platform :android do
     )
   end
 
+  desc "Generate a new local APK"
   lane :build do
     ENV["ENVFILE"]=".env.production"
 
