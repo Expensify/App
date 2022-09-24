@@ -227,6 +227,7 @@ class BankAccountStep extends React.Component {
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <Form
                         formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                        validate={() => ({})}
                         onSubmit={this.addPlaidAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
