@@ -6,7 +6,7 @@ const printRegularLine = (entry) => {
 
 module.exports = (data) => {
     // No need to log errors or warnings as these were be logged on the fly
-
+    console.debug('');
     console.debug('❇️  Performance comparison results:');
 
     console.debug('\n➡️  Significant changes to duration');
