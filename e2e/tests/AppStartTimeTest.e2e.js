@@ -67,13 +67,22 @@ const runTest = async () => {
         results.push(...metrics);
     }
 
-    // TODO: do that for the other metrics as well
     const resultsDict = createDictByName(results);
-    const ttiStats = math.getStats(resultsDict.TTI);
 
+    const ttiStats = math.getStats(resultsDict.TTI);
     await writeTestStats({
         name: 'App start time (TTI)',
         ...ttiStats,
+    });
+    const nativeLaunch = math.getStats(resultsDict.nativeLaunch);
+    await writeTestStats({
+        name: 'App start time (Native launch)',
+        ...nativeLaunch,
+    });
+    const runJsBundle = math.getStats(resultsDict.runJsBundle);
+    await writeTestStats({
+        name: 'App start time (Run JS bundle)',
+        ...runJsBundle,
     });
 
     server.stopServer();
