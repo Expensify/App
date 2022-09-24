@@ -141,7 +141,7 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
 #if DEBUG
   return
-      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"e2e/reactNativeEntry"];
+      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"src/libs/E2E/reactNativeEntry"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main"
                                  withExtension:@"jsbundle"];
