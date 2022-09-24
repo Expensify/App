@@ -1,3 +1,4 @@
+/* eslint-disable @lwc/lwc/no-async-await */
 const {WebSocketServer} = require('ws');
 
 const Commands = require('./commands');
@@ -14,68 +15,104 @@ const tryParseJSON = (jsonString) => {
     }
 };
 
+const INTERACTION_TIMEOUT = 20_000;
+
+const withFailTimeout = (promise, name) => {
+    const timeoutId = setTimeout(() => {
+        throw new Error(`[${name}] Interaction timed out`);
+    }, INTERACTION_TIMEOUT);
+    return promise.finally(() => clearTimeout(timeoutId));
+};
+
 /**
  * Starts a new WebSocket server. Returns an object with functions
  * representing commands that can be sent to the client.
- * @returns {Promise<Object>}
+ * @returns {Object}
+ * @property {Function} waitForAppReady - Resolves when the app is ready
+ * @property {Function} login - Logs in a user
+ * @property {Function} logout - Logs out the current user
+ * @property {Function} getPerformanceMetrics - Returns an array of performance metrics
+ * @property {Function} stopServer - Stops the created testing server instance
  */
 const start = () => {
     const wss = new WebSocketServer({port: SERVER_PORT});
+    let socketInstance;
+    let waitForSocketResolve;
+    let waitForSocketPromise = new Promise((resolve) => {
+        waitForSocketResolve = resolve;
+    });
 
-    return new Promise((resolveStart) => {
-        wss.on('connection', (socket) => {
-            console.debug('[SERVER]  A device connected');
+    const clearSession = () => {
+        socketInstance = null;
+        waitForSocketPromise = new Promise((resolve) => {
+            waitForSocketResolve = resolve;
+        });
+    };
 
-            const newMessageListener = (callback) => {
-                const listener = (data) => {
-                    const strData = data.toString();
-                    const objData = tryParseJSON(strData);
-                    callback(objData, strData);
-                };
-                socket.addListener('message', listener);
-                return () => socket.removeListener('message', listener);
-            };
+    wss.on('connection', (socket) => {
+        console.debug('[SERVER]  A device connected');
 
-            const waitForSuccessResponse = command => new Promise((resolve) => {
-                const cleanup = newMessageListener((data) => {
-                    if (data == null || data.type !== 'status' || data.inputCommand !== command) {
-                        return;
-                    }
-                    cleanup();
-                    resolve();
-                });
-            });
+        socketInstance = socket;
+        waitForSocketResolve();
+    });
 
-            const sendAndWaitForSuccess = (command) => {
-                socket.send(command);
-                return waitForSuccessResponse(command);
-            };
+    const newMessageListener = (callback) => {
+        const listener = (data) => {
+            const strData = data.toString();
+            const objData = tryParseJSON(strData);
+            callback(objData, strData);
+        };
+        socketInstance.addListener('message', listener);
+        return () => socketInstance.removeListener('message', listener);
+    };
 
-            const getPerformanceMetrics = () => new Promise((resolve) => {
-                const cleanup = newMessageListener((data) => {
-                    if (data == null || data.type !== 'performance_metrics') {
-                        return;
-                    }
-                    if (data.metrics == null) {
-                        console.error('[SERVER]  Received performance metrics but no metrics were included!');
-                        return;
-                    }
-                    cleanup();
-                    resolve(data.metrics);
-                });
-                socket.send(Commands.REQUEST_PERFORMANCE_METRICS);
-            });
-
-            const server = {
-                login: () => sendAndWaitForSuccess(Commands.LOGIN),
-                logout: () => sendAndWaitForSuccess(Commands.LOGOUT),
-                waitForAppReady: () => sendAndWaitForSuccess(Commands.WAIT_FOR_APP_READY),
-                stopServer: () => wss.close(),
-                getPerformanceMetrics,
-            };
-            resolveStart(server);
+    const waitForSuccessResponse = command => new Promise((resolve) => {
+        const cleanup = newMessageListener((data) => {
+            if (data == null || data.type !== 'status' || data.inputCommand !== command) {
+                return;
+            }
+            cleanup();
+            console.debug(`[SERVER]  Received response for command: ${command}`);
+            resolve();
         });
     });
+
+    const sendAndWaitForSuccess = async (command) => {
+        await waitForSocketPromise;
+        console.debug(`[SERVER]  Sending command: ${command}`);
+        socketInstance.send(command);
+        return waitForSuccessResponse(command);
+    };
+
+    const getPerformanceMetrics = async () => {
+        await waitForSocketPromise;
+        return new Promise((resolve) => {
+            const cleanup = newMessageListener((data) => {
+                if (data == null || data.type !== 'performance_metrics') {
+                    return;
+                }
+                if (data.metrics == null) {
+                    console.error('[SERVER]  Received performance metrics but no metrics were included!');
+                    return;
+                }
+                cleanup();
+                resolve(data.metrics);
+            });
+            socketInstance.send(Commands.REQUEST_PERFORMANCE_METRICS);
+        });
+    };
+
+    return {
+        // command for app:
+        login: () => withFailTimeout(sendAndWaitForSuccess(Commands.LOGIN), Commands.LOGIN),
+        logout: () => withFailTimeout(sendAndWaitForSuccess(Commands.LOGOUT), Commands.LOGOUT),
+        waitForAppReady: () => withFailTimeout(sendAndWaitForSuccess(Commands.WAIT_FOR_APP_READY), Commands.WAIT_FOR_APP_READY),
+        getPerformanceMetrics: () => withFailTimeout(getPerformanceMetrics(), Commands.REQUEST_PERFORMANCE_METRICS),
+
+        // server interactions:
+        stopServer: () => wss.close(),
+        clearSession: () => clearSession(),
+    };
 };
 
 module.exports = start;
