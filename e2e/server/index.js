@@ -51,12 +51,13 @@ const start = () => {
                 return waitForSuccessResponse(command);
             };
 
-            // create commands that can be sent to the device
-            resolveStart({
+            const server = {
                 login: () => sendAndWaitForSuccess(Commands.LOGIN),
                 logout: () => sendAndWaitForSuccess(Commands.LOGOUT),
                 waitForAppReady: () => sendAndWaitForSuccess(Commands.WAIT_FOR_APP_READY),
-            });
+                stopServer: () => wss.close(),
+            };
+            resolveStart(server);
         });
     });
 };

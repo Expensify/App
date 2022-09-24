@@ -25,9 +25,12 @@ reversePort();
 console.debug('Starting test server and launching app …');
 launchApp('android');
 return startTestingServer().then((server) => {
+    // TODO: add fail-timeout if app never connects
     console.debug('Waiting for app to become ready …');
     return server.waitForAppReady().then(() => {
         console.debug('App is ready, test completed!');
+        server.stopServer();
+        process.exit(0);
     });
 });
 
