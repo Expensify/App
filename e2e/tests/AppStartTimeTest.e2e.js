@@ -60,7 +60,7 @@ const runTest = async () => {
     await server.login(); // TODO: provide user credentials here instead of client
 
     const results = [];
-    for (let i = 0; i <= RUNS; i++) {
+    for (let i = 0; i < RUNS; i++) {
         await startNewAppSession();
 
         const metrics = await server.getPerformanceMetrics();
