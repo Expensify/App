@@ -22,7 +22,7 @@ const PROBABILITY_CONSIDERED_SIGNIFICANT = 0.02;
  * This is additional filter, in addition to probability threshold above.
  * Too small duration difference might be result of measurement grain of 1 ms.
  */
-const DURATION_DIFF_THRESHOLD_SIGNIFICANT = 200;
+const DURATION_DIFF_THRESHOLD_SIGNIFICANT = 100;
 
 const loadFile = async (path) => {
     const data = await fs.readFile(path, 'utf8');
