@@ -4,6 +4,7 @@ const {
     DEFAULT_BASELINE_BRANCH,
     OUTPUT_DIR,
     OUTPUT_FILE_CURRENT,
+    LOG_FILE,
 } = require('./config');
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
@@ -35,19 +36,20 @@ try {
 }
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
+    // switch branch and install dependencies
     const progress = Logger.progressInfo(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
     await execAsync(`git switch ${branch}`);
+    progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
     await execAsync('npm i');
 
     // build app
     if (!args.includes('--skipBuild')) {
+        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
     }
-
-    // run tests
-    Logger.log('Running tests...');
     progress.done();
 
+    // run the tests
     for (const testFunction of TESTS) {
         await testFunction();
     }
@@ -60,15 +62,21 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
 const runTests = async () => {
     Logger.info('Running e2e tests');
 
-    // run tests on baseline branch
-    await runTestsOnBranch(baselineBranch, 'baseline');
+    try {
+        // run tests on baseline branch
+        await runTestsOnBranch(baselineBranch, 'baseline');
 
-    // run tests on current branch
-    await runTestsOnBranch('-', 'compare');
+        // run tests on current branch
+        await runTestsOnBranch('-', 'compare');
 
-    await compare();
+        await compare();
 
-    process.exit(0);
+        process.exit(0);
+    } catch (e) {
+        Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
+        require('node:child_process').execSync(`cat ${LOG_FILE}`);
+        process.exit(1);
+    }
 };
 
 runTests();
