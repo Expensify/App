@@ -49,15 +49,17 @@ const Performance = {
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
-    let perfModuleInstance;
-    const getPerfModule = () => {
-        if (perfModuleInstance != null) {
-            return perfModuleInstance;
+    const perfModule = require('react-native-performance');
+    perfModule.setResourceLoggingEnabled(true);
+    rnPerformance = perfModule.default;
+
+    const measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
+        try {
+            rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
+        } catch (error) {
+            // Sometimes there might be no start mark recorded and the measure will fail with an error
+            console.debug(error.message);
         }
-        const perfModule = require('react-native-performance');
-        perfModule.setResourceLoggingEnabled(true);
-        perfModuleInstance = perfModule.default;
-        return perfModuleInstance;
     };
 
     /**
@@ -87,7 +89,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         performanceReported.setupDefaultFlipperReporter();
 
         // Monitor some native marks that we want to put on the timeline
-        new getPerfModule().PerformanceObserver((list, observer) => {
+        new perfModule.PerformanceObserver((list, observer) => {
             list.getEntries()
                 .forEach((entry) => {
                     if (entry.name === 'nativeLaunchEnd') {
@@ -108,7 +110,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         }).observe({type: 'react-native-mark', buffered: true});
 
         // Monitor for "_end" marks and capture "_start" to "_end" measures
-        new getPerfModule().PerformanceObserver((list) => {
+        new perfModule.PerformanceObserver((list) => {
             list.getEntriesByType('mark')
                 .forEach((mark) => {
                     if (mark.name.endsWith('_end')) {
