@@ -45,6 +45,7 @@ const runTest = async () => {
     let progressLog = Logger.progressInfo('Installing app');
     await installApp('android');
     progressLog.done();
+
     Logger.log('Reversing port (for connecting to testing server) …');
     await reversePort();
 
