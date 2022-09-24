@@ -13,11 +13,45 @@
 //   - Get TTI values
 // - Run the test procedures X times (X = 5)
 
+const _ = require('underscore');
 const installApp = require('./utils/installApp');
 const launchApp = require('./utils/launchApp');
 const killApp = require('./utils/killApp');
 const reversePort = require('./utils/androidReversePort');
 const startTestingServer = require('./../server');
+
+const RUNS = 10;
+const DROP_WORST = 1;
+
+const createDictByName = (arr) => {
+    const dict = {};
+    arr.forEach((item) => {
+        dict[item.name] = (dict[item.name] || []).concat(item);
+    });
+    return dict;
+};
+const sortAndClean = (entries) => {
+    // Drop the worst measurements outliers (usually warm up runs)
+    entries.sort((first, second) => second - first); // DESC
+    return entries.slice(DROP_WORST);
+};
+const mean = arr => _.reduce(arr, (a, b) => a + b, 0) / arr.length;
+const std = (arr) => {
+    const avg = mean(arr);
+    return Math.sqrt(_.reduce(_.map(arr, i => (i - avg) ** 2), (a, b) => a + b) / arr.length);
+};
+const getStats = (entries) => {
+    const durations = _.map(entries, entry => entry.duration);
+    const cleanedDurations = sortAndClean(durations);
+    const meanDuration = mean(cleanedDurations);
+    const stdevDuration = std(cleanedDurations);
+
+    return {
+        mean: meanDuration,
+        stdev: stdevDuration,
+        runs: cleanedDurations.length,
+    };
+};
 
 const runTest = async () => {
     console.debug('Installing app …');
@@ -39,20 +73,19 @@ const runTest = async () => {
 
     await server.waitForAppReady();
     await server.login(); // TODO: provide user credentials here instead of client
-    // (warmup) after login restart the app once before
-    // starting tests, to make sure all data is loaded
-    await startNewAppSession();
 
-    const sampleSize = 5;
     const results = [];
-    for (let i = 0; i < sampleSize; i++) {
+    for (let i = 0; i < RUNS; i++) {
         await startNewAppSession();
 
         const metrics = await server.getPerformanceMetrics();
         results.push(...metrics);
     }
 
-    console.debug('Results:', results);
+    const resultsDict = createDictByName(results);
+    const ttiStats = getStats(resultsDict.TTI);
+
+    console.debug('TTI stats:', ttiStats);
 
     server.stopServer();
     process.exit(0);
