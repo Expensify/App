@@ -24,13 +24,20 @@ reversePort();
 
 console.debug('Starting test server and launching app …');
 launchApp('android');
-return startTestingServer().then((server) => {
+
+startTestingServer().then((server) => {
     // TODO: add fail-timeout if app never connects
     console.debug('Waiting for app to become ready …');
-    return server.waitForAppReady().then(() => {
-        console.debug('App is ready, test completed!');
-        server.stopServer();
-        process.exit(0);
+    server.waitForAppReady().then(() => {
+        console.debug('App became ready');
+
+        console.debug('Requesting performance metrics …');
+        server.getPerformanceMetrics().then((metrics) => {
+            console.debug('Performance metrics:', metrics);
+
+            server.stopServer();
+            process.exit(0);
+        });
     });
 });
 

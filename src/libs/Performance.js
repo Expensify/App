@@ -135,7 +135,6 @@ if (Metrics.canCapturePerformanceMetrics()) {
         ...rnPerformance.getEntriesByName('TTI'),
     ])
         .filter(entry => entry.duration > 0)
-        .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
         .value();
 
     /**
@@ -143,9 +142,11 @@ if (Metrics.canCapturePerformanceMetrics()) {
      */
     Performance.printPerformanceMetrics = () => {
         const stats = Performance.getPerformanceMetrics();
+        const statsAsText = _.map(stats, entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
+            .join('\n');
 
         if (stats.length > 0) {
-            Alert.alert('Performance', stats.join('\n'));
+            Alert.alert('Performance', statsAsText);
         }
     };
 

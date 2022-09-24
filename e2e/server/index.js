@@ -51,11 +51,27 @@ const start = () => {
                 return waitForSuccessResponse(command);
             };
 
+            const getPerformanceMetrics = () => new Promise((resolve) => {
+                const cleanup = newMessageListener((data) => {
+                    if (data == null || data.type !== 'performance_metrics') {
+                        return;
+                    }
+                    if (data.metrics == null) {
+                        console.error('[SERVER]  Received performance metrics but no metrics were included!');
+                        return;
+                    }
+                    cleanup();
+                    resolve(data.metrics);
+                });
+                socket.send(Commands.REQUEST_PERFORMANCE_METRICS);
+            });
+
             const server = {
                 login: () => sendAndWaitForSuccess(Commands.LOGIN),
                 logout: () => sendAndWaitForSuccess(Commands.LOGOUT),
                 waitForAppReady: () => sendAndWaitForSuccess(Commands.WAIT_FOR_APP_READY),
                 stopServer: () => wss.close(),
+                getPerformanceMetrics,
             };
             resolveStart(server);
         });
