@@ -57,18 +57,27 @@ if (Metrics.canCapturePerformanceMetrics()) {
         perfModule.setResourceLoggingEnabled(true);
         rnPerformance = perfModule.default;
 
+        const measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
+            try {
+                rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
+            } catch (error) {
+                // Sometimes there might be no start mark recorded and the measure will fail with an error
+                console.debug(error.message);
+            }
+        };
+
         // Monitor some native marks that we want to put on the timeline
         new perfModule.PerformanceObserver((list, observer) => {
             list.getEntries()
                 .forEach((entry) => {
                     if (entry.name === 'nativeLaunchEnd') {
-                        rnPerformance.measure('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
+                        measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
                     }
                     if (entry.name === 'downloadEnd') {
-                        rnPerformance.measure('jsBundleDownload', 'downloadStart', 'downloadEnd');
+                        measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
                     }
                     if (entry.name === 'runJsBundleEnd') {
-                        rnPerformance.measure('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+                        measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
                     }
 
                     // We don't need to keep the observer past this point
@@ -82,27 +91,22 @@ if (Metrics.canCapturePerformanceMetrics()) {
         new perfModule.PerformanceObserver((list) => {
             list.getEntriesByType('mark')
                 .forEach((mark) => {
-                    try {
-                        if (mark.name.endsWith('_end')) {
-                            const end = mark.name;
-                            const name = end.replace(/_end$/, '');
-                            const start = `${name}_start`;
-                            rnPerformance.measure(name, start, end);
-                        }
+                    if (mark.name.endsWith('_end')) {
+                        const end = mark.name;
+                        const name = end.replace(/_end$/, '');
+                        const start = `${name}_start`;
+                        measureFailSafe(name, start, end);
+                    }
 
-                        // Capture any custom measures or metrics below
-                        if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                            // Make sure TTI is captured when the app is really usable
-                            InteractionManager.runAfterInteractions(() => {
-                                requestAnimationFrame(() => {
-                                    rnPerformance.measure('TTI', 'nativeLaunchStart', mark.name);
-                                    Performance.printPerformanceMetrics();
-                                });
+                    // Capture any custom measures or metrics below
+                    if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                        // Make sure TTI is captured when the app is really usable
+                        InteractionManager.runAfterInteractions(() => {
+                            requestAnimationFrame(() => {
+                                measureFailSafe('TTI', 'nativeLaunchStart', mark.name);
+                                Performance.printPerformanceMetrics();
                             });
-                        }
-                    } catch (error) {
-                        // Sometimes there might be no start mark recorded and the measure will fail with an error
-                        console.debug(error.message);
+                        });
                     }
                 });
         }).observe({type: 'mark', buffered: true});
@@ -122,7 +126,9 @@ if (Metrics.canCapturePerformanceMetrics()) {
             .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
             .value();
 
-        Alert.alert('Performance', stats.join('\n'));
+        if (stats.length > 0) {
+            Alert.alert('Performance', stats.join('\n'));
+        }
     };
 
     /**
