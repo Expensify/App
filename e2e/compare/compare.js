@@ -17,12 +17,12 @@ const PROBABILITY_CONSIDERED_SIGNIFICANT = 0.02;
 
 /**
  * Duration threshold (in ms) for treating given difference as significant.
- * // TODO: for different scenarios this must have different values i feel
+ * // TODO: for different scenarios this must have different values i feel (its currently fine tuned for tti)
  *
  * This is additional filter, in addition to probability threshold above.
  * Too small duration difference might be result of measurement grain of 1 ms.
  */
-const DURATION_DIFF_THRESHOLD_SIGNIFICANT = 100;
+const DURATION_DIFF_THRESHOLD_SIGNIFICANT = 50;
 
 const loadFile = async (path) => {
     const data = await fs.readFile(path, 'utf8');
