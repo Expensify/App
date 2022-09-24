@@ -6,6 +6,7 @@ const {
     DEFAULT_BASELINE_BRANCH,
     OUTPUT_DIR,
 } = require('./config');
+const compare = require('./compare/compare');
 
 /**
  * The test runner takes care of running the e2e tests.
@@ -56,10 +57,8 @@ const runTests = async () => {
     // run tests on baseline branch
     await runTestsOnBranch(baselineBranch, 'baseline');
 
-    // run tests on current branch
-    await runTestsOnBranch('-', 'compare');
+    await compare();
 
-    // TODO: calculate the compare of the two test runs and output the results
     process.exit(0);
 };
 
