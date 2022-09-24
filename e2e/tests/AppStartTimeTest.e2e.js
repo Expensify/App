@@ -19,38 +19,22 @@ const launchApp = require('./utils/launchApp');
 const killApp = require('./utils/killApp');
 const reversePort = require('./utils/androidReversePort');
 const startTestingServer = require('./../server');
-
-const RUNS = 10;
-const DROP_WORST = 1;
+const {RUNS} = require('../config');
+const math = require('./measure/math');
 
 const createDictByName = (arr) => {
     const dict = {};
+
+    // for each measurement took, add it to the dict
     arr.forEach((item) => {
         dict[item.name] = (dict[item.name] || []).concat(item);
     });
-    return dict;
-};
-const sortAndClean = (entries) => {
-    // Drop the worst measurements outliers (usually warm up runs)
-    entries.sort((first, second) => second - first); // DESC
-    return entries.slice(DROP_WORST);
-};
-const mean = arr => _.reduce(arr, (a, b) => a + b, 0) / arr.length;
-const std = (arr) => {
-    const avg = mean(arr);
-    return Math.sqrt(_.reduce(_.map(arr, i => (i - avg) ** 2), (a, b) => a + b) / arr.length);
-};
-const getStats = (entries) => {
-    const durations = _.map(entries, entry => entry.duration);
-    const cleanedDurations = sortAndClean(durations);
-    const meanDuration = mean(cleanedDurations);
-    const stdevDuration = std(cleanedDurations);
 
-    return {
-        mean: meanDuration,
-        stdev: stdevDuration,
-        runs: cleanedDurations.length,
-    };
+    // extract property "duration" from objects to get an array of numbers
+    _.keys(dict).forEach((key) => {
+        dict[key] = _.map(dict[key], item => item.duration);
+    });
+    return dict;
 };
 
 const runTest = async () => {
@@ -83,7 +67,7 @@ const runTest = async () => {
     }
 
     const resultsDict = createDictByName(results);
-    const ttiStats = getStats(resultsDict.TTI);
+    const ttiStats = math.getStats(resultsDict.TTI);
 
     console.debug('TTI stats:', ttiStats);
 
