@@ -29,18 +29,24 @@ const runTest = async () => {
     const server = startTestingServer();
     launchApp('android');
 
-    await server.waitForAppReady();
-
-    await server.login(); // TODO: provide user credentials here instead of client
-
-    const sampleSize = 5;
-    const results = [];
-    for (let i = 0; i < sampleSize; i++) {
+    const startNewAppSession = async () => {
         // kill and restart the app for a new session
         server.clearSession();
         killApp('android');
         launchApp('android');
         await server.waitForAppReady();
+    };
+
+    await server.waitForAppReady();
+    await server.login(); // TODO: provide user credentials here instead of client
+    // (warmup) after login restart the app once before
+    // starting tests, to make sure all data is loaded
+    await startNewAppSession();
+
+    const sampleSize = 5;
+    const results = [];
+    for (let i = 0; i < sampleSize; i++) {
+        await startNewAppSession();
 
         const metrics = await server.getPerformanceMetrics();
         results.push(...metrics);
