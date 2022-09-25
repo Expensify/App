@@ -30,8 +30,13 @@ import CONST from '../src/CONST';
  *          };
  *
  *          if (emoji.skin_tones) {
- *              emojiRow.types = skinTones.map(skinTone =>
- *                  String.fromCodePoint(parseInt(getEmojiUnicode(emoji.emoji), 16), parseInt(skinTone, 16)));
+ *              const emojiUnicode = trimEmojiUnicode(getEmojiUnicode(emoji.emoji)).split(' ').map(p => parseInt(p, 16));
+ *              if(emojiUnicode.length > 0) {
+ *                  emojiUnicode.splice(1, 0, parseInt(skinTone, 16));
+ *              } else {
+ *                  emojiUnicode.push(parseInt(skinTone, 16));
+ *              }
+ *              return String.fromCodePoint(...emojiUnicode);
  *          }
  *          emojisList.push(emojiRow);
  *     }
