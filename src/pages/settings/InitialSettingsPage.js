@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
+import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
@@ -96,6 +97,20 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+/**
+ * Dismisses the errors on one item
+ *
+ * @param {string} policyID
+ * @param {string} pendingAction
+ */
+function dismissWorkspaceError(policyID, pendingAction) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        Policy.clearDeleteWorkspaceError(policyID);
+        return;
+    }
+    throw new Error('Not implemented');
+}
+
 class InitialSettingsPage extends React.Component {
     constructor(props) {
         super(props);
@@ -181,6 +196,9 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
+                errors: policy.errors,
+                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
@@ -194,7 +212,13 @@ class InitialSettingsPage extends React.Component {
 
         if (item.isPolicy) {
             return (
-                <OfflineWithFeedback key={`${keyTitle}_${index}`} pendingAction={item.pendingAction}>
+                <OfflineWithFeedback
+                    key={`${keyTitle}_${index}`}
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                >
                     <MenuItem
                         title={keyTitle}
                         icon={item.icon}
@@ -206,6 +230,7 @@ class InitialSettingsPage extends React.Component {
                         badgeText={this.getWalletBalance(isPaymentItem)}
                         fallbackIcon={item.fallbackIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
+                        disabled={item.disabled}
                     />
                 </OfflineWithFeedback>
             );

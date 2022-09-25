@@ -3,7 +3,6 @@ import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './withFullPolicy';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -38,12 +37,10 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
-    ...fullPolicyDefaultProps,
 };
 
 class WorkspaceNewRoomPage extends React.Component {
@@ -155,6 +152,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             policyID={this.state.policyID}
                             errorText={this.state.errors.roomName}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
+                            value={this.state.roomName}
                         />
                     </View>
                     <View style={styles.mb5}>
@@ -197,7 +195,6 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 
 export default compose(
-    withFullPolicy,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
