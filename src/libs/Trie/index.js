@@ -11,13 +11,13 @@ class Trie {
     * @param {String} word
     * @param {Object} [metaData] - attach additional data to the word
     * @param {TrieNode} newNode
-    * @param {Boolean} [containChar] - empty word doesn't have any char
+    * @param {Boolean} [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
     * @returns {void}
     */
-    add(word, metaData, newNode = this.root, containChar = false) {
+    add(word, metaData, newNode = this.root, allowEmptyWords = false) {
         const node = newNode;
-        if (word.length === 0 && !containChar) {
-            throw new Error('Cannot insert empty word into Trie :', word);
+        if (word.length === 0 && !allowEmptyWords) {
+            throw new Error('Cannot insert empty word into Trie');
         }
         if (word.length === 0) {
             node.setCompleteWord();
@@ -34,7 +34,7 @@ class Trie {
     /**
     * Check if the word is exist in the Trie.
     * @param {String} newWord
-    * @returns {Object}
+    * @returns {Object|null} – the node for the word if it's found, or null if it's not found
     */
     isWord(newWord) {
         let word = newWord;
