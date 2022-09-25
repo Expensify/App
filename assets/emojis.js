@@ -60,5759 +60,5759 @@ const skinTones = [{
 }];
 
 const emojis = [{
-	"code": "smileysAndEmotion",
-	"header": true
+	code: "smileysAndEmotion",
+	header: true
 }, {
-	"code": "😀",
+	code: "😀",
 	"keywords": ["smile", "happy", "grinning", "face", "grin"]
 }, {
-	"code": "😃",
+	code: "😃",
 	"keywords": ["happy", "joy", "haha", "smiley", "face", "mouth", "open", "smile"]
 }, {
-	"code": "😄",
+	code: "😄",
 	"keywords": ["happy", "joy", "laugh", "pleased", "smile", "eye", "face", "mouth", "open"]
 }, {
-	"code": "😁",
+	code: "😁",
 	"keywords": ["grin", "eye", "face", "smile"]
 }, {
-	"code": "😆",
+	code: "😆",
 	"keywords": ["happy", "haha", "laughing", "satisfied", "face", "laugh", "mouth", "open", "smile"]
 }, {
-	"code": "😅",
+	code: "😅",
 	"keywords": ["hot", "sweat_smile", "cold", "face", "open", "smile", "sweat"]
 }, {
-	"code": "🤣",
+	code: "🤣",
 	"keywords": ["lol", "laughing", "rofl", "face", "floor", "laugh", "rolling"]
 }, {
-	"code": "😂",
+	code: "😂",
 	"keywords": ["tears", "joy", "face", "laugh", "tear"]
 }, {
-	"code": "🙂",
+	code: "🙂",
 	"keywords": ["slightly_smiling_face", "face", "smile"]
 }, {
-	"code": "🙃",
+	code: "🙃",
 	"keywords": ["upside_down_face", "face", "upside-down"]
 }, {
-	"code": "😉",
+	code: "😉",
 	"keywords": ["flirt", "wink", "face"]
 }, {
-	"code": "😊",
+	code: "😊",
 	"keywords": ["proud", "blush", "eye", "face", "smile"]
 }, {
-	"code": "😇",
+	code: "😇",
 	"keywords": ["angel", "innocent", "face", "fairy tale", "fantasy", "halo", "smile"]
 }, {
-	"code": "🥰",
+	code: "🥰",
 	"keywords": ["love", "smiling_face_with_three_hearts"]
 }, {
-	"code": "😍",
+	code: "😍",
 	"keywords": ["love", "crush", "heart_eyes", "eye", "face", "heart", "smile"]
 }, {
-	"code": "🤩",
+	code: "🤩",
 	"keywords": ["eyes", "star_struck"]
 }, {
-	"code": "😘",
+	code: "😘",
 	"keywords": ["flirt", "kissing_heart", "face", "heart", "kiss"]
 }, {
-	"code": "😗",
+	code: "😗",
 	"keywords": ["kissing", "face", "kiss"]
 }, {
-	"code": "☺️",
+	code: "☺️",
 	"keywords": ["blush", "pleased", "relaxed"]
 }, {
-	"code": "😚",
+	code: "😚",
 	"keywords": ["kissing_closed_eyes", "closed", "eye", "face", "kiss"]
 }, {
-	"code": "😙",
+	code: "😙",
 	"keywords": ["kissing_smiling_eyes", "eye", "face", "kiss", "smile"]
 }, {
-	"code": "🥲",
+	code: "🥲",
 	"keywords": ["smiling_face_with_tear"]
 }, {
-	"code": "😋",
+	code: "😋",
 	"keywords": ["tongue", "lick", "yum", "delicious", "face", "savouring", "smile", "um"]
 }, {
-	"code": "😛",
+	code: "😛",
 	"keywords": ["stuck_out_tongue", "face", "tongue"]
 }, {
-	"code": "😜",
+	code: "😜",
 	"keywords": ["prank", "silly", "stuck_out_tongue_winking_eye", "eye", "face", "joke", "tongue", "wink"]
 }, {
-	"code": "🤪",
+	code: "🤪",
 	"keywords": ["goofy", "wacky", "zany_face"]
 }, {
-	"code": "😝",
+	code: "😝",
 	"keywords": ["prank", "stuck_out_tongue_closed_eyes", "eye", "face", "horrible", "taste", "tongue"]
 }, {
-	"code": "🤑",
+	code: "🤑",
 	"keywords": ["rich", "money_mouth_face", "face", "money", "mouth"]
 }, {
-	"code": "🤗",
+	code: "🤗",
 	"keywords": ["hugs", "face", "hug", "hugging"]
 }, {
-	"code": "🤭",
+	code: "🤭",
 	"keywords": ["quiet", "whoops", "hand_over_mouth"]
 }, {
-	"code": "🤫",
+	code: "🤫",
 	"keywords": ["silence", "quiet", "shushing_face"]
 }, {
-	"code": "🤔",
+	code: "🤔",
 	"keywords": ["thinking", "face"]
 }, {
-	"code": "🤐",
+	code: "🤐",
 	"keywords": ["silence", "hush", "zipper_mouth_face", "face", "mouth", "zipper"]
 }, {
-	"code": "🤨",
+	code: "🤨",
 	"keywords": ["suspicious", "raised_eyebrow"]
 }, {
-	"code": "😐",
+	code: "😐",
 	"keywords": ["meh", "neutral_face", "deadpan", "face", "neutral"]
 }, {
-	"code": "😑",
+	code: "😑",
 	"keywords": ["expressionless", "face", "inexpressive", "unexpressive"]
 }, {
-	"code": "😶",
+	code: "😶",
 	"keywords": ["mute", "silence", "no_mouth", "face", "mouth", "quiet", "silent"]
 }, {
-	"code": "😶‍🌫️",
+	code: "😶‍🌫️",
 	"keywords": ["face_in_clouds"]
 }, {
-	"code": "😏",
+	code: "😏",
 	"keywords": ["smug", "smirk", "face"]
 }, {
-	"code": "😒",
+	code: "😒",
 	"keywords": ["meh", "unamused", "face", "unhappy"]
 }, {
-	"code": "🙄",
+	code: "🙄",
 	"keywords": ["roll_eyes", "eyes", "face", "rolling"]
 }, {
-	"code": "😬",
+	code: "😬",
 	"keywords": ["grimacing", "face", "grimace"]
 }, {
-	"code": "😮‍💨",
+	code: "😮‍💨",
 	"keywords": ["face_exhaling"]
 }, {
-	"code": "🤥",
+	code: "🤥",
 	"keywords": ["liar", "lying_face", "face", "lie", "pinocchio"]
 }, {
-	"code": "😌",
+	code: "😌",
 	"keywords": ["whew", "relieved", "face"]
 }, {
-	"code": "😔",
+	code: "😔",
 	"keywords": ["pensive", "dejected", "face"]
 }, {
-	"code": "😪",
+	code: "😪",
 	"keywords": ["tired", "sleepy", "face", "sleep"]
 }, {
-	"code": "🤤",
+	code: "🤤",
 	"keywords": ["drooling_face", "drooling", "face"]
 }, {
-	"code": "😴",
+	code: "😴",
 	"keywords": ["zzz", "sleeping", "face", "sleep"]
 }, {
-	"code": "😷",
+	code: "😷",
 	"keywords": ["sick", "ill", "mask", "cold", "doctor", "face", "medicine"]
 }, {
-	"code": "🤒",
+	code: "🤒",
 	"keywords": ["sick", "face_with_thermometer", "face", "ill", "thermometer"]
 }, {
-	"code": "🤕",
+	code: "🤕",
 	"keywords": ["hurt", "face_with_head_bandage", "bandage", "face", "injury"]
 }, {
-	"code": "🤢",
+	code: "🤢",
 	"keywords": ["sick", "barf", "disgusted", "nauseated_face", "face", "nauseated", "vomit"]
 }, {
-	"code": "🤮",
+	code: "🤮",
 	"keywords": ["barf", "sick", "vomiting_face"]
 }, {
-	"code": "🤧",
+	code: "🤧",
 	"keywords": ["achoo", "sick", "sneezing_face", "face", "gesundheit", "sneeze"]
 }, {
-	"code": "🥵",
+	code: "🥵",
 	"keywords": ["heat", "sweating", "hot_face"]
 }, {
-	"code": "🥶",
+	code: "🥶",
 	"keywords": ["freezing", "ice", "cold_face"]
 }, {
-	"code": "🥴",
+	code: "🥴",
 	"keywords": ["groggy", "woozy_face"]
 }, {
-	"code": "😵",
+	code: "😵",
 	"keywords": ["dizzy_face", "dizzy", "face"]
 }, {
-	"code": "😵‍💫",
+	code: "😵‍💫",
 	"keywords": ["face_with_spiral_eyes"]
 }, {
-	"code": "🤯",
+	code: "🤯",
 	"keywords": ["mind", "blown", "exploding_head"]
 }, {
-	"code": "🤠",
+	code: "🤠",
 	"keywords": ["cowboy_hat_face", "cowboy", "cowgirl", "face", "hat"]
 }, {
-	"code": "🥳",
+	code: "🥳",
 	"keywords": ["celebration", "birthday", "partying_face"]
 }, {
-	"code": "🥸",
+	code: "🥸",
 	"keywords": ["disguised_face"]
 }, {
-	"code": "😎",
+	code: "😎",
 	"keywords": ["cool", "sunglasses", "bright", "eye", "eyewear", "face", "glasses", "smile", "sun", "weather"]
 }, {
-	"code": "🤓",
+	code: "🤓",
 	"keywords": ["geek", "glasses", "nerd_face", "face", "nerd"]
 }, {
-	"code": "🧐",
+	code: "🧐",
 	"keywords": ["monocle_face"]
 }, {
-	"code": "😕",
+	code: "😕",
 	"keywords": ["confused", "face"]
 }, {
-	"code": "😟",
+	code: "😟",
 	"keywords": ["nervous", "worried", "face"]
 }, {
-	"code": "🙁",
+	code: "🙁",
 	"keywords": ["slightly_frowning_face", "face", "frown"]
 }, {
-	"code": "☹️",
+	code: "☹️",
 	"keywords": ["frowning_face"]
 }, {
-	"code": "😮",
+	code: "😮",
 	"keywords": ["surprise", "impressed", "wow", "open_mouth", "face", "mouth", "open", "sympathy"]
 }, {
-	"code": "😯",
+	code: "😯",
 	"keywords": ["silence", "speechless", "hushed", "face", "stunned", "surprised"]
 }, {
-	"code": "😲",
+	code: "😲",
 	"keywords": ["amazed", "gasp", "astonished", "face", "shocked", "totally"]
 }, {
-	"code": "😳",
+	code: "😳",
 	"keywords": ["flushed", "dazed", "face"]
 }, {
-	"code": "🥺",
+	code: "🥺",
 	"keywords": ["puppy", "eyes", "pleading_face"]
 }, {
-	"code": "😦",
+	code: "😦",
 	"keywords": ["frowning", "face", "frown", "mouth", "open"]
 }, {
-	"code": "😧",
+	code: "😧",
 	"keywords": ["stunned", "anguished", "face"]
 }, {
-	"code": "😨",
+	code: "😨",
 	"keywords": ["scared", "shocked", "oops", "fearful", "face", "fear"]
 }, {
-	"code": "😰",
+	code: "😰",
 	"keywords": ["nervous", "cold_sweat", "blue", "cold", "face", "mouth", "open", "rushed", "sweat"]
 }, {
-	"code": "😥",
+	code: "😥",
 	"keywords": ["phew", "sweat", "nervous", "disappointed_relieved", "disappointed", "face", "relieved", "whew"]
 }, {
-	"code": "😢",
+	code: "😢",
 	"keywords": ["sad", "tear", "cry", "face"]
 }, {
-	"code": "😭",
+	code: "😭",
 	"keywords": ["sad", "cry", "bawling", "sob", "face", "tear"]
 }, {
-	"code": "😱",
+	code: "😱",
 	"keywords": ["horror", "shocked", "scream", "face", "fear", "fearful", "munch", "scared"]
 }, {
-	"code": "😖",
+	code: "😖",
 	"keywords": ["confounded", "face"]
 }, {
-	"code": "😣",
+	code: "😣",
 	"keywords": ["struggling", "persevere", "face"]
 }, {
-	"code": "😞",
+	code: "😞",
 	"keywords": ["sad", "disappointed", "face"]
 }, {
-	"code": "😓",
+	code: "😓",
 	"keywords": ["sweat", "cold", "face"]
 }, {
-	"code": "😩",
+	code: "😩",
 	"keywords": ["tired", "weary", "face"]
 }, {
-	"code": "😫",
+	code: "😫",
 	"keywords": ["upset", "whine", "tired_face", "face", "tired"]
 }, {
-	"code": "🥱",
+	code: "🥱",
 	"keywords": ["yawning_face"]
 }, {
-	"code": "😤",
+	code: "😤",
 	"keywords": ["smug", "triumph", "face", "won"]
 }, {
-	"code": "😡",
+	code: "😡",
 	"keywords": ["angry", "rage", "pout", "face", "mad", "pouting", "red"]
 }, {
-	"code": "😠",
+	code: "😠",
 	"keywords": ["mad", "annoyed", "angry", "face"]
 }, {
-	"code": "🤬",
+	code: "🤬",
 	"keywords": ["foul", "cursing_face"]
 }, {
-	"code": "😈",
+	code: "😈",
 	"keywords": ["devil", "evil", "horns", "smiling_imp", "face", "fairy tale", "fantasy", "smile"]
 }, {
-	"code": "👿",
+	code: "👿",
 	"keywords": ["angry", "devil", "evil", "horns", "imp", "demon", "face", "fairy tale", "fantasy"]
 }, {
-	"code": "💀",
+	code: "💀",
 	"keywords": ["dead", "danger", "poison", "skull", "body", "death", "face", "fairy tale", "monster"]
 }, {
-	"code": "☠️",
+	code: "☠️",
 	"keywords": ["danger", "pirate", "skull_and_crossbones", "body", "crossbones", "death", "face", "monster", "skull"]
 }, {
-	"code": "💩",
+	code: "💩",
 	"keywords": ["crap", "hankey", "poop", "shit", "comic", "dung", "face", "monster", "poo"]
 }, {
-	"code": "🤡",
+	code: "🤡",
 	"keywords": ["clown_face", "clown", "face"]
 }, {
-	"code": "👹",
+	code: "👹",
 	"keywords": ["monster", "japanese_ogre", "creature", "face", "fairy tale", "fantasy", "japanese", "ogre"]
 }, {
-	"code": "👺",
+	code: "👺",
 	"keywords": ["japanese_goblin", "creature", "face", "fairy tale", "fantasy", "goblin", "japanese", "monster"]
 }, {
-	"code": "👻",
+	code: "👻",
 	"keywords": ["halloween", "ghost", "creature", "face", "fairy tale", "fantasy", "monster"]
 }, {
-	"code": "👽",
+	code: "👽",
 	"keywords": ["ufo", "alien", "creature", "extraterrestrial", "face", "fairy tale", "fantasy", "monster", "space"]
 }, {
-	"code": "👾",
+	code: "👾",
 	"keywords": ["game", "retro", "space_invader", "alien", "creature", "extraterrestrial", "face", "fairy tale", "fantasy", "monster", "space", "ufo"]
 }, {
-	"code": "🤖",
+	code: "🤖",
 	"keywords": ["robot", "face", "monster"]
 }, {
-	"code": "😺",
+	code: "😺",
 	"keywords": ["smiley_cat", "cat", "face", "mouth", "open", "smile"]
 }, {
-	"code": "😸",
+	code: "😸",
 	"keywords": ["smile_cat", "cat", "eye", "face", "grin", "smile"]
 }, {
-	"code": "😹",
+	code: "😹",
 	"keywords": ["joy_cat", "cat", "face", "joy", "tear"]
 }, {
-	"code": "😻",
+	code: "😻",
 	"keywords": ["heart_eyes_cat", "cat", "eye", "face", "heart", "love", "smile"]
 }, {
-	"code": "😼",
+	code: "😼",
 	"keywords": ["smirk_cat", "cat", "face", "ironic", "smile", "wry"]
 }, {
-	"code": "😽",
+	code: "😽",
 	"keywords": ["kissing_cat", "cat", "eye", "face", "kiss"]
 }, {
-	"code": "🙀",
+	code: "🙀",
 	"keywords": ["horror", "scream_cat", "cat", "face", "oh", "surprised", "weary"]
 }, {
-	"code": "😿",
+	code: "😿",
 	"keywords": ["sad", "tear", "crying_cat_face", "cat", "cry", "face"]
 }, {
-	"code": "😾",
+	code: "😾",
 	"keywords": ["pouting_cat", "cat", "face", "pouting"]
 }, {
-	"code": "🙈",
+	code: "🙈",
 	"keywords": ["monkey", "blind", "ignore", "see_no_evil", "evil", "face", "forbidden", "gesture", "no", "not", "prohibited", "see"]
 }, {
-	"code": "🙉",
+	code: "🙉",
 	"keywords": ["monkey", "deaf", "hear_no_evil", "evil", "face", "forbidden", "gesture", "hear", "no", "not", "prohibited"]
 }, {
-	"code": "🙊",
+	code: "🙊",
 	"keywords": ["monkey", "mute", "hush", "speak_no_evil", "evil", "face", "forbidden", "gesture", "no", "not", "prohibited", "speak"]
 }, {
-	"code": "💋",
+	code: "💋",
 	"keywords": ["lipstick", "kiss", "heart", "lips", "mark", "romance"]
 }, {
-	"code": "💌",
+	code: "💌",
 	"keywords": ["email", "envelope", "love_letter", "heart", "letter", "love", "mail", "romance"]
 }, {
-	"code": "💘",
+	code: "💘",
 	"keywords": ["love", "heart", "cupid", "arrow", "romance"]
 }, {
-	"code": "💝",
+	code: "💝",
 	"keywords": ["chocolates", "gift_heart", "heart", "ribbon", "valentine"]
 }, {
-	"code": "💖",
+	code: "💖",
 	"keywords": ["sparkling_heart", "excited", "heart", "sparkle"]
 }, {
-	"code": "💗",
+	code: "💗",
 	"keywords": ["heartpulse", "excited", "growing", "heart", "nervous"]
 }, {
-	"code": "💓",
+	code: "💓",
 	"keywords": ["heartbeat", "beating", "heart", "pulsating"]
 }, {
-	"code": "💞",
+	code: "💞",
 	"keywords": ["revolving_hearts", "heart", "revolving"]
 }, {
-	"code": "💕",
+	code: "💕",
 	"keywords": ["two_hearts", "heart", "love"]
 }, {
-	"code": "💟",
+	code: "💟",
 	"keywords": ["heart_decoration", "heart"]
 }, {
-	"code": "❣️",
+	code: "❣️",
 	"keywords": ["heavy_heart_exclamation", "exclamation", "heart", "mark", "punctuation"]
 }, {
-	"code": "💔",
+	code: "💔",
 	"keywords": ["broken_heart", "break", "broken", "heart"]
 }, {
-	"code": "❤️‍🔥",
+	code: "❤️‍🔥",
 	"keywords": ["heart_on_fire"]
 }, {
-	"code": "❤️‍🩹",
+	code: "❤️‍🩹",
 	"keywords": ["mending_heart"]
 }, {
-	"code": "❤️",
+	code: "❤️",
 	"keywords": ["love", "heart"]
 }, {
-	"code": "🧡",
+	code: "🧡",
 	"keywords": ["orange_heart"]
 }, {
-	"code": "💛",
+	code: "💛",
 	"keywords": ["yellow_heart", "heart", "yellow"]
 }, {
-	"code": "💚",
+	code: "💚",
 	"keywords": ["green_heart", "green", "heart"]
 }, {
-	"code": "💙",
+	code: "💙",
 	"keywords": ["blue_heart", "blue", "heart"]
 }, {
-	"code": "💜",
+	code: "💜",
 	"keywords": ["purple_heart", "heart", "purple"]
 }, {
-	"code": "🤎",
+	code: "🤎",
 	"keywords": ["brown_heart"]
 }, {
-	"code": "🖤",
+	code: "🖤",
 	"keywords": ["black_heart", "black", "evil", "heart", "wicked"]
 }, {
-	"code": "🤍",
+	code: "🤍",
 	"keywords": ["white_heart"]
 }, {
-	"code": "💯",
+	code: "💯",
 	"keywords": ["score", "perfect", "100", "full", "hundred"]
 }, {
-	"code": "💢",
+	code: "💢",
 	"keywords": ["angry", "anger", "comic", "mad"]
 }, {
-	"code": "💥",
+	code: "💥",
 	"keywords": ["explode", "boom", "collision", "comic"]
 }, {
-	"code": "💫",
+	code: "💫",
 	"keywords": ["star", "dizzy", "comic"]
 }, {
-	"code": "💦",
+	code: "💦",
 	"keywords": ["water", "workout", "sweat_drops", "comic", "splashing", "sweat"]
 }, {
-	"code": "💨",
+	code: "💨",
 	"keywords": ["wind", "blow", "fast", "dash", "comic", "running"]
 }, {
-	"code": "🕳️",
+	code: "🕳️",
 	"keywords": ["hole"]
 }, {
-	"code": "💣",
+	code: "💣",
 	"keywords": ["boom", "bomb", "comic"]
 }, {
-	"code": "💬",
+	code: "💬",
 	"keywords": ["comment", "speech_balloon", "balloon", "bubble", "comic", "dialog", "speech"]
 }, {
-	"code": "👁️‍🗨️",
+	code: "👁️‍🗨️",
 	"keywords": ["eye_speech_bubble"]
 }, {
-	"code": "🗨️",
+	code: "🗨️",
 	"keywords": ["left_speech_bubble"]
 }, {
-	"code": "🗯️",
+	code: "🗯️",
 	"keywords": ["right_anger_bubble"]
 }, {
-	"code": "💭",
+	code: "💭",
 	"keywords": ["thinking", "thought_balloon", "balloon", "bubble", "comic", "thought"]
 }, {
-	"code": "💤",
+	code: "💤",
 	"keywords": ["sleeping", "zzz", "comic", "sleep"]
 }, {
-	"code": "peopleAndBody",
-	"header": true
+	code: "peopleAndBody",
+	header: true
 }, {
-	"code": "👋",
+	code: "👋",
 	"keywords": ["goodbye", "wave", "body", "hand", "waving"],
 	"types": ["👋🏻", "👋🏼", "👋🏽", "👋🏾", "👋🏿"]
 }, {
-	"code": "🤚",
+	code: "🤚",
 	"keywords": ["raised_back_of_hand", "backhand", "raised"],
 	"types": ["🤚🏻", "🤚🏼", "🤚🏽", "🤚🏾", "🤚🏿"]
 }, {
-	"code": "🖐️",
+	code: "🖐️",
 	"keywords": ["raised_hand_with_fingers_splayed"],
 	"types": ["🖐🏻", "🖐🏼", "🖐🏽", "🖐🏾", "🖐🏿"]
 }, {
-	"code": "✋",
+	code: "✋",
 	"keywords": ["highfive", "stop", "hand", "raised_hand", "body"],
 	"types": ["✋🏻", "✋🏼", "✋🏽", "✋🏾", "✋🏿"]
 }, {
-	"code": "🖖",
+	code: "🖖",
 	"keywords": ["prosper", "spock", "vulcan_salute", "body", "finger", "hand", "vulcan"],
 	"types": ["🖖🏻", "🖖🏼", "🖖🏽", "🖖🏾", "🖖🏿"]
 }, {
-	"code": "👌",
+	code: "👌",
 	"keywords": ["ok_hand", "body", "hand", "ok"],
 	"types": ["👌🏻", "👌🏼", "👌🏽", "👌🏾", "👌🏿"]
 }, {
-	"code": "🤌",
+	code: "🤌",
 	"keywords": ["pinched_fingers"],
 	"types": ["🤌🏻", "🤌🏼", "🤌🏽", "🤌🏾", "🤌🏿"]
 }, {
-	"code": "🤏",
+	code: "🤏",
 	"keywords": ["pinching_hand"],
 	"types": ["🤏🏻", "🤏🏼", "🤏🏽", "🤏🏾", "🤏🏿"]
 }, {
-	"code": "✌️",
+	code: "✌️",
 	"keywords": ["victory", "peace", "v"],
 	"types": ["✌🏻", "✌🏼", "✌🏽", "✌🏾", "✌🏿"]
 }, {
-	"code": "🤞",
+	code: "🤞",
 	"keywords": ["luck", "hopeful", "crossed_fingers", "cross", "finger", "hand"],
 	"types": ["🤞🏻", "🤞🏼", "🤞🏽", "🤞🏾", "🤞🏿"]
 }, {
-	"code": "🤟",
+	code: "🤟",
 	"keywords": ["love_you_gesture"],
 	"types": ["🤟🏻", "🤟🏼", "🤟🏽", "🤟🏾", "🤟🏿"]
 }, {
-	"code": "🤘",
+	code: "🤘",
 	"keywords": ["metal", "body", "finger", "hand", "horns", "rock-on"],
 	"types": ["🤘🏻", "🤘🏼", "🤘🏽", "🤘🏾", "🤘🏿"]
 }, {
-	"code": "🤙",
+	code: "🤙",
 	"keywords": ["call_me_hand", "call", "hand"],
 	"types": ["🤙🏻", "🤙🏼", "🤙🏽", "🤙🏾", "🤙🏿"]
 }, {
-	"code": "👈",
+	code: "👈",
 	"keywords": ["point_left", "backhand", "body", "finger", "hand", "index", "point"],
 	"types": ["👈🏻", "👈🏼", "👈🏽", "👈🏾", "👈🏿"]
 }, {
-	"code": "👉",
+	code: "👉",
 	"keywords": ["point_right", "backhand", "body", "finger", "hand", "index", "point"],
 	"types": ["👉🏻", "👉🏼", "👉🏽", "👉🏾", "👉🏿"]
 }, {
-	"code": "👆",
+	code: "👆",
 	"keywords": ["point_up_2", "backhand", "body", "finger", "hand", "index", "point", "up"],
 	"types": ["👆🏻", "👆🏼", "👆🏽", "👆🏾", "👆🏿"]
 }, {
-	"code": "🖕",
+	code: "🖕",
 	"keywords": ["middle_finger", "fu", "body", "finger", "hand", "middle finger"],
 	"types": ["🖕🏻", "🖕🏼", "🖕🏽", "🖕🏾", "🖕🏿"]
 }, {
-	"code": "👇",
+	code: "👇",
 	"keywords": ["point_down", "backhand", "body", "down", "finger", "hand", "index", "point"],
 	"types": ["👇🏻", "👇🏼", "👇🏽", "👇🏾", "👇🏿"]
 }, {
-	"code": "☝️",
+	code: "☝️",
 	"keywords": ["point_up"],
 	"types": ["☝🏻", "☝🏼", "☝🏽", "☝🏾", "☝🏿"]
 }, {
-	"code": "👍",
+	code: "👍",
 	"keywords": ["approve", "ok", "+1", "thumbsup", "body", "hand", "thumb", "thumbs up", "up"],
 	"types": ["👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿"]
 }, {
-	"code": "👎",
+	code: "👎",
 	"keywords": ["disapprove", "bury", "-1", "thumbsdown", "body", "down", "hand", "thumb", "thumbs down"],
 	"types": ["👎🏻", "👎🏼", "👎🏽", "👎🏾", "👎🏿"]
 }, {
-	"code": "✊",
+	code: "✊",
 	"keywords": ["power", "fist_raised", "fist", "body", "clenched", "hand", "punch"],
 	"types": ["✊🏻", "✊🏼", "✊🏽", "✊🏾", "✊🏿"]
 }, {
-	"code": "👊",
+	code: "👊",
 	"keywords": ["attack", "fist_oncoming", "facepunch", "punch", "body", "clenched", "fist", "hand"],
 	"types": ["👊🏻", "👊🏼", "👊🏽", "👊🏾", "👊🏿"]
 }, {
-	"code": "🤛",
+	code: "🤛",
 	"keywords": ["fist_left", "fist", "leftwards"],
 	"types": ["🤛🏻", "🤛🏼", "🤛🏽", "🤛🏾", "🤛🏿"]
 }, {
-	"code": "🤜",
+	code: "🤜",
 	"keywords": ["fist_right", "fist", "rightwards"],
 	"types": ["🤜🏻", "🤜🏼", "🤜🏽", "🤜🏾", "🤜🏿"]
 }, {
-	"code": "👏",
+	code: "👏",
 	"keywords": ["praise", "applause", "clap", "body", "hand"],
 	"types": ["👏🏻", "👏🏼", "👏🏽", "👏🏾", "👏🏿"]
 }, {
-	"code": "🙌",
+	code: "🙌",
 	"keywords": ["hooray", "raised_hands", "body", "celebration", "gesture", "hand", "raised"],
 	"types": ["🙌🏻", "🙌🏼", "🙌🏽", "🙌🏾", "🙌🏿"]
 }, {
-	"code": "👐",
+	code: "👐",
 	"keywords": ["open_hands", "body", "hand", "open"],
 	"types": ["👐🏻", "👐🏼", "👐🏽", "👐🏾", "👐🏿"]
 }, {
-	"code": "🤲",
+	code: "🤲",
 	"keywords": ["palms_up_together"],
 	"types": ["🤲🏻", "🤲🏼", "🤲🏽", "🤲🏾", "🤲🏿"]
 }, {
-	"code": "🤝",
+	code: "🤝",
 	"keywords": ["deal", "handshake", "agreement", "hand", "meeting", "shake"]
 }, {
-	"code": "🙏",
+	code: "🙏",
 	"keywords": ["please", "hope", "wish", "pray", "ask", "body", "bow", "folded", "gesture", "hand", "thanks"],
 	"types": ["🙏🏻", "🙏🏼", "🙏🏽", "🙏🏾", "🙏🏿"]
 }, {
-	"code": "✍️",
+	code: "✍️",
 	"keywords": ["writing_hand"],
 	"types": ["✍🏻", "✍🏼", "✍🏽", "✍🏾", "✍🏿"]
 }, {
-	"code": "💅",
+	code: "💅",
 	"keywords": ["beauty", "manicure", "nail_care", "body", "care", "cosmetics", "nail", "polish"],
 	"types": ["💅🏻", "💅🏼", "💅🏽", "💅🏾", "💅🏿"]
 }, {
-	"code": "🤳",
+	code: "🤳",
 	"keywords": ["selfie", "camera", "phone"],
 	"types": ["🤳🏻", "🤳🏼", "🤳🏽", "🤳🏾", "🤳🏿"]
 }, {
-	"code": "💪",
+	code: "💪",
 	"keywords": ["flex", "bicep", "strong", "workout", "muscle", "biceps", "body", "comic"],
 	"types": ["💪🏻", "💪🏼", "💪🏽", "💪🏾", "💪🏿"]
 }, {
-	"code": "🦾",
+	code: "🦾",
 	"keywords": ["mechanical_arm"]
 }, {
-	"code": "🦿",
+	code: "🦿",
 	"keywords": ["mechanical_leg"]
 }, {
-	"code": "🦵",
+	code: "🦵",
 	"keywords": ["leg"],
 	"types": ["🦵🏻", "🦵🏼", "🦵🏽", "🦵🏾", "🦵🏿"]
 }, {
-	"code": "🦶",
+	code: "🦶",
 	"keywords": ["foot"],
 	"types": ["🦶🏻", "🦶🏼", "🦶🏽", "🦶🏾", "🦶🏿"]
 }, {
-	"code": "👂",
+	code: "👂",
 	"keywords": ["hear", "sound", "listen", "ear", "body"],
 	"types": ["👂🏻", "👂🏼", "👂🏽", "👂🏾", "👂🏿"]
 }, {
-	"code": "🦻",
+	code: "🦻",
 	"keywords": ["ear_with_hearing_aid"],
 	"types": ["🦻🏻", "🦻🏼", "🦻🏽", "🦻🏾", "🦻🏿"]
 }, {
-	"code": "👃",
+	code: "👃",
 	"keywords": ["smell", "nose", "body"],
 	"types": ["👃🏻", "👃🏼", "👃🏽", "👃🏾", "👃🏿"]
 }, {
-	"code": "🧠",
+	code: "🧠",
 	"keywords": ["brain"]
 }, {
-	"code": "🫀",
+	code: "🫀",
 	"keywords": ["anatomical_heart"]
 }, {
-	"code": "🫁",
+	code: "🫁",
 	"keywords": ["lungs"]
 }, {
-	"code": "🦷",
+	code: "🦷",
 	"keywords": ["tooth"]
 }, {
-	"code": "🦴",
+	code: "🦴",
 	"keywords": ["bone"]
 }, {
-	"code": "👀",
+	code: "👀",
 	"keywords": ["look", "see", "watch", "eyes", "body", "eye", "face"]
 }, {
-	"code": "👁️",
+	code: "👁️",
 	"keywords": ["eye"]
 }, {
-	"code": "👅",
+	code: "👅",
 	"keywords": ["taste", "tongue", "body"]
 }, {
-	"code": "👄",
+	code: "👄",
 	"keywords": ["kiss", "lips", "body", "mouth"]
 }, {
-	"code": "👶",
+	code: "👶",
 	"keywords": ["child", "newborn", "baby"],
 	"types": ["👶🏻", "👶🏼", "👶🏽", "👶🏾", "👶🏿"]
 }, {
-	"code": "🧒",
+	code: "🧒",
 	"keywords": ["child"],
 	"types": ["🧒🏻", "🧒🏼", "🧒🏽", "🧒🏾", "🧒🏿"]
 }, {
-	"code": "👦",
+	code: "👦",
 	"keywords": ["child", "boy"],
 	"types": ["👦🏻", "👦🏼", "👦🏽", "👦🏾", "👦🏿"]
 }, {
-	"code": "👧",
+	code: "👧",
 	"keywords": ["child", "girl", "maiden", "virgin", "virgo", "zodiac"],
 	"types": ["👧🏻", "👧🏼", "👧🏽", "👧🏾", "👧🏿"]
 }, {
-	"code": "🧑",
+	code: "🧑",
 	"keywords": ["adult"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👱",
+	code: "👱",
 	"keywords": ["blond_haired_person", "blond"],
 	"types": ["👱🏻", "👱🏼", "👱🏽", "👱🏾", "👱🏿"]
 }, {
-	"code": "👨",
+	code: "👨",
 	"keywords": ["mustache", "father", "dad", "man"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "🧔",
+	code: "🧔",
 	"keywords": ["bearded_person"],
 	"types": ["🧔🏻", "🧔🏼", "🧔🏽", "🧔🏾", "🧔🏿"]
 }, {
-	"code": "🧔‍♂️",
+	code: "🧔‍♂️",
 	"keywords": ["man_beard"],
 	"types": ["🧔🏻", "🧔🏼", "🧔🏽", "🧔🏾", "🧔🏿"]
 }, {
-	"code": "🧔‍♀️",
+	code: "🧔‍♀️",
 	"keywords": ["woman_beard"],
 	"types": ["🧔🏻", "🧔🏼", "🧔🏽", "🧔🏾", "🧔🏿"]
 }, {
-	"code": "👨‍🦰",
+	code: "👨‍🦰",
 	"keywords": ["red_haired_man"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👨‍🦱",
+	code: "👨‍🦱",
 	"keywords": ["curly_haired_man"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👨‍🦳",
+	code: "👨‍🦳",
 	"keywords": ["white_haired_man"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👨‍🦲",
+	code: "👨‍🦲",
 	"keywords": ["bald_man"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩",
+	code: "👩",
 	"keywords": ["girls", "woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "👩‍🦰",
+	code: "👩‍🦰",
 	"keywords": ["red_haired_woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🦰",
+	code: "🧑‍🦰",
 	"keywords": ["person_red_hair"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👩‍🦱",
+	code: "👩‍🦱",
 	"keywords": ["curly_haired_woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🦱",
+	code: "🧑‍🦱",
 	"keywords": ["person_curly_hair"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👩‍🦳",
+	code: "👩‍🦳",
 	"keywords": ["white_haired_woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🦳",
+	code: "🧑‍🦳",
 	"keywords": ["person_white_hair"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👩‍🦲",
+	code: "👩‍🦲",
 	"keywords": ["bald_woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🦲",
+	code: "🧑‍🦲",
 	"keywords": ["person_bald"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👱‍♀️",
+	code: "👱‍♀️",
 	"keywords": ["blond_haired_woman", "blonde_woman"],
 	"types": ["👱🏻", "👱🏼", "👱🏽", "👱🏾", "👱🏿"]
 }, {
-	"code": "👱‍♂️",
+	code: "👱‍♂️",
 	"keywords": ["blond_haired_man"],
 	"types": ["👱🏻", "👱🏼", "👱🏽", "👱🏾", "👱🏿"]
 }, {
-	"code": "🧓",
+	code: "🧓",
 	"keywords": ["older_adult"],
 	"types": ["🧓🏻", "🧓🏼", "🧓🏽", "🧓🏾", "🧓🏿"]
 }, {
-	"code": "👴",
+	code: "👴",
 	"keywords": ["older_man", "man", "old"],
 	"types": ["👴🏻", "👴🏼", "👴🏽", "👴🏾", "👴🏿"]
 }, {
-	"code": "👵",
+	code: "👵",
 	"keywords": ["older_woman", "old", "woman"],
 	"types": ["👵🏻", "👵🏼", "👵🏽", "👵🏾", "👵🏿"]
 }, {
-	"code": "🙍",
+	code: "🙍",
 	"keywords": ["frowning_person", "frown", "gesture"],
 	"types": ["🙍🏻", "🙍🏼", "🙍🏽", "🙍🏾", "🙍🏿"]
 }, {
-	"code": "🙍‍♂️",
+	code: "🙍‍♂️",
 	"keywords": ["frowning_man"],
 	"types": ["🙍🏻", "🙍🏼", "🙍🏽", "🙍🏾", "🙍🏿"]
 }, {
-	"code": "🙍‍♀️",
+	code: "🙍‍♀️",
 	"keywords": ["frowning_woman"],
 	"types": ["🙍🏻", "🙍🏼", "🙍🏽", "🙍🏾", "🙍🏿"]
 }, {
-	"code": "🙎",
+	code: "🙎",
 	"keywords": ["pouting_face", "gesture", "pouting"],
 	"types": ["🙎🏻", "🙎🏼", "🙎🏽", "🙎🏾", "🙎🏿"]
 }, {
-	"code": "🙎‍♂️",
+	code: "🙎‍♂️",
 	"keywords": ["pouting_man"],
 	"types": ["🙎🏻", "🙎🏼", "🙎🏽", "🙎🏾", "🙎🏿"]
 }, {
-	"code": "🙎‍♀️",
+	code: "🙎‍♀️",
 	"keywords": ["pouting_woman"],
 	"types": ["🙎🏻", "🙎🏼", "🙎🏽", "🙎🏾", "🙎🏿"]
 }, {
-	"code": "🙅",
+	code: "🙅",
 	"keywords": ["stop", "halt", "denied", "no_good", "forbidden", "gesture", "hand", "no", "not", "prohibited"],
 	"types": ["🙅🏻", "🙅🏼", "🙅🏽", "🙅🏾", "🙅🏿"]
 }, {
-	"code": "🙅‍♂️",
+	code: "🙅‍♂️",
 	"keywords": ["stop", "halt", "denied", "no_good_man", "ng_man"],
 	"types": ["🙅🏻", "🙅🏼", "🙅🏽", "🙅🏾", "🙅🏿"]
 }, {
-	"code": "🙅‍♀️",
+	code: "🙅‍♀️",
 	"keywords": ["stop", "halt", "denied", "no_good_woman", "ng_woman"],
 	"types": ["🙅🏻", "🙅🏼", "🙅🏽", "🙅🏾", "🙅🏿"]
 }, {
-	"code": "🙆",
+	code: "🙆",
 	"keywords": ["ok_person", "gesture", "hand", "ok"],
 	"types": ["🙆🏻", "🙆🏼", "🙆🏽", "🙆🏾", "🙆🏿"]
 }, {
-	"code": "🙆‍♂️",
+	code: "🙆‍♂️",
 	"keywords": ["ok_man"],
 	"types": ["🙆🏻", "🙆🏼", "🙆🏽", "🙆🏾", "🙆🏿"]
 }, {
-	"code": "🙆‍♀️",
+	code: "🙆‍♀️",
 	"keywords": ["ok_woman"],
 	"types": ["🙆🏻", "🙆🏼", "🙆🏽", "🙆🏾", "🙆🏿"]
 }, {
-	"code": "💁",
+	code: "💁",
 	"keywords": ["tipping_hand_person", "information_desk_person", "hand", "help", "information", "sassy"],
 	"types": ["💁🏻", "💁🏼", "💁🏽", "💁🏾", "💁🏿"]
 }, {
-	"code": "💁‍♂️",
+	code: "💁‍♂️",
 	"keywords": ["information", "tipping_hand_man", "sassy_man"],
 	"types": ["💁🏻", "💁🏼", "💁🏽", "💁🏾", "💁🏿"]
 }, {
-	"code": "💁‍♀️",
+	code: "💁‍♀️",
 	"keywords": ["information", "tipping_hand_woman", "sassy_woman"],
 	"types": ["💁🏻", "💁🏼", "💁🏽", "💁🏾", "💁🏿"]
 }, {
-	"code": "🙋",
+	code: "🙋",
 	"keywords": ["raising_hand", "gesture", "hand", "happy", "raised"],
 	"types": ["🙋🏻", "🙋🏼", "🙋🏽", "🙋🏾", "🙋🏿"]
 }, {
-	"code": "🙋‍♂️",
+	code: "🙋‍♂️",
 	"keywords": ["raising_hand_man"],
 	"types": ["🙋🏻", "🙋🏼", "🙋🏽", "🙋🏾", "🙋🏿"]
 }, {
-	"code": "🙋‍♀️",
+	code: "🙋‍♀️",
 	"keywords": ["raising_hand_woman"],
 	"types": ["🙋🏻", "🙋🏼", "🙋🏽", "🙋🏾", "🙋🏿"]
 }, {
-	"code": "🧏",
+	code: "🧏",
 	"keywords": ["deaf_person"],
 	"types": ["🧏🏻", "🧏🏼", "🧏🏽", "🧏🏾", "🧏🏿"]
 }, {
-	"code": "🧏‍♂️",
+	code: "🧏‍♂️",
 	"keywords": ["deaf_man"],
 	"types": ["🧏🏻", "🧏🏼", "🧏🏽", "🧏🏾", "🧏🏿"]
 }, {
-	"code": "🧏‍♀️",
+	code: "🧏‍♀️",
 	"keywords": ["deaf_woman"],
 	"types": ["🧏🏻", "🧏🏼", "🧏🏽", "🧏🏾", "🧏🏿"]
 }, {
-	"code": "🙇",
+	code: "🙇",
 	"keywords": ["respect", "thanks", "bow", "apology", "gesture", "sorry"],
 	"types": ["🙇🏻", "🙇🏼", "🙇🏽", "🙇🏾", "🙇🏿"]
 }, {
-	"code": "🙇‍♂️",
+	code: "🙇‍♂️",
 	"keywords": ["respect", "thanks", "bowing_man"],
 	"types": ["🙇🏻", "🙇🏼", "🙇🏽", "🙇🏾", "🙇🏿"]
 }, {
-	"code": "🙇‍♀️",
+	code: "🙇‍♀️",
 	"keywords": ["respect", "thanks", "bowing_woman"],
 	"types": ["🙇🏻", "🙇🏼", "🙇🏽", "🙇🏾", "🙇🏿"]
 }, {
-	"code": "🤦",
+	code: "🤦",
 	"keywords": ["facepalm", "disbelief", "exasperation", "face", "palm"],
 	"types": ["🤦🏻", "🤦🏼", "🤦🏽", "🤦🏾", "🤦🏿"]
 }, {
-	"code": "🤦‍♂️",
+	code: "🤦‍♂️",
 	"keywords": ["man_facepalming"],
 	"types": ["🤦🏻", "🤦🏼", "🤦🏽", "🤦🏾", "🤦🏿"]
 }, {
-	"code": "🤦‍♀️",
+	code: "🤦‍♀️",
 	"keywords": ["woman_facepalming"],
 	"types": ["🤦🏻", "🤦🏼", "🤦🏽", "🤦🏾", "🤦🏿"]
 }, {
-	"code": "🤷",
+	code: "🤷",
 	"keywords": ["shrug", "doubt", "ignorance", "indifference"],
 	"types": ["🤷🏻", "🤷🏼", "🤷🏽", "🤷🏾", "🤷🏿"]
 }, {
-	"code": "🤷‍♂️",
+	code: "🤷‍♂️",
 	"keywords": ["man_shrugging"],
 	"types": ["🤷🏻", "🤷🏼", "🤷🏽", "🤷🏾", "🤷🏿"]
 }, {
-	"code": "🤷‍♀️",
+	code: "🤷‍♀️",
 	"keywords": ["woman_shrugging"],
 	"types": ["🤷🏻", "🤷🏼", "🤷🏽", "🤷🏾", "🤷🏿"]
 }, {
-	"code": "🧑‍⚕️",
+	code: "🧑‍⚕️",
 	"keywords": ["health_worker"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍⚕️",
+	code: "👨‍⚕️",
 	"keywords": ["doctor", "nurse", "man_health_worker"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍⚕️",
+	code: "👩‍⚕️",
 	"keywords": ["doctor", "nurse", "woman_health_worker"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🎓",
+	code: "🧑‍🎓",
 	"keywords": ["student"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🎓",
+	code: "👨‍🎓",
 	"keywords": ["graduation", "man_student"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🎓",
+	code: "👩‍🎓",
 	"keywords": ["graduation", "woman_student"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🏫",
+	code: "🧑‍🏫",
 	"keywords": ["teacher"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🏫",
+	code: "👨‍🏫",
 	"keywords": ["school", "professor", "man_teacher"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🏫",
+	code: "👩‍🏫",
 	"keywords": ["school", "professor", "woman_teacher"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍⚖️",
+	code: "🧑‍⚖️",
 	"keywords": ["judge"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍⚖️",
+	code: "👨‍⚖️",
 	"keywords": ["justice", "man_judge"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍⚖️",
+	code: "👩‍⚖️",
 	"keywords": ["justice", "woman_judge"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🌾",
+	code: "🧑‍🌾",
 	"keywords": ["farmer"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🌾",
+	code: "👨‍🌾",
 	"keywords": ["man_farmer"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🌾",
+	code: "👩‍🌾",
 	"keywords": ["woman_farmer"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🍳",
+	code: "🧑‍🍳",
 	"keywords": ["cook"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🍳",
+	code: "👨‍🍳",
 	"keywords": ["chef", "man_cook"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🍳",
+	code: "👩‍🍳",
 	"keywords": ["chef", "woman_cook"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🔧",
+	code: "🧑‍🔧",
 	"keywords": ["mechanic"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🔧",
+	code: "👨‍🔧",
 	"keywords": ["man_mechanic"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🔧",
+	code: "👩‍🔧",
 	"keywords": ["woman_mechanic"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🏭",
+	code: "🧑‍🏭",
 	"keywords": ["factory_worker"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🏭",
+	code: "👨‍🏭",
 	"keywords": ["man_factory_worker"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🏭",
+	code: "👩‍🏭",
 	"keywords": ["woman_factory_worker"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍💼",
+	code: "🧑‍💼",
 	"keywords": ["office_worker"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍💼",
+	code: "👨‍💼",
 	"keywords": ["business", "man_office_worker"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍💼",
+	code: "👩‍💼",
 	"keywords": ["business", "woman_office_worker"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🔬",
+	code: "🧑‍🔬",
 	"keywords": ["scientist"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🔬",
+	code: "👨‍🔬",
 	"keywords": ["research", "man_scientist"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🔬",
+	code: "👩‍🔬",
 	"keywords": ["research", "woman_scientist"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍💻",
+	code: "🧑‍💻",
 	"keywords": ["technologist"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍💻",
+	code: "👨‍💻",
 	"keywords": ["coder", "man_technologist"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍💻",
+	code: "👩‍💻",
 	"keywords": ["coder", "woman_technologist"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🎤",
+	code: "🧑‍🎤",
 	"keywords": ["singer"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🎤",
+	code: "👨‍🎤",
 	"keywords": ["rockstar", "man_singer"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🎤",
+	code: "👩‍🎤",
 	"keywords": ["rockstar", "woman_singer"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🎨",
+	code: "🧑‍🎨",
 	"keywords": ["artist"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🎨",
+	code: "👨‍🎨",
 	"keywords": ["painter", "man_artist"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🎨",
+	code: "👩‍🎨",
 	"keywords": ["painter", "woman_artist"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍✈️",
+	code: "🧑‍✈️",
 	"keywords": ["pilot"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍✈️",
+	code: "👨‍✈️",
 	"keywords": ["man_pilot"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍✈️",
+	code: "👩‍✈️",
 	"keywords": ["woman_pilot"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🚀",
+	code: "🧑‍🚀",
 	"keywords": ["astronaut"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🚀",
+	code: "👨‍🚀",
 	"keywords": ["space", "man_astronaut"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🚀",
+	code: "👩‍🚀",
 	"keywords": ["space", "woman_astronaut"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🚒",
+	code: "🧑‍🚒",
 	"keywords": ["firefighter"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🚒",
+	code: "👨‍🚒",
 	"keywords": ["man_firefighter"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🚒",
+	code: "👩‍🚒",
 	"keywords": ["woman_firefighter"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "👮",
+	code: "👮",
 	"keywords": ["law", "police_officer", "cop", "officer", "police"],
 	"types": ["👮🏻", "👮🏼", "👮🏽", "👮🏾", "👮🏿"]
 }, {
-	"code": "👮‍♂️",
+	code: "👮‍♂️",
 	"keywords": ["law", "cop", "policeman"],
 	"types": ["👮🏻", "👮🏼", "👮🏽", "👮🏾", "👮🏿"]
 }, {
-	"code": "👮‍♀️",
+	code: "👮‍♀️",
 	"keywords": ["law", "cop", "policewoman"],
 	"types": ["👮🏻", "👮🏼", "👮🏽", "👮🏾", "👮🏿"]
 }, {
-	"code": "🕵️",
+	code: "🕵️",
 	"keywords": ["sleuth", "detective"],
 	"types": ["🕵🏻", "🕵🏼", "🕵🏽", "🕵🏾", "🕵🏿"]
 }, {
-	"code": "🕵️‍♂️",
+	code: "🕵️‍♂️",
 	"keywords": ["sleuth", "male_detective"],
 	"types": ["🕵🏻", "🕵🏼", "🕵🏽", "🕵🏾", "🕵🏿"]
 }, {
-	"code": "🕵️‍♀️",
+	code: "🕵️‍♀️",
 	"keywords": ["sleuth", "female_detective"],
 	"types": ["🕵🏻", "🕵🏼", "🕵🏽", "🕵🏾", "🕵🏿"]
 }, {
-	"code": "💂",
+	code: "💂",
 	"keywords": ["guard", "guardsman"],
 	"types": ["💂🏻", "💂🏼", "💂🏽", "💂🏾", "💂🏿"]
 }, {
-	"code": "💂‍♂️",
+	code: "💂‍♂️",
 	"keywords": ["guardsman"],
 	"types": ["💂🏻", "💂🏼", "💂🏽", "💂🏾", "💂🏿"]
 }, {
-	"code": "💂‍♀️",
+	code: "💂‍♀️",
 	"keywords": ["guardswoman"],
 	"types": ["💂🏻", "💂🏼", "💂🏽", "💂🏾", "💂🏿"]
 }, {
-	"code": "🥷",
+	code: "🥷",
 	"keywords": ["ninja"],
 	"types": ["🥷🏻", "🥷🏼", "🥷🏽", "🥷🏾", "🥷🏿"]
 }, {
-	"code": "👷",
+	code: "👷",
 	"keywords": ["helmet", "construction_worker", "construction", "hat", "worker"],
 	"types": ["👷🏻", "👷🏼", "👷🏽", "👷🏾", "👷🏿"]
 }, {
-	"code": "👷‍♂️",
+	code: "👷‍♂️",
 	"keywords": ["helmet", "construction_worker_man"],
 	"types": ["👷🏻", "👷🏼", "👷🏽", "👷🏾", "👷🏿"]
 }, {
-	"code": "👷‍♀️",
+	code: "👷‍♀️",
 	"keywords": ["helmet", "construction_worker_woman"],
 	"types": ["👷🏻", "👷🏼", "👷🏽", "👷🏾", "👷🏿"]
 }, {
-	"code": "🤴",
+	code: "🤴",
 	"keywords": ["crown", "royal", "prince"],
 	"types": ["🤴🏻", "🤴🏼", "🤴🏽", "🤴🏾", "🤴🏿"]
 }, {
-	"code": "👸",
+	code: "👸",
 	"keywords": ["crown", "royal", "princess", "fairy tale", "fantasy"],
 	"types": ["👸🏻", "👸🏼", "👸🏽", "👸🏾", "👸🏿"]
 }, {
-	"code": "👳",
+	code: "👳",
 	"keywords": ["person_with_turban", "man", "turban"],
 	"types": ["👳🏻", "👳🏼", "👳🏽", "👳🏾", "👳🏿"]
 }, {
-	"code": "👳‍♂️",
+	code: "👳‍♂️",
 	"keywords": ["man_with_turban"],
 	"types": ["👳🏻", "👳🏼", "👳🏽", "👳🏾", "👳🏿"]
 }, {
-	"code": "👳‍♀️",
+	code: "👳‍♀️",
 	"keywords": ["woman_with_turban"],
 	"types": ["👳🏻", "👳🏼", "👳🏽", "👳🏾", "👳🏿"]
 }, {
-	"code": "👲",
+	code: "👲",
 	"keywords": ["man_with_gua_pi_mao", "gua pi mao", "hat", "man"],
 	"types": ["👲🏻", "👲🏼", "👲🏽", "👲🏾", "👲🏿"]
 }, {
-	"code": "🧕",
+	code: "🧕",
 	"keywords": ["hijab", "woman_with_headscarf"],
 	"types": ["🧕🏻", "🧕🏼", "🧕🏽", "🧕🏾", "🧕🏿"]
 }, {
-	"code": "🤵",
+	code: "🤵",
 	"keywords": ["groom", "marriage", "wedding", "person_in_tuxedo", "man", "tuxedo"],
 	"types": ["🤵🏻", "🤵🏼", "🤵🏽", "🤵🏾", "🤵🏿"]
 }, {
-	"code": "🤵‍♂️",
+	code: "🤵‍♂️",
 	"keywords": ["man_in_tuxedo"],
 	"types": ["🤵🏻", "🤵🏼", "🤵🏽", "🤵🏾", "🤵🏿"]
 }, {
-	"code": "🤵‍♀️",
+	code: "🤵‍♀️",
 	"keywords": ["woman_in_tuxedo"],
 	"types": ["🤵🏻", "🤵🏼", "🤵🏽", "🤵🏾", "🤵🏿"]
 }, {
-	"code": "👰",
+	code: "👰",
 	"keywords": ["marriage", "wedding", "person_with_veil", "bride", "veil"],
 	"types": ["👰🏻", "👰🏼", "👰🏽", "👰🏾", "👰🏿"]
 }, {
-	"code": "👰‍♂️",
+	code: "👰‍♂️",
 	"keywords": ["man_with_veil"],
 	"types": ["👰🏻", "👰🏼", "👰🏽", "👰🏾", "👰🏿"]
 }, {
-	"code": "👰‍♀️",
+	code: "👰‍♀️",
 	"keywords": ["woman_with_veil", "bride_with_veil"],
 	"types": ["👰🏻", "👰🏼", "👰🏽", "👰🏾", "👰🏿"]
 }, {
-	"code": "🤰",
+	code: "🤰",
 	"keywords": ["pregnant_woman", "pregnant", "woman"],
 	"types": ["🤰🏻", "🤰🏼", "🤰🏽", "🤰🏾", "🤰🏿"]
 }, {
-	"code": "🤱",
+	code: "🤱",
 	"keywords": ["nursing", "breast_feeding"],
 	"types": ["🤱🏻", "🤱🏼", "🤱🏽", "🤱🏾", "🤱🏿"]
 }, {
-	"code": "👩‍🍼",
+	code: "👩‍🍼",
 	"keywords": ["woman_feeding_baby"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "👨‍🍼",
+	code: "👨‍🍼",
 	"keywords": ["man_feeding_baby"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "🧑‍🍼",
+	code: "🧑‍🍼",
 	"keywords": ["person_feeding_baby"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👼",
+	code: "👼",
 	"keywords": ["angel", "baby", "face", "fairy tale", "fantasy"],
 	"types": ["👼🏻", "👼🏼", "👼🏽", "👼🏾", "👼🏿"]
 }, {
-	"code": "🎅",
+	code: "🎅",
 	"keywords": ["christmas", "santa", "activity", "celebration", "fairy tale", "fantasy", "father"],
 	"types": ["🎅🏻", "🎅🏼", "🎅🏽", "🎅🏾", "🎅🏿"]
 }, {
-	"code": "🤶",
+	code: "🤶",
 	"keywords": ["santa", "mrs_claus", "christmas", "mother", "mrs. claus"],
 	"types": ["🤶🏻", "🤶🏼", "🤶🏽", "🤶🏾", "🤶🏿"]
 }, {
-	"code": "🧑‍🎄",
+	code: "🧑‍🎄",
 	"keywords": ["mx_claus"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "🦸",
+	code: "🦸",
 	"keywords": ["superhero"],
 	"types": ["🦸🏻", "🦸🏼", "🦸🏽", "🦸🏾", "🦸🏿"]
 }, {
-	"code": "🦸‍♂️",
+	code: "🦸‍♂️",
 	"keywords": ["superhero_man"],
 	"types": ["🦸🏻", "🦸🏼", "🦸🏽", "🦸🏾", "🦸🏿"]
 }, {
-	"code": "🦸‍♀️",
+	code: "🦸‍♀️",
 	"keywords": ["superhero_woman"],
 	"types": ["🦸🏻", "🦸🏼", "🦸🏽", "🦸🏾", "🦸🏿"]
 }, {
-	"code": "🦹",
+	code: "🦹",
 	"keywords": ["supervillain"],
 	"types": ["🦹🏻", "🦹🏼", "🦹🏽", "🦹🏾", "🦹🏿"]
 }, {
-	"code": "🦹‍♂️",
+	code: "🦹‍♂️",
 	"keywords": ["supervillain_man"],
 	"types": ["🦹🏻", "🦹🏼", "🦹🏽", "🦹🏾", "🦹🏿"]
 }, {
-	"code": "🦹‍♀️",
+	code: "🦹‍♀️",
 	"keywords": ["supervillain_woman"],
 	"types": ["🦹🏻", "🦹🏼", "🦹🏽", "🦹🏾", "🦹🏿"]
 }, {
-	"code": "🧙",
+	code: "🧙",
 	"keywords": ["wizard", "mage"],
 	"types": ["🧙🏻", "🧙🏼", "🧙🏽", "🧙🏾", "🧙🏿"]
 }, {
-	"code": "🧙‍♂️",
+	code: "🧙‍♂️",
 	"keywords": ["wizard", "mage_man"],
 	"types": ["🧙🏻", "🧙🏼", "🧙🏽", "🧙🏾", "🧙🏿"]
 }, {
-	"code": "🧙‍♀️",
+	code: "🧙‍♀️",
 	"keywords": ["wizard", "mage_woman"],
 	"types": ["🧙🏻", "🧙🏼", "🧙🏽", "🧙🏾", "🧙🏿"]
 }, {
-	"code": "🧚",
+	code: "🧚",
 	"keywords": ["fairy"],
 	"types": ["🧚🏻", "🧚🏼", "🧚🏽", "🧚🏾", "🧚🏿"]
 }, {
-	"code": "🧚‍♂️",
+	code: "🧚‍♂️",
 	"keywords": ["fairy_man"],
 	"types": ["🧚🏻", "🧚🏼", "🧚🏽", "🧚🏾", "🧚🏿"]
 }, {
-	"code": "🧚‍♀️",
+	code: "🧚‍♀️",
 	"keywords": ["fairy_woman"],
 	"types": ["🧚🏻", "🧚🏼", "🧚🏽", "🧚🏾", "🧚🏿"]
 }, {
-	"code": "🧛",
+	code: "🧛",
 	"keywords": ["vampire"],
 	"types": ["🧛🏻", "🧛🏼", "🧛🏽", "🧛🏾", "🧛🏿"]
 }, {
-	"code": "🧛‍♂️",
+	code: "🧛‍♂️",
 	"keywords": ["vampire_man"],
 	"types": ["🧛🏻", "🧛🏼", "🧛🏽", "🧛🏾", "🧛🏿"]
 }, {
-	"code": "🧛‍♀️",
+	code: "🧛‍♀️",
 	"keywords": ["vampire_woman"],
 	"types": ["🧛🏻", "🧛🏼", "🧛🏽", "🧛🏾", "🧛🏿"]
 }, {
-	"code": "🧜",
+	code: "🧜",
 	"keywords": ["merperson"],
 	"types": ["🧜🏻", "🧜🏼", "🧜🏽", "🧜🏾", "🧜🏿"]
 }, {
-	"code": "🧜‍♂️",
+	code: "🧜‍♂️",
 	"keywords": ["merman"],
 	"types": ["🧜🏻", "🧜🏼", "🧜🏽", "🧜🏾", "🧜🏿"]
 }, {
-	"code": "🧜‍♀️",
+	code: "🧜‍♀️",
 	"keywords": ["mermaid"],
 	"types": ["🧜🏻", "🧜🏼", "🧜🏽", "🧜🏾", "🧜🏿"]
 }, {
-	"code": "🧝",
+	code: "🧝",
 	"keywords": ["elf"],
 	"types": ["🧝🏻", "🧝🏼", "🧝🏽", "🧝🏾", "🧝🏿"]
 }, {
-	"code": "🧝‍♂️",
+	code: "🧝‍♂️",
 	"keywords": ["elf_man"],
 	"types": ["🧝🏻", "🧝🏼", "🧝🏽", "🧝🏾", "🧝🏿"]
 }, {
-	"code": "🧝‍♀️",
+	code: "🧝‍♀️",
 	"keywords": ["elf_woman"],
 	"types": ["🧝🏻", "🧝🏼", "🧝🏽", "🧝🏾", "🧝🏿"]
 }, {
-	"code": "🧞",
+	code: "🧞",
 	"keywords": ["genie"]
 }, {
-	"code": "🧞‍♂️",
+	code: "🧞‍♂️",
 	"keywords": ["genie_man"]
 }, {
-	"code": "🧞‍♀️",
+	code: "🧞‍♀️",
 	"keywords": ["genie_woman"]
 }, {
-	"code": "🧟",
+	code: "🧟",
 	"keywords": ["zombie"]
 }, {
-	"code": "🧟‍♂️",
+	code: "🧟‍♂️",
 	"keywords": ["zombie_man"]
 }, {
-	"code": "🧟‍♀️",
+	code: "🧟‍♀️",
 	"keywords": ["zombie_woman"]
 }, {
-	"code": "💆",
+	code: "💆",
 	"keywords": ["spa", "massage", "salon"],
 	"types": ["💆🏻", "💆🏼", "💆🏽", "💆🏾", "💆🏿"]
 }, {
-	"code": "💆‍♂️",
+	code: "💆‍♂️",
 	"keywords": ["spa", "massage_man"],
 	"types": ["💆🏻", "💆🏼", "💆🏽", "💆🏾", "💆🏿"]
 }, {
-	"code": "💆‍♀️",
+	code: "💆‍♀️",
 	"keywords": ["spa", "massage_woman"],
 	"types": ["💆🏻", "💆🏼", "💆🏽", "💆🏾", "💆🏿"]
 }, {
-	"code": "💇",
+	code: "💇",
 	"keywords": ["beauty", "haircut", "barber", "parlor"],
 	"types": ["💇🏻", "💇🏼", "💇🏽", "💇🏾", "💇🏿"]
 }, {
-	"code": "💇‍♂️",
+	code: "💇‍♂️",
 	"keywords": ["haircut_man"],
 	"types": ["💇🏻", "💇🏼", "💇🏽", "💇🏾", "💇🏿"]
 }, {
-	"code": "💇‍♀️",
+	code: "💇‍♀️",
 	"keywords": ["haircut_woman"],
 	"types": ["💇🏻", "💇🏼", "💇🏽", "💇🏾", "💇🏿"]
 }, {
-	"code": "🚶",
+	code: "🚶",
 	"keywords": ["walking", "hike", "pedestrian", "walk"],
 	"types": ["🚶🏻", "🚶🏼", "🚶🏽", "🚶🏾", "🚶🏿"]
 }, {
-	"code": "🚶‍♂️",
+	code: "🚶‍♂️",
 	"keywords": ["walking_man"],
 	"types": ["🚶🏻", "🚶🏼", "🚶🏽", "🚶🏾", "🚶🏿"]
 }, {
-	"code": "🚶‍♀️",
+	code: "🚶‍♀️",
 	"keywords": ["walking_woman"],
 	"types": ["🚶🏻", "🚶🏼", "🚶🏽", "🚶🏾", "🚶🏿"]
 }, {
-	"code": "🧍",
+	code: "🧍",
 	"keywords": ["standing_person"],
 	"types": ["🧍🏻", "🧍🏼", "🧍🏽", "🧍🏾", "🧍🏿"]
 }, {
-	"code": "🧍‍♂️",
+	code: "🧍‍♂️",
 	"keywords": ["standing_man"],
 	"types": ["🧍🏻", "🧍🏼", "🧍🏽", "🧍🏾", "🧍🏿"]
 }, {
-	"code": "🧍‍♀️",
+	code: "🧍‍♀️",
 	"keywords": ["standing_woman"],
 	"types": ["🧍🏻", "🧍🏼", "🧍🏽", "🧍🏾", "🧍🏿"]
 }, {
-	"code": "🧎",
+	code: "🧎",
 	"keywords": ["kneeling_person"],
 	"types": ["🧎🏻", "🧎🏼", "🧎🏽", "🧎🏾", "🧎🏿"]
 }, {
-	"code": "🧎‍♂️",
+	code: "🧎‍♂️",
 	"keywords": ["kneeling_man"],
 	"types": ["🧎🏻", "🧎🏼", "🧎🏽", "🧎🏾", "🧎🏿"]
 }, {
-	"code": "🧎‍♀️",
+	code: "🧎‍♀️",
 	"keywords": ["kneeling_woman"],
 	"types": ["🧎🏻", "🧎🏼", "🧎🏽", "🧎🏾", "🧎🏿"]
 }, {
-	"code": "🧑‍🦯",
+	code: "🧑‍🦯",
 	"keywords": ["person_with_probing_cane"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🦯",
+	code: "👨‍🦯",
 	"keywords": ["man_with_probing_cane"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🦯",
+	code: "👩‍🦯",
 	"keywords": ["woman_with_probing_cane"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🦼",
+	code: "🧑‍🦼",
 	"keywords": ["person_in_motorized_wheelchair"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🦼",
+	code: "👨‍🦼",
 	"keywords": ["man_in_motorized_wheelchair"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🦼",
+	code: "👩‍🦼",
 	"keywords": ["woman_in_motorized_wheelchair"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🧑‍🦽",
+	code: "🧑‍🦽",
 	"keywords": ["person_in_manual_wheelchair"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👨‍🦽",
+	code: "👨‍🦽",
 	"keywords": ["man_in_manual_wheelchair"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍🦽",
+	code: "👩‍🦽",
 	"keywords": ["woman_in_manual_wheelchair"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "🏃",
+	code: "🏃",
 	"keywords": ["exercise", "workout", "marathon", "runner", "running"],
 	"types": ["🏃🏻", "🏃🏼", "🏃🏽", "🏃🏾", "🏃🏿"]
 }, {
-	"code": "🏃‍♂️",
+	code: "🏃‍♂️",
 	"keywords": ["exercise", "workout", "marathon", "running_man"],
 	"types": ["🏃🏻", "🏃🏼", "🏃🏽", "🏃🏾", "🏃🏿"]
 }, {
-	"code": "🏃‍♀️",
+	code: "🏃‍♀️",
 	"keywords": ["exercise", "workout", "marathon", "running_woman"],
 	"types": ["🏃🏻", "🏃🏼", "🏃🏽", "🏃🏾", "🏃🏿"]
 }, {
-	"code": "💃",
+	code: "💃",
 	"keywords": ["dress", "woman_dancing", "dancer"],
 	"types": ["💃🏻", "💃🏼", "💃🏽", "💃🏾", "💃🏿"]
 }, {
-	"code": "🕺",
+	code: "🕺",
 	"keywords": ["dancer", "man_dancing", "dance", "man"],
 	"types": ["🕺🏻", "🕺🏼", "🕺🏽", "🕺🏾", "🕺🏿"]
 }, {
-	"code": "🕴️",
+	code: "🕴️",
 	"keywords": ["business_suit_levitating"],
 	"types": ["🕴🏻", "🕴🏼", "🕴🏽", "🕴🏾", "🕴🏿"]
 }, {
-	"code": "👯",
+	code: "👯",
 	"keywords": ["bunny", "dancers", "dancer", "ear", "girl", "woman"]
 }, {
-	"code": "👯‍♂️",
+	code: "👯‍♂️",
 	"keywords": ["bunny", "dancing_men"]
 }, {
-	"code": "👯‍♀️",
+	code: "👯‍♀️",
 	"keywords": ["bunny", "dancing_women"]
 }, {
-	"code": "🧖",
+	code: "🧖",
 	"keywords": ["steamy", "sauna_person"],
 	"types": ["🧖🏻", "🧖🏼", "🧖🏽", "🧖🏾", "🧖🏿"]
 }, {
-	"code": "🧖‍♂️",
+	code: "🧖‍♂️",
 	"keywords": ["steamy", "sauna_man"],
 	"types": ["🧖🏻", "🧖🏼", "🧖🏽", "🧖🏾", "🧖🏿"]
 }, {
-	"code": "🧖‍♀️",
+	code: "🧖‍♀️",
 	"keywords": ["steamy", "sauna_woman"],
 	"types": ["🧖🏻", "🧖🏼", "🧖🏽", "🧖🏾", "🧖🏿"]
 }, {
-	"code": "🧗",
+	code: "🧗",
 	"keywords": ["bouldering", "climbing"],
 	"types": ["🧗🏻", "🧗🏼", "🧗🏽", "🧗🏾", "🧗🏿"]
 }, {
-	"code": "🧗‍♂️",
+	code: "🧗‍♂️",
 	"keywords": ["bouldering", "climbing_man"],
 	"types": ["🧗🏻", "🧗🏼", "🧗🏽", "🧗🏾", "🧗🏿"]
 }, {
-	"code": "🧗‍♀️",
+	code: "🧗‍♀️",
 	"keywords": ["bouldering", "climbing_woman"],
 	"types": ["🧗🏻", "🧗🏼", "🧗🏽", "🧗🏾", "🧗🏿"]
 }, {
-	"code": "🤺",
+	code: "🤺",
 	"keywords": ["person_fencing", "fencer", "fencing", "sword"]
 }, {
-	"code": "🏇",
+	code: "🏇",
 	"keywords": ["horse_racing", "horse", "jockey", "racehorse", "racing"],
 	"types": ["🏇🏻", "🏇🏼", "🏇🏽", "🏇🏾", "🏇🏿"]
 }, {
-	"code": "⛷️",
+	code: "⛷️",
 	"keywords": ["skier"]
 }, {
-	"code": "🏂",
+	code: "🏂",
 	"keywords": ["snowboarder", "ski", "snow", "snowboard"],
 	"types": ["🏂🏻", "🏂🏼", "🏂🏽", "🏂🏾", "🏂🏿"]
 }, {
-	"code": "🏌️",
+	code: "🏌️",
 	"keywords": ["golfing"],
 	"types": ["🏌🏻", "🏌🏼", "🏌🏽", "🏌🏾", "🏌🏿"]
 }, {
-	"code": "🏌️‍♂️",
+	code: "🏌️‍♂️",
 	"keywords": ["golfing_man"],
 	"types": ["🏌🏻", "🏌🏼", "🏌🏽", "🏌🏾", "🏌🏿"]
 }, {
-	"code": "🏌️‍♀️",
+	code: "🏌️‍♀️",
 	"keywords": ["golfing_woman"],
 	"types": ["🏌🏻", "🏌🏼", "🏌🏽", "🏌🏾", "🏌🏿"]
 }, {
-	"code": "🏄",
+	code: "🏄",
 	"keywords": ["surfer", "surfing"],
 	"types": ["🏄🏻", "🏄🏼", "🏄🏽", "🏄🏾", "🏄🏿"]
 }, {
-	"code": "🏄‍♂️",
+	code: "🏄‍♂️",
 	"keywords": ["surfing_man"],
 	"types": ["🏄🏻", "🏄🏼", "🏄🏽", "🏄🏾", "🏄🏿"]
 }, {
-	"code": "🏄‍♀️",
+	code: "🏄‍♀️",
 	"keywords": ["surfing_woman"],
 	"types": ["🏄🏻", "🏄🏼", "🏄🏽", "🏄🏾", "🏄🏿"]
 }, {
-	"code": "🚣",
+	code: "🚣",
 	"keywords": ["rowboat", "boat", "vehicle"],
 	"types": ["🚣🏻", "🚣🏼", "🚣🏽", "🚣🏾", "🚣🏿"]
 }, {
-	"code": "🚣‍♂️",
+	code: "🚣‍♂️",
 	"keywords": ["rowing_man"],
 	"types": ["🚣🏻", "🚣🏼", "🚣🏽", "🚣🏾", "🚣🏿"]
 }, {
-	"code": "🚣‍♀️",
+	code: "🚣‍♀️",
 	"keywords": ["rowing_woman"],
 	"types": ["🚣🏻", "🚣🏼", "🚣🏽", "🚣🏾", "🚣🏿"]
 }, {
-	"code": "🏊",
+	code: "🏊",
 	"keywords": ["swimmer", "swim"],
 	"types": ["🏊🏻", "🏊🏼", "🏊🏽", "🏊🏾", "🏊🏿"]
 }, {
-	"code": "🏊‍♂️",
+	code: "🏊‍♂️",
 	"keywords": ["swimming_man"],
 	"types": ["🏊🏻", "🏊🏼", "🏊🏽", "🏊🏾", "🏊🏿"]
 }, {
-	"code": "🏊‍♀️",
+	code: "🏊‍♀️",
 	"keywords": ["swimming_woman"],
 	"types": ["🏊🏻", "🏊🏼", "🏊🏽", "🏊🏾", "🏊🏿"]
 }, {
-	"code": "⛹️",
+	code: "⛹️",
 	"keywords": ["basketball", "bouncing_ball_person"],
 	"types": ["⛹🏻", "⛹🏼", "⛹🏽", "⛹🏾", "⛹🏿"]
 }, {
-	"code": "⛹️‍♂️",
+	code: "⛹️‍♂️",
 	"keywords": ["bouncing_ball_man", "basketball_man"],
 	"types": ["⛹🏻", "⛹🏼", "⛹🏽", "⛹🏾", "⛹🏿"]
 }, {
-	"code": "⛹️‍♀️",
+	code: "⛹️‍♀️",
 	"keywords": ["bouncing_ball_woman", "basketball_woman"],
 	"types": ["⛹🏻", "⛹🏼", "⛹🏽", "⛹🏾", "⛹🏿"]
 }, {
-	"code": "🏋️",
+	code: "🏋️",
 	"keywords": ["gym", "workout", "weight_lifting"],
 	"types": ["🏋🏻", "🏋🏼", "🏋🏽", "🏋🏾", "🏋🏿"]
 }, {
-	"code": "🏋️‍♂️",
+	code: "🏋️‍♂️",
 	"keywords": ["gym", "workout", "weight_lifting_man"],
 	"types": ["🏋🏻", "🏋🏼", "🏋🏽", "🏋🏾", "🏋🏿"]
 }, {
-	"code": "🏋️‍♀️",
+	code: "🏋️‍♀️",
 	"keywords": ["gym", "workout", "weight_lifting_woman"],
 	"types": ["🏋🏻", "🏋🏼", "🏋🏽", "🏋🏾", "🏋🏿"]
 }, {
-	"code": "🚴",
+	code: "🚴",
 	"keywords": ["bicyclist", "bicycle", "bike", "cyclist"],
 	"types": ["🚴🏻", "🚴🏼", "🚴🏽", "🚴🏾", "🚴🏿"]
 }, {
-	"code": "🚴‍♂️",
+	code: "🚴‍♂️",
 	"keywords": ["biking_man"],
 	"types": ["🚴🏻", "🚴🏼", "🚴🏽", "🚴🏾", "🚴🏿"]
 }, {
-	"code": "🚴‍♀️",
+	code: "🚴‍♀️",
 	"keywords": ["biking_woman"],
 	"types": ["🚴🏻", "🚴🏼", "🚴🏽", "🚴🏾", "🚴🏿"]
 }, {
-	"code": "🚵",
+	code: "🚵",
 	"keywords": ["mountain_bicyclist", "bicycle", "bicyclist", "bike", "cyclist", "mountain"],
 	"types": ["🚵🏻", "🚵🏼", "🚵🏽", "🚵🏾", "🚵🏿"]
 }, {
-	"code": "🚵‍♂️",
+	code: "🚵‍♂️",
 	"keywords": ["mountain_biking_man"],
 	"types": ["🚵🏻", "🚵🏼", "🚵🏽", "🚵🏾", "🚵🏿"]
 }, {
-	"code": "🚵‍♀️",
+	code: "🚵‍♀️",
 	"keywords": ["mountain_biking_woman"],
 	"types": ["🚵🏻", "🚵🏼", "🚵🏽", "🚵🏾", "🚵🏿"]
 }, {
-	"code": "🤸",
+	code: "🤸",
 	"keywords": ["cartwheeling", "cartwheel", "gymnastics"],
 	"types": ["🤸🏻", "🤸🏼", "🤸🏽", "🤸🏾", "🤸🏿"]
 }, {
-	"code": "🤸‍♂️",
+	code: "🤸‍♂️",
 	"keywords": ["man_cartwheeling"],
 	"types": ["🤸🏻", "🤸🏼", "🤸🏽", "🤸🏾", "🤸🏿"]
 }, {
-	"code": "🤸‍♀️",
+	code: "🤸‍♀️",
 	"keywords": ["woman_cartwheeling"],
 	"types": ["🤸🏻", "🤸🏼", "🤸🏽", "🤸🏾", "🤸🏿"]
 }, {
-	"code": "🤼",
+	code: "🤼",
 	"keywords": ["wrestling", "wrestle", "wrestler"]
 }, {
-	"code": "🤼‍♂️",
+	code: "🤼‍♂️",
 	"keywords": ["men_wrestling"]
 }, {
-	"code": "🤼‍♀️",
+	code: "🤼‍♀️",
 	"keywords": ["women_wrestling"]
 }, {
-	"code": "🤽",
+	code: "🤽",
 	"keywords": ["water_polo", "polo", "water"],
 	"types": ["🤽🏻", "🤽🏼", "🤽🏽", "🤽🏾", "🤽🏿"]
 }, {
-	"code": "🤽‍♂️",
+	code: "🤽‍♂️",
 	"keywords": ["man_playing_water_polo"],
 	"types": ["🤽🏻", "🤽🏼", "🤽🏽", "🤽🏾", "🤽🏿"]
 }, {
-	"code": "🤽‍♀️",
+	code: "🤽‍♀️",
 	"keywords": ["woman_playing_water_polo"],
 	"types": ["🤽🏻", "🤽🏼", "🤽🏽", "🤽🏾", "🤽🏿"]
 }, {
-	"code": "🤾",
+	code: "🤾",
 	"keywords": ["handball_person", "ball", "handball"],
 	"types": ["🤾🏻", "🤾🏼", "🤾🏽", "🤾🏾", "🤾🏿"]
 }, {
-	"code": "🤾‍♂️",
+	code: "🤾‍♂️",
 	"keywords": ["man_playing_handball"],
 	"types": ["🤾🏻", "🤾🏼", "🤾🏽", "🤾🏾", "🤾🏿"]
 }, {
-	"code": "🤾‍♀️",
+	code: "🤾‍♀️",
 	"keywords": ["woman_playing_handball"],
 	"types": ["🤾🏻", "🤾🏼", "🤾🏽", "🤾🏾", "🤾🏿"]
 }, {
-	"code": "🤹",
+	code: "🤹",
 	"keywords": ["juggling_person", "balance", "juggle", "multitask", "skill"],
 	"types": ["🤹🏻", "🤹🏼", "🤹🏽", "🤹🏾", "🤹🏿"]
 }, {
-	"code": "🤹‍♂️",
+	code: "🤹‍♂️",
 	"keywords": ["man_juggling"],
 	"types": ["🤹🏻", "🤹🏼", "🤹🏽", "🤹🏾", "🤹🏿"]
 }, {
-	"code": "🤹‍♀️",
+	code: "🤹‍♀️",
 	"keywords": ["woman_juggling"],
 	"types": ["🤹🏻", "🤹🏼", "🤹🏽", "🤹🏾", "🤹🏿"]
 }, {
-	"code": "🧘",
+	code: "🧘",
 	"keywords": ["meditation", "lotus_position"],
 	"types": ["🧘🏻", "🧘🏼", "🧘🏽", "🧘🏾", "🧘🏿"]
 }, {
-	"code": "🧘‍♂️",
+	code: "🧘‍♂️",
 	"keywords": ["meditation", "lotus_position_man"],
 	"types": ["🧘🏻", "🧘🏼", "🧘🏽", "🧘🏾", "🧘🏿"]
 }, {
-	"code": "🧘‍♀️",
+	code: "🧘‍♀️",
 	"keywords": ["meditation", "lotus_position_woman"],
 	"types": ["🧘🏻", "🧘🏼", "🧘🏽", "🧘🏾", "🧘🏿"]
 }, {
-	"code": "🛀",
+	code: "🛀",
 	"keywords": ["shower", "bath", "bathtub"],
 	"types": ["🛀🏻", "🛀🏼", "🛀🏽", "🛀🏾", "🛀🏿"]
 }, {
-	"code": "🛌",
+	code: "🛌",
 	"keywords": ["sleeping_bed", "hotel", "sleep"],
 	"types": ["🛌🏻", "🛌🏼", "🛌🏽", "🛌🏾", "🛌🏿"]
 }, {
-	"code": "🧑‍🤝‍🧑",
+	code: "🧑‍🤝‍🧑",
 	"keywords": ["couple", "date", "people_holding_hands"],
 	"types": ["🧑🏻", "🧑🏼", "🧑🏽", "🧑🏾", "🧑🏿"]
 }, {
-	"code": "👭",
+	code: "👭",
 	"keywords": ["couple", "date", "two_women_holding_hands", "hand", "hold", "woman"],
 	"types": ["👭🏻", "👭🏼", "👭🏽", "👭🏾", "👭🏿"]
 }, {
-	"code": "👫",
+	code: "👫",
 	"keywords": ["date", "couple", "hand", "hold", "man", "woman"],
 	"types": ["👫🏻", "👫🏼", "👫🏽", "👫🏾", "👫🏿"]
 }, {
-	"code": "👬",
+	code: "👬",
 	"keywords": ["couple", "date", "two_men_holding_hands", "gemini", "hand", "hold", "man", "twins", "zodiac"],
 	"types": ["👬🏻", "👬🏼", "👬🏽", "👬🏾", "👬🏿"]
 }, {
-	"code": "💏",
+	code: "💏",
 	"keywords": ["couplekiss", "couple", "kiss", "romance"],
 	"types": ["💏🏻", "💏🏼", "💏🏽", "💏🏾", "💏🏿"]
 }, {
-	"code": "👩‍❤️‍💋‍👨",
+	code: "👩‍❤️‍💋‍👨",
 	"keywords": ["couplekiss_man_woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "👨‍❤️‍💋‍👨",
+	code: "👨‍❤️‍💋‍👨",
 	"keywords": ["couplekiss_man_man"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍❤️‍💋‍👩",
+	code: "👩‍❤️‍💋‍👩",
 	"keywords": ["couplekiss_woman_woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "💑",
+	code: "💑",
 	"keywords": ["couple_with_heart", "couple", "heart", "love", "romance"],
 	"types": ["💑🏻", "💑🏼", "💑🏽", "💑🏾", "💑🏿"]
 }, {
-	"code": "👩‍❤️‍👨",
+	code: "👩‍❤️‍👨",
 	"keywords": ["couple_with_heart_woman_man"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "👨‍❤️‍👨",
+	code: "👨‍❤️‍👨",
 	"keywords": ["couple_with_heart_man_man"],
 	"types": ["👨🏻", "👨🏼", "👨🏽", "👨🏾", "👨🏿"]
 }, {
-	"code": "👩‍❤️‍👩",
+	code: "👩‍❤️‍👩",
 	"keywords": ["couple_with_heart_woman_woman"],
 	"types": ["👩🏻", "👩🏼", "👩🏽", "👩🏾", "👩🏿"]
 }, {
-	"code": "👪",
+	code: "👪",
 	"keywords": ["home", "parents", "child", "family", "father", "mother"]
 }, {
-	"code": "👨‍👩‍👦",
+	code: "👨‍👩‍👦",
 	"keywords": ["family_man_woman_boy", "boy", "family", "man", "woman"]
 }, {
-	"code": "👨‍👩‍👧",
+	code: "👨‍👩‍👧",
 	"keywords": ["family_man_woman_girl", "family", "girl", "man", "woman"]
 }, {
-	"code": "👨‍👩‍👧‍👦",
+	code: "👨‍👩‍👧‍👦",
 	"keywords": ["family_man_woman_girl_boy", "boy", "family", "girl", "man", "woman"]
 }, {
-	"code": "👨‍👩‍👦‍👦",
+	code: "👨‍👩‍👦‍👦",
 	"keywords": ["family_man_woman_boy_boy", "boy", "family", "man", "woman"]
 }, {
-	"code": "👨‍👩‍👧‍👧",
+	code: "👨‍👩‍👧‍👧",
 	"keywords": ["family_man_woman_girl_girl", "family", "girl", "man", "woman"]
 }, {
-	"code": "👨‍👨‍👦",
+	code: "👨‍👨‍👦",
 	"keywords": ["family_man_man_boy", "boy", "family", "man"]
 }, {
-	"code": "👨‍👨‍👧",
+	code: "👨‍👨‍👧",
 	"keywords": ["family_man_man_girl", "family", "girl", "man"]
 }, {
-	"code": "👨‍👨‍👧‍👦",
+	code: "👨‍👨‍👧‍👦",
 	"keywords": ["family_man_man_girl_boy", "boy", "family", "girl", "man"]
 }, {
-	"code": "👨‍👨‍👦‍👦",
+	code: "👨‍👨‍👦‍👦",
 	"keywords": ["family_man_man_boy_boy", "boy", "family", "man"]
 }, {
-	"code": "👨‍👨‍👧‍👧",
+	code: "👨‍👨‍👧‍👧",
 	"keywords": ["family_man_man_girl_girl", "family", "girl", "man"]
 }, {
-	"code": "👩‍👩‍👦",
+	code: "👩‍👩‍👦",
 	"keywords": ["family_woman_woman_boy", "boy", "family", "woman"]
 }, {
-	"code": "👩‍👩‍👧",
+	code: "👩‍👩‍👧",
 	"keywords": ["family_woman_woman_girl", "family", "girl", "woman"]
 }, {
-	"code": "👩‍👩‍👧‍👦",
+	code: "👩‍👩‍👧‍👦",
 	"keywords": ["family_woman_woman_girl_boy", "boy", "family", "girl", "woman"]
 }, {
-	"code": "👩‍👩‍👦‍👦",
+	code: "👩‍👩‍👦‍👦",
 	"keywords": ["family_woman_woman_boy_boy", "boy", "family", "woman"]
 }, {
-	"code": "👩‍👩‍👧‍👧",
+	code: "👩‍👩‍👧‍👧",
 	"keywords": ["family_woman_woman_girl_girl", "family", "girl", "woman"]
 }, {
-	"code": "👨‍👦",
+	code: "👨‍👦",
 	"keywords": ["family_man_boy"]
 }, {
-	"code": "👨‍👦‍👦",
+	code: "👨‍👦‍👦",
 	"keywords": ["family_man_boy_boy"]
 }, {
-	"code": "👨‍👧",
+	code: "👨‍👧",
 	"keywords": ["family_man_girl"]
 }, {
-	"code": "👨‍👧‍👦",
+	code: "👨‍👧‍👦",
 	"keywords": ["family_man_girl_boy"]
 }, {
-	"code": "👨‍👧‍👧",
+	code: "👨‍👧‍👧",
 	"keywords": ["family_man_girl_girl"]
 }, {
-	"code": "👩‍👦",
+	code: "👩‍👦",
 	"keywords": ["family_woman_boy"]
 }, {
-	"code": "👩‍👦‍👦",
+	code: "👩‍👦‍👦",
 	"keywords": ["family_woman_boy_boy"]
 }, {
-	"code": "👩‍👧",
+	code: "👩‍👧",
 	"keywords": ["family_woman_girl"]
 }, {
-	"code": "👩‍👧‍👦",
+	code: "👩‍👧‍👦",
 	"keywords": ["family_woman_girl_boy"]
 }, {
-	"code": "👩‍👧‍👧",
+	code: "👩‍👧‍👧",
 	"keywords": ["family_woman_girl_girl"]
 }, {
-	"code": "🗣️",
+	code: "🗣️",
 	"keywords": ["speaking_head"]
 }, {
-	"code": "👤",
+	code: "👤",
 	"keywords": ["user", "bust_in_silhouette", "bust", "silhouette"]
 }, {
-	"code": "👥",
+	code: "👥",
 	"keywords": ["users", "group", "team", "busts_in_silhouette", "bust", "silhouette"]
 }, {
-	"code": "🫂",
+	code: "🫂",
 	"keywords": ["people_hugging"]
 }, {
-	"code": "👣",
+	code: "👣",
 	"keywords": ["feet", "tracks", "footprints", "body", "clothing", "footprint", "print"]
 }, {
-	"code": "animalsAndNature",
-	"header": true
+	code: "animalsAndNature",
+	header: true
 }, {
-	"code": "🐵",
+	code: "🐵",
 	"keywords": ["monkey_face", "face", "monkey"]
 }, {
-	"code": "🐒",
+	code: "🐒",
 	"keywords": ["monkey"]
 }, {
-	"code": "🦍",
+	code: "🦍",
 	"keywords": ["gorilla"]
 }, {
-	"code": "🦧",
+	code: "🦧",
 	"keywords": ["orangutan"]
 }, {
-	"code": "🐶",
+	code: "🐶",
 	"keywords": ["pet", "dog", "face"]
 }, {
-	"code": "🐕",
+	code: "🐕",
 	"keywords": ["dog2", "dog", "pet"]
 }, {
-	"code": "🦮",
+	code: "🦮",
 	"keywords": ["guide_dog"]
 }, {
-	"code": "🐕‍🦺",
+	code: "🐕‍🦺",
 	"keywords": ["service_dog"]
 }, {
-	"code": "🐩",
+	code: "🐩",
 	"keywords": ["dog", "poodle"]
 }, {
-	"code": "🐺",
+	code: "🐺",
 	"keywords": ["wolf", "face"]
 }, {
-	"code": "🦊",
+	code: "🦊",
 	"keywords": ["fox_face", "face", "fox"]
 }, {
-	"code": "🦝",
+	code: "🦝",
 	"keywords": ["raccoon"]
 }, {
-	"code": "🐱",
+	code: "🐱",
 	"keywords": ["pet", "cat", "face"]
 }, {
-	"code": "🐈",
+	code: "🐈",
 	"keywords": ["cat2", "cat", "pet"]
 }, {
-	"code": "🐈‍⬛",
+	code: "🐈‍⬛",
 	"keywords": ["black_cat"]
 }, {
-	"code": "🦁",
+	code: "🦁",
 	"keywords": ["lion", "face", "leo", "zodiac"]
 }, {
-	"code": "🐯",
+	code: "🐯",
 	"keywords": ["tiger", "face"]
 }, {
-	"code": "🐅",
+	code: "🐅",
 	"keywords": ["tiger2", "tiger"]
 }, {
-	"code": "🐆",
+	code: "🐆",
 	"keywords": ["leopard"]
 }, {
-	"code": "🐴",
+	code: "🐴",
 	"keywords": ["horse", "face"]
 }, {
-	"code": "🐎",
+	code: "🐎",
 	"keywords": ["speed", "racehorse", "horse", "racing"]
 }, {
-	"code": "🦄",
+	code: "🦄",
 	"keywords": ["unicorn", "face"]
 }, {
-	"code": "🦓",
+	code: "🦓",
 	"keywords": ["zebra"]
 }, {
-	"code": "🦌",
+	code: "🦌",
 	"keywords": ["deer"]
 }, {
-	"code": "🦬",
+	code: "🦬",
 	"keywords": ["bison"]
 }, {
-	"code": "🐮",
+	code: "🐮",
 	"keywords": ["cow", "face"]
 }, {
-	"code": "🐂",
+	code: "🐂",
 	"keywords": ["ox", "bull", "taurus", "zodiac"]
 }, {
-	"code": "🐃",
+	code: "🐃",
 	"keywords": ["water_buffalo", "buffalo", "water"]
 }, {
-	"code": "🐄",
+	code: "🐄",
 	"keywords": ["cow2", "cow"]
 }, {
-	"code": "🐷",
+	code: "🐷",
 	"keywords": ["pig", "face"]
 }, {
-	"code": "🐖",
+	code: "🐖",
 	"keywords": ["pig2", "pig", "sow"]
 }, {
-	"code": "🐗",
+	code: "🐗",
 	"keywords": ["boar", "pig"]
 }, {
-	"code": "🐽",
+	code: "🐽",
 	"keywords": ["pig_nose", "face", "nose", "pig"]
 }, {
-	"code": "🐏",
+	code: "🐏",
 	"keywords": ["ram", "aries", "sheep", "zodiac"]
 }, {
-	"code": "🐑",
+	code: "🐑",
 	"keywords": ["sheep", "ewe"]
 }, {
-	"code": "🐐",
+	code: "🐐",
 	"keywords": ["goat", "capricorn", "zodiac"]
 }, {
-	"code": "🐪",
+	code: "🐪",
 	"keywords": ["desert", "dromedary_camel", "camel", "dromedary", "hump"]
 }, {
-	"code": "🐫",
+	code: "🐫",
 	"keywords": ["camel", "bactrian", "hump"]
 }, {
-	"code": "🦙",
+	code: "🦙",
 	"keywords": ["llama"]
 }, {
-	"code": "🦒",
+	code: "🦒",
 	"keywords": ["giraffe"]
 }, {
-	"code": "🐘",
+	code: "🐘",
 	"keywords": ["elephant"]
 }, {
-	"code": "🦣",
+	code: "🦣",
 	"keywords": ["mammoth"]
 }, {
-	"code": "🦏",
+	code: "🦏",
 	"keywords": ["rhinoceros"]
 }, {
-	"code": "🦛",
+	code: "🦛",
 	"keywords": ["hippopotamus"]
 }, {
-	"code": "🐭",
+	code: "🐭",
 	"keywords": ["mouse", "face"]
 }, {
-	"code": "🐁",
+	code: "🐁",
 	"keywords": ["mouse2", "mouse"]
 }, {
-	"code": "🐀",
+	code: "🐀",
 	"keywords": ["rat"]
 }, {
-	"code": "🐹",
+	code: "🐹",
 	"keywords": ["pet", "hamster", "face"]
 }, {
-	"code": "🐰",
+	code: "🐰",
 	"keywords": ["bunny", "rabbit", "face", "pet"]
 }, {
-	"code": "🐇",
+	code: "🐇",
 	"keywords": ["rabbit2", "bunny", "pet", "rabbit"]
 }, {
-	"code": "🐿️",
+	code: "🐿️",
 	"keywords": ["chipmunk"]
 }, {
-	"code": "🦫",
+	code: "🦫",
 	"keywords": ["beaver"]
 }, {
-	"code": "🦔",
+	code: "🦔",
 	"keywords": ["hedgehog"]
 }, {
-	"code": "🦇",
+	code: "🦇",
 	"keywords": ["bat", "vampire"]
 }, {
-	"code": "🐻",
+	code: "🐻",
 	"keywords": ["bear", "face"]
 }, {
-	"code": "🐻‍❄️",
+	code: "🐻‍❄️",
 	"keywords": ["polar_bear"]
 }, {
-	"code": "🐨",
+	code: "🐨",
 	"keywords": ["koala", "bear"]
 }, {
-	"code": "🐼",
+	code: "🐼",
 	"keywords": ["panda_face", "face", "panda"]
 }, {
-	"code": "🦥",
+	code: "🦥",
 	"keywords": ["sloth"]
 }, {
-	"code": "🦦",
+	code: "🦦",
 	"keywords": ["otter"]
 }, {
-	"code": "🦨",
+	code: "🦨",
 	"keywords": ["skunk"]
 }, {
-	"code": "🦘",
+	code: "🦘",
 	"keywords": ["kangaroo"]
 }, {
-	"code": "🦡",
+	code: "🦡",
 	"keywords": ["badger"]
 }, {
-	"code": "🐾",
+	code: "🐾",
 	"keywords": ["feet", "paw_prints", "paw", "print"]
 }, {
-	"code": "🦃",
+	code: "🦃",
 	"keywords": ["thanksgiving", "turkey"]
 }, {
-	"code": "🐔",
+	code: "🐔",
 	"keywords": ["chicken"]
 }, {
-	"code": "🐓",
+	code: "🐓",
 	"keywords": ["rooster"]
 }, {
-	"code": "🐣",
+	code: "🐣",
 	"keywords": ["hatching_chick", "baby", "chick", "hatching"]
 }, {
-	"code": "🐤",
+	code: "🐤",
 	"keywords": ["baby_chick", "baby", "chick"]
 }, {
-	"code": "🐥",
+	code: "🐥",
 	"keywords": ["hatched_chick", "baby", "chick"]
 }, {
-	"code": "🐦",
+	code: "🐦",
 	"keywords": ["bird"]
 }, {
-	"code": "🐧",
+	code: "🐧",
 	"keywords": ["penguin"]
 }, {
-	"code": "🕊️",
+	code: "🕊️",
 	"keywords": ["peace", "dove"]
 }, {
-	"code": "🦅",
+	code: "🦅",
 	"keywords": ["eagle", "bird"]
 }, {
-	"code": "🦆",
+	code: "🦆",
 	"keywords": ["duck", "bird"]
 }, {
-	"code": "🦢",
+	code: "🦢",
 	"keywords": ["swan"]
 }, {
-	"code": "🦉",
+	code: "🦉",
 	"keywords": ["owl", "bird", "wise"]
 }, {
-	"code": "🦤",
+	code: "🦤",
 	"keywords": ["dodo"]
 }, {
-	"code": "🪶",
+	code: "🪶",
 	"keywords": ["feather"]
 }, {
-	"code": "🦩",
+	code: "🦩",
 	"keywords": ["flamingo"]
 }, {
-	"code": "🦚",
+	code: "🦚",
 	"keywords": ["peacock"]
 }, {
-	"code": "🦜",
+	code: "🦜",
 	"keywords": ["parrot"]
 }, {
-	"code": "🐸",
+	code: "🐸",
 	"keywords": ["frog", "face"]
 }, {
-	"code": "🐊",
+	code: "🐊",
 	"keywords": ["crocodile"]
 }, {
-	"code": "🐢",
+	code: "🐢",
 	"keywords": ["slow", "turtle"]
 }, {
-	"code": "🦎",
+	code: "🦎",
 	"keywords": ["lizard", "reptile"]
 }, {
-	"code": "🐍",
+	code: "🐍",
 	"keywords": ["snake", "bearer", "ophiuchus", "serpent", "zodiac"]
 }, {
-	"code": "🐲",
+	code: "🐲",
 	"keywords": ["dragon_face", "dragon", "face", "fairy tale"]
 }, {
-	"code": "🐉",
+	code: "🐉",
 	"keywords": ["dragon", "fairy tale"]
 }, {
-	"code": "🦕",
+	code: "🦕",
 	"keywords": ["dinosaur", "sauropod"]
 }, {
-	"code": "🦖",
+	code: "🦖",
 	"keywords": ["dinosaur", "t-rex"]
 }, {
-	"code": "🐳",
+	code: "🐳",
 	"keywords": ["sea", "whale", "face", "spouting"]
 }, {
-	"code": "🐋",
+	code: "🐋",
 	"keywords": ["whale2", "whale"]
 }, {
-	"code": "🐬",
+	code: "🐬",
 	"keywords": ["dolphin", "flipper"]
 }, {
-	"code": "🦭",
+	code: "🦭",
 	"keywords": ["seal"]
 }, {
-	"code": "🐟",
+	code: "🐟",
 	"keywords": ["fish", "pisces", "zodiac"]
 }, {
-	"code": "🐠",
+	code: "🐠",
 	"keywords": ["tropical_fish", "fish", "tropical"]
 }, {
-	"code": "🐡",
+	code: "🐡",
 	"keywords": ["blowfish", "fish"]
 }, {
-	"code": "🦈",
+	code: "🦈",
 	"keywords": ["shark", "fish"]
 }, {
-	"code": "🐙",
+	code: "🐙",
 	"keywords": ["octopus"]
 }, {
-	"code": "🐚",
+	code: "🐚",
 	"keywords": ["sea", "beach", "shell", "spiral"]
 }, {
-	"code": "🐌",
+	code: "🐌",
 	"keywords": ["slow", "snail"]
 }, {
-	"code": "🦋",
+	code: "🦋",
 	"keywords": ["butterfly", "insect", "pretty"]
 }, {
-	"code": "🐛",
+	code: "🐛",
 	"keywords": ["bug", "insect"]
 }, {
-	"code": "🐜",
+	code: "🐜",
 	"keywords": ["ant", "insect"]
 }, {
-	"code": "🐝",
+	code: "🐝",
 	"keywords": ["bee", "honeybee", "insect"]
 }, {
-	"code": "🪲",
+	code: "🪲",
 	"keywords": ["beetle"]
 }, {
-	"code": "🐞",
+	code: "🐞",
 	"keywords": ["bug", "lady_beetle", "beetle", "insect", "lady beetle", "ladybird", "ladybug"]
 }, {
-	"code": "🦗",
+	code: "🦗",
 	"keywords": ["cricket"]
 }, {
-	"code": "🪳",
+	code: "🪳",
 	"keywords": ["cockroach"]
 }, {
-	"code": "🕷️",
+	code: "🕷️",
 	"keywords": ["spider"]
 }, {
-	"code": "🕸️",
+	code: "🕸️",
 	"keywords": ["spider_web"]
 }, {
-	"code": "🦂",
+	code: "🦂",
 	"keywords": ["scorpion", "scorpio", "scorpius", "zodiac"]
 }, {
-	"code": "🦟",
+	code: "🦟",
 	"keywords": ["mosquito"]
 }, {
-	"code": "🪰",
+	code: "🪰",
 	"keywords": ["fly"]
 }, {
-	"code": "🪱",
+	code: "🪱",
 	"keywords": ["worm"]
 }, {
-	"code": "🦠",
+	code: "🦠",
 	"keywords": ["germ", "microbe"]
 }, {
-	"code": "💐",
+	code: "💐",
 	"keywords": ["flowers", "bouquet", "flower", "plant", "romance"]
 }, {
-	"code": "🌸",
+	code: "🌸",
 	"keywords": ["flower", "spring", "cherry_blossom", "blossom", "cherry", "plant"]
 }, {
-	"code": "💮",
+	code: "💮",
 	"keywords": ["white_flower", "flower"]
 }, {
-	"code": "🏵️",
+	code: "🏵️",
 	"keywords": ["rosette"]
 }, {
-	"code": "🌹",
+	code: "🌹",
 	"keywords": ["flower", "rose", "plant"]
 }, {
-	"code": "🥀",
+	code: "🥀",
 	"keywords": ["wilted_flower", "flower", "wilted"]
 }, {
-	"code": "🌺",
+	code: "🌺",
 	"keywords": ["hibiscus", "flower", "plant"]
 }, {
-	"code": "🌻",
+	code: "🌻",
 	"keywords": ["sunflower", "flower", "plant", "sun"]
 }, {
-	"code": "🌼",
+	code: "🌼",
 	"keywords": ["blossom", "flower", "plant"]
 }, {
-	"code": "🌷",
+	code: "🌷",
 	"keywords": ["flower", "tulip", "plant"]
 }, {
-	"code": "🌱",
+	code: "🌱",
 	"keywords": ["plant", "seedling", "young"]
 }, {
-	"code": "🪴",
+	code: "🪴",
 	"keywords": ["potted_plant"]
 }, {
-	"code": "🌲",
+	code: "🌲",
 	"keywords": ["wood", "evergreen_tree", "evergreen", "plant", "tree"]
 }, {
-	"code": "🌳",
+	code: "🌳",
 	"keywords": ["wood", "deciduous_tree", "deciduous", "plant", "shedding", "tree"]
 }, {
-	"code": "🌴",
+	code: "🌴",
 	"keywords": ["palm_tree", "palm", "plant", "tree"]
 }, {
-	"code": "🌵",
+	code: "🌵",
 	"keywords": ["cactus", "plant"]
 }, {
-	"code": "🌾",
+	code: "🌾",
 	"keywords": ["ear_of_rice", "ear", "plant", "rice"]
 }, {
-	"code": "🌿",
+	code: "🌿",
 	"keywords": ["herb", "leaf", "plant"]
 }, {
-	"code": "☘️",
+	code: "☘️",
 	"keywords": ["shamrock", "plant"]
 }, {
-	"code": "🍀",
+	code: "🍀",
 	"keywords": ["luck", "four_leaf_clover", "4", "clover", "four", "leaf", "plant"]
 }, {
-	"code": "🍁",
+	code: "🍁",
 	"keywords": ["canada", "maple_leaf", "falling", "leaf", "maple", "plant"]
 }, {
-	"code": "🍂",
+	code: "🍂",
 	"keywords": ["autumn", "fallen_leaf", "falling", "leaf", "plant"]
 }, {
-	"code": "🍃",
+	code: "🍃",
 	"keywords": ["leaf", "leaves", "blow", "flutter", "plant", "wind"]
 }, {
-	"code": "foodAndDrink",
-	"header": true
+	code: "foodAndDrink",
+	header: true
 }, {
-	"code": "🍇",
+	code: "🍇",
 	"keywords": ["grapes", "fruit", "grape", "plant"]
 }, {
-	"code": "🍈",
+	code: "🍈",
 	"keywords": ["melon", "fruit", "plant"]
 }, {
-	"code": "🍉",
+	code: "🍉",
 	"keywords": ["watermelon", "fruit", "plant"]
 }, {
-	"code": "🍊",
+	code: "🍊",
 	"keywords": ["tangerine", "orange", "mandarin", "fruit", "plant"]
 }, {
-	"code": "🍋",
+	code: "🍋",
 	"keywords": ["lemon", "citrus", "fruit", "plant"]
 }, {
-	"code": "🍌",
+	code: "🍌",
 	"keywords": ["fruit", "banana", "plant"]
 }, {
-	"code": "🍍",
+	code: "🍍",
 	"keywords": ["pineapple", "fruit", "plant"]
 }, {
-	"code": "🥭",
+	code: "🥭",
 	"keywords": ["mango"]
 }, {
-	"code": "🍎",
+	code: "🍎",
 	"keywords": ["apple", "fruit", "plant", "red"]
 }, {
-	"code": "🍏",
+	code: "🍏",
 	"keywords": ["fruit", "green_apple", "apple", "green", "plant"]
 }, {
-	"code": "🍐",
+	code: "🍐",
 	"keywords": ["pear", "fruit", "plant"]
 }, {
-	"code": "🍑",
+	code: "🍑",
 	"keywords": ["peach", "fruit", "plant"]
 }, {
-	"code": "🍒",
+	code: "🍒",
 	"keywords": ["fruit", "cherries", "cherry", "plant"]
 }, {
-	"code": "🍓",
+	code: "🍓",
 	"keywords": ["fruit", "strawberry", "berry", "plant"]
 }, {
-	"code": "🫐",
+	code: "🫐",
 	"keywords": ["blueberries"]
 }, {
-	"code": "🥝",
+	code: "🥝",
 	"keywords": ["kiwi_fruit", "fruit", "kiwi"]
 }, {
-	"code": "🍅",
+	code: "🍅",
 	"keywords": ["tomato", "plant", "vegetable"]
 }, {
-	"code": "🫒",
+	code: "🫒",
 	"keywords": ["olive"]
 }, {
-	"code": "🥥",
+	code: "🥥",
 	"keywords": ["coconut"]
 }, {
-	"code": "🥑",
+	code: "🥑",
 	"keywords": ["avocado", "fruit"]
 }, {
-	"code": "🍆",
+	code: "🍆",
 	"keywords": ["aubergine", "eggplant", "plant", "vegetable"]
 }, {
-	"code": "🥔",
+	code: "🥔",
 	"keywords": ["potato", "vegetable"]
 }, {
-	"code": "🥕",
+	code: "🥕",
 	"keywords": ["carrot", "vegetable"]
 }, {
-	"code": "🌽",
+	code: "🌽",
 	"keywords": ["corn", "ear", "maize", "maze", "plant"]
 }, {
-	"code": "🌶️",
+	code: "🌶️",
 	"keywords": ["spicy", "hot_pepper"]
 }, {
-	"code": "🫑",
+	code: "🫑",
 	"keywords": ["bell_pepper"]
 }, {
-	"code": "🥒",
+	code: "🥒",
 	"keywords": ["cucumber", "pickle", "vegetable"]
 }, {
-	"code": "🥬",
+	code: "🥬",
 	"keywords": ["leafy_green"]
 }, {
-	"code": "🥦",
+	code: "🥦",
 	"keywords": ["broccoli"]
 }, {
-	"code": "🧄",
+	code: "🧄",
 	"keywords": ["garlic"]
 }, {
-	"code": "🧅",
+	code: "🧅",
 	"keywords": ["onion"]
 }, {
-	"code": "🍄",
+	code: "🍄",
 	"keywords": ["mushroom", "plant"]
 }, {
-	"code": "🥜",
+	code: "🥜",
 	"keywords": ["peanuts", "nut", "peanut", "vegetable"]
 }, {
-	"code": "🌰",
+	code: "🌰",
 	"keywords": ["chestnut", "plant"]
 }, {
-	"code": "🍞",
+	code: "🍞",
 	"keywords": ["toast", "bread", "loaf"]
 }, {
-	"code": "🥐",
+	code: "🥐",
 	"keywords": ["croissant", "bread", "crescent roll", "french"]
 }, {
-	"code": "🥖",
+	code: "🥖",
 	"keywords": ["baguette_bread", "baguette", "bread", "french"]
 }, {
-	"code": "🫓",
+	code: "🫓",
 	"keywords": ["flatbread"]
 }, {
-	"code": "🥨",
+	code: "🥨",
 	"keywords": ["pretzel"]
 }, {
-	"code": "🥯",
+	code: "🥯",
 	"keywords": ["bagel"]
 }, {
-	"code": "🥞",
+	code: "🥞",
 	"keywords": ["pancakes", "crêpe", "hotcake", "pancake"]
 }, {
-	"code": "🧇",
+	code: "🧇",
 	"keywords": ["waffle"]
 }, {
-	"code": "🧀",
+	code: "🧀",
 	"keywords": ["cheese"]
 }, {
-	"code": "🍖",
+	code: "🍖",
 	"keywords": ["meat_on_bone", "bone", "meat"]
 }, {
-	"code": "🍗",
+	code: "🍗",
 	"keywords": ["meat", "chicken", "poultry_leg", "bone", "leg", "poultry"]
 }, {
-	"code": "🥩",
+	code: "🥩",
 	"keywords": ["cut_of_meat"]
 }, {
-	"code": "🥓",
+	code: "🥓",
 	"keywords": ["bacon", "meat"]
 }, {
-	"code": "🍔",
+	code: "🍔",
 	"keywords": ["burger", "hamburger"]
 }, {
-	"code": "🍟",
+	code: "🍟",
 	"keywords": ["fries", "french"]
 }, {
-	"code": "🍕",
+	code: "🍕",
 	"keywords": ["pizza", "cheese", "slice"]
 }, {
-	"code": "🌭",
+	code: "🌭",
 	"keywords": ["hotdog", "frankfurter", "hot dog", "sausage"]
 }, {
-	"code": "🥪",
+	code: "🥪",
 	"keywords": ["sandwich"]
 }, {
-	"code": "🌮",
+	code: "🌮",
 	"keywords": ["taco", "mexican"]
 }, {
-	"code": "🌯",
+	code: "🌯",
 	"keywords": ["burrito", "mexican"]
 }, {
-	"code": "🫔",
+	code: "🫔",
 	"keywords": ["tamale"]
 }, {
-	"code": "🥙",
+	code: "🥙",
 	"keywords": ["stuffed_flatbread", "falafel", "flatbread", "gyro", "kebab", "stuffed"]
 }, {
-	"code": "🧆",
+	code: "🧆",
 	"keywords": ["falafel"]
 }, {
-	"code": "🥚",
+	code: "🥚",
 	"keywords": ["egg"]
 }, {
-	"code": "🍳",
+	code: "🍳",
 	"keywords": ["breakfast", "fried_egg", "cooking", "egg", "frying", "pan"]
 }, {
-	"code": "🥘",
+	code: "🥘",
 	"keywords": ["paella", "curry", "shallow_pan_of_food", "casserole", "pan", "shallow"]
 }, {
-	"code": "🍲",
+	code: "🍲",
 	"keywords": ["stew", "pot"]
 }, {
-	"code": "🫕",
+	code: "🫕",
 	"keywords": ["fondue"]
 }, {
-	"code": "🥣",
+	code: "🥣",
 	"keywords": ["bowl_with_spoon"]
 }, {
-	"code": "🥗",
+	code: "🥗",
 	"keywords": ["green_salad", "green", "salad"]
 }, {
-	"code": "🍿",
+	code: "🍿",
 	"keywords": ["popcorn"]
 }, {
-	"code": "🧈",
+	code: "🧈",
 	"keywords": ["butter"]
 }, {
-	"code": "🧂",
+	code: "🧂",
 	"keywords": ["salt"]
 }, {
-	"code": "🥫",
+	code: "🥫",
 	"keywords": ["canned_food"]
 }, {
-	"code": "🍱",
+	code: "🍱",
 	"keywords": ["bento", "box"]
 }, {
-	"code": "🍘",
+	code: "🍘",
 	"keywords": ["rice_cracker", "cracker", "rice"]
 }, {
-	"code": "🍙",
+	code: "🍙",
 	"keywords": ["rice_ball", "ball", "japanese", "rice"]
 }, {
-	"code": "🍚",
+	code: "🍚",
 	"keywords": ["rice", "cooked"]
 }, {
-	"code": "🍛",
+	code: "🍛",
 	"keywords": ["curry", "rice"]
 }, {
-	"code": "🍜",
+	code: "🍜",
 	"keywords": ["noodle", "ramen", "bowl", "steaming"]
 }, {
-	"code": "🍝",
+	code: "🍝",
 	"keywords": ["pasta", "spaghetti"]
 }, {
-	"code": "🍠",
+	code: "🍠",
 	"keywords": ["sweet_potato", "potato", "roasted", "sweet"]
 }, {
-	"code": "🍢",
+	code: "🍢",
 	"keywords": ["oden", "kebab", "seafood", "skewer", "stick"]
 }, {
-	"code": "🍣",
+	code: "🍣",
 	"keywords": ["sushi"]
 }, {
-	"code": "🍤",
+	code: "🍤",
 	"keywords": ["tempura", "fried_shrimp", "fried", "prawn", "shrimp"]
 }, {
-	"code": "🍥",
+	code: "🍥",
 	"keywords": ["fish_cake", "cake", "fish", "pastry", "swirl"]
 }, {
-	"code": "🥮",
+	code: "🥮",
 	"keywords": ["moon_cake"]
 }, {
-	"code": "🍡",
+	code: "🍡",
 	"keywords": ["dango", "dessert", "japanese", "skewer", "stick", "sweet"]
 }, {
-	"code": "🥟",
+	code: "🥟",
 	"keywords": ["dumpling"]
 }, {
-	"code": "🥠",
+	code: "🥠",
 	"keywords": ["fortune_cookie"]
 }, {
-	"code": "🥡",
+	code: "🥡",
 	"keywords": ["takeout_box"]
 }, {
-	"code": "🦀",
+	code: "🦀",
 	"keywords": ["crab", "cancer", "zodiac"]
 }, {
-	"code": "🦞",
+	code: "🦞",
 	"keywords": ["lobster"]
 }, {
-	"code": "🦐",
+	code: "🦐",
 	"keywords": ["shrimp", "shellfish", "small"]
 }, {
-	"code": "🦑",
+	code: "🦑",
 	"keywords": ["squid", "molusc"]
 }, {
-	"code": "🦪",
+	code: "🦪",
 	"keywords": ["oyster"]
 }, {
-	"code": "🍦",
+	code: "🍦",
 	"keywords": ["icecream", "cream", "dessert", "ice", "soft", "sweet"]
 }, {
-	"code": "🍧",
+	code: "🍧",
 	"keywords": ["shaved_ice", "dessert", "ice", "shaved", "sweet"]
 }, {
-	"code": "🍨",
+	code: "🍨",
 	"keywords": ["ice_cream", "cream", "dessert", "ice", "sweet"]
 }, {
-	"code": "🍩",
+	code: "🍩",
 	"keywords": ["doughnut", "dessert", "donut", "sweet"]
 }, {
-	"code": "🍪",
+	code: "🍪",
 	"keywords": ["cookie", "dessert", "sweet"]
 }, {
-	"code": "🎂",
+	code: "🎂",
 	"keywords": ["party", "birthday", "cake", "celebration", "dessert", "pastry", "sweet"]
 }, {
-	"code": "🍰",
+	code: "🍰",
 	"keywords": ["dessert", "cake", "pastry", "shortcake", "slice", "sweet"]
 }, {
-	"code": "🧁",
+	code: "🧁",
 	"keywords": ["cupcake"]
 }, {
-	"code": "🥧",
+	code: "🥧",
 	"keywords": ["pie"]
 }, {
-	"code": "🍫",
+	code: "🍫",
 	"keywords": ["chocolate_bar", "bar", "chocolate", "dessert", "sweet"]
 }, {
-	"code": "🍬",
+	code: "🍬",
 	"keywords": ["sweet", "candy", "dessert"]
 }, {
-	"code": "🍭",
+	code: "🍭",
 	"keywords": ["lollipop", "candy", "dessert", "sweet"]
 }, {
-	"code": "🍮",
+	code: "🍮",
 	"keywords": ["custard", "dessert", "pudding", "sweet"]
 }, {
-	"code": "🍯",
+	code: "🍯",
 	"keywords": ["honey_pot", "honey", "honeypot", "pot", "sweet"]
 }, {
-	"code": "🍼",
+	code: "🍼",
 	"keywords": ["milk", "baby_bottle", "baby", "bottle", "drink"]
 }, {
-	"code": "🥛",
+	code: "🥛",
 	"keywords": ["milk_glass", "drink", "glass", "milk"]
 }, {
-	"code": "☕",
+	code: "☕",
 	"keywords": ["cafe", "espresso", "coffee", "beverage", "drink", "hot", "steaming", "tea"]
 }, {
-	"code": "🫖",
+	code: "🫖",
 	"keywords": ["teapot"]
 }, {
-	"code": "🍵",
+	code: "🍵",
 	"keywords": ["green", "breakfast", "tea", "beverage", "cup", "drink", "teacup"]
 }, {
-	"code": "🍶",
+	code: "🍶",
 	"keywords": ["sake", "bar", "beverage", "bottle", "cup", "drink"]
 }, {
-	"code": "🍾",
+	code: "🍾",
 	"keywords": ["bottle", "bubbly", "celebration", "champagne", "bar", "cork", "drink", "popping"]
 }, {
-	"code": "🍷",
+	code: "🍷",
 	"keywords": ["wine_glass", "bar", "beverage", "drink", "glass", "wine"]
 }, {
-	"code": "🍸",
+	code: "🍸",
 	"keywords": ["drink", "cocktail", "bar", "glass"]
 }, {
-	"code": "🍹",
+	code: "🍹",
 	"keywords": ["summer", "vacation", "tropical_drink", "bar", "drink", "tropical"]
 }, {
-	"code": "🍺",
+	code: "🍺",
 	"keywords": ["drink", "beer", "bar", "mug"]
 }, {
-	"code": "🍻",
+	code: "🍻",
 	"keywords": ["drinks", "beers", "bar", "beer", "clink", "drink", "mug"]
 }, {
-	"code": "🥂",
+	code: "🥂",
 	"keywords": ["cheers", "toast", "clinking_glasses", "celebrate", "clink", "drink", "glass"]
 }, {
-	"code": "🥃",
+	code: "🥃",
 	"keywords": ["whisky", "tumbler_glass", "glass", "liquor", "shot", "tumbler"]
 }, {
-	"code": "🥤",
+	code: "🥤",
 	"keywords": ["cup_with_straw"]
 }, {
-	"code": "🧋",
+	code: "🧋",
 	"keywords": ["bubble_tea"]
 }, {
-	"code": "🧃",
+	code: "🧃",
 	"keywords": ["beverage_box"]
 }, {
-	"code": "🧉",
+	code: "🧉",
 	"keywords": ["mate"]
 }, {
-	"code": "🧊",
+	code: "🧊",
 	"keywords": ["ice_cube"]
 }, {
-	"code": "🥢",
+	code: "🥢",
 	"keywords": ["chopsticks"]
 }, {
-	"code": "🍽️",
+	code: "🍽️",
 	"keywords": ["dining", "dinner", "plate_with_cutlery"]
 }, {
-	"code": "🍴",
+	code: "🍴",
 	"keywords": ["cutlery", "fork_and_knife", "cooking", "fork", "knife"]
 }, {
-	"code": "🥄",
+	code: "🥄",
 	"keywords": ["spoon", "tableware"]
 }, {
-	"code": "🔪",
+	code: "🔪",
 	"keywords": ["cut", "chop", "hocho", "knife", "cooking", "tool", "weapon"]
 }, {
-	"code": "🏺",
+	code: "🏺",
 	"keywords": ["amphora", "aquarius", "cooking", "drink", "jug", "tool", "weapon", "zodiac"]
 }, {
-	"code": "travelAndPlaces",
-	"header": true
+	code: "travelAndPlaces",
+	header: true
 }, {
-	"code": "🌍",
+	code: "🌍",
 	"keywords": ["globe", "world", "international", "earth_africa", "africa", "earth", "europe"]
 }, {
-	"code": "🌎",
+	code: "🌎",
 	"keywords": ["globe", "world", "international", "earth_americas", "americas", "earth"]
 }, {
-	"code": "🌏",
+	code: "🌏",
 	"keywords": ["globe", "world", "international", "earth_asia", "asia", "australia", "earth"]
 }, {
-	"code": "🌐",
+	code: "🌐",
 	"keywords": ["world", "global", "international", "globe_with_meridians", "earth", "globe", "meridians"]
 }, {
-	"code": "🗺️",
+	code: "🗺️",
 	"keywords": ["travel", "world_map"]
 }, {
-	"code": "🗾",
+	code: "🗾",
 	"keywords": ["japan", "map"]
 }, {
-	"code": "🧭",
+	code: "🧭",
 	"keywords": ["compass"]
 }, {
-	"code": "🏔️",
+	code: "🏔️",
 	"keywords": ["mountain_snow"]
 }, {
-	"code": "⛰️",
+	code: "⛰️",
 	"keywords": ["mountain"]
 }, {
-	"code": "🌋",
+	code: "🌋",
 	"keywords": ["volcano", "eruption", "mountain", "weather"]
 }, {
-	"code": "🗻",
+	code: "🗻",
 	"keywords": ["mount_fuji", "fuji", "mountain"]
 }, {
-	"code": "🏕️",
+	code: "🏕️",
 	"keywords": ["camping"]
 }, {
-	"code": "🏖️",
+	code: "🏖️",
 	"keywords": ["beach_umbrella"]
 }, {
-	"code": "🏜️",
+	code: "🏜️",
 	"keywords": ["desert"]
 }, {
-	"code": "🏝️",
+	code: "🏝️",
 	"keywords": ["desert_island"]
 }, {
-	"code": "🏞️",
+	code: "🏞️",
 	"keywords": ["national_park"]
 }, {
-	"code": "🏟️",
+	code: "🏟️",
 	"keywords": ["stadium"]
 }, {
-	"code": "🏛️",
+	code: "🏛️",
 	"keywords": ["classical_building"]
 }, {
-	"code": "🏗️",
+	code: "🏗️",
 	"keywords": ["building_construction"]
 }, {
-	"code": "🧱",
+	code: "🧱",
 	"keywords": ["bricks"]
 }, {
-	"code": "🪨",
+	code: "🪨",
 	"keywords": ["rock"]
 }, {
-	"code": "🪵",
+	code: "🪵",
 	"keywords": ["wood"]
 }, {
-	"code": "🛖",
+	code: "🛖",
 	"keywords": ["hut"]
 }, {
-	"code": "🏘️",
+	code: "🏘️",
 	"keywords": ["houses"]
 }, {
-	"code": "🏚️",
+	code: "🏚️",
 	"keywords": ["derelict_house"]
 }, {
-	"code": "🏠",
+	code: "🏠",
 	"keywords": ["house", "building", "home"]
 }, {
-	"code": "🏡",
+	code: "🏡",
 	"keywords": ["house_with_garden", "building", "garden", "home", "house"]
 }, {
-	"code": "🏢",
+	code: "🏢",
 	"keywords": ["office", "building"]
 }, {
-	"code": "🏣",
+	code: "🏣",
 	"keywords": ["post_office", "building", "japanese", "post"]
 }, {
-	"code": "🏤",
+	code: "🏤",
 	"keywords": ["european_post_office", "building", "european", "post"]
 }, {
-	"code": "🏥",
+	code: "🏥",
 	"keywords": ["hospital", "building", "doctor", "medicine"]
 }, {
-	"code": "🏦",
+	code: "🏦",
 	"keywords": ["bank", "building"]
 }, {
-	"code": "🏨",
+	code: "🏨",
 	"keywords": ["hotel", "building"]
 }, {
-	"code": "🏩",
+	code: "🏩",
 	"keywords": ["love_hotel", "building", "hotel", "love"]
 }, {
-	"code": "🏪",
+	code: "🏪",
 	"keywords": ["convenience_store", "building", "convenience", "store"]
 }, {
-	"code": "🏫",
+	code: "🏫",
 	"keywords": ["school", "building"]
 }, {
-	"code": "🏬",
+	code: "🏬",
 	"keywords": ["department_store", "building", "department", "store"]
 }, {
-	"code": "🏭",
+	code: "🏭",
 	"keywords": ["factory", "building"]
 }, {
-	"code": "🏯",
+	code: "🏯",
 	"keywords": ["japanese_castle", "building", "castle", "japanese"]
 }, {
-	"code": "🏰",
+	code: "🏰",
 	"keywords": ["european_castle", "building", "castle", "european"]
 }, {
-	"code": "💒",
+	code: "💒",
 	"keywords": ["marriage", "wedding", "activity", "chapel", "romance"]
 }, {
-	"code": "🗼",
+	code: "🗼",
 	"keywords": ["tokyo_tower", "tokyo", "tower"]
 }, {
-	"code": "🗽",
+	code: "🗽",
 	"keywords": ["statue_of_liberty", "liberty", "statue"]
 }, {
-	"code": "⛪",
+	code: "⛪",
 	"keywords": ["church", "building", "christian", "cross", "religion"]
 }, {
-	"code": "🕌",
+	code: "🕌",
 	"keywords": ["mosque", "islam", "muslim", "religion"]
 }, {
-	"code": "🛕",
+	code: "🛕",
 	"keywords": ["hindu_temple"]
 }, {
-	"code": "🕍",
+	code: "🕍",
 	"keywords": ["synagogue", "jew", "jewish", "religion", "temple"]
 }, {
-	"code": "⛩️",
+	code: "⛩️",
 	"keywords": ["shinto_shrine"]
 }, {
-	"code": "🕋",
+	code: "🕋",
 	"keywords": ["kaaba", "islam", "muslim", "religion"]
 }, {
-	"code": "⛲",
+	code: "⛲",
 	"keywords": ["fountain"]
 }, {
-	"code": "⛺",
+	code: "⛺",
 	"keywords": ["camping", "tent"]
 }, {
-	"code": "🌁",
+	code: "🌁",
 	"keywords": ["karl", "foggy", "fog", "weather"]
 }, {
-	"code": "🌃",
+	code: "🌃",
 	"keywords": ["night_with_stars", "night", "star", "weather"]
 }, {
-	"code": "🏙️",
+	code: "🏙️",
 	"keywords": ["skyline", "cityscape"]
 }, {
-	"code": "🌄",
+	code: "🌄",
 	"keywords": ["sunrise_over_mountains", "morning", "mountain", "sun", "sunrise", "weather"]
 }, {
-	"code": "🌅",
+	code: "🌅",
 	"keywords": ["sunrise", "morning", "sun", "weather"]
 }, {
-	"code": "🌆",
+	code: "🌆",
 	"keywords": ["city_sunset", "building", "city", "dusk", "evening", "landscape", "sun", "sunset", "weather"]
 }, {
-	"code": "🌇",
+	code: "🌇",
 	"keywords": ["city_sunrise", "building", "dusk", "sun", "sunset", "weather"]
 }, {
-	"code": "🌉",
+	code: "🌉",
 	"keywords": ["bridge_at_night", "bridge", "night", "weather"]
 }, {
-	"code": "♨️",
+	code: "♨️",
 	"keywords": ["hotsprings", "hot", "springs", "steaming"]
 }, {
-	"code": "🎠",
+	code: "🎠",
 	"keywords": ["carousel_horse", "activity", "carousel", "entertainment", "horse"]
 }, {
-	"code": "🎡",
+	code: "🎡",
 	"keywords": ["ferris_wheel", "activity", "amusement park", "entertainment", "ferris", "wheel"]
 }, {
-	"code": "🎢",
+	code: "🎢",
 	"keywords": ["roller_coaster", "activity", "amusement park", "coaster", "entertainment", "roller"]
 }, {
-	"code": "💈",
+	code: "💈",
 	"keywords": ["barber", "haircut", "pole"]
 }, {
-	"code": "🎪",
+	code: "🎪",
 	"keywords": ["circus_tent", "activity", "circus", "entertainment", "tent"]
 }, {
-	"code": "🚂",
+	code: "🚂",
 	"keywords": ["train", "steam_locomotive", "engine", "locomotive", "railway", "steam", "vehicle"]
 }, {
-	"code": "🚃",
+	code: "🚃",
 	"keywords": ["railway_car", "car", "electric", "railway", "train", "tram", "trolleybus", "vehicle"]
 }, {
-	"code": "🚄",
+	code: "🚄",
 	"keywords": ["train", "bullettrain_side", "railway", "shinkansen", "speed", "vehicle"]
 }, {
-	"code": "🚅",
+	code: "🚅",
 	"keywords": ["train", "bullettrain_front", "bullet", "railway", "shinkansen", "speed", "vehicle"]
 }, {
-	"code": "🚆",
+	code: "🚆",
 	"keywords": ["train2", "railway", "train", "vehicle"]
 }, {
-	"code": "🚇",
+	code: "🚇",
 	"keywords": ["metro", "subway", "vehicle"]
 }, {
-	"code": "🚈",
+	code: "🚈",
 	"keywords": ["light_rail", "railway", "vehicle"]
 }, {
-	"code": "🚉",
+	code: "🚉",
 	"keywords": ["station", "railway", "train", "vehicle"]
 }, {
-	"code": "🚊",
+	code: "🚊",
 	"keywords": ["tram", "trolleybus", "vehicle"]
 }, {
-	"code": "🚝",
+	code: "🚝",
 	"keywords": ["monorail", "vehicle"]
 }, {
-	"code": "🚞",
+	code: "🚞",
 	"keywords": ["mountain_railway", "car", "mountain", "railway", "vehicle"]
 }, {
-	"code": "🚋",
+	code: "🚋",
 	"keywords": ["train", "car", "tram", "trolleybus", "vehicle"]
 }, {
-	"code": "🚌",
+	code: "🚌",
 	"keywords": ["bus", "vehicle"]
 }, {
-	"code": "🚍",
+	code: "🚍",
 	"keywords": ["oncoming_bus", "bus", "oncoming", "vehicle"]
 }, {
-	"code": "🚎",
+	code: "🚎",
 	"keywords": ["trolleybus", "bus", "tram", "trolley", "vehicle"]
 }, {
-	"code": "🚐",
+	code: "🚐",
 	"keywords": ["minibus", "bus", "vehicle"]
 }, {
-	"code": "🚑",
+	code: "🚑",
 	"keywords": ["ambulance", "vehicle"]
 }, {
-	"code": "🚒",
+	code: "🚒",
 	"keywords": ["fire_engine", "engine", "fire", "truck", "vehicle"]
 }, {
-	"code": "🚓",
+	code: "🚓",
 	"keywords": ["police_car", "car", "patrol", "police", "vehicle"]
 }, {
-	"code": "🚔",
+	code: "🚔",
 	"keywords": ["oncoming_police_car", "car", "oncoming", "police", "vehicle"]
 }, {
-	"code": "🚕",
+	code: "🚕",
 	"keywords": ["taxi", "vehicle"]
 }, {
-	"code": "🚖",
+	code: "🚖",
 	"keywords": ["oncoming_taxi", "oncoming", "taxi", "vehicle"]
 }, {
-	"code": "🚗",
+	code: "🚗",
 	"keywords": ["car", "red_car", "automobile", "vehicle"]
 }, {
-	"code": "🚘",
+	code: "🚘",
 	"keywords": ["oncoming_automobile", "automobile", "car", "oncoming", "vehicle"]
 }, {
-	"code": "🚙",
+	code: "🚙",
 	"keywords": ["blue_car", "recreational", "rv", "vehicle"]
 }, {
-	"code": "🛻",
+	code: "🛻",
 	"keywords": ["pickup_truck"]
 }, {
-	"code": "🚚",
+	code: "🚚",
 	"keywords": ["truck", "delivery", "vehicle"]
 }, {
-	"code": "🚛",
+	code: "🚛",
 	"keywords": ["articulated_lorry", "lorry", "semi", "truck", "vehicle"]
 }, {
-	"code": "🚜",
+	code: "🚜",
 	"keywords": ["tractor", "vehicle"]
 }, {
-	"code": "🏎️",
+	code: "🏎️",
 	"keywords": ["racing_car"]
 }, {
-	"code": "🏍️",
+	code: "🏍️",
 	"keywords": ["motorcycle"]
 }, {
-	"code": "🛵",
+	code: "🛵",
 	"keywords": ["motor_scooter", "motor", "scooter"]
 }, {
-	"code": "🦽",
+	code: "🦽",
 	"keywords": ["manual_wheelchair"]
 }, {
-	"code": "🦼",
+	code: "🦼",
 	"keywords": ["motorized_wheelchair"]
 }, {
-	"code": "🛺",
+	code: "🛺",
 	"keywords": ["auto_rickshaw"]
 }, {
-	"code": "🚲",
+	code: "🚲",
 	"keywords": ["bicycle", "bike", "vehicle"]
 }, {
-	"code": "🛴",
+	code: "🛴",
 	"keywords": ["kick_scooter", "kick", "scooter"]
 }, {
-	"code": "🛹",
+	code: "🛹",
 	"keywords": ["skateboard"]
 }, {
-	"code": "🛼",
+	code: "🛼",
 	"keywords": ["roller_skate"]
 }, {
-	"code": "🚏",
+	code: "🚏",
 	"keywords": ["busstop", "bus", "stop"]
 }, {
-	"code": "🛣️",
+	code: "🛣️",
 	"keywords": ["motorway"]
 }, {
-	"code": "🛤️",
+	code: "🛤️",
 	"keywords": ["railway_track"]
 }, {
-	"code": "🛢️",
+	code: "🛢️",
 	"keywords": ["oil_drum"]
 }, {
-	"code": "⛽",
+	code: "⛽",
 	"keywords": ["fuelpump", "fuel", "gas", "pump", "station"]
 }, {
-	"code": "🚨",
+	code: "🚨",
 	"keywords": ["911", "emergency", "rotating_light", "beacon", "car", "light", "police", "revolving", "vehicle"]
 }, {
-	"code": "🚥",
+	code: "🚥",
 	"keywords": ["traffic_light", "light", "signal", "traffic"]
 }, {
-	"code": "🚦",
+	code: "🚦",
 	"keywords": ["semaphore", "vertical_traffic_light", "light", "signal", "traffic"]
 }, {
-	"code": "🛑",
+	code: "🛑",
 	"keywords": ["stop_sign", "octagonal", "stop"]
 }, {
-	"code": "🚧",
+	code: "🚧",
 	"keywords": ["wip", "construction", "barrier"]
 }, {
-	"code": "⚓",
+	code: "⚓",
 	"keywords": ["ship", "anchor", "tool"]
 }, {
-	"code": "⛵",
+	code: "⛵",
 	"keywords": ["boat", "sailboat", "resort", "sea", "vehicle", "yacht"]
 }, {
-	"code": "🛶",
+	code: "🛶",
 	"keywords": ["canoe", "boat"]
 }, {
-	"code": "🚤",
+	code: "🚤",
 	"keywords": ["ship", "speedboat", "boat", "vehicle"]
 }, {
-	"code": "🛳️",
+	code: "🛳️",
 	"keywords": ["cruise", "passenger_ship"]
 }, {
-	"code": "⛴️",
+	code: "⛴️",
 	"keywords": ["ferry"]
 }, {
-	"code": "🛥️",
+	code: "🛥️",
 	"keywords": ["motor_boat"]
 }, {
-	"code": "🚢",
+	code: "🚢",
 	"keywords": ["ship", "vehicle"]
 }, {
-	"code": "✈️",
+	code: "✈️",
 	"keywords": ["flight", "airplane", "vehicle"]
 }, {
-	"code": "🛩️",
+	code: "🛩️",
 	"keywords": ["flight", "small_airplane"]
 }, {
-	"code": "🛫",
+	code: "🛫",
 	"keywords": ["flight_departure", "airplane", "check-in", "departure", "departures", "vehicle"]
 }, {
-	"code": "🛬",
+	code: "🛬",
 	"keywords": ["flight_arrival", "airplane", "arrivals", "arriving", "landing", "vehicle"]
 }, {
-	"code": "🪂",
+	code: "🪂",
 	"keywords": ["parachute"]
 }, {
-	"code": "💺",
+	code: "💺",
 	"keywords": ["seat", "chair"]
 }, {
-	"code": "🚁",
+	code: "🚁",
 	"keywords": ["helicopter", "vehicle"]
 }, {
-	"code": "🚟",
+	code: "🚟",
 	"keywords": ["suspension_railway", "railway", "suspension", "vehicle"]
 }, {
-	"code": "🚠",
+	code: "🚠",
 	"keywords": ["mountain_cableway", "cable", "gondola", "mountain", "vehicle"]
 }, {
-	"code": "🚡",
+	code: "🚡",
 	"keywords": ["aerial_tramway", "aerial", "cable", "car", "gondola", "ropeway", "tramway", "vehicle"]
 }, {
-	"code": "🛰️",
+	code: "🛰️",
 	"keywords": ["orbit", "space", "artificial_satellite"]
 }, {
-	"code": "🚀",
+	code: "🚀",
 	"keywords": ["ship", "launch", "rocket", "space", "vehicle"]
 }, {
-	"code": "🛸",
+	code: "🛸",
 	"keywords": ["ufo", "flying_saucer"]
 }, {
-	"code": "🛎️",
+	code: "🛎️",
 	"keywords": ["bellhop_bell"]
 }, {
-	"code": "🧳",
+	code: "🧳",
 	"keywords": ["luggage"]
 }, {
-	"code": "⌛",
+	code: "⌛",
 	"keywords": ["time", "hourglass", "sand", "timer"]
 }, {
-	"code": "⏳",
+	code: "⏳",
 	"keywords": ["time", "hourglass_flowing_sand", "hourglass", "sand", "timer"]
 }, {
-	"code": "⌚",
+	code: "⌚",
 	"keywords": ["time", "watch", "clock"]
 }, {
-	"code": "⏰",
+	code: "⏰",
 	"keywords": ["morning", "alarm_clock", "alarm", "clock"]
 }, {
-	"code": "⏱️",
+	code: "⏱️",
 	"keywords": ["stopwatch"]
 }, {
-	"code": "⏲️",
+	code: "⏲️",
 	"keywords": ["timer_clock"]
 }, {
-	"code": "🕰️",
+	code: "🕰️",
 	"keywords": ["mantelpiece_clock"]
 }, {
-	"code": "🕛",
+	code: "🕛",
 	"keywords": ["clock12", "00", "12", "12:00", "clock", "o’clock", "twelve"]
 }, {
-	"code": "🕧",
+	code: "🕧",
 	"keywords": ["clock1230", "12", "12:30", "30", "clock", "thirty", "twelve"]
 }, {
-	"code": "🕐",
+	code: "🕐",
 	"keywords": ["clock1", "00", "1", "1:00", "clock", "o’clock", "one"]
 }, {
-	"code": "🕜",
+	code: "🕜",
 	"keywords": ["clock130", "1", "1:30", "30", "clock", "one", "thirty"]
 }, {
-	"code": "🕑",
+	code: "🕑",
 	"keywords": ["clock2", "00", "2", "2:00", "clock", "o’clock", "two"]
 }, {
-	"code": "🕝",
+	code: "🕝",
 	"keywords": ["clock230", "2", "2:30", "30", "clock", "thirty", "two"]
 }, {
-	"code": "🕒",
+	code: "🕒",
 	"keywords": ["clock3", "00", "3", "3:00", "clock", "o’clock", "three"]
 }, {
-	"code": "🕞",
+	code: "🕞",
 	"keywords": ["clock330", "3", "3:30", "30", "clock", "thirty", "three"]
 }, {
-	"code": "🕓",
+	code: "🕓",
 	"keywords": ["clock4", "00", "4", "4:00", "clock", "four", "o’clock"]
 }, {
-	"code": "🕟",
+	code: "🕟",
 	"keywords": ["clock430", "30", "4", "4:30", "clock", "four", "thirty"]
 }, {
-	"code": "🕔",
+	code: "🕔",
 	"keywords": ["clock5", "00", "5", "5:00", "clock", "five", "o’clock"]
 }, {
-	"code": "🕠",
+	code: "🕠",
 	"keywords": ["clock530", "30", "5", "5:30", "clock", "five", "thirty"]
 }, {
-	"code": "🕕",
+	code: "🕕",
 	"keywords": ["clock6", "00", "6", "6:00", "clock", "o’clock", "six"]
 }, {
-	"code": "🕡",
+	code: "🕡",
 	"keywords": ["clock630", "30", "6", "6:30", "clock", "six", "thirty"]
 }, {
-	"code": "🕖",
+	code: "🕖",
 	"keywords": ["clock7", "00", "7", "7:00", "clock", "o’clock", "seven"]
 }, {
-	"code": "🕢",
+	code: "🕢",
 	"keywords": ["clock730", "30", "7", "7:30", "clock", "seven", "thirty"]
 }, {
-	"code": "🕗",
+	code: "🕗",
 	"keywords": ["clock8", "00", "8", "8:00", "clock", "eight", "o’clock"]
 }, {
-	"code": "🕣",
+	code: "🕣",
 	"keywords": ["clock830", "30", "8", "8:30", "clock", "eight", "thirty"]
 }, {
-	"code": "🕘",
+	code: "🕘",
 	"keywords": ["clock9", "00", "9", "9:00", "clock", "nine", "o’clock"]
 }, {
-	"code": "🕤",
+	code: "🕤",
 	"keywords": ["clock930", "30", "9", "9:30", "clock", "nine", "thirty"]
 }, {
-	"code": "🕙",
+	code: "🕙",
 	"keywords": ["clock10", "00", "10", "10:00", "clock", "o’clock", "ten"]
 }, {
-	"code": "🕥",
+	code: "🕥",
 	"keywords": ["clock1030", "10", "10:30", "30", "clock", "ten", "thirty"]
 }, {
-	"code": "🕚",
+	code: "🕚",
 	"keywords": ["clock11", "00", "11", "11:00", "clock", "eleven", "o’clock"]
 }, {
-	"code": "🕦",
+	code: "🕦",
 	"keywords": ["clock1130", "11", "11:30", "30", "clock", "eleven", "thirty"]
 }, {
-	"code": "🌑",
+	code: "🌑",
 	"keywords": ["new_moon", "dark", "moon", "space", "weather"]
 }, {
-	"code": "🌒",
+	code: "🌒",
 	"keywords": ["waxing_crescent_moon", "crescent", "moon", "space", "waxing", "weather"]
 }, {
-	"code": "🌓",
+	code: "🌓",
 	"keywords": ["first_quarter_moon", "moon", "quarter", "space", "weather"]
 }, {
-	"code": "🌔",
+	code: "🌔",
 	"keywords": ["moon", "waxing_gibbous_moon", "gibbous", "space", "waxing", "weather"]
 }, {
-	"code": "🌕",
+	code: "🌕",
 	"keywords": ["full_moon", "full", "moon", "space", "weather"]
 }, {
-	"code": "🌖",
+	code: "🌖",
 	"keywords": ["waning_gibbous_moon", "gibbous", "moon", "space", "waning", "weather"]
 }, {
-	"code": "🌗",
+	code: "🌗",
 	"keywords": ["last_quarter_moon", "moon", "quarter", "space", "weather"]
 }, {
-	"code": "🌘",
+	code: "🌘",
 	"keywords": ["waning_crescent_moon", "crescent", "moon", "space", "waning", "weather"]
 }, {
-	"code": "🌙",
+	code: "🌙",
 	"keywords": ["night", "crescent_moon", "crescent", "moon", "space", "weather"]
 }, {
-	"code": "🌚",
+	code: "🌚",
 	"keywords": ["new_moon_with_face", "face", "moon", "space", "weather"]
 }, {
-	"code": "🌛",
+	code: "🌛",
 	"keywords": ["first_quarter_moon_with_face", "face", "moon", "quarter", "space", "weather"]
 }, {
-	"code": "🌜",
+	code: "🌜",
 	"keywords": ["last_quarter_moon_with_face", "face", "moon", "quarter", "space", "weather"]
 }, {
-	"code": "🌡️",
+	code: "🌡️",
 	"keywords": ["thermometer"]
 }, {
-	"code": "☀️",
+	code: "☀️",
 	"keywords": ["weather", "sunny", "bright", "rays", "space", "sun"]
 }, {
-	"code": "🌝",
+	code: "🌝",
 	"keywords": ["full_moon_with_face", "bright", "face", "full", "moon", "space", "weather"]
 }, {
-	"code": "🌞",
+	code: "🌞",
 	"keywords": ["summer", "sun_with_face", "bright", "face", "space", "sun", "weather"]
 }, {
-	"code": "🪐",
+	code: "🪐",
 	"keywords": ["ringed_planet"]
 }, {
-	"code": "⭐",
+	code: "⭐",
 	"keywords": ["star"]
 }, {
-	"code": "🌟",
+	code: "🌟",
 	"keywords": ["star2", "glittery", "glow", "shining", "sparkle", "star"]
 }, {
-	"code": "🌠",
+	code: "🌠",
 	"keywords": ["stars", "activity", "falling", "shooting", "space", "star"]
 }, {
-	"code": "🌌",
+	code: "🌌",
 	"keywords": ["milky_way", "milky way", "space", "weather"]
 }, {
-	"code": "☁️",
+	code: "☁️",
 	"keywords": ["cloud", "weather"]
 }, {
-	"code": "⛅",
+	code: "⛅",
 	"keywords": ["weather", "cloud", "partly_sunny", "sun"]
 }, {
-	"code": "⛈️",
+	code: "⛈️",
 	"keywords": ["cloud_with_lightning_and_rain"]
 }, {
-	"code": "🌤️",
+	code: "🌤️",
 	"keywords": ["sun_behind_small_cloud"]
 }, {
-	"code": "🌥️",
+	code: "🌥️",
 	"keywords": ["sun_behind_large_cloud"]
 }, {
-	"code": "🌦️",
+	code: "🌦️",
 	"keywords": ["sun_behind_rain_cloud"]
 }, {
-	"code": "🌧️",
+	code: "🌧️",
 	"keywords": ["cloud_with_rain"]
 }, {
-	"code": "🌨️",
+	code: "🌨️",
 	"keywords": ["cloud_with_snow"]
 }, {
-	"code": "🌩️",
+	code: "🌩️",
 	"keywords": ["cloud_with_lightning"]
 }, {
-	"code": "🌪️",
+	code: "🌪️",
 	"keywords": ["tornado"]
 }, {
-	"code": "🌫️",
+	code: "🌫️",
 	"keywords": ["fog"]
 }, {
-	"code": "🌬️",
+	code: "🌬️",
 	"keywords": ["wind_face"]
 }, {
-	"code": "🌀",
+	code: "🌀",
 	"keywords": ["swirl", "cyclone", "dizzy", "twister", "typhoon", "weather"]
 }, {
-	"code": "🌈",
+	code: "🌈",
 	"keywords": ["rainbow", "rain", "weather"]
 }, {
-	"code": "🌂",
+	code: "🌂",
 	"keywords": ["weather", "rain", "closed_umbrella", "clothing", "umbrella"]
 }, {
-	"code": "☂️",
+	code: "☂️",
 	"keywords": ["open_umbrella", "clothing", "rain", "umbrella", "weather"]
 }, {
-	"code": "☔",
+	code: "☔",
 	"keywords": ["rain", "weather", "umbrella", "clothing", "drop"]
 }, {
-	"code": "⛱️",
+	code: "⛱️",
 	"keywords": ["beach_umbrella", "parasol_on_ground"]
 }, {
-	"code": "⚡",
+	code: "⚡",
 	"keywords": ["lightning", "thunder", "zap", "danger", "electric", "electricity", "voltage"]
 }, {
-	"code": "❄️",
+	code: "❄️",
 	"keywords": ["winter", "cold", "weather", "snowflake", "snow"]
 }, {
-	"code": "☃️",
+	code: "☃️",
 	"keywords": ["winter", "christmas", "snowman_with_snow", "cold", "snow", "snowman", "weather"]
 }, {
-	"code": "⛄",
+	code: "⛄",
 	"keywords": ["winter", "snowman", "cold", "snow", "weather"]
 }, {
-	"code": "☄️",
+	code: "☄️",
 	"keywords": ["comet", "space"]
 }, {
-	"code": "🔥",
+	code: "🔥",
 	"keywords": ["burn", "fire", "flame", "tool"]
 }, {
-	"code": "💧",
+	code: "💧",
 	"keywords": ["water", "droplet", "cold", "comic", "drop", "sweat", "weather"]
 }, {
-	"code": "🌊",
+	code: "🌊",
 	"keywords": ["sea", "ocean", "water", "wave", "weather"]
 }, {
-	"code": "activities",
-	"header": true
+	code: "activities",
+	header: true
 }, {
-	"code": "🎃",
+	code: "🎃",
 	"keywords": ["halloween", "jack_o_lantern", "activity", "celebration", "entertainment", "jack", "lantern"]
 }, {
-	"code": "🎄",
+	code: "🎄",
 	"keywords": ["christmas_tree", "activity", "celebration", "christmas", "entertainment", "tree"]
 }, {
-	"code": "🎆",
+	code: "🎆",
 	"keywords": ["festival", "celebration", "fireworks", "activity", "entertainment"]
 }, {
-	"code": "🎇",
+	code: "🎇",
 	"keywords": ["sparkler", "activity", "celebration", "entertainment", "fireworks", "sparkle"]
 }, {
-	"code": "🧨",
+	code: "🧨",
 	"keywords": ["firecracker"]
 }, {
-	"code": "✨",
+	code: "✨",
 	"keywords": ["shiny", "sparkles", "entertainment", "sparkle", "star"]
 }, {
-	"code": "🎈",
+	code: "🎈",
 	"keywords": ["party", "birthday", "balloon", "activity", "celebration", "entertainment"]
 }, {
-	"code": "🎉",
+	code: "🎉",
 	"keywords": ["hooray", "party", "tada", "activity", "celebration", "entertainment", "popper"]
 }, {
-	"code": "🎊",
+	code: "🎊",
 	"keywords": ["confetti_ball", "activity", "ball", "celebration", "confetti", "entertainment"]
 }, {
-	"code": "🎋",
+	code: "🎋",
 	"keywords": ["tanabata_tree", "activity", "banner", "celebration", "entertainment", "japanese", "tree"]
 }, {
-	"code": "🎍",
+	code: "🎍",
 	"keywords": ["bamboo", "activity", "celebration", "japanese", "pine", "plant"]
 }, {
-	"code": "🎎",
+	code: "🎎",
 	"keywords": ["dolls", "activity", "celebration", "doll", "entertainment", "festival", "japanese"]
 }, {
-	"code": "🎏",
+	code: "🎏",
 	"keywords": ["flags", "activity", "carp", "celebration", "entertainment", "flag", "streamer"]
 }, {
-	"code": "🎐",
+	code: "🎐",
 	"keywords": ["wind_chime", "activity", "bell", "celebration", "chime", "entertainment", "wind"]
 }, {
-	"code": "🎑",
+	code: "🎑",
 	"keywords": ["rice_scene", "activity", "celebration", "ceremony", "entertainment", "moon"]
 }, {
-	"code": "🧧",
+	code: "🧧",
 	"keywords": ["red_envelope"]
 }, {
-	"code": "🎀",
+	code: "🎀",
 	"keywords": ["ribbon", "celebration"]
 }, {
-	"code": "🎁",
+	code: "🎁",
 	"keywords": ["present", "birthday", "christmas", "gift", "box", "celebration", "entertainment", "wrapped"]
 }, {
-	"code": "🎗️",
+	code: "🎗️",
 	"keywords": ["reminder_ribbon"]
 }, {
-	"code": "🎟️",
+	code: "🎟️",
 	"keywords": ["tickets"]
 }, {
-	"code": "🎫",
+	code: "🎫",
 	"keywords": ["ticket", "activity", "admission", "entertainment"]
 }, {
-	"code": "🎖️",
+	code: "🎖️",
 	"keywords": ["medal_military"]
 }, {
-	"code": "🏆",
+	code: "🏆",
 	"keywords": ["award", "contest", "winner", "trophy", "prize"]
 }, {
-	"code": "🏅",
+	code: "🏅",
 	"keywords": ["gold", "winner", "medal_sports", "medal"]
 }, {
-	"code": "🥇",
+	code: "🥇",
 	"keywords": ["gold", "1st_place_medal", "first", "medal"]
 }, {
-	"code": "🥈",
+	code: "🥈",
 	"keywords": ["silver", "2nd_place_medal", "medal", "second"]
 }, {
-	"code": "🥉",
+	code: "🥉",
 	"keywords": ["bronze", "3rd_place_medal", "medal", "third"]
 }, {
-	"code": "⚽",
+	code: "⚽",
 	"keywords": ["sports", "soccer", "ball"]
 }, {
-	"code": "⚾",
+	code: "⚾",
 	"keywords": ["sports", "baseball", "ball"]
 }, {
-	"code": "🥎",
+	code: "🥎",
 	"keywords": ["softball"]
 }, {
-	"code": "🏀",
+	code: "🏀",
 	"keywords": ["sports", "basketball", "ball", "hoop"]
 }, {
-	"code": "🏐",
+	code: "🏐",
 	"keywords": ["volleyball", "ball", "game"]
 }, {
-	"code": "🏈",
+	code: "🏈",
 	"keywords": ["sports", "football", "american", "ball"]
 }, {
-	"code": "🏉",
+	code: "🏉",
 	"keywords": ["rugby_football", "ball", "football", "rugby"]
 }, {
-	"code": "🎾",
+	code: "🎾",
 	"keywords": ["sports", "tennis", "ball", "racquet"]
 }, {
-	"code": "🥏",
+	code: "🥏",
 	"keywords": ["flying_disc"]
 }, {
-	"code": "🎳",
+	code: "🎳",
 	"keywords": ["bowling", "ball", "game"]
 }, {
-	"code": "🏏",
+	code: "🏏",
 	"keywords": ["cricket_game", "ball", "bat", "cricket", "game"]
 }, {
-	"code": "🏑",
+	code: "🏑",
 	"keywords": ["field_hockey", "ball", "field", "game", "hockey", "stick"]
 }, {
-	"code": "🏒",
+	code: "🏒",
 	"keywords": ["ice_hockey", "game", "hockey", "ice", "puck", "stick"]
 }, {
-	"code": "🥍",
+	code: "🥍",
 	"keywords": ["lacrosse"]
 }, {
-	"code": "🏓",
+	code: "🏓",
 	"keywords": ["ping_pong", "ball", "bat", "game", "paddle", "table tennis"]
 }, {
-	"code": "🏸",
+	code: "🏸",
 	"keywords": ["badminton", "birdie", "game", "racquet", "shuttlecock"]
 }, {
-	"code": "🥊",
+	code: "🥊",
 	"keywords": ["boxing_glove", "boxing", "glove"]
 }, {
-	"code": "🥋",
+	code: "🥋",
 	"keywords": ["martial_arts_uniform", "judo", "karate", "martial arts", "taekwondo", "uniform"]
 }, {
-	"code": "🥅",
+	code: "🥅",
 	"keywords": ["goal_net", "goal", "net"]
 }, {
-	"code": "⛳",
+	code: "⛳",
 	"keywords": ["golf", "flag", "hole"]
 }, {
-	"code": "⛸️",
+	code: "⛸️",
 	"keywords": ["skating", "ice_skate"]
 }, {
-	"code": "🎣",
+	code: "🎣",
 	"keywords": ["fishing_pole_and_fish", "entertainment", "fish", "pole"]
 }, {
-	"code": "🤿",
+	code: "🤿",
 	"keywords": ["diving_mask"]
 }, {
-	"code": "🎽",
+	code: "🎽",
 	"keywords": ["marathon", "running_shirt_with_sash", "running", "sash", "shirt"]
 }, {
-	"code": "🎿",
+	code: "🎿",
 	"keywords": ["ski", "snow"]
 }, {
-	"code": "🛷",
+	code: "🛷",
 	"keywords": ["sled"]
 }, {
-	"code": "🥌",
+	code: "🥌",
 	"keywords": ["curling_stone"]
 }, {
-	"code": "🎯",
+	code: "🎯",
 	"keywords": ["target", "dart", "activity", "bull", "bullseye", "entertainment", "eye", "game", "hit"]
 }, {
-	"code": "🪀",
+	code: "🪀",
 	"keywords": ["yo_yo"]
 }, {
-	"code": "🪁",
+	code: "🪁",
 	"keywords": ["kite"]
 }, {
-	"code": "🎱",
+	code: "🎱",
 	"keywords": ["pool", "billiards", "8ball", "8", "8 ball", "ball", "billiard", "eight", "game"]
 }, {
-	"code": "🔮",
+	code: "🔮",
 	"keywords": ["fortune", "crystal_ball", "ball", "crystal", "fairy tale", "fantasy", "tool"]
 }, {
-	"code": "🪄",
+	code: "🪄",
 	"keywords": ["magic_wand"]
 }, {
-	"code": "🧿",
+	code: "🧿",
 	"keywords": ["nazar_amulet"]
 }, {
-	"code": "🎮",
+	code: "🎮",
 	"keywords": ["play", "controller", "console", "video_game", "entertainment", "game", "video game"]
 }, {
-	"code": "🕹️",
+	code: "🕹️",
 	"keywords": ["joystick"]
 }, {
-	"code": "🎰",
+	code: "🎰",
 	"keywords": ["slot_machine", "activity", "game", "slot"]
 }, {
-	"code": "🎲",
+	code: "🎲",
 	"keywords": ["dice", "gambling", "game_die", "die", "entertainment", "game"]
 }, {
-	"code": "🧩",
+	code: "🧩",
 	"keywords": ["jigsaw"]
 }, {
-	"code": "🧸",
+	code: "🧸",
 	"keywords": ["teddy_bear"]
 }, {
-	"code": "🪅",
+	code: "🪅",
 	"keywords": ["pinata"]
 }, {
-	"code": "🪆",
+	code: "🪆",
 	"keywords": ["nesting_dolls"]
 }, {
-	"code": "♠️",
+	code: "♠️",
 	"keywords": ["spades", "card", "game", "spade", "suit"]
 }, {
-	"code": "♥️",
+	code: "♥️",
 	"keywords": ["hearts", "card", "game", "heart", "suit"]
 }, {
-	"code": "♦️",
+	code: "♦️",
 	"keywords": ["diamonds", "card", "diamond", "game", "suit"]
 }, {
-	"code": "♣️",
+	code: "♣️",
 	"keywords": ["clubs", "card", "club", "game", "suit"]
 }, {
-	"code": "♟️",
+	code: "♟️",
 	"keywords": ["chess_pawn"]
 }, {
-	"code": "🃏",
+	code: "🃏",
 	"keywords": ["black_joker", "card", "entertainment", "game", "joker", "playing"]
 }, {
-	"code": "🀄",
+	code: "🀄",
 	"keywords": ["mahjong", "game", "red"]
 }, {
-	"code": "🎴",
+	code: "🎴",
 	"keywords": ["flower_playing_cards", "activity", "card", "entertainment", "flower", "game", "japanese", "playing"]
 }, {
-	"code": "🎭",
+	code: "🎭",
 	"keywords": ["theater", "drama", "performing_arts", "activity", "art", "entertainment", "mask", "performing", "theatre"]
 }, {
-	"code": "🖼️",
+	code: "🖼️",
 	"keywords": ["framed_picture"]
 }, {
-	"code": "🎨",
+	code: "🎨",
 	"keywords": ["design", "paint", "art", "activity", "entertainment", "museum", "painting", "palette"]
 }, {
-	"code": "🧵",
+	code: "🧵",
 	"keywords": ["thread"]
 }, {
-	"code": "🪡",
+	code: "🪡",
 	"keywords": ["sewing_needle"]
 }, {
-	"code": "🧶",
+	code: "🧶",
 	"keywords": ["yarn"]
 }, {
-	"code": "🪢",
+	code: "🪢",
 	"keywords": ["knot"]
 }, {
-	"code": "objects",
-	"header": true
+	code: "objects",
+	header: true
 }, {
-	"code": "👓",
+	code: "👓",
 	"keywords": ["glasses", "eyeglasses", "clothing", "eye", "eyewear"]
 }, {
-	"code": "🕶️",
+	code: "🕶️",
 	"keywords": ["dark_sunglasses"]
 }, {
-	"code": "🥽",
+	code: "🥽",
 	"keywords": ["goggles"]
 }, {
-	"code": "🥼",
+	code: "🥼",
 	"keywords": ["lab_coat"]
 }, {
-	"code": "🦺",
+	code: "🦺",
 	"keywords": ["safety_vest"]
 }, {
-	"code": "👔",
+	code: "👔",
 	"keywords": ["shirt", "formal", "necktie", "clothing"]
 }, {
-	"code": "👕",
+	code: "👕",
 	"keywords": ["shirt", "tshirt", "clothing"]
 }, {
-	"code": "👖",
+	code: "👖",
 	"keywords": ["pants", "jeans", "clothing", "trousers"]
 }, {
-	"code": "🧣",
+	code: "🧣",
 	"keywords": ["scarf"]
 }, {
-	"code": "🧤",
+	code: "🧤",
 	"keywords": ["gloves"]
 }, {
-	"code": "🧥",
+	code: "🧥",
 	"keywords": ["coat"]
 }, {
-	"code": "🧦",
+	code: "🧦",
 	"keywords": ["socks"]
 }, {
-	"code": "👗",
+	code: "👗",
 	"keywords": ["dress", "clothing"]
 }, {
-	"code": "👘",
+	code: "👘",
 	"keywords": ["kimono", "clothing"]
 }, {
-	"code": "🥻",
+	code: "🥻",
 	"keywords": ["sari"]
 }, {
-	"code": "🩱",
+	code: "🩱",
 	"keywords": ["one_piece_swimsuit"]
 }, {
-	"code": "🩲",
+	code: "🩲",
 	"keywords": ["swim_brief"]
 }, {
-	"code": "🩳",
+	code: "🩳",
 	"keywords": ["shorts"]
 }, {
-	"code": "👙",
+	code: "👙",
 	"keywords": ["beach", "bikini", "clothing", "swim"]
 }, {
-	"code": "👚",
+	code: "👚",
 	"keywords": ["womans_clothes", "clothing", "woman"]
 }, {
-	"code": "👛",
+	code: "👛",
 	"keywords": ["purse", "clothing", "coin"]
 }, {
-	"code": "👜",
+	code: "👜",
 	"keywords": ["bag", "handbag", "clothing"]
 }, {
-	"code": "👝",
+	code: "👝",
 	"keywords": ["bag", "pouch", "clothing"]
 }, {
-	"code": "🛍️",
+	code: "🛍️",
 	"keywords": ["bags", "shopping"]
 }, {
-	"code": "🎒",
+	code: "🎒",
 	"keywords": ["school_satchel", "activity", "bag", "satchel", "school"]
 }, {
-	"code": "🩴",
+	code: "🩴",
 	"keywords": ["thong_sandal"]
 }, {
-	"code": "👞",
+	code: "👞",
 	"keywords": ["mans_shoe", "shoe", "clothing", "man"]
 }, {
-	"code": "👟",
+	code: "👟",
 	"keywords": ["sneaker", "sport", "running", "athletic_shoe", "athletic", "clothing", "shoe"]
 }, {
-	"code": "🥾",
+	code: "🥾",
 	"keywords": ["hiking_boot"]
 }, {
-	"code": "🥿",
+	code: "🥿",
 	"keywords": ["flat_shoe"]
 }, {
-	"code": "👠",
+	code: "👠",
 	"keywords": ["shoe", "high_heel", "clothing", "heel", "woman"]
 }, {
-	"code": "👡",
+	code: "👡",
 	"keywords": ["shoe", "sandal", "clothing", "woman"]
 }, {
-	"code": "🩰",
+	code: "🩰",
 	"keywords": ["ballet_shoes"]
 }, {
-	"code": "👢",
+	code: "👢",
 	"keywords": ["boot", "clothing", "shoe", "woman"]
 }, {
-	"code": "👑",
+	code: "👑",
 	"keywords": ["king", "queen", "royal", "crown", "clothing"]
 }, {
-	"code": "👒",
+	code: "👒",
 	"keywords": ["womans_hat", "clothing", "hat", "woman"]
 }, {
-	"code": "🎩",
+	code: "🎩",
 	"keywords": ["hat", "classy", "tophat", "activity", "clothing", "entertainment", "top"]
 }, {
-	"code": "🎓",
+	code: "🎓",
 	"keywords": ["education", "college", "university", "graduation", "mortar_board", "activity", "cap", "celebration", "clothing", "hat"]
 }, {
-	"code": "🧢",
+	code: "🧢",
 	"keywords": ["billed_cap"]
 }, {
-	"code": "🪖",
+	code: "🪖",
 	"keywords": ["military_helmet"]
 }, {
-	"code": "⛑️",
+	code: "⛑️",
 	"keywords": ["rescue_worker_helmet"]
 }, {
-	"code": "📿",
+	code: "📿",
 	"keywords": ["prayer_beads", "beads", "clothing", "necklace", "prayer", "religion"]
 }, {
-	"code": "💄",
+	code: "💄",
 	"keywords": ["makeup", "lipstick", "cosmetics"]
 }, {
-	"code": "💍",
+	code: "💍",
 	"keywords": ["wedding", "marriage", "engaged", "ring", "diamond", "romance"]
 }, {
-	"code": "💎",
+	code: "💎",
 	"keywords": ["diamond", "gem", "jewel", "romance"]
 }, {
-	"code": "🔇",
+	code: "🔇",
 	"keywords": ["sound", "volume", "mute", "quiet", "silent", "speaker"]
 }, {
-	"code": "🔈",
+	code: "🔈",
 	"keywords": ["speaker", "volume"]
 }, {
-	"code": "🔉",
+	code: "🔉",
 	"keywords": ["volume", "sound", "low", "speaker", "wave"]
 }, {
-	"code": "🔊",
+	code: "🔊",
 	"keywords": ["volume", "loud_sound", "3", "entertainment", "high", "loud", "speaker", "three"]
 }, {
-	"code": "📢",
+	code: "📢",
 	"keywords": ["announcement", "loudspeaker", "communication", "loud", "public address"]
 }, {
-	"code": "📣",
+	code: "📣",
 	"keywords": ["mega", "cheering", "communication", "megaphone"]
 }, {
-	"code": "📯",
+	code: "📯",
 	"keywords": ["postal_horn", "communication", "entertainment", "horn", "post", "postal"]
 }, {
-	"code": "🔔",
+	code: "🔔",
 	"keywords": ["sound", "notification", "bell"]
 }, {
-	"code": "🔕",
+	code: "🔕",
 	"keywords": ["volume", "off", "no_bell", "bell", "forbidden", "mute", "no", "not", "prohibited", "quiet", "silent"]
 }, {
-	"code": "🎼",
+	code: "🎼",
 	"keywords": ["musical_score", "activity", "entertainment", "music", "score"]
 }, {
-	"code": "🎵",
+	code: "🎵",
 	"keywords": ["musical_note", "activity", "entertainment", "music", "note"]
 }, {
-	"code": "🎶",
+	code: "🎶",
 	"keywords": ["music", "notes", "activity", "entertainment", "note"]
 }, {
-	"code": "🎙️",
+	code: "🎙️",
 	"keywords": ["podcast", "studio_microphone"]
 }, {
-	"code": "🎚️",
+	code: "🎚️",
 	"keywords": ["level_slider"]
 }, {
-	"code": "🎛️",
+	code: "🎛️",
 	"keywords": ["control_knobs"]
 }, {
-	"code": "🎤",
+	code: "🎤",
 	"keywords": ["sing", "microphone", "activity", "entertainment", "karaoke", "mic"]
 }, {
-	"code": "🎧",
+	code: "🎧",
 	"keywords": ["music", "earphones", "headphones", "activity", "earbud", "entertainment", "headphone"]
 }, {
-	"code": "📻",
+	code: "📻",
 	"keywords": ["podcast", "radio", "entertainment", "video"]
 }, {
-	"code": "🎷",
+	code: "🎷",
 	"keywords": ["saxophone", "activity", "entertainment", "instrument", "music", "sax"]
 }, {
-	"code": "🪗",
+	code: "🪗",
 	"keywords": ["accordion"]
 }, {
-	"code": "🎸",
+	code: "🎸",
 	"keywords": ["rock", "guitar", "activity", "entertainment", "instrument", "music"]
 }, {
-	"code": "🎹",
+	code: "🎹",
 	"keywords": ["piano", "musical_keyboard", "activity", "entertainment", "instrument", "keyboard", "music"]
 }, {
-	"code": "🎺",
+	code: "🎺",
 	"keywords": ["trumpet", "activity", "entertainment", "instrument", "music"]
 }, {
-	"code": "🎻",
+	code: "🎻",
 	"keywords": ["violin", "activity", "entertainment", "instrument", "music"]
 }, {
-	"code": "🪕",
+	code: "🪕",
 	"keywords": ["banjo"]
 }, {
-	"code": "🥁",
+	code: "🥁",
 	"keywords": ["drum", "drumsticks", "music"]
 }, {
-	"code": "🪘",
+	code: "🪘",
 	"keywords": ["long_drum"]
 }, {
-	"code": "📱",
+	code: "📱",
 	"keywords": ["smartphone", "mobile", "iphone", "cell", "communication", "phone", "telephone"]
 }, {
-	"code": "📲",
+	code: "📲",
 	"keywords": ["call", "incoming", "calling", "arrow", "cell", "communication", "mobile", "phone", "receive", "telephone"]
 }, {
-	"code": "☎️",
+	code: "☎️",
 	"keywords": ["phone", "telephone"]
 }, {
-	"code": "📞",
+	code: "📞",
 	"keywords": ["phone", "call", "telephone_receiver", "communication", "receiver", "telephone"]
 }, {
-	"code": "📟",
+	code: "📟",
 	"keywords": ["pager", "communication"]
 }, {
-	"code": "📠",
+	code: "📠",
 	"keywords": ["fax", "communication"]
 }, {
-	"code": "🔋",
+	code: "🔋",
 	"keywords": ["power", "battery"]
 }, {
-	"code": "🔌",
+	code: "🔌",
 	"keywords": ["electric_plug", "electric", "electricity", "plug"]
 }, {
-	"code": "💻",
+	code: "💻",
 	"keywords": ["desktop", "screen", "computer", "pc", "personal"]
 }, {
-	"code": "🖥️",
+	code: "🖥️",
 	"keywords": ["desktop_computer"]
 }, {
-	"code": "🖨️",
+	code: "🖨️",
 	"keywords": ["printer"]
 }, {
-	"code": "⌨️",
+	code: "⌨️",
 	"keywords": ["keyboard", "computer"]
 }, {
-	"code": "🖱️",
+	code: "🖱️",
 	"keywords": ["computer_mouse"]
 }, {
-	"code": "🖲️",
+	code: "🖲️",
 	"keywords": ["trackball"]
 }, {
-	"code": "💽",
+	code: "💽",
 	"keywords": ["minidisc", "computer", "disk", "entertainment", "minidisk", "optical"]
 }, {
-	"code": "💾",
+	code: "💾",
 	"keywords": ["save", "floppy_disk", "computer", "disk", "floppy"]
 }, {
-	"code": "💿",
+	code: "💿",
 	"keywords": ["cd", "blu-ray", "computer", "disk", "dvd", "optical"]
 }, {
-	"code": "📀",
+	code: "📀",
 	"keywords": ["dvd", "blu-ray", "cd", "computer", "disk", "entertainment", "optical"]
 }, {
-	"code": "🧮",
+	code: "🧮",
 	"keywords": ["abacus"]
 }, {
-	"code": "🎥",
+	code: "🎥",
 	"keywords": ["film", "video", "movie_camera", "activity", "camera", "cinema", "entertainment", "movie"]
 }, {
-	"code": "🎞️",
+	code: "🎞️",
 	"keywords": ["film_strip"]
 }, {
-	"code": "📽️",
+	code: "📽️",
 	"keywords": ["film_projector"]
 }, {
-	"code": "🎬",
+	code: "🎬",
 	"keywords": ["film", "clapper", "activity", "entertainment", "movie"]
 }, {
-	"code": "📺",
+	code: "📺",
 	"keywords": ["tv", "entertainment", "television", "video"]
 }, {
-	"code": "📷",
+	code: "📷",
 	"keywords": ["photo", "camera", "entertainment", "video"]
 }, {
-	"code": "📸",
+	code: "📸",
 	"keywords": ["photo", "camera_flash", "camera", "flash", "video"]
 }, {
-	"code": "📹",
+	code: "📹",
 	"keywords": ["video_camera", "camera", "entertainment", "video"]
 }, {
-	"code": "📼",
+	code: "📼",
 	"keywords": ["vhs", "entertainment", "tape", "video", "videocassette"]
 }, {
-	"code": "🔍",
+	code: "🔍",
 	"keywords": ["search", "zoom", "mag", "glass", "magnifying", "tool"]
 }, {
-	"code": "🔎",
+	code: "🔎",
 	"keywords": ["mag_right", "glass", "magnifying", "search", "tool"]
 }, {
-	"code": "🕯️",
+	code: "🕯️",
 	"keywords": ["candle"]
 }, {
-	"code": "💡",
+	code: "💡",
 	"keywords": ["idea", "light", "bulb", "comic", "electric"]
 }, {
-	"code": "🔦",
+	code: "🔦",
 	"keywords": ["flashlight", "electric", "light", "tool", "torch"]
 }, {
-	"code": "🏮",
+	code: "🏮",
 	"keywords": ["izakaya_lantern", "lantern", "bar", "japanese", "light", "red"]
 }, {
-	"code": "🪔",
+	code: "🪔",
 	"keywords": ["diya_lamp"]
 }, {
-	"code": "📔",
+	code: "📔",
 	"keywords": ["notebook_with_decorative_cover", "book", "cover", "decorated", "notebook"]
 }, {
-	"code": "📕",
+	code: "📕",
 	"keywords": ["closed_book", "book", "closed"]
 }, {
-	"code": "📖",
+	code: "📖",
 	"keywords": ["book", "open_book", "open"]
 }, {
-	"code": "📗",
+	code: "📗",
 	"keywords": ["green_book", "book", "green"]
 }, {
-	"code": "📘",
+	code: "📘",
 	"keywords": ["blue_book", "blue", "book"]
 }, {
-	"code": "📙",
+	code: "📙",
 	"keywords": ["orange_book", "book", "orange"]
 }, {
-	"code": "📚",
+	code: "📚",
 	"keywords": ["library", "books", "book"]
 }, {
-	"code": "📓",
+	code: "📓",
 	"keywords": ["notebook"]
 }, {
-	"code": "📒",
+	code: "📒",
 	"keywords": ["ledger", "notebook"]
 }, {
-	"code": "📃",
+	code: "📃",
 	"keywords": ["page_with_curl", "curl", "document", "page"]
 }, {
-	"code": "📜",
+	code: "📜",
 	"keywords": ["document", "scroll", "paper"]
 }, {
-	"code": "📄",
+	code: "📄",
 	"keywords": ["document", "page_facing_up", "page"]
 }, {
-	"code": "📰",
+	code: "📰",
 	"keywords": ["press", "newspaper", "communication", "news", "paper"]
 }, {
-	"code": "🗞️",
+	code: "🗞️",
 	"keywords": ["press", "newspaper_roll"]
 }, {
-	"code": "📑",
+	code: "📑",
 	"keywords": ["bookmark_tabs", "bookmark", "mark", "marker", "tabs"]
 }, {
-	"code": "🔖",
+	code: "🔖",
 	"keywords": ["bookmark", "mark"]
 }, {
-	"code": "🏷️",
+	code: "🏷️",
 	"keywords": ["tag", "label"]
 }, {
-	"code": "💰",
+	code: "💰",
 	"keywords": ["dollar", "cream", "moneybag", "bag", "money"]
 }, {
-	"code": "🪙",
+	code: "🪙",
 	"keywords": ["coin"]
 }, {
-	"code": "💴",
+	code: "💴",
 	"keywords": ["yen", "bank", "banknote", "bill", "currency", "money", "note"]
 }, {
-	"code": "💵",
+	code: "💵",
 	"keywords": ["money", "dollar", "bank", "banknote", "bill", "currency", "note"]
 }, {
-	"code": "💶",
+	code: "💶",
 	"keywords": ["euro", "bank", "banknote", "bill", "currency", "money", "note"]
 }, {
-	"code": "💷",
+	code: "💷",
 	"keywords": ["pound", "bank", "banknote", "bill", "currency", "money", "note"]
 }, {
-	"code": "💸",
+	code: "💸",
 	"keywords": ["dollar", "money_with_wings", "bank", "banknote", "bill", "fly", "money", "note", "wings"]
 }, {
-	"code": "💳",
+	code: "💳",
 	"keywords": ["subscription", "credit_card", "bank", "card", "credit", "money"]
 }, {
-	"code": "🧾",
+	code: "🧾",
 	"keywords": ["receipt"]
 }, {
-	"code": "💹",
+	code: "💹",
 	"keywords": ["chart", "bank", "currency", "graph", "growth", "market", "money", "rise", "trend", "upward", "yen"]
 }, {
-	"code": "✉️",
+	code: "✉️",
 	"keywords": ["letter", "email", "envelope", "e-mail"]
 }, {
-	"code": "📧",
+	code: "📧",
 	"keywords": ["email", "e-mail", "communication", "letter", "mail"]
 }, {
-	"code": "📨",
+	code: "📨",
 	"keywords": ["incoming_envelope", "communication", "e-mail", "email", "envelope", "incoming", "letter", "mail", "receive"]
 }, {
-	"code": "📩",
+	code: "📩",
 	"keywords": ["envelope_with_arrow", "arrow", "communication", "down", "e-mail", "email", "envelope", "letter", "mail", "outgoing", "sent"]
 }, {
-	"code": "📤",
+	code: "📤",
 	"keywords": ["outbox_tray", "box", "communication", "letter", "mail", "outbox", "sent", "tray"]
 }, {
-	"code": "📥",
+	code: "📥",
 	"keywords": ["inbox_tray", "box", "communication", "inbox", "letter", "mail", "receive", "tray"]
 }, {
-	"code": "📦",
+	code: "📦",
 	"keywords": ["shipping", "package", "box", "communication", "parcel"]
 }, {
-	"code": "📫",
+	code: "📫",
 	"keywords": ["mailbox", "closed", "communication", "flag", "mail", "postbox"]
 }, {
-	"code": "📪",
+	code: "📪",
 	"keywords": ["mailbox_closed", "closed", "communication", "flag", "lowered", "mail", "mailbox", "postbox"]
 }, {
-	"code": "📬",
+	code: "📬",
 	"keywords": ["mailbox_with_mail", "communication", "flag", "mail", "mailbox", "open", "postbox"]
 }, {
-	"code": "📭",
+	code: "📭",
 	"keywords": ["mailbox_with_no_mail", "communication", "flag", "lowered", "mail", "mailbox", "open", "postbox"]
 }, {
-	"code": "📮",
+	code: "📮",
 	"keywords": ["postbox", "communication", "mail", "mailbox"]
 }, {
-	"code": "🗳️",
+	code: "🗳️",
 	"keywords": ["ballot_box"]
 }, {
-	"code": "✏️",
+	code: "✏️",
 	"keywords": ["pencil2"]
 }, {
-	"code": "✒️",
+	code: "✒️",
 	"keywords": ["black_nib", "nib", "pen"]
 }, {
-	"code": "🖋️",
+	code: "🖋️",
 	"keywords": ["fountain_pen"]
 }, {
-	"code": "🖊️",
+	code: "🖊️",
 	"keywords": ["pen"]
 }, {
-	"code": "🖌️",
+	code: "🖌️",
 	"keywords": ["paintbrush"]
 }, {
-	"code": "🖍️",
+	code: "🖍️",
 	"keywords": ["crayon"]
 }, {
-	"code": "📝",
+	code: "📝",
 	"keywords": ["document", "note", "memo", "pencil", "communication"]
 }, {
-	"code": "💼",
+	code: "💼",
 	"keywords": ["business", "briefcase"]
 }, {
-	"code": "📁",
+	code: "📁",
 	"keywords": ["directory", "file_folder", "file", "folder"]
 }, {
-	"code": "📂",
+	code: "📂",
 	"keywords": ["open_file_folder", "file", "folder", "open"]
 }, {
-	"code": "🗂️",
+	code: "🗂️",
 	"keywords": ["card_index_dividers"]
 }, {
-	"code": "📅",
+	code: "📅",
 	"keywords": ["calendar", "schedule", "date"]
 }, {
-	"code": "📆",
+	code: "📆",
 	"keywords": ["schedule", "calendar"]
 }, {
-	"code": "🗒️",
+	code: "🗒️",
 	"keywords": ["spiral_notepad"]
 }, {
-	"code": "🗓️",
+	code: "🗓️",
 	"keywords": ["spiral_calendar"]
 }, {
-	"code": "📇",
+	code: "📇",
 	"keywords": ["card_index", "card", "index", "rolodex"]
 }, {
-	"code": "📈",
+	code: "📈",
 	"keywords": ["graph", "metrics", "chart_with_upwards_trend", "chart", "growth", "trend", "upward"]
 }, {
-	"code": "📉",
+	code: "📉",
 	"keywords": ["graph", "metrics", "chart_with_downwards_trend", "chart", "down", "trend"]
 }, {
-	"code": "📊",
+	code: "📊",
 	"keywords": ["stats", "metrics", "bar_chart", "bar", "chart", "graph"]
 }, {
-	"code": "📋",
+	code: "📋",
 	"keywords": ["clipboard"]
 }, {
-	"code": "📌",
+	code: "📌",
 	"keywords": ["location", "pushpin", "pin"]
 }, {
-	"code": "📍",
+	code: "📍",
 	"keywords": ["location", "round_pushpin", "pin", "pushpin"]
 }, {
-	"code": "📎",
+	code: "📎",
 	"keywords": ["paperclip"]
 }, {
-	"code": "🖇️",
+	code: "🖇️",
 	"keywords": ["paperclips"]
 }, {
-	"code": "📏",
+	code: "📏",
 	"keywords": ["straight_ruler", "ruler", "straight edge"]
 }, {
-	"code": "📐",
+	code: "📐",
 	"keywords": ["triangular_ruler", "ruler", "set", "triangle"]
 }, {
-	"code": "✂️",
+	code: "✂️",
 	"keywords": ["cut", "scissors", "tool"]
 }, {
-	"code": "🗃️",
+	code: "🗃️",
 	"keywords": ["card_file_box"]
 }, {
-	"code": "🗄️",
+	code: "🗄️",
 	"keywords": ["file_cabinet"]
 }, {
-	"code": "🗑️",
+	code: "🗑️",
 	"keywords": ["trash", "wastebasket"]
 }, {
-	"code": "🔒",
+	code: "🔒",
 	"keywords": ["security", "private", "lock", "closed"]
 }, {
-	"code": "🔓",
+	code: "🔓",
 	"keywords": ["security", "unlock", "lock", "open"]
 }, {
-	"code": "🔏",
+	code: "🔏",
 	"keywords": ["lock_with_ink_pen", "ink", "lock", "nib", "pen", "privacy"]
 }, {
-	"code": "🔐",
+	code: "🔐",
 	"keywords": ["security", "closed_lock_with_key", "closed", "key", "lock", "secure"]
 }, {
-	"code": "🔑",
+	code: "🔑",
 	"keywords": ["lock", "password", "key"]
 }, {
-	"code": "🗝️",
+	code: "🗝️",
 	"keywords": ["old_key"]
 }, {
-	"code": "🔨",
+	code: "🔨",
 	"keywords": ["tool", "hammer"]
 }, {
-	"code": "🪓",
+	code: "🪓",
 	"keywords": ["axe"]
 }, {
-	"code": "⛏️",
+	code: "⛏️",
 	"keywords": ["pick"]
 }, {
-	"code": "⚒️",
+	code: "⚒️",
 	"keywords": ["hammer_and_pick", "hammer", "pick", "tool"]
 }, {
-	"code": "🛠️",
+	code: "🛠️",
 	"keywords": ["hammer_and_wrench"]
 }, {
-	"code": "🗡️",
+	code: "🗡️",
 	"keywords": ["dagger"]
 }, {
-	"code": "⚔️",
+	code: "⚔️",
 	"keywords": ["crossed_swords", "crossed", "swords", "weapon"]
 }, {
-	"code": "🔫",
+	code: "🔫",
 	"keywords": ["shoot", "weapon", "gun", "handgun", "pistol", "revolver", "tool"]
 }, {
-	"code": "🪃",
+	code: "🪃",
 	"keywords": ["boomerang"]
 }, {
-	"code": "🏹",
+	code: "🏹",
 	"keywords": ["archery", "bow_and_arrow", "archer", "arrow", "bow", "sagittarius", "tool", "weapon", "zodiac"]
 }, {
-	"code": "🛡️",
+	code: "🛡️",
 	"keywords": ["shield"]
 }, {
-	"code": "🪚",
+	code: "🪚",
 	"keywords": ["carpentry_saw"]
 }, {
-	"code": "🔧",
+	code: "🔧",
 	"keywords": ["tool", "wrench"]
 }, {
-	"code": "🪛",
+	code: "🪛",
 	"keywords": ["screwdriver"]
 }, {
-	"code": "🔩",
+	code: "🔩",
 	"keywords": ["nut_and_bolt", "bolt", "nut", "tool"]
 }, {
-	"code": "⚙️",
+	code: "⚙️",
 	"keywords": ["gear", "tool"]
 }, {
-	"code": "🗜️",
+	code: "🗜️",
 	"keywords": ["clamp"]
 }, {
-	"code": "⚖️",
+	code: "⚖️",
 	"keywords": ["balance_scale", "balance", "justice", "libra", "scales", "tool", "weight", "zodiac"]
 }, {
-	"code": "🦯",
+	code: "🦯",
 	"keywords": ["probing_cane"]
 }, {
-	"code": "🔗",
+	code: "🔗",
 	"keywords": ["link"]
 }, {
-	"code": "⛓️",
+	code: "⛓️",
 	"keywords": ["chains"]
 }, {
-	"code": "🪝",
+	code: "🪝",
 	"keywords": ["hook"]
 }, {
-	"code": "🧰",
+	code: "🧰",
 	"keywords": ["toolbox"]
 }, {
-	"code": "🧲",
+	code: "🧲",
 	"keywords": ["magnet"]
 }, {
-	"code": "🪜",
+	code: "🪜",
 	"keywords": ["ladder"]
 }, {
-	"code": "⚗️",
+	code: "⚗️",
 	"keywords": ["alembic", "chemistry", "tool"]
 }, {
-	"code": "🧪",
+	code: "🧪",
 	"keywords": ["test_tube"]
 }, {
-	"code": "🧫",
+	code: "🧫",
 	"keywords": ["petri_dish"]
 }, {
-	"code": "🧬",
+	code: "🧬",
 	"keywords": ["dna"]
 }, {
-	"code": "🔬",
+	code: "🔬",
 	"keywords": ["science", "laboratory", "investigate", "microscope", "tool"]
 }, {
-	"code": "🔭",
+	code: "🔭",
 	"keywords": ["telescope", "tool"]
 }, {
-	"code": "📡",
+	code: "📡",
 	"keywords": ["signal", "satellite", "antenna", "communication", "dish"]
 }, {
-	"code": "💉",
+	code: "💉",
 	"keywords": ["health", "hospital", "needle", "syringe", "doctor", "medicine", "shot", "sick", "tool"]
 }, {
-	"code": "🩸",
+	code: "🩸",
 	"keywords": ["drop_of_blood"]
 }, {
-	"code": "💊",
+	code: "💊",
 	"keywords": ["health", "medicine", "pill", "doctor", "sick"]
 }, {
-	"code": "🩹",
+	code: "🩹",
 	"keywords": ["adhesive_bandage"]
 }, {
-	"code": "🩺",
+	code: "🩺",
 	"keywords": ["stethoscope"]
 }, {
-	"code": "🚪",
+	code: "🚪",
 	"keywords": ["door"]
 }, {
-	"code": "🛗",
+	code: "🛗",
 	"keywords": ["elevator"]
 }, {
-	"code": "🪞",
+	code: "🪞",
 	"keywords": ["mirror"]
 }, {
-	"code": "🪟",
+	code: "🪟",
 	"keywords": ["window"]
 }, {
-	"code": "🛏️",
+	code: "🛏️",
 	"keywords": ["bed"]
 }, {
-	"code": "🛋️",
+	code: "🛋️",
 	"keywords": ["couch_and_lamp"]
 }, {
-	"code": "🪑",
+	code: "🪑",
 	"keywords": ["chair"]
 }, {
-	"code": "🚽",
+	code: "🚽",
 	"keywords": ["wc", "toilet"]
 }, {
-	"code": "🪠",
+	code: "🪠",
 	"keywords": ["plunger"]
 }, {
-	"code": "🚿",
+	code: "🚿",
 	"keywords": ["bath", "shower", "water"]
 }, {
-	"code": "🛁",
+	code: "🛁",
 	"keywords": ["bathtub", "bath"]
 }, {
-	"code": "🪤",
+	code: "🪤",
 	"keywords": ["mouse_trap"]
 }, {
-	"code": "🪒",
+	code: "🪒",
 	"keywords": ["razor"]
 }, {
-	"code": "🧴",
+	code: "🧴",
 	"keywords": ["lotion_bottle"]
 }, {
-	"code": "🧷",
+	code: "🧷",
 	"keywords": ["safety_pin"]
 }, {
-	"code": "🧹",
+	code: "🧹",
 	"keywords": ["broom"]
 }, {
-	"code": "🧺",
+	code: "🧺",
 	"keywords": ["basket"]
 }, {
-	"code": "🧻",
+	code: "🧻",
 	"keywords": ["toilet", "roll_of_paper"]
 }, {
-	"code": "🪣",
+	code: "🪣",
 	"keywords": ["bucket"]
 }, {
-	"code": "🧼",
+	code: "🧼",
 	"keywords": ["soap"]
 }, {
-	"code": "🪥",
+	code: "🪥",
 	"keywords": ["toothbrush"]
 }, {
-	"code": "🧽",
+	code: "🧽",
 	"keywords": ["sponge"]
 }, {
-	"code": "🧯",
+	code: "🧯",
 	"keywords": ["fire_extinguisher"]
 }, {
-	"code": "🛒",
+	code: "🛒",
 	"keywords": ["shopping_cart", "cart", "shopping", "trolley"]
 }, {
-	"code": "🚬",
+	code: "🚬",
 	"keywords": ["cigarette", "smoking", "activity"]
 }, {
-	"code": "⚰️",
+	code: "⚰️",
 	"keywords": ["funeral", "coffin"]
 }, {
-	"code": "🪦",
+	code: "🪦",
 	"keywords": ["headstone"]
 }, {
-	"code": "⚱️",
+	code: "⚱️",
 	"keywords": ["funeral_urn"]
 }, {
-	"code": "🗿",
+	code: "🗿",
 	"keywords": ["stone", "moyai", "face", "statue"]
 }, {
-	"code": "🪧",
+	code: "🪧",
 	"keywords": ["placard"]
 }, {
-	"code": "symbols",
-	"header": true
+	code: "symbols",
+	header: true
 }, {
-	"code": "🏧",
+	code: "🏧",
 	"keywords": ["atm", "automated", "bank", "teller"]
 }, {
-	"code": "🚮",
+	code: "🚮",
 	"keywords": ["put_litter_in_its_place", "litter", "litterbox"]
 }, {
-	"code": "🚰",
+	code: "🚰",
 	"keywords": ["potable_water", "drink", "potable", "water"]
 }, {
-	"code": "♿",
+	code: "♿",
 	"keywords": ["accessibility", "wheelchair", "access"]
 }, {
-	"code": "🚹",
+	code: "🚹",
 	"keywords": ["mens", "lavatory", "man", "restroom", "wc"]
 }, {
-	"code": "🚺",
+	code: "🚺",
 	"keywords": ["womens", "lavatory", "restroom", "wc", "woman"]
 }, {
-	"code": "🚻",
+	code: "🚻",
 	"keywords": ["toilet", "restroom", "lavatory", "wc"]
 }, {
-	"code": "🚼",
+	code: "🚼",
 	"keywords": ["baby_symbol", "baby", "changing"]
 }, {
-	"code": "🚾",
+	code: "🚾",
 	"keywords": ["toilet", "restroom", "wc", "closet", "lavatory", "water"]
 }, {
-	"code": "🛂",
+	code: "🛂",
 	"keywords": ["passport_control", "control", "passport"]
 }, {
-	"code": "🛃",
+	code: "🛃",
 	"keywords": ["customs"]
 }, {
-	"code": "🛄",
+	code: "🛄",
 	"keywords": ["airport", "baggage_claim", "baggage", "claim"]
 }, {
-	"code": "🛅",
+	code: "🛅",
 	"keywords": ["left_luggage", "baggage", "left luggage", "locker", "luggage"]
 }, {
-	"code": "⚠️",
+	code: "⚠️",
 	"keywords": ["wip", "warning"]
 }, {
-	"code": "🚸",
+	code: "🚸",
 	"keywords": ["children_crossing", "child", "crossing", "pedestrian", "traffic"]
 }, {
-	"code": "⛔",
+	code: "⛔",
 	"keywords": ["limit", "no_entry", "entry", "forbidden", "no", "not", "prohibited", "traffic"]
 }, {
-	"code": "🚫",
+	code: "🚫",
 	"keywords": ["block", "forbidden", "no_entry_sign", "entry", "no", "not", "prohibited"]
 }, {
-	"code": "🚳",
+	code: "🚳",
 	"keywords": ["no_bicycles", "bicycle", "bike", "forbidden", "no", "not", "prohibited", "vehicle"]
 }, {
-	"code": "🚭",
+	code: "🚭",
 	"keywords": ["no_smoking", "forbidden", "no", "not", "prohibited", "smoking"]
 }, {
-	"code": "🚯",
+	code: "🚯",
 	"keywords": ["do_not_litter", "forbidden", "litter", "no", "not", "prohibited"]
 }, {
-	"code": "🚱",
+	code: "🚱",
 	"keywords": ["non-potable_water", "drink", "forbidden", "no", "not", "potable", "prohibited", "water"]
 }, {
-	"code": "🚷",
+	code: "🚷",
 	"keywords": ["no_pedestrians", "forbidden", "no", "not", "pedestrian", "prohibited"]
 }, {
-	"code": "📵",
+	code: "📵",
 	"keywords": ["no_mobile_phones", "cell", "communication", "forbidden", "mobile", "no", "not", "phone", "prohibited", "telephone"]
 }, {
-	"code": "🔞",
+	code: "🔞",
 	"keywords": ["underage", "18", "age restriction", "eighteen", "forbidden", "no", "not", "prohibited"]
 }, {
-	"code": "☢️",
+	code: "☢️",
 	"keywords": ["radioactive"]
 }, {
-	"code": "☣️",
+	code: "☣️",
 	"keywords": ["biohazard"]
 }, {
-	"code": "⬆️",
+	code: "⬆️",
 	"keywords": ["arrow_up"]
 }, {
-	"code": "↗️",
+	code: "↗️",
 	"keywords": ["arrow_upper_right", "arrow", "direction", "intercardinal", "northeast"]
 }, {
-	"code": "➡️",
+	code: "➡️",
 	"keywords": ["arrow_right"]
 }, {
-	"code": "↘️",
+	code: "↘️",
 	"keywords": ["arrow_lower_right", "arrow", "direction", "intercardinal", "southeast"]
 }, {
-	"code": "⬇️",
+	code: "⬇️",
 	"keywords": ["arrow_down"]
 }, {
-	"code": "↙️",
+	code: "↙️",
 	"keywords": ["arrow_lower_left", "arrow", "direction", "intercardinal", "southwest"]
 }, {
-	"code": "⬅️",
+	code: "⬅️",
 	"keywords": ["arrow_left"]
 }, {
-	"code": "↖️",
+	code: "↖️",
 	"keywords": ["arrow_upper_left", "arrow", "direction", "intercardinal", "northwest"]
 }, {
-	"code": "↕️",
+	code: "↕️",
 	"keywords": ["arrow_up_down", "arrow"]
 }, {
-	"code": "↔️",
+	code: "↔️",
 	"keywords": ["left_right_arrow", "arrow"]
 }, {
-	"code": "↩️",
+	code: "↩️",
 	"keywords": ["return", "leftwards_arrow_with_hook"]
 }, {
-	"code": "↪️",
+	code: "↪️",
 	"keywords": ["arrow_right_hook"]
 }, {
-	"code": "⤴️",
+	code: "⤴️",
 	"keywords": ["arrow_heading_up", "arrow", "up"]
 }, {
-	"code": "⤵️",
+	code: "⤵️",
 	"keywords": ["arrow_heading_down", "arrow", "down"]
 }, {
-	"code": "🔃",
+	code: "🔃",
 	"keywords": ["arrows_clockwise", "arrow", "clockwise", "reload"]
 }, {
-	"code": "🔄",
+	code: "🔄",
 	"keywords": ["sync", "arrows_counterclockwise", "anticlockwise", "arrow", "counterclockwise", "withershins"]
 }, {
-	"code": "🔙",
+	code: "🔙",
 	"keywords": ["back", "arrow"]
 }, {
-	"code": "🔚",
+	code: "🔚",
 	"keywords": ["end", "arrow"]
 }, {
-	"code": "🔛",
+	code: "🔛",
 	"keywords": ["on", "arrow", "mark"]
 }, {
-	"code": "🔜",
+	code: "🔜",
 	"keywords": ["soon", "arrow"]
 }, {
-	"code": "🔝",
+	code: "🔝",
 	"keywords": ["top", "arrow", "up"]
 }, {
-	"code": "🛐",
+	code: "🛐",
 	"keywords": ["place_of_worship", "religion", "worship"]
 }, {
-	"code": "⚛️",
+	code: "⚛️",
 	"keywords": ["atom_symbol"]
 }, {
-	"code": "🕉️",
+	code: "🕉️",
 	"keywords": ["om"]
 }, {
-	"code": "✡️",
+	code: "✡️",
 	"keywords": ["star_of_david", "david", "jew", "jewish", "religion", "star"]
 }, {
-	"code": "☸️",
+	code: "☸️",
 	"keywords": ["wheel_of_dharma", "buddhist", "dharma", "religion", "wheel"]
 }, {
-	"code": "☯️",
+	code: "☯️",
 	"keywords": ["yin_yang"]
 }, {
-	"code": "✝️",
+	code: "✝️",
 	"keywords": ["latin_cross"]
 }, {
-	"code": "☦️",
+	code: "☦️",
 	"keywords": ["orthodox_cross", "christian", "cross", "religion"]
 }, {
-	"code": "☪️",
+	code: "☪️",
 	"keywords": ["star_and_crescent"]
 }, {
-	"code": "☮️",
+	code: "☮️",
 	"keywords": ["peace_symbol"]
 }, {
-	"code": "🕎",
+	code: "🕎",
 	"keywords": ["menorah", "candelabrum", "candlestick", "religion"]
 }, {
-	"code": "🔯",
+	code: "🔯",
 	"keywords": ["six_pointed_star", "fortune", "star"]
 }, {
-	"code": "♈",
+	code: "♈",
 	"keywords": ["aries", "ram", "zodiac"]
 }, {
-	"code": "♉",
+	code: "♉",
 	"keywords": ["taurus", "bull", "ox", "zodiac"]
 }, {
-	"code": "♊",
+	code: "♊",
 	"keywords": ["gemini", "twins", "zodiac"]
 }, {
-	"code": "♋",
+	code: "♋",
 	"keywords": ["cancer", "crab", "zodiac"]
 }, {
-	"code": "♌",
+	code: "♌",
 	"keywords": ["leo", "lion", "zodiac"]
 }, {
-	"code": "♍",
+	code: "♍",
 	"keywords": ["virgo", "maiden", "virgin", "zodiac"]
 }, {
-	"code": "♎",
+	code: "♎",
 	"keywords": ["libra", "balance", "justice", "scales", "zodiac"]
 }, {
-	"code": "♏",
+	code: "♏",
 	"keywords": ["scorpius", "scorpio", "scorpion", "zodiac"]
 }, {
-	"code": "♐",
+	code: "♐",
 	"keywords": ["sagittarius", "archer", "zodiac"]
 }, {
-	"code": "♑",
+	code: "♑",
 	"keywords": ["capricorn", "goat", "zodiac"]
 }, {
-	"code": "♒",
+	code: "♒",
 	"keywords": ["aquarius", "bearer", "water", "zodiac"]
 }, {
-	"code": "♓",
+	code: "♓",
 	"keywords": ["pisces", "fish", "zodiac"]
 }, {
-	"code": "⛎",
+	code: "⛎",
 	"keywords": ["ophiuchus", "bearer", "serpent", "snake", "zodiac"]
 }, {
-	"code": "🔀",
+	code: "🔀",
 	"keywords": ["shuffle", "twisted_rightwards_arrows", "arrow", "crossed"]
 }, {
-	"code": "🔁",
+	code: "🔁",
 	"keywords": ["loop", "repeat", "arrow", "clockwise"]
 }, {
-	"code": "🔂",
+	code: "🔂",
 	"keywords": ["repeat_one", "arrow", "clockwise", "once"]
 }, {
-	"code": "▶️",
+	code: "▶️",
 	"keywords": ["arrow_forward"]
 }, {
-	"code": "⏩",
+	code: "⏩",
 	"keywords": ["fast_forward", "arrow", "double", "fast", "forward"]
 }, {
-	"code": "⏭️",
+	code: "⏭️",
 	"keywords": ["next_track_button"]
 }, {
-	"code": "⏯️",
+	code: "⏯️",
 	"keywords": ["play_or_pause_button"]
 }, {
-	"code": "◀️",
+	code: "◀️",
 	"keywords": ["arrow_backward"]
 }, {
-	"code": "⏪",
+	code: "⏪",
 	"keywords": ["rewind", "arrow", "double"]
 }, {
-	"code": "⏮️",
+	code: "⏮️",
 	"keywords": ["previous_track_button"]
 }, {
-	"code": "🔼",
+	code: "🔼",
 	"keywords": ["arrow_up_small", "arrow", "button", "red"]
 }, {
-	"code": "⏫",
+	code: "⏫",
 	"keywords": ["arrow_double_up", "arrow", "double"]
 }, {
-	"code": "🔽",
+	code: "🔽",
 	"keywords": ["arrow_down_small", "arrow", "button", "down", "red"]
 }, {
-	"code": "⏬",
+	code: "⏬",
 	"keywords": ["arrow_double_down", "arrow", "double", "down"]
 }, {
-	"code": "⏸️",
+	code: "⏸️",
 	"keywords": ["pause_button"]
 }, {
-	"code": "⏹️",
+	code: "⏹️",
 	"keywords": ["stop_button"]
 }, {
-	"code": "⏺️",
+	code: "⏺️",
 	"keywords": ["record_button"]
 }, {
-	"code": "⏏️",
+	code: "⏏️",
 	"keywords": ["eject_button"]
 }, {
-	"code": "🎦",
+	code: "🎦",
 	"keywords": ["film", "movie", "cinema", "activity", "camera", "entertainment"]
 }, {
-	"code": "🔅",
+	code: "🔅",
 	"keywords": ["low_brightness", "brightness", "dim", "low"]
 }, {
-	"code": "🔆",
+	code: "🔆",
 	"keywords": ["high_brightness", "bright", "brightness"]
 }, {
-	"code": "📶",
+	code: "📶",
 	"keywords": ["wifi", "signal_strength", "antenna", "bar", "cell", "communication", "mobile", "phone", "signal", "telephone"]
 }, {
-	"code": "📳",
+	code: "📳",
 	"keywords": ["vibration_mode", "cell", "communication", "mobile", "mode", "phone", "telephone", "vibration"]
 }, {
-	"code": "📴",
+	code: "📴",
 	"keywords": ["mute", "off", "mobile_phone_off", "cell", "communication", "mobile", "phone", "telephone"]
 }, {
-	"code": "♀️",
+	code: "♀️",
 	"keywords": ["female_sign"]
 }, {
-	"code": "♂️",
+	code: "♂️",
 	"keywords": ["male_sign"]
 }, {
-	"code": "⚧️",
+	code: "⚧️",
 	"keywords": ["transgender_symbol"]
 }, {
-	"code": "✖️",
+	code: "✖️",
 	"keywords": ["heavy_multiplication_x", "cancel", "multiplication", "multiply", "x"]
 }, {
-	"code": "➕",
+	code: "➕",
 	"keywords": ["heavy_plus_sign", "math", "plus"]
 }, {
-	"code": "➖",
+	code: "➖",
 	"keywords": ["heavy_minus_sign", "math", "minus"]
 }, {
-	"code": "➗",
+	code: "➗",
 	"keywords": ["heavy_division_sign", "division", "math"]
 }, {
-	"code": "♾️",
+	code: "♾️",
 	"keywords": ["infinity"]
 }, {
-	"code": "‼️",
+	code: "‼️",
 	"keywords": ["bangbang"]
 }, {
-	"code": "⁉️",
+	code: "⁉️",
 	"keywords": ["interrobang", "exclamation", "mark", "punctuation", "question"]
 }, {
-	"code": "❓",
+	code: "❓",
 	"keywords": ["confused", "question", "mark", "punctuation"]
 }, {
-	"code": "❔",
+	code: "❔",
 	"keywords": ["grey_question", "mark", "outlined", "punctuation", "question"]
 }, {
-	"code": "❕",
+	code: "❕",
 	"keywords": ["grey_exclamation", "exclamation", "mark", "outlined", "punctuation"]
 }, {
-	"code": "❗",
+	code: "❗",
 	"keywords": ["bang", "exclamation", "heavy_exclamation_mark", "mark", "punctuation"]
 }, {
-	"code": "〰️",
+	code: "〰️",
 	"keywords": ["wavy_dash", "dash", "punctuation", "wavy"]
 }, {
-	"code": "💱",
+	code: "💱",
 	"keywords": ["currency_exchange", "bank", "currency", "exchange", "money"]
 }, {
-	"code": "💲",
+	code: "💲",
 	"keywords": ["heavy_dollar_sign", "currency", "dollar", "money"]
 }, {
-	"code": "⚕️",
+	code: "⚕️",
 	"keywords": ["medical_symbol"]
 }, {
-	"code": "♻️",
+	code: "♻️",
 	"keywords": ["environment", "green", "recycle"]
 }, {
-	"code": "⚜️",
+	code: "⚜️",
 	"keywords": ["fleur_de_lis"]
 }, {
-	"code": "🔱",
+	code: "🔱",
 	"keywords": ["trident", "anchor", "emblem", "ship", "tool"]
 }, {
-	"code": "📛",
+	code: "📛",
 	"keywords": ["name_badge", "badge", "name"]
 }, {
-	"code": "🔰",
+	code: "🔰",
 	"keywords": ["beginner", "chevron", "green", "japanese", "leaf", "tool", "yellow"]
 }, {
-	"code": "⭕",
+	code: "⭕",
 	"keywords": ["o", "circle"]
 }, {
-	"code": "✅",
+	code: "✅",
 	"keywords": ["white_check_mark", "check", "mark"]
 }, {
-	"code": "☑️",
+	code: "☑️",
 	"keywords": ["ballot_box_with_check", "ballot", "box", "check"]
 }, {
-	"code": "✔️",
+	code: "✔️",
 	"keywords": ["heavy_check_mark", "check", "mark"]
 }, {
-	"code": "❌",
+	code: "❌",
 	"keywords": ["x", "cancel", "mark", "multiplication", "multiply"]
 }, {
-	"code": "❎",
+	code: "❎",
 	"keywords": ["negative_squared_cross_mark", "mark", "square"]
 }, {
-	"code": "➰",
+	code: "➰",
 	"keywords": ["curly_loop", "curl", "loop"]
 }, {
-	"code": "➿",
+	code: "➿",
 	"keywords": ["loop", "curl", "double"]
 }, {
-	"code": "〽️",
+	code: "〽️",
 	"keywords": ["part_alternation_mark"]
 }, {
-	"code": "✳️",
+	code: "✳️",
 	"keywords": ["eight_spoked_asterisk", "asterisk"]
 }, {
-	"code": "✴️",
+	code: "✴️",
 	"keywords": ["eight_pointed_black_star", "star"]
 }, {
-	"code": "❇️",
+	code: "❇️",
 	"keywords": ["sparkle"]
 }, {
-	"code": "©️",
+	code: "©️",
 	"keywords": ["copyright"]
 }, {
-	"code": "®️",
+	code: "®️",
 	"keywords": ["registered"]
 }, {
-	"code": "™️",
+	code: "™️",
 	"keywords": ["trademark", "tm", "mark"]
 }, {
-	"code": "#️⃣",
+	code: "#️⃣",
 	"keywords": ["number", "hash", "keycap", "pound"]
 }, {
-	"code": "*️⃣",
+	code: "*️⃣",
 	"keywords": ["asterisk", "keycap", "star"]
 }, {
-	"code": "0️⃣",
+	code: "0️⃣",
 	"keywords": ["zero", "0", "keycap"]
 }, {
-	"code": "1️⃣",
+	code: "1️⃣",
 	"keywords": ["one", "1", "keycap"]
 }, {
-	"code": "2️⃣",
+	code: "2️⃣",
 	"keywords": ["two", "2", "keycap"]
 }, {
-	"code": "3️⃣",
+	code: "3️⃣",
 	"keywords": ["three", "3", "keycap"]
 }, {
-	"code": "4️⃣",
+	code: "4️⃣",
 	"keywords": ["four", "4", "keycap"]
 }, {
-	"code": "5️⃣",
+	code: "5️⃣",
 	"keywords": ["five", "5", "keycap"]
 }, {
-	"code": "6️⃣",
+	code: "6️⃣",
 	"keywords": ["six", "6", "keycap"]
 }, {
-	"code": "7️⃣",
+	code: "7️⃣",
 	"keywords": ["seven", "7", "keycap"]
 }, {
-	"code": "8️⃣",
+	code: "8️⃣",
 	"keywords": ["eight", "8", "keycap"]
 }, {
-	"code": "9️⃣",
+	code: "9️⃣",
 	"keywords": ["nine", "9", "keycap"]
 }, {
-	"code": "🔟",
+	code: "🔟",
 	"keywords": ["keycap_ten", "10", "keycap", "ten"]
 }, {
-	"code": "🔠",
+	code: "🔠",
 	"keywords": ["letters", "capital_abcd", "input", "latin", "uppercase"]
 }, {
-	"code": "🔡",
+	code: "🔡",
 	"keywords": ["abcd", "input", "latin", "letters", "lowercase"]
 }, {
-	"code": "🔢",
+	code: "🔢",
 	"keywords": ["numbers", "1234", "input"]
 }, {
-	"code": "🔣",
+	code: "🔣",
 	"keywords": ["symbols", "input"]
 }, {
-	"code": "🔤",
+	code: "🔤",
 	"keywords": ["alphabet", "abc", "input", "latin", "letters"]
 }, {
-	"code": "🅰️",
+	code: "🅰️",
 	"keywords": ["a"]
 }, {
-	"code": "🆎",
+	code: "🆎",
 	"keywords": ["ab", "blood"]
 }, {
-	"code": "🅱️",
+	code: "🅱️",
 	"keywords": ["b"]
 }, {
-	"code": "🆑",
+	code: "🆑",
 	"keywords": ["cl"]
 }, {
-	"code": "🆒",
+	code: "🆒",
 	"keywords": ["cool"]
 }, {
-	"code": "🆓",
+	code: "🆓",
 	"keywords": ["free"]
 }, {
-	"code": "ℹ️",
+	code: "ℹ️",
 	"keywords": ["information_source", "i", "information"]
 }, {
-	"code": "🆔",
+	code: "🆔",
 	"keywords": ["id", "identity"]
 }, {
-	"code": "Ⓜ️",
+	code: "Ⓜ️",
 	"keywords": ["m"]
 }, {
-	"code": "🆕",
+	code: "🆕",
 	"keywords": ["fresh", "new"]
 }, {
-	"code": "🆖",
+	code: "🆖",
 	"keywords": ["ng"]
 }, {
-	"code": "🅾️",
+	code: "🅾️",
 	"keywords": ["o2"]
 }, {
-	"code": "🆗",
+	code: "🆗",
 	"keywords": ["yes", "ok"]
 }, {
-	"code": "🅿️",
+	code: "🅿️",
 	"keywords": ["parking"]
 }, {
-	"code": "🆘",
+	code: "🆘",
 	"keywords": ["help", "emergency", "sos"]
 }, {
-	"code": "🆙",
+	code: "🆙",
 	"keywords": ["up", "mark"]
 }, {
-	"code": "🆚",
+	code: "🆚",
 	"keywords": ["vs", "versus"]
 }, {
-	"code": "🈁",
+	code: "🈁",
 	"keywords": ["koko", "japanese"]
 }, {
-	"code": "🈂️",
+	code: "🈂️",
 	"keywords": ["sa"]
 }, {
-	"code": "🈷️",
+	code: "🈷️",
 	"keywords": ["u6708"]
 }, {
-	"code": "🈶",
+	code: "🈶",
 	"keywords": ["u6709", "japanese"]
 }, {
-	"code": "🈯",
+	code: "🈯",
 	"keywords": ["u6307", "japanese"]
 }, {
-	"code": "🉐",
+	code: "🉐",
 	"keywords": ["ideograph_advantage", "japanese"]
 }, {
-	"code": "🈹",
+	code: "🈹",
 	"keywords": ["u5272", "japanese"]
 }, {
-	"code": "🈚",
+	code: "🈚",
 	"keywords": ["u7121", "japanese"]
 }, {
-	"code": "🈲",
+	code: "🈲",
 	"keywords": ["u7981", "japanese"]
 }, {
-	"code": "🉑",
+	code: "🉑",
 	"keywords": ["accept", "chinese"]
 }, {
-	"code": "🈸",
+	code: "🈸",
 	"keywords": ["u7533", "chinese"]
 }, {
-	"code": "🈴",
+	code: "🈴",
 	"keywords": ["u5408", "chinese"]
 }, {
-	"code": "🈳",
+	code: "🈳",
 	"keywords": ["u7a7a", "chinese"]
 }, {
-	"code": "㊗️",
+	code: "㊗️",
 	"keywords": ["congratulations", "chinese", "congratulation", "ideograph"]
 }, {
-	"code": "㊙️",
+	code: "㊙️",
 	"keywords": ["secret", "chinese", "ideograph"]
 }, {
-	"code": "🈺",
+	code: "🈺",
 	"keywords": ["u55b6", "chinese"]
 }, {
-	"code": "🈵",
+	code: "🈵",
 	"keywords": ["u6e80", "chinese"]
 }, {
-	"code": "🔴",
+	code: "🔴",
 	"keywords": ["red_circle", "circle", "geometric", "red"]
 }, {
-	"code": "🟠",
+	code: "🟠",
 	"keywords": ["orange_circle"]
 }, {
-	"code": "🟡",
+	code: "🟡",
 	"keywords": ["yellow_circle"]
 }, {
-	"code": "🟢",
+	code: "🟢",
 	"keywords": ["green_circle"]
 }, {
-	"code": "🔵",
+	code: "🔵",
 	"keywords": ["large_blue_circle", "blue", "circle", "geometric"]
 }, {
-	"code": "🟣",
+	code: "🟣",
 	"keywords": ["purple_circle"]
 }, {
-	"code": "🟤",
+	code: "🟤",
 	"keywords": ["brown_circle"]
 }, {
-	"code": "⚫",
+	code: "⚫",
 	"keywords": ["black_circle", "circle", "geometric"]
 }, {
-	"code": "⚪",
+	code: "⚪",
 	"keywords": ["white_circle", "circle", "geometric"]
 }, {
-	"code": "🟥",
+	code: "🟥",
 	"keywords": ["red_square"]
 }, {
-	"code": "🟧",
+	code: "🟧",
 	"keywords": ["orange_square"]
 }, {
-	"code": "🟨",
+	code: "🟨",
 	"keywords": ["yellow_square"]
 }, {
-	"code": "🟩",
+	code: "🟩",
 	"keywords": ["green_square"]
 }, {
-	"code": "🟦",
+	code: "🟦",
 	"keywords": ["blue_square"]
 }, {
-	"code": "🟪",
+	code: "🟪",
 	"keywords": ["purple_square"]
 }, {
-	"code": "🟫",
+	code: "🟫",
 	"keywords": ["brown_square"]
 }, {
-	"code": "⬛",
+	code: "⬛",
 	"keywords": ["black_large_square", "geometric", "square"]
 }, {
-	"code": "⬜",
+	code: "⬜",
 	"keywords": ["white_large_square", "geometric", "square"]
 }, {
-	"code": "◼️",
+	code: "◼️",
 	"keywords": ["black_medium_square"]
 }, {
-	"code": "◻️",
+	code: "◻️",
 	"keywords": ["white_medium_square"]
 }, {
-	"code": "◾",
+	code: "◾",
 	"keywords": ["black_medium_small_square", "geometric", "square"]
 }, {
-	"code": "◽",
+	code: "◽",
 	"keywords": ["white_medium_small_square", "geometric", "square"]
 }, {
-	"code": "▪️",
+	code: "▪️",
 	"keywords": ["black_small_square"]
 }, {
-	"code": "▫️",
+	code: "▫️",
 	"keywords": ["white_small_square"]
 }, {
-	"code": "🔶",
+	code: "🔶",
 	"keywords": ["large_orange_diamond", "diamond", "geometric", "orange"]
 }, {
-	"code": "🔷",
+	code: "🔷",
 	"keywords": ["large_blue_diamond", "blue", "diamond", "geometric"]
 }, {
-	"code": "🔸",
+	code: "🔸",
 	"keywords": ["small_orange_diamond", "diamond", "geometric", "orange"]
 }, {
-	"code": "🔹",
+	code: "🔹",
 	"keywords": ["small_blue_diamond", "blue", "diamond", "geometric"]
 }, {
-	"code": "🔺",
+	code: "🔺",
 	"keywords": ["small_red_triangle", "geometric", "red"]
 }, {
-	"code": "🔻",
+	code: "🔻",
 	"keywords": ["small_red_triangle_down", "down", "geometric", "red"]
 }, {
-	"code": "💠",
+	code: "💠",
 	"keywords": ["diamond_shape_with_a_dot_inside", "comic", "diamond", "geometric", "inside"]
 }, {
-	"code": "🔘",
+	code: "🔘",
 	"keywords": ["radio_button", "button", "geometric", "radio"]
 }, {
-	"code": "🔳",
+	code: "🔳",
 	"keywords": ["white_square_button", "button", "geometric", "outlined", "square"]
 }, {
-	"code": "🔲",
+	code: "🔲",
 	"keywords": ["black_square_button", "button", "geometric", "square"]
 }, {
-	"code": "flags",
-	"header": true
+	code: "flags",
+	header: true
 }, {
-	"code": "🏁",
+	code: "🏁",
 	"keywords": ["milestone", "finish", "checkered_flag", "checkered", "chequered", "flag", "racing"]
 }, {
-	"code": "🚩",
+	code: "🚩",
 	"keywords": ["triangular_flag_on_post", "flag", "post"]
 }, {
-	"code": "🎌",
+	code: "🎌",
 	"keywords": ["crossed_flags", "activity", "celebration", "cross", "crossed", "flag", "japanese"]
 }, {
-	"code": "🏴",
+	code: "🏴",
 	"keywords": ["black_flag", "flag", "waving"]
 }, {
-	"code": "🏳️",
+	code: "🏳️",
 	"keywords": ["white_flag", "flag"]
 }, {
-	"code": "🏳️‍🌈",
+	code: "🏳️‍🌈",
 	"keywords": ["pride", "rainbow_flag"]
 }, {
-	"code": "🏳️‍⚧️",
+	code: "🏳️‍⚧️",
 	"keywords": ["transgender_flag", "flag"]
 }, {
-	"code": "🏴‍☠️",
+	code: "🏴‍☠️",
 	"keywords": ["pirate_flag", "flag"]
 }, {
-	"code": "🇦🇨",
+	code: "🇦🇨",
 	"keywords": ["ascension_island", "ascension", "flag", "island"]
 }, {
-	"code": "🇦🇩",
+	code: "🇦🇩",
 	"keywords": ["andorra", "flag"]
 }, {
-	"code": "🇦🇪",
+	code: "🇦🇪",
 	"keywords": ["united_arab_emirates", "emirates", "flag", "uae", "united"]
 }, {
-	"code": "🇦🇫",
+	code: "🇦🇫",
 	"keywords": ["afghanistan", "flag"]
 }, {
-	"code": "🇦🇬",
+	code: "🇦🇬",
 	"keywords": ["antigua_barbuda", "antigua", "barbuda", "flag"]
 }, {
-	"code": "🇦🇮",
+	code: "🇦🇮",
 	"keywords": ["anguilla", "flag"]
 }, {
-	"code": "🇦🇱",
+	code: "🇦🇱",
 	"keywords": ["albania", "flag"]
 }, {
-	"code": "🇦🇲",
+	code: "🇦🇲",
 	"keywords": ["armenia", "flag"]
 }, {
-	"code": "🇦🇴",
+	code: "🇦🇴",
 	"keywords": ["angola", "flag"]
 }, {
-	"code": "🇦🇶",
+	code: "🇦🇶",
 	"keywords": ["antarctica", "flag"]
 }, {
-	"code": "🇦🇷",
+	code: "🇦🇷",
 	"keywords": ["argentina", "flag"]
 }, {
-	"code": "🇦🇸",
+	code: "🇦🇸",
 	"keywords": ["american_samoa", "american", "flag", "samoa"]
 }, {
-	"code": "🇦🇹",
+	code: "🇦🇹",
 	"keywords": ["austria", "flag"]
 }, {
-	"code": "🇦🇺",
+	code: "🇦🇺",
 	"keywords": ["australia", "flag"]
 }, {
-	"code": "🇦🇼",
+	code: "🇦🇼",
 	"keywords": ["aruba", "flag"]
 }, {
-	"code": "🇦🇽",
+	code: "🇦🇽",
 	"keywords": ["aland_islands", "åland", "flag"]
 }, {
-	"code": "🇦🇿",
+	code: "🇦🇿",
 	"keywords": ["azerbaijan", "flag"]
 }, {
-	"code": "🇧🇦",
+	code: "🇧🇦",
 	"keywords": ["bosnia_herzegovina", "bosnia", "flag", "herzegovina"]
 }, {
-	"code": "🇧🇧",
+	code: "🇧🇧",
 	"keywords": ["barbados", "flag"]
 }, {
-	"code": "🇧🇩",
+	code: "🇧🇩",
 	"keywords": ["bangladesh", "flag"]
 }, {
-	"code": "🇧🇪",
+	code: "🇧🇪",
 	"keywords": ["belgium", "flag"]
 }, {
-	"code": "🇧🇫",
+	code: "🇧🇫",
 	"keywords": ["burkina_faso", "burkina faso", "flag"]
 }, {
-	"code": "🇧🇬",
+	code: "🇧🇬",
 	"keywords": ["bulgaria", "flag"]
 }, {
-	"code": "🇧🇭",
+	code: "🇧🇭",
 	"keywords": ["bahrain", "flag"]
 }, {
-	"code": "🇧🇮",
+	code: "🇧🇮",
 	"keywords": ["burundi", "flag"]
 }, {
-	"code": "🇧🇯",
+	code: "🇧🇯",
 	"keywords": ["benin", "flag"]
 }, {
-	"code": "🇧🇱",
+	code: "🇧🇱",
 	"keywords": ["st_barthelemy", "barthelemy", "barthélemy", "flag", "saint"]
 }, {
-	"code": "🇧🇲",
+	code: "🇧🇲",
 	"keywords": ["bermuda", "flag"]
 }, {
-	"code": "🇧🇳",
+	code: "🇧🇳",
 	"keywords": ["brunei", "darussalam", "flag"]
 }, {
-	"code": "🇧🇴",
+	code: "🇧🇴",
 	"keywords": ["bolivia", "flag"]
 }, {
-	"code": "🇧🇶",
+	code: "🇧🇶",
 	"keywords": ["caribbean_netherlands", "bonaire", "caribbean", "eustatius", "flag", "netherlands", "saba", "sint"]
 }, {
-	"code": "🇧🇷",
+	code: "🇧🇷",
 	"keywords": ["brazil", "flag"]
 }, {
-	"code": "🇧🇸",
+	code: "🇧🇸",
 	"keywords": ["bahamas", "flag"]
 }, {
-	"code": "🇧🇹",
+	code: "🇧🇹",
 	"keywords": ["bhutan", "flag"]
 }, {
-	"code": "🇧🇻",
+	code: "🇧🇻",
 	"keywords": ["bouvet_island", "bouvet", "flag", "island"]
 }, {
-	"code": "🇧🇼",
+	code: "🇧🇼",
 	"keywords": ["botswana", "flag"]
 }, {
-	"code": "🇧🇾",
+	code: "🇧🇾",
 	"keywords": ["belarus", "flag"]
 }, {
-	"code": "🇧🇿",
+	code: "🇧🇿",
 	"keywords": ["belize", "flag"]
 }, {
-	"code": "🇨🇦",
+	code: "🇨🇦",
 	"keywords": ["canada", "flag"]
 }, {
-	"code": "🇨🇨",
+	code: "🇨🇨",
 	"keywords": ["keeling", "cocos_islands", "cocos", "flag", "island"]
 }, {
-	"code": "🇨🇩",
+	code: "🇨🇩",
 	"keywords": ["congo_kinshasa", "congo", "congo-kinshasa", "democratic republic of congo", "drc", "flag", "kinshasa", "republic"]
 }, {
-	"code": "🇨🇫",
+	code: "🇨🇫",
 	"keywords": ["central_african_republic", "central african republic", "flag", "republic"]
 }, {
-	"code": "🇨🇬",
+	code: "🇨🇬",
 	"keywords": ["congo_brazzaville", "brazzaville", "congo", "congo republic", "congo-brazzaville", "flag", "republic", "republic of the congo"]
 }, {
-	"code": "🇨🇭",
+	code: "🇨🇭",
 	"keywords": ["switzerland", "flag"]
 }, {
-	"code": "🇨🇮",
+	code: "🇨🇮",
 	"keywords": ["ivory", "cote_divoire", "cote ivoire", "côte ivoire", "flag", "ivory coast"]
 }, {
-	"code": "🇨🇰",
+	code: "🇨🇰",
 	"keywords": ["cook_islands", "cook", "flag", "island"]
 }, {
-	"code": "🇨🇱",
+	code: "🇨🇱",
 	"keywords": ["chile", "flag"]
 }, {
-	"code": "🇨🇲",
+	code: "🇨🇲",
 	"keywords": ["cameroon", "flag"]
 }, {
-	"code": "🇨🇳",
+	code: "🇨🇳",
 	"keywords": ["china", "cn", "flag"]
 }, {
-	"code": "🇨🇴",
+	code: "🇨🇴",
 	"keywords": ["colombia", "flag"]
 }, {
-	"code": "🇨🇵",
+	code: "🇨🇵",
 	"keywords": ["clipperton_island", "clipperton", "flag", "island"]
 }, {
-	"code": "🇨🇷",
+	code: "🇨🇷",
 	"keywords": ["costa_rica", "costa rica", "flag"]
 }, {
-	"code": "🇨🇺",
+	code: "🇨🇺",
 	"keywords": ["cuba", "flag"]
 }, {
-	"code": "🇨🇻",
+	code: "🇨🇻",
 	"keywords": ["cape_verde", "cabo", "cape", "flag", "verde"]
 }, {
-	"code": "🇨🇼",
+	code: "🇨🇼",
 	"keywords": ["curacao", "antilles", "curaçao", "flag"]
 }, {
-	"code": "🇨🇽",
+	code: "🇨🇽",
 	"keywords": ["christmas_island", "christmas", "flag", "island"]
 }, {
-	"code": "🇨🇾",
+	code: "🇨🇾",
 	"keywords": ["cyprus", "flag"]
 }, {
-	"code": "🇨🇿",
+	code: "🇨🇿",
 	"keywords": ["czech_republic", "czech republic", "flag"]
 }, {
-	"code": "🇩🇪",
+	code: "🇩🇪",
 	"keywords": ["flag", "germany", "de"]
 }, {
-	"code": "🇩🇬",
+	code: "🇩🇬",
 	"keywords": ["diego_garcia", "diego garcia", "flag"]
 }, {
-	"code": "🇩🇯",
+	code: "🇩🇯",
 	"keywords": ["djibouti", "flag"]
 }, {
-	"code": "🇩🇰",
+	code: "🇩🇰",
 	"keywords": ["denmark", "flag"]
 }, {
-	"code": "🇩🇲",
+	code: "🇩🇲",
 	"keywords": ["dominica", "flag"]
 }, {
-	"code": "🇩🇴",
+	code: "🇩🇴",
 	"keywords": ["dominican_republic", "dominican republic", "flag"]
 }, {
-	"code": "🇩🇿",
+	code: "🇩🇿",
 	"keywords": ["algeria", "flag"]
 }, {
-	"code": "🇪🇦",
+	code: "🇪🇦",
 	"keywords": ["ceuta_melilla", "ceuta", "flag", "melilla"]
 }, {
-	"code": "🇪🇨",
+	code: "🇪🇨",
 	"keywords": ["ecuador", "flag"]
 }, {
-	"code": "🇪🇪",
+	code: "🇪🇪",
 	"keywords": ["estonia", "flag"]
 }, {
-	"code": "🇪🇬",
+	code: "🇪🇬",
 	"keywords": ["egypt", "flag"]
 }, {
-	"code": "🇪🇭",
+	code: "🇪🇭",
 	"keywords": ["western_sahara", "flag", "sahara", "west", "western sahara"]
 }, {
-	"code": "🇪🇷",
+	code: "🇪🇷",
 	"keywords": ["eritrea", "flag"]
 }, {
-	"code": "🇪🇸",
+	code: "🇪🇸",
 	"keywords": ["spain", "es", "flag"]
 }, {
-	"code": "🇪🇹",
+	code: "🇪🇹",
 	"keywords": ["ethiopia", "flag"]
 }, {
-	"code": "🇪🇺",
+	code: "🇪🇺",
 	"keywords": ["eu", "european_union", "european union", "flag"]
 }, {
-	"code": "🇫🇮",
+	code: "🇫🇮",
 	"keywords": ["finland", "flag"]
 }, {
-	"code": "🇫🇯",
+	code: "🇫🇯",
 	"keywords": ["fiji", "flag"]
 }, {
-	"code": "🇫🇰",
+	code: "🇫🇰",
 	"keywords": ["falkland_islands", "falkland", "falklands", "flag", "island", "islas", "malvinas"]
 }, {
-	"code": "🇫🇲",
+	code: "🇫🇲",
 	"keywords": ["micronesia", "flag"]
 }, {
-	"code": "🇫🇴",
+	code: "🇫🇴",
 	"keywords": ["faroe_islands", "faroe", "flag", "island"]
 }, {
-	"code": "🇫🇷",
+	code: "🇫🇷",
 	"keywords": ["france", "french", "fr", "flag"]
 }, {
-	"code": "🇬🇦",
+	code: "🇬🇦",
 	"keywords": ["gabon", "flag"]
 }, {
-	"code": "🇬🇧",
+	code: "🇬🇧",
 	"keywords": ["flag", "british", "gb", "uk", "britain", "cornwall", "england", "great britain", "ireland", "northern ireland", "scotland", "union jack", "united", "united kingdom", "wales"]
 }, {
-	"code": "🇬🇩",
+	code: "🇬🇩",
 	"keywords": ["grenada", "flag"]
 }, {
-	"code": "🇬🇪",
+	code: "🇬🇪",
 	"keywords": ["georgia", "flag"]
 }, {
-	"code": "🇬🇫",
+	code: "🇬🇫",
 	"keywords": ["french_guiana", "flag", "french", "guiana"]
 }, {
-	"code": "🇬🇬",
+	code: "🇬🇬",
 	"keywords": ["guernsey", "flag"]
 }, {
-	"code": "🇬🇭",
+	code: "🇬🇭",
 	"keywords": ["ghana", "flag"]
 }, {
-	"code": "🇬🇮",
+	code: "🇬🇮",
 	"keywords": ["gibraltar", "flag"]
 }, {
-	"code": "🇬🇱",
+	code: "🇬🇱",
 	"keywords": ["greenland", "flag"]
 }, {
-	"code": "🇬🇲",
+	code: "🇬🇲",
 	"keywords": ["gambia", "flag"]
 }, {
-	"code": "🇬🇳",
+	code: "🇬🇳",
 	"keywords": ["guinea", "flag"]
 }, {
-	"code": "🇬🇵",
+	code: "🇬🇵",
 	"keywords": ["guadeloupe", "flag"]
 }, {
-	"code": "🇬🇶",
+	code: "🇬🇶",
 	"keywords": ["equatorial_guinea", "equatorial guinea", "flag", "guinea"]
 }, {
-	"code": "🇬🇷",
+	code: "🇬🇷",
 	"keywords": ["greece", "flag"]
 }, {
-	"code": "🇬🇸",
+	code: "🇬🇸",
 	"keywords": ["south_georgia_south_sandwich_islands", "flag", "georgia", "island", "south", "south georgia", "south sandwich"]
 }, {
-	"code": "🇬🇹",
+	code: "🇬🇹",
 	"keywords": ["guatemala", "flag"]
 }, {
-	"code": "🇬🇺",
+	code: "🇬🇺",
 	"keywords": ["guam", "flag"]
 }, {
-	"code": "🇬🇼",
+	code: "🇬🇼",
 	"keywords": ["guinea_bissau", "bissau", "flag", "guinea"]
 }, {
-	"code": "🇬🇾",
+	code: "🇬🇾",
 	"keywords": ["guyana", "flag"]
 }, {
-	"code": "🇭🇰",
+	code: "🇭🇰",
 	"keywords": ["hong_kong", "china", "flag", "hong kong"]
 }, {
-	"code": "🇭🇲",
+	code: "🇭🇲",
 	"keywords": ["heard_mcdonald_islands", "flag", "heard", "island", "mcdonald"]
 }, {
-	"code": "🇭🇳",
+	code: "🇭🇳",
 	"keywords": ["honduras", "flag"]
 }, {
-	"code": "🇭🇷",
+	code: "🇭🇷",
 	"keywords": ["croatia", "flag"]
 }, {
-	"code": "🇭🇹",
+	code: "🇭🇹",
 	"keywords": ["haiti", "flag"]
 }, {
-	"code": "🇭🇺",
+	code: "🇭🇺",
 	"keywords": ["hungary", "flag"]
 }, {
-	"code": "🇮🇨",
+	code: "🇮🇨",
 	"keywords": ["canary_islands", "canary", "flag", "island"]
 }, {
-	"code": "🇮🇩",
+	code: "🇮🇩",
 	"keywords": ["indonesia", "flag"]
 }, {
-	"code": "🇮🇪",
+	code: "🇮🇪",
 	"keywords": ["ireland", "flag"]
 }, {
-	"code": "🇮🇱",
+	code: "🇮🇱",
 	"keywords": ["israel", "flag"]
 }, {
-	"code": "🇮🇲",
+	code: "🇮🇲",
 	"keywords": ["isle_of_man", "flag", "isle of man"]
 }, {
-	"code": "🇮🇳",
+	code: "🇮🇳",
 	"keywords": ["india", "flag"]
 }, {
-	"code": "🇮🇴",
+	code: "🇮🇴",
 	"keywords": ["british_indian_ocean_territory", "british", "chagos", "flag", "indian ocean", "island"]
 }, {
-	"code": "🇮🇶",
+	code: "🇮🇶",
 	"keywords": ["iraq", "flag"]
 }, {
-	"code": "🇮🇷",
+	code: "🇮🇷",
 	"keywords": ["iran", "flag"]
 }, {
-	"code": "🇮🇸",
+	code: "🇮🇸",
 	"keywords": ["iceland", "flag"]
 }, {
-	"code": "🇮🇹",
+	code: "🇮🇹",
 	"keywords": ["italy", "it", "flag"]
 }, {
-	"code": "🇯🇪",
+	code: "🇯🇪",
 	"keywords": ["jersey", "flag"]
 }, {
-	"code": "🇯🇲",
+	code: "🇯🇲",
 	"keywords": ["jamaica", "flag"]
 }, {
-	"code": "🇯🇴",
+	code: "🇯🇴",
 	"keywords": ["jordan", "flag"]
 }, {
-	"code": "🇯🇵",
+	code: "🇯🇵",
 	"keywords": ["japan", "jp", "flag"]
 }, {
-	"code": "🇰🇪",
+	code: "🇰🇪",
 	"keywords": ["kenya", "flag"]
 }, {
-	"code": "🇰🇬",
+	code: "🇰🇬",
 	"keywords": ["kyrgyzstan", "flag"]
 }, {
-	"code": "🇰🇭",
+	code: "🇰🇭",
 	"keywords": ["cambodia", "flag"]
 }, {
-	"code": "🇰🇮",
+	code: "🇰🇮",
 	"keywords": ["kiribati", "flag"]
 }, {
-	"code": "🇰🇲",
+	code: "🇰🇲",
 	"keywords": ["comoros", "flag"]
 }, {
-	"code": "🇰🇳",
+	code: "🇰🇳",
 	"keywords": ["st_kitts_nevis", "flag", "kitts", "nevis", "saint"]
 }, {
-	"code": "🇰🇵",
+	code: "🇰🇵",
 	"keywords": ["north_korea", "flag", "korea", "north", "north korea"]
 }, {
-	"code": "🇰🇷",
+	code: "🇰🇷",
 	"keywords": ["korea", "kr", "flag", "south", "south korea"]
 }, {
-	"code": "🇰🇼",
+	code: "🇰🇼",
 	"keywords": ["kuwait", "flag"]
 }, {
-	"code": "🇰🇾",
+	code: "🇰🇾",
 	"keywords": ["cayman_islands", "cayman", "flag", "island"]
 }, {
-	"code": "🇰🇿",
+	code: "🇰🇿",
 	"keywords": ["kazakhstan", "flag"]
 }, {
-	"code": "🇱🇦",
+	code: "🇱🇦",
 	"keywords": ["laos", "flag"]
 }, {
-	"code": "🇱🇧",
+	code: "🇱🇧",
 	"keywords": ["lebanon", "flag"]
 }, {
-	"code": "🇱🇨",
+	code: "🇱🇨",
 	"keywords": ["st_lucia", "flag", "lucia", "saint"]
 }, {
-	"code": "🇱🇮",
+	code: "🇱🇮",
 	"keywords": ["liechtenstein", "flag"]
 }, {
-	"code": "🇱🇰",
+	code: "🇱🇰",
 	"keywords": ["sri_lanka", "flag", "sri lanka"]
 }, {
-	"code": "🇱🇷",
+	code: "🇱🇷",
 	"keywords": ["liberia", "flag"]
 }, {
-	"code": "🇱🇸",
+	code: "🇱🇸",
 	"keywords": ["lesotho", "flag"]
 }, {
-	"code": "🇱🇹",
+	code: "🇱🇹",
 	"keywords": ["lithuania", "flag"]
 }, {
-	"code": "🇱🇺",
+	code: "🇱🇺",
 	"keywords": ["luxembourg", "flag"]
 }, {
-	"code": "🇱🇻",
+	code: "🇱🇻",
 	"keywords": ["latvia", "flag"]
 }, {
-	"code": "🇱🇾",
+	code: "🇱🇾",
 	"keywords": ["libya", "flag"]
 }, {
-	"code": "🇲🇦",
+	code: "🇲🇦",
 	"keywords": ["morocco", "flag"]
 }, {
-	"code": "🇲🇨",
+	code: "🇲🇨",
 	"keywords": ["monaco", "flag"]
 }, {
-	"code": "🇲🇩",
+	code: "🇲🇩",
 	"keywords": ["moldova", "flag"]
 }, {
-	"code": "🇲🇪",
+	code: "🇲🇪",
 	"keywords": ["montenegro", "flag"]
 }, {
-	"code": "🇲🇫",
+	code: "🇲🇫",
 	"keywords": ["st_martin", "flag", "french", "martin", "saint"]
 }, {
-	"code": "🇲🇬",
+	code: "🇲🇬",
 	"keywords": ["madagascar", "flag"]
 }, {
-	"code": "🇲🇭",
+	code: "🇲🇭",
 	"keywords": ["marshall_islands", "flag", "island", "marshall"]
 }, {
-	"code": "🇲🇰",
+	code: "🇲🇰",
 	"keywords": ["macedonia", "flag"]
 }, {
-	"code": "🇲🇱",
+	code: "🇲🇱",
 	"keywords": ["mali", "flag"]
 }, {
-	"code": "🇲🇲",
+	code: "🇲🇲",
 	"keywords": ["burma", "myanmar", "flag"]
 }, {
-	"code": "🇲🇳",
+	code: "🇲🇳",
 	"keywords": ["mongolia", "flag"]
 }, {
-	"code": "🇲🇴",
+	code: "🇲🇴",
 	"keywords": ["macau", "china", "flag", "macao"]
 }, {
-	"code": "🇲🇵",
+	code: "🇲🇵",
 	"keywords": ["northern_mariana_islands", "flag", "island", "mariana", "north", "northern mariana"]
 }, {
-	"code": "🇲🇶",
+	code: "🇲🇶",
 	"keywords": ["martinique", "flag"]
 }, {
-	"code": "🇲🇷",
+	code: "🇲🇷",
 	"keywords": ["mauritania", "flag"]
 }, {
-	"code": "🇲🇸",
+	code: "🇲🇸",
 	"keywords": ["montserrat", "flag"]
 }, {
-	"code": "🇲🇹",
+	code: "🇲🇹",
 	"keywords": ["malta", "flag"]
 }, {
-	"code": "🇲🇺",
+	code: "🇲🇺",
 	"keywords": ["mauritius", "flag"]
 }, {
-	"code": "🇲🇻",
+	code: "🇲🇻",
 	"keywords": ["maldives", "flag"]
 }, {
-	"code": "🇲🇼",
+	code: "🇲🇼",
 	"keywords": ["malawi", "flag"]
 }, {
-	"code": "🇲🇽",
+	code: "🇲🇽",
 	"keywords": ["mexico", "flag"]
 }, {
-	"code": "🇲🇾",
+	code: "🇲🇾",
 	"keywords": ["malaysia", "flag"]
 }, {
-	"code": "🇲🇿",
+	code: "🇲🇿",
 	"keywords": ["mozambique", "flag"]
 }, {
-	"code": "🇳🇦",
+	code: "🇳🇦",
 	"keywords": ["namibia", "flag"]
 }, {
-	"code": "🇳🇨",
+	code: "🇳🇨",
 	"keywords": ["new_caledonia", "flag", "new", "new caledonia"]
 }, {
-	"code": "🇳🇪",
+	code: "🇳🇪",
 	"keywords": ["niger", "flag"]
 }, {
-	"code": "🇳🇫",
+	code: "🇳🇫",
 	"keywords": ["norfolk_island", "flag", "island", "norfolk"]
 }, {
-	"code": "🇳🇬",
+	code: "🇳🇬",
 	"keywords": ["nigeria", "flag"]
 }, {
-	"code": "🇳🇮",
+	code: "🇳🇮",
 	"keywords": ["nicaragua", "flag"]
 }, {
-	"code": "🇳🇱",
+	code: "🇳🇱",
 	"keywords": ["netherlands", "flag"]
 }, {
-	"code": "🇳🇴",
+	code: "🇳🇴",
 	"keywords": ["norway", "flag"]
 }, {
-	"code": "🇳🇵",
+	code: "🇳🇵",
 	"keywords": ["nepal", "flag"]
 }, {
-	"code": "🇳🇷",
+	code: "🇳🇷",
 	"keywords": ["nauru", "flag"]
 }, {
-	"code": "🇳🇺",
+	code: "🇳🇺",
 	"keywords": ["niue", "flag"]
 }, {
-	"code": "🇳🇿",
+	code: "🇳🇿",
 	"keywords": ["new_zealand", "flag", "new", "new zealand"]
 }, {
-	"code": "🇴🇲",
+	code: "🇴🇲",
 	"keywords": ["oman", "flag"]
 }, {
-	"code": "🇵🇦",
+	code: "🇵🇦",
 	"keywords": ["panama", "flag"]
 }, {
-	"code": "🇵🇪",
+	code: "🇵🇪",
 	"keywords": ["peru", "flag"]
 }, {
-	"code": "🇵🇫",
+	code: "🇵🇫",
 	"keywords": ["french_polynesia", "flag", "french", "polynesia"]
 }, {
-	"code": "🇵🇬",
+	code: "🇵🇬",
 	"keywords": ["papua_new_guinea", "flag", "guinea", "new", "papua new guinea"]
 }, {
-	"code": "🇵🇭",
+	code: "🇵🇭",
 	"keywords": ["philippines", "flag"]
 }, {
-	"code": "🇵🇰",
+	code: "🇵🇰",
 	"keywords": ["pakistan", "flag"]
 }, {
-	"code": "🇵🇱",
+	code: "🇵🇱",
 	"keywords": ["poland", "flag"]
 }, {
-	"code": "🇵🇲",
+	code: "🇵🇲",
 	"keywords": ["st_pierre_miquelon", "flag", "miquelon", "pierre", "saint"]
 }, {
-	"code": "🇵🇳",
+	code: "🇵🇳",
 	"keywords": ["pitcairn_islands", "flag", "island", "pitcairn"]
 }, {
-	"code": "🇵🇷",
+	code: "🇵🇷",
 	"keywords": ["puerto_rico", "flag", "puerto rico"]
 }, {
-	"code": "🇵🇸",
+	code: "🇵🇸",
 	"keywords": ["palestinian_territories", "flag", "palestine"]
 }, {
-	"code": "🇵🇹",
+	code: "🇵🇹",
 	"keywords": ["portugal", "flag"]
 }, {
-	"code": "🇵🇼",
+	code: "🇵🇼",
 	"keywords": ["palau", "flag"]
 }, {
-	"code": "🇵🇾",
+	code: "🇵🇾",
 	"keywords": ["paraguay", "flag"]
 }, {
-	"code": "🇶🇦",
+	code: "🇶🇦",
 	"keywords": ["qatar", "flag"]
 }, {
-	"code": "🇷🇪",
+	code: "🇷🇪",
 	"keywords": ["reunion", "flag", "réunion"]
 }, {
-	"code": "🇷🇴",
+	code: "🇷🇴",
 	"keywords": ["romania", "flag"]
 }, {
-	"code": "🇷🇸",
+	code: "🇷🇸",
 	"keywords": ["serbia", "flag"]
 }, {
-	"code": "🇷🇺",
+	code: "🇷🇺",
 	"keywords": ["russia", "ru", "flag"]
 }, {
-	"code": "🇷🇼",
+	code: "🇷🇼",
 	"keywords": ["rwanda", "flag"]
 }, {
-	"code": "🇸🇦",
+	code: "🇸🇦",
 	"keywords": ["saudi_arabia", "flag", "saudi arabia"]
 }, {
-	"code": "🇸🇧",
+	code: "🇸🇧",
 	"keywords": ["solomon_islands", "flag", "island", "solomon"]
 }, {
-	"code": "🇸🇨",
+	code: "🇸🇨",
 	"keywords": ["seychelles", "flag"]
 }, {
-	"code": "🇸🇩",
+	code: "🇸🇩",
 	"keywords": ["sudan", "flag"]
 }, {
-	"code": "🇸🇪",
+	code: "🇸🇪",
 	"keywords": ["sweden", "flag"]
 }, {
-	"code": "🇸🇬",
+	code: "🇸🇬",
 	"keywords": ["singapore", "flag"]
 }, {
-	"code": "🇸🇭",
+	code: "🇸🇭",
 	"keywords": ["st_helena", "flag", "helena", "saint"]
 }, {
-	"code": "🇸🇮",
+	code: "🇸🇮",
 	"keywords": ["slovenia", "flag"]
 }, {
-	"code": "🇸🇯",
+	code: "🇸🇯",
 	"keywords": ["svalbard_jan_mayen", "flag", "jan mayen", "svalbard"]
 }, {
-	"code": "🇸🇰",
+	code: "🇸🇰",
 	"keywords": ["slovakia", "flag"]
 }, {
-	"code": "🇸🇱",
+	code: "🇸🇱",
 	"keywords": ["sierra_leone", "flag", "sierra leone"]
 }, {
-	"code": "🇸🇲",
+	code: "🇸🇲",
 	"keywords": ["san_marino", "flag", "san marino"]
 }, {
-	"code": "🇸🇳",
+	code: "🇸🇳",
 	"keywords": ["senegal", "flag"]
 }, {
-	"code": "🇸🇴",
+	code: "🇸🇴",
 	"keywords": ["somalia", "flag"]
 }, {
-	"code": "🇸🇷",
+	code: "🇸🇷",
 	"keywords": ["suriname", "flag"]
 }, {
-	"code": "🇸🇸",
+	code: "🇸🇸",
 	"keywords": ["south_sudan", "flag", "south", "south sudan", "sudan"]
 }, {
-	"code": "🇸🇹",
+	code: "🇸🇹",
 	"keywords": ["sao_tome_principe", "flag", "principe", "príncipe", "sao tome", "são tomé"]
 }, {
-	"code": "🇸🇻",
+	code: "🇸🇻",
 	"keywords": ["el_salvador", "el salvador", "flag"]
 }, {
-	"code": "🇸🇽",
+	code: "🇸🇽",
 	"keywords": ["sint_maarten", "flag", "maarten", "sint"]
 }, {
-	"code": "🇸🇾",
+	code: "🇸🇾",
 	"keywords": ["syria", "flag"]
 }, {
-	"code": "🇸🇿",
+	code: "🇸🇿",
 	"keywords": ["swaziland", "flag"]
 }, {
-	"code": "🇹🇦",
+	code: "🇹🇦",
 	"keywords": ["tristan_da_cunha", "flag", "tristan da cunha"]
 }, {
-	"code": "🇹🇨",
+	code: "🇹🇨",
 	"keywords": ["turks_caicos_islands", "caicos", "flag", "island", "turks"]
 }, {
-	"code": "🇹🇩",
+	code: "🇹🇩",
 	"keywords": ["chad", "flag"]
 }, {
-	"code": "🇹🇫",
+	code: "🇹🇫",
 	"keywords": ["french_southern_territories", "antarctic", "flag", "french"]
 }, {
-	"code": "🇹🇬",
+	code: "🇹🇬",
 	"keywords": ["togo", "flag"]
 }, {
-	"code": "🇹🇭",
+	code: "🇹🇭",
 	"keywords": ["thailand", "flag"]
 }, {
-	"code": "🇹🇯",
+	code: "🇹🇯",
 	"keywords": ["tajikistan", "flag"]
 }, {
-	"code": "🇹🇰",
+	code: "🇹🇰",
 	"keywords": ["tokelau", "flag"]
 }, {
-	"code": "🇹🇱",
+	code: "🇹🇱",
 	"keywords": ["timor_leste", "east", "east timor", "flag", "timor-leste"]
 }, {
-	"code": "🇹🇲",
+	code: "🇹🇲",
 	"keywords": ["turkmenistan", "flag"]
 }, {
-	"code": "🇹🇳",
+	code: "🇹🇳",
 	"keywords": ["tunisia", "flag"]
 }, {
-	"code": "🇹🇴",
+	code: "🇹🇴",
 	"keywords": ["tonga", "flag"]
 }, {
-	"code": "🇹🇷",
+	code: "🇹🇷",
 	"keywords": ["turkey", "tr", "flag"]
 }, {
-	"code": "🇹🇹",
+	code: "🇹🇹",
 	"keywords": ["trinidad_tobago", "flag", "tobago", "trinidad"]
 }, {
-	"code": "🇹🇻",
+	code: "🇹🇻",
 	"keywords": ["tuvalu", "flag"]
 }, {
-	"code": "🇹🇼",
+	code: "🇹🇼",
 	"keywords": ["taiwan", "china", "flag"]
 }, {
-	"code": "🇹🇿",
+	code: "🇹🇿",
 	"keywords": ["tanzania", "flag"]
 }, {
-	"code": "🇺🇦",
+	code: "🇺🇦",
 	"keywords": ["ukraine", "flag"]
 }, {
-	"code": "🇺🇬",
+	code: "🇺🇬",
 	"keywords": ["uganda", "flag"]
 }, {
-	"code": "🇺🇲",
+	code: "🇺🇲",
 	"keywords": ["us_outlying_islands", "america", "flag", "island", "minor outlying", "united", "united states", "us", "usa"]
 }, {
-	"code": "🇺🇳",
+	code: "🇺🇳",
 	"keywords": ["united_nations"]
 }, {
-	"code": "🇺🇸",
+	code: "🇺🇸",
 	"keywords": ["flag", "united", "america", "us", "stars and stripes", "united states"]
 }, {
-	"code": "🇺🇾",
+	code: "🇺🇾",
 	"keywords": ["uruguay", "flag"]
 }, {
-	"code": "🇺🇿",
+	code: "🇺🇿",
 	"keywords": ["uzbekistan", "flag"]
 }, {
-	"code": "🇻🇦",
+	code: "🇻🇦",
 	"keywords": ["vatican_city", "flag", "vatican"]
 }, {
-	"code": "🇻🇨",
+	code: "🇻🇨",
 	"keywords": ["st_vincent_grenadines", "flag", "grenadines", "saint", "vincent"]
 }, {
-	"code": "🇻🇪",
+	code: "🇻🇪",
 	"keywords": ["venezuela", "flag"]
 }, {
-	"code": "🇻🇬",
+	code: "🇻🇬",
 	"keywords": ["british_virgin_islands", "british", "flag", "island", "virgin"]
 }, {
-	"code": "🇻🇮",
+	code: "🇻🇮",
 	"keywords": ["us_virgin_islands", "america", "american", "flag", "island", "united", "united states", "us", "usa", "virgin"]
 }, {
-	"code": "🇻🇳",
+	code: "🇻🇳",
 	"keywords": ["vietnam", "flag", "viet nam"]
 }, {
-	"code": "🇻🇺",
+	code: "🇻🇺",
 	"keywords": ["vanuatu", "flag"]
 }, {
-	"code": "🇼🇫",
+	code: "🇼🇫",
 	"keywords": ["wallis_futuna", "flag", "futuna", "wallis"]
 }, {
-	"code": "🇼🇸",
+	code: "🇼🇸",
 	"keywords": ["samoa", "flag"]
 }, {
-	"code": "🇽🇰",
+	code: "🇽🇰",
 	"keywords": ["kosovo", "flag"]
 }, {
-	"code": "🇾🇪",
+	code: "🇾🇪",
 	"keywords": ["yemen", "flag"]
 }, {
-	"code": "🇾🇹",
+	code: "🇾🇹",
 	"keywords": ["mayotte", "flag"]
 }, {
-	"code": "🇿🇦",
+	code: "🇿🇦",
 	"keywords": ["south_africa", "flag", "south", "south africa"]
 }, {
-	"code": "🇿🇲",
+	code: "🇿🇲",
 	"keywords": ["zambia", "flag"]
 }, {
-	"code": "🇿🇼",
+	code: "🇿🇼",
 	"keywords": ["zimbabwe", "flag"]
 }, {
-	"code": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+	code: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
 	"keywords": ["england", "flag"]
 }, {
-	"code": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+	code: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
 	"keywords": ["scotland", "flag"]
 }, {
-	"code": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+	code: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
 	"keywords": ["wales", "flag"]
 }];
 
