@@ -1,29 +1,41 @@
 import CONST from '../src/CONST';
 
 /*
- * This list is generated from the code here https://github.com/amurani/unicode-emoji-list
+ * This list is generated from the code here https://github.com/github/gemoji/blob/master/db/emoji.json
  * Each code is then converted to hex by replacing the "U+" with "0x"
  * Each hex is then converted to a string using this function (each section is defined as "emojis" in this function)
- * for (var i=0; i<emojis.length; i++) {
- *  newCode = '';
- *  emojis[i].code.forEach(codePiece => {
- *      newCode += String.fromCodePoint(codePiece);
- *  });
- *  emojis[i].code=newCode;
- *  //console.log(newCode);
- *  if (emojis[i].types) {
- *      newTypesArray = [];
- *      emojis[i].types.forEach(type => {
- *          typeCode = '';
- *          type.forEach(code => {
- *               typeCode += String.fromCodePoint(code);
- *          });
- *          newTypesArray.push(typeCode);
+ * const emojiData = require('./gemoji.json');
+ * const { getEmojiUnicode } = require('./EmojiUtils');
+ * const emojisGroupedByCategory = _.groupBy(emojiData, 'category');
+ * const skinTones = ['1f3fb', '1f3fc', '1f3fd', '1f3fe',  '1f3ff'];
+ * const emojisList = []
+ * for(let category in emojisGroupedByCategory) {
+ *      let categoryName = category.replace(' & ', 'And');
+ *      categoryName = categoryName.charAt(0).toLowerCase() + categoryName.slice(1);
+ *      emojisList.push({
+ *          code: categoryName,
+ *          header: true
  *      });
- *      //console.log(newTypesArray);
- *      emojis[i].types = newTypesArray
- *  }
- * }
+ * 
+ *     const emojisPerCategory = emojisGroupedByCategory[category];
+ *      for(let i = 0; i < emojisPerCategory.length; i++) {
+ *          const emoji = emojisPerCategory[i];
+ *          let keywords = [...emoji.tags , ...emoji.aliases];
+ *          if(oldEmojiMap[emoji.emoji]) { // old Emoji Map is old assets/emojis.js data
+ *              keywords = keywords.concat(oldEmojiMap[emoji.emoji].keywords);
+ *          }
+ *          const emojiRow = {
+ *              code: emoji.emoji,
+ *              keywords: _.uniq(keywords)
+ *          };
+ *          
+ *          if (emoji.skin_tones) {
+ *              emojiRow.types = skinTones.map(skinTone => 
+ *                  String.fromCodePoint(parseInt(getEmojiUnicode(emoji.emoji), 16), parseInt(skinTone, 16)));
+ *          }
+ *          emojisList.push(emojiRow);
+ *     }
+ * };
  */
 
 // BEFORE YOU EDIT THIS, PLEASE SEE WARNINGS IN EmojiPickerMenu.js
