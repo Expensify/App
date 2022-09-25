@@ -2296,7 +2296,7 @@ const emojis = [{
     code: '🍃',
     keywords: ['leaf', 'leaves', 'blow', 'flutter', 'plant', 'wind'],
 }, {
-    code: 'foodAndDrink',
+    code: 'foodAndDrinks',
     header: true,
 }, {
     code: '🍇',
