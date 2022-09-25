@@ -954,7 +954,8 @@ export default {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
             frequentlyUsed: 'Frequently Used',
-            smileysAndPeople: 'Smileys & People',
+            smileysAndEmotion: 'Smileys & Emotion',
+            peopleAndBody: 'People & Body',
             animalsAndNature: 'Animals & Nature',
             foodAndDrinks: 'Food & Drinks',
             travelAndPlaces: 'Travel & Places',

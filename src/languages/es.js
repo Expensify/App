@@ -956,7 +956,8 @@ export default {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {
             frequentlyUsed: 'Usado frecuentemente',
-            smileysAndPeople: 'Emoticonos y personas',
+            smileysAndEmotion: 'Emoticonos y emociones',
+            peopleAndBody: 'Personas y Cuerpo',
             animalsAndNature: 'Animales y naturaleza',
             foodAndDrinks: 'Alimentos y bebidas',
             travelAndPlaces: 'Viajes y lugares',
