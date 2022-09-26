@@ -14,7 +14,6 @@ import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import Timing from './Timing';
 
 let currentUserEmail = '';
 Onyx.connect({
