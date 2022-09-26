@@ -86,7 +86,7 @@ project.ext.react = [
 
 project.ext.envConfigFiles = [
     debug: ".env",
-    release: ".env",
+    release: ".env.production",
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
@@ -248,7 +248,7 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
