@@ -1,5 +1,6 @@
 /* eslint-disable @lwc/lwc/no-async-await */
 const {createServer} = require('http');
+const EndPoints = require('./endpoints');
 
 const PORT = process.env.PORT || 3000;
 
@@ -82,7 +83,7 @@ const createServerInstance = () => {
     const server = createServer(async (req, res) => {
         res.statusCode = 200;
         switch (req.url) {
-            case '/test_results': {
+            case EndPoints.testResults: {
                 if (req.method !== 'POST') {
                     res.statusCode = 400;
                     return res.end('Unsupported method');
@@ -99,7 +100,7 @@ const createServerInstance = () => {
 
                 return res.end('ok');
             }
-            case '/test_done': {
+            case EndPoints.testDone: {
                 testDoneListeners.forEach((listener) => {
                     listener();
                 });
