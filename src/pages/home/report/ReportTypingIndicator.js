@@ -9,7 +9,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import TextWithEllipsis from '../../../components/TextWithEllipsis';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
@@ -62,24 +62,30 @@ class ReportTypingIndicator extends React.Component {
 
             case 1:
                 return (
-                    <TextWithEllipsis
-                        leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
-                        trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={[styles.chatItemComposeSecondaryRow]}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-                    />
+                    <Text
+                        style={[
+                            styles.chatItemComposeSecondaryRowSubText,
+                            styles.chatItemComposeSecondaryRowOffset,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {PersonalDetails.getDisplayName(this.state.usersTyping[0])}
+                        {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                    </Text>
                 );
 
             default:
                 return (
-                    <TextWithEllipsis
-                        leadingText={this.props.translate('reportTypingIndicator.multipleUsers')}
-                        trailingText={` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={[styles.chatItemComposeSecondaryRow]}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-                    />
+                    <Text
+                        style={[
+                            styles.chatItemComposeSecondaryRowSubText,
+                            styles.chatItemComposeSecondaryRowOffset,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {this.props.translate('reportTypingIndicator.multipleUsers')}
+                        {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
+                    </Text>
                 );
         }
     }
