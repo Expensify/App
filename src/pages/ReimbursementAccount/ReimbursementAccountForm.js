@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
