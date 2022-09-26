@@ -454,7 +454,6 @@ function getOptions(reports, personalDetails, activeReportID, {
     sortByAlphaAsc = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
-    prioritizeIOUDebts = false,
     prioritizeReportsWithDraftComments = false,
 }) {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -559,8 +558,6 @@ function getOptions(reports, personalDetails, activeReportID, {
             if (prioritizePinnedReports && reportOption.isPinned
                 && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
                 pinnedReportOptions.push(reportOption);
-            } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
-                iouDebtReportOptions.push(reportOption);
             } else if (prioritizeReportsWithDraftComments && reportOption.hasDraftComment) {
                 draftReportOptions.push(reportOption);
             } else {
@@ -579,13 +576,6 @@ function getOptions(reports, personalDetails, activeReportID, {
     if (prioritizeReportsWithDraftComments) {
         const sortedDraftReports = lodashOrderBy(draftReportOptions, ['text'], ['asc']);
         recentReportOptions = sortedDraftReports.concat(recentReportOptions);
-    }
-
-    // If we are prioritizing IOUs the user owes, add them before the normal recent report options and reports
-    // with draft comments.
-    if (prioritizeIOUDebts) {
-        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
-        recentReportOptions = sortedIOUReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
@@ -694,7 +684,6 @@ function getSearchOptions(
         showReportsWithNoComments: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
-        prioritizeIOUDebts: false,
     });
 }
 
