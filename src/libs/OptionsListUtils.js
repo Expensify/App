@@ -22,6 +22,18 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
+let currentlyViewedReportID;
+Onyx.connect({
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => currentlyViewedReportID = val,
+});
+
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: val => priorityMode = val,
+});
+
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
@@ -449,22 +461,26 @@ function getOptions(reports, personalDetails, activeReportID, {
     prioritizeIOUDebts = false,
     prioritizeReportsWithDraftComments = false,
 }) {
+    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     let personalDetailsOptions = [];
     const iouDebtReportOptions = [];
     const draftReportOptions = [];
-
     const reportMapForLogins = {};
+
+    // Filter out all the reports that shouldn't be displayed
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+
+    // Now the filtered reports can be sorted
     let sortProperty = sortByLastMessageTimestamp
         ? ['lastMessageTimestamp']
         : ['lastVisitedTimestamp'];
     if (sortByAlphaAsc) {
         sortProperty = ['reportName'];
     }
-
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+    let orderedReports = lodashOrderBy(filteredReports, sortProperty, sortDirection);
 
     // Move the archived Rooms to the last
     orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
@@ -474,68 +490,10 @@ function getOptions(reports, personalDetails, activeReportID, {
         if (!report) {
             return;
         }
+
         const isChatRoom = ReportUtils.isChatRoom(report);
-        const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
-
-        // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
-        if (!report.reportID || shouldFilterNoParticipants) {
-            return;
-        }
-
-        const hasDraftComment = report.hasDraft || false;
-        const iouReport = report.iouReportID && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
-        const iouReportOwner = report.hasOutstandingIOU && iouReport
-            ? iouReport.ownerEmail
-            : '';
-
-        const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const hasAddWorkspaceRoomError = report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom);
-        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
-
-                // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
-                // highlight them in the LHN when they are created and have no messsages yet. We do
-                // not give archived rooms this exception since they do not need to be higlihted.
-                && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
-
-                // Also make an exception for workspace rooms that failed to be added
-                && !hasAddWorkspaceRoomError;
-
-        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
-        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-
-        if (report.reportID.toString() !== activeReportID
-            && (!report.isPinned || isDefaultRoom)
-            && !hasDraftComment
-            && shouldFilterReport
-            && !reportContainsIOUDebt) {
-            return;
-        }
-
-        if (isChatRoom && excludeChatRooms) {
-            return;
-        }
-
-        // We create policy rooms for all policies, however we don't show them unless
-        // - It's a free plan workspace
-        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
-        if (!Permissions.canUseDefaultRooms(betas)
-            && ReportUtils.isDefaultRoom(report)
-            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
-            && !ReportUtils.hasExpensifyGuidesEmails(logins)
-        ) {
-            return;
-        }
-
-        if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-            return;
-        }
-
-        if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
-            return;
-        }
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
