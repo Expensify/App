@@ -96,7 +96,7 @@ class Trie {
     * @param {Number} limit
     * @returns {Array}
     */
-    getChildMatching = (node, prefix, words = [], limit) => {
+    getChildMatching(node, prefix, words = [], limit) {
         const matching = words;
         if (matching.length > limit) {
             return matching;
