@@ -1,135 +1,116 @@
 /* eslint-disable @lwc/lwc/no-async-await */
-const {WebSocketServer} = require('ws');
+const {createServer} = require('http');
 
-const Commands = require('./commands');
-const {SERVER_PORT} = require('../config');
-const Logger = require('../utils/logger');
-const tryParseJSON = require('./utils/tryParseJSON');
-const withFailTimeout = require('./utils/withFailTimeout');
+const PORT = process.env.PORT || 3000;
+
+const getReqData = (req) => {
+    let data = '';
+    req.on('data', (chunk) => {
+        data += chunk;
+    });
+
+    return new Promise((resolve) => {
+        req.on('end', () => {
+            resolve(data);
+        });
+    });
+};
+
+const getPostRequestData = async (req, res) => {
+    if (req.method !== 'POST') {
+        res.statusCode = 400;
+        return res.end('Unsupported method');
+    }
+
+    const data = await getReqData(req);
+    try {
+        return JSON.parse(data);
+    } catch (e) {
+        res.statusCode = 400;
+        res.end('Invalid JSON');
+    }
+};
 
 /**
- * Starts a new WebSocket server. Returns an object with functions
- * representing commands that can be sent to the client.
- * @returns {Object}
- * @property {Function} waitForAppReady - Resolves when the app is ready
- * @property {Function} login - Logs in a user
- * @property {Function} logout - Logs out the current user
- * @property {Function} getPerformanceMetrics - Returns an array of performance metrics
- * @property {Function} stopServer - Stops the created testing server instance
+ * @typedef TestResult
+ * @property {string} name
+ * @property {number} duration Milliseconds
+ * @property {string} error
  */
-const start = () => {
-    const wss = new WebSocketServer({port: SERVER_PORT});
 
-    // when the device connects we use this socket instance
-    let socketInstance;
-    let waitForSocketResolve;
+/**
+ * @callback listener
+ * @param {TestResult} testResult
+ */
 
-    // promise for waiting until a socket instance is available ( a device connected )
-    let waitForSocketPromise = new Promise((resolve) => {
-        waitForSocketResolve = resolve;
-    });
+/**
+ * Creates a new http server.
+ * The server just has two endpoints:
+ *
+ *  - POST: /test_results, expects a {@link TestResult} as JSON body.
+ *          Send test results while a test runs.
+ *  - GET: /test_done, expected to be called when test run signals it's done
+ *
+ * @returns {{addTestResultListener: addTestResultListener, stop: (function(): *), start: (function(): *)}}
+ */
+const createServerInstance = () => {
+    const testResultListeners = [];
+    const testDoneListeners = [];
 
-    // helper to remove the current socket instance (used when test kills the app)
-    const clearSession = () => {
-        socketInstance = null;
-        waitForSocketPromise = new Promise((resolve) => {
-            waitForSocketResolve = resolve;
-        });
-    };
-
-    // on connection set the socket instance:
-    wss.on('connection', (socket) => {
-        Logger.log('[SERVER]  A device connected');
-
-        socketInstance = socket;
-        waitForSocketResolve();
-    });
-
-    // helper that adds a listener for incoming messages
-    const newMessageListener = (callback) => {
-        const listener = (data) => {
-            const strData = data.toString();
-            const objData = tryParseJSON(strData);
-            callback(objData, strData);
-        };
-        socketInstance.addListener('message', listener);
-        return () => socketInstance.removeListener('message', listener);
-    };
-
-    const sendData = (data) => {
-        socketInstance.send(JSON.stringify(data));
+    /**
+     * Add a callback that will be called when receiving test results.
+     * @param {listener} listener
+     */
+    const addTestResultListener = (listener) => {
+        testResultListeners.push(listener);
     };
 
     /**
-     * Returns a promise that will resolve/reject once we
-     * receive a `{ type: 'status' }` response from the client.
-     * @param {String} command {@link Commands}
-     * @returns {Promise<void>}
+     * Will be called when a test signals that it's done.
+     * @param {Function} listener
      */
-    const waitForResponse = command => new Promise((resolve, reject) => {
-        const cleanup = newMessageListener((data) => {
-            if (data == null || data.type !== 'status' || data.inputCommand !== command) {
-                return;
-            }
-            cleanup();
-            Logger.log(`[SERVER]  Received response for command: ${command}`);
-            if (data.status === 'success') {
-                resolve();
-            } else {
-                reject();
-            }
-        });
-    });
-
-    /**
-     * Sends a command once we got a socket instance,
-     * and waits for a success response.
-     *
-     * @param {String} command {@link Commands}
-     * @param {Object} [data]
-     * @returns {Promise<void>}
-     */
-    const sendAndWaitForResponse = async (command, data) => {
-        await waitForSocketPromise;
-        Logger.log(`[SERVER]  Sending command: ${command}`);
-        sendData({type: command, data});
-        return waitForResponse(command);
+    const addTestDoneListener = (listener) => {
+        testDoneListeners.push(listener);
     };
 
-    /**
-     * Waits for socket instance, and then tries to collect
-     * performance metrics from the app.
-     * @returns {Promise<void>}
-     */
-    const getPerformanceMetrics = async () => {
-        await waitForSocketPromise;
-        return new Promise((resolve) => {
-            const cleanup = newMessageListener((data) => {
-                if (data == null || data.type !== 'performance_metrics') {
+    const server = createServer(async (req, res) => {
+        res.statusCode = 200;
+        switch (req.url) {
+            case '/test_results': {
+                if (req.method !== 'POST') {
+                    res.statusCode = 400;
+                    return res.end('Unsupported method');
+                }
+
+                const data = await getPostRequestData(req, res);
+                if (data == null) {
                     return;
                 }
-                if (data.metrics == null) {
-                    console.error('[SERVER]  Received performance metrics but no metrics were included!');
-                    return;
-                }
-                cleanup();
-                resolve(data.metrics);
-            });
-            sendData({type: Commands.REQUEST_PERFORMANCE_METRICS});
-        });
-    };
+
+                testResultListeners.forEach((listener) => {
+                    listener(data);
+                });
+
+                return res.end('ok');
+            }
+            case '/test_done': {
+                testDoneListeners.forEach((listener) => {
+                    listener();
+                });
+                return res.end('ok');
+            }
+            default:
+                res.statusCode = 404;
+                res.end('Page not found!');
+        }
+    });
 
     return {
-        // command for app:
-        login: (email, password) => withFailTimeout(sendAndWaitForResponse(Commands.LOGIN, {email, password}), Commands.LOGIN),
-        logout: () => withFailTimeout(sendAndWaitForResponse(Commands.LOGOUT), Commands.LOGOUT),
-        waitForAppReady: () => withFailTimeout(sendAndWaitForResponse(Commands.WAIT_FOR_APP_READY), Commands.WAIT_FOR_APP_READY),
-        getPerformanceMetrics: () => withFailTimeout(getPerformanceMetrics(), Commands.REQUEST_PERFORMANCE_METRICS),
-
-        // server interactions:
-        stopServer: () => wss.close(),
-        clearSession: () => clearSession(),
+        addTestResultListener,
+        addTestDoneListener,
+        start: () => new Promise(resolve => server.listen(PORT, resolve)),
+        stop: () => new Promise(resolve => server.close(resolve)),
     };
 };
 
-module.exports = start;
+module.exports = createServerInstance;
