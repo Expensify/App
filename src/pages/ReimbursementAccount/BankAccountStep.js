@@ -24,9 +24,6 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
-import FormScrollView from '../../components/FormScrollView';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
