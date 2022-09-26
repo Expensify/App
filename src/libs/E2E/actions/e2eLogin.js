@@ -4,7 +4,9 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as Session from '../../actions/Session';
 
 /**
- * Command for e2e test to automatically sign in a user
+ * Command for e2e test to automatically sign in a user.
+ * If the user is already logged in the function will simply
+ * resolve.
  *
  * @param {String} email
  * @param {String} password
