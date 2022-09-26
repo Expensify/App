@@ -8,22 +8,32 @@
 
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 const fs = require('fs');
+const _ = require('underscore');
 const {
     DEFAULT_BASELINE_BRANCH,
     OUTPUT_DIR,
-    OUTPUT_FILE_CURRENT,
     LOG_FILE,
+    RUNS,
 } = require('./config');
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
+const killApp = require('./utils/killApp');
+const launchApp = require('./utils/launchApp');
+const createServerInstance = require('./server');
+const installApp = require('./utils/installApp');
+const reversePort = require('./utils/androidReversePort');
+const math = require('./measure/math');
+const writeTestStats = require('./measure/writeTestStats');
 
 const args = process.argv.slice(2);
 
 const baselineBranch = process.env.baseline || DEFAULT_BASELINE_BRANCH;
 
 const TESTS = [
-    require('./tests/AppStartTimeTest.e2e'),
+    {
+        name: 'App start time',
+    },
 ];
 
 // clear all files from previous jobs
@@ -34,6 +44,13 @@ try {
     // do nothing
     console.error(error);
 }
+
+const restartApp = async () => {
+    Logger.log('Killing app …');
+    await killApp('android');
+    Logger.log('Launching app …');
+    await launchApp('android');
+};
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
     // switch branch and install dependencies
@@ -49,14 +66,64 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     }
     progress.done();
 
+    // install app and reverse ports
+    const progressLog = Logger.progressInfo('Installing app');
+    await installApp('android');
+    Logger.log('Reversing port (for connecting to testing server) …');
+    await reversePort();
+    progressLog.done();
+
+    // start the HTTP server
+    const server = createServerInstance();
+    await server.start();
+
+    // create a dict in which we will store the run durations for all tests
+    const durationsByTestName = {};
+
+    // collect durations while tests are being executed
+    server.addTestResultListener((testResult) => {
+        if (testResult.error != null) {
+            Logger.info(`Test '${testResult.name}' failed with error: ${testResult.error}`);
+            return;
+        }
+        if (testResult.duration < 0) {
+            return;
+        }
+
+        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
+    });
+
     // run the tests
-    for (const testFunction of TESTS) {
-        await testFunction();
+    for (const test of TESTS) {
+        const testLog = Logger.progressInfo(`Running test '${test.name}'`);
+        for (let i = 0; i < RUNS; i++) {
+            testLog.updateText(`Running test '${test.name}' (iteration ${i + 1}/${RUNS})`);
+
+            // TODO: when adding more test cases, we'd need to tell the app here, which test to start
+            await restartApp();
+
+            // wait for a test to finish by waiting on its done call to the http server
+            const cleanup = await new Promise(server.addTestDoneListener);
+            cleanup();
+        }
+        testLog.done();
     }
 
-    // mv output file
+    // calculate statistics and write them to our work file
     const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
-    await execAsync(`mv ${OUTPUT_FILE_CURRENT} ${outputFileName}`);
+    for (const testName of _.keys(durationsByTestName)) {
+        const stats = math.getStats(durationsByTestName[testName]);
+        await writeTestStats(
+            {
+                name: testName,
+                ...stats,
+            },
+            outputFileName,
+        );
+    }
+
+    // close server
+    await server.stop();
 };
 
 const runTests = async () => {
