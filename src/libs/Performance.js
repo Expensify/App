@@ -46,6 +46,7 @@ const Performance = {
     measureTTI: () => {},
     traceRender: () => {},
     withRenderTrace: () => Component => Component,
+    subscribeToMeasurements: () => {},
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
