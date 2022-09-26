@@ -1,13 +1,27 @@
-/* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
+/**
+ * We are using a separate entry point for the E2E tests.
+ * By doing this, we avoid bundling any E2E testing code
+ * into the actual release app.
+ */
+
 // start the usual app
 import '../../../index';
-import * as E2E from './index';
+
+import * as E2EClient from './client';
+import Performance from '../Performance';
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
 console.debug('==========================');
 
-E2E.setup();
+// Start to listen to websocket commands
+E2EClient.listenForServerCommands();
 
-// TODO: given that this file is that short, it raises the question, whether we can't move that to the main index file?
-// Given that we do it that way, we prevent any E2E code to be bundled in the real release app!
+// Once we receive the TII measurement we know that the app is initialized and ready to be used:
+Performance.subscribeToMeasurements((entry) => {
+    if (entry.name !== 'TTI') {
+        return;
+    }
+
+    E2EClient.markAppReady();
+});

@@ -151,6 +151,10 @@ However, to enable the WebSocket communication to our local WebSocket server, we
 Therefor, a customized release build type is needed, which is called `e2eRelease`. This build type has clear
 text traffic enabled, but works otherwise just like a release build.
 
-For the app to detect that it is currently running e2e tests, a environment variable called `E2E_TESTING=true` must
+In addition to that, another entry file will be used (instead of `index.js`). The entry file used is
+`src/libs/E2E/reactNativeEntry.js`. By using a custom entry file we avoid bundling any e2e testing code
+into the actual release app.
+
+For the app to detect that it is currently running e2e tests, an environment variable called `E2E_TESTING=true` must
 be set. There is a custom environment file in `e2e/.env.e2e` that contains the env setup needed. The build automatically
 picks this file for configuration.
