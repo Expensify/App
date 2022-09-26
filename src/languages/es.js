@@ -267,6 +267,7 @@ export default {
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
+        notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Perfil',
@@ -579,6 +580,16 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
+        passwordRequired: 'Por favor introduce tu contraseña',
+        passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+        pdfPasswordForm: {
+            title: 'PDF protegido con contraseña',
+            infoText: 'Este PDF esta protegido con contraseña.',
+            beforeLinkText: 'Por favor',
+            linkText: 'introduce la contraseña',
+            afterLinkText: 'para verlo.',
+            formLabel: 'Ver PDF',
+        },
     },
     pronouns: {
         heHimHis: 'Él',
@@ -699,6 +710,8 @@ export default {
         activatedTitle: '¡Billetera  activada!',
         activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
         checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
+        continueToPayment: 'Continuar al pago',
+        continueToTransfer: 'Continuar a la transferencia',
     },
     companyStep: {
         headerTitle: 'Información de la empresa',
@@ -765,7 +778,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
-        offlineMessage: 'Parece que estás desconectado.',
     },
     workspace: {
         common: {
@@ -784,7 +796,6 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             settlementFrequency: 'Frecuencia de liquidación',
-            growlMessageOnCreate: 'El espacio de trabajo ha sido creado',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
@@ -794,7 +805,6 @@ export default {
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
-            genericFailureMessage: 'Se ha producido un error al intentar crear el espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',

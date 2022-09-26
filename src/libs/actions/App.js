@@ -14,6 +14,7 @@ import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
+import getCurrentUrl from '../Navigation/currentUrl';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -50,6 +51,21 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (policies) => {
         policyIDList = _.compact(_.pluck(policies, 'id'));
+    },
+});
+
+// When we reconnect the app, we don't want to fetch workspaces created optimistically while offline since they don't exist yet in the back-end.
+// If we fetched them then they'd return as empty objects which would clear out the optimistic policy values initially created locally.
+// Once the re-queued call to CreateWorkspace returns, the full contents of the workspace excluded here should be correctly saved into Onyx.
+let policyIDListExcludingWorkspacesCreatedOffline = [];
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (policies) => {
+        const policiesExcludingWorkspacesCreatedOffline = _.reject(policies,
+            policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+            && lodashGet(policy, 'type', null) === CONST.POLICY.TYPE.FREE);
+        policyIDListExcludingWorkspacesCreatedOffline = _.compact(_.pluck(policiesExcludingWorkspacesCreatedOffline, 'id'));
     },
 });
 
@@ -123,7 +139,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {policyIDList}, {
+    API.read('ReconnectApp', {policyIDListExcludingWorkspacesCreatedOffline}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -155,41 +171,37 @@ function reconnectApp() {
  * will occur.
 
  * When the exitTo route is 'workspace/new', we create a new
- * workspace and navigate to it via Policy.createAndGetPolicyList.
+ * workspace and navigate to it
  *
  * We subscribe to the session using withOnyx in the AuthScreens and
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
- * @param {string} currentPath
  */
-function setUpPoliciesAndNavigate(session, currentPath) {
-    if (!session || !currentPath || !currentPath.includes('exitTo')) {
+function setUpPoliciesAndNavigate(session) {
+    const currentUrl = getCurrentUrl();
+    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
     }
 
-    let exitTo;
-    try {
-        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
-        exitTo = url.searchParams.get('exitTo');
-    } catch (error) {
-        // URLSearchParams is unsupported on iOS so we catch th error and
-        // silence it here since this is primarily a Web flow
-        return;
-    }
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const url = new URL(currentUrl);
+    const exitTo = url.searchParams.get('exitTo');
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createAndGetPolicyList();
+        Policy.createWorkspace();
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        // We must call dismissModal() to remove the /transition route from history
-        Navigation.dismissModal();
-        Navigation.navigate(exitTo);
+        Navigation.isNavigationReady()
+            .then(() => {
+                // We must call dismissModal() to remove the /transition route from history
+                Navigation.dismissModal();
+                Navigation.navigate(exitTo);
+            });
     }
 }
 

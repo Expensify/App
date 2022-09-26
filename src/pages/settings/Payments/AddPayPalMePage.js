@@ -39,6 +39,7 @@ class AddPayPalMePage extends React.Component {
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
+        this.focusPayPalMeInput = this.focusPayPalMeInput.bind(this);
     }
 
     /**
@@ -57,9 +58,17 @@ class AddPayPalMePage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
 
+    focusPayPalMeInput() {
+        if (!this.payPalMeInputRef) {
+            return;
+        }
+
+        this.payPalMeInputRef.focus();
+    }
+
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={this.focusPayPalMeInput}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payPalMe')}
                     shouldShowBackButton
@@ -72,6 +81,7 @@ class AddPayPalMePage extends React.Component {
                             {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                         </Text>
                         <TextInput
+                            ref={el => this.payPalMeInputRef = el}
                             label={this.props.translate('addPayPalMePage.payPalMe')}
                             autoCompleteType="off"
                             autoCorrect={false}
@@ -103,7 +113,6 @@ class AddPayPalMePage extends React.Component {
 
 AddPayPalMePage.propTypes = propTypes;
 AddPayPalMePage.defaultProps = defaultProps;
-AddPayPalMePage.displayName = 'AddPayPalMePage';
 
 export default compose(
     withLocalize,

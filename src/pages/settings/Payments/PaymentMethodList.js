@@ -23,9 +23,6 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
 
-const MENU_ITEM = 'menuItem';
-const BUTTON = 'button';
-
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
@@ -124,46 +121,11 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             type: MENU_ITEM,
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
             onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
-
-        return combinedPaymentMethods;
-    }
-
-    /**
-     * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     *
-     * @returns {Array}
-     */
-    createPaymentMethodList() {
-        const combinedPaymentMethods = this.getFilteredPaymentMethods();
-
-        // If we have not added any payment methods, show a default empty state
-        if (_.isEmpty(combinedPaymentMethods)) {
-            combinedPaymentMethods.push({
-                key: 'addFirstPaymentMethodHelpText',
-                text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
-            });
-        }
-
-        if (!this.props.shouldShowAddPaymentMethodButton) {
-            return combinedPaymentMethods;
-        }
-
-        combinedPaymentMethods.push({
-            type: BUTTON,
-            text: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Expensicons.CreditCard,
-            style: [styles.buttonCTA],
-            iconStyles: [styles.buttonCTAIcon],
-            onPress: e => this.props.onPress(e),
-            isDisabled: this.props.isLoadingPayments,
-            shouldShowRightIcon: true,
-            success: true,
-            key: 'addPaymentMethodButton',
-        });
 
         return combinedPaymentMethods;
     }
@@ -207,67 +169,79 @@ class PaymentMethodList extends Component {
      * @return {React.Component}
      */
     renderItem({item}) {
-        if (item.type === MENU_ITEM) {
-            return (
-                <OfflineWithFeedback
-                    onClose={() => this.dismissError(item)}
-                    pendingAction={item.pendingAction}
-                    errors={item.errors}
-                    errorRowStyles={styles.ph6}
-                >
-                    <MenuItem
-                        onPress={item.onPress}
-                        title={item.title}
-                        description={item.description}
-                        icon={item.icon}
-                        disabled={item.disabled}
-                        iconFill={item.iconFill}
-                        iconHeight={item.iconSize}
-                        iconWidth={item.iconSize}
-                        badgeText={this.getDefaultBadgeText(item.isDefault)}
-                        wrapperStyle={item.wrapperStyle}
-                        shouldShowSelectedState={this.props.shouldShowSelectedState}
-                        isSelected={this.props.selectedMethodID === item.methodID}
-                    />
-                </OfflineWithFeedback>
-            );
-        }
-        if (item.type === BUTTON) {
-            return (
-                <FormAlertWrapper>
-                    {isOffline => (
-                        <Button
-                            text={item.text}
-                            icon={item.icon}
-                            onPress={item.onPress}
-                            isDisabled={item.isDisabled || isOffline}
-                            style={item.style}
-                            iconStyles={item.iconStyles}
-                            success={item.success}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            large
-                        />
-                    )}
-                </FormAlertWrapper>
-            );
-        }
+        return (
+            <OfflineWithFeedback
+                onClose={() => this.dismissError(item)}
+                pendingAction={item.pendingAction}
+                errors={item.errors}
+                errorRowStyles={styles.ph6}
+            >
+                <MenuItem
+                    onPress={item.onPress}
+                    title={item.title}
+                    description={item.description}
+                    icon={item.icon}
+                    disabled={item.disabled}
+                    iconFill={item.iconFill}
+                    iconHeight={item.iconSize}
+                    iconWidth={item.iconSize}
+                    badgeText={this.getDefaultBadgeText(item.isDefault)}
+                    wrapperStyle={item.wrapperStyle}
+                    shouldShowSelectedState={this.props.shouldShowSelectedState}
+                    isSelected={this.props.selectedMethodID === item.methodID}
+                />
+            </OfflineWithFeedback>
+        );
+    }
 
+    /**
+     * Show add first payment copy when payment methods are
+     *
+     * @return {React.Component}
+     */
+    renderListEmptyComponent() {
         return (
             <Text
                 style={[styles.popoverMenuItem]}
             >
-                {item.text}
+                {this.props.translate('paymentMethodList.addFirstPaymentMethod')}
             </Text>
         );
     }
 
     render() {
         return (
-            <FlatList
-                data={this.createPaymentMethodList()}
-                renderItem={this.renderItem}
-                keyExtractor={item => item.key}
-            />
+            <>
+                <FlatList
+                    data={this.getFilteredPaymentMethods()}
+                    renderItem={this.renderItem}
+                    keyExtractor={item => item.key}
+                    ListEmptyComponent={this.renderListEmptyComponent()}
+                />
+                {
+                    this.props.shouldShowAddPaymentMethodButton
+                    && (
+                        <FormAlertWrapper>
+                            {
+                                isOffline => (
+                                    <Button
+                                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                                        icon={Expensicons.CreditCard}
+                                        onPress={e => this.props.onPress(e)}
+                                        isDisabled={this.props.isLoadingPayments || isOffline}
+                                        style={[styles.mh4, styles.mb4, styles.buttonCTA]}
+                                        iconStyles={[styles.buttonCTAIcon]}
+                                        key="addPaymentMethodButton"
+                                        success
+                                        shouldShowRightIcon
+                                        large
+                                    />
+                                )
+                            }
+                        </FormAlertWrapper>
+                    )
+                }
+            </>
         );
     }
 }

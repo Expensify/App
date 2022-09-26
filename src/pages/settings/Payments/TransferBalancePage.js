@@ -32,7 +32,7 @@ import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** User's wallet information */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(PropTypes.shape({
