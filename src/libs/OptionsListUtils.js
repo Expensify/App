@@ -791,41 +791,6 @@ function getMemberInviteOptions(
 }
 
 /**
- * Build the options for the Sidebar a.k.a. LHN
- *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {Number} activeReportID
- * @param {String} priorityMode
- * @param {Array<String>} betas
- * @param {Object} reportActions
- * @returns {Object}
- */
-function getSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
-    let sideBarOptions = {
-        prioritizeIOUDebts: true,
-        prioritizeReportsWithDraftComments: true,
-    };
-    if (priorityMode === CONST.PRIORITY_MODE.GSD) {
-        sideBarOptions = {
-            hideReadReports: true,
-            sortByAlphaAsc: true,
-        };
-    }
-
-    return getOptions(reports, personalDetails, activeReportID, {
-        betas,
-        includeRecentReports: true,
-        includeMultipleParticipantReports: true,
-        maxRecentReportsToShow: 0, // Unlimited
-        showChatPreviewLine: true,
-        prioritizePinnedReports: true,
-        ...sideBarOptions,
-        reportActions,
-    });
-}
-
-/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  *
  * @param {Boolean} hasSelectableOptions
@@ -879,7 +844,6 @@ export {
     getSearchOptions,
     getNewChatOptions,
     getMemberInviteOptions,
-    getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
     getCurrencyListForSections,
