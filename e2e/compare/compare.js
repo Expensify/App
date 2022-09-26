@@ -8,6 +8,10 @@ const printToConsole = require('./output/console');
 
 /*
  * base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
+ * This module reads from the baseline and compare files and compares the results.
+ * It has a few different output formats:
+ * - console: prints the results to the console
+ * - markdown: Writes the results in markdown format to a file
  */
 
 /**
