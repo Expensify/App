@@ -10,62 +10,62 @@ class Trie {
     * Add a word to the Trie
     * @param {String} word
     * @param {Object} [metaData] - attach additional data to the word
-    * @param {TrieNode} newNode
+    * @param {TrieNode} node
     * @param {Boolean} [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
     * @returns {void}
     */
-    add(word, metaData, newNode = this.root, allowEmptyWords = false) {
-        const node = newNode;
+    add(word, metaData, node = this.root, allowEmptyWords = false) {
+        const newNode = node;
         if (word.length === 0 && !allowEmptyWords) {
             throw new Error('Cannot insert empty word into Trie');
         }
         if (word.length === 0) {
-            node.isLeaf = true;
-            node.metaData = metaData;
+            newNode.isLeaf = true;
+            newNode.metaData = metaData;
             return;
         }
-        if (!node.children[word[0]]) {
-            node.children[word[0]] = new TrieNode();
-            return this.add(word.substring(1), metaData, node.children[word[0]], true);
+        if (!newNode.children[word[0]]) {
+            newNode.children[word[0]] = new TrieNode();
+            return this.add(word.substring(1), metaData, newNode.children[word[0]], true);
         }
-        return this.add(word.substring(1), metaData, node.children[word[0]], true);
+        return this.add(word.substring(1), metaData, newNode.children[word[0]], true);
     }
 
     /**
     * Check if the word is exist in the Trie.
-    * @param {String} newWord
+    * @param {String} word
     * @returns {Object|null} – the node for the word if it's found, or null if it's not found
     */
-    isWord(newWord) {
-        let word = newWord;
+    search(word) {
+        let newWord = word;
         let node = this.root;
-        while (word.length > 1) {
-            if (!node.children[word[0]]) {
+        while (newWord.length > 1) {
+            if (!node.children[newWord[0]]) {
                 return null;
             }
-            node = node.children[word[0]];
-            word = word.substring(1);
+            node = node.children[newWord[0]];
+            newWord = newWord.substring(1);
         }
-        return node.children[word] && node.children[word].isLeaf ? node.children[word] : null;
+        return node.children[newWord] && node.children[newWord].isLeaf ? node.children[newWord] : null;
     }
 
     /**
     * Update a word data in the Trie.
-    * @param {String} newWord
+    * @param {String} word
     * @param {Object} metaData
     * @returns {void}
     */
-    update(newWord, metaData) {
-        let word = newWord;
+    update(word, metaData) {
+        let newWord = word;
         let node = this.root;
-        while (word.length > 1) {
-            if (!node.children[word[0]]) {
+        while (newWord.length > 1) {
+            if (!node.children[newWord[0]]) {
                 return null;
             }
-            node = node.children[word[0]];
-            word = word.substring(1);
+            node = node.children[newWord[0]];
+            newWord = newWord.substring(1);
         }
-        node.children[word].metaData = metaData;
+        node.children[newWord].metaData = metaData;
     }
 
     /**
