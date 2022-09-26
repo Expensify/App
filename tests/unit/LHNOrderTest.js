@@ -68,7 +68,9 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report.reportID.toString(),
                     [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
@@ -81,15 +83,25 @@ describe('Sidebar', () => {
         it('orders items with most recently updated on top', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given three reports in the recently updated order of 3, 2, 1
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            // Given three unread reports in the recently updated order of 3, 2, 1
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
 
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -101,8 +113,8 @@ describe('Sidebar', () => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                 });
         });
 
