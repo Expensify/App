@@ -20,7 +20,7 @@ const log = (...args) => {
 
 const progressInfo = (textParam) => {
     let text = textParam || '';
-    const getTexts = () => [`\\  ${text}`, `|  ${text}`, `/  ${text}`, `-  ${text}`];
+    const getTexts = () => [`🕛 ${text}`, `🕔 ${text}`, `🕗 ${text}`, `🕙 ${text}`];
     log(textParam);
 
     let i = 0;
