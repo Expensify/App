@@ -21,4 +21,7 @@ module.exports = {
 
     // The file we write logs to
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
+
+    // The time in milliseconds after which a operation fails due to timeout
+    INTERACTION_TIMEOUT: 30_000,
 };

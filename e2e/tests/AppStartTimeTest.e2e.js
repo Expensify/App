@@ -11,7 +11,7 @@
 // - Define the test procedure:
 //   - Start the app
 //   - Get TTI values
-// - Run the test procedures X times (X = 5)
+// - Run the test procedures X times
 
 const _ = require('underscore');
 const installApp = require('../utils/installApp');

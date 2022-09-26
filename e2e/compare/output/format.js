@@ -1,4 +1,5 @@
-/*
+/**
+ * Utility for formatting text for result outputs.
  * from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/utils/format.ts
  */
 

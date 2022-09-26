@@ -4,26 +4,8 @@ const {WebSocketServer} = require('ws');
 const Commands = require('./commands');
 const {SERVER_PORT} = require('../config');
 const Logger = require('../utils/logger');
-
-const tryParseJSON = (jsonString) => {
-    try {
-        const o = JSON.parse(jsonString);
-        if (o && typeof o === 'object') {
-            return o;
-        }
-    } catch (e) {
-        // ignore
-    }
-};
-
-const INTERACTION_TIMEOUT = 20_000;
-
-const withFailTimeout = (promise, name) => {
-    const timeoutId = setTimeout(() => {
-        throw new Error(`[${name}] Interaction timed out`);
-    }, INTERACTION_TIMEOUT);
-    return promise.finally(() => clearTimeout(timeoutId));
-};
+const tryParseJSON = require('./utils/tryParseJSON');
+const withFailTimeout = require('./utils/withFailTimeout');
 
 /**
  * Starts a new WebSocket server. Returns an object with functions
@@ -37,12 +19,17 @@ const withFailTimeout = (promise, name) => {
  */
 const start = () => {
     const wss = new WebSocketServer({port: SERVER_PORT});
+
+    // when the device connects we use this socket instance
     let socketInstance;
     let waitForSocketResolve;
+
+    // promise for waiting until a socket instance is available ( a device connected )
     let waitForSocketPromise = new Promise((resolve) => {
         waitForSocketResolve = resolve;
     });
 
+    // helper to remove the current socket instance (used when test kills the app)
     const clearSession = () => {
         socketInstance = null;
         waitForSocketPromise = new Promise((resolve) => {
@@ -50,6 +37,7 @@ const start = () => {
         });
     };
 
+    // on connection set the socket instance:
     wss.on('connection', (socket) => {
         Logger.log('[SERVER]  A device connected');
 
@@ -57,6 +45,7 @@ const start = () => {
         waitForSocketResolve();
     });
 
+    // helper that adds a listener for incoming messages
     const newMessageListener = (callback) => {
         const listener = (data) => {
             const strData = data.toString();
@@ -71,24 +60,47 @@ const start = () => {
         socketInstance.send(JSON.stringify(data));
     };
 
-    const waitForSuccessResponse = command => new Promise((resolve) => {
+    /**
+     * Returns a promise that will resolve/reject once we
+     * receive a `{ type: 'status' }` response from the client.
+     * @param {String} command {@link Commands}
+     * @returns {Promise<void>}
+     */
+    const waitForResponse = command => new Promise((resolve, reject) => {
         const cleanup = newMessageListener((data) => {
             if (data == null || data.type !== 'status' || data.inputCommand !== command) {
                 return;
             }
             cleanup();
             Logger.log(`[SERVER]  Received response for command: ${command}`);
-            resolve();
+            if (data.status === 'success') {
+                resolve();
+            } else {
+                reject();
+            }
         });
     });
 
-    const sendAndWaitForSuccess = async (command, data) => {
+    /**
+     * Sends a command once we got a socket instance,
+     * and waits for a success response.
+     *
+     * @param {String} command {@link Commands}
+     * @param {Object} [data]
+     * @returns {Promise<void>}
+     */
+    const sendAndWaitForResponse = async (command, data) => {
         await waitForSocketPromise;
         Logger.log(`[SERVER]  Sending command: ${command}`);
         sendData({type: command, data});
-        return waitForSuccessResponse(command);
+        return waitForResponse(command);
     };
 
+    /**
+     * Waits for socket instance, and then tries to collect
+     * performance metrics from the app.
+     * @returns {Promise<void>}
+     */
     const getPerformanceMetrics = async () => {
         await waitForSocketPromise;
         return new Promise((resolve) => {
@@ -109,9 +121,9 @@ const start = () => {
 
     return {
         // command for app:
-        login: (email, password) => withFailTimeout(sendAndWaitForSuccess(Commands.LOGIN, {email, password}), Commands.LOGIN),
-        logout: () => withFailTimeout(sendAndWaitForSuccess(Commands.LOGOUT), Commands.LOGOUT),
-        waitForAppReady: () => withFailTimeout(sendAndWaitForSuccess(Commands.WAIT_FOR_APP_READY), Commands.WAIT_FOR_APP_READY),
+        login: (email, password) => withFailTimeout(sendAndWaitForResponse(Commands.LOGIN, {email, password}), Commands.LOGIN),
+        logout: () => withFailTimeout(sendAndWaitForResponse(Commands.LOGOUT), Commands.LOGOUT),
+        waitForAppReady: () => withFailTimeout(sendAndWaitForResponse(Commands.WAIT_FOR_APP_READY), Commands.WAIT_FOR_APP_READY),
         getPerformanceMetrics: () => withFailTimeout(getPerformanceMetrics(), Commands.REQUEST_PERFORMANCE_METRICS),
 
         // server interactions:

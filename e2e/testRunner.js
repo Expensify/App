@@ -1,3 +1,11 @@
+/**
+ * The test runner takes care of running the e2e tests.
+ * It will run the tests twice. Once on the branch that
+ * we want to base the results on (e.g. main), and then
+ * again on another branch we want to compare against the
+ * base (e.g. a new feature branch).
+ */
+
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 const fs = require('fs');
 const {
@@ -9,14 +17,6 @@ const {
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
-
-/**
- * The test runner takes care of running the e2e tests.
- * It will run the tests twice. Once on the branch that
- * we want to base the results on (e.g. main), and then
- * again on another branch we want to compare against the
- * base (e.g. a new feature branch).
- */
 
 const args = process.argv.slice(2);
 
