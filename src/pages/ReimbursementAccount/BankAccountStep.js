@@ -259,7 +259,7 @@ const BankAccountStep = (props) => {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <Form
-                        formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                        formID={ONYXKEYS.FORMS.BANK_FORM}
                         validate={() => ({})}
                         onSubmit={this.addPlaidAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
@@ -281,7 +281,7 @@ const BankAccountStep = (props) => {
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <Form
-                        formID={ONYXKEYS.FORMS.BANK_ACCOUNT_STEP_FORM_MANUAL}
+                        formID={ONYXKEYS.FORMS.BANK_FORM}
                         validate={this.validate}
                         onSubmit={this.addManualAccount}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
