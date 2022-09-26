@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import * as Navigation from './Navigation';
+import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -47,6 +47,7 @@ class NavigationRoot extends Component {
         }
 
         UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
+        Navigation.setIsNavigationReady();
     }
 
     render() {
@@ -61,7 +62,7 @@ class NavigationRoot extends Component {
                 onStateChange={this.parseAndLogRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}
-                ref={Navigation.navigationRef}
+                ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
                     enabled: false,

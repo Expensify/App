@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
+import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
@@ -30,6 +31,7 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -76,6 +78,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -88,8 +93,23 @@ const defaultProps = {
     },
     betas: [],
     policyMembers: {},
+    walletTerms: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
+
+/**
+ * Dismisses the errors on one item
+ *
+ * @param {string} policyID
+ * @param {string} pendingAction
+ */
+function dismissWorkspaceError(policyID, pendingAction) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        Policy.clearDeleteWorkspaceError(policyID);
+        return;
+    }
+    throw new Error('Not implemented');
+}
 
 class InitialSettingsPage extends React.Component {
     constructor(props) {
@@ -142,7 +162,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
+                    || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -175,6 +196,9 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
+                errors: policy.errors,
+                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .value();
         menuItems.push(...this.getDefaultMenuItems());
@@ -188,7 +212,13 @@ class InitialSettingsPage extends React.Component {
 
         if (item.isPolicy) {
             return (
-                <OfflineWithFeedback key={`${keyTitle}_${index}`} pendingAction={item.pendingAction}>
+                <OfflineWithFeedback
+                    key={`${keyTitle}_${index}`}
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                >
                     <MenuItem
                         title={keyTitle}
                         icon={item.icon}
@@ -200,6 +230,7 @@ class InitialSettingsPage extends React.Component {
                         badgeText={this.getWalletBalance(isPaymentItem)}
                         fallbackIcon={item.fallbackIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
+                        disabled={item.disabled}
                     />
                 </OfflineWithFeedback>
             );
@@ -304,6 +335,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(InitialSettingsPage);

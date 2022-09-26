@@ -221,9 +221,9 @@ created to house a collection of items in plural form and using camelCase (eg: p
 - components: React native components that are re-used in several places.
 - libs: Library classes/functions, these are not React native components (ie: they are not UI)
 - pages: These are components that define pages in the app. The component that defines the page itself should be named
-`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
+`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`
 - styles: These files define styles used among components/pages
-- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo.
+- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo
 
 **Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
 
@@ -329,7 +329,7 @@ This application is built with the following principles.
 
 1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
+    1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
 
