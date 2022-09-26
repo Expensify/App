@@ -58,26 +58,26 @@ const SignInPageLayout = (props) => {
         </Pressable>
     );
 
-    if (props.isSmallScreenWidth) {
-        return content;
-    }
+    const containerStyles = [];
+    const contentContainerStyles = [styles.flex1];
 
-    if (props.isMediumScreenWidth && props.windowHeight >= variables.minHeightToShowGraphics) {
-        return (
-            <View style={[styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween]}>
-                {graphicLayout}
-                <View style={styles.flex1}>
-                    {content}
-                </View>
-            </View>
-        );
+    const isLongMediumScreenWidth = props.isMediumScreenWidth && props.windowHeight >= variables.minHeightToShowGraphics;
+
+    if (props.isSmallScreenWidth) {
+        containerStyles.push(styles.flex1);
+    } else if (isLongMediumScreenWidth) {
+        containerStyles.push(styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween);
+    } else {
+        containerStyles.push(styles.flex1, styles.signInPageInner);
+        contentContainerStyles.push(styles.flexRow);
     }
 
     return (
-        <View style={[styles.flex1, styles.signInPageInner]}>
-            <View style={[styles.flex1, styles.flexRow, styles.flexGrow1]}>
+        <View style={containerStyles}>
+            {isLongMediumScreenWidth && graphicLayout}
+            <View style={contentContainerStyles}>
                 {content}
-                {graphicLayout}
+                {!props.isSmallScreenWidth && !isLongMediumScreenWidth && graphicLayout}
             </View>
         </View>
     );
