@@ -9,7 +9,7 @@ const propTypes = {
 const AppNavigator = (props) => {
     if (props.authenticated) {
         const AuthScreens = require('./AuthScreens').default;
-        
+
         // These are the protected screens and only accessible when an authToken is present
         return (
             <AuthScreens />
