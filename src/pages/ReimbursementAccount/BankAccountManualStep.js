@@ -19,7 +19,6 @@ import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import exampleCheckImage from './exampleCheckImage';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import {connectBankAccountManually} from "../../libs/actions/BankAccounts";
 
 const propTypes = {
     ...withLocalizePropTypes,
