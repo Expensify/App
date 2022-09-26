@@ -270,7 +270,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 
             // Convert to object with each key clearing pendingAction. We don’t
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
-            value: _.object(logins, Array(logins.length).fill({pendingAction: null})),
+            value: _.object(logins, Array(logins.length).fill({pendingAction: null, errors: null})),
         },
     ];
 
