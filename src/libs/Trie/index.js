@@ -20,8 +20,8 @@ class Trie {
             throw new Error('Cannot insert empty word into Trie');
         }
         if (word.length === 0) {
-            node.setCompleteWord();
-            node.setMetaData(metaData);
+            node.isLeaf = true;
+            node.metaData = metaData;
             return;
         }
         if (!node.children[word[0]]) {
@@ -46,7 +46,7 @@ class Trie {
             node = node.children[word[0]];
             word = word.substring(1);
         }
-        return node.children[word] && node.children[word].isCompleteWord() ? node.children[word] : null;
+        return node.children[word] && node.children[word].isLeaf ? node.children[word] : null;
     }
 
     /**
@@ -65,15 +65,16 @@ class Trie {
             node = node.children[word[0]];
             word = word.substring(1);
         }
-        node.children[word].setMetaData(metaData);
+        node.children[word].metaData = metaData;
     }
 
     /**
     * Find all leaf nodes starting with a substring.
     * @param {String} substr
+    * @param {Number} [limit] - matching words limit
     * @returns {Array}
     */
-    getAllMatchingWords(substr) {
+    getAllMatchingWords(substr, limit = 4) {
         let node = this.root;
         let prefix = '';
         for (let i = 0; i < substr.length; i++) {
@@ -84,7 +85,7 @@ class Trie {
                 return [];
             }
         }
-        return this.getChildMatching(node, prefix);
+        return this.getChildMatching(node, prefix, [], limit);
     }
 
     /**
@@ -92,28 +93,21 @@ class Trie {
     * @param {TrieNode} node
     * @param {String} prefix
     * @param {Array} [words]
+    * @param {Number} limit
     * @returns {Array}
     */
-    getChildMatching = (node, prefix, words = []) => {
+    getChildMatching = (node, prefix, words = [], limit) => {
         const matching = words;
-        if (matching.length > 4) {
+        if (matching.length > limit) {
             return matching;
         }
-        if (node.isCompleteWord()) {
-            if (node.getCode() && !_.find(matching, obj => obj.code === node.getCode() && obj.name === prefix)) {
-                matching.unshift({code: node.getCode(), name: prefix});
-            }
-            const suggestions = node.getMetaData().suggestions;
-            for (let i = 0; i < suggestions.length; i++) {
-                if (matching.length > 4) {
-                    return matching;
-                }
-                if (!_.find(matching, obj => obj.code === node.getCode() && obj.name === prefix)) {
-                    matching.unshift(suggestions[i]);
-                }
-            }
+        if (node.isLeaf) {
+            matching.unshift({name: prefix, metaData: node.metaData});
         }
-        _.keys(node.children).forEach(nodeChar => this.getChildMatching(node.children[nodeChar], prefix + nodeChar, matching));
+        const children = _.keys(node.children);
+        for (let i = 0; i < children.length; i++) {
+            this.getChildMatching(node.children[children[i]], prefix + children[i], matching, limit);
+        }
         return matching;
     }
 }
