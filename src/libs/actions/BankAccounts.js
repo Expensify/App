@@ -51,7 +51,6 @@ function updatePlaidData(plaidData) {
  *
  * @returns {Object}
  */
-// We'll remove the below once this function is used by the VBBA commands that are yet to be implemented
 function getVBBADataForOnyx() {
     return {
         optimisticData: [
@@ -169,7 +168,6 @@ function deletePaymentBankAccount(bankAccountID) {
 *
 * @param {Object} params
 *
-* // RequestorStep
 * @param {String} [params.dob]
 * @param {String} [params.firstName]
 * @param {String} [params.lastName]

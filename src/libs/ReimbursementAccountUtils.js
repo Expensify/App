@@ -44,8 +44,7 @@ function getErrorText(props, errorTranslationKeys, inputKey) {
  * @returns {string}
  */
 function getOnfidoSDKTokenFromACHData(achData) {
-    const sdkToken = _.get(achData, ['verifications', 'externalApiResponses', 'requestorIdentityOnfido', 'apiResult', 'sdkToken'], '');
-    return sdkToken || _.get(achData, ['sdkToken'], '');
+    return _.get(achData, ['verifications', 'externalApiResponses', 'requestorIdentityOnfido', 'apiResult', 'sdkToken'], '');
 }
 
 export {
