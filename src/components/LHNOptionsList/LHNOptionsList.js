@@ -26,6 +26,13 @@ const propTypes = {
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func.isRequired,
+
+    /** Whether to allow option focus or not */
+    disableFocusOptions: PropTypes.bool,
+};
+
+const defaultProps = {
+    disableFocusOptions: false,
 };
 
 class LHNOptionsList extends Component {
@@ -69,7 +76,7 @@ class LHNOptionsList extends Component {
             <OptionRowLHN
                 reportID={item}
                 viewMode={this.props.optionMode}
-                isFocused={this.props.focusedIndex === index}
+                isFocused={!this.props.disableFocusOptions && this.props.focusedIndex === index}
                 onSelectRow={this.props.onSelectRow}
             />
         );
@@ -100,5 +107,6 @@ class LHNOptionsList extends Component {
 }
 
 LHNOptionsList.propTypes = propTypes;
+LHNOptionsList.defaultProps = defaultProps;
 
 export default LHNOptionsList;
