@@ -62,13 +62,14 @@ function openOldDotLink(url) {
 
 /**
  * @param {String} url
+ * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-function openExternalLink(url) {
+function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
     if (showGrowlIfOffline()) {
         return;
     }
 
-    asyncOpenURL(Promise.resolve(), url);
+    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
 
 export {

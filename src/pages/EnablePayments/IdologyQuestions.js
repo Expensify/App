@@ -5,7 +5,6 @@ import {
     View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -17,6 +16,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -142,9 +142,7 @@ class IdologyQuestions extends React.Component {
             };
         }));
 
-        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
-        const isErrorVisible = this.state.errorMessage || !_.isEmpty(errors);
-        const errorMessage = _.isEmpty(errors) ? this.state.errorMessage : _.last(_.values(errors));
+        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || this.state.errorMessage;
 
         return (
             <View style={[styles.flex1]}>
@@ -168,7 +166,7 @@ class IdologyQuestions extends React.Component {
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(isErrorVisible)}
+                        isAlertVisible={Boolean(errorMessage)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});

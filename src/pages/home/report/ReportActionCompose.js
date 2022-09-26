@@ -146,6 +146,7 @@ class ReportActionCompose extends React.Component {
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
+            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
     }
 
@@ -244,11 +245,15 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
-            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        if (ReportUtils.chatIncludesConcierge(this.props.report)) {
+            if (User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
+                return this.props.translate('reportActionCompose.blockedFromConcierge');
+            }
+
+            return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
-        if (_.size(this.props.reportActions) === 1) {
+        if (this.isEmptyChat()) {
             return this.props.translate('reportActionCompose.sayHello');
         }
 
@@ -303,6 +308,10 @@ class ReportActionCompose extends React.Component {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
         this.setState({maxLines});
+    }
+
+    isEmptyChat() {
+        return _.size(this.props.reportActions) === 1;
     }
 
     /**
@@ -591,7 +600,7 @@ class ReportActionCompose extends React.Component {
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
                                     <Composer
-                                        autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
+                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
                                         multiline
                                         ref={this.setTextInputRef}
                                         textAlignVertical="top"

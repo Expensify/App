@@ -313,7 +313,7 @@ const CONST = {
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
-        LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
+        LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
     },
     COMPOSER: {
@@ -418,7 +418,7 @@ const CONST = {
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', loading: false},
+    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
