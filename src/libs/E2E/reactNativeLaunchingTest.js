@@ -46,12 +46,16 @@ const test = () => {
             const metrics = Performance.getPerformanceMetrics();
 
             // underscore promises in sequence without for-loop
-            _.reduce(metrics, (promise, metric) => promise.then(() => E2EClient.submitTestResults({
-                name: metric.name,
-                duration: metric.duration,
-            })), Promise.resolve()).then(() => {
+            Promise.all(
+                _.map(metrics, metric => E2EClient.submitTestResults({
+                    name: metric.name,
+                    duration: metric.duration,
+                })),
+            ).then(() => {
                 console.debug('[E2E] Done, exiting…');
                 E2EClient.submitTestDone();
+            }).catch((err) => {
+                console.debug('[E2E] Error while submitting test results:', err);
             });
         });
     });
