@@ -5,9 +5,12 @@ import * as Session from '../../actions/Session';
 
 /**
  * Command for e2e test to automatically sign in a user
+ *
+ * @param {String} email
+ * @param {String} password
  * @return {Promise<void>} resolves when the user is signed in
  */
-export default function () {
+export default function (email, password) {
     const waitForBeginSignInToFinish = () => new Promise((resolve) => {
         const id = Onyx.connect({
             key: ONYXKEYS.CREDENTIALS,
@@ -28,9 +31,9 @@ export default function () {
             callback: (session) => {
                 if (session.authToken == null || session.authToken.length === 0) {
                     // authenticate with a predefined user
-                    Session.beginSignIn('applausetester+perf2@applause.expensifail.com');
+                    Session.beginSignIn(email);
                     waitForBeginSignInToFinish().then(() => {
-                        Session.signIn('Password123');
+                        Session.signIn(password);
                     });
                 } else {
                     // signal that auth was completed
