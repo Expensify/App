@@ -24,6 +24,7 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
@@ -79,74 +80,76 @@ const BankAccountStep = (props) => {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 shouldShowBackButton
             />
-            <ScrollView style={[styles.flex1]}>
-                <Section
-                    icon={Illustrations.BankMouseGreen}
-                    title={props.translate('workspace.bankAccount.streamlinePayments')}
-                />
-                <Text style={[styles.mh5, styles.mb1]}>
-                    {props.translate('bankAccount.toGetStarted')}
-                </Text>
-                {plaidDesktopMessage && (
-                    <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href={bankAccountRoute}>
-                            {props.translate(plaidDesktopMessage)}
-                        </TextLink>
-                    </View>
-                )}
-                <Button
-                    icon={Expensicons.Bank}
-                    text={props.translate('bankAccount.connectOnlineWithPlaid')}
-                    onPress={() => {
-                        BankAccounts.clearPlaid();
-                        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-                    }}
-                    disabled={props.isPlaidDisabled || !props.user.validated}
-                    style={[styles.mt5, styles.buttonCTA]}
-                    iconStyles={[styles.buttonCTAIcon]}
-                    shouldShowRightIcon
-                    success
-                    large
-                />
-                {props.error && (
-                    <Text style={[styles.formError, styles.mh5]}>
-                        {props.error}
+            <FullPageOfflineBlockingView>
+                <ScrollView style={[styles.flex1]}>
+                    <Section
+                        icon={Illustrations.BankMouseGreen}
+                        title={props.translate('workspace.bankAccount.streamlinePayments')}
+                    />
+                    <Text style={[styles.mh5, styles.mb1]}>
+                        {props.translate('bankAccount.toGetStarted')}
                     </Text>
-                )}
-                <MenuItem
-                    icon={Expensicons.Connect}
-                    title={props.translate('bankAccount.connectManually')}
-                    disabled={!props.user.validated}
-                    onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
-                    shouldShowRightIcon
-                />
-                {!props.user.validated && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                        <Text style={[styles.mutedTextLabel, styles.mr4]}>
-                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                    {plaidDesktopMessage && (
+                        <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                            <TextLink href={bankAccountRoute}>
+                                {props.translate(plaidDesktopMessage)}
+                            </TextLink>
+                        </View>
+                    )}
+                    <Button
+                        icon={Expensicons.Bank}
+                        text={props.translate('bankAccount.connectOnlineWithPlaid')}
+                        onPress={() => {
+                            BankAccounts.clearPlaid();
+                            BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+                        }}
+                        disabled={props.isPlaidDisabled || !props.user.validated}
+                        style={[styles.mt5, styles.buttonCTA]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        shouldShowRightIcon
+                        success
+                        large
+                    />
+                    {props.error && (
+                        <Text style={[styles.formError, styles.mh5]}>
+                            {props.error}
                         </Text>
-                        <Text style={styles.mutedTextLabel}>
-                            {props.translate('bankAccount.validateAccountError')}
-                        </Text>
-                    </View>
-                )}
-                <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                    <TextLink href="https://use.expensify.com/privacy">
-                        {props.translate('common.privacy')}
-                    </TextLink>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <TextLink
-                            // eslint-disable-next-line max-len
-                            href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                        >
-                            {props.translate('bankAccount.yourDataIsSecure')}
+                    )}
+                    <MenuItem
+                        icon={Expensicons.Connect}
+                        title={props.translate('bankAccount.connectManually')}
+                        disabled={!props.user.validated}
+                        onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                        shouldShowRightIcon
+                    />
+                    {!props.user.validated && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                            <Text style={[styles.mutedTextLabel, styles.mr4]}>
+                                <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                            </Text>
+                            <Text style={styles.mutedTextLabel}>
+                                {props.translate('bankAccount.validateAccountError')}
+                            </Text>
+                        </View>
+                    )}
+                    <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                        <TextLink href="https://use.expensify.com/privacy">
+                            {props.translate('common.privacy')}
                         </TextLink>
-                        <View style={[styles.ml1]}>
-                            <Icon src={Expensicons.Lock} fill={colors.blue} />
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <TextLink
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
+                            >
+                                {props.translate('bankAccount.yourDataIsSecure')}
+                            </TextLink>
+                            <View style={[styles.ml1]}>
+                                <Icon src={Expensicons.Lock} fill={colors.blue} />
+                            </View>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </FullPageOfflineBlockingView>
         </View>
     );
 };

@@ -20,6 +20,7 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Name of the company */
@@ -176,112 +177,114 @@ class ACHContractStep extends React.Component {
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
-                <ReimbursementAccountForm
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    onSubmit={this.submit}
-                >
-                    <Text style={[styles.mb5]}>
-                        <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
-                    </Text>
-                    <CheckboxWithLabel
-                        style={[styles.mb2]}
-                        isChecked={this.state.ownsMoreThan25Percent}
-                        onInputChange={() => this.toggleCheckbox('ownsMoreThan25Percent')}
-                        LabelComponent={() => (
-                            <Text>
-                                {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
-                                <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
-                            </Text>
-                        )}
-                    />
-                    <CheckboxWithLabel
-                        style={[styles.mb2]}
-                        isChecked={this.state.hasOtherBeneficialOwners}
-                        onInputChange={() => {
-                            this.setState((prevState) => {
-                                const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
-                                const newState = {
-                                    hasOtherBeneficialOwners,
-                                    beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
-                                        ? [{}]
-                                        : prevState.beneficialOwners,
-                                };
-                                BankAccounts.updateReimbursementAccountDraft(newState);
-                                return newState;
-                            });
-                        }}
-                        LabelComponent={() => (
-                            <Text>
-                                {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
-                                <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
-                            </Text>
-                        )}
-                    />
-                    {this.state.hasOtherBeneficialOwners && (
-                        <View style={[styles.mb2]}>
-                            {_.map(this.state.beneficialOwners, (owner, index) => (
-                                <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
-                                    <Text style={[styles.textStrong, styles.mb2]}>
-                                        {this.props.translate('beneficialOwnersStep.additionalOwner')}
-                                    </Text>
-                                    <IdentityForm
-                                        style={[styles.mb2]}
-                                        onFieldChange={values => this.clearErrorAndSetBeneficialOwnerValues(index, values)}
-                                        values={{
-                                            firstName: owner.firstName || '',
-                                            lastName: owner.lastName || '',
-                                            street: owner.street || '',
-                                            city: owner.city || '',
-                                            state: owner.state || '',
-                                            zipCode: owner.zipCode || '',
-                                            dob: owner.dob || '',
-                                            ssnLast4: owner.ssnLast4 || '',
-                                        }}
-                                        errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
-                                    />
-                                    {this.state.beneficialOwners.length > 1 && (
-                                        <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
-                                            {this.props.translate('beneficialOwnersStep.removeOwner')}
-                                        </TextLink>
-                                    )}
-                                </View>
-                            ))}
-                            {this.canAddMoreBeneficialOwners() && (
-                                <TextLink onPress={this.addBeneficialOwner}>
-                                    {this.props.translate('beneficialOwnersStep.addAnotherIndividual')}
-                                    <Text style={[styles.textStrong, styles.link]}>{this.props.companyName}</Text>
-                                </TextLink>
+                <FullPageOfflineBlockingView>
+                    <ReimbursementAccountForm
+                        reimbursementAccount={this.props.reimbursementAccount}
+                        onSubmit={this.submit}
+                    >
+                        <Text style={[styles.mb5]}>
+                            <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
+                        </Text>
+                        <CheckboxWithLabel
+                            style={[styles.mb2]}
+                            isChecked={this.state.ownsMoreThan25Percent}
+                            onInputChange={() => this.toggleCheckbox('ownsMoreThan25Percent')}
+                            LabelComponent={() => (
+                                <Text>
+                                    {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
+                                    <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
+                                </Text>
                             )}
-                        </View>
-                    )}
-                    <Text style={[styles.mv5]}>
-                        {this.props.translate('beneficialOwnersStep.agreement')}
-                    </Text>
-                    <CheckboxWithLabel
-                        style={[styles.mt4]}
-                        isChecked={this.state.acceptTermsAndConditions}
-                        onInputChange={() => this.toggleCheckbox('acceptTermsAndConditions')}
-                        LabelComponent={() => (
-                            <View style={[styles.flexRow]}>
-                                <Text>{this.props.translate('common.iAcceptThe')}</Text>
-                                <TextLink href="https://use.expensify.com/achterms">
-                                    {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
-                                </TextLink>
+                        />
+                        <CheckboxWithLabel
+                            style={[styles.mb2]}
+                            isChecked={this.state.hasOtherBeneficialOwners}
+                            onInputChange={() => {
+                                this.setState((prevState) => {
+                                    const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
+                                    const newState = {
+                                        hasOtherBeneficialOwners,
+                                        beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
+                                            ? [{}]
+                                            : prevState.beneficialOwners,
+                                    };
+                                    BankAccounts.updateReimbursementAccountDraft(newState);
+                                    return newState;
+                                });
+                            }}
+                            LabelComponent={() => (
+                                <Text>
+                                    {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
+                                    <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
+                                </Text>
+                            )}
+                        />
+                        {this.state.hasOtherBeneficialOwners && (
+                            <View style={[styles.mb2]}>
+                                {_.map(this.state.beneficialOwners, (owner, index) => (
+                                    <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
+                                        <Text style={[styles.textStrong, styles.mb2]}>
+                                            {this.props.translate('beneficialOwnersStep.additionalOwner')}
+                                        </Text>
+                                        <IdentityForm
+                                            style={[styles.mb2]}
+                                            onFieldChange={values => this.clearErrorAndSetBeneficialOwnerValues(index, values)}
+                                            values={{
+                                                firstName: owner.firstName || '',
+                                                lastName: owner.lastName || '',
+                                                street: owner.street || '',
+                                                city: owner.city || '',
+                                                state: owner.state || '',
+                                                zipCode: owner.zipCode || '',
+                                                dob: owner.dob || '',
+                                                ssnLast4: owner.ssnLast4 || '',
+                                            }}
+                                            errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
+                                        />
+                                        {this.state.beneficialOwners.length > 1 && (
+                                            <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
+                                                {this.props.translate('beneficialOwnersStep.removeOwner')}
+                                            </TextLink>
+                                        )}
+                                    </View>
+                                ))}
+                                {this.canAddMoreBeneficialOwners() && (
+                                    <TextLink onPress={this.addBeneficialOwner}>
+                                        {this.props.translate('beneficialOwnersStep.addAnotherIndividual')}
+                                        <Text style={[styles.textStrong, styles.link]}>{this.props.companyName}</Text>
+                                    </TextLink>
+                                )}
                             </View>
                         )}
-                        errorText={this.getErrorText('acceptTermsAndConditions')}
-                        hasError={this.getErrors().acceptTermsAndConditions}
-                    />
-                    <CheckboxWithLabel
-                        style={[styles.mt4]}
-                        isChecked={this.state.certifyTrueInformation}
-                        onInputChange={() => this.toggleCheckbox('certifyTrueInformation')}
-                        LabelComponent={() => (
-                            <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
-                        )}
-                        errorText={this.getErrorText('certifyTrueInformation')}
-                    />
-                </ReimbursementAccountForm>
+                        <Text style={[styles.mv5]}>
+                            {this.props.translate('beneficialOwnersStep.agreement')}
+                        </Text>
+                        <CheckboxWithLabel
+                            style={[styles.mt4]}
+                            isChecked={this.state.acceptTermsAndConditions}
+                            onInputChange={() => this.toggleCheckbox('acceptTermsAndConditions')}
+                            LabelComponent={() => (
+                                <View style={[styles.flexRow]}>
+                                    <Text>{this.props.translate('common.iAcceptThe')}</Text>
+                                    <TextLink href="https://use.expensify.com/achterms">
+                                        {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
+                                    </TextLink>
+                                </View>
+                            )}
+                            errorText={this.getErrorText('acceptTermsAndConditions')}
+                            hasError={this.getErrors().acceptTermsAndConditions}
+                        />
+                        <CheckboxWithLabel
+                            style={[styles.mt4]}
+                            isChecked={this.state.certifyTrueInformation}
+                            onInputChange={() => this.toggleCheckbox('certifyTrueInformation')}
+                            LabelComponent={() => (
+                                <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
+                            )}
+                            errorText={this.getErrorText('certifyTrueInformation')}
+                        />
+                    </ReimbursementAccountForm>
+                </FullPageOfflineBlockingView>
             </>
         );
     }

@@ -23,6 +23,7 @@ import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Link from '../../libs/actions/Link';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -153,111 +154,113 @@ class RequestorStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
-                    <ScrollView contentContainerStyle={styles.flex1}>
-                        <Onfido
-                            sdkToken={this.props.achData.sdkToken}
-                            onUserExit={() => {
-                            // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
-                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                            }}
-                            onError={() => {
-                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
-                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                            }}
-                            onSuccess={(onfidoData) => {
-                                this.setState({
-                                    onfidoData,
-                                    isOnfidoSetupComplete: true,
-                                }, this.submit);
-                            }}
-                        />
-                    </ScrollView>
-                ) : (
-                    <ReimbursementAccountForm
-                        onSubmit={this.submit}
-                    >
-                        <Text>{this.props.translate('requestorStep.subtitle')}</Text>
-                        <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
-                            <TextLink
-                                style={[styles.textMicro]}
-                                // eslint-disable-next-line max-len
-                                href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                            >
-                                {`${this.props.translate('requestorStep.learnMore')}`}
-                            </TextLink>
-                            <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
-                            <TextLink
-                                style={[styles.textMicro, styles.textLink]}
-                                // eslint-disable-next-line max-len
-                                href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                            >
-                                {`${this.props.translate('requestorStep.isMyDataSafe')}`}
-                            </TextLink>
-                        </View>
-                        <IdentityForm
-                            onFieldChange={this.clearErrorsAndSetValues}
-                            values={{
-                                firstName: this.state.firstName,
-                                lastName: this.state.lastName,
-                                street: this.state.requestorAddressStreet,
-                                state: this.state.requestorAddressState,
-                                city: this.state.requestorAddressCity,
-                                zipCode: this.state.requestorAddressZipCode,
-                                dob: this.state.dob,
-                                ssnLast4: this.state.ssnLast4,
-                            }}
-                            errors={this.props.reimbursementAccount.errorFields}
-                        />
-                        <CheckboxWithLabel
-                            isChecked={this.state.isControllingOfficer}
-                            onInputChange={() => {
-                                this.setState((prevState) => {
-                                    const newState = {isControllingOfficer: !prevState.isControllingOfficer};
-                                    BankAccounts.updateReimbursementAccountDraft(newState);
-                                    return newState;
-                                });
-                                this.clearError('isControllingOfficer');
-                            }}
-                            LabelComponent={() => (
-                                <View style={[styles.flex1, styles.pr1]}>
-                                    <Text>
-                                        {this.props.translate('requestorStep.isControllingOfficer')}
-                                    </Text>
-                                </View>
-                            )}
-                            style={[styles.mt4]}
-                            errorText={this.getErrors().isControllingOfficer ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
-                        />
-                        <Text style={[styles.mt3, styles.textMicroSupporting]}>
-                            {this.props.translate('requestorStep.onFidoConditions')}
-                            <Text
-                                onPress={() => Link.openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
-                                style={[styles.textMicro, styles.link]}
-                                accessibilityRole="link"
-                            >
-                                {`${this.props.translate('onfidoStep.facialScan')}`}
+                <FullPageOfflineBlockingView>
+                    {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
+                        <ScrollView contentContainerStyle={styles.flex1}>
+                            <Onfido
+                                sdkToken={this.props.achData.sdkToken}
+                                onUserExit={() => {
+                                // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
+                                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                                }}
+                                onError={() => {
+                                // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
+                                    Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                                }}
+                                onSuccess={(onfidoData) => {
+                                    this.setState({
+                                        onfidoData,
+                                        isOnfidoSetupComplete: true,
+                                    }, this.submit);
+                                }}
+                            />
+                        </ScrollView>
+                    ) : (
+                        <ReimbursementAccountForm
+                            onSubmit={this.submit}
+                        >
+                            <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                            <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+                                <TextLink
+                                    style={[styles.textMicro]}
+                                    // eslint-disable-next-line max-len
+                                    href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                                >
+                                    {`${this.props.translate('requestorStep.learnMore')}`}
+                                </TextLink>
+                                <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+                                <TextLink
+                                    style={[styles.textMicro, styles.textLink]}
+                                    // eslint-disable-next-line max-len
+                                    href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                                >
+                                    {`${this.props.translate('requestorStep.isMyDataSafe')}`}
+                                </TextLink>
+                            </View>
+                            <IdentityForm
+                                onFieldChange={this.clearErrorsAndSetValues}
+                                values={{
+                                    firstName: this.state.firstName,
+                                    lastName: this.state.lastName,
+                                    street: this.state.requestorAddressStreet,
+                                    state: this.state.requestorAddressState,
+                                    city: this.state.requestorAddressCity,
+                                    zipCode: this.state.requestorAddressZipCode,
+                                    dob: this.state.dob,
+                                    ssnLast4: this.state.ssnLast4,
+                                }}
+                                errors={this.props.reimbursementAccount.errorFields}
+                            />
+                            <CheckboxWithLabel
+                                isChecked={this.state.isControllingOfficer}
+                                onInputChange={() => {
+                                    this.setState((prevState) => {
+                                        const newState = {isControllingOfficer: !prevState.isControllingOfficer};
+                                        BankAccounts.updateReimbursementAccountDraft(newState);
+                                        return newState;
+                                    });
+                                    this.clearError('isControllingOfficer');
+                                }}
+                                LabelComponent={() => (
+                                    <View style={[styles.flex1, styles.pr1]}>
+                                        <Text>
+                                            {this.props.translate('requestorStep.isControllingOfficer')}
+                                        </Text>
+                                    </View>
+                                )}
+                                style={[styles.mt4]}
+                                errorText={this.getErrors().isControllingOfficer ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
+                            />
+                            <Text style={[styles.mt3, styles.textMicroSupporting]}>
+                                {this.props.translate('requestorStep.onFidoConditions')}
+                                <Text
+                                    onPress={() => Link.openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
+                                    style={[styles.textMicro, styles.link]}
+                                    accessibilityRole="link"
+                                >
+                                    {`${this.props.translate('onfidoStep.facialScan')}`}
+                                </Text>
+                                {', '}
+                                <Text
+                                    onPress={() => Link.openExternalLink('https://onfido.com/privacy/')}
+                                    style={[styles.textMicro, styles.link]}
+                                    accessibilityRole="link"
+                                >
+                                    {`${this.props.translate('common.privacyPolicy')}`}
+                                </Text>
+                                {` ${this.props.translate('common.and')} `}
+                                <Text
+                                    onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')}
+                                    style={[styles.textMicro, styles.link]}
+                                    accessibilityRole="link"
+                                >
+                                    {`${this.props.translate('common.termsOfService')}`}
+                                </Text>
                             </Text>
-                            {', '}
-                            <Text
-                                onPress={() => Link.openExternalLink('https://onfido.com/privacy/')}
-                                style={[styles.textMicro, styles.link]}
-                                accessibilityRole="link"
-                            >
-                                {`${this.props.translate('common.privacyPolicy')}`}
-                            </Text>
-                            {` ${this.props.translate('common.and')} `}
-                            <Text
-                                onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')}
-                                style={[styles.textMicro, styles.link]}
-                                accessibilityRole="link"
-                            >
-                                {`${this.props.translate('common.termsOfService')}`}
-                            </Text>
-                        </Text>
-                    </ReimbursementAccountForm>
-                )}
+                        </ReimbursementAccountForm>
+                    )}
+                </FullPageOfflineBlockingView>
             </>
         );
     }
