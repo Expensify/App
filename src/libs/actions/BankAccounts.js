@@ -219,13 +219,15 @@ function validateBankAccount(bankAccountID, validateCode) {
 /**
  * Create the bank account with manually entered data.
  *
+ * @param {String} [bankAccountID]
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]
  *
  */
-function connectBankAccountManually(accountNumber, routingNumber, plaidMask) {
+function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
     API.write('ConnectBankAccountManually', {
+        bankAccountID,
         accountNumber,
         routingNumber,
         plaidMask,
