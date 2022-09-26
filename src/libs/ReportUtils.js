@@ -915,8 +915,8 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
 
     // Include unread reports when in GSD mode
     // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInGSDMode && isUnread(report)) {
-        return true;
+    if (isInGSDMode) {
+        return isUnread(report);
     }
 
     // Include reports if they have a draft, are pinned, or have an outstanding IOU
@@ -944,21 +944,21 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
     }
 
     // Include default rooms unless you're on the default room beta
-    if (isDefaultRoom(report) && Permissions.canUseDefaultRooms(betas)) {
-        return true;
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        return false;
     }
 
     // Include user created policy rooms if the user isn't on the policy rooms beta
-    if (isUserCreatedPolicyRoom(report) && Permissions.canUsePolicyRooms(betas)) {
-        return true;
+    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
     }
 
     // Include policy expense chats if the user isn't in the policy expense chat beta
-    if (isPolicyExpenseChat(report) && Permissions.canUsePolicyExpenseChat(betas)) {
-        return true;
+    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 export {

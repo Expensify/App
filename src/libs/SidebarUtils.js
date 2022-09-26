@@ -112,7 +112,7 @@ function getOrderedReportIDs() {
         };
     });
 
-    let orderedReports = _.sortBy(filteredReportsWithReportName, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
+    let orderedReports = _.sortBy(filteredReportsWithReportName, isInDefaultMode ? 'lastMessageTimestamp' : 'reportName');
 
     // When the user is default mode, then the reports are ordered recently updated descending, so the ordered
     // array must be reversed or else the recently updated changes will be at the bottom and not the top
