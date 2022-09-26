@@ -208,7 +208,7 @@ describe('Sidebar', () => {
                 })
 
                 // When the policy is a paid policy
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`, {type: CONST.POLICY.TYPE.TEAM}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`, {type: CONST.POLICY.TYPE.CORPORATE}))
 
                 // Then the report is not rendered in the LHN
                 .then(() => {
