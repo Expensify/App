@@ -214,7 +214,7 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper keyboardAvoidingViewBehavior="height">
+            <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton
