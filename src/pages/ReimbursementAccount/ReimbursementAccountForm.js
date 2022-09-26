@@ -40,9 +40,7 @@ class ReimbursementAccountForm extends React.Component {
     }
 
     render() {
-        const hasErrorFields = _.size(this.props.reimbursementAccount.errorFields) > 0;
-        const error = _.last(_.values(this.props.reimbursementAccount.errors));
-        const isErrorVisible = hasErrorFields || Boolean(error);
+        const errorMessage = this.getErrorMessage();
 
         const currentStep = lodashGet(
             this.props,
@@ -59,13 +57,13 @@ class ReimbursementAccountForm extends React.Component {
                     {this.props.children}
                 </View>
                 <FormAlertWithSubmitButton
-                    isAlertVisible={isErrorVisible}
+                    isAlertVisible={Boolean(errorMessage)}
                     buttonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
                     onSubmit={this.props.onSubmit}
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
-                    message={this.getErrorMessage()}
+                    message={errorMessage}
                     isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
                     isLoading={this.props.reimbursementAccount.loading || this.props.reimbursementAccount.isLoading}
                 />
