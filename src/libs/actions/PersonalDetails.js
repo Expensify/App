@@ -84,7 +84,6 @@ function getMaxCharacterError(isError) {
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    Timing.start(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     const formattedResult = {};
 
     // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
@@ -115,7 +114,6 @@ function formatPersonalDetails(personalDetailsList) {
             avatarThumbnail,
         };
     });
-    Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     return formattedResult;
 }
 
