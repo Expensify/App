@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
@@ -69,19 +70,21 @@ class BankAccountPlaidStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.setBankAccountSubStep(null)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ReimbursementAccountForm onSubmit={this.submit} hideSubmitButton={_.isUndefined(this.props.plaidData.selectedPlaidBankAccount)}>
-                    <AddPlaidBankAccount
-                        text={this.props.translate('bankAccount.plaidBodyCopy')}
-                        onSelect={(params) => {
-                            BankAccounts.updatePlaidData({selectedPlaidBankAccount: params.selectedPlaidBankAccount});
-                        }}
-                        onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
-                        receivedRedirectURI={this.props.receivedRedirectURI}
-                        plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
-                        allowDebit
-                        bankAccountID={bankAccountID}
-                    />
-                </ReimbursementAccountForm>
+                <FullPageOfflineBlockingView>
+                    <ReimbursementAccountForm onSubmit={this.submit} hideSubmitButton={_.isUndefined(this.props.plaidData.selectedPlaidBankAccount)}>
+                        <AddPlaidBankAccount
+                            text={this.props.translate('bankAccount.plaidBodyCopy')}
+                            onSelect={(params) => {
+                                BankAccounts.updatePlaidData({selectedPlaidBankAccount: params.selectedPlaidBankAccount});
+                            }}
+                            onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                            receivedRedirectURI={this.props.receivedRedirectURI}
+                            plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
+                            allowDebit
+                            bankAccountID={bankAccountID}
+                        />
+                    </ReimbursementAccountForm>
+                </FullPageOfflineBlockingView>
             </>
         );
     }
