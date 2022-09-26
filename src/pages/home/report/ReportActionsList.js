@@ -140,7 +140,7 @@ class ReportActionsList extends React.Component {
             && !ReportActionsUtils.isDeletedAction(item.action);
         return (
             <ReportActionItem
-                reportID={this.props.report.reportID}
+                report={this.props.report}
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}

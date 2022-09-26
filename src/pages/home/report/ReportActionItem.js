@@ -35,8 +35,11 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
 
 const propTypes = {
-    /** The ID of the report this action is on. */
-    reportID: PropTypes.number.isRequired,
+    /** Report for this action */
+    report: PropTypes.shape({
+        /** The ID of the report this action is on. */
+        reportID: PropTypes.number.isRequired,
+    }).isRequired,
 
     /** All the data of the action item */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
@@ -113,7 +116,7 @@ class ReportActionItem extends Component {
             event,
             selection,
             this.popoverAnchor,
-            this.props.reportID,
+            this.props.report.reportID,
             this.props.action,
             this.props.draftMessage,
             this.checkIfContextMenuActive,
@@ -127,7 +130,7 @@ class ReportActionItem extends Component {
 
     render() {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionItemCreated reportID={this.props.reportID} />;
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
@@ -137,7 +140,7 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <IOUAction
-                    chatReportID={this.props.reportID}
+                    chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
@@ -150,7 +153,7 @@ class ReportActionItem extends Component {
                     <ReportActionItemMessageEdit
                         action={this.props.action}
                         draftMessage={this.props.draftMessage}
-                        reportID={this.props.reportID}
+                        reportID={this.props.report.reportID}
                         index={this.props.index}
                         ref={el => this.textInput = el}
                         report={this.props.report}
@@ -190,9 +193,9 @@ class ReportActionItem extends Component {
                                 <OfflineWithFeedback
                                     onClose={() => {
                                         if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.reportID, this.props.action.sequenceNumber);
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber);
                                         } else {
-                                            ReportActions.clearReportActionErrors(this.props.reportID, this.props.action.sequenceNumber);
+                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }
                                     }}
                                     pendingAction={this.props.action.pendingAction}
@@ -213,7 +216,7 @@ class ReportActionItem extends Component {
                                 </OfflineWithFeedback>
                             </View>
                             <MiniReportActionContextMenu
-                                reportID={this.props.reportID}
+                                reportID={this.props.report.reportID}
                                 reportAction={this.props.action}
                                 displayAsGroup={this.props.displayAsGroup}
                                 isVisible={
@@ -242,7 +245,7 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),
