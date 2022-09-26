@@ -452,7 +452,6 @@ function getOptions(reports, personalDetails, activeReportID, {
     sortByLastMessageTimestamp = true,
     searchValue = '',
     showChatPreviewLine = false,
-    sortByAlphaAsc = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
 }) {
@@ -460,20 +459,16 @@ function getOptions(reports, personalDetails, activeReportID, {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     let personalDetailsOptions = [];
-    const draftReportOptions = [];
     const reportMapForLogins = {};
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
     // Now the filtered reports can be sorted
-    let sortProperty = sortByLastMessageTimestamp
+    const sortProperty = sortByLastMessageTimestamp
         ? ['lastMessageTimestamp']
         : ['lastVisitedTimestamp'];
-    if (sortByAlphaAsc) {
-        sortProperty = ['reportName'];
-    }
-    const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
+    const sortDirection = ['desc'];
     let orderedReports = lodashOrderBy(filteredReports, sortProperty, sortDirection);
 
     // Move the archived Rooms to the last
