@@ -18,7 +18,6 @@ import Text from '../components/Text';
 import Button from '../components/Button';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
-import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 
@@ -31,7 +30,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 
     /* Onyx Props */
@@ -77,17 +75,6 @@ const propTypes = {
         /** ID of the policy */
         id: PropTypes.string,
     }).isRequired,
-};
-
-const defaultProps = {
-    ...fullPolicyDefaultProps,
-    report: {
-        reportID: 0,
-        reportName: '',
-        policyID: '',
-        notificationPreference: '',
-        visibility: '',
-    },
 };
 
 class ReportSettingsPage extends Component {
@@ -282,11 +269,9 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
-ReportSettingsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withFullPolicy,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
