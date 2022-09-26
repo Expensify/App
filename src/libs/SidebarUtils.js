@@ -91,20 +91,22 @@ Onyx.connect({
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs() {
-    // const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
-
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const iouDebtReportOptions = [];
     const draftReportOptions = [];
 
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const isInDefaultMode = priorityMode === CONST.PRIORITY_MODE.DEFAULT;
+
+    // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-    let orderedReports = _.sortBy(filteredReports, sortByTimestampDescending ? 'lastMessageTimestamp' : 'reportName');
+    let orderedReports = _.sortBy(filteredReports, isInGSDMode ? 'reportName' : 'lastMessageTimestamp');
 
-    if (sortByTimestampDescending) {
+    // When the user is default mode, then the reports are ordered recently updated descending, so the ordered
+    // array must be reversed or else the recently updated changes will be at the bottom and not the top
+    if (isInDefaultMode) {
         orderedReports.reverse();
     }
 
