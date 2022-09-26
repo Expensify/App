@@ -43,6 +43,7 @@ const getPostRequestData = async (req, res) => {
  * @param {TestResult} testResult
  */
 
+// eslint-disable-next-line valid-jsdoc
 /**
  * Creates a new http server.
  * The server just has two endpoints:

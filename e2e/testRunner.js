@@ -25,6 +25,7 @@ const installApp = require('./utils/installApp');
 const reversePort = require('./utils/androidReversePort');
 const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
+const withFailTimeout = require('./utils/withFailTimeout');
 
 const args = process.argv.slice(2);
 
@@ -97,13 +98,14 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     for (const test of TESTS) {
         const testLog = Logger.progressInfo(`Running test '${test.name}'`);
         for (let i = 0; i < RUNS; i++) {
-            testLog.updateText(`Running test '${test.name}' (iteration ${i + 1}/${RUNS})`);
+            const progressText = `Running test '${test.name}' (iteration ${i + 1}/${RUNS})`;
+            testLog.updateText(progressText);
 
             // TODO: when adding more test cases, we'd need to tell the app here, which test to start
             await restartApp();
 
             // wait for a test to finish by waiting on its done call to the http server
-            const cleanup = await new Promise(server.addTestDoneListener);
+            const cleanup = await withFailTimeout(new Promise(server.addTestDoneListener), progressText);
             cleanup();
         }
         testLog.done();
