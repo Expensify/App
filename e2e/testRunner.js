@@ -91,6 +91,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             return;
         }
 
+        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
         durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
     });
 
@@ -105,8 +106,12 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             await restartApp();
 
             // wait for a test to finish by waiting on its done call to the http server
-            const cleanup = await withFailTimeout(new Promise(server.addTestDoneListener), progressText);
-            cleanup();
+            await withFailTimeout(new Promise((resolve) => {
+                const cleanup = server.addTestDoneListener(() => {
+                    cleanup();
+                    resolve();
+                });
+            }), progressText);
         }
         testLog.done();
     }

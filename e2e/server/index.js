@@ -1,6 +1,7 @@
 /* eslint-disable @lwc/lwc/no-async-await */
 const {createServer} = require('http');
 const EndPoints = require('./endpoints');
+const Logger = require('../utils/logger');
 
 const PORT = process.env.PORT || 3000;
 
@@ -20,13 +21,15 @@ const getReqData = (req) => {
 const getPostRequestData = async (req, res) => {
     if (req.method !== 'POST') {
         res.statusCode = 400;
-        return res.end('Unsupported method');
+        res.end('Unsupported method');
+        return;
     }
 
     const data = await getReqData(req);
     try {
         return JSON.parse(data);
     } catch (e) {
+        Logger.info('❌ Failed to parse request data', data);
         res.statusCode = 400;
         res.end('Invalid JSON');
     }
@@ -84,11 +87,6 @@ const createServerInstance = () => {
         res.statusCode = 200;
         switch (req.url) {
             case EndPoints.testResults: {
-                if (req.method !== 'POST') {
-                    res.statusCode = 400;
-                    return res.end('Unsupported method');
-                }
-
                 const data = await getPostRequestData(req, res);
                 if (data == null) {
                     return;

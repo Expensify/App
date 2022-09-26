@@ -1,6 +1,7 @@
 import EndPoints from '../../../e2e/server/endpoints';
+import Config from '../../../e2e/config';
 
-const SERVER_ADDRESS = 'http://localhost:3000';
+const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
 
 /**
  * Submits a test result to the server.
@@ -17,9 +18,15 @@ const submitTestResults = testResult => fetch(`${SERVER_ADDRESS}${EndPoints.test
     body: JSON.stringify(testResult),
 }).then((res) => {
     if (res.statusCode === 200) {
+        console.debug(`[E2E] Test result ${testResult.name} submitted successfully`);
         return;
     }
-    throw new Error(`Test result submission failed with status code ${res.statusCode}`);
+    const errorMsg = `Test result submission failed with status code ${res.statusCode}`;
+    res.json().then((responseText) => {
+        throw new Error(`${errorMsg}: ${responseText}`);
+    }).catch(() => {
+        throw new Error(errorMsg);
+    });
 });
 
 const submitTestDone = () => fetch(`${SERVER_ADDRESS}${EndPoints.testDone}`);
