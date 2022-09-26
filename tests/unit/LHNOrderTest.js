@@ -555,7 +555,7 @@ describe('Sidebar', () => {
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode
-                // with all reports being pinned
+                // with all reports having drafts
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
                     [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
