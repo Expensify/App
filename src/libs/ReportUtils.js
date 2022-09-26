@@ -913,16 +913,10 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
         return true;
     }
 
-    // Exclude archived reports
-    // These are for deleted policies so no one should be allowed to access them
-    if (isArchivedRoom(report)) {
-        return false;
-    }
-
-    // Exclude unread reports when in GSD mode
+    // Include unread reports when in GSD mode
     // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInGSDMode && !isUnread(report)) {
-        return false;
+    if (isInGSDMode && isUnread(report)) {
+        return true;
     }
 
     // Include reports if they have a draft, are pinned, or have an outstanding IOU
@@ -937,15 +931,10 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
         return true;
     }
 
-    // Include default rooms and policy expense chats, even when there are no comments
-    // because they are immediately highlighted in the LHN when they are created
+    // Exclude reports that don't have any comments
+    // Archived rooms or user created policy rooms are OK to show when the don't have any comments
     const hasNoComments = report.lastMessageTimestamp === 0;
-    if (hasNoComments && (isDefaultRoom(report) || isPolicyExpenseChat(report))) {
-        return true;
-    }
-
-    // Exclude reports that have no comments
-    if (hasNoComments) {
+    if (hasNoComments && (isArchivedRoom(report) || isUserCreatedPolicyRoom(report))) {
         return false;
     }
 
@@ -954,19 +943,19 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
         return true;
     }
 
-    // Exclude default rooms unless you're on the default room beta
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
-        return false;
+    // Include default rooms unless you're on the default room beta
+    if (isDefaultRoom(report) && Permissions.canUseDefaultRooms(betas)) {
+        return true;
     }
 
-    // Exclude user created policy rooms if the user isn't on the policy rooms beta
-    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-        return false;
+    // Include user created policy rooms if the user isn't on the policy rooms beta
+    if (isUserCreatedPolicyRoom(report) && Permissions.canUsePolicyRooms(betas)) {
+        return true;
     }
 
-    // Exclude policy expense chats if the user isn't in the policy expense chat beta
-    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        return false;
+    // Include policy expense chats if the user isn't in the policy expense chat beta
+    if (isPolicyExpenseChat(report) && Permissions.canUsePolicyExpenseChat(betas)) {
+        return true;
     }
 
     return true;

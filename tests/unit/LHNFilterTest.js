@@ -297,6 +297,10 @@ describe('Sidebar', () => {
                     boolArr.push(Boolean(i & (1 << j)));
                 }
 
+                // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
+                // for the specific case that's failing. You can then debug the code to see why the test is not passing.
+                // const boolArr = [false, true, false, false, false, false, false];
+
                 it(`the booleans ${JSON.stringify(boolArr)}`, () => {
                     const report2 = {
                         ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
