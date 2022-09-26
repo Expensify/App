@@ -20,6 +20,7 @@ import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import {withReports} from '../components/OnyxProvider';
 
 const propTypes = {
     /** Route params */
@@ -272,15 +273,13 @@ ReportSettingsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
+    withReports({propName: 'reports'}),
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);

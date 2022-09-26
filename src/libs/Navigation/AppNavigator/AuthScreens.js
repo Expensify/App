@@ -1,5 +1,5 @@
 import React from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -36,6 +36,7 @@ import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
 import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
 import ConciergePage from '../../../pages/ConciergePage';
+import { withSession } from '../../../components/OnyxProvider';
 
 let currentUserEmail;
 Onyx.connect({
@@ -319,9 +320,5 @@ class AuthScreens extends React.Component {
 AuthScreens.propTypes = propTypes;
 export default compose(
     withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
+    withSession(),
 )(AuthScreens);

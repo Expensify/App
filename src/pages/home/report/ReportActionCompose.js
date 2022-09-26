@@ -35,7 +35,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withBetas, withBlockedFromConcierge, withModal, withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -703,19 +703,13 @@ export default compose(
     withLocalize,
     withNetwork(),
     withPersonalDetails(),
+    withModal(),
     withCurrentUserPersonalDetails,
+    withBlockedFromConcierge(),
+    withBetas(),
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        },
-        modal: {
-            key: ONYXKEYS.MODAL,
-        },
-        blockedFromConcierge: {
-            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(ReportActionCompose);

@@ -1,12 +1,11 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import compose from '../../../../libs/compose';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import withLocalize from '../../../../components/withLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import withNavigation from '../../../../components/withNavigation';
+import {withBetas, withPolicyCollection} from '../../../../components/OnyxProvider';
 
 const SidebarScreen = (props) => {
     let baseSidebarScreen = null;
@@ -43,12 +42,6 @@ export default compose(
     withNavigation,
     withLocalize,
     withWindowDimensions,
-    withOnyx({
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
+    withPolicyCollection({propName: 'allPolicies'}),
+    withBetas(),
 )(SidebarScreen);

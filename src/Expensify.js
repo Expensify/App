@@ -22,6 +22,7 @@ import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
+import {withApp} from './components/OnyxProvider';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -49,7 +50,9 @@ const propTypes = {
     updateAvailable: PropTypes.bool,
 
     /** Tells us if the sidebar has rendered */
-    isSidebarLoaded: PropTypes.bool,
+    app: PropTypes.shape({
+        isSidebarLoaded: PropTypes.bool,
+    }),
 
     /** Information about a screen share call requested by a GuidesPlus agent */
     screenShareRequest: PropTypes.shape({
@@ -70,7 +73,9 @@ const defaultProps = {
         accountID: null,
     },
     updateAvailable: false,
-    isSidebarLoaded: false,
+    app: {
+        isSidebarLoaded: false,
+    },
     screenShareRequest: null,
 };
 
@@ -123,7 +128,7 @@ class Expensify extends PureComponent {
         }
 
         if (this.state.isNavigationReady && this.state.isSplashShown) {
-            const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
+            const shouldHideSplash = !this.isAuthenticated() || this.props.app.isSidebarLoaded;
 
             if (shouldHideSplash) {
                 BootSplash.hide();
@@ -214,6 +219,7 @@ Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 export default compose(
     withLocalize,
+    withApp(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
@@ -221,9 +227,6 @@ export default compose(
         updateAvailable: {
             key: ONYXKEYS.UPDATE_AVAILABLE,
             initWithStoredValues: false,
-        },
-        isSidebarLoaded: {
-            key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,

@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -26,6 +25,7 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
+import {withPersonalDetails, withPolicyCollection, withReports} from '../../components/OnyxProvider';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -190,15 +190,10 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
+    withReports({
+        propName: 'report',
+        transformValue: (value, {reportID}) => value[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
     }),
+    withPersonalDetails(),
+    withPolicyCollection({propName: 'policies'}),
 )(HeaderView);

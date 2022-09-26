@@ -17,6 +17,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import {withReports} from '../components/OnyxProvider';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -271,10 +272,8 @@ NewChatPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withReports({propName: 'reports'}),
     withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

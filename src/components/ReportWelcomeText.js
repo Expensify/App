@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
@@ -9,10 +8,10 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
-import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
+import {withPersonalDetails, withPolicyCollection} from './OnyxProvider';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -130,12 +129,6 @@ ReportWelcomeText.displayName = 'ReportWelcomeText';
 
 export default compose(
     withLocalize,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
+    withPersonalDetails(),
+    withPolicyCollection({propName: 'policies'}),
 )(ReportWelcomeText);

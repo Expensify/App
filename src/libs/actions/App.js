@@ -28,8 +28,8 @@ Onyx.connect({
 
 let isSidebarLoaded;
 Onyx.connect({
-    key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    callback: val => isSidebarLoaded = val,
+    key: ONYXKEYS.APP,
+    callback: val => isSidebarLoaded = val ? false : val.isSidebarLoaded,
     initWithStoredValues: false,
 });
 
@@ -98,7 +98,7 @@ function setSidebarLoaded() {
         return;
     }
 
-    Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
+    Onyx.merge(ONYXKEYS.APP, {isSidebarLoaded: true});
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);

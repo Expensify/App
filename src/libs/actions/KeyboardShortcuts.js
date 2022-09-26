@@ -3,8 +3,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 let isShortcutsModalOpen;
 Onyx.connect({
-    key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
-    callback: flag => isShortcutsModalOpen = flag,
+    key: ONYXKEYS.APP,
+    callback: val => isShortcutsModalOpen = Boolean(val && val.isShortcutsModalOpen),
 });
 
 /**
@@ -14,7 +14,8 @@ function showKeyboardShortcutModal() {
     if (isShortcutsModalOpen) {
         return;
     }
-    Onyx.set(ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN, true);
+
+    Onyx.merge(ONYXKEYS.APP, {isShortcutsModalOpen: true});
 }
 
 /**
@@ -24,7 +25,8 @@ function hideKeyboardShortcutModal() {
     if (!isShortcutsModalOpen) {
         return;
     }
-    Onyx.set(ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN, false);
+
+    Onyx.merge(ONYXKEYS.APP, {isShortcutsModalOpen: false});
 }
 
 export {

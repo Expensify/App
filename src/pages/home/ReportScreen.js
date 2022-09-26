@@ -1,5 +1,4 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, Platform, View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -23,7 +22,10 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import addViewportResizeListener from '../../libs/VisualViewport';
-import {withNetwork} from '../../components/OnyxProvider';
+import {
+    withApp,
+    withBetas, withNetwork, withPolicyCollection, withReportActions, withReports, withSession,
+} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -42,7 +44,9 @@ const propTypes = {
     }).isRequired,
 
     /** Tells us if the sidebar has rendered */
-    isSidebarLoaded: PropTypes.bool,
+    app: PropTypes.shape({
+        isSidebarLoaded: PropTypes.bool,
+    }),
 
     /** Whether or not to show the Compose Input */
     session: PropTypes.shape({
@@ -62,13 +66,13 @@ const propTypes = {
 
         /** ID for the report */
         reportID: PropTypes.number,
+
+        /** Whether the composer is full size */
+        isComposerFullSize: PropTypes.bool,
     }),
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Whether the composer is full size */
-    isComposerFullSize: PropTypes.bool,
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -90,7 +94,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isSidebarLoaded: false,
+    app: {
+        isSidebarLoaded: false,
+    },
     session: {
         shouldShowComposeInput: true,
     },
@@ -99,8 +105,8 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
+        isComposerFullSize: false,
     },
-    isComposerFullSize: false,
     betas: [],
     policies: {},
 };
@@ -203,7 +209,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        if (!this.props.isSidebarLoaded) {
+        if (!this.props.app.isSidebarLoaded) {
             return null;
         }
 
@@ -263,7 +269,7 @@ class ReportScreen extends React.Component {
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
+                                isComposerFullSize={this.props.report.isComposerFullSize}
                                 isDrawerOpen={this.props.isDrawerOpen}
                             />
                         )}
@@ -285,7 +291,7 @@ class ReportScreen extends React.Component {
                         </View>
                     )}
                     {(!hideComposer && this.props.session.shouldShowComposeInput) && (
-                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.report.isComposerFullSize && styles.chatFooterFullCompose]}>
                             <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                 <OfflineWithFeedback
                                     pendingAction={addWorkspaceRoomPendingAction}
@@ -295,7 +301,7 @@ class ReportScreen extends React.Component {
                                         reportID={reportID}
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        isComposerFullSize={this.props.report.isComposerFullSize}
                                     />
                                 </OfflineWithFeedback>
                             </SwipeableView>
@@ -314,28 +320,16 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
-    withOnyx({
-        isSidebarLoaded: {
-            key: ONYXKEYS.IS_SIDEBAR_LOADED,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
-        isComposerFullSize: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
+    withReports({
+        propName: 'report',
+        transformValue: (value, {route}) => value[`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`],
     }),
+    withReportActions({
+        propName: 'reportActions',
+        transformValue: (value, {route}) => value[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`],
+    }),
+    withBetas(),
+    withSession(),
+    withPolicyCollection({propName: 'policies'}),
+    withApp(),
 )(ReportScreen);

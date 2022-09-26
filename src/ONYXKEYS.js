@@ -2,6 +2,9 @@
  * This is a file containing constants for all the top level keys in our store
  */
 export default {
+    // Miscellaneous app stuff
+    APP: 'app',
+
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
@@ -11,9 +14,6 @@ export default {
     // Holds an array of client IDs which is used for multi-tabs on web in order to know
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
-
-    // Boolean flag set whenever the sidebar has loaded
-    IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
@@ -88,7 +88,6 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
-        REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
@@ -154,9 +153,6 @@ export default {
 
     // Are we loading the create policy room command
     IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
-
-    // Is Keyboard shortcuts modal open?
-    IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
     // Data related to user closing their account (loading status and error message)
     CLOSE_ACCOUNT: 'closeAccount',

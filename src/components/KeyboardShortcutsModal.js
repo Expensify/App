@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import Text from './Text';
@@ -13,11 +12,13 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import * as KeyboardShortcutsActions from '../libs/actions/KeyboardShortcuts';
-import ONYXKEYS from '../ONYXKEYS';
+import {withApp} from './OnyxProvider';
 
 const propTypes = {
     /** prop to set shortcuts modal visibility */
-    isShortcutsModalOpen: PropTypes.bool,
+    app: PropTypes.shape({
+        isShortcutsModalOpen: PropTypes.bool,
+    }),
 
     /** prop to fetch screen width */
     ...windowDimensionsPropTypes,
@@ -27,7 +28,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isShortcutsModalOpen: false,
+    app: {
+        isShortcutsModalOpen: false,
+    },
 };
 
 class KeyboardShortcutsModal extends React.Component {
@@ -77,7 +80,7 @@ class KeyboardShortcutsModal extends React.Component {
 
         return (
             <Modal
-                isVisible={this.props.isShortcutsModalOpen}
+                isVisible={this.props.app.isShortcutsModalOpen}
                 type={modalType}
                 containerStyle={styles.keyboardShortcutModalContainer}
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
@@ -105,7 +108,5 @@ KeyboardShortcutsModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
-        isShortcutsModalOpen: {key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN},
-    }),
+    withApp(),
 )(KeyboardShortcutsModal);

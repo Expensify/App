@@ -21,6 +21,7 @@ import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
 import CONST from '../CONST';
+import {withPolicyCollection} from '../components/OnyxProvider';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -188,15 +189,13 @@ ReportDetailsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
+    withPolicyCollection({propName: 'policies'}),
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
         session: {
             key: ONYXKEYS.SESSION,

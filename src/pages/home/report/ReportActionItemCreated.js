@@ -1,7 +1,6 @@
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
@@ -11,6 +10,8 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
+import compose from '../../../libs/compose';
+import {withPersonalDetails, withPolicyCollection, withReports} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -76,14 +77,8 @@ ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(ReportActionItemCreated);
+export default compose(
+    withReports({propName: 'report', transformValue: (value, {reportID}) => value[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]}),
+    withPersonalDetails(),
+    withPolicyCollection({propName: 'policies'}),
+)(ReportActionItemCreated);
