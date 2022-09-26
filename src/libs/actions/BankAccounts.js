@@ -168,6 +168,7 @@ function deletePaymentBankAccount(bankAccountID) {
 
 /**
  * Verify the user's identity via Onfido
+ *
  * @param {Object} onfidoData
  */
 function verifyIdentityForBankAccount(onfidoData) {
