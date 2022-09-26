@@ -7,7 +7,7 @@ const emojisTrie = new Trie();
 // Inserting all emojis into the Trie object
 for (let i = 0; i < emojis.length; i++) {
     if (emojis[i].name) {
-        const node = emojisTrie.isWord(emojis[i].name);
+        const node = emojisTrie.search(emojis[i].name);
         if (!node) {
             emojisTrie.add(emojis[i].name, {code: emojis[i].code, suggestions: []});
         } else {
@@ -16,7 +16,7 @@ for (let i = 0; i < emojis.length; i++) {
 
         if (emojis[i].keywords) {
             for (let j = 0; j < emojis[i].keywords.length; j++) {
-                const keywordNode = emojisTrie.isWord(emojis[i].keywords[j]);
+                const keywordNode = emojisTrie.search(emojis[i].keywords[j]);
                 if (!keywordNode) {
                     emojisTrie.add(emojis[i].keywords[j], {suggestions: [{code: emojis[i].code, name: emojis[i].name}]});
                 } else {

@@ -7,8 +7,8 @@ describe('Trie', () => {
         wordTrie.add('grin', {code: '😁'});
         wordTrie.add('joy', {code: '😂'});
         wordTrie.add('rofl', {code: '🤣'});
-        expect(wordTrie.isWord('eyes')).toBeNull();
-        expect(wordTrie.isWord('joy').metaData).toEqual({code: '😂'});
+        expect(wordTrie.search('eyes')).toBeNull();
+        expect(wordTrie.search('joy').metaData).toEqual({code: '😂'});
     });
 
     it('Test finding all leaf nodes starting with a substring', () => {
