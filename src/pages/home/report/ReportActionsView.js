@@ -99,7 +99,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.visibilityStateListener = Visibility.onChange(() => {
+        this.visibilityStateListener = Visibility.addEventListener(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
