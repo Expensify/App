@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import {Image, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -15,9 +14,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import exampleCheckImage from './exampleCheckImage';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
+import Form from '../../components/Form';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
@@ -27,71 +25,40 @@ const propTypes = {
 class BankAccountManualStep extends React.Component {
     constructor(props) {
         super(props);
-
         this.submit = this.submit.bind(this);
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-
-        this.state = {
-            acceptTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
-            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
-            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
-        };
-
-        // Map a field to the key of the error's translation
-        this.errorTranslationKeys = {
-            routingNumber: 'bankAccount.error.routingNumber',
-            accountNumber: 'bankAccount.error.accountNumber',
-            acceptTerms: 'common.error.acceptedTerms',
-        };
+        this.validate = this.validate.bind(this);
     }
 
     /**
-     * @returns {Boolean}
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Object}
      */
-    validate() {
+    validate(values) {
         const errorFields = {};
-        const routingNumber = this.state.routingNumber.trim();
+        const routingNumber = values.routingNumber && values.routingNumber.trim();
 
-        if (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(this.state.accountNumber.trim())) {
-            errorFields.accountNumber = true;
+        if (!values.accountNumber || !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim())) {
+            errorFields.accountNumber = this.props.translate('bankAccount.error.accountNumber');
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
-            errorFields.routingNumber = true;
+        if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
+            errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
         }
-        if (!this.state.acceptTerms) {
-            errorFields.acceptTerms = true;
+        if (!values.acceptedTerms) {
+            errorFields.acceptedTerms = this.props.translate('common.error.acceptedTerms');
         }
 
-        ReimbursementAccount.setBankAccountFormValidationErrors(errorFields);
-
-        return _.size(errorFields) === 0;
+        return errorFields;
     }
 
-    submit() {
-        if (!this.validate()) {
-            return;
-        }
-
+    submit(values) {
         const params = {
             bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
             mask: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
             bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
             plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
-            ...this.state,
+            ...values,
         };
         BankAccounts.setupWithdrawalAccount(params);
-    }
-
-    /**
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        const newState = {[inputKey]: value};
-        this.setState(newState);
-        ReimbursementAccount.updateReimbursementAccountDraft(newState);
-        ReimbursementAccountUtils.clearError(this.props, inputKey);
     }
 
     render() {
@@ -108,7 +75,13 @@ class BankAccountManualStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.setBankAccountSubStep(null)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ReimbursementAccountForm onSubmit={this.submit}>
+                <Form
+                    formID={ONYXKEYS.FORMS.BANK_FORM}
+                    onSubmit={this.submit}
+                    validate={this.validate}
+                    submitButtonText={this.props.translate('common.saveAndContinue')}
+                    style={[styles.mh5, styles.flexGrow1]}
+                >
                     <Text style={[styles.mb5]}>
                         {this.props.translate('bankAccount.checkHelpLine')}
                     </Text>
@@ -118,26 +91,23 @@ class BankAccountManualStep extends React.Component {
                         source={exampleCheckImage(this.props.preferredLocale)}
                     />
                     <TextInput
+                        inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        defaultValue={this.state.routingNumber}
-                        onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
                         disabled={shouldDisableInputs}
-                        errorText={this.getErrorText('routingNumber')}
+                        shouldSaveDraft
                     />
                     <TextInput
+                        inputID="accountNumber"
                         containerStyles={[styles.mt4]}
                         label={this.props.translate('bankAccount.accountNumber')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        defaultValue={this.state.accountNumber}
-                        onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                         disabled={shouldDisableInputs}
-                        errorText={this.getErrorText('accountNumber')}
+                        shouldSaveDraft
                     />
                     <CheckboxWithLabel
                         style={styles.mt4}
-                        isChecked={this.state.acceptTerms}
-                        onInputChange={value => this.clearErrorAndSetValue('acceptTerms', value)}
+                        inputID="acceptedTerms"
                         LabelComponent={() => (
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <Text>
@@ -148,9 +118,9 @@ class BankAccountManualStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        errorText={this.getErrorText('acceptTerms')}
+                        shouldSaveDraft
                     />
-                </ReimbursementAccountForm>
+                </Form>
             </>
         );
     }
