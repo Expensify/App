@@ -68,6 +68,7 @@ const AddPaymentMethodMenu = props => (
 
 AddPaymentMethodMenu.propTypes = propTypes;
 AddPaymentMethodMenu.defaultProps = defaultProps;
+AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
 export default compose(
     withWindowDimensions,
