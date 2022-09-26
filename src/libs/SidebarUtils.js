@@ -102,7 +102,17 @@ function getOrderedReportIDs() {
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-    let orderedReports = _.sortBy(filteredReports, isInGSDMode ? 'reportName' : 'lastMessageTimestamp');
+    // Get all the display names for our reports in an easy to access property so we don't have to keep
+    // re-running the logic
+    const filteredReportsWithReportName = _.map(filteredReports, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return {
+            ...report,
+            reportDisplayName: ReportUtils.getReportName(report, personalDetailMap, policies),
+        };
+    });
+
+    let orderedReports = _.sortBy(filteredReportsWithReportName, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
 
     // When the user is default mode, then the reports are ordered recently updated descending, so the ordered
     // array must be reversed or else the recently updated changes will be at the bottom and not the top
@@ -135,10 +145,7 @@ function getOrderedReportIDs() {
 
     // Prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, (report) => {
-        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        return ReportUtils.getReportName(report, personalDetailMap, policies);
-    });
+    const sortedDraftReports = _.sortBy(draftReportOptions, 'reportDisplayName');
     recentReportOptions = sortedDraftReports.concat(recentReportOptions);
 
     // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
@@ -147,10 +154,7 @@ function getOrderedReportIDs() {
     recentReportOptions = sortedIOUReports.concat(recentReportOptions);
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, (report) => {
-        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        return ReportUtils.getReportName(report, personalDetailMap, policies);
-    });
+    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'reportDisplayName');
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
     return _.chain(recentReportOptions)
