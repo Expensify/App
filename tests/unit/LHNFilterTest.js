@@ -342,20 +342,27 @@ describe('Sidebar', () => {
         it('hides unread chats', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+            // Given the sidebar is rendered in #focus mode (hides read chats)
+            // with report 1 and 2 having unread actions
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
 
             return waitForPromisesToResolve()
 
-                // Given the sidebar is rendered in #focus mode (hides read chats)
-                // with report 1 and 2 having unread actions
+                // When Onyx is updated to contain that data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: {...report1, lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: {...report2, lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 

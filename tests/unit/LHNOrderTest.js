@@ -68,7 +68,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report.reportID.toString(),
                     [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -101,7 +101,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -113,8 +113,8 @@ describe('Sidebar', () => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
                 });
         });
 
@@ -136,6 +136,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -169,6 +170,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -382,7 +384,7 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '0',
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -440,7 +442,7 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '0',
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
