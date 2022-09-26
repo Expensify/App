@@ -381,7 +381,6 @@ describe('Sidebar', () => {
                 isPinned: true,
             };
 
-
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -438,7 +437,6 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
                 hasDraft: true,
             };
-
 
             return waitForPromisesToResolve()
 
