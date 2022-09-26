@@ -217,7 +217,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        describe('all combinations of logic', () => {
+        describe('all combinations of hasComments, isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
             const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
 
