@@ -13,22 +13,23 @@ const {OUTPUT_FILE_CURRENT} = require('../config');
  * @param {number} stats.stdev - The standard deviation of the test.
  * @param {number} stats.entries - The data points
  * @param {number} stats.runs - The number of times the test was run.
+ * @param {string} [path] - The path to write to. Defaults to {@link OUTPUT_FILE_CURRENT}.
  */
-module.exports = async (stats) => {
+module.exports = async (stats, path = OUTPUT_FILE_CURRENT) => {
     if (!stats.name || !stats.mean || !stats.stdev || !stats.entries || !stats.runs) {
         throw new Error('Invalid stats object');
     }
 
-    if (!existsSync(OUTPUT_FILE_CURRENT)) {
-        await fs.writeFile(OUTPUT_FILE_CURRENT, '[]');
+    if (!existsSync(path)) {
+        await fs.writeFile(path, '[]');
     }
 
     try {
-        const content = JSON.parse(await fs.readFile(OUTPUT_FILE_CURRENT, 'utf8'));
+        const content = JSON.parse(await fs.readFile(path, 'utf8'));
         const line = `${JSON.stringify(content.concat([stats]))}\n`;
-        await fs.writeFile(OUTPUT_FILE_CURRENT, line);
+        await fs.writeFile(path, line);
     } catch (error) {
-        console.error(`Error writing ${OUTPUT_FILE_CURRENT}`, error);
+        console.error(`Error writing ${path}`, error);
         throw error;
     }
 };

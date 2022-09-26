@@ -35,7 +35,7 @@ const getPostRequestData = async (req, res) => {
  * @typedef TestResult
  * @property {string} name
  * @property {number} duration Milliseconds
- * @property {string} error
+ * @property {string} [error] Optional, if set indicates that the test run failed and has no valid results.
  */
 
 /**
@@ -50,8 +50,6 @@ const getPostRequestData = async (req, res) => {
  *  - POST: /test_results, expects a {@link TestResult} as JSON body.
  *          Send test results while a test runs.
  *  - GET: /test_done, expected to be called when test run signals it's done
- *
- * @returns {{addTestResultListener: addTestResultListener, stop: (function(): *), start: (function(): *)}}
  */
 const createServerInstance = () => {
     const testResultListeners = [];
@@ -68,9 +66,16 @@ const createServerInstance = () => {
     /**
      * Will be called when a test signals that it's done.
      * @param {Function} listener
+     * @returns {Function} A function to remove the listener.
      */
     const addTestDoneListener = (listener) => {
         testDoneListeners.push(listener);
+        return () => {
+            const index = testDoneListeners.indexOf(listener);
+            if (index !== -1) {
+                testDoneListeners.splice(index, 1);
+            }
+        };
     };
 
     const server = createServer(async (req, res) => {
