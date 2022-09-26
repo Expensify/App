@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
     /** Whether we are fetching the bank accounts from the API */
-    loading: PropTypes.bool,
+    isLoading: PropTypes.bool,
 
     /** Error message */
     error: PropTypes.string,
