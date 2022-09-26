@@ -326,7 +326,7 @@ export default compose(
     }),
     withReportActions({
         propName: 'reportActions',
-        transformValue: (value, {route}) => value[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`],
+        transformValue: (value, {route}) => (!value ? {} : value[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`]),
     }),
     withBetas(),
     withSession(),
