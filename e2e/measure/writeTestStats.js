@@ -5,6 +5,8 @@ const {existsSync} = require('fs');
 const {OUTPUT_FILE_CURRENT} = require('../config');
 
 /**
+ * Writes the results of `getStats` to the {@link OUTPUT_FILE_CURRENT} file.
+ *
  * @param {Object} stats
  * @param {string} stats.name - The name for the test, used in outputs.
  * @param {number} stats.mean - The average time for the test to run.

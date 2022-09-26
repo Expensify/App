@@ -2,8 +2,6 @@ import e2eLogin from './appCommands/e2eLogin';
 import * as Session from '../actions/Session';
 import * as Commands from '../../../e2e/server/commands';
 import * as Config from '../../../e2e/config';
-
-// TODO: introduced a require cycle
 import Performance from '../Performance';
 
 // Connect to the websocket running on the host machine
@@ -47,7 +45,8 @@ const executeWithStatus = (command, promise) => {
         .catch(() => sendStatus(command, 'error'));
 };
 
-let isAppSessionReadyResolve;
+// A promise that will resolve once the app is ready to be used.
+let isAppSessionReadyResolve; // the promise's resolve function
 const isAppSessionReady = new Promise((resolve) => {
     isAppSessionReadyResolve = resolve;
 });
@@ -63,6 +62,7 @@ const listenForServerCommands = () => {
             return;
         }
 
+        // handle the commands that the app receives
         const commandStr = event.data.toString();
         const command = JSON.parse(commandStr);
         const commandType = command.type;
