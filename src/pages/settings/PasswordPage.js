@@ -32,7 +32,7 @@ const propTypes = {
         success: PropTypes.string,
 
         /** Whether a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -59,7 +59,6 @@ class PasswordPage extends Component {
         this.getErrorText = this.getErrorText.bind(this);
         this.validate = this.validate.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
-        this.currentPasswordInputRef = null;
 
         this.errorKeysMap = {
             currentPassword: 'passwordPage.errors.currentPassword',
@@ -218,7 +217,7 @@ class PasswordPage extends Component {
                             <FixedFooter style={[styles.flexGrow0]}>
                                 <Button
                                     success
-                                    isLoading={this.props.account.loading}
+                                    isLoading={this.props.account.isLoading}
                                     text={this.props.translate('common.save')}
                                     onPress={this.submit}
                                 />
