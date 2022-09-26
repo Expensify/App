@@ -883,6 +883,22 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     return iouReport.ownerEmail !== currentUserLogin;
 }
 
+/**
+ * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
+ * for reports or the reports shown in the LHN).
+ *
+ * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
+ * filter out the majority of reports before filtering out very specific minority of reports.
+ *
+ * @param {Object} report
+ * @param {String} currentlyViewedReportID
+ * @param {Boolean} isInGSDMode
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @param {String[]} betas
+ * @param {Object} policies
+ * @returns {boolean}
+ */
 function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
@@ -994,4 +1010,5 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportAction,
+    shouldReportBeInOptionList,
 };
