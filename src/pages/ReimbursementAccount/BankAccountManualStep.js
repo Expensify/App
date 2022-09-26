@@ -74,6 +74,7 @@ class BankAccountManualStep extends React.Component {
             return;
         }
         BankAccounts.connectBankAccountManually(
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
             this.state.accountNumber,
             this.state.routingNumber,
             ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
