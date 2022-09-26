@@ -1,4 +1,4 @@
-const {INTERACTION_TIMEOUT} = require('../../config');
+const {INTERACTION_TIMEOUT} = require('../config');
 
 const withFailTimeout = (promise, name) => {
     const timeoutId = setTimeout(() => {
