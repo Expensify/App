@@ -195,7 +195,10 @@ function getOrderedReportIDs() {
 
     // Prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, 'text');
+    const sortedDraftReports = _.sortBy(draftReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedDraftReports.concat(recentReportOptions);
 
     // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
@@ -204,7 +207,10 @@ function getOrderedReportIDs() {
     recentReportOptions = sortedIOUReports.concat(recentReportOptions);
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
+    const sortedPinnedReports = _.sortBy(pinnedReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
     return _.chain(recentReportOptions)
@@ -221,7 +227,11 @@ function getOrderedReportIDs() {
  */
 function getOptionData(reportID) {
     const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!report) {
+
+    // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
+    // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
+    // a null check here and return early.
+    if (!report || !personalDetails) {
         return;
     }
     const result = {
