@@ -958,7 +958,7 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
         return true;
     }
 
-    return true;
+    return false;
 }
 
 export {
