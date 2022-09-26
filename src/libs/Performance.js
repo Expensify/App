@@ -6,7 +6,7 @@ import {Alert, InteractionManager} from 'react-native';
 import * as Metrics from './Metrics';
 import getComponentDisplayName from './getComponentDisplayName';
 import CONST from '../CONST';
-import * as E2E from './E2E';
+import isE2ETestSession from './E2E/isE2ETestSession';
 
 /** @type {import('react-native-performance').Performance} */
 let rnPerformance;
@@ -72,9 +72,8 @@ if (Metrics.canCapturePerformanceMetrics()) {
             requestAnimationFrame(() => {
                 measureFailSafe('TTI', 'nativeLaunchStart', endMark);
 
-                if (E2E.isE2ETestSession()) {
-                    E2E.Client.markAppReady();
-                } else {
+                // we don't want the alert to show on a e2e test sessio
+                if (!isE2ETestSession()) {
                     Performance.printPerformanceMetrics();
                 }
             });
@@ -148,6 +147,12 @@ if (Metrics.canCapturePerformanceMetrics()) {
         if (stats.length > 0) {
             Alert.alert('Performance', statsAsText);
         }
+    };
+
+    Performance.subscribeToMeasurements = (callback) => {
+        new perfModule.PerformanceObserver((list) => {
+            list.getEntriesByType('measure').forEach(callback);
+        }).observe({type: 'measure', buffered: true});
     };
 
     /**
