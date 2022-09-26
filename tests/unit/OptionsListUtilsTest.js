@@ -4,7 +4,6 @@ import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
-import * as Report from '../../src/libs/actions/Report';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
 
@@ -215,30 +214,6 @@ describe('OptionsListUtils', () => {
             participants: ['receipts@expensify.com'],
             reportName: 'Receipts',
             lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        },
-    };
-
-    const REPORTS_WITH_MORE_PINS = {
-        ...REPORTS,
-        14: {
-            lastVisitedTimestamp: 1610666739302,
-            lastMessageTimestamp: 22,
-            isPinned: true,
-            reportID: 14,
-            participants: ['d_email@email.com'],
-            reportName: 'D report name',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        },
-        15: {
-            lastVisitedTimestamp: 1610666732302,
-            lastMessageTimestamp: 22,
-            isPinned: true,
-            reportID: 15,
-            participants: ['z_email@email.com'],
-            reportName: 'Z Report Name',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
             maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
