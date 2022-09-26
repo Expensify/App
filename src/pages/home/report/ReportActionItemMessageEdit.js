@@ -97,7 +97,6 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} newDraft
      */
     updateDraft(newDraft) {
-        this.textInput.setNativeProps({text: newDraft});
         this.setState({draft: newDraft});
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
