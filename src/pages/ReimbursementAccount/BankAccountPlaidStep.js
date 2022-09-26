@@ -71,7 +71,7 @@ class BankAccountPlaidStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
-                    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                    formID={ONYXKEYS.FORMS.BANK_FORM}
                     validate={() => ({})}
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
