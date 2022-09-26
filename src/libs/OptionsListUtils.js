@@ -444,7 +444,6 @@ function getOptions(reports, personalDetails, activeReportID, {
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
-    prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
@@ -457,7 +456,6 @@ function getOptions(reports, personalDetails, activeReportID, {
 }) {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     let recentReportOptions = [];
-    const pinnedReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
 
@@ -546,27 +544,13 @@ function getOptions(reports, personalDetails, activeReportID, {
                 continue;
             }
 
-            // If the report is pinned and we are using the option to display pinned reports on top then we need to
-            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
-            // default archived rooms.
-            if (prioritizePinnedReports && reportOption.isPinned
-                && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
-                pinnedReportOptions.push(reportOption);
-            } else {
-                recentReportOptions.push(reportOption);
-            }
+            recentReportOptions.push(reportOption);
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
                 loginOptionsToExclude.push({login: reportOption.login});
             }
         }
-    }
-
-    // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    if (prioritizePinnedReports) {
-        const sortedPinnedReports = lodashOrderBy(pinnedReportOptions, ['text'], ['asc']);
-        recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing default rooms in search, do it only once we started something
