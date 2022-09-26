@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import * as ErrorUtils from '../libs/ErrorUtils';
+import OfflineIndicator from '../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -87,7 +88,7 @@ class SetPasswordPage extends Component {
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
         if (this.props.account.validated) {
-            Session.setPassword(this.state.password, validateCode, accountID);
+            Session.updatePasswordAndSignin(accountID, validateCode, this.state.password);
         } else {
             Session.setPasswordForNewAccountAndSignin(accountID, validateCode, this.state.password);
         }
@@ -95,8 +96,8 @@ class SetPasswordPage extends Component {
 
     render() {
         const buttonText = this.props.translate('setPasswordPage.setPassword');
-        const sessionError = this.props.session.errors && ErrorUtils.getLatestErrorMessage(this.props.session);
-        const error = sessionError || ErrorUtils.getLatestErrorMessage(this.props.account);
+        const error = ErrorUtils.getLatestErrorMessage(this.props.account) || ErrorUtils.getLatestErrorMessage(this.props.session);
+        const isErrorVisible = !this.props.account.isLoading && !_.isEmpty(error);
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
@@ -119,10 +120,11 @@ class SetPasswordPage extends Component {
                             onSubmit={this.validateAndSubmitForm}
                             containerStyles={[styles.mb2, styles.mh0]}
                             message={error}
-                            isAlertVisible={!_.isEmpty(error)}
+                            isAlertVisible={isErrorVisible}
                             isDisabled={!this.state.isFormValid}
                         />
                     </View>
+                    <OfflineIndicator containerStyles={[styles.mv1]} />
                 </SignInPageLayout>
             </SafeAreaView>
         );
