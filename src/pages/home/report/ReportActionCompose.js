@@ -48,7 +48,7 @@ import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
@@ -102,6 +102,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     comment: '',
     modal: {},
     report: {},
@@ -144,6 +145,7 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
+            value: props.comment,
         };
     }
 
@@ -246,7 +248,7 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
 
-        if (_.size(this.props.reportActions) === 1) {
+        if (this.isEmptyChat()) {
             return this.props.translate('reportActionCompose.sayHello');
         }
 
@@ -303,6 +305,10 @@ class ReportActionCompose extends React.Component {
         this.setState({maxLines});
     }
 
+    isEmptyChat() {
+        return _.size(this.props.reportActions) === 1;
+    }
+
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
@@ -311,9 +317,6 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         const newComment = this.comment.slice(0, this.state.selection.start)
             + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
         this.setState(prevState => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
@@ -372,9 +375,9 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
-        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+            value: newComment,
         });
 
         // Indicate that draft has been created.
@@ -592,7 +595,7 @@ class ReportActionCompose extends React.Component {
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
                                     <Composer
-                                        autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
+                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
                                         multiline
                                         ref={this.setTextInputRef}
                                         textAlignVertical="top"
@@ -627,7 +630,6 @@ class ReportActionCompose extends React.Component {
                                             this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        defaultValue={this.props.comment}
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
@@ -640,6 +642,7 @@ class ReportActionCompose extends React.Component {
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
                                         setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                         isComposerFullSize={this.props.isComposerFullSize}
+                                        value={this.state.value}
                                     />
                                 </View>
                             </>
@@ -675,7 +678,12 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, !this.props.isSmallScreenWidth && styles.chatItemComposeSecondaryRow]}>
+                <View style={[
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    styles.alignItemsCenter,
+                    (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
+                >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />

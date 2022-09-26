@@ -112,11 +112,6 @@ class ReportSettingsPage extends Component {
      */
     resetToPreviousName() {
         this.setState({newRoomName: this.props.report.reportName});
-
-        // Reset the input's value back to the previously saved report name
-        if (this.roomNameInputRef) {
-            this.roomNameInputRef.setNativeProps({text: this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '')});
-        }
         Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
@@ -216,7 +211,7 @@ class ReportSettingsPage extends Component {
                                             : (
                                                 <RoomNameInput
                                                     ref={el => this.roomNameInputRef = el}
-                                                    initialValue={this.state.newRoomName}
+                                                    value={this.state.newRoomName}
                                                     policyID={linkedWorkspace && linkedWorkspace.id}
                                                     errorText={this.state.errors.newRoomName}
                                                     onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}

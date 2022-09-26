@@ -103,7 +103,7 @@ export default function (WrappedComponent) {
 
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;
-    WithPolicy.displayName = `withFullPolicy(${getComponentDisplayName(WrappedComponent)})`;
+    WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
     const withPolicy = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <WithPolicy {...props} forwardedRef={ref} />

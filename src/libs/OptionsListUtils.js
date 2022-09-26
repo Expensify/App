@@ -1,7 +1,6 @@
 /* eslint-disable no-continue */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
@@ -211,10 +210,10 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
  * @returns {String}
  */
 function getBrickRoadIndicatorStatusForReport(report, reportActions) {
-    const reportErrors = lodashGet(report, 'errors', {});
-    const reportErrorFields = lodashGet(report, 'errorFields', {});
-    const reportID = lodashGet(report, 'reportID');
-    const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+    const reportErrors = report.errors || {};
+    const reportErrorFields = report.errorFields || {};
+    const reportID = report.reportID;
+    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
 
     const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
     const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
@@ -272,7 +271,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const personalDetail = personalDetailList[0];
+    const personalDetail = personalDetailList[0] || {};
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
 
@@ -329,6 +328,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         }
     } else {
         result.keyForList = personalDetail.login;
+        result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
     if (result.hasOutstandingIOU) {
@@ -487,12 +487,16 @@ function getOptions(reports, personalDetails, activeReportID, {
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
+        const hasAddWorkspaceRoomError = report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom);
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
 
                 // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
                 // highlight them in the LHN when they are created and have no messsages yet. We do
                 // not give archived rooms this exception since they do not need to be higlihted.
-                && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat));
+                && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
+
+                // Also make an exception for workspace rooms that failed to be added
+                && !hasAddWorkspaceRoomError;
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
@@ -918,4 +922,6 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getSearchText,
+    getBrickRoadIndicatorStatusForReport,
 };

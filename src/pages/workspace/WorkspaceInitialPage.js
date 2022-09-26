@@ -74,15 +74,16 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        Policy.deletePolicy(this.props.policy.id);
+        Policy.deleteWorkspace(this.props.policy.id);
         this.toggleDeleteModal(false);
+        Navigation.navigate(ROUTES.SETTINGS);
     }
 
     render() {
         const policy = this.props.policy;
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
-            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatarURL', {}));
+            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
         const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(this.props.policy);
         const menuItems = [
             {
