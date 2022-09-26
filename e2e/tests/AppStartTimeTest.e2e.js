@@ -67,7 +67,7 @@ const runTest = async () => {
     };
 
     await server.waitForAppReady();
-    await server.login(); // TODO: provide user credentials here instead of client
+    await server.login('applausetester+perf2@applause.expensifail.com', 'Password123');
 
     const results = [];
     for (let i = 0; i < RUNS; i++) {
@@ -103,3 +103,4 @@ const runTest = async () => {
 };
 
 module.exports = runTest;
+runTest();

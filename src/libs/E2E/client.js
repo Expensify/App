@@ -63,18 +63,25 @@ const listenForServerCommands = () => {
             return;
         }
 
-        // expect only string messages
-        const command = event.data.toString();
-        switch (command) {
-            case Commands.LOGIN:
-                executeWithStatus(command, e2eLogin());
+        const commandStr = event.data.toString();
+        const command = JSON.parse(commandStr);
+        const commandType = command.type;
+        switch (commandType) {
+            case Commands.LOGIN: {
+                // expect data.email and data.password
+                const {
+                    email,
+                    password,
+                } = command.data;
+                executeWithStatus(commandType, e2eLogin(email, password));
                 break;
+            }
             case Commands.LOGOUT:
                 Session.signOutAndRedirectToSignIn();
-                sendStatus(command, 'success');
+                sendStatus(commandType, 'success');
                 break;
             case Commands.WAIT_FOR_APP_READY:
-                isAppSessionReady.then(() => sendStatus(command, 'success'));
+                isAppSessionReady.then(() => sendStatus(commandType, 'success'));
                 break;
             case Commands.REQUEST_PERFORMANCE_METRICS: {
                 console.debug('[CLIENT]  Received request for performance metrics');

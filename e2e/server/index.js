@@ -67,6 +67,10 @@ const start = () => {
         return () => socketInstance.removeListener('message', listener);
     };
 
+    const sendData = (data) => {
+        socketInstance.send(JSON.stringify(data));
+    };
+
     const waitForSuccessResponse = command => new Promise((resolve) => {
         const cleanup = newMessageListener((data) => {
             if (data == null || data.type !== 'status' || data.inputCommand !== command) {
@@ -78,10 +82,10 @@ const start = () => {
         });
     });
 
-    const sendAndWaitForSuccess = async (command) => {
+    const sendAndWaitForSuccess = async (command, data) => {
         await waitForSocketPromise;
         Logger.log(`[SERVER]  Sending command: ${command}`);
-        socketInstance.send(command);
+        sendData({type: command, data});
         return waitForSuccessResponse(command);
     };
 
@@ -99,13 +103,13 @@ const start = () => {
                 cleanup();
                 resolve(data.metrics);
             });
-            socketInstance.send(Commands.REQUEST_PERFORMANCE_METRICS);
+            sendData({type: Commands.REQUEST_PERFORMANCE_METRICS});
         });
     };
 
     return {
         // command for app:
-        login: () => withFailTimeout(sendAndWaitForSuccess(Commands.LOGIN), Commands.LOGIN),
+        login: (email, password) => withFailTimeout(sendAndWaitForSuccess(Commands.LOGIN, {email, password}), Commands.LOGIN),
         logout: () => withFailTimeout(sendAndWaitForSuccess(Commands.LOGOUT), Commands.LOGOUT),
         waitForAppReady: () => withFailTimeout(sendAndWaitForSuccess(Commands.WAIT_FOR_APP_READY), Commands.WAIT_FOR_APP_READY),
         getPerformanceMetrics: () => withFailTimeout(getPerformanceMetrics(), Commands.REQUEST_PERFORMANCE_METRICS),
