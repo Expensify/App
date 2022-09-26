@@ -24,7 +24,7 @@ jobs:
             text: ${{ github.event.comment.body }}
             regex: '\s*recheck\s*'
         - name: CLA Assistant
-          if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' }} || github.event_name == 'pull_request_target'
+          if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' }} || (github.event_name == 'pull_request_target' || github.event_name == 'issue_comment')
           # Version: 2.1.2-beta
           uses: cla-assistant/github-action@948230deb0d44dd38957592f08c6bd934d96d0cf
           env:
