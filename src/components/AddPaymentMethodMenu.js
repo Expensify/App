@@ -10,6 +10,7 @@ import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
 import paypalMeDataPropTypes from './paypalMeDataPropTypes';
+import * as BankAccounts from '../libs/actions/BankAccounts';
 
 const propTypes = {
     isVisible: PropTypes.bool.isRequired,
@@ -48,7 +49,10 @@ const AddPaymentMethodMenu = props => (
             {
                 text: props.translate('common.bankAccount'),
                 icon: Expensicons.Bank,
-                onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT),
+                onSelected: () => {
+                    BankAccounts.clearPlaid();
+                    props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
+                },
             },
             ...(Permissions.canUseWallet(props.betas) ? [{
                 text: props.translate('common.debitCard'),

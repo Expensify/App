@@ -40,7 +40,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        loading: true,
+        isLoading: true,
     },
 };
 
