@@ -1,14 +1,12 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
-import Permissions from './Permissions';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -93,7 +91,7 @@ Onyx.connect({
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs() {
-    const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
+    // const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
     const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
 
     let recentReportOptions = [];
@@ -101,68 +99,71 @@ function getOrderedReportIDs() {
     const iouDebtReportOptions = [];
     const draftReportOptions = [];
 
-    const filteredReports = _.filter(reports, (report) => {
-        if (!report || !report.reportID) {
-            return false;
-        }
+    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-        const isChatRoom = ReportUtils.isChatRoom(report);
-        const isDefaultRoom = ReportUtils.isDefaultRoom(report);
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const participants = report.participants || [];
-
-        // Skip this report if it has no participants and if it's not a type of report supported in the LHN
-        if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
-            return false;
-        }
-
-        const hasDraftComment = report.hasDraft || false;
-        const iouReport = report.iouReportID && iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
-        const iouReportOwner = report.hasOutstandingIOU && iouReport
-            ? iouReport.ownerEmail
-            : '';
-
-        const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const hasAddWorkspaceRoomError = report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom);
-        const shouldFilterReportIfEmpty = report.lastMessageTimestamp === 0
-
-            // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
-            // highlight them in the LHN when they are created and have no messsages yet. We do
-            // not give archived rooms this exception since they do not need to be higlihted.
-            && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
-
-            // Also make an exception for workspace rooms that failed to be added
-            && !hasAddWorkspaceRoomError;
-
-        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
-        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID.toString() !== currentlyViewedReportID
-            && !report.isPinned
-            && !hasDraftComment
-            && shouldFilterReport
-            && !reportContainsIOUDebt) {
-            return false;
-        }
-
-        // We let Free Plan default rooms to be shown in the App, or rooms that also have a Guide in them.
-        // It's the two exceptions to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report)
-            && !Permissions.canUseDefaultRooms(betas)
-            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
-            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
-            return false;
-        }
-
-        if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-            return false;
-        }
-
-        if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
-            return false;
-        }
-
-        return true;
-    });
+    // const filteredReports = _.filter(reports, (report) => {
+    //     if (!report || !report.reportID) {
+    //         return false;
+    //     }
+    //
+    //     const isChatRoom = ReportUtils.isChatRoom(report);
+    //     const isDefaultRoom = ReportUtils.isDefaultRoom(report);
+    //     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    //     const participants = report.participants || [];
+    //
+    //     // Skip this report if it has no participants and if it's not a type of report supported in the LHN
+    //     if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
+    //         return false;
+    //     }
+    //
+    //     const hasDraftComment = report.hasDraft || false;
+    //     const iouReport = report.iouReportID && iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    //     const iouReportOwner = report.hasOutstandingIOU && iouReport
+    //         ? iouReport.ownerEmail
+    //         : '';
+    //
+    //     const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
+    //     const hasAddWorkspaceRoomError = report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom);
+    //     const shouldFilterReportIfEmpty = report.lastMessageTimestamp === 0
+    //
+    //         // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
+    //         // highlight them in the LHN when they are created and have no messsages yet. We do
+    //         // not give archived rooms this exception since they do not need to be higlihted.
+    //         && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
+    //
+    //         // Also make an exception for workspace rooms that failed to be added
+    //         && !hasAddWorkspaceRoomError;
+    //
+    //     const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
+    //     const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+    //     if (report.reportID.toString() !== currentlyViewedReportID
+    //         && !report.isPinned
+    //         && !hasDraftComment
+    //         && shouldFilterReport
+    //         && !reportContainsIOUDebt) {
+    //         return false;
+    //     }
+    //
+    //     // We let Free Plan default rooms to be shown in the App, or rooms that also have a Guide in them.
+    //     // It's the two exceptions to the beta, otherwise do not show policy rooms in product
+    //     if (ReportUtils.isDefaultRoom(report)
+    //         && !Permissions.canUseDefaultRooms(betas)
+    //         && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
+    //         && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+    //         return false;
+    //     }
+    //
+    //     if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+    //         return false;
+    //     }
+    //
+    //     if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
+    //         return false;
+    //     }
+    //
+    //     return true;
+    // });
 
     let orderedReports = _.sortBy(filteredReports, sortByTimestampDescending ? 'lastMessageTimestamp' : 'reportName');
 
