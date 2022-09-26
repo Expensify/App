@@ -97,7 +97,7 @@ function getOrderedReportIDs() {
     const draftReportOptions = [];
 
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = priorityMode === CONST.PRIORITY_MODE.DEFAULT;
+    const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
@@ -112,7 +112,7 @@ function getOrderedReportIDs() {
         };
     });
 
-    let orderedReports = _.sortBy(filteredReportsWithReportName, isInDefaultMode ? 'lastMessageTimestamp' : 'reportName');
+    let orderedReports = _.sortBy(filteredReportsWithReportName, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
 
     // When the user is default mode, then the reports are ordered recently updated descending, so the ordered
     // array must be reversed or else the recently updated changes will be at the bottom and not the top

@@ -209,6 +209,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -244,6 +245,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
@@ -276,6 +278,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
@@ -332,6 +335,7 @@ describe('Sidebar', () => {
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: currentlyViewedReportID.toString(),
                     [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
@@ -489,14 +493,14 @@ describe('Sidebar', () => {
                 lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
             const report4 = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 1),
+                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
                 lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
 
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in #focus mode (hides read chats)
-                // with all reports having unread chats
+                // with all reports having unread comments
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
