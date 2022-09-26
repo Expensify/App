@@ -20,7 +20,7 @@ const computeZ = (baselineMean, baselineStdev, currentMean, runs) => {
 };
 
 /**
- * Compute statisticial hyphotesis probability based on z-score.
+ * Compute statistical hypothesis probability based on z-score.
  *
  * Based on :: https://github.com/v8/v8/blob/master/test/benchmarks/csuite/compare-baseline.py
  *
