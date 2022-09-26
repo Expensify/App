@@ -28,6 +28,7 @@ import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
+import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -38,6 +39,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
+        errorFields: {},
         errors: {},
         maxAttemptsReached: false,
     },
@@ -73,21 +75,13 @@ class ValidationStep extends React.Component {
     }
 
     /**
-    * @param {Object} value
-    */
-    setValue(value) {
-        BankAccounts.updateReimbursementAccountDraft(value);
-        this.setState(value);
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
      * @param {String} inputKey
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setValue({[inputKey]: value});
+        const newState = {[inputKey]: value};
+        this.setState(newState);
+        ReimbursementAccount.updateReimbursementAccountDraft(newState);
         this.clearError(inputKey);
     }
 
@@ -115,7 +109,6 @@ class ValidationStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            BankAccounts.showBankAccountErrorModal();
             return;
         }
 
@@ -189,6 +182,67 @@ class ValidationStep extends React.Component {
                                 </TextLink>
                                 .
                             </Text>
+                        </View>
+                    )}
+                    {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
+                        <ReimbursementAccountForm
+                            reimbursementAccount={this.props.reimbursementAccount}
+                            onSubmit={this.submit}
+                            buttonText={this.props.translate('validationStep.buttonText')}
+                        >
+                            <View style={[styles.mb2]}>
+                                <Text style={[styles.mb5]}>
+                                    {this.props.translate('validationStep.description')}
+                                </Text>
+                                <Text style={[styles.mb2]}>
+                                    {this.props.translate('validationStep.descriptionCTA')}
+                                </Text>
+                            </View>
+                            <View style={[styles.mv5, styles.flex1]}>
+                                <TextInput
+                                    containerStyles={[styles.mb1]}
+                                    placeholder="1.52"
+                                    keyboardType="decimal-pad"
+                                    value={this.state.amount1}
+                                    onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
+                                    errorText={this.getErrorText('amount1')}
+                                />
+                                <TextInput
+                                    containerStyles={[styles.mb1]}
+                                    placeholder="1.53"
+                                    keyboardType="decimal-pad"
+                                    value={this.state.amount2}
+                                    onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
+                                    errorText={this.getErrorText('amount2')}
+                                />
+                                <TextInput
+                                    containerStyles={[styles.mb1]}
+                                    placeholder="1.54"
+                                    keyboardType="decimal-pad"
+                                    value={this.state.amount3}
+                                    onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
+                                    errorText={this.getErrorText('amount3')}
+                                />
+                            </View>
+                        </ReimbursementAccountForm>
+                    )}
+                    {isVerifying && (
+                        <View style={[styles.flex1]}>
+                            <Section
+                                title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
+                                icon={Illustrations.ConciergeBlue}
+                            >
+                                <Text>
+                                    {this.props.translate('validationStep.maxAttemptsReached')}
+                                    {' '}
+                                    {this.props.translate('common.please')}
+                                    {' '}
+                                    <TextLink onPress={Report.navigateToConciergeChat}>
+                                        {this.props.translate('common.contactUs')}
+                                    </TextLink>
+                                    .
+                                </Text>
+                            </Section>
                         </View>
                     )}
                     {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (

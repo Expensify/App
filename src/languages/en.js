@@ -167,6 +167,16 @@ export default {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
+        conciergePlaceholderOptions: [
+            'Ask for help!',
+            'Ask me anything!',
+            'Ask me to book travel!',
+            'Ask me what I can do!',
+            'Ask me how to pay people!',
+            'Ask me how to send an invoice!',
+            'Ask me how to scan a receipt!',
+            'Ask me how to get a free corporate card!',
+        ],
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
@@ -776,7 +786,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
-        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {

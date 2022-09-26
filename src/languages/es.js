@@ -167,6 +167,16 @@ export default {
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
         sayHello: 'Di hola!',
+        conciergePlaceholderOptions: [
+            '¡Pide ayuda!',
+            '¡Pregúntame lo que sea!',
+            '¡Pídeme que te reserve un viaje!',
+            '¡Pregúntame qué puedo hacer!',
+            '¡Pregúntame cómo pagar a la gente!',
+            '¡Pregúntame cómo enviar una factura!',
+            '¡Pregúntame cómo escanear un recibo!',
+            '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!',
+        ],
         blockedFromConcierge: 'Comunicación no permitida',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
@@ -778,7 +788,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
-        offlineMessage: 'Parece que estás desconectado.',
     },
     workspace: {
         common: {
