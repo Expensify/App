@@ -455,13 +455,11 @@ function getOptions(reports, personalDetails, activeReportID, {
     sortByAlphaAsc = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
-    prioritizeReportsWithDraftComments = false,
 }) {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     let personalDetailsOptions = [];
-    const iouDebtReportOptions = [];
     const draftReportOptions = [];
     const reportMapForLogins = {};
 
@@ -559,8 +557,6 @@ function getOptions(reports, personalDetails, activeReportID, {
             if (prioritizePinnedReports && reportOption.isPinned
                 && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
                 pinnedReportOptions.push(reportOption);
-            } else if (prioritizeReportsWithDraftComments && reportOption.hasDraftComment) {
-                draftReportOptions.push(reportOption);
             } else {
                 recentReportOptions.push(reportOption);
             }
@@ -570,13 +566,6 @@ function getOptions(reports, personalDetails, activeReportID, {
                 loginOptionsToExclude.push({login: reportOption.login});
             }
         }
-    }
-
-    // If we are prioritizing reports with draft comments, add them before the normal recent report options
-    // and sort them by report name.
-    if (prioritizeReportsWithDraftComments) {
-        const sortedDraftReports = lodashOrderBy(draftReportOptions, ['text'], ['asc']);
-        recentReportOptions = sortedDraftReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
