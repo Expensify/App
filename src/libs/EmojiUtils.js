@@ -211,8 +211,8 @@ function replaceEmojis(text) {
     if (!emojiData || emojiData.length === 0) { return text; }
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.isWord(emojiData[i].slice(1, -1));
-        if (checkEmoji && checkEmoji.getCode()) {
-            newText = newText.replace(emojiData[i], checkEmoji.getCode());
+        if (checkEmoji && checkEmoji.metaData.code) {
+            newText = newText.replace(emojiData[i], checkEmoji.metaData.code);
         }
     }
     return newText;
@@ -221,12 +221,32 @@ function replaceEmojis(text) {
 /**
  * Suggest emojis when typing emojis prefix after colon
  * @param {String} text
- * @returns {String}
+ * @param {Number} [limit] - matching emojis limit
+ * @returns {Array}
  */
-function suggestEmojis(text) {
+function suggestEmojis(text, limit = 5) {
     const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
     if (emojiData) {
-        return emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1));
+        const matching = [];
+        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1));
+        for (let j = 0; j < nodes.length; j++) {
+            if (nodes[j].metaData.code && !_.find(matching, obj => obj.name === nodes[j].name)) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                matching.unshift({code: nodes[j].metaData.code, name: nodes[j].name});
+            }
+            const suggestions = nodes[j].metaData.suggestions;
+            for (let i = 0; i < suggestions.length; i++) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                if (!_.find(matching, obj => obj.name === suggestions[i].name)) {
+                    matching.unshift(suggestions[i]);
+                }
+            }
+        }
+        return matching;
     }
     return [];
 }

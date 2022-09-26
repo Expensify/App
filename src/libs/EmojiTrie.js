@@ -11,7 +11,7 @@ for (let i = 0; i < emojis.length; i++) {
         if (!node) {
             emojisTrie.add(emojis[i].name, {code: emojis[i].code, suggestions: []});
         } else {
-            emojisTrie.update(emojis[i].name, {code: emojis[i].code, suggestions: node.getMetaData().suggestions});
+            emojisTrie.update(emojis[i].name, {code: emojis[i].code, suggestions: node.metaData.suggestions});
         }
 
         if (emojis[i].keywords) {
@@ -21,7 +21,7 @@ for (let i = 0; i < emojis.length; i++) {
                     emojisTrie.add(emojis[i].keywords[j], {suggestions: [{code: emojis[i].code, name: emojis[i].name}]});
                 } else {
                     emojisTrie.update(emojis[i].keywords[j],
-                        {...keywordNode.getMetaData(), suggestions: [...keywordNode.getMetaData().suggestions, {code: emojis[i].code, name: emojis[i].name}]});
+                        {...keywordNode.metaData, suggestions: [...keywordNode.metaData.suggestions, {code: emojis[i].code, name: emojis[i].name}]});
                 }
             }
         }
