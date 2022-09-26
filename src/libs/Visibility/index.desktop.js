@@ -14,13 +14,13 @@ function isVisible() {
 }
 
 /**
- * Event subscription for changes in visibility state
+ * Adds event listener for changes in visibility state
  *
  * @param {Function} callback
  *
  * @return {Object} To have .remove() invoked to remove listener
  */
-function onChange(callback) {
+function addEventListener(callback) {
     window.electron.on(ELECTRON_EVENTS.FOCUS, callback);
     window.electron.on(ELECTRON_EVENTS.BLUR, callback);
 
@@ -34,5 +34,5 @@ function onChange(callback) {
 
 export default {
     isVisible,
-    onChange,
+    addEventListener,
 };
