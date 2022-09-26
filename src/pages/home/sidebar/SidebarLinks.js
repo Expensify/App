@@ -100,11 +100,7 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-
-        Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
         const optionListItems = SidebarUtils.getOrderedReportIDs();
-        Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
-
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
