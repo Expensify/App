@@ -13,7 +13,18 @@ To run the e2e tests:
 
  2. Make sure fastlane was initialized by running `bundle install` 
 
- 3. Run the tests with `npm run test:e2e`. 
+ 3. Run the tests with `npm run test:e2e`.
+
+## Performance regression testing
+
+The output of the tests is a set of performance metrics (see video above).
+The test will tell you if the performance significantly worsened for any test case.
+
+For this to work you need a baseline you test against. The baseline is set by default
+to the main branch.
+
+The test suite will run each test twice, once on the baseline, and then on the branch
+you are currently on.
 
 ## Structure
 
