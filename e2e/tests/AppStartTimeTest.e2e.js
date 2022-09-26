@@ -103,4 +103,3 @@ const runTest = async () => {
 };
 
 module.exports = runTest;
-runTest();
