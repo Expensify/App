@@ -114,7 +114,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.clientID}${item.action.reportActionID}${item.action.sequenceNumber}`;
+        return item.action.reportActionID;
     }
 
     /**
@@ -164,7 +164,7 @@ class ReportActionsList extends React.Component {
     renderCell({item, style, ...props}) {
         const cellStyle = [
             style,
-            {zIndex: item.action.sequenceNumber},
+            {zIndex: item.action.timestamp},
         ];
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View style={cellStyle} {...props} />;

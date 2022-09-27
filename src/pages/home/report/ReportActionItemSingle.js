@@ -87,9 +87,9 @@ const ReportActionItemSingle = (props) => {
                             onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(props.action.actorEmail)}
                         >
-                            {_.map(personArray, (fragment, index) => (
+                            {_.map(personArray, fragment => (
                                 <ReportActionItemFragment
-                                    key={`person-${props.action.sequenceNumber}-${index}`}
+                                    key={`person-${props.action.reportActionID}`}
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}

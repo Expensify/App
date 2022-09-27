@@ -28,9 +28,9 @@ const defaultProps = {
 
 const ReportActionItemMessage = props => (
     <View style={[styles.chatItemMessage, ...props.style]}>
-        {_.map(_.compact(props.action.previousMessage || props.action.message), (fragment, index) => (
+        {_.map(_.compact(props.action.previousMessage || props.action.message), fragment => (
             <ReportActionItemFragment
-                key={`actionFragment-${props.action.sequenceNumber}-${index}`}
+                key={`actionFragment-${props.action.reportActionID}`}
                 fragment={fragment}
                 isAttachment={props.action.isAttachment}
                 attachmentInfo={props.action.attachmentInfo}
