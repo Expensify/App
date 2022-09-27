@@ -79,8 +79,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     // collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         if (testResult.error != null) {
-            Logger.info(`Test '${testResult.name}' failed with error: ${testResult.error}`);
-            return;
+            throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
         if (testResult.duration < 0) {
             return;
