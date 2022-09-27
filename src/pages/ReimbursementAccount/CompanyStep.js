@@ -158,10 +158,7 @@ class CompanyStep extends React.Component {
 
         const bankAccount = {
             // Fields from BankAccount step
-            ...ReimbursementAccountUtils.getBankAccountFields(
-                this.props,
-                ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'setupType', 'isSavings'],
-            ),
+            ...ReimbursementAccountUtils.getBankAccountFields(this.props, ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
 
             // Fields from Company step
             ...this.state,
