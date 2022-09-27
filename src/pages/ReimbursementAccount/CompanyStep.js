@@ -156,13 +156,21 @@ class CompanyStep extends React.Component {
             return;
         }
 
-        const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.updateCompanyInformationForBankAccount({
+        const bankAccount = {
+            // Fields from BankAccount step
+            ...ReimbursementAccountUtils.getBankAccountFields(
+                this.props,
+                ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'setupType', 'isSavings'],
+            ),
+
+            // Fields from Company step
             ...this.state,
-            incorporationDate,
+            incorporationDate: moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING),
             companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.state.companyPhone),
-        });
+        };
+
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
     }
 
     render() {

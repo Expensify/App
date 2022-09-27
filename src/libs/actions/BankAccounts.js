@@ -1,11 +1,9 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
-import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -218,55 +216,36 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * @param {Object} data
- * @returns {Object}
- */
-function mergeWithLocalACHData(data) {
-    const updatedACHData = {
-        ...store.getReimbursementAccountInSetup(),
-        ...data,
-
-        // This param tells Web-Secure that this bank account is from NewDot so we can modify links back to the correct
-        // app in any communications. It also will be used to provision a customer for the Expensify card automatically
-        // once their bank account is successfully validated.
-        enableCardAfterVerified: true,
-    };
-
-    if (data && !_.isUndefined(data.isSavings)) {
-        updatedACHData.isSavings = Boolean(data.isSavings);
-    }
-    if (!updatedACHData.setupType) {
-        updatedACHData.setupType = updatedACHData.plaidAccountID
-            ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
-            : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
-    }
-
-    return updatedACHData;
-}
-
-/**
  * Updates the bank account in the database with the company step data
  *
- * @param {Object} params
- * @param {String} [params.companyName]
- * @param {String} [params.addressStreet]
- * @param {String} [params.addressCity]
- * @param {String} [params.addressState]
- * @param {String} [params.addressZipCode]
- * @param {String} [params.companyPhone]
- * @param {String} [params.website]
- * @param {String} [params.companyTaxID]
- * @param {String} [params.incorporationType]
- * @param {String} [params.incorporationState]
- * @param {String} [params.incorporationDate]
- * @param {Boolean} [params.hasNoConnectionToCannabis]
+ * @param {Object} bankAccount
+ * @param {Number} [bankAccount.bankAccountID]
+ *
+ * Fields from BankAccount step
+ * @param {String} [bankAccount.routingNumber]
+ * @param {String} [bankAccount.accountNumber]
+ * @param {String} [bankAccount.bankName]
+ * @param {String} [bankAccount.plaidAccountID]
+ * @param {String} [bankAccount.plaidAccessToken]
+ * @param {String} [bankAccount.setupType]
+ * @param {Boolean} [bankAccount.isSavings]
+ *
+ * Fields from Company step
+ * @param {String} [bankAccount.companyName]
+ * @param {String} [bankAccount.addressStreet]
+ * @param {String} [bankAccount.addressCity]
+ * @param {String} [bankAccount.addressState]
+ * @param {String} [bankAccount.addressZipCode]
+ * @param {String} [bankAccount.companyPhone]
+ * @param {String} [bankAccount.website]
+ * @param {String} [bankAccount.companyTaxID]
+ * @param {String} [bankAccount.incorporationType]
+ * @param {String} [bankAccount.incorporationState]
+ * @param {String} [bankAccount.incorporationDate]
+ * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
  */
-function updateCompanyInformationForBankAccount(params) {
-    API.write(
-        'UpdateCompanyInformationForBankAccount',
-        mergeWithLocalACHData(params),
-        getVBBADataForOnyx(),
-    );
+function updateCompanyInformationForBankAccount(bankAccount) {
+    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
 }
 
 /**
