@@ -53,7 +53,7 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidBankAccount: undefined,
+            selectedPlaidBankAccount: lodashGet(this.props, 'personalBankAccount.pendingFields.selectedBankAccount', {}),
             password: '',
         };
 
@@ -117,7 +117,6 @@ class AddPersonalBankAccountPage extends React.Component {
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
-        const error = lodashGet(this.props, 'personalBankAccount.error', '');
         const isLoading = lodashGet(this.props, 'personalBankAccount.isLoading', false);
 
         return (
@@ -173,8 +172,9 @@ class AddPersonalBankAccountPage extends React.Component {
                                         }}
                                         onExitPlaid={Navigation.goBack}
                                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                        selectedPlaidBankAccount={this.state.selectedPlaidBankAccount}
                                     />
-                                    {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                                    {!_.isEmpty(this.state.selectedPlaidBankAccount) && (
                                         <View style={[styles.mb5]}>
                                             <TextInput
                                                 label={this.props.translate('addPersonalBankAccountPage.enterPassword')}

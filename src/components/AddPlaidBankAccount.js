@@ -128,8 +128,10 @@ class AddPlaidBankAccount extends React.Component {
             value: account.plaidAccountID, label: `${account.addressName} ${account.mask}`,
         }));
         const institutionName = lodashGet(this.props, 'plaidData.institution.name', '');
-        const selectedPlaidBankAccount = lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {});
         const {icon, iconSize} = getBankIcon();
+
+        // Show selected plaid bank account. If not set, check the props to see if we have one pre-selected
+        const selectedPlaidBankAccount = lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', this.props.selectedPlaidBankAccount || {});
 
         // Plaid Link view
         if (!plaidBankAccounts.length) {
