@@ -23,7 +23,7 @@ const propTypes = {
 
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat: PropTypes.bool,
-    }),
+    }).isRequired,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -35,7 +35,6 @@ const propTypes = {
     }),
 };
 const defaultProps = {
-    report: {},
     personalDetails: {},
     policies: {},
 };
