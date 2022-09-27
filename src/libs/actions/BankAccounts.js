@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -43,14 +43,9 @@ function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
-/** Reimbursement account actively being set up */
-let reimbursementAccountInSetup = {};
-Onyx.connect({
-    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    callback: (val) => {
-        reimbursementAccountInSetup = lodashGet(val, 'achData', {});
-    },
-});
+function updatePlaidData(plaidData) {
+    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
+}
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
@@ -197,7 +192,7 @@ function updatePersonalInformationForBankAccount(params) {
  */
 function mergeWithLocalACHData(data) {
     const updatedACHData = {
-        ...reimbursementAccountInSetup,
+        ...store.getReimbursementAccountInSetup(),
         ...data,
 
         // This param tells Web-Secure that this bank account is from NewDot so we can modify links back to the correct
