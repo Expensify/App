@@ -1,4 +1,6 @@
+import _ from 'underscore';
 import PropTypes from 'prop-types';
+import CONST from '../CONST';
 
 export default PropTypes.shape({
     /** Name of the report */
@@ -34,15 +36,36 @@ export default PropTypes.shape({
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat: PropTypes.bool,
 
-    chatType: PropTypes.string,
+    /** The specific type of chat */
+    chatType: PropTypes.oneOf(_.values(CONST.REPORT.CHAT_TYPE)),
+
+    /** The email address of the report owner */
     ownerEmail: PropTypes.string,
+
+    /** Indicates if the report is pinned to the LHN or not */
     isPinned: PropTypes.bool,
+
+    /** The last time the report was visited */
     lastVisitedTimestamp: PropTypes.number,
+
+    /** The sequence number of the last action read by the user */
     lastReadSequenceNumber: PropTypes.number,
+
+    /** The time of the last message on the report */
     lastMessageTimestamp: PropTypes.number,
+
+    /** The text of the last message on the report */
     lastMessageText: PropTypes.string,
+
+    /** The email of the last message's actor */
     lastActorEmail: PropTypes.string,
-    stateNum: PropTypes.number,
-    statusNum: PropTypes.number,
+
+    /** The state that the report is currently in */
+    stateNum: PropTypes.oneOf(_.values(CONST.REPORT.STATE_NUM)),
+
+    /** The status of the current report */
+    statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS)),
+
+    /** The policy name to use for an archived report */
     oldPolicyName: PropTypes.string,
 });
