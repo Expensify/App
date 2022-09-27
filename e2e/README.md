@@ -15,6 +15,8 @@ To run the e2e tests:
 
 3. Run the tests with `npm run test:e2e`.
 
+Ideally you want to run these tests on your branch before you want to merge your new feature to `main`.
+
 ## Performance regression testing
 
 The output of the tests is a set of performance metrics (see video above).
