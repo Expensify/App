@@ -125,7 +125,7 @@ function openPaymentsPage() {
  * @return {Array}
  *
  */
-function getMakeDefaultPaymentOnyxData(bankAccountID, fundID,previousPaymentMethod, currentPaymentMethod, optimistic = true){
+function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, optimistic = true) {
     return [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
