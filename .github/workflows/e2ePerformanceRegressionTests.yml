@@ -1,4 +1,4 @@
-name: Deploy code to staging or production
+name: Run e2e performance regression tests
 
 # TODO: change that once we settled on when to run this workflow
 on:
