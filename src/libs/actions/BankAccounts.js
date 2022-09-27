@@ -227,7 +227,6 @@ function validateBankAccount(bankAccountID, validateCode) {
  * @param {String} [bankAccount.bankName]
  * @param {String} [bankAccount.plaidAccountID]
  * @param {String} [bankAccount.plaidAccessToken]
- * @param {String} [bankAccount.setupType]
  * @param {Boolean} [bankAccount.isSavings]
  *
  * Fields from Company step
