@@ -335,12 +335,46 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
- * Sets local values for the policy
+ * Updates a workspace avatar image
+ *
  * @param {String} policyID
- * @param {Object} values
+ * @param {File|Object} file
  */
-function updateLocalPolicyValues(policyID, values) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+function updateWorkspaceAvatar(policyID, file) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: file.uri,
+            errorFields: {
+                avatar: null,
+            },
+            pendingFields: {
+                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    }];
+
+    API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -419,20 +453,16 @@ function clearAvatarErrors(policyID) {
  * @param {Boolean} [shouldGrowl]
  */
 function update(policyID, values, shouldGrowl = false) {
-    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
     DeprecatedAPI.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
                 throw new Error();
             }
 
-            updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
             if (shouldGrowl) {
                 Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             }
         }).catch(() => {
-            updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
-
             // Show the user feedback
             const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
