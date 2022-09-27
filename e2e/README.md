@@ -21,10 +21,12 @@ The output of the tests is a set of performance metrics (see video above).
 The test will tell you if the performance significantly worsened for any test case.
 
 For this to work you need a baseline you test against. The baseline is set by default
-to the main branch.
+to the `main` branch.
 
-The test suite will run each test twice, once on the baseline, and then on the branch
+The test suite will run each test-case twice, once on the baseline, and then on the branch
 you are currently on.
+
+It will run the tests of a test case multiple time to average out the results.
 
 ## Structure
 
@@ -32,125 +34,54 @@ For the test suite, no additional tooling was used. It is made of the following
 components:
 
 - Test server:
-  - A nodeJS application that starts a WebSocket server.
-  - Responsible for the communication between the test script and the app.
+  - A nodeJS application that starts an HTTP server.
+  - Receives test results from the app.
   - Located in `e2e/server`.
 
 - Client:
-  - Client-side code (app) is needed for communication with the test server.
-  - Execute commands received by the server and sends back the results.
+  - Client-side code (app) for communication with the test server.
   - Provides separate entry-point for react native application.
-  - Located in `src/libs/e2e`.
+  - Located in `src/libs/E2E/client.js`.
 
-- The tests themselves and their utilities:
-  - The file with the test procedure, using commands of the test server.
-  - Utilities for helping with the execution of the test, measuring and comparing results.
-  - Located in `e2e/tests` (and accompanying directories).
+- The test runner:
+  - Orchestrates the test suite.
+  - Runs the app with the tests on a device
+  - Responsible for gathering and comparing results
+  - Located in `e2e/testRunner.js`.
 
-### Server Client communication
+- The tests themselves :
+  - Currently, there is only one test case, which test the performance of the app start time
+  - The tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
+  - Located inside the app `src/libs/E2E/reactNativeLaunchingTest.js`
 
-The communication between the test server and the app is done via a WebSocket.
+## How a test gets executed
 
-For every command sent from the server to the client, the client is expected to respond.
+There exists a custom android entry point for the app, which is used for the e2e tests.
+The entry file used is `src/libs/E2E/reactNativeEntry.js`, and here we can add our test case.
 
-The server's commands API will return promises, which will resolve (or reject) based on the
-client’s response (or reject due to a timeout). Thus, you can write your tests in a procedural
-manner.
+The test case should only execute its test once. The _test runner_ is responsible for running the
+test multiple time to avergae out the results.
 
-### A test structure
-
-To execute certain actions within the app, the test script sends commands using the test server to the client.
-
-Therefore, it first creates and starts a server instance. On this instance it can now call methods, which represent
-the commands:
+Any results of the test (which is usually a duration, like "Time it took to reopen chat", or "TTI") should be
+submitted to the test server using the client:
 
 ```js
-const createAndStartServer = require('./e2e/server');
+import E2EClient from './client';
 
-createAndStartServer().then((server) => {
-    // the server is now running
-    server.waitForAppReady().then(() => {
-        // ... run some tests
-        
-        // ... and in the end stop the server
-        server.stopServer();
-    })
-})
+// ... run you test logic
+const someDurationWeCollected = // ...
+
+E2EClient.submitTestResults({
+    name: 'My test name',
+    duration: someDurationWeCollected,
+});
 ```
 
-It is important to stop the server instance after your test is done. Each test starts their own
-test server instance, which also implies that the tests will run "in order" and not parallel.
+Submitting test results doesn't automatically finish the test. This enables you do submit multiple test results
+from one test (e.g. measuring multiple things at the same time).
 
-The main entry for the test suite is `e2e/testRunner.js`. After you created a test you need to add it
-in the `TESTS` array.
+To finish a test call `E2EClient.submitTestDone()`.
 
-## Adding new commands
-
-Commands are actions that will run on the client. Note that we **don't** interact on a UI level, doing stuff like
-`element(by.text('Login')).tap();`. A command is javascript code that runs directly inside the app, so you'd do stuff
-like `navigationRef.navigate('Login')` etc.
-
-To add a new command:
-
-1. Create a new command name in `e2e/server/commands.js`:
-```js
-module.exports = {
-  LOGIN: 'login',
-  MY_NEW_COMMAND: 'myNewCommand',
-  // ...
-```
-
-2. The client will receive a command with this name. Now we need to tell the client what to do with it. In `src/libs/e2e/client.js`:
-   add handling for the command. There is a switch statement, in which you can add your case
-```js
-// ...
-const command = JSON.parse(commandStr);
-const commandType = command.type;
-switch (commandType) {
-  case Commands.LOGIN:
-    // ...
-    break;
-  case Commands.MY_NEW_COMMAND: {
-    // Execute some logic here, or add it as a new file 
-    // in `src/libs/E2E/appCommands/myNewCommand.js` and call it here
-    break;
-  }
-}
-```
-
-3. Send a status back to the server. This is important, so the server knows whether your command succeeded. Either use the
-   prebuilt `sendStatus` method, or implement your own response logic:
-```js
-case Commands.MY_NEW_COMMAND: {
-  // ...
-  sendStatus(commandType, 'success');
-  // or maybe you need to send some custom data back:
-  sendData({
-    type: 'myCustomResponseType',
-    customData: {
-        duration: 1231,
-    }
-  });
-}
-```
-
-## Run a single test
-
-You might don't want to execute the whole suite when developing a new test. For that, you can just manually call your test:
-
-```bash
-node ./e2e/tests/MyNewTest.e2e.js
-```
-
-Note: if you customised client/app code, you need to recompile the app, as it's a release app that has the app code
-pre-bundled:
-
-```bash
-# make sure Fastlane is installed, you only need to run the following command once:
-bundle install
-
-npm run android-build-e2e
-```
 
 ## Android specifics
 
@@ -169,5 +100,9 @@ into the actual release app.
 For the app to detect that it is currently running e2e tests, an environment variable called `E2E_TESTING=true` must
 be set. There is a custom environment file in `e2e/.env.e2e` that contains the env setup needed. The build automatically
 picks this file for configuration.
+
+It can be useful to debug the app while running the e2e tests (to catch errors durign development of a test).
+You can simply add the `debuggable true` property to the `e2eRelease` buildType config in `android/app/build.gradle`.
+Then rebuild the app. You can now monitor the app's logs using `logcat` (`adb logcat | grep "ReactNativeJS"`).
 
 

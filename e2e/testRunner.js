@@ -81,7 +81,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     // create a dict in which we will store the run durations for all tests
     const durationsByTestName = {};
 
-    // collect durations while tests are being executed
+    // collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         if (testResult.error != null) {
             Logger.info(`Test '${testResult.name}' failed with error: ${testResult.error}`);
@@ -98,6 +98,8 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     // run the tests
     for (const test of TESTS) {
         const testLog = Logger.progressInfo(`Running test '${test.name}'`);
+
+        // We run each test multiple time to average out the results
         for (let i = 0; i < RUNS; i++) {
             const progressText = `Running test '${test.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);

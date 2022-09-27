@@ -38,7 +38,7 @@ const test = () => {
     appReady.then(() => {
         console.debug('[E2E] App is ready, logging in…');
 
-        // check for login (if already logged in the action won't do anything)
+        // check for login (if already logged in the action will simply resolve)
         E2ELogin(email, password).then(() => {
             console.debug('[E2E] Logged in, getting metrics and submitting them…');
 
