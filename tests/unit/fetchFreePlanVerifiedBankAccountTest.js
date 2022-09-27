@@ -121,7 +121,6 @@ describe('getCurrentStep', () => {
                     },
                 }],
                 requestorAddressCity: 'Portland',
-                verifications: {},
             },
         });
         const achData = {};
