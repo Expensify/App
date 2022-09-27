@@ -129,7 +129,7 @@ function getSimplifiedReportObject(report) {
     ]);
 
     return {
-        reportID: report.reportID,
+        reportID: report.reportID.toString(),
         reportName: report.reportName,
         chatType,
         ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
