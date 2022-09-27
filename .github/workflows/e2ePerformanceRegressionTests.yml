@@ -18,8 +18,35 @@ jobs:
           ruby-version: '2.7'
           bundler-cache: true
 
+      #region: Improve emulator startup time, see https://github.com/marketplace/actions/android-emulator-runner
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: AVD cache
+        uses: actions/cache@v3
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-29
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+      #endregion
+
       - name: Start emulator and run tests
         uses: reactivecircus/android-emulator-runner@v2
+        # TODO: remove this once implementation done.
+        env:
+          baseline: dev/ci-e2e-tests
         with:
           api-level: 29
           script: npm run test:e2e
