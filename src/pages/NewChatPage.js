@@ -177,6 +177,18 @@ class NewChatPage extends Component {
         });
     }
 
+    getChatByParticipants(newParticipantList) {
+        const sortedNewParticipantList = newParticipantList.sort();
+        return _.find(this.props.reports, (report) => {
+            // Chat rooms don't have participants, so we can skip them
+            if (!report.participants) {
+                return false;
+            }
+            const sortedReportParticipants = report.participants.sort();
+            return sortedNewParticipantList.join() === sortedReportParticipants.join();
+        });
+    }
+
     /**
      * Creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
@@ -186,7 +198,9 @@ class NewChatPage extends Component {
     createChat(option) {
         let newChat = {};
         const chat = this.getChatByParticipants([option.login]);
-        newChat = buildOptimisticChatReport([option.login]);
+        if (!chat) {
+            newChat = buildOptimisticChatReport([option.login]);
+        }
         const reportID = chat ? chat.reportID : newChat.reportID;
         Report.openReport(reportID, newChat.participants, newChat);
         Navigation.navigate(ROUTES.getReportRoute(reportID));
