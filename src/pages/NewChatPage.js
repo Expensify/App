@@ -215,8 +215,14 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-
-        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+        let newChat = {};
+        const chat = this.getChatByParticipants(userLogins);
+        if (!chat) {
+            newChat = buildOptimisticChatReport(userLogins);
+        }
+        const reportID = chat ? chat.reportID : newChat.reportID;
+        Report.openReport(reportID, newChat.participants, newChat);
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
     }
 
     render() {
