@@ -1,10 +1,14 @@
 const _ = require('underscore');
 const {DROP_WORST} = require('../config');
 
-const sortAndClean = (entries) => {
-    // Drop the worst measurements outliers (usually warm up runs)
-    entries.sort((first, second) => second - first); // DESC
-    return entries.slice(DROP_WORST);
+// simple outlier removal, where we remove at the head and tail entries
+const filterOutliers = (data) => {
+    // Copy the values, rather than operating on references to existing values
+    const values = [...data].sort();
+    const removePerSide = Math.ceil(DROP_WORST / 2);
+    values.splice(0, removePerSide);
+    values.splice(values.length - removePerSide);
+    return values;
 };
 const mean = arr => _.reduce(arr, (a, b) => a + b, 0) / arr.length;
 
@@ -14,7 +18,7 @@ const std = (arr) => {
 };
 
 const getStats = (entries) => {
-    const cleanedEntries = sortAndClean(entries);
+    const cleanedEntries = filterOutliers(entries);
     const meanDuration = mean(cleanedEntries);
     const stdevDuration = std(cleanedEntries);
 
