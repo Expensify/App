@@ -47,60 +47,69 @@ const defaultProps = {
     account: {},
 };
 
-const ResendValidationForm = (props) => {
-    const isSMSLogin = Str.isSMSLogin(props.credentials.login);
-    const login = isSMSLogin ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login)) : props.credentials.login;
-    const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
+class ResendValidationForm extends React.Component {
+    constructor(props) {
+        super(props);
 
-    return (
-        <>
-            <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
-                <Avatar
-                    source={ReportUtils.getDefaultAvatar(props.credentials.login)}
-                    imageStyles={[styles.mr2]}
-                />
-                <View style={[styles.flex1]}>
-                    <Text style={[styles.textStrong]}>
-                        {login}
+        if (this.props.account.errors || this.props.account.message) {
+            Session.clearAccountMessages();
+        }
+    }
+
+    render() {
+        const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
+        const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
+        const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
+
+        return (
+            <>
+                <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <Avatar
+                        source={ReportUtils.getDefaultAvatar(this.props.credentials.login)}
+                        imageStyles={[styles.mr2]}
+                    />
+                    <View style={[styles.flex1]}>
+                        <Text style={[styles.textStrong]}>
+                            {login}
+                        </Text>
+                    </View>
+                </View>
+                <View style={[styles.mv5]}>
+                    <Text>
+                        {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
                     </Text>
                 </View>
-            </View>
-            <View style={[styles.mv5]}>
-                <Text>
-                    {props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
-                </Text>
-            </View>
-            {!_.isEmpty(props.account.message) && (
+                {!_.isEmpty(this.props.account.message) && (
 
-                // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{0: props.account.message}} />
-            )}
-            {!_.isEmpty(props.account.errors) && (
-                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
-            )}
-            <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text>
-                        {props.translate('common.back')}
-                    </Text>
-                </TouchableOpacity>
-                <Button
-                    medium
-                    success
-                    text={props.translate('resendValidationForm.resendLink')}
-                    isLoading={props.account.isLoading}
-                    onPress={() => (props.account.validated ? Session.resendResetPassword() : Session.resendValidationLink())}
-                    isDisabled={props.network.isOffline}
-                />
-            </View>
-            <OfflineIndicator containerStyles={[styles.mv1]} />
-        </>
-    );
-};
+                    // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
+                    <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{0: this.props.account.message}} />
+                )}
+                {!_.isEmpty(this.props.account.errors) && (
+                    <DotIndicatorMessage style={[styles.mb5]} type="error" messages={this.props.account.errors} />
+                )}
+                <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                    <TouchableOpacity onPress={() => redirectToSignIn()}>
+                        <Text>
+                            {this.props.translate('common.back')}
+                        </Text>
+                    </TouchableOpacity>
+                    <Button
+                        medium
+                        success
+                        text={this.props.translate('resendValidationForm.resendLink')}
+                        isLoading={this.props.account.isLoading}
+                        onPress={() => (this.props.account.validated ? Session.resendResetPassword() : Session.resendValidationLink())}
+                        isDisabled={this.props.network.isOffline}
+                    />
+                </View>
+                <OfflineIndicator containerStyles={[styles.mv1]} />
+            </>
+        );
+    }
+}
 
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
-ResendValidationForm.displayName = 'ResendValidationForm';
 
 export default compose(
     withLocalize,
