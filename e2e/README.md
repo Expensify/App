@@ -40,19 +40,19 @@ components:
 
 - Client:
   - Client-side code (app) for communication with the test server.
-  - Provides separate entry-point for react native application.
   - Located in `src/libs/E2E/client.js`.
-
-- The test runner:
-  - Orchestrates the test suite.
-  - Runs the app with the tests on a device
-  - Responsible for gathering and comparing results
-  - Located in `e2e/testRunner.js`.
 
 - The tests themselves :
   - Currently, there is only one test case, which test the performance of the app start time
   - The tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
   - Located inside the app `src/libs/E2E/reactNativeLaunchingTest.js`
+
+- The test runner:
+    - Orchestrates the test suite.
+    - Runs the app with the tests on a device
+    - Responsible for gathering and comparing results
+    - Located in `e2e/testRunner.js`.
+
 
 ## How a test gets executed
 
@@ -60,7 +60,7 @@ There exists a custom android entry point for the app, which is used for the e2e
 The entry file used is `src/libs/E2E/reactNativeEntry.js`, and here we can add our test case.
 
 The test case should only execute its test once. The _test runner_ is responsible for running the
-test multiple time to avergae out the results.
+test multiple time to average out the results.
 
 Any results of the test (which is usually a duration, like "Time it took to reopen chat", or "TTI") should be
 submitted to the test server using the client:

@@ -1,10 +1,12 @@
 /* eslint-disable @lwc/lwc/no-async-await */
 const {createServer} = require('http');
-const EndPoints = require('./endpoints');
+const Routes = require('./routes');
 const Logger = require('../utils/logger');
+const {SERVER_PORT} = require('../config');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || SERVER_PORT;
 
+// gets the request data as a string
 const getReqData = (req) => {
     let data = '';
     req.on('data', (chunk) => {
@@ -18,7 +20,8 @@ const getReqData = (req) => {
     });
 };
 
-const getPostRequestData = async (req, res) => {
+// expects a POST request with JSON data. Returns parsed JSON data.
+const getPostJSONRequestData = async (req, res) => {
     if (req.method !== 'POST') {
         res.statusCode = 400;
         res.end('Unsupported method');
@@ -36,6 +39,7 @@ const getPostRequestData = async (req, res) => {
 };
 
 /**
+ * The test result object that a client might submit to the server.
  * @typedef TestResult
  * @property {string} name
  * @property {number} duration Milliseconds
@@ -55,6 +59,8 @@ const getPostRequestData = async (req, res) => {
  *  - POST: /test_results, expects a {@link TestResult} as JSON body.
  *          Send test results while a test runs.
  *  - GET: /test_done, expected to be called when test run signals it's done
+ *
+ *  It returns an instance to which you can add listeners for the test results, and test done events.
  */
 const createServerInstance = () => {
     const testResultListeners = [];
@@ -86,9 +92,10 @@ const createServerInstance = () => {
     const server = createServer(async (req, res) => {
         res.statusCode = 200;
         switch (req.url) {
-            case EndPoints.testResults: {
-                const data = await getPostRequestData(req, res);
+            case Routes.testResults: {
+                const data = await getPostJSONRequestData(req, res);
                 if (data == null) {
+                    // the getPostJSONRequestData function already handled the response
                     return;
                 }
 
@@ -98,12 +105,14 @@ const createServerInstance = () => {
 
                 return res.end('ok');
             }
-            case EndPoints.testDone: {
+
+            case Routes.testDone: {
                 testDoneListeners.forEach((listener) => {
                     listener();
                 });
                 return res.end('ok');
             }
+
             default:
                 res.statusCode = 404;
                 res.end('Page not found!');
