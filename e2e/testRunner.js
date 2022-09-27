@@ -91,13 +91,15 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     });
 
     // run the tests
-    for (const config of _.values(TESTS_CONFIG)) {
-        const testLog = Logger.progressInfo(`Running test '${config.name}'`);
+    const numOfTests = _.values(TESTS_CONFIG).length;
+    for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
+        const config = _.values(TESTS_CONFIG)[testIndex];
         server.setTestConfig(config);
 
         // We run each test multiple time to average out the results
+        const testLog = Logger.progressInfo(`Running test '${config.name}'`);
         for (let i = 0; i < RUNS; i++) {
-            const progressText = `Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
+            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
 
             // TODO: when adding more test cases, we'd need to tell the app here, which test to start
