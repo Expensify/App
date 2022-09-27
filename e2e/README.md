@@ -37,6 +37,17 @@ To add a test checkout the [designed guide](./ADDING_TESTS.md).
 For the test suite, no additional tooling was used. It is made of the following
 components:
 
+- The tests themselves :
+  - The tests are located in `src/libs/E2E/tests`
+  - As opposed to other test frameworks, the tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
+  - For the tests there is a custom entry for react native, located in `src/libs/E2E/reactNativeLaunchingTest.js`
+
+- The test runner:
+    - Orchestrates the test suite.
+    - Runs the app with the tests on a device
+    - Responsible for gathering and comparing results
+    - Located in `e2e/testRunner.js`.
+
 - Test server:
   - A nodeJS application that starts an HTTP server.
   - Receives test results from the app.
@@ -45,17 +56,6 @@ components:
 - Client:
   - Client-side code (app) for communication with the test server.
   - Located in `src/libs/E2E/client.js`.
-
-- The tests themselves :
-  - Currently, there is only one test case, which tests the performance of the app start time.
-  - As opposed to other test frameworks, the tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
-  - Located inside the app `src/libs/E2E/reactNativeLaunchingTest.js`
-
-- The test runner:
-    - Orchestrates the test suite.
-    - Runs the app with the tests on a device
-    - Responsible for gathering and comparing results
-    - Located in `e2e/testRunner.js`.
 
 
 ## How a test gets executed

@@ -6,15 +6,15 @@
 
 // start the usual app
 import '../../../index';
-
-import _ from 'underscore';
 import Performance from '../Performance';
-import E2ELogin from './actions/e2eLogin';
-import E2EClient from './client';
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
 console.debug('==========================');
+
+const tests = [
+    require('./tests/appStartTimeTest.e2e').default,
+];
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
 const appReady = new Promise((resolve) => {
@@ -27,38 +27,10 @@ const appReady = new Promise((resolve) => {
     });
 });
 
-// TODO: when supporting multiple test cases, this file will decide which test to run.
-//       The test cases will then be separated in a accompanying /tests folder.
-
-const test = () => {
-    const email = 'applausetester+perf2@applause.expensifail.com';
-    const password = 'Password123';
-
-    console.debug('[E2E] App startup time test launched, waiting for app to become ready…');
-    appReady.then(() => {
-        console.debug('[E2E] App is ready, logging in…');
-
-        // check for login (if already logged in the action will simply resolve)
-        E2ELogin(email, password).then(() => {
-            console.debug('[E2E] Logged in, getting metrics and submitting them…');
-
-            // collect performance metrics and submit
-            const metrics = Performance.getPerformanceMetrics();
-
-            // underscore promises in sequence without for-loop
-            Promise.all(
-                _.map(metrics, metric => E2EClient.submitTestResults({
-                    name: metric.name,
-                    duration: metric.duration,
-                })),
-            ).then(() => {
-                console.debug('[E2E] Done, exiting…');
-                E2EClient.submitTestDone();
-            }).catch((err) => {
-                console.debug('[E2E] Error while submitting test results:', err);
-            });
-        });
-    });
-};
-test();
+console.debug('[E2E] App startup time test launched, waiting for app to become ready…');
+appReady.then(() => {
+    // TODO: when supporting multiple test cases, this file will decide which test to run.
+    //       The test cases will then be separated in a accompanying /tests folder.
+    tests[0]();
+});
 
