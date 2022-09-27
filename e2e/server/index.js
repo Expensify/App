@@ -89,9 +89,27 @@ const createServerInstance = () => {
         };
     };
 
+    let activeTestConfig;
+
+    /**
+     * @param {TestConfig} testConfig
+     */
+    const setTestConfig = (testConfig) => {
+        activeTestConfig = testConfig;
+    };
+
     const server = createServer(async (req, res) => {
         res.statusCode = 200;
         switch (req.url) {
+            case Routes.testConfig: {
+                if (activeTestConfig == null) {
+                    res.statusCode = 404;
+                    res.end('No test config available');
+                    return;
+                }
+                return res.end(JSON.stringify(activeTestConfig));
+            }
+
             case Routes.testResults: {
                 const data = await getPostJSONRequestData(req, res);
                 if (data == null) {
@@ -120,6 +138,7 @@ const createServerInstance = () => {
     });
 
     return {
+        setTestConfig,
         addTestResultListener,
         addTestDoneListener,
         start: () => new Promise(resolve => server.listen(PORT, resolve)),

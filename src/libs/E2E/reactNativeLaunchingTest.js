@@ -7,14 +7,17 @@
 // start the usual app
 import '../../../index';
 import Performance from '../Performance';
+import E2EConfig from '../../../e2e/config';
+import E2EClient from './client';
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
 console.debug('==========================');
 
-const tests = [
-    require('./tests/appStartTimeTest.e2e').default,
-];
+// import your test here, define its name and config first in e2e/config.js
+const tests = {
+    [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e'),
+};
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
 const appReady = new Promise((resolve) => {
@@ -27,10 +30,21 @@ const appReady = new Promise((resolve) => {
     });
 });
 
+const testConfig = E2EClient.getTestConfig();
+
 console.debug('[E2E] App startup time test launched, waiting for app to become ready…');
-appReady.then(() => {
-    // TODO: when supporting multiple test cases, this file will decide which test to run.
-    //       The test cases will then be separated in a accompanying /tests folder.
-    tests[0]();
+testConfig.then((config) => {
+    const test = tests[config.name];
+    if (!test) {
+        // instead of throwing, report the error to the server, which is better for UX
+        return E2EClient.submitTestResults({
+            name: config.name,
+            error: `Test ${config.name} not found`,
+        });
+    }
+
+    appReady.then(() => {
+        test();
+    });
 });
 

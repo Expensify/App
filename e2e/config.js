@@ -1,5 +1,15 @@
 const OUTPUT_DIR = 'e2e/.results';
 
+/**
+ * @typedef TestConfig
+ * @property {string} name
+ */
+
+// add your test name here …
+const TEST_NAMES = {
+    AppStartTime: 'App start time',
+};
+
 module.exports = {
     APP_PACKAGE: 'com.expensify.chat',
 
@@ -22,6 +32,22 @@ module.exports = {
     // The file we write logs to
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 
-    // The time in milliseconds after which a operation fails due to timeout
+    // The time in milliseconds after which an operation fails due to timeout
     INTERACTION_TIMEOUT: 30_000,
+
+    TEST_NAMES,
+
+    /**
+     * Add your test configurations here. At least,
+     * you need to add a name for your test.
+     *
+     * @type {Object.<string, TestConfig>}
+     */
+    TESTS_CONFIG: {
+        [TEST_NAMES.AppStartTime]: {
+            name: TEST_NAMES.AppStartTime,
+
+            // ... any additional config you might need
+        },
+    },
 };

@@ -31,7 +31,15 @@ const submitTestResults = testResult => fetch(`${SERVER_ADDRESS}${Routes.testRes
 
 const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
 
+/**
+ * @returns {Promise<TestConfig>}
+ */
+const getTestConfig = () => fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
+    .then(res => res.json())
+    .then(config => config);
+
 export default {
     submitTestResults,
     submitTestDone,
+    getTestConfig,
 };
