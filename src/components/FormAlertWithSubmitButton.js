@@ -58,11 +58,9 @@ const FormAlertWithSubmitButton = props => (
         {isOffline => ((isOffline && !props.enabledWhenOffline) ? (
             <Button
                 success
-                pressOnEnter
+                isDisabled
                 text={props.buttonText}
-                onPress={props.onSubmit}
-                isDisabled={props.isDisabled}
-                isLoading={props.isLoading}
+                style={[styles.mb3]}
             />
         ) : (
             <Button
