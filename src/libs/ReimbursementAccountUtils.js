@@ -27,8 +27,6 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
 }
 
 /**
- * Get bank account fields
- *
  * @param {Object} props
  * @param {Array} fieldNames
  *
