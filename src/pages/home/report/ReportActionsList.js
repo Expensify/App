@@ -44,7 +44,7 @@ const propTypes = {
     })).isRequired,
 
     /** The sequence number of the most recent IOU report connected with the shown report */
-    mostRecentIOUReportSequenceNumber: PropTypes.number,
+    mostRecentIOUReportActionID: PropTypes.string,
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
@@ -64,7 +64,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    mostRecentIOUReportSequenceNumber: undefined,
+    mostRecentIOUReportActionID: undefined,
     isLoadingMoreReportActions: false,
 };
 
@@ -144,7 +144,7 @@ class ReportActionsList extends React.Component {
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
+                isMostRecentIOUReportAction={item.action.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />
