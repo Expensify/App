@@ -416,7 +416,8 @@ function cleanupSession() {
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         success: '',
-        errors: [],
+        errors: null,
+        message: null,
         isLoading: false,
     });
 }
