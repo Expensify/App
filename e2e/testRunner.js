@@ -14,6 +14,7 @@ const {
     OUTPUT_DIR,
     LOG_FILE,
     RUNS,
+    TESTS,
 } = require('./config');
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
@@ -30,12 +31,6 @@ const withFailTimeout = require('./utils/withFailTimeout');
 const args = process.argv.slice(2);
 
 const baselineBranch = process.env.baseline || DEFAULT_BASELINE_BRANCH;
-
-const TESTS = [
-    {
-        name: 'App start time',
-    },
-];
 
 // clear all files from previous jobs
 try {
@@ -98,6 +93,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     // run the tests
     for (const test of TESTS) {
         const testLog = Logger.progressInfo(`Running test '${test.name}'`);
+        server.setTestConfig(test);
 
         // We run each test multiple time to average out the results
         for (let i = 0; i < RUNS; i++) {
