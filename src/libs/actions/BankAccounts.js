@@ -46,6 +46,10 @@ function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
+function clearOnfido() {
+    Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
+}
+
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  *
@@ -183,6 +187,30 @@ function deletePaymentBankAccount(bankAccountID) {
 }
 
 /**
+* Update the user's personal information on the bank account in database.
+*
+* This action is called by the requestor step in the Verified Bank Account flow
+*
+* @param {Object} params
+*
+* @param {String} [params.dob]
+* @param {String} [params.firstName]
+* @param {String} [params.lastName]
+* @param {String} [params.requestorAddressStreet]
+* @param {String} [params.requestorAddressCity]
+* @param {String} [params.requestorAddressState]
+* @param {String} [params.requestorAddressZipCode]
+* @param {String} [params.ssnLast4]
+* @param {String} [params.isControllingOfficer]
+* @param {Object} [params.onfidoData]
+* @param {Boolean} [params.isOnfidoSetupComplete]
+*/
+function updatePersonalInformationForBankAccount(params) {
+    const bankAccount = store.getReimbursementAccountInSetup();
+    API.write('UpdatePersonalInformationForBankAccount', {bankAccountID: bankAccount.bankAccountID, ...params}, getVBBADataForOnyx());
+}
+
+/**
  * @param {Number} bankAccountID
  * @param {String} validateCode
  */
@@ -253,6 +281,8 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    clearOnfido,
+    updatePersonalInformationForBankAccount,
     validateBankAccount,
     verifyIdentityForBankAccount,
     connectBankAccountWithPlaid,
