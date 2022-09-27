@@ -48,11 +48,11 @@ const progressInfo = (textParam) => {
         },
         done: () => {
             clearInterval(timer);
-            process.stdout.write(`\r✅ ${text} ${getTimeText}\n`);
+            process.stdout.write(`\r✅ ${text} ${getTimeText()}\n`);
         },
         error: () => {
             clearInterval(timer);
-            process.stdout.write(`\r❌ ${text} ${getTimeText}\n`);
+            process.stdout.write(`\r❌ ${text} ${getTimeText()}\n`);
         },
     };
 };
