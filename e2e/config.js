@@ -8,7 +8,6 @@ const OUTPUT_DIR = 'e2e/.results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
-    AnotherTest: 'Another test',
 };
 
 module.exports = {
@@ -49,9 +48,6 @@ module.exports = {
             name: TEST_NAMES.AppStartTime,
 
             // ... any additional config you might need
-        },
-        [TEST_NAMES.AnotherTest]: {
-            name: TEST_NAMES.AnotherTest,
         },
     },
 };
