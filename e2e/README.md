@@ -4,7 +4,7 @@ This directory contains the scripts and configuration files for running the
 performance regression tests. These tests are called E2E tests because they
 run the app on a real device (physical or emulated).
 
-![Example of a e2e test run](./example.gif);
+![Example of a e2e test run](./example.gif)
 
 To run the e2e tests:
 
@@ -28,6 +28,10 @@ you are currently on.
 
 It will run the tests of a test case multiple time to average out the results.
 
+## Adding tests
+
+To add a test checkout the [designed guide](./ADDING_TESTS.md).
+
 ## Structure
 
 For the test suite, no additional tooling was used. It is made of the following
@@ -43,8 +47,8 @@ components:
   - Located in `src/libs/E2E/client.js`.
 
 - The tests themselves :
-  - Currently, there is only one test case, which test the performance of the app start time
-  - The tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
+  - Currently, there is only one test case, which tests the performance of the app start time.
+  - As opposed to other test frameworks, the tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
   - Located inside the app `src/libs/E2E/reactNativeLaunchingTest.js`
 
 - The test runner:
@@ -105,4 +109,11 @@ It can be useful to debug the app while running the e2e tests (to catch errors d
 You can simply add the `debuggable true` property to the `e2eRelease` buildType config in `android/app/build.gradle`.
 Then rebuild the app. You can now monitor the app's logs using `logcat` (`adb logcat | grep "ReactNativeJS"`).
 
+## Test the accuracy of the test suite
+
+If you run the tests on the same branch, the result should ideally be a difference of 0%. However, as the tests
+get executed on an emulator, there will be some variance. This variance is mitigated by using statistical tools
+such as [z-test](https://en.wikipedia.org/wiki/Z-test). However, when running on the same branch, the results
+should be below 5% of change.
+You might want to tweak the values in `e2e/config.js` to adjust those values.
 
