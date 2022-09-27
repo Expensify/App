@@ -1,4 +1,4 @@
-import EndPoints from '../../../e2e/server/endpoints';
+import Routes from '../../../e2e/server/routes';
 import Config from '../../../e2e/config';
 
 const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
@@ -10,7 +10,7 @@ const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
  * @param {TestResult} testResult
  * @returns {Promise<void>}
  */
-const submitTestResults = testResult => fetch(`${SERVER_ADDRESS}${EndPoints.testResults}`, {
+const submitTestResults = testResult => fetch(`${SERVER_ADDRESS}${Routes.testResults}`, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ const submitTestResults = testResult => fetch(`${SERVER_ADDRESS}${EndPoints.test
     });
 });
 
-const submitTestDone = () => fetch(`${SERVER_ADDRESS}${EndPoints.testDone}`);
+const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
 
 export default {
     submitTestResults,
