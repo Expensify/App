@@ -378,12 +378,9 @@ function clearPersonalBankAccount() {
  */
 function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
-        errorFields: {
-            plaidSelector: null,
-        },
+        errors: null,
         pendingFields: {
             plaidSelector: null,
-            selectedPlaidIndex: undefined,
         },
     });
 }

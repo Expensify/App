@@ -197,7 +197,6 @@ class AddPersonalBankAccountPage extends React.Component {
                             <FixedFooter>
                                 <OfflineWithFeedback
                                     pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
-                                    errors={error}
                                 >
                                     <Button
                                         success
