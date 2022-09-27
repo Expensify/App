@@ -11,8 +11,6 @@ export {
     setupWithdrawalAccount,
     fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
-    showBankAccountErrorModal,
-    showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
@@ -42,6 +40,10 @@ function clearPersonalBankAccount() {
 function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+}
+
+function updatePlaidData(plaidData) {
+    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
 /**
@@ -87,6 +89,27 @@ function getVBBADataForOnyx() {
 }
 
 /**
+ * Submit Bank Account step with Plaid data so php can perform some checks.
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} selectedPlaidBankAccount
+ */
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+    const commandName = 'ConnectBankAccountWithPlaid';
+
+    const parameters = {
+        bankAccountID,
+        routingNumber: selectedPlaidBankAccount.routingNumber,
+        accountNumber: selectedPlaidBankAccount.accountNumber,
+        bank: selectedPlaidBankAccount.bankName,
+        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
+        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+    };
+
+    API.write(commandName, parameters, getVBBADataForOnyx());
+}
+
+/**
  * Adds a bank account via Plaid
  *
  * @param {Object} account
@@ -114,7 +137,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: true,
+                    isLoading: true,
                     error: '',
                 },
             },
@@ -124,7 +147,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     error: '',
                     shouldShowSuccess: true,
                 },
@@ -135,7 +158,7 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
                 },
             },
@@ -193,6 +216,24 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
+/*
+ * Create the bank account with manually entered data.
+ *
+ * @param {String} [bankAccountID]
+ * @param {String} [accountNumber]
+ * @param {String} [routingNumber]
+ * @param {String} [plaidMask]
+ *
+ */
+function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
+    API.write('ConnectBankAccountManually', {
+        bankAccountID,
+        accountNumber,
+        routingNumber,
+        plaidMask,
+    }, getVBBADataForOnyx());
+}
+
 /**
  * Verify the user's identity via Onfido
  *
@@ -208,9 +249,12 @@ function verifyIdentityForBankAccount(onfidoData) {
 
 export {
     addPersonalBankAccount,
+    connectBankAccountManually,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
     validateBankAccount,
     verifyIdentityForBankAccount,
+    connectBankAccountWithPlaid,
+    updatePlaidData,
 };
