@@ -12,6 +12,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
+import reportPropTypes from '../../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -41,10 +42,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     ...withLocalizePropTypes,
 };
