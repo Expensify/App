@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
+    /** General errors */
+    error: PropTypes.string,
+
     /** Field specific errors */
     errorFields: PropTypes.shape({
         /** Plaid selector and password fields */
