@@ -256,7 +256,7 @@ class PopoverReportActionContextMenu extends React.Component {
 
     /**
      * Opens the Confirm delete action modal
-     * @param {Number} reportID
+     * @param {String} reportID
      * @param {Object} reportAction
      * @param {Boolean} [shouldSetModalVisibility]
      * @param {Function} [onConfirm]
