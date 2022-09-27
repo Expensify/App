@@ -56,6 +56,7 @@ class CopyTextToClipboard extends React.Component {
             <Text
                 onPress={this.copyToClipboard}
                 style={[styles.flexRow, styles.cursorPointer]}
+                suppressHighlighting
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
                 <Tooltip text={this.props.translate('reportActionContextMenu.copyToClipboard')}>

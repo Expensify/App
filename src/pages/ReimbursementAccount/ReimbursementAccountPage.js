@@ -65,7 +65,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        loading: true,
+        isLoading: true,
     },
     plaidLinkToken: '',
     plaidData: {
@@ -170,7 +170,7 @@ class ReimbursementAccountPage extends React.Component {
         // next step.
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        if (this.props.reimbursementAccount.loading) {
+        if (this.props.reimbursementAccount.isLoading) {
             const isSubmittingVerificationsData = _.contains([
                 CONST.BANK_ACCOUNT.STEP.COMPANY,
                 CONST.BANK_ACCOUNT.STEP.REQUESTOR,
@@ -240,7 +240,7 @@ class ReimbursementAccountPage extends React.Component {
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
                     <EnableStep
-                        achData={this.props.reimbursementAccount.achData}
+                        achData={achData}
                     />
                 )}
                 <WorkspaceResetBankAccountModal />
