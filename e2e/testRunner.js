@@ -14,7 +14,7 @@ const {
     OUTPUT_DIR,
     LOG_FILE,
     RUNS,
-    TESTS,
+    TESTS_CONFIG,
 } = require('./config');
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
@@ -91,13 +91,13 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     });
 
     // run the tests
-    for (const test of TESTS) {
-        const testLog = Logger.progressInfo(`Running test '${test.name}'`);
-        server.setTestConfig(test);
+    for (const config of _.values(TESTS_CONFIG)) {
+        const testLog = Logger.progressInfo(`Running test '${config.name}'`);
+        server.setTestConfig(config);
 
         // We run each test multiple time to average out the results
         for (let i = 0; i < RUNS; i++) {
-            const progressText = `Running test '${test.name}' (iteration ${i + 1}/${RUNS})`;
+            const progressText = `Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
 
             // TODO: when adding more test cases, we'd need to tell the app here, which test to start
