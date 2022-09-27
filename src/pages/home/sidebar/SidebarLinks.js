@@ -162,7 +162,7 @@ class SidebarLinks extends React.Component {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
-                    disableFocusOptions={this.props.isSmallScreenWidth}
+                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
                 />
