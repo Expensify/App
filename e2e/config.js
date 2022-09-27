@@ -7,12 +7,12 @@ module.exports = {
     SERVER_PORT: 3000,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 10,
+    RUNS: 30,
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
     // The amount of outliers to remove from a dataset before calculating the average
-    DROP_WORST: 1,
+    DROP_WORST: 8,
 
     OUTPUT_DIR,
 
