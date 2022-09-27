@@ -63,7 +63,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     progress.done();
 
     // install app and reverse ports
-    const progressLog = Logger.progressInfo('Installing app');
+    let progressLog = Logger.progressInfo('Installing app');
     await installApp('android');
     Logger.log('Reversing port (for connecting to testing server) …');
     await reversePort();
@@ -115,6 +115,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     }
 
     // calculate statistics and write them to our work file
+    progressLog = Logger.progressInfo('Calculating statics and writing results');
     const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
     for (const testName of _.keys(durationsByTestName)) {
         const stats = math.getStats(durationsByTestName[testName]);
@@ -126,6 +127,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             outputFileName,
         );
     }
+    progressLog.done();
 
     // close server
     await server.stop();
