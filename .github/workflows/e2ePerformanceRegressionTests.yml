@@ -42,6 +42,10 @@ jobs:
           script: echo "Generated AVD snapshot for caching."
       #endregion
 
+      # Change JAVA_HOME to be version 11
+      - run: |
+          echo "##vso[task.setvariable variable=JAVA_HOME]$JAVA_HOME_11_X64"
+
       - name: Start emulator and run tests
         uses: reactivecircus/android-emulator-runner@v2
         # TODO: remove this once implementation done.
