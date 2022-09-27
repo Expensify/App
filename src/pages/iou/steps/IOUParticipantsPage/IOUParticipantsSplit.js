@@ -35,7 +35,7 @@ const propTypes = {
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
         isUnread: PropTypes.bool,
-        reportID: PropTypes.number,
+        reportID: PropTypes.string,
     })),
 
     /** All of the personal details for everyone */
