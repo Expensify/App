@@ -34,7 +34,7 @@ function createModalStackNavigator(screens) {
     );
 }
 
-//We use getComponent/require syntax so that file used by screens are not loaded until we need them.
+// We use getComponent/require syntax so that file used by screens are not loaded until we need them.
 const IOUBillStackNavigator = createModalStackNavigator([{
     getComponent: () => {
         const IOUBillPage = require('../../../pages/iou/IOUBillPage').default;
