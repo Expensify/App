@@ -29,7 +29,13 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** The report currently being looked at */
-    report: PropTypes.oneOfType([PropTypes.object]),
+    report: PropTypes.shape({
+        /** The id of the report */
+        reportID: PropTypes.number,
+
+        /** The report owner's email */
+        ownerEmail: PropTypes.string,
+    }).isRequired,
 
     /* Onyx Props */
 
@@ -46,7 +52,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: {},
     policies: {},
 };
 
