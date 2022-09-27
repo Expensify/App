@@ -21,4 +21,21 @@ export default PropTypes.shape({
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
+
+    chatType: PropTypes.string,
+    ownerEmail: PropTypes.string,
+    policyID: PropTypes.string,
+    isPinned: PropTypes.bool,
+    lastVisitedTimestamp: PropTypes.number,
+    lastReadSequenceNumber: PropTypes.number,
+    lastMessageTimestamp: PropTypes.number,
+    lastMessageText: PropTypes.string,
+    lastActorEmail: PropTypes.string,
+    notificationPreference: PropTypes.oneOf('mute', 'daily', 'always'),
+    stateNum: PropTypes.number,
+    statusNum: PropTypes.number,
+    oldPolicyName: PropTypes.string,
+    visibility: PropTypes.string,
+    isOwnPolicyExpenseChat: PropTypes.bool,
+    lastMessageHtml: PropTypes.string,
 });
