@@ -8,6 +8,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
+import {buildOptimisticChatReport} from '../libs/ReportUtils';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -17,6 +18,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import ROUTES from "../ROUTES";
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -32,6 +34,7 @@ const propTypes = {
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
+        participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
     /** Session of currently logged in user */
@@ -181,10 +184,12 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Report.fetchOrCreateChatReport([
-            this.props.session.email,
-            option.login,
-        ]);
+        let newChat = {};
+        const chat = this.getChatByParticipants([option.login]);
+        newChat = buildOptimisticChatReport([option.login]);
+        const reportID = chat ? chat.reportID : newChat.reportID;
+        Report.openReport(reportID, newChat.participants, newChat);
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
     }
 
     /**
