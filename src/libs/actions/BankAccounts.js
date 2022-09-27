@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -29,6 +30,11 @@ export {
     verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
+
+function clearPlaid() {
+    Onyx.set(ONYXKEYS.PLAID_DATA, {});
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+}
 
 function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
@@ -133,7 +139,6 @@ function addPersonalBankAccount(account, password) {
                     errorFields: null,
                     pendingFields: {
                         plaidSelector: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        selectedPlaidIndex: account.selectedPlaidIndex,
                         selectedBankAccount: parameters,
                     },
                 },
@@ -234,5 +239,6 @@ export {
     deletePaymentBankAccount,
     validateBankAccount,
     connectBankAccountWithPlaid,
+    clearPlaid,
     updatePlaidData,
 };
