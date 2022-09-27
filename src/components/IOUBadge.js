@@ -8,25 +8,11 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import CONST from '../CONST';
 import Badge from './Badge';
+import iouReportPropTypes from '../pages/iouReportPropTypes';
 
 const propTypes = {
     /** IOU Report data object */
-    iouReport: PropTypes.shape({
-        /** The report ID of the IOU */
-        reportID: PropTypes.number,
-
-        /** The report ID of the chat associated with the IOU */
-        chatReportID: PropTypes.number,
-
-        /** The total amount in cents */
-        total: PropTypes.number,
-
-        /** The owner of the IOUReport */
-        ownerEmail: PropTypes.string,
-
-        /** The currency of the IOUReport */
-        currency: PropTypes.string,
-    }),
+    iouReport: iouReportPropTypes,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
