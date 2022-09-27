@@ -404,10 +404,6 @@ function update(policyID, values, shouldGrowl = false) {
             if (policyResponse.jsonCode !== 200) {
                 throw new Error();
             }
-
-            if (shouldGrowl) {
-                Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            }
         }).catch(() => {
             // Show the user feedback
             const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
