@@ -90,7 +90,7 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
+        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(_.toArray(props.reportActions));
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
@@ -126,7 +126,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
+            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(_.toArray(nextProps.reportActions));
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }

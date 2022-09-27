@@ -32,14 +32,31 @@ function isDeletedAction(reportAction) {
 }
 
 /**
- * Sorts the report actions by sequence number, filters out any that should not be shown and formats them for display.
+ * Sort an array of reportActions by their created timestamp,
+ * falling back on reportActionID in case multiple reportActions are created in the same millisecond.
+ *
+ * @param {Array} reportActions
+ * @returns {Array}
+ */
+function sortReportActions(reportActions) {
+    reportActions.sort((first, second) => {
+        if (first.timestamp !== second.timestamp) {
+            return first.timestamp - second.timestamp;
+        }
+        return first.reportActionID - second.reportActionID;
+    });
+    return reportActions;
+}
+
+/**
+ * Sorts the report actions by timestamp, filters out any that should not be shown and formats them for display.
  *
  * @param {Array} reportActions
  * @returns {Array}
  */
 function getSortedReportActions(reportActions) {
-    return _.chain(reportActions)
-        .sortBy('sequenceNumber')
+    const sortedActions = sortReportActions(reportActions);
+    return _.chain(sortedActions)
         .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
 
             // All comment actions are shown unless they are deleted and non-pending
@@ -52,17 +69,18 @@ function getSortedReportActions(reportActions) {
 }
 
 /**
- * Finds most recent IOU report action number.
+ * Finds the most recent IOU report action ID.
  *
  * @param {Array} reportActions
- * @returns {Number}
+ * @returns {String}
  */
 function getMostRecentIOUReportActionID(reportActions) {
-    return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-        .max(action => action.sequenceNumber)
-        .value().reportActionID;
+    const iouActions = _.filter(reportActions, action => action.name === CONST.REPORT.ACTIONS.TYPE.IOU);
+    if (_.isEmpty(iouActions)) {
+        return '';
+    }
+    const sortedActions = sortReportActions(iouActions);
+    return _.last(sortedActions).reportActionID;
 }
 
 /**
@@ -106,7 +124,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const parser = new ExpensiMark();
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
+    const sortedActions = sortReportActions(actions);
     const lastMessageIndex = _.findLastIndex(sortedActions, action => (
         !isDeletedAction(action)
     ));
@@ -134,7 +152,7 @@ function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsTo
 
     // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
+    const sortedActions = sortReportActions(actions);
     const lastMessageIndex = _.findLastIndex(sortedActions, action => (
         !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
     ));
