@@ -45,6 +45,10 @@ function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
+function clearOnfido() {
+    Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
+}
+
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  *
@@ -244,6 +248,7 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    clearOnfido,
     updatePersonalInformationForBankAccount,
     validateBankAccount,
     connectBankAccountWithPlaid,
