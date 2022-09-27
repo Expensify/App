@@ -392,26 +392,6 @@ function clearAvatarErrors(policyID) {
 }
 
 /**
- * Sets the name of the policy
- *
- * @param {String} policyID
- * @param {Object} values
- * @param {Boolean} [shouldGrowl]
- */
-function update(policyID, values, shouldGrowl = false) {
-    DeprecatedAPI.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
-                throw new Error();
-            }
-        }).catch(() => {
-            // Show the user feedback
-            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
-}
-
-/**
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  *
@@ -982,7 +962,6 @@ export {
     removeMembers,
     invite,
     isAdminOfFreePolicy,
-    update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
