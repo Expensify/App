@@ -308,17 +308,19 @@ class BasePaymentsPage extends React.Component {
                     >
                         {this.props.translate('paymentsPage.paymentMethodsTitle')}
                     </Text>
-                    <PaymentMethodList
-                        onPress={this.paymentMethodPressed}
-                        style={[styles.flex4]}
-                        isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
-                        actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
-                            ? this.state.selectedPaymentMethodType
-                            : ''}
-                        activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
-                            ? this.getSelectedPaymentMethodID()
-                            : ''}
-                    />
+                    <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]}>
+                        <PaymentMethodList
+                            onPress={this.paymentMethodPressed}
+                            style={[styles.flex4]}
+                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
+                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.state.selectedPaymentMethodType
+                                : ''}
+                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.getSelectedPaymentMethodID()
+                                : ''}
+                        />
+                    </OfflineWithFeedback>
                 </View>
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
@@ -439,7 +441,6 @@ class BasePaymentsPage extends React.Component {
                     shouldShowCancelButton
                     danger
                 />
-                <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]} />
             </ScreenWrapper>
         );
     }
