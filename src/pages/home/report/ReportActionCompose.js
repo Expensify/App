@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -45,6 +44,7 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import withOnyxContext from '../../../components/withOnyxContext';
 
 const propTypes = {
     /** Beta features list */
@@ -709,7 +709,7 @@ export default compose(
     withNetwork(),
     withPersonalDetails(),
     withCurrentUserPersonalDetails,
-    withOnyx({
+    withOnyxContext({
         betas: {
             key: ONYXKEYS.BETAS,
         },

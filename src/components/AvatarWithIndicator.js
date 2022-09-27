@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import Avatar from './Avatar';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
@@ -15,6 +14,7 @@ import {policyPropTypes} from '../pages/workspace/withPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import withOnyxContext from './withOnyxContext';
 
 const propTypes = {
     /** URL for the avatar */
@@ -104,7 +104,7 @@ AvatarWithIndicator.defaultProps = defaultProps;
 AvatarWithIndicator.propTypes = propTypes;
 AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 
-export default withOnyx({
+export default withOnyxContext({
     policiesMemberList: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
     },

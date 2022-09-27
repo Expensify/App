@@ -22,6 +22,7 @@ import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
+import withOnyxContext from './components/withOnyxContext';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -214,19 +215,21 @@ Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 export default compose(
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        updateAvailable: {
-            key: ONYXKEYS.UPDATE_AVAILABLE,
-            initWithStoredValues: false,
         },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
+        },
+    }),
+    withOnyx({
+        updateAvailable: {
+            key: ONYXKEYS.UPDATE_AVAILABLE,
+            initWithStoredValues: false,
         },
     }),
 )(Expensify);

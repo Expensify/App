@@ -13,6 +13,8 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
+import ONYXKEYS from './ONYXKEYS';
+import OnyxStateProvider from './libs/OnyxContext';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -30,20 +32,22 @@ const fill = {flex: 1};
 
 const App = () => (
     <GestureHandlerRootView style={fill}>
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                SafeAreaProvider,
-                SafeArea,
-                LocaleContextProvider,
-                HTMLEngineProvider,
-            ]}
-        >
-            <CustomStatusBar />
-            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                <Expensify />
-            </ErrorBoundary>
-        </ComposeProviders>
+        <OnyxStateProvider onyxKeys={ONYXKEYS}>
+            <ComposeProviders
+                components={[
+                    OnyxProvider,
+                    SafeAreaProvider,
+                    SafeArea,
+                    LocaleContextProvider,
+                    HTMLEngineProvider,
+                ]}
+            >
+                <CustomStatusBar />
+                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                    <Expensify />
+                </ErrorBoundary>
+            </ComposeProviders>
+        </OnyxStateProvider>
     </GestureHandlerRootView>
 );
 

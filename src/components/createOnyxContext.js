@@ -1,8 +1,8 @@
 import React, {createContext, forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import withOnyxContext from './withOnyxContext';
 
 const propTypes = {
     /** Rendered child component */
@@ -20,7 +20,7 @@ export default (onyxKeyName) => {
     Provider.propTypes = propTypes;
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
 
-    const ProviderWithOnyx = withOnyx({
+    const ProviderWithOnyx = withOnyxContext({
         [onyxKeyName]: {
             key: onyxKeyName,
         },

@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
+import withOnyxContext from './withOnyxContext';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
@@ -56,7 +56,7 @@ export default function (WrappedComponent) {
         <WithCurrentUserPersonalDetails {...props} forwardedRef={ref} />
     ));
 
-    return withOnyx({
+    return withOnyxContext({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
