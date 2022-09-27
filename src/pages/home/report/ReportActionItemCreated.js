@@ -11,19 +11,11 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The id of the report */
-        reportID: PropTypes.number,
-
-        /**  Avatars corresponding to a chat */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** Whether the user is not an admin of policyExpenseChat chat */
-        isOwnPolicyExpenseChat: PropTypes.bool,
-    }),
+    report: reportPropTypes,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
