@@ -1,10 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
-import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
 
@@ -13,6 +11,10 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import compose from '../../compose';
+import {
+    withBetas, withPolicyCollection, withReportCollection,
+} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -85,15 +87,9 @@ MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;
 MainDrawerNavigator.displayName = 'MainDrawerNavigator';
 
-export default withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(MainDrawerNavigator);
+export default compose(
+    withReportCollection({propName: 'reports'}),
+    withBetas(),
+    withPolicyCollection({propName: 'policies'}),
+)(MainDrawerNavigator);
 export {getInitialReportScreenParams};

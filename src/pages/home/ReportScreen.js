@@ -23,7 +23,9 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import addViewportResizeListener from '../../libs/VisualViewport';
-import {withNetwork} from '../../components/OnyxProvider';
+import {
+    withBetas, withNetwork, withPolicyCollection, withReportCollection,
+} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -314,6 +316,9 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
+    withPolicyCollection({propName: 'policies'}),
+    withBetas(),
+    withReportCollection({propName: 'report', transformValue: (value, {route}) => lodashGet(value, `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`)}),
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
@@ -325,17 +330,8 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
             canEvict: false,
         },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
         isComposerFullSize: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportScreen);
