@@ -24,7 +24,7 @@
     "desktop-build-staging": "scripts/build-desktop.sh staging",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
-    "android-build-e2e": "fastlane android build_e2e",
+    "android-build-e2e": "bundle exec fastlane android build_e2e",
     "test": "jest",
     "lint": "eslint . --max-warnings=0",
     "print-version": "echo $npm_package_version",
