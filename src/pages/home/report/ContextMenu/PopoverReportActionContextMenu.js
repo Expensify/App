@@ -18,7 +18,7 @@ class PopoverReportActionContextMenu extends React.Component {
         super(props);
 
         this.state = {
-            reportID: 0,
+            reportID: '0',
             reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
@@ -105,7 +105,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Object} [event] - A press event.
      * @param {String} [selection] - Copied content.
      * @param {Element} contextMenuAnchor - popoverAnchor
-     * @param {Number} reportID - Active Report Id
+     * @param {String} reportID - Active Report Id
      * @param {Object} reportAction - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
      * @param {Function} [onShow] - Run a callback when Menu is shown
@@ -202,7 +202,7 @@ class PopoverReportActionContextMenu extends React.Component {
             this.onPopoverHideActionCallback = onHideActionCallback;
         }
         this.setState({
-            reportID: 0,
+            reportID: '0',
             reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
@@ -247,7 +247,7 @@ class PopoverReportActionContextMenu extends React.Component {
     hideDeleteModal() {
         this.callbackWhenDeleteModalHide = () => this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal);
         this.setState({
-            reportID: 0,
+            reportID: '0',
             reportAction: {},
             isDeleteCommentConfirmModalVisible: false,
             shouldSetModalVisibilityForDeleteConfirmation: true,
