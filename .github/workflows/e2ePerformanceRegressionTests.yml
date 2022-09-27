@@ -49,5 +49,8 @@ jobs:
           baseline: dev/ci-e2e-tests
         with:
           api-level: 29
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: npm run test:e2e
+          # disable-animations: true
 
