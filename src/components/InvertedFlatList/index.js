@@ -36,17 +36,13 @@ class InvertedFlatList extends React.Component {
             this.props.innerRef(this.list);
         }
 
-        if (this.list) {
-            this.list
-                .getScrollableNode()
-                .addEventListener('wheel', this.invertedWheelEvent);
-
-            this.list.setNativeProps({
-                style: {
-                    transform: 'translate3d(0,0,0) scaleY(-1)',
-                },
-            });
+        if (!this.list) {
+            return;
         }
+
+        this.list
+            .getScrollableNode()
+            .addEventListener('wheel', this.invertedWheelEvent);
     }
 
     componentWillUnmount() {
@@ -67,6 +63,7 @@ class InvertedFlatList extends React.Component {
                 ref={el => this.list = el}
                 shouldMeasureItems
                 contentContainerStyle={StyleSheet.compose(this.props.contentContainerStyle, styles.justifyContentEnd)}
+                style={{transform: [{translateX: 0}, {translateY: 0}, {scaleY: -1}]}}
             />
         );
     }
