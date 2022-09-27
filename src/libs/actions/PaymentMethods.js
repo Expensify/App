@@ -116,6 +116,50 @@ function openPaymentsPage() {
 }
 
 /**
+ *
+ * @param {Number} bankAccountID
+ * @param {Number} fundID
+ * @param {Object} previousPaymentMethod
+ * @param {Object} currentPaymentMethod
+ * @param {Boolean} optimistic
+ * @return {Array}
+ *
+ */
+function getMakeDefaultPaymentOnyxData(bankAccountID, fundID,previousPaymentMethod, currentPaymentMethod, optimistic = true){
+    return [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                walletLinkedAccountID: bankAccountID || fundID,
+                walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+            value: {
+                [previousPaymentMethod.methodID]: {
+                    ...previousPaymentMethod,
+                    isDefault: !optimistic,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+            value: {
+                [currentPaymentMethod.methodID]: {
+                    ...currentPaymentMethod,
+                    isDefault: optimistic,
+                },
+            },
+        },
+    ];
+}
+
+/**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  * @param {String} password
@@ -131,47 +175,8 @@ function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPayme
         bankAccountID,
         fundID,
     }, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.USER_WALLET,
-                value: {
-                    walletLinkedAccountID: bankAccountID || fundID,
-                    walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                    errors: null,
-                },
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
-                value: {
-                    [previousPaymentMethod.methodID]: {
-                        ...previousPaymentMethod,
-                        isDefault: false,
-                    },
-                },
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
-                value: {
-                    [currentPaymentMethod.methodID]: {
-                        ...currentPaymentMethod,
-                        isDefault: true,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.USER_WALLET,
-                value: {
-                    walletLinkedAccountID: previousPaymentMethod.methodID,
-                    walletLinkedAccountType: previousPaymentMethod.accountType,
-                },
-            },
-        ],
+        optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod),
+        failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
     });
 }
 
