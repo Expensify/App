@@ -117,8 +117,8 @@ class AddPersonalBankAccountPage extends React.Component {
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
+        const error = lodashGet(this.props, 'personalBankAccount.error', '');
         const isLoading = lodashGet(this.props, 'personalBankAccount.isLoading', false);
-        const selectedPlaidIndex = lodashGet(this.props, 'personalBankAccount.pendingFields.selectedPlaidIndex', undefined);
 
         return (
             <ScreenWrapper>
@@ -173,7 +173,6 @@ class AddPersonalBankAccountPage extends React.Component {
                                         }}
                                         onExitPlaid={Navigation.goBack}
                                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                        selectedPlaidIndex={selectedPlaidIndex}
                                     />
                                     {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
                                         <View style={[styles.mb5]}>
@@ -198,6 +197,7 @@ class AddPersonalBankAccountPage extends React.Component {
                             <FixedFooter>
                                 <OfflineWithFeedback
                                     pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
+                                    errors={error}
                                 >
                                     <Button
                                         success

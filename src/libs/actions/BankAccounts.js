@@ -8,8 +8,6 @@ export {
     setupWithdrawalAccount,
     fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
-    showBankAccountErrorModal,
-    showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
@@ -31,6 +29,10 @@ export {
     verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
+
+function updatePlaidData(plaidData) {
+    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
+}
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
@@ -77,6 +79,27 @@ function getVBBADataForOnyx() {
 }
 
 /**
+ * Submit Bank Account step with Plaid data so php can perform some checks.
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} selectedPlaidBankAccount
+ */
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+    const commandName = 'ConnectBankAccountWithPlaid';
+
+    const parameters = {
+        bankAccountID,
+        routingNumber: selectedPlaidBankAccount.routingNumber,
+        accountNumber: selectedPlaidBankAccount.accountNumber,
+        bank: selectedPlaidBankAccount.bankName,
+        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
+        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+    };
+
+    API.write(commandName, parameters, getVBBADataForOnyx());
+}
+
+/**
  * Adds a bank account via Plaid
  *
  * @param {Object} account
@@ -106,7 +129,8 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
-                    errors: null,
+                    error: '',
+                    errorFields: null,
                     pendingFields: {
                         plaidSelector: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         selectedPlaidIndex: account.selectedPlaidIndex,
@@ -121,6 +145,7 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
+                    error: '',
                     shouldShowSuccess: true,
                     errors: null,
                     pendingFields: null,
@@ -143,7 +168,8 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: null,
+                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    errorFields: null,
                     pendingFields: {
                         plaidSelector: null,
                     },
@@ -207,4 +233,6 @@ export {
     addPersonalBankAccount,
     deletePaymentBankAccount,
     validateBankAccount,
+    connectBankAccountWithPlaid,
+    updatePlaidData,
 };
