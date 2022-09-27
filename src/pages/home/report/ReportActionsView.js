@@ -107,7 +107,7 @@ class ReportActionsView extends React.Component {
 
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
-            Report.openReport(this.props.report.reportID);
+            Report.openReport(this.props.report.reportID, this.props.report.participants);
             this.setState({newMarkerSequenceNumber: 0});
         });
 
@@ -120,7 +120,7 @@ class ReportActionsView extends React.Component {
         });
 
         if (this.getIsReportFullyVisible()) {
-            Report.openReport(this.props.report.reportID);
+            Report.openReport(this.props.report.reportID, this.props.report.participants);
         }
     }
 
@@ -179,7 +179,7 @@ class ReportActionsView extends React.Component {
         const wasNetworkChangeDetected = lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline');
         if (wasNetworkChangeDetected) {
             if (isReportFullyVisible) {
-                Report.openReport(this.props.report.reportID);
+                Report.openReport(this.props.report.reportID, this.props.report.participants);
             } else {
                 Report.reconnect(this.props.report.reportID);
             }
@@ -227,7 +227,7 @@ class ReportActionsView extends React.Component {
                     ? 0
                     : this.props.report.lastReadSequenceNumber + 1,
             });
-            Report.openReport(this.props.report.reportID);
+            Report.openReport(this.props.report.reportID, this.props.report.participants);
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
