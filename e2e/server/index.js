@@ -103,9 +103,7 @@ const createServerInstance = () => {
         switch (req.url) {
             case Routes.testConfig: {
                 if (activeTestConfig == null) {
-                    res.statusCode = 404;
-                    res.end('No test config available');
-                    return;
+                    throw new Error('No test config set');
                 }
                 return res.end(JSON.stringify(activeTestConfig));
             }

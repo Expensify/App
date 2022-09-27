@@ -36,7 +36,7 @@ console.debug('[E2E] App startup time test launched, waiting for app to become r
 testConfig.then((config) => {
     const test = tests[config.name];
     if (!test) {
-        // instead of throwing, report the error to the server, which is better for UX
+        // instead of throwing, report the error to the server, which is better for DX
         return E2EClient.submitTestResults({
             name: config.name,
             error: `Test ${config.name} not found`,
