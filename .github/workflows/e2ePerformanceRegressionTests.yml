@@ -1,0 +1,26 @@
+name: Deploy code to staging or production
+
+# TODO: change that once we settled on when to run this workflow
+on:
+  push:
+    branches: [dev/ci-e2e-tests]
+
+jobs:
+  e2e-tests:
+    name: "Run e2e performance regression tests"
+    # Although the tests will run on an android emulator, using macOS as its more performant
+    runs-on: macos-11
+    steps:
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Start emulator and run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          script: npm run test:e2e
+
