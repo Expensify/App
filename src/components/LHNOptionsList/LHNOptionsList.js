@@ -28,11 +28,11 @@ const propTypes = {
     onLayout: PropTypes.func.isRequired,
 
     /** Whether to allow option focus or not */
-    disableFocusOptions: PropTypes.bool,
+    shouldDisableFocusOptions: PropTypes.bool,
 };
 
 const defaultProps = {
-    disableFocusOptions: false,
+    shouldDisableFocusOptions: false,
 };
 
 class LHNOptionsList extends Component {
@@ -76,7 +76,7 @@ class LHNOptionsList extends Component {
             <OptionRowLHN
                 reportID={item}
                 viewMode={this.props.optionMode}
-                isFocused={!this.props.disableFocusOptions && this.props.focusedIndex === index}
+                isFocused={!this.props.shouldDisableFocusOptions && this.props.focusedIndex === index}
                 onSelectRow={this.props.onSelectRow}
             />
         );
