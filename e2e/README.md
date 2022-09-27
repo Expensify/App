@@ -88,7 +88,7 @@ To finish a test call `E2EClient.submitTestDone()`.
 The tests are designed to run on android (although adding support for iOS should be easy to add).
 To test under realistic conditions during the tests a release build is used.
 
-However, to enable the WebSocket communication to our local WebSocket server, we need to allow
+However, to be able to call our local HTTP test server, we need to allow
 [cleartext http traffic](https://developer.android.com/training/articles/security-config#CleartextTrafficPermitted).
 Therefore, a customized release build type is needed, which is called `e2eRelease`. This build type has clear
 text traffic enabled but works otherwise just like a release build.
