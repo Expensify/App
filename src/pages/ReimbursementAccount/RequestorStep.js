@@ -4,6 +4,7 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -27,7 +28,7 @@ import * as Link from '../../libs/actions/Link';
 const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-
+    onfidoToken: PropTypes.string.isRequired,
     ...withLocalizePropTypes,
 };
 
@@ -38,19 +39,20 @@ class RequestorStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.submitOnfidoVerification = this.submitOnfidoVerification.bind(this);
         this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
+        const reimbursementAccount = props.reimbursementAccount;
 
         this.state = {
-            firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
-            lastName: ReimbursementAccountUtils.getDefaultStateForField(props, 'lastName'),
-            requestorAddressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressStreet'),
-            requestorAddressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressCity'),
-            requestorAddressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressState'),
-            requestorAddressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressZipCode'),
-            dob: ReimbursementAccountUtils.getDefaultStateForField(props, 'dob'),
-            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(props, 'ssnLast4'),
-            isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(props, 'isControllingOfficer', false),
-            onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
-            isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
+            firstName: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'firstName'),
+            lastName: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'lastName'),
+            requestorAddressStreet: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressStreet'),
+            requestorAddressCity: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressCity'),
+            requestorAddressState: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressState'),
+            requestorAddressZipCode: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressZipCode'),
+            dob: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'dob'),
+            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'ssnLast4'),
+            isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'isControllingOfficer', false),
+            onfidoData: lodashGet(reimbursementAccount, ['reimbursementAccount', 'achData', 'onfidoData'], ''),
+            isOnfidoSetupComplete: lodashGet(reimbursementAccount, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
         // Required fields not validated by `validateIdentity`
@@ -139,7 +141,7 @@ class RequestorStep extends React.Component {
             dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
 
-        BankAccounts.setupWithdrawalAccount(payload);
+        BankAccounts.updatePersonalInformationForBankAccount(payload);
     }
 
     submitOnfidoVerification() {
@@ -153,6 +155,9 @@ class RequestorStep extends React.Component {
     }
 
     render() {
+        const achData = this.props.reimbursementAccount.achData;
+        const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !this.state.isOnfidoSetupComplete;
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -161,13 +166,19 @@ class RequestorStep extends React.Component {
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
+                    onBackButtonPress={() => {
+                        if (shouldShowOnfido) {
+                            BankAccounts.clearOnfido();
+                        } else {
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                        }
+                    }}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
+                {shouldShowOnfido ? (
                     <ScrollView contentContainerStyle={styles.flex1}>
                         <Onfido
-                            sdkToken={this.props.achData.sdkToken}
+                            sdkToken={this.props.onfidoToken}
                             onUserExit={() => {
                             // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
                                 BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
@@ -281,6 +292,9 @@ export default compose(
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        onfidoToken: {
+            key: ONYXKEYS.ONFIDO_TOKEN,
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
