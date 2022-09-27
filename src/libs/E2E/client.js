@@ -18,7 +18,7 @@ const submitTestResults = testResult => fetch(`${SERVER_ADDRESS}${Routes.testRes
     body: JSON.stringify(testResult),
 }).then((res) => {
     if (res.statusCode === 200) {
-        console.debug(`[E2E] Test result ${testResult.name} submitted successfully`);
+        console.debug(`[E2E] Test result '${testResult.name}' submitted successfully`);
         return;
     }
     const errorMsg = `Test result submission failed with status code ${res.statusCode}`;

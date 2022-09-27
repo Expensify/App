@@ -36,7 +36,7 @@ E2EClient.getTestConfig().then((config) => {
         // instead of throwing, report the error to the server, which is better for DX
         return E2EClient.submitTestResults({
             name: config.name,
-            error: `Test ${config.name} not found`,
+            error: `Test '${config.name}' not found`,
         });
     }
     console.debug(`[E2E] Configured for test ${config.name}. Waiting for app to become ready`);
