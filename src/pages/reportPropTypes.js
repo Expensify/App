@@ -5,7 +5,7 @@ import CONST from '../CONST';
 export default PropTypes.shape({
 
     /** The specific type of chat */
-    chatType: PropTypes.oneOf(_.values(CONST.REPORT.CHAT_TYPE)),
+    chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
 
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool,
@@ -44,7 +44,11 @@ export default PropTypes.shape({
     maxSequenceNumber: PropTypes.number,
 
     /** The current user's notification preference for this report */
-    notificationPreference: PropTypes.oneOf(['mute', 'daily', 'always']),
+    notificationPreference: PropTypes.oneOfType([
+        // Some old reports have numbers for the notification preference
+        PropTypes.number,
+        PropTypes.string,
+    ]),
 
     /** The policy name to use for an archived report */
     oldPolicyName: PropTypes.string,
