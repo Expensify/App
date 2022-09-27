@@ -15,6 +15,7 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';
 import TextLink from '../../../components/TextLink';
+import withOnyxContext from '../../../components/withOnyxContext';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -78,7 +79,7 @@ WorkspaceBillsFirstSection.displayName = 'WorkspaceBillsFirstSection';
 
 export default compose(
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         session: {
             key: ONYXKEYS.SESSION,
         },

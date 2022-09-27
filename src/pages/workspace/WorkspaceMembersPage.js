@@ -31,6 +31,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -369,7 +370,7 @@ export default compose(
     withWindowDimensions,
     withPolicy,
     withNetwork(),
-    withOnyx({
+    withOnyxContext({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

@@ -20,6 +20,7 @@ import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -195,7 +196,7 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 
 export default compose(
-    withOnyx({
+    withOnyxContext({
         betas: {
             key: ONYXKEYS.BETAS,
         },

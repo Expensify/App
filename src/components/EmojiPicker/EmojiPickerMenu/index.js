@@ -20,6 +20,7 @@ import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import withOnyxContext from '../../withOnyxContext';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -518,7 +519,7 @@ EmojiPickerMenu.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },

@@ -8,6 +8,7 @@ import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
+import withOnyxContext from '../withOnyxContext';
 
 const propTypes = {
     /** All the data of the action */
@@ -62,7 +63,7 @@ IOUAction.propTypes = propTypes;
 IOUAction.defaultProps = defaultProps;
 IOUAction.displayName = 'IOUAction';
 
-export default withOnyx({
+export default withOnyxContext({
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },

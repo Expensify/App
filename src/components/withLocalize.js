@@ -9,6 +9,7 @@ import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
+import withOnyxContext from './withOnyxContext';
 
 const LocaleContext = createContext(null);
 
@@ -152,7 +153,7 @@ class LocaleContextProvider extends React.Component {
 LocaleContextProvider.propTypes = localeProviderPropTypes;
 LocaleContextProvider.defaultProps = localeProviderDefaultProps;
 
-const Provider = withOnyx({
+const Provider = withOnyxContext({
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },

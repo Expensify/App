@@ -13,6 +13,7 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import BankAccount from '../../libs/models/BankAccount';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     /** Reimbursement account data */
@@ -63,10 +64,12 @@ WorkspaceResetBankAccountModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
+    }),
+    withOnyx({
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
             initWithStoredValues: false,

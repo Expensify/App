@@ -11,6 +11,7 @@ import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import TextWithEllipsis from '../../../components/TextWithEllipsis';
+import withOnyxContext from '../../../components/withOnyxContext';
 
 const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
@@ -95,7 +96,7 @@ ReportTypingIndicator.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNetwork(),
-    withOnyx({
+    withOnyxContext({
         userTypingStatuses: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
         },

@@ -33,6 +33,7 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
+import withOnyxContext from '../../../components/withOnyxContext';
 
 const propTypes = {
     /** Report for this action */
@@ -249,7 +250,7 @@ export default compose(
             return lodashGet(drafts, draftKey, '');
         },
     }),
-    withOnyx({
+    withOnyxContext({
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },

@@ -24,6 +24,7 @@ import Text from '../Text';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
+import withOnyxContext from '../withOnyxContext';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -206,7 +207,7 @@ IOUPreview.displayName = 'IOUPreview';
 
 export default compose(
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

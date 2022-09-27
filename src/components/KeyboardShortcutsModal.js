@@ -14,6 +14,7 @@ import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import * as KeyboardShortcutsActions from '../libs/actions/KeyboardShortcuts';
 import ONYXKEYS from '../ONYXKEYS';
+import withOnyxContext from './withOnyxContext';
 
 const propTypes = {
     /** prop to set shortcuts modal visibility */
@@ -105,7 +106,7 @@ KeyboardShortcutsModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         isShortcutsModalOpen: {key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN},
     }),
 )(KeyboardShortcutsModal);

@@ -30,6 +30,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -314,7 +315,7 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
-    withOnyx({
+    withOnyxContext({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },

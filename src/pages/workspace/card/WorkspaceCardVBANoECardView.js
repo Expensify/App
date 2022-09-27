@@ -12,6 +12,7 @@ import * as User from '../../../libs/actions/User';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
+import withOnyxContext from '../../../components/withOnyxContext';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -56,7 +57,7 @@ WorkspaceCardVBANoECardView.displayName = 'WorkspaceCardVBANoECardView';
 
 export default compose(
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         user: {
             key: ONYXKEYS.USER,
         },

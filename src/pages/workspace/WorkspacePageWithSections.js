@@ -18,6 +18,7 @@ import userPropTypes from '../settings/userPropTypes';
 import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     /** Information about the network from Onyx */
@@ -123,7 +124,7 @@ WorkspacePageWithSections.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         user: {
             key: ONYXKEYS.USER,
         },

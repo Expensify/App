@@ -13,6 +13,7 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import withOnyxContext from '../../../components/withOnyxContext';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -85,7 +86,7 @@ MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;
 MainDrawerNavigator.displayName = 'MainDrawerNavigator';
 
-export default withOnyx({
+export default withOnyxContext({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

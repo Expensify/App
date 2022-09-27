@@ -24,6 +24,7 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -354,7 +355,7 @@ export default compose(
     withLocalize,
     withPolicy,
     withNetwork(),
-    withOnyx({
+    withOnyxContext({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

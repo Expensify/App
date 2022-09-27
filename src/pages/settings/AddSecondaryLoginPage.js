@@ -20,6 +20,7 @@ import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import userPropTypes from './userPropTypes';
 import * as LoginUtils from '../../libs/LoginUtils';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     /* Onyx Props */
@@ -162,7 +163,7 @@ AddSecondaryLoginPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
+    withOnyxContext({
         user: {
             key: ONYXKEYS.USER,
         },

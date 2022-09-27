@@ -23,6 +23,7 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     ...policyPropTypes,
@@ -163,7 +164,7 @@ WorkspaceSettingsPage.defaultProps = defaultProps;
 
 export default compose(
     withPolicy,
-    withOnyx({
+    withOnyxContext({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,

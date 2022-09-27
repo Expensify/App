@@ -28,6 +28,7 @@ import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import withOnyxContext from '../../components/withOnyxContext';
 
 const propTypes = {
     ...policyPropTypes,
@@ -250,7 +251,7 @@ WorkspaceInitialPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withPolicy,
-    withOnyx({
+    withOnyxContext({
         policyMemberList: {
             key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
         },
