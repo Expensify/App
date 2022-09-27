@@ -77,7 +77,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Personal Bank Account */
-    personalBankAccount: PropTypes.objectOf(personalBankAccountPropTypes),
+    personalBankAccount: personalBankAccountPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),

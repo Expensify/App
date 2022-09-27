@@ -37,7 +37,7 @@ const propTypes = {
     cardList: PropTypes.objectOf(cardPropTypes),
 
     /** Personal Bank Account */
-    personalBankAccount: PropTypes.objectOf(personalBankAccountPropTypes),
+    personalBankAccount: personalBankAccountPropTypes,
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,

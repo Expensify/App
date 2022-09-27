@@ -32,7 +32,7 @@ import personalBankAccountPropTypes from '../components/personalBankAccountPropT
 
 const propTypes = {
     ...withLocalizePropTypes,
-    personalBankAccount: PropTypes.objectOf(personalBankAccountPropTypes),
+    personalBankAccount: personalBankAccountPropTypes,
 };
 
 const defaultProps = {
