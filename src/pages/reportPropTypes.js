@@ -31,6 +31,9 @@ export default PropTypes.shape({
     /** Flag to check if the report actions data are loading */
     isLoadingReportActions: PropTypes.bool,
 
+    /** Whether the user is not an admin of policyExpenseChat chat */
+    isOwnPolicyExpenseChat: PropTypes.bool,
+
     chatType: PropTypes.string,
     ownerEmail: PropTypes.string,
     isPinned: PropTypes.bool,
