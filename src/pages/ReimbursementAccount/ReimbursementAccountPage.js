@@ -18,6 +18,7 @@ import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRe
 import Text from '../../components/Text';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -163,6 +164,22 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     render() {
+        if (this.props.network.isOffline) {
+            return (
+                <>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('workspace.common.bankAccount')}
+                        onCloseButtonPress={Navigation.dismissModal}
+                        onBackButtonPress={Navigation.goBack}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                        shouldShowBackButton
+                    />
+                    <FullPageOfflineBlockingView />
+                </>
+            );
+        }
+
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
         // display. We can also specify a specific route to navigate to via route params when the component first
