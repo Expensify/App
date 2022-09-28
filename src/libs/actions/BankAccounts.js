@@ -205,8 +205,7 @@ function deletePaymentBankAccount(bankAccountID) {
 * @param {Boolean} [params.isOnfidoSetupComplete]
 */
 function updatePersonalInformationForBankAccount(params) {
-    const bankAccount = store.getReimbursementAccountInSetup();
-    API.write('UpdatePersonalInformationForBankAccount', {bankAccountID: bankAccount.bankAccountID, ...params}, getVBBADataForOnyx());
+    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
 }
 
 /**
