@@ -200,17 +200,17 @@ export default compose(
         // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
         // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
-        reportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

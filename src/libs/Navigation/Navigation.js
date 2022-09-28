@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import {Keyboard, Platform} from 'react-native';
+import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';

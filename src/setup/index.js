@@ -36,7 +36,6 @@ export default function () {
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
         },
-        setStateTimingThreshold: 50,
     });
 
     // Force app layout to work left to right because our design does not currently support devices using this mode

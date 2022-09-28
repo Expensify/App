@@ -252,15 +252,17 @@ class ReportActionsView extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.keyboardEvent) {
-            this.keyboardEvent.remove();
-        }
+        InteractionManager.runAfterInteractions(() => {
+            if (this.keyboardEvent) {
+                this.keyboardEvent.remove();
+            }
 
-        if (this.appStateChangeListener) {
-            this.appStateChangeListener.remove();
-        }
+            if (this.appStateChangeListener) {
+                this.appStateChangeListener.remove();
+            }
 
-        Report.unsubscribeFromReportChannel(this.props.report.reportID);
+            Report.unsubscribeFromReportChannel(this.props.report.reportID);
+        });
     }
 
     /**

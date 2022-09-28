@@ -196,11 +196,11 @@ export default compose(
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(HeaderView);

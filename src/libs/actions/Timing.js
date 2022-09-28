@@ -53,6 +53,7 @@ function end(eventName, secondaryName = '') {
     }
 
     // Schedule performance timing so that we report these later else we might slow down the thing we are tracing.
+    // @TODO just use interaction manager
     setTimeout(() => {
         InteractionManager.runAfterInteractions(() => {
             API.write('SendPerformanceTiming', {

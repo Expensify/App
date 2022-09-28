@@ -144,6 +144,7 @@ class ReportScreen extends React.Component {
         console.log('@marcaaron REPORT SCREEN REPORTID CHANGED');
         console.log('@marcaaron: ', {reportIDFromReport: this.props.report.reportID, reportIDFromRoute: this.props.route.params.reportID});
 
+        // @TODO use interaction manager
         setTimeout(() => {
             this.storeCurrentlyViewedReport();
         }, 1000);
@@ -323,27 +324,27 @@ export default compose(
     withDrawerState,
     withNetwork(),
     withOnyx({
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },
         session: {
             key: ONYXKEYS.SESSION,
         },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            canEvict: false,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        },
         isComposerFullSize: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportScreen);
