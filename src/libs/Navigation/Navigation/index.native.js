@@ -5,7 +5,6 @@ import Navigation, {navigationRef} from './BaseNavigation';
  * @param {Object} navigation
  */
 function navigateToChat(reportID, navigation) {
-    // navigationHandle = InteractionManager.createInteractionHandle();
     navigation.setParams({reportID: `${reportID}`});
     navigation.closeDrawer();
 }
