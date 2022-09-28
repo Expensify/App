@@ -141,7 +141,6 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
                 [previousPaymentMethod.methodID]: {
-                    ...previousPaymentMethod,
                     isDefault: !optimistic,
                 },
             },
@@ -151,7 +150,6 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
                 [currentPaymentMethod.methodID]: {
-                    ...currentPaymentMethod,
                     isDefault: optimistic,
                 },
             },
