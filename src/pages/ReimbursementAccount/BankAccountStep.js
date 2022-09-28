@@ -24,6 +24,7 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
+import lodashGet from "lodash/get";
 
 const propTypes = {
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
@@ -48,8 +49,8 @@ const defaultProps = {
 };
 
 const BankAccountStep = (props) => {
-    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
-    let subStep = props.reimbursementAccount && props.reimbursementAccount.achData ? props.reimbursementAccount.achData.subStep : '';
+    let subStep = lodashGet(props, 'reimbursementAccount.achData.subStep', '');
+    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
@@ -57,11 +58,11 @@ const BankAccountStep = (props) => {
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankAccountManualStep achData={props.achData} />;
+        return <BankAccountManualStep />;
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep achData={props.achData} />;
+        return <BankAccountPlaidStep />;
     }
 
     return (
