@@ -349,6 +349,7 @@ class ReportActionsView extends React.Component {
     render() {
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
+            console.log('@marcaaron Comments have not loaded yet');
             return null;
         }
 
