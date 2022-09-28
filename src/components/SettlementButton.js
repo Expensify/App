@@ -10,7 +10,6 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import KYCWall from './KYCWall';
-import withNavigation from './withNavigation';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 
@@ -110,7 +109,6 @@ SettlementButton.propTypes = propTypes;
 SettlementButton.defaultProps = defaultProps;
 
 export default compose(
-    withNavigation,
     withLocalize,
     withNetwork(),
     withOnyx({

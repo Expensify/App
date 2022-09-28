@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity, Platform} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -106,14 +106,7 @@ class SidebarLinks extends React.Component {
     }
 
     onSelectRow(option) {
-        if (Platform.OS !== 'web') {
-            console.log('@marcaaron We are tapping rows');
-            this.props.navigation.setParams({reportID: `${option.reportID}`});
-            this.props.navigation.closeDrawer();
-        } else {
-            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-        }
-
+        Navigation.navigateToChat(option.reportID);
         this.props.onLinkClick();
     }
 
