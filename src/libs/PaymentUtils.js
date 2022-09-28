@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import BankAccount from './models/BankAccount';
+import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 
@@ -61,7 +62,10 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
     });
 
     if (!_.isEmpty(payPalMeData)) {
-        combinedPaymentMethods.push(payPalMeData);
+        combinedPaymentMethods.push({
+            ...payPalMeData,
+            icon: Expensicons.PayPal,
+        });
     }
 
     return combinedPaymentMethods;
