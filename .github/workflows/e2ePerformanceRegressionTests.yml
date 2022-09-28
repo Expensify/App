@@ -43,11 +43,11 @@ jobs:
       #endregion
 
 #     Note: if the android build fails the logs can be incomplete. It can help to run the build once manually to get a full log
-#      - name: Preheat build system
-#        env:
-#          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
-#        run: |
-#          npm run android-build-e2e
+      - name: Preheat build system
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
+        run: |
+          npm run android-build-e2e
 
       - name: Start emulator and run tests
         uses: reactivecircus/android-emulator-runner@v2
