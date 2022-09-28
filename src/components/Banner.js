@@ -29,6 +29,9 @@ const propTypes = {
     /** Callback called when the close button is pressed */
     onClose: PropTypes.func,
 
+    /** Callback called when the message is pressed */
+    onPress: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +40,7 @@ const defaultProps = {
     shouldShowIcon: false,
     shouldShowCloseButton: false,
     onClose: () => {},
+    onPress: () => {},
 };
 
 const Banner = props => (
@@ -59,11 +63,15 @@ const Banner = props => (
                         />
                     </View>
                 )}
-                {
-                    props.shouldRenderHTML
-                        ? <RenderHTML html={props.text} />
-                        : <Text>{props.text}</Text>
-                }
+                <Pressable
+                    onPress={props.onPress}
+                >
+                    {
+                        props.shouldRenderHTML
+                            ? <RenderHTML html={props.text} />
+                            : <Text>{props.text}</Text>
+                    }
+                </Pressable>
                 {props.shouldShowCloseButton && (
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
