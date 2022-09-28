@@ -70,6 +70,7 @@ const ArchivedReportFooter = (props) => {
                 policyName: `<strong>${ReportUtils.getPolicyName(props.report, props.policies)}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
+            shouldShowIcon
         />
     );
 };
