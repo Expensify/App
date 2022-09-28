@@ -163,7 +163,8 @@ class ReportScreen extends React.Component {
     shouldShowLoader() {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID || this.props.isDrawerOpen;
+        const isTransitioningToDifferentReport = this.props.report.reportID.toString() !== this.props.route.params.reportID.toString();
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID || this.props.isDrawerOpen || isTransitioningToDifferentReport;
     }
 
     /**
@@ -228,6 +229,7 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
         const hideComposer = isArchivedRoom || !_.isEmpty(addWorkspaceRoomErrors);
+        const isLoading = this.shouldShowLoader();
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -241,6 +243,7 @@ class ReportScreen extends React.Component {
                     <HeaderView
                         reportID={reportID}
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                        isLoading={isLoading}
                     />
                 </OfflineWithFeedback>
                 <View
@@ -248,7 +251,7 @@ class ReportScreen extends React.Component {
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                     onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
-                    {this.shouldShowLoader()
+                    {isLoading
                         ? (
                             <ReportActionsSkeletonView
                                 containerHeight={this.state.skeletonViewContainerHeight}

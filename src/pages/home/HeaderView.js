@@ -26,7 +26,6 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
-import withDrawerState from '../../components/withDrawerState';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -104,7 +103,7 @@ const HeaderView = (props) => {
                         </Pressable>
                     </Tooltip>
                 )}
-                {!props.isDrawerOpen && Boolean(props.report && title) && (
+                {!props.isLoading && Boolean(props.report && title) && (
                     <View
                         style={[
                             styles.flex1,
@@ -191,7 +190,6 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withDrawerState,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
