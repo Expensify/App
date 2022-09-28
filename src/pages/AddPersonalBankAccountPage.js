@@ -3,7 +3,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
