@@ -2,6 +2,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -24,7 +25,6 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
-import lodashGet from "lodash/get";
 
 const propTypes = {
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
