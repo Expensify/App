@@ -171,6 +171,6 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
-        BANK_FORM: 'reimbursementAccount',
+        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
     },
 };
