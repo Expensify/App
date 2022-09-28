@@ -4,8 +4,12 @@ import ONYXKEYS from '../ONYXKEYS';
 import createOnyxContext from './createOnyxContext';
 import ComposeProviders from './ComposeProviders';
 
-// Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
-// the same key (e.g. FlatList renderItem components)
+// Set ups Context providers for individual keys with a factory method so that their Onyx subscription can be shared between many other components.
+// This should only be used in cases where many components will subscribe to the same key (e.g. FlatList renderItem() components).
+// By using the Context API we will create a "provider" that has a single subscription and then an HOC "consumer" that will
+// pass the values via props whenever the provider is updated. This increases performance significantly since the consumers
+// skip the step of requesting the data from Onyx when they first subscribe via withOnyx(). Instead those values are immediately
+// available to all consumers. Learn more here: https://reactjs.org/docs/context.html#when-to-use-context
 const [withNetwork, NetworkProvider] = createOnyxContext(ONYXKEYS.NETWORK);
 const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS);
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
