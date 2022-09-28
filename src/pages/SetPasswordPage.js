@@ -77,6 +77,10 @@ class SetPasswordPage extends Component {
         };
     }
 
+    componentWillUnmount() {
+        Session.clearAccountMessages();
+    }
+
     validateAndSubmitForm() {
         if (!this.state.isFormValid) {
             return;
