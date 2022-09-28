@@ -1,5 +1,6 @@
-import {KeyboardAvoidingView, View} from 'react-native';
 import React from 'react';
+import {KeyboardAvoidingView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import CONST from '../../CONST';
@@ -14,8 +15,9 @@ import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
 import withWindowDimensions from '../withWindowDimensions';
-import {withModal, withNetwork} from '../OnyxProvider';
+import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
+import ONYXKEYS from '../../ONYXKEYS';
 
 class BaseScreenWrapper extends React.Component {
     constructor(props) {
@@ -104,6 +106,10 @@ BaseScreenWrapper.defaultProps = defaultProps;
 export default compose(
     withNavigation,
     withWindowDimensions,
-    withModal(),
+    withOnyx({
+        modal: {
+            key: ONYXKEYS.MODAL,
+        },
+    }),
     withNetwork(),
 )(BaseScreenWrapper);

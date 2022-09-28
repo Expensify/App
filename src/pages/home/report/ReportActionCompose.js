@@ -36,7 +36,7 @@ import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import {
-    withBetas, withBlockedFromConcierge, withModal, withNetwork, withPersonalDetails,
+    withBetas, withBlockedFromConcierge, withNetwork, withPersonalDetails,
 } from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
@@ -713,8 +713,10 @@ export default compose(
     withCurrentUserPersonalDetails,
     withBlockedFromConcierge(),
     withBetas(),
-    withModal(),
     withOnyx({
+        modal: {
+            key: ONYXKEYS.MODAL,
+        },
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },

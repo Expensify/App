@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Keyboard,
     AppState,
+    InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -111,7 +112,10 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerSequenceNumber: 0});
         });
 
-        Report.subscribeToReportTypingEvents(this.props.report.reportID);
+        InteractionManager.runAfterInteractions(() => {
+            Report.subscribeToReportTypingEvents(this.props.report.reportID);
+        });
+
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;

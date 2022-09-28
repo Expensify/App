@@ -18,6 +18,8 @@ export default {
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
+    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
+
     // Stores current date
     CURRENT_DATE: 'currentDate',
 

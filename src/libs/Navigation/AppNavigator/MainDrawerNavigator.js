@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import SCREENS from '../../../SCREENS';
@@ -11,10 +12,7 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
-import compose from '../../compose';
-import {
-    withBetas, withPolicyCollection, withReportCollection,
-} from '../../../components/OnyxProvider';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -57,39 +55,61 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => 
     return {reportID: String(reportID)};
 };
 
-const MainDrawerNavigator = (props) => {
-    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
-
-    // Wait until reports are fetched and there is a reportID in initialParams
-    if (!initialParams.reportID) {
-        return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams}} />;
+class MainDrawerNavigator extends Component {
+    constructor(props) {
+        super(props);
+        this.initialParams = {};
     }
 
-    // After the app initializes and reports are available the home navigation is mounted
-    // This way routing information is updated (if needed) based on the initial report ID resolved.
-    // This is usually needed after login/create account and re-launches
-    return (
-        <BaseDrawerNavigator
-            drawerContent={() => <SidebarScreen />}
-            screens={[
-                {
-                    name: SCREENS.REPORT,
-                    component: ReportScreen,
-                    initialParams,
-                },
-            ]}
-            isMainScreen
-        />
-    );
-};
+    shouldComponentUpdate() {
+        if (this.initialParams.reportID) {
+            return false;
+        }
+
+        return true;
+    }
+
+    render() {
+        this.initialParams = getInitialReportScreenParams(this.props.reports, !Permissions.canUseDefaultRooms(this.props.betas), this.props.policies);
+
+        // Wait until reports are fetched and there is a reportID in initialParams
+        if (!this.initialParams.reportID) {
+            return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams: this.initialParams}} />;
+        }
+
+        // After the app initializes and reports are available the home navigation is mounted
+        // This way routing information is updated (if needed) based on the initial report ID resolved.
+        // This is usually needed after login/create account and re-launches
+        return (
+            <BaseDrawerNavigator
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                drawerContent={props => <SidebarScreen {...props} />}
+                screens={[
+                    {
+                        name: SCREENS.REPORT,
+                        component: ReportScreen,
+                        initialParams: this.initialParams,
+                    },
+                ]}
+                isMainScreen
+            />
+        );
+    }
+}
 
 MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;
 MainDrawerNavigator.displayName = 'MainDrawerNavigator';
 
-export default compose(
-    withReportCollection({propName: 'reports'}),
-    withBetas(),
-    withPolicyCollection({propName: 'policies'}),
-)(MainDrawerNavigator);
+export default withOnyx({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+})(MainDrawerNavigator);
 export {getInitialReportScreenParams};

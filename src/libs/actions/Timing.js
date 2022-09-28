@@ -1,3 +1,4 @@
+import {InteractionManager} from 'react-native';
 import getPlatform from '../getPlatform';
 import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';
@@ -51,11 +52,16 @@ function end(eventName, secondaryName = '') {
         return;
     }
 
-    API.write('SendPerformanceTiming', {
-        name: grafanaEventName,
-        value: eventTime,
-        platform: `${getPlatform()}`,
-    });
+    // Schedule performance timing so that we report these later else we might slow down the thing we are tracing.
+    setTimeout(() => {
+        InteractionManager.runAfterInteractions(() => {
+            API.write('SendPerformanceTiming', {
+                name: grafanaEventName,
+                value: eventTime,
+                platform: `${getPlatform()}`,
+            });
+        });
+    }, 1000);
 }
 
 /**

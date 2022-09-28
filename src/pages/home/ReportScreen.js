@@ -23,15 +23,14 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ArchivedReportFooter from '../../components/ArchivedReportFooter';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import addViewportResizeListener from '../../libs/VisualViewport';
-import {
-    withBetas, withNetwork, withPolicyCollection, withReportCollection,
-} from '../../components/OnyxProvider';
+import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import Performance from '../../libs/Performance';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -47,9 +46,7 @@ const propTypes = {
     isSidebarLoaded: PropTypes.bool,
 
     /** Whether or not to show the Compose Input */
-    session: PropTypes.shape({
-        shouldShowComposeInput: PropTypes.bool,
-    }),
+    shouldShowComposeInput: PropTypes.bool,
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -93,9 +90,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    session: {
-        shouldShowComposeInput: true,
-    },
+    shouldShowComposeInput: true,
     reportActions: {},
     report: {
         maxSequenceNumber: 0,
@@ -126,7 +121,7 @@ class ReportScreen extends React.Component {
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
         this.removeViewportResizeListener = () => {};
-
+        this.mainChatViewStyles = [styles.flex1, styles.justifyContentEnd, styles.overflowHidden];
         this.state = {
             skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
@@ -134,18 +129,28 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
+        console.log('@marcaaron REPORT SCREEN MOUNTED: ', this.props.route.params.reportID);
         this.storeCurrentlyViewedReport();
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
+        console.log(Performance.diffObject(prevProps, this.props));
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
-        this.storeCurrentlyViewedReport();
+
+        // At this point, we are just waiting for the new data from Onyx to load which takes some time so we can set the loader again
+        console.log('@marcaaron REPORT SCREEN REPORTID CHANGED');
+        console.log('@marcaaron: ', {reportIDFromReport: this.props.report.reportID, reportIDFromRoute: this.props.route.params.reportID});
+
+        setTimeout(() => {
+            this.storeCurrentlyViewedReport();
+        }, 1000);
     }
 
     componentWillUnmount() {
+        console.log('@marcaaron REPORT SCREEN UNMOUNTING: ', this.props.route.params.reportID);
         this.removeViewportResizeListener();
     }
 
@@ -169,7 +174,7 @@ class ReportScreen extends React.Component {
     shouldShowLoader() {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID || this.props.isDrawerOpen;
     }
 
     /**
@@ -205,6 +210,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        console.log('@marcaaron REPORT SCREEN RENDERED');
         if (!this.props.isSidebarLoaded) {
             return null;
         }
@@ -251,7 +257,7 @@ class ReportScreen extends React.Component {
                 </OfflineWithFeedback>
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    style={this.mainChatViewStyles}
                     onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
                     {this.shouldShowLoader()
@@ -286,7 +292,7 @@ class ReportScreen extends React.Component {
                             )}
                         </View>
                     )}
-                    {(!hideComposer && this.props.session.shouldShowComposeInput) && (
+                    {(!hideComposer && this.props.shouldShowComposeInput) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                 <OfflineWithFeedback
@@ -316,19 +322,25 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
-    withPolicyCollection({propName: 'policies'}),
-    withBetas(),
-    withReportCollection({propName: 'report', transformValue: (value, {route}) => lodashGet(value, `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`)}),
     withOnyx({
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            canEvict: false,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
         },
         isComposerFullSize: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
