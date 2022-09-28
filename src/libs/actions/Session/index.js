@@ -19,7 +19,6 @@ import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as Authentication from '../../Authentication';
-import * as ErrorUtils from '../../ErrorUtils';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
@@ -232,31 +231,38 @@ function createTemporaryLogin(authToken, email) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
 
-    Authentication.Authenticate({
-        useExpensifyLogin: true,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: credentials.login,
-        partnerUserSecret: password,
-        twoFactorAuthCode,
-        email: credentials.login,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
-                if (errorMessage === 'passwordForm.error.twoFactorAuthenticationEnabled') {
-                    Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: false});
-                    return;
-                }
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}, isLoading: false});
-                return;
-            }
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
-            const {authToken, email} = response;
-            createTemporaryLogin(authToken, email);
-        });
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write('SigninUser', {email: credentials.login, password, twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -431,6 +437,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
         {
@@ -466,15 +473,6 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet'),
-                },
             },
         },
     ];

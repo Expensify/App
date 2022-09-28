@@ -2410,6 +2410,10 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+        menuItemErrorPadding: {
+            paddingLeft: 44,
+            paddingRight: 20,
+        },
     },
 
     dotIndicatorMessage: {
@@ -2617,10 +2621,6 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
-    },
-
-    avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to average mobile device
     },
 
     imageCropContainer: {
