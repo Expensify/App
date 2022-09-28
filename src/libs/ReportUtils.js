@@ -9,7 +9,7 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
-import md5 from './md5';
+import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
@@ -401,8 +401,8 @@ function formatReportLastMessageText(lastMessageText) {
  */
 function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login.toLowerCase()).substring(0, 4), 16) % 8) + 1;
+    // on a simple hash of their login
+    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
