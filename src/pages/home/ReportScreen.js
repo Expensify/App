@@ -130,6 +130,13 @@ class ReportScreen extends React.Component {
     }
 
     /**
+     * @returns {Boolean}
+     */
+    isTransitioningToDifferentReport() {
+        return this.props.report.reportID.toString() !== this.props.route.params.reportID.toString();
+    }
+
+    /**
      * When reports change there's a brief time content is not ready to be displayed
      * It Should show the loader if it's the first time we are opening the report
      *
@@ -138,8 +145,7 @@ class ReportScreen extends React.Component {
     shouldShowLoader() {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        const isTransitioningToDifferentReport = this.props.report.reportID.toString() !== this.props.route.params.reportID.toString();
-        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID || this.props.isDrawerOpen || isTransitioningToDifferentReport;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID || this.props.isDrawerOpen || this.isTransitioningToDifferentReport();
     }
 
     /**
@@ -219,21 +225,20 @@ class ReportScreen extends React.Component {
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                     onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
-                    {isLoading
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={this.state.skeletonViewContainerHeight}
-                            />
-                        )
-                        : (
-                            <ReportActionsView
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                isDrawerOpen={this.props.isDrawerOpen}
-                            />
-                        )}
+                    {isLoading && (
+                        <ReportActionsSkeletonView
+                            containerHeight={this.state.skeletonViewContainerHeight}
+                        />
+                    )}
+                    {!this.isTransitioningToDifferentReport() && (
+                        <ReportActionsView
+                            reportActions={this.props.reportActions}
+                            report={this.props.report}
+                            session={this.props.session}
+                            isComposerFullSize={this.props.isComposerFullSize}
+                            isDrawerOpen={this.props.isDrawerOpen}
+                        />
+                    )}
                     <ReportFooter
                         isOffline={this.props.network.isOffline}
                         report={this.props.report}
