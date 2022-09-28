@@ -26,11 +26,9 @@ import networkPropTypes from '../../../components/networkPropTypes';
 import Log from '../../../libs/Log';
 
 const propTypes = {
-    /** The policy ID currently being configured */
-    policyID: PropTypes.string.isRequired,
-
     /** Policy values needed in the component */
     policy: PropTypes.shape({
+        id: PropTypes.string,
         customUnits: PropTypes.objectOf(
             PropTypes.shape({
                 customUnitID: PropTypes.string,
