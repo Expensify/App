@@ -5,6 +5,7 @@ const _ = require('underscore');
 const {OUTPUT_DIR} = require('../config');
 const {computeProbability, computeZ} = require('./math');
 const printToConsole = require('./output/console');
+const writeToMarkdown = require('./output/markdown');
 
 /*
  * base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
@@ -139,6 +140,7 @@ module.exports = async (
     const outputData = compareResults(compare, baseline);
 
     if (outputFormat === 'console' || outputFormat === 'all') { printToConsole(outputData); }
+    if (outputFormat === 'markdown' || outputFormat === 'all') { await writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData); }
 
     // TODO: output format markdown for CI systems
 };
