@@ -30,6 +30,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import Banner from '../../components/Banner';
+import withLocalize from '../../components/withLocalize';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -246,6 +248,11 @@ class ReportScreen extends React.Component {
                         reportID={reportID}
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
+                    {this.props.accountManagerReportID && (
+                        <Banner
+                            text="chat with your account manager here"
+                        />
+                    )}
                 </OfflineWithFeedback>
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
@@ -311,6 +318,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
@@ -336,6 +344,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        accountManagerReportID: {
+            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
         },
     }),
 )(ReportScreen);
