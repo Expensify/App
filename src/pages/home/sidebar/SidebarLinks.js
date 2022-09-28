@@ -67,7 +67,7 @@ const propTypes = {
     }),
 
     /** Currently viewed reportID */
-    currentlyViewedReportID: PropTypes.string,
+    currentReportIDFromRoute: PropTypes.string,
 
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
@@ -85,7 +85,7 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
-    currentlyViewedReportID: '',
+    currentReportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
@@ -111,7 +111,7 @@ class SidebarLinks extends React.Component {
             return null;
         }
 
-        const optionListItems = SidebarUtils.getOrderedReportIDs();
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportIDFromRoute);
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -163,7 +163,7 @@ class SidebarLinks extends React.Component {
                     ]}
                     data={optionListItems}
                     focusedIndex={_.findIndex(optionListItems, (
-                        option => option.toString() === this.props.currentlyViewedReportID
+                        option => option.toString() === this.props.currentReportIDFromRoute
                     ))}
                     onSelectRow={this.onSelectRow}
                     shouldDisableFocusOptions={this.props.isSmallScreenWidth}
@@ -193,9 +193,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,

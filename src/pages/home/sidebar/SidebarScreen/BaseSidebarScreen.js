@@ -96,6 +96,9 @@ class BaseSidebarScreen extends Component {
     }
 
     render() {
+        // We can extract the currently viewed reportID by looking at the react navigation state
+        const currentReportIDFromRoute = lodashGet(this.props.state, ['routes', 0, 'params', 'reportID']);
+
         // Workspaces are policies with type === 'free'
         const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
         return (
@@ -113,6 +116,7 @@ class BaseSidebarScreen extends Component {
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
                                 navigation={this.props.navigation}
+                                currentReportIDFromRoute={currentReportIDFromRoute}
                             />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}

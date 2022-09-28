@@ -41,15 +41,17 @@ Onyx.connect({
     },
 });
 
-let lastViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => lastViewedReportID = val ? Number(val) : null,
-});
-
+let lastViewedReportID = null;
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
+
+/**
+ * @param {Number} reportID
+ */
+function updateCurrentlyViewedReportID(reportID) {
+    lastViewedReportID = reportID;
+}
 
 /**
  * @param {Number} reportID
@@ -951,13 +953,6 @@ function handleReportChanged(report) {
     if (report.reportID && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
-}
-
-/**
- * @param {Number} reportID
- */
-function updateCurrentlyViewedReportID(reportID) {
-    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
 }
 
 Onyx.connect({
