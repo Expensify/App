@@ -112,8 +112,9 @@ function updateAllPolicies(policyCollection) {
  * Delete the workspace
  *
  * @param {String} policyID
+ * @param {Array<Object>} reports
  */
-function deleteWorkspace(policyID) {
+function deleteWorkspace(policyID, reports) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -123,11 +124,30 @@ function deleteWorkspace(policyID) {
                 errors: null,
             },
         },
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        })),
+    ];
+
+    // Restore the old report stateNum and statusNum
+    const failureData = [
+        ..._.map(reports, ({reportID, stateNum, statusNum}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum,
+                statusNum,
+            },
+        })),
     ];
 
     // We don't need success data since the push notification will update
     // the onyxData for all connected clients.
-    const failureData = [];
     const successData = [];
     API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
 }
