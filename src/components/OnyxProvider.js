@@ -4,7 +4,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import createOnyxContext from './createOnyxContext';
 import ComposeProviders from './ComposeProviders';
 
-// Set ups Context providers for individual keys with a factory method so that their Onyx subscription can be shared between many other components.
+// Sets up Context providers for individual keys with a factory method so that their Onyx subscription can be shared between many other components.
 // This should only be used in cases where many components will subscribe to the same key (e.g. FlatList renderItem() components).
 // By using the Context API we will create a "provider" that has a single subscription and then an HOC "consumer" that will
 // pass the values via props whenever the provider is updated. This increases performance significantly since the consumers
