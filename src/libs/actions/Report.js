@@ -127,6 +127,7 @@ function getSimplifiedReportObject(report) {
     ]);
 
     return {
+        // This needs to be cast to a string until the IOU API has been fully migrated to OfflineFirst API
         reportID: report.reportID.toString(),
         reportName: report.reportName,
         chatType,
