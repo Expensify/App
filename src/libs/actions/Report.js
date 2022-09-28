@@ -337,14 +337,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return simplifiedReports;
-        })
-        .catch((err) => {
-            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                return;
-            }
-
-            // eslint-disable-next-line no-use-before-define
-            handleInaccessibleReport();
         });
 }
 
@@ -1410,14 +1402,6 @@ function navigateToConciergeChat() {
 }
 
 /**
- * Handle the navigation when report is inaccessible
- */
-function handleInaccessibleReport() {
-    Growl.error(Localize.translateLocal('notFound.chatYouLookingForCannotBeFound'));
-    navigateToConciergeChat();
-}
-
-/**
  * Creates a policy room, fetches it, and navigates to it.
  * @param {String} policyID
  * @param {String} reportName
@@ -1743,7 +1727,6 @@ export {
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
-    handleInaccessibleReport,
     setReportWithDraft,
     createPolicyRoom,
     addPolicyReport,
