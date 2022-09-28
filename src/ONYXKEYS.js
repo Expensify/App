@@ -5,6 +5,9 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
+    // Holds the reportID for the report between the user and their account manager
+    ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
+
     // Boolean flag only true when first set
     NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
 
