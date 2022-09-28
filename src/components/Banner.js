@@ -26,6 +26,7 @@ const propTypes = {
     /** Should this component render the text as HTML? */
     shouldRenderHTML: PropTypes.bool,
 
+    /** Callback called when the close button is pressed */
     onClose: PropTypes.func,
 
     ...withLocalizePropTypes,
