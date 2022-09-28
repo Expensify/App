@@ -26,7 +26,7 @@ beforeAll(() => {
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
     global.fetch = TestHelper.getGlobalFetchMock();
 
-    jest.setTimeout(6000);
+    jest.setTimeout(10000);
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
 });
