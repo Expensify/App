@@ -74,10 +74,6 @@ class RequestorStep extends React.Component {
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
-    componentDidMount() {
-        BankAccounts.clearOnfido();
-    }
-
     /**
      * Clear the errors associated to keys in values if found and store the new values in the state.
      *
