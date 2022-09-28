@@ -284,15 +284,6 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
- * Sets local values for the policy
- * @param {String} policyID
- * @param {Object} values
- */
-function updateLocalPolicyValues(policyID, values) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
-}
-
-/**
  * Updates a workspace avatar image
  *
  * @param {String} policyID
@@ -398,34 +389,6 @@ function clearAvatarErrors(policyID) {
             avatar: null,
         },
     });
-}
-
-/**
- * Sets the name of the policy
- *
- * @param {String} policyID
- * @param {Object} values
- * @param {Boolean} [shouldGrowl]
- */
-function update(policyID, values, shouldGrowl = false) {
-    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
-    DeprecatedAPI.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
-            if (shouldGrowl) {
-                Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            }
-        }).catch(() => {
-            updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
-
-            // Show the user feedback
-            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
 }
 
 /**
@@ -999,7 +962,6 @@ export {
     removeMembers,
     invite,
     isAdminOfFreePolicy,
-    update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
