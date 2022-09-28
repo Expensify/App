@@ -42,6 +42,10 @@ jobs:
           script: echo "Generated AVD snapshot for caching."
       #endregion
 
+      - name: Preheat build system
+        run: |
+          npm run android-build-e2e
+
       - name: Start emulator and run tests
         uses: reactivecircus/android-emulator-runner@v2
         env:
