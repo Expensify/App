@@ -1066,6 +1066,11 @@ function deleteReportComment(reportID, reportAction) {
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
 
+function deleteReportFromOnyx(reportID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+    Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+}
+
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
@@ -1555,6 +1560,7 @@ export {
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,
+    deleteReportFromOnyx,
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
