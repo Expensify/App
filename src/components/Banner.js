@@ -16,10 +16,14 @@ const propTypes = {
 
     /** Should this component render the text as HTML? */
     shouldRenderHTML: PropTypes.bool,
+
+    /** Children view component for this action item */
+    children: PropTypes.node,
 };
 
 const defaultProps = {
     shouldRenderHTML: false,
+    children: null,
 };
 
 const Banner = props => (
@@ -45,6 +49,7 @@ const Banner = props => (
                         ? <RenderHTML html={props.text} />
                         : <Text>{props.text}</Text>
                 }
+                {props.children}
             </View>
         )}
     </Hoverable>
