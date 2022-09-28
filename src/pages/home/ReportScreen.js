@@ -30,6 +30,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -175,10 +176,6 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportIDFromPath = getReportID(this.props.route);
-        if (_.isNaN(reportIDFromPath)) {
-            Report.handleInaccessibleReport();
-            return;
-        }
 
         // Always reset the state of the composer view when the current reportID changes
         toggleReportActionComposeView(true);
@@ -237,71 +234,76 @@ class ReportScreen extends React.Component {
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
                 keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
-                <OfflineWithFeedback
-                    pendingAction={addWorkspaceRoomPendingAction}
-                    errors={addWorkspaceRoomErrors}
-                    errorRowStyles={styles.dNone}
+                <FullPageNotFoundView
+                    shouldShow={!this.props.report.reportID}
+                    subtitleKey="notFound.noAccess"
                 >
-                    <HeaderView
-                        reportID={reportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
-                </OfflineWithFeedback>
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
-                >
-                    {this.shouldShowLoader()
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={this.state.skeletonViewContainerHeight}
-                            />
-                        )
-                        : (
-                            <ReportActionsView
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                isDrawerOpen={this.props.isDrawerOpen}
-                            />
-                        )}
-                    {(isArchivedRoom || hideComposer) && (
-                        <View style={[styles.chatFooter]}>
-                            {isArchivedRoom && (
-                                <ArchivedReportFooter
-                                    reportClosedAction={reportClosedAction}
+                    <OfflineWithFeedback
+                        pendingAction={addWorkspaceRoomPendingAction}
+                        errors={addWorkspaceRoomErrors}
+                        errorRowStyles={styles.dNone}
+                    >
+                        <HeaderView
+                            reportID={reportID}
+                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                        />
+                    </OfflineWithFeedback>
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                    >
+                        {this.shouldShowLoader()
+                            ? (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )
+                            : (
+                                <ReportActionsView
+                                    reportActions={this.props.reportActions}
                                     report={this.props.report}
+                                    session={this.props.session}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    isDrawerOpen={this.props.isDrawerOpen}
                                 />
                             )}
-                            {!this.props.isSmallScreenWidth && (
-                                <View style={styles.offlineIndicatorRow}>
-                                    {hideComposer && (
-                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                    )}
-                                </View>
-                            )}
-                        </View>
-                    )}
-                    {(!hideComposer && this.props.session.shouldShowComposeInput) && (
-                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                <OfflineWithFeedback
-                                    pendingAction={addWorkspaceRoomPendingAction}
-                                >
-                                    <ReportActionCompose
-                                        onSubmit={this.onSubmitComment}
-                                        reportID={reportID}
-                                        reportActions={this.props.reportActions}
+                        {(isArchivedRoom || hideComposer) && (
+                            <View style={[styles.chatFooter]}>
+                                {isArchivedRoom && (
+                                    <ArchivedReportFooter
+                                        reportClosedAction={reportClosedAction}
                                         report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
                                     />
-                                </OfflineWithFeedback>
-                            </SwipeableView>
-                        </View>
-                    )}
-                </View>
+                                )}
+                                {!this.props.isSmallScreenWidth && (
+                                    <View style={styles.offlineIndicatorRow}>
+                                        {hideComposer && (
+                                            <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                                        )}
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                        {(!hideComposer && this.props.session.shouldShowComposeInput) && (
+                            <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                                <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                    <OfflineWithFeedback
+                                        pendingAction={addWorkspaceRoomPendingAction}
+                                    >
+                                        <ReportActionCompose
+                                            onSubmit={this.onSubmitComment}
+                                            reportID={reportID}
+                                            reportActions={this.props.reportActions}
+                                            report={this.props.report}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                        />
+                                    </OfflineWithFeedback>
+                                </SwipeableView>
+                            </View>
+                        )}
+                    </View>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }

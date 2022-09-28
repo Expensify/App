@@ -18,10 +18,18 @@ const propTypes = {
 
     /** If true, child components are replaced with a blocking "not found" view */
     shouldShow: PropTypes.bool,
+
+    /** The key in the translations file to use for the title */
+    titleKey: PropTypes.string,
+
+    /** The key in the translations file to use for the subtitle */
+    subtitleKey: PropTypes.string,
 };
 
 const defaultProps = {
     shouldShow: false,
+    titleKey: 'notFound.notHere',
+    subtitleKey: 'notFound.pageNotFound',
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -37,8 +45,8 @@ const FullPageNotFoundView = (props) => {
                 <View style={styles.flex1}>
                     <BlockingView
                         icon={Expensicons.QuestionMark}
-                        title={props.translate('notFound.notHere')}
-                        subtitle={props.translate('notFound.pageNotFound')}
+                        title={props.translate(props.titleKey)}
+                        subtitle={props.translate(props.subtitleKey)}
                     />
                 </View>
             </>

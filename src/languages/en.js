@@ -514,6 +514,7 @@ export default {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
+        noAccess: 'You don\'t have access to this chat',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
