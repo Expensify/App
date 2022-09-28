@@ -260,7 +260,7 @@ class ReportScreen extends React.Component {
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
                 </OfflineWithFeedback>
-                {ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                     <Banner
                         containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
                         textStyles={[styles.colorReversed]}
