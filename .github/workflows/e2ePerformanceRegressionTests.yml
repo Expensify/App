@@ -43,6 +43,8 @@ jobs:
       #endregion
 
       - name: Preheat build system
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
         run: |
           npm run android-build-e2e
 
