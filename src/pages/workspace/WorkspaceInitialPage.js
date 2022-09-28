@@ -35,6 +35,21 @@ const propTypes = {
 
     /** The employee list of this policy (coming from Onyx) */
     policyMemberList: PropTypes.objectOf(policyMemberPropType),
+
+    /** All reports shared with the user (coming from Onyx) */
+    reports: PropTypes.shape({
+        /** The report name */
+        reportID: PropTypes.number,
+
+        /** The report state number */
+        stateNum: PropTypes.number,
+
+        /** The report status number */
+        statusNum: PropTypes.number,
+
+        /** ID of the policy */
+        policyID: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -74,7 +89,8 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        Policy.deleteWorkspace(this.props.policy.id);
+        const policyReports = _.filter(this.props.reports, report => report.policyID === this.props.policy.id);
+        Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS);
     }
@@ -253,6 +269,9 @@ export default compose(
     withOnyx({
         policyMemberList: {
             key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(WorkspaceInitialPage);
