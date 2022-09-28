@@ -82,10 +82,6 @@ class ReportActionItem extends Component {
         this.showPopover = this.showPopover.bind(this);
     }
 
-    componentDidMount() {
-        console.log('@marcaaron REPORT ACTION ITEMS MOUNTED');
-    }
-
     shouldComponentUpdate(nextProps, nextState) {
         return this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage

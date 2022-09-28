@@ -636,10 +636,7 @@ function authenticatePusher(socketID, channelName, callback) {
  * @param {Boolean} shouldShowComposeInput
  */
 function setShouldShowComposeInput(shouldShowComposeInput) {
-    // @TODO - use InteractionManager instead
-    setTimeout(() => {
-        Onyx.merge(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, shouldShowComposeInput);
-    }, 1000);
+    Onyx.merge(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, shouldShowComposeInput);
 }
 
 export {

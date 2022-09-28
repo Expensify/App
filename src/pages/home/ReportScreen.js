@@ -129,25 +129,19 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        console.log('@marcaaron REPORT SCREEN MOUNTED: ', this.props.route.params.reportID);
         this.storeCurrentlyViewedReport();
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
-        console.log(Performance.diffObject(prevProps, this.props));
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
 
-        // At this point, we are just waiting for the new data from Onyx to load which takes some time so we can set the loader again
-        console.log('@marcaaron REPORT SCREEN REPORTID CHANGED');
-        console.log('@marcaaron: ', {reportIDFromReport: this.props.report.reportID, reportIDFromRoute: this.props.route.params.reportID});
         this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
-        console.log('@marcaaron REPORT SCREEN UNMOUNTING: ', this.props.route.params.reportID);
         this.removeViewportResizeListener();
     }
 
@@ -171,7 +165,7 @@ class ReportScreen extends React.Component {
     shouldShowLoader() {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID || this.props.isDrawerOpen;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
     }
 
     /**
@@ -207,7 +201,6 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        console.log('@marcaaron REPORT SCREEN RENDERED');
         if (!this.props.isSidebarLoaded) {
             return null;
         }

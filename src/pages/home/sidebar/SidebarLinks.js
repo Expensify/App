@@ -121,8 +121,6 @@ class SidebarLinks extends React.Component {
         }
 
         const optionListItems = SidebarUtils.getOrderedReportIDs();
-        console.debug('@marcaaron SidebarLinks RENDERED');
-
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}

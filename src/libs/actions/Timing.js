@@ -52,17 +52,14 @@ function end(eventName, secondaryName = '') {
         return;
     }
 
-    // Schedule performance timing so that we report these later else we might slow down the thing we are tracing.
-    // @TODO just use interaction manager
-    setTimeout(() => {
-        InteractionManager.runAfterInteractions(() => {
-            API.write('SendPerformanceTiming', {
-                name: grafanaEventName,
-                value: eventTime,
-                platform: `${getPlatform()}`,
-            });
+    // Schedule performance timing so that we report these later else we might slow down things we are tracing.
+    InteractionManager.runAfterInteractions(() => {
+        API.write('SendPerformanceTiming', {
+            name: grafanaEventName,
+            value: eventTime,
+            platform: `${getPlatform()}`,
         });
-    }, 1000);
+    });
 }
 
 /**
