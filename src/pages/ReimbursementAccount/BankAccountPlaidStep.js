@@ -51,12 +51,12 @@ class BankAccountPlaidStep extends React.Component {
             plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
         });
 
-        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'bankAccountID', 0);
+        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
         BankAccounts.connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount);
     }
 
     render() {
-        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'bankAccountID', 0);
+        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
 
         return (
             <>

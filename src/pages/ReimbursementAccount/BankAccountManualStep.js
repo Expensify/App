@@ -31,11 +31,10 @@ class BankAccountManualStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        const reimbursementAccount = props.reimbursementAccount;
         this.state = {
-            acceptTerms: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'acceptTerms', true),
-            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'routingNumber'),
-            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'accountNumber'),
+            acceptTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
+            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
+            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
         };
 
         // Map a field to the key of the error's translation
@@ -73,10 +72,10 @@ class BankAccountManualStep extends React.Component {
             return;
         }
         BankAccounts.connectBankAccountManually(
-            ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'bankAccountID', 0),
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
             this.state.accountNumber,
             this.state.routingNumber,
-            ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'plaidMask'),
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
         );
     }
 
@@ -92,7 +91,7 @@ class BankAccountManualStep extends React.Component {
     }
 
     render() {
-        const shouldDisableInputs = Boolean(ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, 'bankAccountID'));
+        const shouldDisableInputs = Boolean(ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'));
 
         return (
             <>

@@ -50,11 +50,10 @@ class ValidationStep extends React.Component {
 
         this.submit = this.submit.bind(this);
 
-        const reimbursementAccount = props.reimbursementAccount;
         this.state = {
-            amount1: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'amount1', ''),
-            amount2: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'amount2', ''),
-            amount3: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'amount3', ''),
+            amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
+            amount2: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount2', ''),
+            amount3: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount3', ''),
         };
 
         this.requiredFields = [

@@ -42,20 +42,19 @@ class RequestorStep extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
-        const reimbursementAccount = props.reimbursementAccount;
 
         this.state = {
-            firstName: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'firstName'),
-            lastName: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'lastName'),
-            requestorAddressStreet: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressStreet'),
-            requestorAddressCity: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressCity'),
-            requestorAddressState: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressState'),
-            requestorAddressZipCode: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'requestorAddressZipCode'),
-            dob: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'dob'),
-            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'ssnLast4'),
-            isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'isControllingOfficer', false),
-            onfidoData: lodashGet(reimbursementAccount, ['reimbursementAccount', 'achData', 'onfidoData'], ''),
-            isOnfidoSetupComplete: lodashGet(reimbursementAccount, ['achData', 'isOnfidoSetupComplete'], false),
+            firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
+            lastName: ReimbursementAccountUtils.getDefaultStateForField(props, 'lastName'),
+            requestorAddressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressStreet'),
+            requestorAddressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressCity'),
+            requestorAddressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressState'),
+            requestorAddressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressZipCode'),
+            dob: ReimbursementAccountUtils.getDefaultStateForField(props, 'dob'),
+            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(props, 'ssnLast4'),
+            isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(props, 'isControllingOfficer', false),
+            onfidoData: lodashGet(props, ['reimbursementAccount', 'achData', 'onfidoData'], ''),
+            isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
         // Required fields not validated by `validateIdentity`

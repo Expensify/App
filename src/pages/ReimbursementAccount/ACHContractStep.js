@@ -38,14 +38,13 @@ class ACHContractStep extends React.Component {
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
-        const reimbursementAccount = props.reimbursementAccount;
 
         this.state = {
-            ownsMoreThan25Percent: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'ownsMoreThan25Percent', false),
-            hasOtherBeneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'hasOtherBeneficialOwners', false),
-            acceptTermsAndConditions: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'acceptTermsAndConditions', false),
-            certifyTrueInformation: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'certifyTrueInformation', false),
-            beneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'beneficialOwners', []),
+            ownsMoreThan25Percent: ReimbursementAccountUtils.getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
+            hasOtherBeneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasOtherBeneficialOwners', false),
+            acceptTermsAndConditions: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTermsAndConditions', false),
+            certifyTrueInformation: ReimbursementAccountUtils.getDefaultStateForField(props, 'certifyTrueInformation', false),
+            beneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'beneficialOwners', []),
         };
 
         // These fields need to be filled out in order to submit the form (doesn't include IdentityForm fields)
