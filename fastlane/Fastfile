@@ -21,7 +21,7 @@ platform :android do
 
     gradle(
       project_dir: './android',
-      tasks: ['clean', ':app:assembleE2eRelease'],
+      task: ':app:assembleE2eRelease',
     )
   end
 
