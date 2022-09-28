@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
 import styles from '../../styles/styles';
+import colors from '../../styles/colors';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -251,8 +252,11 @@ class ReportScreen extends React.Component {
                 </OfflineWithFeedback>
                 {/* {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport() && ( */}
                     <Banner
+                        containerStyles={[styles.m4, styles.p4, styles.bgDark]}
+                        textStyles={[styles.colorReversed]}
                         text="chat with your account manager here"
                         shouldShowCloseButton
+                        shouldShowIcon
                     />
                 {/* )} */}
                 <View

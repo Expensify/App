@@ -32,6 +32,12 @@ const propTypes = {
     /** Callback called when the message is pressed */
     onPress: PropTypes.func,
 
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    // eslint-disable-next-line react/forbid-prop-types
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
@@ -41,6 +47,8 @@ const defaultProps = {
     shouldShowCloseButton: false,
     onClose: () => {},
     onPress: () => {},
+    containerStyles: [],
+    textStyles: [],
 };
 
 const Banner = props => (
@@ -53,10 +61,10 @@ const Banner = props => (
                 styles.borderRadiusNormal,
                 isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
                 styles.breakAll,
-                styles.justifyContentBetween,
+                ...props.containerStyles,
             ]}
             >
-                <View style={[styles.flexRow]}>
+                <View style={[styles.flexRow, styles.flexGrow1]}>
                     {props.shouldShowIcon && (
                         <View style={[styles.mr3]}>
                             <Icon
@@ -65,13 +73,11 @@ const Banner = props => (
                             />
                         </View>
                     )}
-                    <Pressable
-                        onPress={props.onPress}
-                    >
+                    <Pressable onPress={props.onPress}>
                         {
                             props.shouldRenderHTML
                                 ? <RenderHTML html={props.text} />
-                                : <Text>{props.text}</Text>
+                                : <Text style={[...props.textStyles]}>{props.text}</Text>
                         }
                     </Pressable>
                 </View>
@@ -79,7 +85,6 @@ const Banner = props => (
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
-                            style={[styles.touchableButtonImage, styles.mr0]}
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('common.close')}
                         >
