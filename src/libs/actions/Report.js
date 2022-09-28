@@ -41,17 +41,10 @@ Onyx.connect({
     },
 });
 
-let lastViewedReportID = null;
+let lastViewedReportID;
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
-
-/**
- * @param {Number} reportID
- */
-function updateCurrentlyViewedReportID(reportID) {
-    lastViewedReportID = reportID;
-}
 
 /**
  * @param {Number} reportID
@@ -955,6 +948,20 @@ function handleReportChanged(report) {
     }
 }
 
+/**
+ * @param {String} reportID
+ */
+function updateCurrentlyViewedReportID(reportID) {
+    lastViewedReportID = reportID;
+}
+
+/**
+ * @returns {String} reportID
+ */
+function getCurrentlyViewedReportID() {
+    return lastViewedReportID;
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -1552,4 +1559,5 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
+    getCurrentlyViewedReportID,
 };

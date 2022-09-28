@@ -19,6 +19,7 @@ import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneE
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
+import * as Report from '../actions/Report';
 
 let sessionAuthToken = '';
 let currentUserAccountID = '';
@@ -209,6 +210,8 @@ function setSecondaryLoginAndNavigate(login, password) {
  */
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
+    const currentlyViewedReportID = Report.getCurrentlyViewedReportID();
+    const redirectRoute = (isLoggedIn && currentlyViewedReportID) ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     DeprecatedAPI.ValidateEmail({
@@ -230,7 +233,7 @@ function validateLogin(accountID, validateCode) {
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(redirectRoute);
     });
 }
 

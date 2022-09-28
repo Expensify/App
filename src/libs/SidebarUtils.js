@@ -84,10 +84,10 @@ Onyx.connect({
 });
 
 /**
- * @param {String} currentReportIDInRoute
+ * @param {String} currentlyViewedReportID
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs(currentReportIDInRoute) {
+function getOrderedReportIDs(currentlyViewedReportID) {
     const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
     const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
 
@@ -131,7 +131,7 @@ function getOrderedReportIDs(currentReportIDInRoute) {
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID.toString() !== currentReportIDInRoute
+        if (report.reportID.toString() !== currentlyViewedReportID
             && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
@@ -181,7 +181,7 @@ function getOrderedReportIDs(currentReportIDInRoute) {
 
         // If the active report has a draft, we do not put it in the group of draft reports because we want it to maintain it's current position. Otherwise the report's position
         // jumps around in the LHN and it's kind of confusing to the user to see the LHN reorder when they start typing a comment on a report.
-        } else if (report.hasDraft && report.reportID.toString() !== currentReportIDInRoute) {
+        } else if (report.hasDraft && report.reportID.toString() !== currentlyViewedReportID) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);

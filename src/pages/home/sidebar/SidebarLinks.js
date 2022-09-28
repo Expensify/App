@@ -111,6 +111,7 @@ class SidebarLinks extends React.Component {
             return null;
         }
 
+        // We are passing the current reportID from the route since it will update this component when it changes
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportIDFromRoute);
         return (
             <View
