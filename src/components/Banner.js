@@ -26,29 +26,13 @@ const propTypes = {
     /** Should this component render the text as HTML? */
     shouldRenderHTML: PropTypes.bool,
 
-    /** Callback called when the close button is pressed */
-    onClose: PropTypes.func,
-
-    /** Callback called when the message is pressed */
-    onPress: PropTypes.func,
-
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
+    /** Children view component for this action item */
+    children: PropTypes.node,
 };
 
 const defaultProps = {
     shouldRenderHTML: false,
-    shouldShowIcon: false,
-    shouldShowCloseButton: false,
-    onClose: () => {},
-    onPress: () => {},
-    containerStyles: [],
-    textStyles: [],
+    children: null,
 };
 
 const Banner = props => (
@@ -79,17 +63,12 @@ const Banner = props => (
                             : <Text style={[...props.textStyles]} onPress={props.onPress}>{props.text}</Text>
                     }
                 </View>
-                {props.shouldShowCloseButton && (
-                    <Tooltip text={props.translate('common.close')}>
-                        <Pressable
-                            onPress={props.onClose}
-                            accessibilityRole="button"
-                            accessibilityLabel={props.translate('common.close')}
-                        >
-                            <Icon src={Expensicons.Close} />
-                        </Pressable>
-                    </Tooltip>
-                )}
+                {
+                    props.shouldRenderHTML
+                        ? <RenderHTML html={props.text} />
+                        : <Text>{props.text}</Text>
+                }
+                {props.children}
             </View>
         )}
     </Hoverable>
