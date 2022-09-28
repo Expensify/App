@@ -14,12 +14,16 @@ const propTypes = {
     /** Text to display in the banner. */
     text: PropTypes.string.isRequired,
 
+    /** Should this component render the left-aligned exclamation icon? */
+    shouldShowIcon: PropTypes.bool,
+
     /** Should this component render the text as HTML? */
     shouldRenderHTML: PropTypes.bool,
 };
 
 const defaultProps = {
     shouldRenderHTML: false,
+    shouldShowIcon: false,
 };
 
 const Banner = props => (
@@ -34,12 +38,14 @@ const Banner = props => (
                 styles.breakAll,
             ]}
             >
-                <View style={[styles.mr3]}>
-                    <Icon
-                        src={Expensicons.Exclamation}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                    />
-                </View>
+                {props.shouldShowIcon && (
+                    <View style={[styles.mr3]}>
+                        <Icon
+                            src={Expensicons.Exclamation}
+                            fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                        />
+                    </View>
+                )}
                 {
                     props.shouldRenderHTML
                         ? <RenderHTML html={props.text} />
