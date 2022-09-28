@@ -17,6 +17,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Report from './Report';
 import * as Pusher from '../Pusher/pusher';
 import DateUtils from '../DateUtils';
+import * as ReportUtils from '../ReportUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -26,7 +27,7 @@ Onyx.connect({
             return;
         }
 
-        allPolicies[key] = {...allPolicies[key], ...val};
+        allPolicies[key] = val;
     },
 });
 let sessionEmail = '';
@@ -108,32 +109,27 @@ function updateAllPolicies(policyCollection) {
 }
 
 /**
- * Delete the policy
+ * Delete the workspace
  *
- * @param {String} [policyID]
- * @returns {Promise}
+ * @param {String} policyID
  */
-function deletePolicy(policyID) {
-    return DeprecatedAPI.Policy_Delete({policyID})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
+function deleteWorkspace(policyID) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: null,
+            },
+        },
+    ];
 
-            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
-
-            // Removing the workspace data from Onyx and local array as well
-            delete allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
-        })
-        .then(() => Report.fetchAllReports(false))
-        .then(() => {
-            Navigation.goBack();
-            return Promise.resolve();
-        });
+    // We don't need success data since the push notification will update
+    // the onyxData for all connected clients.
+    const failureData = [];
+    const successData = [];
+    API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -288,15 +284,6 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
- * Sets local values for the policy
- * @param {String} policyID
- * @param {Object} values
- */
-function updateLocalPolicyValues(policyID, values) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
-}
-
-/**
  * Updates a workspace avatar image
  *
  * @param {String} policyID
@@ -402,34 +389,6 @@ function clearAvatarErrors(policyID) {
             avatar: null,
         },
     });
-}
-
-/**
- * Sets the name of the policy
- *
- * @param {String} policyID
- * @param {Object} values
- * @param {Boolean} [shouldGrowl]
- */
-function update(policyID, values, shouldGrowl = false) {
-    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
-    DeprecatedAPI.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
-            if (shouldGrowl) {
-                Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            }
-        }).catch(() => {
-            updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
-
-            // Show the user feedback
-            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
 }
 
 /**
@@ -742,6 +701,18 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
+ * Removes an error after trying to delete a workspace
+ *
+ * @param {String} policyID
+ */
+function clearDeleteWorkspaceError(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        pendingAction: null,
+        errors: null,
+    });
+}
+
+/**
  * Generate a policy name based on an email and policy list.
  * @returns {String}
  */
@@ -807,7 +778,7 @@ function createWorkspace() {
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
-    } = Report.buildOptimisticWorkspaceChats(policyID, workspaceName);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     API.write('CreateWorkspace', {
         policyID,
@@ -960,7 +931,11 @@ function createWorkspace() {
         }],
     });
 
-    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+    Navigation.isNavigationReady()
+        .then(() => {
+            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+        });
 }
 
 function openWorkspaceReimburseView(policyID) {
@@ -987,17 +962,17 @@ export {
     removeMembers,
     invite,
     isAdminOfFreePolicy,
-    update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
-    deletePolicy,
+    deleteWorkspace,
     updateWorkspaceCustomUnit,
     updateCustomUnitRate,
     updateLastAccessedWorkspace,
     subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
+    clearDeleteWorkspaceError,
     openWorkspaceReimburseView,
     generateDefaultWorkspaceName,
     updateGeneralSettings,

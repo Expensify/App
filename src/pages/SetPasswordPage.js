@@ -89,7 +89,6 @@ class SetPasswordPage extends Component {
     render() {
         const buttonText = this.props.translate('setPasswordPage.setPassword');
         const error = ErrorUtils.getLatestErrorMessage(this.props.account) || ErrorUtils.getLatestErrorMessage(this.props.session);
-        const isErrorVisible = !this.props.account.isLoading && !_.isEmpty(error);
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
@@ -112,7 +111,7 @@ class SetPasswordPage extends Component {
                             onSubmit={this.validateAndSubmitForm}
                             containerStyles={[styles.mb2, styles.mh0]}
                             message={error}
-                            isAlertVisible={isErrorVisible}
+                            isAlertVisible={!_.isEmpty(error)}
                             isDisabled={!this.state.isFormValid}
                         />
                     </View>

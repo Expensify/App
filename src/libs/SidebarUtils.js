@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
@@ -44,7 +45,7 @@ Onyx.connect({
 
 let betas;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    key: ONYXKEYS.BETAS,
     callback: val => betas = val,
 });
 
@@ -143,8 +144,12 @@ function getOrderedReportIDs() {
             return false;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE) {
+        // We let Free Plan default rooms to be shown in the App, or rooms that also have a Guide in them.
+        // It's the two exceptions to the beta, otherwise do not show policy rooms in product
+        if (ReportUtils.isDefaultRoom(report)
+            && !Permissions.canUseDefaultRooms(betas)
+            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
             return false;
         }
 
@@ -190,7 +195,10 @@ function getOrderedReportIDs() {
 
     // Prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, 'text');
+    const sortedDraftReports = _.sortBy(draftReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedDraftReports.concat(recentReportOptions);
 
     // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
@@ -199,7 +207,10 @@ function getOrderedReportIDs() {
     recentReportOptions = sortedIOUReports.concat(recentReportOptions);
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
+    const sortedPinnedReports = _.sortBy(pinnedReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
     return _.chain(recentReportOptions)
@@ -216,7 +227,11 @@ function getOrderedReportIDs() {
  */
 function getOptionData(reportID) {
     const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!report) {
+
+    // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
+    // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
+    // a null check here and return early.
+    if (!report || !personalDetails) {
         return;
     }
     const result = {
@@ -249,7 +264,7 @@ function getOptionData(reportID) {
 
     const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const personalDetail = personalDetailList[0];
+    const personalDetail = personalDetailList[0] || {};
 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
