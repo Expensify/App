@@ -139,6 +139,7 @@ class RequestorStep extends React.Component {
         }
 
         const payload = {
+            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
             ...this.state,
             dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
