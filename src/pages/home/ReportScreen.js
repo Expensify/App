@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
 import styles from '../../styles/styles';
-import colors from '../../styles/colors';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -126,11 +125,14 @@ class ReportScreen extends React.Component {
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
+        this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
+            isBannerVisible: true,
         };
     }
 
@@ -205,6 +207,14 @@ class ReportScreen extends React.Component {
         this.setState({viewportOffsetTop});
     }
 
+    dismissBanner() {
+        this.setState({isBannerVisible: false});
+    }
+
+    chatWithAccountManager() {
+        Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
+    }
+
     render() {
         if (!this.props.isSidebarLoaded) {
             return null;
@@ -250,15 +260,16 @@ class ReportScreen extends React.Component {
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
                 </OfflineWithFeedback>
-                {/* {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport() && ( */}
+                {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                     <Banner
-                        containerStyles={[styles.m4, styles.p4, styles.bgDark]}
+                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
                         textStyles={[styles.colorReversed]}
                         text="chat with your account manager here"
+                        onClose={this.dismissBanner}
+                        onPress={this.chatWithAccountManager}
                         shouldShowCloseButton
-                        shouldShowIcon
                     />
-                {/* )} */}
+                )}
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
