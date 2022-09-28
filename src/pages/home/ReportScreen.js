@@ -143,11 +143,7 @@ class ReportScreen extends React.Component {
         // At this point, we are just waiting for the new data from Onyx to load which takes some time so we can set the loader again
         console.log('@marcaaron REPORT SCREEN REPORTID CHANGED');
         console.log('@marcaaron: ', {reportIDFromReport: this.props.report.reportID, reportIDFromRoute: this.props.route.params.reportID});
-
-        // @TODO use interaction manager
-        setTimeout(() => {
-            this.storeCurrentlyViewedReport();
-        }, 1000);
+        this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
