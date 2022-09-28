@@ -28,8 +28,12 @@ import * as Link from '../../libs/actions/Link';
 const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-    onfidoToken: PropTypes.string.isRequired,
+    onfidoToken: PropTypes.string,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    onfidoToken: '',
 };
 
 class RequestorStep extends React.Component {
@@ -275,6 +279,7 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
+RequestorStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

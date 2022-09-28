@@ -49,7 +49,10 @@ const defaultProps = {
 
 const BankAccountStep = (props) => {
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
-    const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : props.achData.subStep;
+    let subStep = props.reimbursementAccount && props.reimbursementAccount.achData ? props.reimbursementAccount.achData.subStep : '';
+    if (shouldReinitializePlaidLink) {
+        subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+    }
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
@@ -160,6 +163,9 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(BankAccountStep);
