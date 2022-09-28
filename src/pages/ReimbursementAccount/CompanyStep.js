@@ -45,19 +45,20 @@ class CompanyStep extends React.Component {
             ? 'https://'
             : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
 
+        const reimbursementAccount = props.reimbursementAccount;
         this.state = {
-            companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
-            addressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressStreet'),
-            addressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressCity'),
-            addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
-            addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
-            companyPhone: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyPhone'),
-            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', this.defaultWebsite),
-            companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyTaxID'),
-            incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
-            incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
-            incorporationState: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationState'),
-            hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
+            companyName: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'companyName'),
+            addressStreet: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'addressStreet'),
+            addressCity: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'addressCity'),
+            addressState: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'addressState'),
+            addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'addressZipCode'),
+            companyPhone: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'companyPhone'),
+            website: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'website', this.defaultWebsite),
+            companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'companyTaxID'),
+            incorporationType: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'incorporationType'),
+            incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'incorporationDate'),
+            incorporationState: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'incorporationState'),
+            hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'hasNoConnectionToCannabis', false),
         };
 
         // These fields need to be filled out in order to submit the form
@@ -157,16 +158,17 @@ class CompanyStep extends React.Component {
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
+        const reimbursementAccount = this.props.reimbursementAccount;
         BankAccounts.setupWithdrawalAccount({
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'bankAccountID', 0),
 
             // Fields from bankAccount step
-            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber'),
-            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'accountNumber'),
-            bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
-            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
-            isSavings: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'isSavings'),
-            plaidAccessToken: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccessToken'),
+            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'routingNumber'),
+            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'accountNumber'),
+            bankName: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'bankName'),
+            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'plaidAccountID'),
+            isSavings: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'isSavings'),
+            plaidAccessToken: ReimbursementAccountUtils.getDefaultStateForField(reimbursementAccount, 'plaidAccessToken'),
 
             // Fields from company step
             ...this.state,
