@@ -64,7 +64,7 @@ const Banner = props => (
                 ...props.containerStyles,
             ]}
             >
-                <View style={[styles.flexRow, styles.flexGrow1]}>
+                <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
                     {props.shouldShowIcon && (
                         <View style={[styles.mr3]}>
                             <Icon
@@ -73,13 +73,11 @@ const Banner = props => (
                             />
                         </View>
                     )}
-                    <Pressable onPress={props.onPress}>
-                        {
-                            props.shouldRenderHTML
-                                ? <RenderHTML html={props.text} />
-                                : <Text style={[...props.textStyles]}>{props.text}</Text>
-                        }
-                    </Pressable>
+                    {
+                        props.shouldRenderHTML
+                            ? <RenderHTML html={props.text} />
+                            : <Text style={[...props.textStyles]} onPress={props.onPress}>{props.text}</Text>
+                    }
                 </View>
                 {props.shouldShowCloseButton && (
                     <Tooltip text={props.translate('common.close')}>
