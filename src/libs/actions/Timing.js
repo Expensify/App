@@ -1,4 +1,3 @@
-import {InteractionManager} from 'react-native';
 import getPlatform from '../getPlatform';
 import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';
