@@ -53,25 +53,28 @@ const Banner = props => (
                 styles.borderRadiusNormal,
                 isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
                 styles.breakAll,
+                styles.justifyContentBetween,
             ]}
             >
-                {props.shouldShowIcon && (
-                    <View style={[styles.mr3]}>
-                        <Icon
-                            src={Expensicons.Exclamation}
-                            fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                        />
-                    </View>
-                )}
-                <Pressable
-                    onPress={props.onPress}
-                >
-                    {
-                        props.shouldRenderHTML
-                            ? <RenderHTML html={props.text} />
-                            : <Text>{props.text}</Text>
-                    }
-                </Pressable>
+                <View style={[styles.flexRow]}>
+                    {props.shouldShowIcon && (
+                        <View style={[styles.mr3]}>
+                            <Icon
+                                src={Expensicons.Exclamation}
+                                fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                            />
+                        </View>
+                    )}
+                    <Pressable
+                        onPress={props.onPress}
+                    >
+                        {
+                            props.shouldRenderHTML
+                                ? <RenderHTML html={props.text} />
+                                : <Text>{props.text}</Text>
+                        }
+                    </Pressable>
+                </View>
                 {props.shouldShowCloseButton && (
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
