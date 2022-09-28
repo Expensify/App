@@ -457,6 +457,7 @@ const CONST = {
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
+        EMAIL_ADDRESS: 'email-address',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',

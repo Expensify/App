@@ -437,6 +437,7 @@ function setPasswordForNewAccountAndSignin(accountID, validateCode, password) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
         {
@@ -502,6 +503,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
         {
