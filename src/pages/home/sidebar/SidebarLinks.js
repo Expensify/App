@@ -94,15 +94,6 @@ class SidebarLinks extends React.Component {
         super(props);
 
         this.onSelectRow = this.onSelectRow.bind(this);
-
-        this.containerStyles = [styles.flex1, styles.h100];
-        this.viewStyles = [
-            styles.flexRow,
-            styles.ph5,
-            styles.pv3,
-            styles.justifyContentBetween,
-            styles.alignItemsCenter,
-        ];
     }
 
     onSelectRow(option) {
@@ -125,10 +116,16 @@ class SidebarLinks extends React.Component {
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
                 accessibilityLabel="List of chats"
-                style={this.containerStyles}
+                style={[styles.flex1, styles.h100]}
             >
                 <View
-                    style={this.viewStyles}
+                    style={[
+                        styles.flexRow,
+                        styles.ph5,
+                        styles.pv3,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                    ]}
                     nativeID="drag-area"
                 >
                     <Header
@@ -194,15 +191,6 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        reportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
@@ -211,6 +199,15 @@ export default compose(
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,

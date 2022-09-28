@@ -94,10 +94,10 @@ function addSMSDomainIfPhoneNumber(login) {
  * Returns the personal details for an array of logins
  *
  * @param {Array} logins
- * @param {Object} [personalDetails]
+ * @param {Object} personalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForLogins(logins, personalDetails = {}) {
+function getPersonalDetailsForLogins(logins, personalDetails) {
     const personalDetailsForLogins = {};
     _.each(logins, (login) => {
         let personalDetail = personalDetails[login];

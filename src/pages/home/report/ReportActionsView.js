@@ -112,9 +112,7 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerSequenceNumber: 0});
         });
 
-        InteractionManager.runAfterInteractions(() => {
-            Report.subscribeToReportTypingEvents(this.props.report.reportID);
-        });
+        Report.subscribeToReportTypingEvents(this.props.report.reportID);
 
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
@@ -260,9 +258,7 @@ class ReportActionsView extends React.Component {
             this.appStateChangeListener.remove();
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            Report.unsubscribeFromReportChannel(this.props.report.reportID);
-        });
+        Report.unsubscribeFromReportChannel(this.props.report.reportID);
     }
 
     /**

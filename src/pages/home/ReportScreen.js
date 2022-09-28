@@ -121,7 +121,6 @@ class ReportScreen extends React.Component {
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
         this.removeViewportResizeListener = () => {};
-        this.mainChatViewStyles = [styles.flex1, styles.justifyContentEnd, styles.overflowHidden];
         this.state = {
             skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
@@ -137,7 +136,6 @@ class ReportScreen extends React.Component {
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
-
         this.storeCurrentlyViewedReport();
     }
 
@@ -165,7 +163,7 @@ class ReportScreen extends React.Component {
     shouldShowLoader() {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
+        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID || this.props.isDrawerOpen;
     }
 
     /**
@@ -247,7 +245,7 @@ class ReportScreen extends React.Component {
                 </OfflineWithFeedback>
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={this.mainChatViewStyles}
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                     onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
                     {this.shouldShowLoader()
@@ -334,6 +332,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
 )(ReportScreen);
