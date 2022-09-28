@@ -112,7 +112,7 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        Policy.openWorkspaceReimburseView(this.props.policyID);
+        Policy.openWorkspaceReimburseView(this.props.policy.id);
     }
 
     getRateDisplayValue(value) {
