@@ -249,11 +249,12 @@ class ReportScreen extends React.Component {
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
                 </OfflineWithFeedback>
-                {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport() && (
+                {/* {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport() && ( */}
                     <Banner
                         text="chat with your account manager here"
+                        shouldShowCloseButton
                     />
-                )}
+                {/* )} */}
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
