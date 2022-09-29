@@ -23,7 +23,7 @@ const clearErrors = (props, paths) => formHelper.clearErrors(props, paths);
  */
 function getDefaultStateForField(props, fieldName, defaultValue = '') {
     return lodashGet(props, ['reimbursementAccountDraft', fieldName])
-        || lodashGet(props, ['achData', fieldName], defaultValue);
+        || lodashGet(props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
 }
 
 /**
