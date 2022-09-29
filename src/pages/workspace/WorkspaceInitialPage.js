@@ -89,7 +89,7 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        const policyReports = _.filter(this.props.reports, report => report.policyID === this.props.policy.id);
+        const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
         Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS);
