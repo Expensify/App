@@ -84,8 +84,9 @@ jobs:
           # TODO: remove this once implementation done.
           baseline: dev/ci-e2e-tests
         with:
-          api-level: 29
-          ram-size: 6144M
+          api-level: 30
+          ram-size: 3072M
+          heap-size: 512M
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
