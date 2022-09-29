@@ -240,7 +240,7 @@ class ReportScreen extends React.Component {
                         reportActions={this.props.reportActions}
                         report={this.props.report}
                         isComposerFullSize={this.props.isComposerFullSize}
-                        onSubmitComment={this.props.onSubmitComment}
+                        onSubmitComment={this.onSubmitComment}
                     />
                 </View>
             </ScreenWrapper>
