@@ -22,6 +22,8 @@ const drawerIsReadyPromise = new Promise((resolve) => {
 });
 
 let isLoggedIn = false;
+let pendingRoute = false;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => isLoggedIn = Boolean(val && val.authToken),
@@ -130,6 +132,10 @@ function isDrawerRoute(route) {
  */
 function navigate(route = ROUTES.HOME) {
     if (!canNavigate('navigate', {route})) {
+        // Store intended route if the navigator is not yet available,
+        // we will try again after the NavigationContainer is ready
+        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
+        pendingRoute = route;
         return;
     }
 
@@ -221,6 +227,19 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+/**
+ * Navigate to the route that we originally intended to go to
+ * but the NavigationContainer was not ready when navigate() was called
+ */
+function goToPendingRoute() {
+    if (pendingRoute === false) {
+        return;
+    }
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
+    navigate(pendingRoute);
+    pendingRoute = false;
+}
+
 export default {
     canNavigate,
     navigate,
@@ -228,6 +247,7 @@ export default {
     isActiveRoute,
     getActiveRoute,
     goBack,
+    goToPendingRoute,
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,

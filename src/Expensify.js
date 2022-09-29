@@ -22,6 +22,7 @@ import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
+import Navigation from './libs/Navigation/Navigation';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -141,6 +142,9 @@ class Expensify extends PureComponent {
 
     setNavigationReady() {
         this.setState({isNavigationReady: true});
+
+        // Navigate to any pending routes now that the NavigationContainer is ready
+        Navigation.goToPendingRoute();
     }
 
     /**
