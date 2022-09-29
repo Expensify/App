@@ -24,7 +24,7 @@ module.exports = (command) => {
                 }
             } else {
                 Logger.log(stdout);
-                resolve();
+                resolve(stdout);
             }
         });
     });
