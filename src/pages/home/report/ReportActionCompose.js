@@ -146,6 +146,7 @@ class ReportActionCompose extends React.Component {
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
+            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
     }
 
@@ -244,8 +245,12 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
-            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        if (ReportUtils.chatIncludesConcierge(this.props.report)) {
+            if (User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
+                return this.props.translate('reportActionCompose.blockedFromConcierge');
+            }
+
+            return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
         if (this.isEmptyChat()) {
