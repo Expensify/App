@@ -13,6 +13,9 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
+    /** The id of the report */
+    reportID: PropTypes.number.isRequired,
+
     /** The report currently being looked at */
     report: PropTypes.shape({
         /** The id of the report */
@@ -23,7 +26,7 @@ const propTypes = {
 
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat: PropTypes.bool,
-    }),
+    }).isRequired,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -35,7 +38,6 @@ const propTypes = {
     }),
 };
 const defaultProps = {
-    report: {},
     personalDetails: {},
     policies: {},
 };

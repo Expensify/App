@@ -116,10 +116,6 @@ function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount) {
         return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     }
 
-    if (bankAccount.needsToPassLatestChecks()) {
-        return CONST.BANK_ACCOUNT.STEP.COMPANY;
-    }
-
     return CONST.BANK_ACCOUNT.STEP.ENABLE;
 }
 
