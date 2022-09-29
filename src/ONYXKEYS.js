@@ -178,4 +178,7 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
     },
+
+    // Whether we should show the compose input or not
+    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
 };
