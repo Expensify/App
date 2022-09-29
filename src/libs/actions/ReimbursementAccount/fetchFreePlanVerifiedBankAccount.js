@@ -162,7 +162,7 @@ function buildACHData(bankAccount, subStep) {
 function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     const initialData = getInitialData(localBankAccountState);
 
-    // We keep the locally stored step and subStep before resetting the Onyx key
+    // We keep the locally stored subStep before resetting the Onyx key
     const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
 
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
