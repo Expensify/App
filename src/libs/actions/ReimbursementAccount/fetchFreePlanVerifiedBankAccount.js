@@ -163,6 +163,10 @@ function buildACHData(bankAccount, subStep) {
 function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     const initialData = getInitialData(localBankAccountState);
 
+    // We keep the locally stored step and subStep before resetting the Onyx key
+    const stepFromStorage = store.getReimbursementAccountInSetup().currentStep;
+    const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
+
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, initialData);
@@ -173,11 +177,8 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
             bankAccount, throttledDate, maxAttemptsReached, isPlaidDisabled,
         }) => {
             // If we already have a substep stored locally then we will add that to the new achData
-            const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
             const achData = buildACHData(bankAccount, subStep);
-            const stepFromStorage = store.getReimbursementAccountInSetup().currentStep;
             const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount);
-
             navigation.goToWithdrawalAccountSetupStep(currentStep, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
                 throttledDate,
