@@ -40,6 +40,8 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
 
+    enabledWhenOffline: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -49,6 +51,7 @@ const defaultProps = {
         error: '',
     },
     draftValues: {},
+    enabledWhenOffline: false,
 };
 
 class Form extends React.Component {
@@ -194,6 +197,7 @@ class Form extends React.Component {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
+                            enabledWhenOffline={this.props.enabledWhenOffline}
                         />
                     </View>
                 </ScrollView>
