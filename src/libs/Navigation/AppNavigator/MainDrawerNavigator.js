@@ -7,12 +7,14 @@ import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingInd
 import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
+import * as Report from '../../actions/Report';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import Navigation from '../Navigation';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -68,7 +70,16 @@ const MainDrawerNavigator = (props) => {
     // This is usually needed after login/create account and re-launches
     return (
         <BaseDrawerNavigator
-            drawerContent={() => <SidebarScreen />}
+            drawerContent={({navigation, state}) => {
+                const currentlyViewedReportID = Navigation.getReportIDFromState(state);
+                Report.updateCurrentlyViewedReportID(currentlyViewedReportID);
+                return (
+                    <SidebarScreen
+                        navigation={navigation}
+                        currentlyViewedReportID={currentlyViewedReportID}
+                    />
+                );
+            }}
             screens={[
                 {
                     name: SCREENS.REPORT,

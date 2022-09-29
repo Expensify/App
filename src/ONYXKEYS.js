@@ -21,9 +21,6 @@ export default {
     // Stores current date
     CURRENT_DATE: 'currentDate',
 
-    // Currently viewed reportID
-    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
-
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
