@@ -9,6 +9,8 @@ import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
+import paypalMeDataPropTypes from './paypalMeDataPropTypes';
+import * as BankAccounts from '../libs/actions/BankAccounts';
 
 const propTypes = {
     isVisible: PropTypes.bool.isRequired,
@@ -18,8 +20,8 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
-    /** Username for PayPal.Me */
-    payPalMeUsername: PropTypes.string,
+    /** Account details for PayPal.Me */
+    payPalMeData: paypalMeDataPropTypes,
 
     /** Should we show the Paypal option */
     shouldShowPaypal: PropTypes.bool,
@@ -32,7 +34,7 @@ const propTypes = {
 
 const defaultProps = {
     anchorPosition: {},
-    payPalMeUsername: '',
+    payPalMeData: {},
     shouldShowPaypal: true,
     betas: [],
 };
@@ -47,7 +49,10 @@ const AddPaymentMethodMenu = props => (
             {
                 text: props.translate('common.bankAccount'),
                 icon: Expensicons.Bank,
-                onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT),
+                onSelected: () => {
+                    BankAccounts.clearPlaid();
+                    props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
+                },
             },
             ...(Permissions.canUseWallet(props.betas) ? [{
                 text: props.translate('common.debitCard'),
@@ -55,7 +60,7 @@ const AddPaymentMethodMenu = props => (
                 onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
             },
             ] : []),
-            ...(props.shouldShowPaypal && !props.payPalMeUsername ? [{
+            ...(props.shouldShowPaypal && !props.payPalMeData.description ? [{
                 text: props.translate('common.payPalMe'),
                 icon: Expensicons.PayPal,
                 onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL),
@@ -67,13 +72,14 @@ const AddPaymentMethodMenu = props => (
 
 AddPaymentMethodMenu.propTypes = propTypes;
 AddPaymentMethodMenu.defaultProps = defaultProps;
+AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
 export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        payPalMeData: {
+            key: ONYXKEYS.PAYPAL,
         },
         betas: {
             key: ONYXKEYS.BETAS,

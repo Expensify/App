@@ -6,13 +6,14 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
+// eslint-disable-next-line import/no-cycle
 import * as DeprecatedAPI from '../deprecatedAPI';
+// eslint-disable-next-line import/no-cycle
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import Timing from './Timing';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -72,7 +73,7 @@ function getDisplayName(login, personalDetail) {
  * @returns {String}
  */
 function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
 }
 
 /**
@@ -82,7 +83,6 @@ function getMaxCharacterError(isError) {
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    Timing.start(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     const formattedResult = {};
 
     // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
@@ -113,7 +113,6 @@ function formatPersonalDetails(personalDetailsList) {
             avatarThumbnail,
         };
     });
-    Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     return formattedResult;
 }
 
@@ -263,7 +262,6 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 function updateProfile(firstName, lastName, pronouns, timezone) {
-    const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
         firstName,
         lastName,
@@ -283,19 +281,6 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                         firstName,
                         lastName,
                     }),
-                },
-            },
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    firstName: myPersonalDetails.firstName,
-                    lastName: myPersonalDetails.lastName,
-                    pronouns: myPersonalDetails.pronouns,
-                    timezone: myPersonalDetails.timeZone,
-                    displayName: myPersonalDetails.displayName,
                 },
             },
         }],

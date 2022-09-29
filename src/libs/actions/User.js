@@ -18,6 +18,7 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import DateUtils from '../DateUtils';
 
 let sessionAuthToken = '';
 let currentUserAccountID = '';
@@ -232,8 +233,7 @@ function validateLogin(accountID, validateCode) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {success});
             }
         } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('resendValidationForm.validationCodeFailedMessage')}});
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
@@ -272,6 +272,21 @@ function addPaypalMeAddress(address) {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: address,
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PAYPAL,
+            value: {
+                title: 'PayPal.me',
+                description: address,
+                methodID: CONST.PAYMENT_METHODS.PAYPAL,
+                key: 'payPalMePaymentMethod',
+                accountType: CONST.PAYMENT_METHODS.PAYPAL,
+                accountData: {
+                    username: address,
+                },
+                isDefault: false,
+            },
+        },
     ];
     API.write('AddPaypalMeAddress', {
         value: address,
@@ -285,9 +300,14 @@ function addPaypalMeAddress(address) {
 function deletePaypalMeAddress() {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: '',
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.PAYPAL,
+            value: {},
         },
     ];
     API.write('DeletePaypalMeAddress', {}, {optimisticData});
@@ -426,10 +446,10 @@ function updateChatPriorityMode(mode) {
 }
 
 /**
- * @param {Boolean} shouldUseSecureStaging
+ * @param {Boolean} shouldUseStagingServer
  */
-function setShouldUseSecureStaging(shouldUseSecureStaging) {
-    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
+function setShouldUseStagingServer(shouldUseStagingServer) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 
 function clearUserErrorMessage() {
@@ -484,7 +504,7 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
-    setShouldUseSecureStaging,
+    setShouldUseStagingServer,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,

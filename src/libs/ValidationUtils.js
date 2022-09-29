@@ -258,7 +258,7 @@ function validateIdentity(identity) {
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
     // Remove non alphanumeric characters from the phone number
-    const sanitizedPhone = phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
+    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
     const isUsPhone = isCountryCodeOptional
         ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
 
@@ -321,7 +321,19 @@ function isValidRoutingNumber(number) {
  * @returns {Boolean[]}
  */
 function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value.length > maxLength);
+    return _.map(valuesToBeValidated, value => value && value.length > maxLength);
+}
+
+/**
+ * Checks if each string in array is of valid length and then returns true
+ * for each string which exceeds the limit. The function trims the passed values.
+ *
+ * @param {Number} maxLength
+ * @param {String[]} valuesToBeValidated
+ * @returns {Boolean[]}
+ */
+function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
 }
 
 /**
@@ -358,7 +370,7 @@ function isExistingRoomName(roomName, reports, policyID) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
 export {
@@ -384,6 +396,7 @@ export {
     isValidSSNLastFour,
     isValidSSNFullNine,
     doesFailCharacterLimit,
+    doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
     isValidTaxID,

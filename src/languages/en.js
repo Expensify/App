@@ -167,6 +167,16 @@ export default {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
+        conciergePlaceholderOptions: [
+            'Ask for help!',
+            'Ask me anything!',
+            'Ask me to book travel!',
+            'Ask me what I can do!',
+            'Ask me how to pay people!',
+            'Ask me how to send an invoice!',
+            'Ask me how to scan a receipt!',
+            'Ask me how to get a free corporate card!',
+        ],
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
@@ -267,6 +277,7 @@ export default {
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
+        notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Profile',
@@ -707,6 +718,8 @@ export default {
         activatedTitle: 'Wallet activated!',
         activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
         checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+        continueToPayment: 'Continue to payment',
+        continueToTransfer: 'Continue to transfer',
     },
     companyStep: {
         headerTitle: 'Company information',
@@ -773,7 +786,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
-        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {
@@ -792,8 +804,6 @@ export default {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
-            growlMessageOnCreate: 'Workspace created',
-            growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
@@ -802,7 +812,6 @@ export default {
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
@@ -810,6 +819,7 @@ export default {
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
             error: {
+                genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
             },
         },

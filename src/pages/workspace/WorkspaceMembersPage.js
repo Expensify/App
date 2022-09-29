@@ -25,9 +25,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OptionRow from '../../components/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import {withNetwork} from '../../components/OnyxProvider';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -42,12 +45,13 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...networkPropTypes,
 };
 
-const defaultProps = fullPolicyDefaultProps;
+const defaultProps = policyDefaultProps;
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -65,6 +69,21 @@ class WorkspaceMembersPage extends React.Component {
         this.removeUser = this.removeUser.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
+    }
+
+    componentDidMount() {
+        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+    }
+
+    componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!isReconnecting) {
+            return;
+        }
+
+        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
     /**
@@ -277,64 +296,66 @@ class WorkspaceMembersPage extends React.Component {
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.members')}
-                    subtitle={policyName}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                    shouldShowBackButton
-                />
-                <ConfirmModal
-                    danger
-                    title={this.props.translate('workspace.people.removeMembersTitle')}
-                    isVisible={this.state.isRemoveMembersConfirmModalVisible}
-                    onConfirm={() => this.removeUsers()}
-                    onCancel={this.hideConfirmModal}
-                    prompt={this.props.translate('workspace.people.removeMembersPrompt')}
-                    confirmText={this.props.translate('common.remove')}
-                    cancelText={this.props.translate('common.cancel')}
-                />
-                <View style={[styles.pageWrapper, styles.flex1]}>
-                    <View style={[styles.w100, styles.flexRow]}>
-                        <Button
-                            medium
-                            success
-                            text={this.props.translate('common.invite')}
-                            onPress={this.inviteUser}
-                        />
-                        <Button
-                            medium
-                            danger
-                            style={[styles.ml2]}
-                            isDisabled={this.state.selectedEmployees.length === 0}
-                            text={this.props.translate('common.remove')}
-                            onPress={this.askForConfirmationToRemove}
-                        />
-                    </View>
-                    <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                        <View style={[styles.peopleRow]}>
-                            <View style={[styles.peopleRowCell]}>
-                                <Checkbox
-                                    isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
-                                    onPress={() => this.toggleAllUsers()}
-                                />
-                            </View>
-                            <View style={[styles.peopleRowCell, styles.flex1]}>
-                                <Text style={[styles.textStrong, styles.ph5]}>
-                                    {this.props.translate('workspace.people.selectAll')}
-                                </Text>
-                            </View>
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('workspace.common.members')}
+                        subtitle={policyName}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                        shouldShowBackButton
+                    />
+                    <ConfirmModal
+                        danger
+                        title={this.props.translate('workspace.people.removeMembersTitle')}
+                        isVisible={this.state.isRemoveMembersConfirmModalVisible}
+                        onConfirm={() => this.removeUsers()}
+                        onCancel={this.hideConfirmModal}
+                        prompt={this.props.translate('workspace.people.removeMembersPrompt')}
+                        confirmText={this.props.translate('common.remove')}
+                        cancelText={this.props.translate('common.cancel')}
+                    />
+                    <View style={[styles.pageWrapper, styles.flex1]}>
+                        <View style={[styles.w100, styles.flexRow]}>
+                            <Button
+                                medium
+                                success
+                                text={this.props.translate('common.invite')}
+                                onPress={this.inviteUser}
+                            />
+                            <Button
+                                medium
+                                danger
+                                style={[styles.ml2]}
+                                isDisabled={this.state.selectedEmployees.length === 0}
+                                text={this.props.translate('common.remove')}
+                                onPress={this.askForConfirmationToRemove}
+                            />
                         </View>
-                        <FlatList
-                            renderItem={this.renderItem}
-                            data={data}
-                            keyExtractor={item => item.login}
-                            showsVerticalScrollIndicator={false}
-                        />
+                        <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                            <View style={[styles.peopleRow]}>
+                                <View style={[styles.peopleRowCell]}>
+                                    <Checkbox
+                                        isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
+                                        onPress={() => this.toggleAllUsers()}
+                                    />
+                                </View>
+                                <View style={[styles.peopleRowCell, styles.flex1]}>
+                                    <Text style={[styles.textStrong, styles.ph5]}>
+                                        {this.props.translate('workspace.people.selectAll')}
+                                    </Text>
+                                </View>
+                            </View>
+                            <FlatList
+                                renderItem={this.renderItem}
+                                data={data}
+                                keyExtractor={item => item.login}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        </View>
                     </View>
-                </View>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
@@ -346,7 +367,8 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withFullPolicy,
+    withPolicy,
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
