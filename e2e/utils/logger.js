@@ -21,7 +21,9 @@ const log = (...args) => {
     if (!fs.existsSync(LOG_FILE)) {
         fs.writeFileSync(LOG_FILE, '');
     }
-    fs.appendFileSync(LOG_FILE, `${args.join(' ')}\n`);
+    const time = new Date();
+    const timeStr = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} ${time.getMilliseconds()}`;
+    fs.appendFileSync(LOG_FILE, `[${timeStr}]   ${args.join(' ')}\n`);
 };
 
 const progressInfo = (textParam) => {
