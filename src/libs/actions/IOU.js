@@ -136,7 +136,17 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
     }
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction('create', amount, comment, currency, '', optimisticTransactionID, iouReport.reportID, debtorEmail);
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        lodashGet(chatReport, 'maxSequenceNumber', 0) + 1,
+        'create',
+        amount,
+        currency,
+        comment,
+        '',
+        '',
+        iouReport.reportID,
+        debtorEmail,
+    );
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -159,6 +169,17 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
             value: iouReport,
         },
     ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -167,9 +188,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
                     pendingAction: null,
-                    error: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                    },
+                    error: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
             },
         },
@@ -184,7 +203,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         transactionID: optimisticTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         clientID: optimisticReportAction.sequenceNumber,
-    }, {optimisticData, failureData});
+    }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
