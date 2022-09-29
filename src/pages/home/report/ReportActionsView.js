@@ -364,7 +364,10 @@ class ReportActionsView extends React.Component {
                             loadMoreChats={this.loadMoreChats}
                             newMarkerSequenceNumber={this.state.newMarkerSequenceNumber}
                         />
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                        <PopoverReportActionContextMenu
+                            ref={ReportActionContextMenu.contextMenuRef}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                        />
                     </>
                 )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />

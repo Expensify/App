@@ -223,6 +223,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection={this.state.selection}
                 reportID={this.state.reportID}
                 reportAction={this.state.reportAction}
+                isArchivedRoom={this.props.isArchivedRoom}
                 anchor={this.contextMenuTargetNode}
             />
         );
@@ -295,6 +296,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}
+                        isArchivedRoom={this.props.isArchivedRoom}
                         anchor={this.contextMenuTargetNode}
                     />
                 </PopoverWithMeasuredContent>
