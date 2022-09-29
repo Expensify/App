@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -203,14 +202,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-/**
- * @param {Object} state react navigation state object
- * @returns {String}
- */
-function getReportIDFromState(state) {
-    return lodashGet(state, ['routes', 0, 'params', 'reportID']);
-}
-
 export default {
     canNavigate,
     navigate,
@@ -223,7 +214,6 @@ export default {
     setDidTapNotification,
     isNavigationReady,
     setIsNavigationReady,
-    getReportIDFromState,
 };
 
 export {

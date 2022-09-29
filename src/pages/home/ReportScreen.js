@@ -132,8 +132,18 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        this.storeCurrentlyViewedReport();
+        this.fetchReportIfNeeded();
+        toggleReportActionComposeView(true);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+            return;
+        }
+
+        this.fetchReportIfNeeded();
+        toggleReportActionComposeView(true);
     }
 
     componentWillUnmount() {
@@ -163,18 +173,12 @@ class ReportScreen extends React.Component {
         return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
     }
 
-    /**
-     * Persists the currently viewed report id
-     */
-    storeCurrentlyViewedReport() {
+    fetchReportIfNeeded() {
         const reportIDFromPath = getReportID(this.props.route);
         if (_.isNaN(reportIDFromPath)) {
             Report.handleInaccessibleReport();
             return;
         }
-
-        // Always reset the state of the composer view when the current reportID changes
-        toggleReportActionComposeView(true);
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
