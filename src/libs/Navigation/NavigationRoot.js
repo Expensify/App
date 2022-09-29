@@ -47,7 +47,6 @@ class NavigationRoot extends Component {
 
         UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
         Navigation.setIsNavigationReady();
-        this.props.onReady();
     }
 
     render() {

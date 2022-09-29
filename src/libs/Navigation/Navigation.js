@@ -217,17 +217,6 @@ function isActiveRoute(routePath) {
 }
 
 /**
- * @returns {Promise}
- */
-function isNavigationReady() {
-    return navigationIsReadyPromise;
-}
-
-function setIsNavigationReady() {
-    resolveNavigationIsReadyPromise();
-}
-
-/**
  * Navigate to the route that we originally intended to go to
  * but the NavigationContainer was not ready when navigate() was called
  */
@@ -240,6 +229,18 @@ function goToPendingRoute() {
     pendingRoute = false;
 }
 
+/**
+ * @returns {Promise}
+ */
+function isNavigationReady() {
+    return navigationIsReadyPromise;
+}
+
+function setIsNavigationReady() {
+    goToPendingRoute();
+    resolveNavigationIsReadyPromise();
+}
+
 export default {
     canNavigate,
     navigate,
@@ -247,7 +248,6 @@ export default {
     isActiveRoute,
     getActiveRoute,
     goBack,
-    goToPendingRoute,
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,

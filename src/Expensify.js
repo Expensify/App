@@ -142,9 +142,7 @@ class Expensify extends PureComponent {
 
     setNavigationReady() {
         this.setState({isNavigationReady: true});
-
-        // Navigate to any pending routes now that the NavigationContainer is ready
-        Navigation.goToPendingRoute();
+        Navigation.setIsNavigationReady();
     }
 
     /**
