@@ -21,6 +21,9 @@ export default function () {
      */
     Onyx.init({
         keys: ONYXKEYS,
+
+        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
+        maxCachedKeysCount: 10000,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
         initialKeyStates: {
