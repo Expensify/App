@@ -140,6 +140,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         lodashGet(chatReport, 'maxSequenceNumber', 0) + 1,
         'create',
         amount,
+        currency,
         comment,
         '',
         '',
@@ -168,6 +169,17 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
             value: iouReport,
         },
     ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -176,9 +188,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
                     pendingAction: null,
-                    error: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                    },
+                    error: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
             },
         },
@@ -193,7 +203,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         transactionID: optimisticTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         clientID: optimisticReportAction.sequenceNumber,
-    }, {optimisticData, failureData});
+    }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
