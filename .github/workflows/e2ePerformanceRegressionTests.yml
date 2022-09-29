@@ -89,7 +89,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: npm run test:e2e -- --skipBuild
+          script: npm run test:e2e -- --skipBuild --skipInstallDeps
 
       - name: If tests failed, upload logs and video
         if: ${{ failure() && steps.tests.conclusion == 'failure' }}
