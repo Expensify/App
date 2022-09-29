@@ -19,6 +19,7 @@ import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneE
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import DateUtils from '../DateUtils';
+import * as Report from './Report';
 
 let sessionAuthToken = '';
 let currentUserAccountID = '';
@@ -28,12 +29,6 @@ Onyx.connect({
         sessionAuthToken = lodashGet(val, 'authToken', '');
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
-});
-
-let currentlyViewedReportID = '';
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val || '',
 });
 
 /**
@@ -215,7 +210,7 @@ function setSecondaryLoginAndNavigate(login, password) {
  */
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
-    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
+    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(Report.getCurrentlyViewedReportID()) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     DeprecatedAPI.ValidateEmail({

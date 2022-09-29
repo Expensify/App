@@ -136,13 +136,6 @@ class ReportScreen extends React.Component {
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
-            return;
-        }
-        this.storeCurrentlyViewedReport();
-    }
-
     componentWillUnmount() {
         this.removeViewportResizeListener();
     }
@@ -182,7 +175,6 @@ class ReportScreen extends React.Component {
 
         // Always reset the state of the composer view when the current reportID changes
         toggleReportActionComposeView(true);
-        Report.updateCurrentlyViewedReportID(reportIDFromPath);
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.

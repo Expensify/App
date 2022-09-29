@@ -66,7 +66,7 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** Currently viewed reportID */
+    /** Currently viewed reportID. This value is parsed from the react navigation state object */
     currentlyViewedReportID: PropTypes.string,
 
     /** Whether we are viewing below the responsive breakpoint */
@@ -184,9 +184,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
