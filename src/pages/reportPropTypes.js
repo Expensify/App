@@ -66,7 +66,7 @@ export default PropTypes.shape({
     reportName: PropTypes.string,
 
     /** ID of the report */
-    reportID: PropTypes.string.isRequired,
+    reportID: PropTypes.string,
 
     /** The state that the report is currently in */
     stateNum: PropTypes.oneOf(_.values(CONST.REPORT.STATE_NUM)),
