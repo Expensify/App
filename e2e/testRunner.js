@@ -196,9 +196,11 @@ const runTests = async () => {
     } catch (e) {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
-        // write logcat and meminfo output to file as well:
+        // write logcat, meminfo, emulator info to file as well:
         require('node:child_process').execSync(`adb logcat -d > ${OUTPUT_DIR}/logcat.txt`);
         require('node:child_process').execSync(`adb shell "cat /proc/meminfo" > ${OUTPUT_DIR}/meminfo.txt`);
+        require('node:child_process').execSync(`cat /Users/runner/.android/avd/test.avd/config.ini > ${OUTPUT_DIR}/emulator-config.ini`);
+        require('node:child_process').execSync(`adb shell "getprop" > ${OUTPUT_DIR}/emulator-properties.txt`);
 
         require('node:child_process').execSync(`cat ${LOG_FILE}`);
         process.exit(1);
