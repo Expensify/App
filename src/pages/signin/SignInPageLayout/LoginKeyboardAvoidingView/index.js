@@ -1,34 +1,35 @@
-import _ from 'underscore';
 import React from 'react';
 import {KeyboardAvoidingView} from 'react-native';
-import PropTypes from 'prop-types';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import styles from '../../../../styles/styles';
+import variables from '../../../../styles/variables';
+import * as StyleUtils from '../../../../styles/StyleUtils';
 
 const propTypes = {
-    /** Style for KeyboardAvoidingView */
-    style: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
-
-    /** ContentContainerStyle for KeyboardAvoidingView */
-    contentContainerStyle: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
+    ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    style: {},
-    contentContainerStyle: {},
+const LoginKeyboardAvoidingView = (props) => {
+    // These styles are here for mobile web only. For more context see https://github.com/Expensify/App/pull/6203
+    const style = [
+        props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
+        !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
+        styles.mb3,
+        StyleUtils.getModalPaddingStyles({
+            shouldAddBottomSafeAreaPadding: true,
+            modalContainerStylePaddingBottom: 20,
+            safeAreaPaddingBottom: props.insets.bottom,
+        }),
+    ];
+    return (
+        <KeyboardAvoidingView
+            behavior="position"
+            style={style}
+        />
+    );
 };
-
-const LoginKeyboardAvoidingView = props => (
-    <KeyboardAvoidingView
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        style={[
-            ...(_.isArray(props.style) ? props.style : [props.style]),
-            ...(_.isArray(props.contentContainerStyle) ? props.contentContainerStyle : [props.contentContainerStyle]),
-        ]}
-    />
-);
 
 LoginKeyboardAvoidingView.propTypes = propTypes;
-LoginKeyboardAvoidingView.defaultProps = defaultProps;
 LoginKeyboardAvoidingView.displayName = 'LoginKeyboardAvoidingView';
 
-export default LoginKeyboardAvoidingView;
+export default withWindowDimensions(LoginKeyboardAvoidingView);
