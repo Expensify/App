@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -53,12 +53,12 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
     ...networkPropTypes,
 };
 
-const defaultProps = fullPolicyDefaultProps;
+const defaultProps = policyDefaultProps;
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -219,7 +219,8 @@ class WorkspaceInvitePage extends React.Component {
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
         const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Navigation.goBack();
     }
 
     /**
@@ -318,6 +319,7 @@ class WorkspaceInvitePage extends React.Component {
                                     onFixTheErrorsLinkPressed={() => {}}
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                    enabledWhenOffline
                                 />
                                 <Pressable
                                     onPress={(e) => {
@@ -352,7 +354,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {

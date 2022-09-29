@@ -3,6 +3,7 @@ import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
+// eslint-disable-next-line import/no-cycle
 import * as Middleware from './Middleware';
 import CONST from '../CONST';
 
@@ -536,18 +537,6 @@ function GetReportSummaryList(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.policyID
- * @param {String} parameters.value - Must be a JSON stringified object
- * @returns {Promise}
- */
-function UpdatePolicy(parameters) {
-    const commandName = 'UpdatePolicy';
-    requireParameters(['policyID', 'value'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
  * @param {String} parameters.reportName
  * @param {String} parameters.visibility
  * @return {Promise}
@@ -610,7 +599,6 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
-    UpdatePolicy,
     User_SignUp,
     User_IsUsingExpensifyCard,
     User_SecondaryLogin_Send,
