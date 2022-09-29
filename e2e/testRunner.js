@@ -27,7 +27,7 @@ const reversePort = require('./utils/androidReversePort');
 const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
-const takeScreenshot = require('./utils/takeScreenshot');
+const startRecordingVideo = require('./utils/startRecordingVideo');
 
 const args = process.argv.slice(2);
 
@@ -106,6 +106,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             await restartApp();
 
             // wait for a test to finish by waiting on its done call to the http server
+            const stopVideoRecording = startRecordingVideo();
             try {
                 await withFailTimeout(new Promise((resolve) => {
                     const cleanup = server.addTestDoneListener(() => {
@@ -113,9 +114,10 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
                         resolve();
                     });
                 }), progressText);
+                await stopVideoRecording(false);
             } catch (e) {
                 // when we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                await takeScreenshot();
+                await stopVideoRecording(true);
                 throw e; // rethrow to abort execution
             }
         }
