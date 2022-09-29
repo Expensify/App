@@ -38,6 +38,21 @@ const getPostJSONRequestData = async (req, res) => {
     }
 };
 
+const createListenerState = () => {
+    const listeners = [];
+    const addListener = (listener) => {
+        listeners.push(listener);
+        return () => {
+            const index = listeners.indexOf(listener);
+            if (index !== -1) {
+                listeners.splice(index, 1);
+            }
+        };
+    };
+
+    return [listeners, addListener];
+};
+
 /**
  * The test result object that a client might submit to the server.
  * @typedef TestResult
@@ -63,31 +78,9 @@ const getPostJSONRequestData = async (req, res) => {
  *  It returns an instance to which you can add listeners for the test results, and test done events.
  */
 const createServerInstance = () => {
-    const testResultListeners = [];
-    const testDoneListeners = [];
-
-    /**
-     * Add a callback that will be called when receiving test results.
-     * @param {listener} listener
-     */
-    const addTestResultListener = (listener) => {
-        testResultListeners.push(listener);
-    };
-
-    /**
-     * Will be called when a test signals that it's done.
-     * @param {Function} listener
-     * @returns {Function} A function to remove the listener.
-     */
-    const addTestDoneListener = (listener) => {
-        testDoneListeners.push(listener);
-        return () => {
-            const index = testDoneListeners.indexOf(listener);
-            if (index !== -1) {
-                testDoneListeners.splice(index, 1);
-            }
-        };
-    };
+    const [testStartedListeners, addTestStartedListener] = createListenerState();
+    const [testResultListeners, addTestResultListener] = createListenerState();
+    const [testDoneListeners, addTestDoneListener] = createListenerState();
 
     let activeTestConfig;
 
@@ -102,6 +95,7 @@ const createServerInstance = () => {
         res.statusCode = 200;
         switch (req.url) {
             case Routes.testConfig: {
+                testStartedListeners.forEach(listener => listener(activeTestConfig));
                 if (activeTestConfig == null) {
                     throw new Error('No test config set');
                 }
@@ -137,6 +131,7 @@ const createServerInstance = () => {
 
     return {
         setTestConfig,
+        addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
         start: () => new Promise(resolve => server.listen(PORT, resolve)),
