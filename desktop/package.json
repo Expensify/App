@@ -6,7 +6,6 @@
   "dependencies": {
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.4.7",
-    "electron-reload": "^2.0.0-alpha.1",
     "electron-serve": "^1.0.0",
     "electron-updater": "^4.3.4"
   },
