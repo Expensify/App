@@ -18,7 +18,6 @@ import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRe
 import Text from '../../components/Text';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
-import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -178,11 +177,9 @@ class ReimbursementAccountPage extends React.Component {
                 CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
             ], currentStep);
             return (
-                <FullPageOfflineBlockingView>
-                    <ReimbursementAccountLoadingIndicator
-                        isSubmittingVerificationsData={isSubmittingVerificationsData}
-                    />
-                </FullPageOfflineBlockingView>
+                <ReimbursementAccountLoadingIndicator
+                    isSubmittingVerificationsData={isSubmittingVerificationsData}
+                />
             );
         }
 
