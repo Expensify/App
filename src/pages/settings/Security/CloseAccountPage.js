@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Linking, ScrollView} from 'react-native';
+import {Linking, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -13,7 +13,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import TextInput from '../../../components/TextInput';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
-import FixedFooter from '../../../components/FixedFooter';
 import ConfirmModal from '../../../components/ConfirmModal';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -73,47 +72,48 @@ class CloseAccountPage extends Component {
                         styles.p5,
                     ]}
                 >
-                    <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                    <TextInput
-                        multiline
-                        numberOfLines={6}
-                        textAlignVertical="top"
-                        value={this.state.reasonForLeaving}
-                        onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
-                        label={this.props.translate('closeAccountPage.enterMessageHere')}
-                        containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
-                    />
-                    <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>
-                            {this.props.translate('closeAccountPage.closeAccountWarning')}
+                    <View style={[styles.flexGrow1]}>
+                        <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <TextInput
+                            multiline
+                            numberOfLines={6}
+                            textAlignVertical="top"
+                            value={this.state.reasonForLeaving}
+                            onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
+                            label={this.props.translate('closeAccountPage.enterMessageHere')}
+                            containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
+                        />
+                        <Text style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.closeAccountWarning')}
+                            </Text>
+                            {' '}
+                            {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
-                        {' '}
-                        {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                    </Text>
-                    <Text textBreakStrategy="simple" style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>
-                            {this.props.translate('closeAccountPage.defaultContact')}
+                        <Text textBreakStrategy="simple" style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.defaultContact')}
+                            </Text>
+                            {' '}
+                            {userEmailOrPhone}
                         </Text>
-                        {' '}
-                        {userEmailOrPhone}
-                    </Text>
-                    <TextInput
-                        autoCapitalize="none"
-                        value={this.state.phoneOrEmail}
-                        onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
-                        label={this.props.translate('closeAccountPage.enterDefaultContact')}
-                        containerStyles={[styles.mt5]}
-                    />
-                </ScrollView>
-                <FixedFooter>
+                        <TextInput
+                            autoCapitalize="none"
+                            value={this.state.phoneOrEmail}
+                            onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
+                            label={this.props.translate('closeAccountPage.enterDefaultContact')}
+                            containerStyles={[styles.mt5]}
+                        />
+                    </View>
                     <Button
                         danger
                         text={this.props.translate('closeAccountPage.closeAccount')}
                         isLoading={this.props.closeAccount.isLoading}
                         onPress={() => User.closeAccount(this.state.reasonForLeaving)}
                         isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase()}
+                        style={[styles.mt5]}
                     />
-                </FixedFooter>
+                </ScrollView>
                 <ConfirmModal
                     title={this.props.translate('closeAccountPage.closeAccountError')}
                     success
