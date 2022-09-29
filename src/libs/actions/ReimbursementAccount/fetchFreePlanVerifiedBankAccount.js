@@ -13,7 +13,7 @@ import BankAccount from '../../models/BankAccount';
  * @returns {Object}
  */
 function getInitialData(localBankAccountState) {
-    const initialData = {loading: true, error: ''};
+    const initialData = {isLoading: true, error: ''};
 
     // Some UI needs to know the bank account state during the loading process, so we are keeping it in Onyx if passed
     if (localBankAccountState) {
@@ -73,7 +73,7 @@ function fetchNameValuePairsAndBankAccount() {
             };
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false});
         });
 }
 
@@ -114,10 +114,6 @@ function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount) {
     // No clear place to direct this user so we'll go with the bank account step
     if (!bankAccount.isOpen()) {
         return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    }
-
-    if (bankAccount.needsToPassLatestChecks()) {
-        return CONST.BANK_ACCOUNT.STEP.COMPANY;
     }
 
     return CONST.BANK_ACCOUNT.STEP.ENABLE;
@@ -187,7 +183,12 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                 throttledDate,
                 maxAttemptsReached,
                 error: '',
+                isLoading: false,
+            });
+            Onyx.merge(ONYXKEYS.PLAID_DATA, {
                 isPlaidDisabled,
+                error: '',
+                isLoading: false,
             });
         });
 }

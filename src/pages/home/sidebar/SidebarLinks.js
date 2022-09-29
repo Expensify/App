@@ -22,7 +22,6 @@ import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
-import Timing from '../../../libs/actions/Timing';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
@@ -100,11 +99,7 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-
-        Timing.start(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
         const optionListItems = SidebarUtils.getOrderedReportIDs();
-        Timing.end(CONST.TIMING.SIDEBAR_LINKS_FILTER_REPORTS);
-
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -162,7 +157,7 @@ class SidebarLinks extends React.Component {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
-                    disableFocusOptions={this.props.isSmallScreenWidth}
+                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
                 />
