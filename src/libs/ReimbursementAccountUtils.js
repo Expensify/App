@@ -3,7 +3,7 @@ import * as BankAccounts from './actions/BankAccounts';
 import FormHelper from './FormHelper';
 
 const formHelper = new FormHelper({
-    errorPath: 'reimbursementAccount.errors',
+    errorPath: 'reimbursementAccount.errorFields',
     setErrors: BankAccounts.setBankAccountFormValidationErrors,
 });
 
@@ -22,7 +22,7 @@ const clearErrors = (props, paths) => formHelper.clearErrors(props, paths);
  */
 function getDefaultStateForField(props, fieldName, defaultValue = '') {
     return lodashGet(props, ['reimbursementAccountDraft', fieldName])
-        || lodashGet(props, ['achData', fieldName], defaultValue);
+        || lodashGet(props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
 }
 
 /**
@@ -32,7 +32,7 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
  * @returns {String}
  */
 function getErrorText(props, errorTranslationKeys, inputKey) {
-    const errors = getErrors(props);
+    const errors = getErrors(props) || {};
     return errors[inputKey] ? props.translate(errorTranslationKeys[inputKey]) : '';
 }
 

@@ -666,6 +666,10 @@ const styles = {
         paddingBottom: 9,
     },
 
+    offlineIndicatorRow: {
+        height: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -1328,10 +1332,6 @@ const styles = {
         maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
-    },
-
-    chatItemUnsentMessage: {
-        opacity: 0.6,
     },
 
     chatItemMessageLink: {
@@ -2410,6 +2410,10 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+        menuItemErrorPadding: {
+            paddingLeft: 44,
+            paddingRight: 20,
+        },
     },
 
     dotIndicatorMessage: {
@@ -2619,10 +2623,6 @@ const styles = {
         height: 153,
     },
 
-    avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to average mobile device
-    },
-
     imageCropContainer: {
         borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
@@ -2670,6 +2670,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
+    },
+
+    addWorkspaceRoomErrorRow: {
+        paddingHorizontal: 20,
+        maxWidth: 450,
+        alignSelf: 'center',
     },
 };
 
