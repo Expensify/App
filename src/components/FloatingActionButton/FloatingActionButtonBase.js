@@ -7,7 +7,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
-import fabPropTypes from './fabPropTypes';
+import floatingActionButtonPropTypes from './floatingActionButtonPropTypes';
 import Tooltip from '../Tooltip';
 import withLocalize from '../withLocalize';
 
@@ -17,7 +17,7 @@ AnimatedIcon.displayName = 'AnimatedIcon';
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
-class FAB extends PureComponent {
+class FloatingActionButtonBase extends PureComponent {
     constructor(props) {
         super(props);
         this.animatedValue = new Animated.Value(props.isActive ? 1 : 0);
@@ -80,5 +80,5 @@ class FAB extends PureComponent {
     }
 }
 
-FAB.propTypes = fabPropTypes;
-export default withLocalize(FAB);
+FloatingActionButtonBase.propTypes = floatingActionButtonPropTypes;
+export default withLocalize(FloatingActionButtonBase);
