@@ -14,5 +14,5 @@ const FloatingActionButton = props => (
 );
 
 FloatingActionButton.propTypes = floatingActionButtonPropTypes;
-FloatingActionButton.displayName = 'Fab';
+FloatingActionButton.displayName = 'FloatingActionButton';
 export default FloatingActionButton;
