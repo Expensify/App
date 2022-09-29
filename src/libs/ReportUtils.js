@@ -737,10 +737,8 @@ function buildOptimisticChatReport(
         lastActorEmail: '',
         lastMessageHtml: '',
         lastMessageText: null,
-        lastReadSequenceNumber: 0,
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
-        maxSequenceNumber: 0,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
         oldPolicyName,
         ownerEmail,
@@ -785,7 +783,6 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
                 },
             ],
             automatic: false,
-            sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             timestamp: Date.now(),
             shouldShow: true,
@@ -837,9 +834,9 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
-    const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
+    const lastMessageTimestamp = report.lastMessageTimestamp || 0;
+    const lastVisitedTimestamp = report.lastVisitedTimestamp || 0;
+    return lastVisitedTimestamp < lastMessageTimestamp;
 }
 
 export {

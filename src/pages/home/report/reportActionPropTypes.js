@@ -9,9 +9,6 @@ export default {
     /** Person who created the action */
     person: PropTypes.arrayOf(reportActionFragmentPropTypes),
 
-    /** ID of the report action */
-    sequenceNumber: PropTypes.number,
-
     /** Unix timestamp */
     timestamp: PropTypes.number,
 

@@ -595,7 +595,7 @@ function addActions(reportID, text = '', file) {
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    // Update the report in Onyx to have the new sequence number
+    // Update the report in Onyx to have new lastMessage data
     const optimisticReport = {
         lastMessageTimestamp: lastAction.timestamp,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
@@ -603,14 +603,13 @@ function addActions(reportID, text = '', file) {
         lastVisitedTimestamp: Date.now(),
     };
 
-    // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
-    // so that we can later unset these messages via the server by sending {[clientID]: null}
+    // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+        optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
     const parameters = {
@@ -618,8 +617,6 @@ function addActions(reportID, text = '', file) {
         reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
-        clientID: lastAction.clientID,
-        commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
         file,
     };
 
@@ -819,7 +816,7 @@ function readNewestAction(reportID) {
  * Sets the last read comment on a report
  *
  * @param {Number} reportID
- * @param {String} reportActionID
+ * @param {String} reportActionTimestamp
  */
 function markCommentAsUnread(reportID, reportActionTimestamp) {
     const lastVisitedTimestamp = reportActionTimestamp - 1;
@@ -959,18 +956,9 @@ function deleteReportComment(reportID, reportAction) {
 
     // Similarly, if we are deleting the last read comment, we will want to update the lastMessageTimestamp accordingly.
     const lastMessageTimestamp = ReportActionsUtils.getLastMessageTimestamp(reportID, optimisticReportActions);
-
-    // TODO: THIS IS WHERE I LEFT OFF
-
-    const lastReadSequenceNumber = ReportActionsUtils.getOptimisticLastReadSequenceNumberForDeletedAction(
-        reportID,
-        optimisticReportActions,
-        reportAction.sequenceNumber,
-        getLastReadSequenceNumber(reportID),
-    );
     const optimisticReport = {
         lastMessageText,
-        lastReadSequenceNumber,
+        lastMessageTimestamp,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -980,7 +968,7 @@ function deleteReportComment(reportID, reportAction) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportAction.reportActionID]: {
                     message: reportAction.message,
                     pendingAction: null,
                     previousMessage: null,
@@ -994,7 +982,7 @@ function deleteReportComment(reportID, reportAction) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportAction.reportActionID]: {
                     pendingAction: null,
                     previousMessage: null,
                 },
@@ -1017,7 +1005,6 @@ function deleteReportComment(reportID, reportAction) {
 
     const parameters = {
         reportID,
-        sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
@@ -1049,9 +1036,9 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Optimistically update the reportAction with the new message
-    const sequenceNumber = originalReportAction.sequenceNumber;
+    const reportActionID = originalReportAction.reportActionID;
     const optimisticReportActions = {
-        [sequenceNumber]: {
+        [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [{
                 isEdited: true,
@@ -1074,7 +1061,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     ...originalReportAction,
                     pendingAction: null,
                 },
@@ -1087,7 +1074,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -1096,7 +1083,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const parameters = {
         reportID,
-        sequenceNumber,
         reportComment: htmlForNewComment,
         reportActionID: originalReportAction.reportActionID,
     };
@@ -1386,16 +1372,18 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
+    const report = allReports[reportID];
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
     const updatedReportObject = {};
 
-    // When handling an action from the current user we can assume that their last read actionID has been updated in the server,
-    // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
-    updatedReportObject.maxSequenceNumber = action.sequenceNumber;
+    if (report.lastMessageTimestamp < action.timestamp) {
+        updatedReportObject.lastMessageTimestamp = action.timestamp;
+    }
+
+    // If the action is from the current user, we can assume that they were just looking at the report,
+    // so can update the lastVisitedTimestamp to mark the report as read
     if (isFromCurrentUser) {
         updatedReportObject.lastVisitedTimestamp = Date.now();
-        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
-        updatedReportObject.maxSequenceNumber = action.sequenceNumber;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
@@ -1461,7 +1449,7 @@ Onyx.connect({
         }
 
         _.each(actions, (action) => {
-            if (lodashGet(handledReportActions, [reportID, action.sequenceNumber])) {
+            if (lodashGet(handledReportActions, [reportID, action.reportActionID])) {
                 return;
             }
 
@@ -1482,13 +1470,13 @@ Onyx.connect({
             // If we are past the deadline to notify for this comment don't do it
             if (moment.utc(action.timestamp * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
                 handledReportActions[reportID] = handledReportActions[reportID] || {};
-                handledReportActions[reportID][action.sequenceNumber] = true;
+                handledReportActions[reportID][action.reportActionID] = true;
                 return;
             }
 
             viewNewReportAction(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
-            handledReportActions[reportID][action.sequenceNumber] = true;
+            handledReportActions[reportID][action.reportActionID] = true;
         });
     },
 });
