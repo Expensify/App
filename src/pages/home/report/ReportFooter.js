@@ -24,10 +24,13 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 
     /** Report actions for the current report */
-    reportActions: reportActionPropTypes.isRequired,
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
     /** Offline status */
     isOffline: PropTypes.bool.isRequired,
+
+    /** Callback fired when the comment is submitted */
+    onSubmitComment: PropTypes.func.isRequired,
 
     /** Any errors associated with an attempt to create a workspace room */
     // eslint-disable-next-line react/forbid-prop-types
@@ -45,7 +48,7 @@ const propTypes = {
 const defaultProps = {
     shouldShowComposeInput: true,
     addWorkspaceRoomErrors: {},
-    addWorkspaceRoomPendingAction: '',
+    addWorkspaceRoomPendingAction: null,
 };
 
 class ReportFooter extends React.Component {
@@ -90,7 +93,7 @@ class ReportFooter extends React.Component {
                             >
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}
-                                    reportID={this.props.report.reportID}
+                                    reportID={this.props.report.reportID.toString()}
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
