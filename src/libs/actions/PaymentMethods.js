@@ -144,11 +144,11 @@ function openPaymentsPage() {
  * @param {Number} fundID
  * @param {Object} previousPaymentMethod
  * @param {Object} currentPaymentMethod
- * @param {Boolean} optimisticData
+ * @param {Boolean} isOptimisticData
  * @return {Array}
  *
  */
-function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, optimisticData = true) {
+function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
     return [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -164,7 +164,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
                 [previousPaymentMethod.methodID]: {
-                    isDefault: !optimisticData,
+                    isDefault: !isOptimisticData,
                 },
             },
         },
@@ -173,7 +173,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
                 [currentPaymentMethod.methodID]: {
-                    isDefault: optimisticData,
+                    isDefault: isOptimisticData,
                 },
             },
         },
