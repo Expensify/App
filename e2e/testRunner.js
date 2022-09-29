@@ -102,11 +102,11 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
 
-            // TODO: when adding more test cases, we'd need to tell the app here, which test to start
+            const stopVideoRecording = startRecordingVideo();
+
             await restartApp();
 
             // wait for a test to finish by waiting on its done call to the http server
-            const stopVideoRecording = startRecordingVideo();
             try {
                 await withFailTimeout(new Promise((resolve) => {
                     const cleanup = server.addTestDoneListener(() => {
