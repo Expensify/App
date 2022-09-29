@@ -260,7 +260,7 @@ describe('actions/Report', () => {
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 1,
                                 shouldShow: true,
-                                timestamp: moment().unix(),
+                                timestamp: Date.now(),
                             },
                         },
                     },
@@ -325,7 +325,7 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    timestamp: moment().unix(),
+                    timestamp: Date.now(),
                     reportActionID: 'derp',
                 };
 

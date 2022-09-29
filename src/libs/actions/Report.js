@@ -55,16 +55,8 @@ const typingWatchTimers = {};
  * @param {Number} reportID
  * @returns {Number}
  */
-function getLastReadSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'lastReadSequenceNumber'], 0);
-}
-
-/**
- * @param {Number} reportID
- * @returns {Number}
- */
-function getMaxSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
+function getLastMessageTimestamp(reportID) {
+    return lodashGet(allReports, [reportID, 'lastMessageTimestamp'], 0);
 }
 
 /**
@@ -97,8 +89,8 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
-    const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const lastActionCreatedDateTime = lodashGet(report, 'lastActionCreated', 0);
+    const lastMessageTimestamp = Date.parse(lastActionCreatedDateTime);
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
     const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
@@ -120,11 +112,6 @@ function getSimplifiedReportObject(report) {
 
     // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
     const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
-    const lastReadSequenceNumber = lodashGet(report, [
-        'reportNameValuePairs',
-        `lastRead_${currentUserAccountID}`,
-        'sequenceNumber',
-    ]);
 
     return {
         reportID: report.reportID,
@@ -132,7 +119,6 @@ function getSimplifiedReportObject(report) {
         chatType,
         ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
-        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
@@ -140,7 +126,6 @@ function getSimplifiedReportObject(report) {
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
-        lastReadSequenceNumber,
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
@@ -593,39 +578,29 @@ function addActions(reportID, text = '', file) {
     let attachmentAction;
     let commandName = 'AddComment';
 
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
-
     if (text) {
-        const nextSequenceNumber = highestSequenceNumber + 1;
-        const reportComment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, text);
+        const reportComment = ReportUtils.buildOptimisticReportAction(text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
 
     if (file) {
-        const nextSequenceNumber = (text && file) ? highestSequenceNumber + 2 : highestSequenceNumber + 1;
-
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, '', file);
+        const attachment = ReportUtils.buildOptimisticReportAction('', file);
         attachmentAction = attachment.reportAction;
     }
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    // Our report needs a new maxSequenceNumber that is n larger than the current depending on how many actions we are adding.
-    const actionCount = text && file ? 2 : 1;
-    const newSequenceNumber = highestSequenceNumber + actionCount;
-
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
-        maxSequenceNumber: newSequenceNumber,
-        lastMessageTimestamp: Date.now(),
+        lastMessageTimestamp: lastAction.timestamp,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
-        lastReadSequenceNumber: newSequenceNumber,
+        lastVisitedTimestamp: Date.now(),
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
@@ -717,7 +692,6 @@ function openReport(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
-                    lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 },
             }],
             successData: [{
@@ -775,13 +749,14 @@ function reconnect(reportID) {
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
  * @param {Number} reportID
- * @param {Number} oldestActionSequenceNumber
+ * @param {Number} oldestActionTimestamp
  */
-function readOldestAction(reportID, oldestActionSequenceNumber) {
+function readOldestAction(reportID, oldestActionTimestamp) {
+    const formattedDateTimeString = DateUtils.timestampToSQLDateTimeWithMS(oldestActionTimestamp);
     API.read('ReadOldestAction',
         {
             reportID,
-            reportActionsOffset: oldestActionSequenceNumber,
+            reportActionCreated: formattedDateTimeString,
         },
         {
             optimisticData: [{
@@ -827,18 +802,13 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * @param {Number} reportID
  */
 function readNewestAction(reportID) {
-    const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
-        {
-            reportID,
-            sequenceNumber,
-        },
+        {reportID},
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: sequenceNumber,
                     lastVisitedTimestamp: Date.now(),
                 },
             }],
@@ -849,22 +819,21 @@ function readNewestAction(reportID) {
  * Sets the last read comment on a report
  *
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {String} reportActionID
  */
-function markCommentAsUnread(reportID, sequenceNumber) {
-    const newLastReadSequenceNumber = sequenceNumber - 1;
+function markCommentAsUnread(reportID, reportActionTimestamp) {
+    const lastVisitedTimestamp = reportActionTimestamp - 1;
     API.write('MarkAsUnread',
         {
             reportID,
-            sequenceNumber,
+            lastVisitedTimestamp,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastVisitedTimestamp,
                 },
             }],
         });
@@ -929,7 +898,6 @@ function broadcastUserIsTyping(reportID) {
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
- * and it keeps track of the max sequence number on the report actions.
  *
  * @param {Object} report
  */
@@ -972,7 +940,6 @@ Onyx.connect({
  * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
-    const sequenceNumber = reportAction.sequenceNumber;
     const deletedMessage = [{
         type: 'COMMENT',
         html: '',
@@ -980,7 +947,7 @@ function deleteReportComment(reportID, reportAction) {
         isEdited: true,
     }];
     const optimisticReportActions = {
-        [sequenceNumber]: {
+        [reportAction.reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
@@ -988,8 +955,13 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
-    // Similarly, we are deleting the last read comment will want to update the lastReadSequenceNumber to use the previous visible message.
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+
+    // Similarly, if we are deleting the last read comment, we will want to update the lastMessageTimestamp accordingly.
+    const lastMessageTimestamp = ReportActionsUtils.getLastMessageTimestamp(reportID, optimisticReportActions);
+
+    // TODO: THIS IS WHERE I LEFT OFF
+
     const lastReadSequenceNumber = ReportActionsUtils.getOptimisticLastReadSequenceNumberForDeletedAction(
         reportID,
         optimisticReportActions,

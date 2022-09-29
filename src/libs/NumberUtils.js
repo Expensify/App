@@ -35,23 +35,7 @@ function rand64() {
     return left + middleString + rightString;
 }
 
-/**
- * @returns {Number}
- */
-function generateReportActionClientID() {
-    // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
-    // remove the optimistic action when we add the real action created in the server. We do this because it's not
-    // safe to assume that this will use the very next sequenceNumber. An action created by another can overwrite that
-    // sequenceNumber if it is created before this one. We use a combination of current epoch timestamp (milliseconds)
-    // and a random number so that the probability of someone else having the same clientID is
-    // extremely low even if they left the comment at the same moment as another user on the same report. The random
-    // number is 3 digits because if we go any higher JS will convert the digits after the 16th position to 0's in
-    // clientID.
-    const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
-    return parseInt(`${Date.now()}${randomNumber}`, 10);
-}
-
 export {
+    // eslint-disable-next-line import/prefer-default-export
     rand64,
-    generateReportActionClientID,
 };
