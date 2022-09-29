@@ -61,6 +61,7 @@ const progressInfo = (textParam) => {
 
 const info = (...args) => {
     console.debug('> ', ...args);
+    log(...args);
 };
 
 module.exports = {
