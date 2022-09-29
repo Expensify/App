@@ -70,6 +70,9 @@ export default {
     // Contains the user's payPalMe address
     NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
+    // Contains the user's payPalMe data
+    PAYPAL: 'paypal',
+
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -81,6 +84,9 @@ export default {
 
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
+
+    // Token needed to initialize Onfido
+    ONFIDO_TOKEN: 'onfidoToken',
 
     // Collection Keys
     COLLECTION: {
