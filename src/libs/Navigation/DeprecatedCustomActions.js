@@ -102,15 +102,15 @@ function pushDrawerRoute(route) {
         const screenRoute = {type: 'route', name: newScreenName};
         const history = _.map(state.history ? [...state.history] : [screenRoute], () => screenRoute);
 
-        // Force drawer to close
-        // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
         const drawerHistoryItem = _.find(state.history || [], h => h.type === 'drawer');
         const isDrawerClosed = drawerHistoryItem && drawerHistoryItem.status === 'closed';
         if (!drawerHistoryItem || currentState.type !== 'drawer') {
+            // Add the drawer item to the navigation history to control if the drawer should be in open or closed state
             history.push({
                 type: 'drawer',
 
-                // If current state is not from drawer navigator then always use closed status to close the drawer
+                // If current state is not from drawer navigator then always force the drawer to close by using closed status
+                // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
                 status: currentState.type !== 'drawer' || currentState.default === 'open' ? 'closed' : 'open',
             });
         } else if (isDrawerClosed) {
