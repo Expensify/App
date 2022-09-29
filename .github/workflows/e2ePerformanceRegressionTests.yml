@@ -68,7 +68,7 @@ jobs:
           disable-animations: true
           script: npm run test:e2e
 
-      - name: If tests failed, upload logs and screenshots
+      - name: If tests failed, upload logs and video
         if: ${{ failure() && steps.tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v3
         with:

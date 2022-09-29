@@ -192,6 +192,10 @@ const runTests = async () => {
         process.exit(0);
     } catch (e) {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
+
+        // write logcat output to file as well:
+        require('node:child_process').execSync(`adb logcat -d > ${OUTPUT_DIR}/logcat.txt`);
+
         require('node:child_process').execSync(`cat ${LOG_FILE}`);
         process.exit(1);
     }
