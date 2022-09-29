@@ -36,6 +36,8 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
+        errorFields: {},
+        errors: {},
         maxAttemptsReached: false,
     },
 };
