@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as BankAccounts from './actions/BankAccounts';
 import FormHelper from './FormHelper';
@@ -22,7 +23,20 @@ const clearErrors = (props, paths) => formHelper.clearErrors(props, paths);
  */
 function getDefaultStateForField(props, fieldName, defaultValue = '') {
     return lodashGet(props, ['reimbursementAccountDraft', fieldName])
-        || lodashGet(props, ['achData', fieldName], defaultValue);
+        || lodashGet(props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
+}
+
+/**
+ * @param {Object} props
+ * @param {Array} fieldNames
+ *
+ * @returns {*}
+ */
+function getBankAccountFields(props, fieldNames) {
+    return {
+        ..._.pick(lodashGet(props, 'reimbursementAccount.achData'), ...fieldNames),
+        ..._.pick(props.reimbursementAccountDraft, ...fieldNames),
+    };
 }
 
 /**
@@ -42,4 +56,5 @@ export {
     clearError,
     clearErrors,
     getErrorText,
+    getBankAccountFields,
 };

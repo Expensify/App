@@ -33,13 +33,11 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Report for this action */
-    report: PropTypes.shape({
-        /** The ID of the report this action is on. */
-        reportID: PropTypes.number.isRequired,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** All the data of the action item */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
