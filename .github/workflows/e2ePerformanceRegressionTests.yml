@@ -84,7 +84,7 @@ jobs:
           # TODO: remove this once implementation done.
           baseline: dev/ci-e2e-tests
         with:
-          api-level: 30
+          api-level: 28
           ram-size: 3072M
           heap-size: 512M
           force-avd-creation: true
