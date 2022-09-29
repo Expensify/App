@@ -30,6 +30,7 @@ const propTypes = {
     }),
 };
 const defaultProps = {
+    report: {},
     personalDetails: {},
     policies: {},
 };
