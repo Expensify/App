@@ -3,7 +3,6 @@ import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
