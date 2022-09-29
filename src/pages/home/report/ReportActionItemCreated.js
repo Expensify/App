@@ -14,6 +14,9 @@ import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
+    /** The id of the report */
+    reportID: PropTypes.number.isRequired,
+
     /** The report currently being looked at */
     report: reportPropTypes,
 
@@ -27,7 +30,6 @@ const propTypes = {
     }),
 };
 const defaultProps = {
-    report: {},
     personalDetails: {},
     policies: {},
 };
