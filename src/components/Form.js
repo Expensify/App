@@ -115,7 +115,7 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        FormActions.setErrorMessage(this.props.formID, null);
+        FormActions.setErrors(this.props.formID, null);
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
