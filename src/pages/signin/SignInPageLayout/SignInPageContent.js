@@ -58,19 +58,7 @@ const SignInPageContent = props => (
                     props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
                 ]}
                 >
-                    <LoginKeyboardAvoidingView
-                        behavior="position"
-                        contentContainerStyle={[
-                            props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
-                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
-                            styles.mb3,
-                            StyleUtils.getModalPaddingStyles({
-                                shouldAddBottomSafeAreaPadding: true,
-                                modalContainerStylePaddingBottom: 20,
-                                safeAreaPaddingBottom: props.insets.bottom,
-                            }),
-                        ]}
-                    >
+                    <LoginKeyboardAvoidingView>
                         <View style={[
                             styles.componentHeightLarge,
                             ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
