@@ -79,12 +79,11 @@ function fetchNameValuePairsAndBankAccount() {
 
 /**
  * @param {String} stepToOpen
- * @param {String} stepFromStorage
  * @param {Object} achData
  * @param {BankAccount} bankAccount
  * @returns {String}
  */
-function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount) {
+function getCurrentStep(stepToOpen, achData, bankAccount) {
     // If we are providing a stepToOpen via a deep link then we will always navigate to that step. This
     // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
     // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
@@ -164,7 +163,6 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     const initialData = getInitialData(localBankAccountState);
 
     // We keep the locally stored step and subStep before resetting the Onyx key
-    const stepFromStorage = store.getReimbursementAccountInSetup().currentStep;
     const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
 
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
@@ -178,7 +176,8 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
         }) => {
             // If we already have a substep stored locally then we will add that to the new achData
             const achData = buildACHData(bankAccount, subStep);
-            const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount);
+            const currentStep = getCurrentStep(stepToOpen, achData, bankAccount);
+
             navigation.goToWithdrawalAccountSetupStep(currentStep, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
                 throttledDate,
