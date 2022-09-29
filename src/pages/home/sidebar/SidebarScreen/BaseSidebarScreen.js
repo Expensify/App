@@ -112,6 +112,7 @@ class BaseSidebarScreen extends Component {
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
+                                currentlyViewedReportID={this.props.currentlyViewedReportID}
                             />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}

@@ -6,7 +6,6 @@ import withLocalize from '../../../../components/withLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
-import withNavigation from '../../../../components/withNavigation';
 
 // eslint-disable-next-line react/jsx-props-no-spreading
 const SidebarScreen = props => <BaseSidebarScreen {...props} />;
@@ -16,7 +15,6 @@ SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default compose(
-    withNavigation,
     withLocalize,
     withWindowDimensions,
     withOnyx({
