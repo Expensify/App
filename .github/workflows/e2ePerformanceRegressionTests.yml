@@ -50,10 +50,11 @@ jobs:
           npm run android-build-e2e
 
       - name: Start emulator and run tests
+        id: tests
         uses: reactivecircus/android-emulator-runner@v2
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
-          INTERACTION_TIMEOUT: 480000 # 8 minutes
+          INTERACTION_TIMEOUT: 120000 # 2 minutes
           # when logging progresses only refresh the _log_ every 30 seconds
           LOGGER_PROGRESS_REFRESH_RATE: 30000
           # TODO: remove this once implementation done.
@@ -64,4 +65,12 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: npm run test:e2e
+
+      - name: If tests failed, upload logs and screenshots
+        if: ${{ failure() && steps.tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-failure-logs
+          path: e2e/.results
+          retention-days: 5
 
