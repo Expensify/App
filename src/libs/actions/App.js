@@ -10,7 +10,7 @@ import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
 import * as Policy from './Policy';
-import Navigation from '../Navigation/Navigation';
+import Navigation, {navigationRef} from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
@@ -183,6 +183,15 @@ function setUpPoliciesAndNavigate(session) {
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
+        if (Navigation.isDrawerRoute(exitTo)) {
+            Navigation.isDrawerReady()
+                .then(() => {
+                    // We must call dismissModal() to remove the /transition route from history
+                    Navigation.dismissModal();
+                    Navigation.navigate(exitTo);
+                });
+            return;
+        }
         Navigation.isNavigationReady()
             .then(() => {
                 // We must call dismissModal() to remove the /transition route from history

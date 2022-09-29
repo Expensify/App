@@ -60,6 +60,10 @@ class BaseDrawerNavigator extends Component {
         });
     }
 
+    componentDidMount() {
+        Navigation.setIsDrawerReady();
+    }
+
     render() {
         const content = (
             <Drawer.Navigator
