@@ -6,7 +6,6 @@ const {
     shell,
     ipcMain,
 } = require('electron');
-const path = require('path');
 const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -17,18 +16,6 @@ const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
 
 const port = process.env.PORT || 8080;
-
-// Setup electron process restart on main code change (only applicable to DEV)
-if (__DEV__) {
-    const electronReload = require('electron-reload');
-
-    // __dirname refers to src/desktop/dist
-    electronReload(path.join(__dirname, '*.js'), {
-        electron: path.join(__dirname, '../../node_modules', '.bin', 'electron'),
-        electronArgv: ['desktop/dist/main.js'],
-        forceHardReset: true,
-    });
-}
 
 app.setName('New Expensify');
 
