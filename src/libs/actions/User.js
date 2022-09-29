@@ -18,7 +18,6 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
-import DateUtils from '../DateUtils';
 
 let sessionAuthToken = '';
 let currentUserAccountID = '';
