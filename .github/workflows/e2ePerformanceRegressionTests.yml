@@ -11,67 +11,45 @@ jobs:
     # Although the tests will run on an android emulator, using macOS as its more performant
     runs-on: macos-11
     steps:
-#      - uses: Expensify/App/.github/actions/composite/setupNode@main
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
         with:
-          fetch-depth: 0
+          ruby-version: '2.7'
+          bundler-cache: true
 
-      - uses: actions/setup-node@09ba51f18e18a3756fea1f54d09c6745c064491d
+      #region: Improve emulator startup time, see https://github.com/marketplace/actions/android-emulator-runner
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: AVD cache
+        uses: actions/cache@v3
+        id: avd-cache
         with:
-          node-version-file: '.nvmrc'
-          cache: npm
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-28
 
-      - name: (temp) install underscore as only dependent package
-        # removing package json and lock temporarily so we don't install _all_ deps
-        run: |
-            rm package.json
-            rm package-lock.json
-            npm install underscore
-            git checkout package.json
-            git checkout package-lock.json
-          
-
-#      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
-#        with:
-#          ruby-version: '2.7'
-#          bundler-cache: true
-
-#      #region: Improve emulator startup time, see https://github.com/marketplace/actions/android-emulator-runner
-#      - name: Gradle cache
-#        uses: gradle/gradle-build-action@v2
-#
-#      - name: AVD cache
-#        uses: actions/cache@v3
-#        id: avd-cache
-#        with:
-#          path: |
-#            ~/.android/avd/*
-#            ~/.android/adb*
-#          key: avd-29
-#
-#      - name: Create AVD and generate snapshot for caching
-#        if: steps.avd-cache.outputs.cache-hit != 'true'
-#        uses: reactivecircus/android-emulator-runner@v2
-#        with:
-#          api-level: 29
-#          ram-size: 4096M
-#          force-avd-creation: false
-#          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-#          disable-animations: false
-#          script: echo "Generated AVD snapshot for caching."
-#      #endregion
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          ram-size: 3072M
+          heap-size: 512M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+      #endregion
 
 #     Note: if the android build fails the logs can be incomplete. It can help to run the build once manually to get a full log
-#      - name: Preheat build system
-#        env:
-#          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
-#        run: |
-#          npm run android-build-e2e
-
-      - name: (temp) copy app
+      - name: Preheat build system
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
         run: |
-          mkdir -p android/app/build/outputs/apk/e2eRelease/
-          cp -r e2e/app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk
+          npm run android-build-e2e
 
       - name: Start emulator and run tests
         id: tests
@@ -87,7 +65,7 @@ jobs:
           api-level: 28
           ram-size: 3072M
           heap-size: 512M
-          force-avd-creation: true
+          force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: npm run test:e2e -- --skipBuild --skipInstallDeps
