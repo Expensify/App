@@ -31,10 +31,10 @@ jobs:
             git checkout package-lock.json
           
 
-      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
-        with:
-          ruby-version: '2.7'
-          bundler-cache: true
+#      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+#        with:
+#          ruby-version: '2.7'
+#          bundler-cache: true
 
 #      #region: Improve emulator startup time, see https://github.com/marketplace/actions/android-emulator-runner
 #      - name: Gradle cache
@@ -67,8 +67,11 @@ jobs:
 #          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
 #        run: |
 #          npm run android-build-e2e
+
       - name: (temp) copy app
-        run: cp -r e2e/app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk
+        run: |
+          mkdir -p android/app/build/outputs/apk/e2eRelease/
+          cp -r e2e/app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk
 
       - name: Start emulator and run tests
         id: tests
@@ -86,7 +89,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: npm run test:e2e
+          script: npm run test:e2e -- --skipBuild
 
       - name: If tests failed, upload logs and video
         if: ${{ failure() && steps.tests.conclusion == 'failure' }}
