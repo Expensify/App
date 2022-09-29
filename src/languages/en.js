@@ -211,7 +211,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
-        chatWithAccountManager: 'Chat with your Account Manager here',
+        chatWithAccountManager: 'Chat with your account manager here',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
