@@ -93,6 +93,21 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Returns new state object if the updated amount is valid
+     *
+     * @param {Object} prevState
+     * @param {String} newAmount - Changed amount from user input
+     * @returns {Object}
+     */
+    getNewState(prevState, newAmount) {
+        if (!this.validateAmount(newAmount)) {
+            return prevState;
+        }
+        const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
+        return {amount: this.stripCommaFromAmount(newAmount), selection};
+    }
+
+    /**
      * Focus text input
      */
     focusTextInput() {
@@ -168,11 +183,7 @@ class IOUAmountPage extends React.Component {
                 this.setState((prevState) => {
                     const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
                     const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
-                    if (!this.validateAmount(amount)) {
-                        return prevState;
-                    }
-                    const selection = this.getNewSelection(prevState.selection, prevState.amount.length, amount.length);
-                    return {amount, selection};
+                    return this.getNewState(prevState, amount);
                 });
             }
             return;
@@ -180,11 +191,7 @@ class IOUAmountPage extends React.Component {
 
         this.setState((prevState) => {
             const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
-            if (!this.validateAmount(amount)) {
-                return prevState;
-            }
-            const selection = this.getNewSelection(prevState.selection, prevState.amount.length, amount.length);
-            return {amount: this.stripCommaFromAmount(amount), selection};
+            return this.getNewState(prevState, amount);
         });
     }
 
@@ -197,9 +204,7 @@ class IOUAmountPage extends React.Component {
     updateAmount(text) {
         this.setState((prevState) => {
             const amount = this.addLeadingZero(this.replaceAllDigits(text, this.props.fromLocaleDigit));
-            return this.validateAmount(amount)
-                ? {amount: this.stripCommaFromAmount(amount)}
-                : prevState;
+            return this.getNewState(prevState, amount);
         });
     }
 

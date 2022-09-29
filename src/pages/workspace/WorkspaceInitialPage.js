@@ -20,7 +20,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
@@ -30,7 +30,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
 
     /** The employee list of this policy (coming from Onyx) */
@@ -38,7 +38,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...fullPolicyDefaultProps,
+    ...policyDefaultProps,
     policyMemberList: {},
 };
 
@@ -74,15 +74,16 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        Policy.deletePolicy(this.props.policy.id);
+        Policy.deleteWorkspace(this.props.policy.id);
         this.toggleDeleteModal(false);
+        Navigation.navigate(ROUTES.SETTINGS);
     }
 
     render() {
         const policy = this.props.policy;
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
-            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatarURL', {}));
+            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
         const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(this.props.policy);
         const menuItems = [
             {
@@ -248,7 +249,7 @@ WorkspaceInitialPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withPolicy,
     withOnyx({
         policyMemberList: {
             key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,

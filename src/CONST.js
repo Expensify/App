@@ -25,6 +25,8 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
@@ -311,7 +313,8 @@ const CONST = {
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
-        LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
+        LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
+        OWNER_EMAIL_FAKE: '__FAKE__',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -348,8 +351,6 @@ const CONST = {
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
-        PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
-        SIDEBAR_LINKS_FILTER_REPORTS: 'sidebar_links_filter_reports',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
@@ -415,7 +416,7 @@ const CONST = {
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', loading: false},
+    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -457,6 +458,7 @@ const CONST = {
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
+        EMAIL_ADDRESS: 'email-address',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -670,13 +672,13 @@ const CONST = {
             FREE: 'free',
             PERSONAL: 'personal',
             CORPORATE: 'corporate',
-            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
+        OWNER_EMAIL_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
@@ -833,6 +835,11 @@ const CONST = {
                 width: 300, height: 700, scale: 1, fontScale: 1,
             },
         },
+    },
+    API_REQUEST_TYPE: {
+        READ: 'read',
+        WRITE: 'write',
+        MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
 };
 
