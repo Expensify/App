@@ -41,7 +41,6 @@ Onyx.connect({
     },
 });
 
-let reportIDFromRoute;
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -949,13 +948,6 @@ function handleReportChanged(report) {
     }
 }
 
-/**
- * @param {String} reportID
- */
-function setReportIDFromRoute(reportID) {
-    reportIDFromRoute = String(reportID);
-}
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -1443,7 +1435,7 @@ function viewNewReportAction(reportID, action) {
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === reportIDFromRoute && Visibility.isVisible()) {
+    if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
         Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
@@ -1532,7 +1524,6 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
-    setReportIDFromRoute,
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,

@@ -7,7 +7,6 @@ import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingInd
 import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
-import * as Report from '../../actions/Report';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
@@ -69,8 +68,8 @@ const MainDrawerNavigator = (props) => {
     return (
         <BaseDrawerNavigator
             drawerContent={({navigation, state}) => {
+                // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
                 const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
-                Report.setReportIDFromRoute(reportIDFromRoute);
                 return (
                     <SidebarScreen
                         navigation={navigation}
