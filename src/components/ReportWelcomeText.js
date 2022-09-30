@@ -13,6 +13,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
+import reportPropTypes from '../pages/reportPropTypes';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -28,13 +29,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The id of the report */
-        reportID: PropTypes.number,
-
-        /** The report owner's email */
-        ownerEmail: PropTypes.string,
-    }).isRequired,
+    report: reportPropTypes,
 
     /* Onyx Props */
 
@@ -51,6 +46,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    report: {},
     policies: {},
 };
 
