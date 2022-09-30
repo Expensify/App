@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Keyboard, Platform, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashFindLast from 'lodash/findLast';
@@ -235,10 +235,7 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
         const hideComposer = isArchivedRoom || !_.isEmpty(addWorkspaceRoomErrors);
         return (
-            <ScreenWrapper
-                style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
-                keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
-            >
+            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
                 <OfflineWithFeedback
                     pendingAction={addWorkspaceRoomPendingAction}
                     errors={addWorkspaceRoomErrors}
