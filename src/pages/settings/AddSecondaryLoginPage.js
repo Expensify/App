@@ -90,13 +90,14 @@ class AddSecondaryLoginPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => {
-                if (!this.phoneNumberInputRef) {
-                    return;
-                }
+            <ScreenWrapper
+                onTransitionEnd={() => {
+                    if (!this.phoneNumberInputRef) {
+                        return;
+                    }
 
-                this.phoneNumberInputRef.focus();
-            }}
+                    this.phoneNumberInputRef.focus();
+                }}
             >
                 <HeaderWithCloseButton
                     title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
