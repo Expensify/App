@@ -18,6 +18,9 @@ const propTypes = {
     /** Text to be displayed in the submit button */
     submitButtonText: PropTypes.string.isRequired,
 
+    /** Controls the submit button's visibility */
+    isSubmitButtonVisible: PropTypes.bool,
+
     /** Callback to validate the form */
     validate: PropTypes.func.isRequired,
 
@@ -48,6 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isSubmitButtonVisible: true,
     formState: {
         isLoading: false,
         errors: null,
@@ -204,6 +208,7 @@ class Form extends React.Component {
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
+                        {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
@@ -215,6 +220,7 @@ class Form extends React.Component {
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                         />
+                        )}
                     </View>
                 </ScrollView>
             </>
