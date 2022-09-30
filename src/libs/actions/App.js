@@ -11,7 +11,7 @@ import Log from '../Log';
 import Performance from '../Performance';
 import Timing from './Timing';
 import * as Policy from './Policy';
-import Navigation, {navigationRef} from '../Navigation/Navigation';
+import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
@@ -197,6 +197,9 @@ function setUpPoliciesAndNavigate(session) {
     }
     if (!isLoggingInAsNewUser && exitTo) {
         if (Navigation.isDrawerRoute(exitTo)) {
+            // The drawer navigation is only created after we have fetched reports from the server.
+            // Thus, if we use the standard navigation and try to navigate to a drawer route before
+            // the reports have been fetched, we will fail to navigate.
             Navigation.isDrawerReady()
                 .then(() => {
                     // We must call dismissModal() to remove the /transition route from history
