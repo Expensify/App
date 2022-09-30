@@ -180,6 +180,7 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
+        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
     },
 
     // Whether we should show the compose input or not
