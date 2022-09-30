@@ -14,8 +14,7 @@ task:
     - brew tap homebrew/cask
   install_java_script:
     - brew install openjdk@11
-    - ln -sfn /opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-11.jdk
-    -
+    - sudo ln -sfn /opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-11.jdk
   install_android_sdk_script:
     - wget https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
     - unzip commandlinetools-mac-8512546_latest.zip
