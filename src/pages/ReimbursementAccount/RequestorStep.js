@@ -175,7 +175,7 @@ class RequestorStep extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => {
                         if (shouldShowOnfido) {
-                            BankAccounts.clearOnfido();
+                            BankAccounts.clearOnfidoToken();
                         } else {
                             BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }
