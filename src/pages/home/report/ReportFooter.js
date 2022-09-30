@@ -17,7 +17,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
-import reportPropTypes from './reportPropTypes';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
