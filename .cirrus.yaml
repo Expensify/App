@@ -3,6 +3,9 @@ task:
   container:
     image: cirrusci/android-sdk:30
     kvm: true
+    cpu: 8
+    memory: 12G
+
   accel_check_script: emulator -accel-check
   setup_emulator:
     - sdkmanager "system-images;android-30;google_apis_playstore;x86"
