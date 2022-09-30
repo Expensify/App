@@ -7,7 +7,7 @@ task:
     memory: 12G
 
   accel_check_script: emulator -accel-check
-  setup_emulator:
+  setup_emulator_script:
     - sdkmanager "system-images;android-30;google_apis_playstore;x86"
     - echo no | avdmanager create avd --force --name "api-30" --abi "google_apis_playstore/x86" --package "system-images;android-30;google_apis_playstore;x86"
   start_emulator_background_script:
