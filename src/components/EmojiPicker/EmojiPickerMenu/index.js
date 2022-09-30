@@ -494,7 +494,7 @@ class EmojiPickerMenu extends Component {
                     : (
                         <FlatList
                             ref={el => this.emojiList = el}
-                            initialNumToRender={400}
+                            initialNumToRender={100}
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
                             keyExtractor={item => `emoji_picker_${item.code}`}
