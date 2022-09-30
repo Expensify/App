@@ -16,9 +16,9 @@ task:
     - brew install openjdk@11
     - sudo ln -sfn /opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-11.jdk
   install_android_sdk_script:
-    - wget https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
+    - wget -q https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
     - unzip commandlinetools-mac-8512546_latest.zip
-    - yes | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
+    - yes | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses > /dev/null
     - cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-30" "build-tools;30.0.3" "emulator" "system-images;android-30;google_apis;arm64_v8a"
   accel_check_script: emulator -accel-check
 
