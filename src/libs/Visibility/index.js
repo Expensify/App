@@ -18,7 +18,9 @@ function isVisible() {
  */
 function onVisibilityChange(callback) {
     // Deliberately strip callback argument to be consistent across implementations
-    return AppState.addEventListener('change', () => callback()).remove;
+    const subscription = AppState.addEventListener('change', () => callback());
+
+    return () => subscription.remove();
 }
 
 export default {
