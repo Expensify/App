@@ -93,7 +93,6 @@ const defaultProps = {
     },
     reportActions: {},
     report: {
-        maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
     },

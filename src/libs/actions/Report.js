@@ -754,6 +754,7 @@ function readOldestAction(reportID, oldestActionTimestamp) {
         {
             reportID,
             reportActionCreated: formattedDateTimeString,
+            reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
         },
         {
             optimisticData: [{

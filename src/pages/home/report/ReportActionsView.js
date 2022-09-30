@@ -279,19 +279,13 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
+        const oldestReportAction = _.first(this.sortedReportActions);
 
-        if (minSequenceNumber === 0) {
+        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
 
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
+        Report.readOldestAction(this.props.report.reportID, oldestReportAction.timestamp);
     }
 
     scrollToBottomAndMarkReportAsRead() {
