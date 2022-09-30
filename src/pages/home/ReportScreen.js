@@ -30,6 +30,9 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import Banner from '../../components/Banner';
+import withLocalize from '../../components/withLocalize';
+import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
@@ -51,19 +54,7 @@ const propTypes = {
     }),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-
-        /** Flag to check if the report actions data are loading */
-        isLoadingReportActions: PropTypes.bool,
-
-        /** ID for the report */
-        reportID: PropTypes.number,
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -124,11 +115,14 @@ class ReportScreen extends React.Component {
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
+        this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
+            isBannerVisible: true,
         };
     }
 
@@ -199,6 +193,14 @@ class ReportScreen extends React.Component {
         this.setState({viewportOffsetTop});
     }
 
+    dismissBanner() {
+        this.setState({isBannerVisible: false});
+    }
+
+    chatWithAccountManager() {
+        Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
+    }
+
     render() {
         if (!this.props.isSidebarLoaded) {
             return null;
@@ -248,6 +250,16 @@ class ReportScreen extends React.Component {
                             onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                         />
                     </OfflineWithFeedback>
+                    {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                        <Banner
+                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                            textStyles={[styles.colorReversed]}
+                            text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                            onClose={this.dismissBanner}
+                            onPress={this.chatWithAccountManager}
+                            shouldShowCloseButton
+                        />
+                    )}
                     <View
                         nativeID={CONST.REPORT.DROP_NATIVE_ID}
                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
@@ -313,6 +325,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
@@ -338,6 +351,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        accountManagerReportID: {
+            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
         },
     }),
 )(ReportScreen);
