@@ -4,3 +4,14 @@ task:
     image: cirrusci/android-sdk:30
     kvm: true
   accel_check_script: emulator -accel-check
+  setup_emulator:
+    - sdkmanager "system-images;android-30;google_apis_playstore;x86"
+    - echo no | avdmanager create avd --force --name "api-30" --abi "google_apis_playstore/x86" --package "system-images;android-30;google_apis_playstore;x86"
+  start_emulator_background_script:
+    - emulator -avd "api-30" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+  wait_for_emulator_script:
+    - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 3; done; input keyevent 82'
+  disable_animations_script: |
+    - adb shell settings put global window_animation_scale 0.0
+    - adb shell settings put global transition_animation_scale 0.0
+    - adb shell settings put global animator_duration_scale 0.0
