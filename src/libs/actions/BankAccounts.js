@@ -274,6 +274,23 @@ function updateCompanyInformationForBankAccount(bankAccount) {
 }
 
 /**
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
+ *
+ * @param {Object} params
+ *
+ * // ACH Contract Step
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {String}  [params.beneficialOwners]
+ */
+ function updateBeneficialOwnersForBankAccount(params) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+    API.write('UpdateBeneficialOwnersForBankAccount', {bankAccountID, ...params}, getVBBADataForOnyx());
+}
+
+/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -301,6 +318,7 @@ export {
     updatePersonalInformationForBankAccount,
     validateBankAccount,
     updateCompanyInformationForBankAccount,
+    updateBeneficialOwnersForBankAccount,
     connectBankAccountWithPlaid,
     updatePlaidData,
 };
