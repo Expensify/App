@@ -41,6 +41,7 @@ class RequestorStep extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
+        this.setOnfidoAsComplete = this.setOnfidoAsComplete.bind(this);
 
         this.state = {
             firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
@@ -52,7 +53,6 @@ class RequestorStep extends React.Component {
             dob: ReimbursementAccountUtils.getDefaultStateForField(props, 'dob'),
             ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(props, 'ssnLast4'),
             isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(props, 'isControllingOfficer', false),
-            onfidoData: lodashGet(props, ['reimbursementAccount', 'achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
@@ -146,6 +146,10 @@ class RequestorStep extends React.Component {
         BankAccounts.updatePersonalInformationForBankAccount(payload);
     }
 
+    setOnfidoAsComplete() {
+        this.setState({isOnfidoSetupComplete: true});
+    }
+
     render() {
         const achData = this.props.reimbursementAccount.achData;
         const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !this.state.isOnfidoSetupComplete;
@@ -168,7 +172,9 @@ class RequestorStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {shouldShowOnfido ? (
-                    <RequestorOnfidoStep />
+                    <RequestorOnfidoStep
+                        onComplete={this.setOnfidoAsComplete}
+                    />
                 ) : (
                     <ReimbursementAccountForm
                         onSubmit={this.submit}
@@ -269,9 +275,6 @@ export default compose(
         },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(RequestorStep);
