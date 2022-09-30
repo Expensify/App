@@ -525,6 +525,7 @@ export default {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'La página que buscas no existe.',
+        noAccess: 'No tienes acceso a este chat',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -824,6 +825,7 @@ export default {
             error: {
                 genericAdd: 'Ha ocurrido un problema al agregar el miembro al espacio de trabajo',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+                genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo.',
             },
         },
         card: {
