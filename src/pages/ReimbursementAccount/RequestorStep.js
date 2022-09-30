@@ -74,6 +74,13 @@ class RequestorStep extends React.Component {
     }
 
     /**
+     * Update state to indicate that the user has completed the Onfido verification process
+     */
+    setOnfidoAsComplete() {
+        this.setState({isOnfidoSetupComplete: true});
+    }
+
+    /**
      * Clear the errors associated to keys in values if found and store the new values in the state.
      *
      * @param {Object} values
@@ -144,10 +151,6 @@ class RequestorStep extends React.Component {
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
-    }
-
-    setOnfidoAsComplete() {
-        this.setState({isOnfidoSetupComplete: true});
     }
 
     render() {
