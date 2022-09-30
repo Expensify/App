@@ -150,7 +150,7 @@ class SidebarLinks extends React.Component {
                     ]}
                     data={optionListItems}
                     focusedIndex={_.findIndex(optionListItems, (
-                        option => option === this.props.currentlyViewedReportID.toString()
+                        option => option.toString() === this.props.reportIDFromRoute
                     ))}
                     onSelectRow={(option) => {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));

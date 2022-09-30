@@ -3,10 +3,141 @@ import {cleanup} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
-import * as Report from '../../src/libs/actions/Report';
 
-// Be sure to include the mocked permissions library or else the beta tests won't work
-jest.mock('../../src/libs/Permissions');
+const TEST_MAX_SEQUENCE_NUMBER = 10;
+
+const fakeInsets = {
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+};
+
+const fakePersonalDetails = {
+    'email1@test.com': {
+        login: 'email1@test.com',
+        displayName: 'Email One',
+        avatar: 'none',
+        firstName: 'ReportID',
+    },
+    'email2@test.com': {
+        login: 'email2@test.com',
+        displayName: 'Email Two',
+        avatar: 'none',
+        firstName: 'One',
+    },
+    'email3@test.com': {
+        login: 'email3@test.com',
+        displayName: 'Email Three',
+        avatar: 'none',
+        firstName: 'ReportID',
+    },
+    'email4@test.com': {
+        login: 'email4@test.com',
+        displayName: 'Email Four',
+        avatar: 'none',
+        firstName: 'Two',
+    },
+    'email5@test.com': {
+        login: 'email5@test.com',
+        displayName: 'Email Five',
+        avatar: 'none',
+        firstName: 'ReportID',
+    },
+    'email6@test.com': {
+        login: 'email6@test.com',
+        displayName: 'Email Six',
+        avatar: 'none',
+        firstName: 'Three',
+    },
+    'email7@test.com': {
+        login: 'email7@test.com',
+        displayName: 'Email Seven',
+        avatar: 'none',
+        firstName: 'ReportID',
+    },
+    'email8@test.com': {
+        login: 'email8@test.com',
+        displayName: 'Email Eight',
+        avatar: 'none',
+        firstName: 'Four',
+    },
+    'email9@test.com': {
+        login: 'email9@test.com',
+        displayName: 'Email Nine',
+        avatar: 'none',
+        firstName: 'EmailNine',
+    },
+};
+
+const fakeReport1 = {
+    reportID: '1',
+    reportName: 'Report One',
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+
+    // This report's last comment will be in the past
+    lastMessageTimestamp: Date.now() - 3000,
+    participants: ['email1@test.com', 'email2@test.com'],
+};
+const fakeReport2 = {
+    reportID: '2',
+    reportName: 'Report Two',
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastMessageTimestamp: Date.now() - 2000,
+    participants: ['email3@test.com', 'email4@test.com'],
+};
+const fakeReport3 = {
+    reportID: '3',
+    reportName: 'Report Three',
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastMessageTimestamp: Date.now() - 1000,
+    participants: ['email5@test.com', 'email6@test.com'],
+};
+const fakeReportIOU = {
+    reportID: '4',
+    reportName: 'Report IOU Four',
+    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+    lastMessageTimestamp: Date.now() - 1000,
+    participants: ['email5@test.com', 'email6@test.com'],
+    ownerEmail: 'email2@test.com',
+    hasOutstandingIOU: true,
+    total: 10000,
+    currency: 'USD',
+};
+
+const fakeReport1Actions = {
+    actionName: 'ADDCOMMENT',
+    person: [],
+    sequenceNumber: 0,
+
+    // This comment will be in the past
+    timestamp: Date.now() - 2000,
+    message: [
+        {type: 'comment', reportID: '1', text: 'Comment One'},
+    ],
+};
+const fakeReport2Actions = {
+    actionName: 'ADDCOMMENT',
+    person: [],
+    sequenceNumber: 0,
+    timestamp: Date.now() - 1000,
+    message: [
+        {type: 'comment', reportID: '2', text: 'Comment Two'},
+    ],
+};
+const fakeReport3Actions = {
+    actionName: 'ADDCOMMENT',
+    person: [],
+    sequenceNumber: 0,
+    timestamp: Date.now(),
+    message: [
+        {type: 'comment', reportID: '2', text: 'Comment Three'},
+    ],
+};
 
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
@@ -19,6 +150,57 @@ const ONYXKEYS = {
         REPORT_IOUS: 'reportIOUs_',
     },
 };
+
+Onyx.init({
+    keys: ONYXKEYS,
+    registerStorageEventListener: () => {},
+});
+
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {RenderAPI}
+ */
+function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
+    // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
+    // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
+    // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
+    // With the ErrorBoundary, those errors are caught and logged to the console so you can find exactly which error
+    // might be causing a rendering issue when developing tests.
+    class ErrorBoundary extends React.Component {
+        // Error boundaries have to implement this method. It's for providing a fallback UI, but
+        // we don't need that for unit testing, so this is basically a no-op.
+        static getDerivedStateFromError(error) {
+            return {error};
+        }
+
+        componentDidCatch(error, errorInfo) {
+            console.error(error, errorInfo);
+        }
+
+        render() {
+            // eslint-disable-next-line react/prop-types
+            return this.props.children;
+        }
+    }
+
+    // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
+    // are passed to the component. If this is not done, then all the locale props are missing
+    // and there are a lot of render warnings. It needs to be done like this because normally in
+    // our app (App.js) is when the react application is wrapped in the context providers
+    return render((
+        <LocaleContextProvider>
+            <ErrorBoundary>
+                <SidebarLinks
+                    onLinkClick={() => {}}
+                    insets={fakeInsets}
+                    onAvatarClick={() => {}}
+                    isSmallScreenWidth={false}
+                    reportIDFromRoute={reportIDFromRoute}
+                />
+            </ErrorBoundary>
+        </LocaleContextProvider>
+    ));
+}
 
 describe('Sidebar', () => {
     beforeAll(() => Onyx.init({
@@ -61,13 +243,10 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('contains one report when a report is in Onyx', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given a single report
-            const report = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
-
-            Report.updateCurrentlyViewedReportID('1');
+        test('contains one report when a report is in Onyx', () => {
+            // Given the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -84,24 +263,10 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('orders items with most recently updated on top', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given three unread reports in the recently updated order of 3, 2, 1
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-
-            Report.updateCurrentlyViewedReportID('1');
+        test('orders items with most recently updated on top', () => {
+            // Given the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -126,21 +291,10 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('doesn\'t change the order when adding a draft to the active report', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given three reports in the recently updated order of 3, 2, 1
-            // And the first report has a draft
-            // And the currently viewed report is the first report
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                hasDraft: true,
-            };
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
-            const currentlyViewedReportID = report1.reportID;
-
-            Report.updateCurrentlyViewedReportID('1');
+        test('doesn\'t change the order when adding a draft to the active report', () => {
+            // Given the sidebar is rendered in default mode (most recent first)
+            // while currently viewing report 1
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -169,15 +323,8 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('reorders the reports to always have the most recently updated one on top', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given three reports in the recently updated order of 3, 2, 1
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
-
-            Report.updateCurrentlyViewedReportID('1');
+        test('reorders the reports to always have the most recently updated one on top', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -207,10 +354,7 @@ describe('Sidebar', () => {
         });
 
         test('reorders the reports to keep draft reports on top', () => {
-            let sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('2');
-
+            let sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -229,8 +373,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     // The changing of a route itself will re-render the component in the App, but since we are not performing this test
                     // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    Report.updateCurrentlyViewedReportID('1');
-                    sidebarLinks = getDefaultRenderedSidebarLinks();
+                    sidebarLinks = getDefaultRenderedSidebarLinks('1');
                     return waitForPromisesToResolve();
                 })
 
@@ -245,17 +388,8 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('removes the pencil icon when draft is removed', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given a single report
-            // And the report has a draft
-            const report = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
-                hasDraft: true,
-            };
-
-            Report.updateCurrentlyViewedReportID('2');
+        test('removes the pencil icon when draft is removed', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -284,17 +418,8 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('removes the pin icon when chat is unpinned', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given a single report
-            // And the report is pinned
-            const report = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
-                isPinned: true,
-            };
-
-            Report.updateCurrentlyViewedReportID('2');
+        test('removes the pin icon when chat is unpinned', () => {
+            const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -324,40 +449,7 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given three reports in the recently updated order of 3, 2, 1
-            // with the current user set to email9@ (someone not participating in any of the chats)
-            // with a report that has a draft, a report that is pinned, and
-            //    an outstanding IOU report that doesn't belong to the current user
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                isPinned: true,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                hasDraft: true,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                hasOutstandingIOU: true,
-
-                // This has to be added after the IOU report is generated
-                iouReportID: null,
-            };
-            const iouReport = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
-                ownerEmail: 'email2@test.com',
-                hasOutstandingIOU: true,
-                total: 10000,
-                currency: 'USD',
-                chatReportID: report3.reportID,
-            };
-            report3.iouReportID = iouReport.reportID.toString();
-            const currentlyViewedReportID = report2.reportID;
-            const currentlyLoggedInUserEmail = 'email9@test.com';
-
-            Report.updateCurrentlyViewedReportID('2');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -389,28 +481,7 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes all the chats that are pinned', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given three reports in the recently updated order of 3, 2, 1
-            // and they are all pinned
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                isPinned: true,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                isPinned: true,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                isPinned: true,
-            };
-            const report4 = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
-                isPinned: true,
-            };
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -449,28 +520,7 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes all the chats that have drafts', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given three reports in the recently updated order of 3, 2, 1
-            // and they all have drafts
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                hasDraft: true,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                hasDraft: true,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                hasDraft: true,
-            };
-            const report4 = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
-                hasDraft: true,
-            };
-
-            Report.updateCurrentlyViewedReportID('5');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('5');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -554,9 +604,7 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('hides unread chats', () => {
-            let sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            let sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in #focus mode (hides read chats)
@@ -600,8 +648,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     // The changing of a route itself will re-render the component in the App, but since we are not performing this test
                     // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    Report.updateCurrentlyViewedReportID('2');
-                    sidebarLinks = getDefaultRenderedSidebarLinks();
+                    sidebarLinks = getDefaultRenderedSidebarLinks('2');
                     return waitForPromisesToResolve();
                 })
 
@@ -613,26 +660,7 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes chats', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report4 = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in #focus mode (hides read chats)
@@ -658,7 +686,14 @@ describe('Sidebar', () => {
                 })
 
                 // When a new report is added
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
+                    reportID: '4',
+                    reportName: 'Report Four',
+                    maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
+                    lastMessageTimestamp: Date.now(),
+                    participants: ['email7@test.com', 'email8@test.com'],
+                }))
 
                 // Then they are still in alphabetical order
                 .then(() => {
