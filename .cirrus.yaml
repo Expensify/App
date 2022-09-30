@@ -9,6 +9,9 @@ task:
   env:
     ANDROID_SDK_ROOT: ${HOME}/cmdline-tools
     PATH: /opt/homebrew/opt/openjdk@11/bin:${PATH}
+    PATH: ${ANDROID_SDK_ROOT}/platform-tools:${PATH}
+    PATH: ${ANDROID_SDK_ROOT}/tools:${PATH}
+    PATH: ${ANDROID_SDK_ROOT}/tools/bin:${PATH}
   setup_brew_script:
     - /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     - brew tap homebrew/cask
