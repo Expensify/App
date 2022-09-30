@@ -13,7 +13,6 @@ task:
     - brew tap homebrew/cask
   install_java_script:
     - brew install openjdk@11
-    - brew install --cask homebrew/cask-versions/temurin8
   install_android_sdk_script:
     - wget https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
     - unzip commandlinetools-mac-8512546_latest.zip
