@@ -72,7 +72,7 @@ let lastFakeReportID = 0;
  */
 function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0) {
     return {
-        reportID: ++lastFakeReportID,
+        reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
