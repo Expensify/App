@@ -39,7 +39,7 @@ const propTypes = {
         /** Server side errors keyed by microtime */
         errors: PropTypes.objectOf(PropTypes.string),
 
-        /** Server side errors keyed by microtime */
+        /** Field-specific server side errors keyed by microtime */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
