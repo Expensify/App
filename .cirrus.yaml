@@ -1,6 +1,6 @@
 task:
   name: E2E performance regression Tests (x86)
-  container:
+  macos_instance:
     image: cirrusci/android-sdk:29
     kvm: true
     cpu: 8
