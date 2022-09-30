@@ -124,7 +124,7 @@ class PasswordForm extends React.Component {
         }
 
         if (!ValidationUtils.isValidPassword(this.state.password)) {
-            this.setState({formError: 'passwordForm.error.incorrectPassword'});
+            this.setState({formError: 'passwordForm.error.incorrectLoginOrPassword'});
             return;
         }
 

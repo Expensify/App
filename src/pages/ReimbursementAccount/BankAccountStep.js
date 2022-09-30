@@ -2,7 +2,6 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -56,40 +55,17 @@ const defaultProps = {
 };
 
 const BankAccountStep = (props) => {
-    let subStep = lodashGet(props, 'reimbursementAccount.achData.subStep', '');
-    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
-    if (shouldReinitializePlaidLink) {
-        subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
-    }
+    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : props.achData.subStep;
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
-        this.addManualAccount = this.addManualAccount.bind(this);
-        this.addPlaidAccount = this.addPlaidAccount.bind(this);
-        this.validate = this.validate.bind(this);
-        this.state = {
-            selectedPlaidBankAccount: undefined,
-        };
+    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+        return <BankAccountManualStep achData={props.achData} />;
     }
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Object}
-     */
-    validate(values) {
-        const errors = {};
-
-        if (!values.accountNumber || !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim())) {
-            errors.accountNumber = this.props.translate('bankAccount.error.accountNumber');
-        }
-        if (!values.routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(values.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(values.routingNumber.trim())) {
-            errors.routingNumber = this.props.translate('bankAccount.error.routingNumber');
-        }
-        if (!values.acceptedTerms) {
-            errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
-        }
-
-        return errors;
+    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        return <BankAccountPlaidStep achData={props.achData} />;
     }
 
     addManualAccount(values) {
@@ -363,12 +339,6 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
         },
     }),
 )(BankAccountStep);

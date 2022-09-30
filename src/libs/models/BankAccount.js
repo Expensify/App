@@ -279,6 +279,47 @@ class BankAccount {
     needsToUpgrade() {
         return !this.isInSetup() && !lodashHas(this.json, ['additionalData', 'beneficialOwners']);
     }
+
+    /**
+     * Check if we've performed the most recently implemented checks on the bank account, and they all passed.
+     * Same logic as in BankAccount.php needsToPassLatestChecks
+     * @return {Boolean}
+     */
+    needsToPassLatestChecks() {
+        if (!lodashGet(this.json, ['additionalData', 'hasFullSSN'])) {
+            return true;
+        }
+
+        const beneficialOwners = lodashGet(this.json, ['additionalData', 'beneficialOwners']);
+        if (!beneficialOwners) {
+            return true;
+        }
+
+        const city = lodashGet(this.json, ['additionalData', 'requestorAddressCity']);
+        if (!city) {
+            return true;
+        }
+
+        if (_.isArray(beneficialOwners)) {
+            const hasBeneficialOwnerError = _.any(beneficialOwners, (beneficialOwner) => {
+                const hasFullSSN = lodashGet(beneficialOwner, 'hasFullSSN')
+                    || !_.isEmpty(lodashGet(beneficialOwner, 'ssn'));
+                return !lodashGet(beneficialOwner, 'isRequestor')
+                    && (lodashGet(beneficialOwner, ['expectIDPA', 'status']) !== 'pass'
+                        || !lodashGet(beneficialOwner, 'city') || !hasFullSSN
+                    );
+            });
+            if (hasBeneficialOwnerError) {
+                return true;
+            }
+        }
+
+        return _.any(['realSearchResult', 'lexisNexisInstantIDResult', 'requestorIdentityID'], field => (
+            lodashGet(this.json, [
+                'additionalData', 'verifications', 'externalApiResponses', field, 'status',
+            ]) !== 'pass'
+        ));
+    }
 }
 
 export default BankAccount;

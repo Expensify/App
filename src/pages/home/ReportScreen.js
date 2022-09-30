@@ -24,12 +24,6 @@ import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
-import ReportFooter from './report/ReportFooter';
-import Banner from '../../components/Banner';
-import withLocalize from '../../components/withLocalize';
-import reportPropTypes from '../reportPropTypes';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -45,7 +39,19 @@ const propTypes = {
     isSidebarLoaded: PropTypes.bool,
 
     /** The report currently being looked at */
-    report: reportPropTypes,
+    report: PropTypes.shape({
+        /** The largest sequenceNumber on this report */
+        maxSequenceNumber: PropTypes.number,
+
+        /** Whether there is an outstanding amount in IOU */
+        hasOutstandingIOU: PropTypes.bool,
+
+        /** Flag to check if the report actions data are loading */
+        isLoadingReportActions: PropTypes.bool,
+
+        /** ID for the report */
+        reportID: PropTypes.number,
+    }),
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -109,14 +115,11 @@ class ReportScreen extends React.Component {
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
-        this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
-        this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             viewportOffsetTop: 0,
-            isBannerVisible: true,
         };
     }
 
@@ -182,14 +185,6 @@ class ReportScreen extends React.Component {
         this.setState({viewportOffsetTop});
     }
 
-    dismissBanner() {
-        this.setState({isBannerVisible: false});
-    }
-
-    chatWithAccountManager() {
-        Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
-    }
-
     render() {
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
@@ -215,20 +210,24 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
         const screenWrapperStyle = [styles.appContent, {marginTop: this.state.viewportOffsetTop}];
         return (
-            <Freeze
-                freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
-                placeholder={(
-                    <ScreenWrapper
-                        style={screenWrapperStyle}
-                    >
-                        <ReportHeaderSkeletonView />
-                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                    </ScreenWrapper>
-                )}
+            <ScreenWrapper
+                style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
-                <ScreenWrapper
-                    style={screenWrapperStyle}
-                    keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
+                <OfflineWithFeedback
+                    pendingAction={addWorkspaceRoomPendingAction}
+                    errors={addWorkspaceRoomErrors}
+                    errorRowStyles={styles.dNone}
+                >
+                    <HeaderView
+                        reportID={reportID}
+                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    />
+                </OfflineWithFeedback>
+                <View
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -316,7 +315,6 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withWindowDimensions,
     withNetwork(),
     withOnyx({
@@ -341,12 +339,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        accountManagerReportID: {
-            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(ReportScreen);

@@ -579,6 +579,31 @@ function GetReportSummaryList(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.value - Must be a JSON stringified object
+ * @returns {Promise}
+ */
+function UpdatePolicy(parameters) {
+    const commandName = 'UpdatePolicy';
+    requireParameters(['policyID', 'value'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.reportName
+ * @param {String} parameters.visibility
+ * @return {Promise}
+ */
+function CreatePolicyRoom(parameters) {
+    const commandName = 'CreatePolicyRoom';
+    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -630,6 +655,7 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
+    UpdatePolicy,
     User_SignUp,
     User_GetBetas,
     User_IsFromPublicDomain,

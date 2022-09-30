@@ -204,15 +204,17 @@ class ReimbursementAccountPage extends React.Component {
             <ScreenWrapper>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                     <BankAccountStep
+                        achData={achData}
+                        isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         plaidLinkOAuthToken={this.props.plaidLinkToken}
                     />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                    <CompanyStep />
+                    <CompanyStep achData={achData} />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                    <RequestorStep />
+                    <RequestorStep achData={achData} />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
                     <ACHContractStep companyName={achData.companyName} />
@@ -221,7 +223,9 @@ class ReimbursementAccountPage extends React.Component {
                     <ValidationStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
-                    <EnableStep />
+                    <EnableStep
+                        achData={achData}
+                    />
                 )}
                 <WorkspaceResetBankAccountModal />
             </ScreenWrapper>

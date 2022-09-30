@@ -29,7 +29,7 @@ const propTypes = {
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
         isUnread: PropTypes.bool,
-        reportID: PropTypes.string,
+        reportID: PropTypes.number,
         phoneNumber: PropTypes.string,
         payPalMeAddress: PropTypes.string,
     })),

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -65,21 +66,38 @@ const ActivateStep = (props) => {
                         </Text>
                     </View>
                 </View>
-                {isGoldWallet && (
-                    <FixedFooter>
-                        <Button
-                            text={continueButtonText}
-                            onPress={PaymentMethods.continueSetup}
-                            style={[styles.mt4]}
-                            iconStyles={[styles.mr5]}
-                            success
-                        />
-                    </FixedFooter>
-                )}
-            </View>
-        </>
-    );
-};
+                <FixedFooter>
+                    <Button
+                        text={continueButtonText}
+                        onPress={PaymentMethods.continueSetup}
+                        style={[styles.mt4]}
+                        iconStyles={[styles.mr5]}
+                        success
+                    />
+                </FixedFooter>
+            </>
+        );
+    }
+
+    render() {
+        return (
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={this.props.translate('activateStep.headerTitle')}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <View style={styles.flex1}>
+                    {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && this.renderGoldWalletActivationStep()}
+                    {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER && (
+                        <Text>{this.props.translate('activateStep.checkBackLater')}</Text>
+                    )}
+                </View>
+            </ScreenWrapper>
+        );
+    }
+}
 
 ActivateStep.propTypes = propTypes;
 ActivateStep.defaultProps = defaultProps;

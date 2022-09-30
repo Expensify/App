@@ -321,10 +321,6 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
-    bgDark: {
-        backgroundColor: colors.dark,
-    },
-
     opacity0: {
         opacity: 0,
     },

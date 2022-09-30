@@ -47,10 +47,6 @@ function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
-function clearOnfidoToken() {
-    Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
-}
-
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  *
@@ -186,6 +182,58 @@ function updateBeneficialOwnersForBankAccount(params) {
     API.write('UpdateBeneficialOwnersForBankAccount', {bankAccountID, ...params}, getVBBADataForOnyx());
 }
 
+/**
+ * @param {Number} bankAccountID
+ * @param {String} validateCode
+ */
+function validateBankAccount(bankAccountID, validateCode) {
+    API.write('ValidateBankAccountWithTransactions', {
+        bankAccountID,
+        validateCode,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+    });
+}
+
+/**
+ * Create the bank account with manually entered data.
+ *
+ * @param {String} [bankAccountID]
+ * @param {String} [accountNumber]
+ * @param {String} [routingNumber]
+ * @param {String} [plaidMask]
+ *
+ */
+function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
+    API.write('ConnectBankAccountManually', {
+        bankAccountID,
+        accountNumber,
+        routingNumber,
+        plaidMask,
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
@@ -193,4 +241,7 @@ export {
     clearPersonalBankAccount,
     clearPlaid,
     updateBeneficialOwnersForBankAccount,
+    validateBankAccount,
+    connectBankAccountWithPlaid,
+    updatePlaidData,
 };

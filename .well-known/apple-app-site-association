@@ -43,10 +43,6 @@
                     {
                         "/": "/statements/*",
                         "comment": "Wallet statements"
-                    },
-                    {
-                        "/": "/concierge/*",
-                        "comment": "Concierge"
                     }
                 ]
             }

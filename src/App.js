@@ -13,7 +13,6 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
-import {WindowDimensionsProvider} from './components/withWindowDimensions';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -38,7 +37,6 @@ const App = () => (
                 SafeArea,
                 LocaleContextProvider,
                 HTMLEngineProvider,
-                WindowDimensionsProvider,
             ]}
         >
             <CustomStatusBar />

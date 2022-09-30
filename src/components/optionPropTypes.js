@@ -16,7 +16,7 @@ export default PropTypes.shape({
     login: PropTypes.string,
 
     // reportID (only present when there is a matching report)
-    reportID: PropTypes.string,
+    reportID: PropTypes.number,
 
     // Whether the report has read or not
     isUnread: PropTypes.bool,

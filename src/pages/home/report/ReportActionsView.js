@@ -30,13 +30,24 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    report: PropTypes.shape({
+        /** The ID of the report actions will be created for */
+        reportID: PropTypes.number.isRequired,
+
+        /** The largest sequenceNumber on this report */
+        maxSequenceNumber: PropTypes.number,
+
+        /** Whether there is an outstanding amount in IOU */
+        hasOutstandingIOU: PropTypes.bool,
+
+        /** Are we loading more report actions? */
+        isLoadingMoreReportActions: PropTypes.bool,
+    }).isRequired,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),

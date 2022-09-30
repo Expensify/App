@@ -9,7 +9,6 @@ import compose from '../libs/compose';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from '../libs/ReportUtils';
-import reportPropTypes from '../pages/reportPropTypes';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -28,7 +27,10 @@ const propTypes = {
     }),
 
     /** The archived report */
-    report: reportPropTypes.isRequired,
+    report: PropTypes.shape({
+        /** The policy this report is attached to */
+        policyID: PropTypes.string,
+    }).isRequired,
 
     /** Personal details of all users */
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
@@ -70,7 +72,6 @@ const ArchivedReportFooter = (props) => {
                 policyName: `<strong>${ReportUtils.getPolicyName(props.report, props.policies)}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
-            shouldShowIcon
         />
     );
 };

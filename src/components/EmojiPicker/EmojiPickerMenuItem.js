@@ -4,6 +4,7 @@ import {Pressable} from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
+import Hoverable from '../Hoverable';
 import Text from '../Text';
 
 const propTypes = {
@@ -14,10 +15,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Handles what to do when we hover over this item with our cursor */
-    onHoverIn: PropTypes.func,
-
-    /** Handles what to do when the hover is out */
-    onHoverOut: PropTypes.func,
+    onHover: PropTypes.func,
 
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
@@ -26,8 +24,6 @@ const propTypes = {
 const EmojiPickerMenuItem = props => (
     <Pressable
         onPress={() => props.onPress(props.emoji)}
-        onHoverIn={props.onHoverIn}
-        onHoverOut={props.onHoverOut}
         style={({
             pressed,
         }) => ([
@@ -37,9 +33,11 @@ const EmojiPickerMenuItem = props => (
             styles.emojiItem,
         ])}
     >
-        <Text style={[styles.emojiText]}>
-            {props.emoji}
-        </Text>
+        <Hoverable onHoverIn={props.onHover}>
+            <Text style={[styles.emojiText]}>
+                {props.emoji}
+            </Text>
+        </Hoverable>
     </Pressable>
 
 );
@@ -47,8 +45,7 @@ EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 EmojiPickerMenuItem.defaultProps = {
     isHighlighted: false,
-    onHoverIn: () => {},
-    onHoverOut: () => {},
+    onHover: () => {},
 };
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
