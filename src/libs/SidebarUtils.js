@@ -3,7 +3,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Report from './actions/Report';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
@@ -85,9 +84,10 @@ Onyx.connect({
 });
 
 /**
+ * @param {String} reportIDFromRoute
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs() {
+function getOrderedReportIDs(reportIDFromRoute) {
     const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
     const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
 
@@ -122,8 +122,8 @@ function getOrderedReportIDs() {
         const shouldFilterReportIfEmpty = report.lastMessageTimestamp === 0
 
             // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
-            // highlight them in the LHN when they are created and have no messsages yet. We do
-            // not give archived rooms this exception since they do not need to be higlihted.
+            // highlight them in the LHN when they are created and have no messages yet. We do
+            // not give archived rooms this exception since they do not need to be highlighted.
             && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
 
             // Also make an exception for workspace rooms that failed to be added
@@ -131,7 +131,7 @@ function getOrderedReportIDs() {
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID.toString() !== Report.getCurrentlyViewedReportID()
+        if (report.reportID.toString() !== reportIDFromRoute
             && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
@@ -181,7 +181,7 @@ function getOrderedReportIDs() {
 
         // If the active report has a draft, we do not put it in the group of draft reports because we want it to maintain it's current position. Otherwise the report's position
         // jumps around in the LHN and it's kind of confusing to the user to see the LHN reorder when they start typing a comment on a report.
-        } else if (report.hasDraft && report.reportID.toString() !== Report.getCurrentlyViewedReportID()) {
+        } else if (report.hasDraft && report.reportID.toString() !== reportIDFromRoute) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);
