@@ -35,60 +35,55 @@ const defaultProps = {
     },
 };
 
-class ActivateStep extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+const ActivateStep = (props) => {
+    const isGoldWallet = props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+    const illustration = isGoldWallet ? Illustrations.TadaBlue : Illustrations.ReceiptsSearchYellow;
+    const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
-    render() {
-        const isGoldWallet = this.props.userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD;
-        const illustration = isGoldWallet ? Illustrations.TadaBlue : Illustrations.ReceiptsSearchYellow;
-        const continueButtonText = this.props.walletTerms.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
-
-        return (
-            <>
-                <HeaderWithCloseButton
-                    title={this.props.translate('activateStep.headerTitle')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <View style={styles.flex1}>
-                    <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={illustration}
-                            height={100}
-                            width={100}
-                            fill={defaultTheme.iconSuccessFill}
-                        />
-                        <View style={[styles.ph5]}>
-                            <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
-                                {this.props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}
-                            </Text>
-                            <Text style={[styles.mt3, styles.textAlignCenter]}>
-                                {this.props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Message`)}
-                            </Text>
-                        </View>
+    return (
+        <>
+            <HeaderWithCloseButton
+                title={props.translate('activateStep.headerTitle')}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <View style={styles.flex1}>
+                <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        src={illustration}
+                        height={100}
+                        width={100}
+                        fill={defaultTheme.iconSuccessFill}
+                    />
+                    <View style={[styles.ph5]}>
+                        <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
+                            {props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}
+                        </Text>
+                        <Text style={[styles.mt3, styles.textAlignCenter]}>
+                            {props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Message`)}
+                        </Text>
                     </View>
-                    {isGoldWallet && (
-                        <FixedFooter>
-                            <Button
-                                text={continueButtonText}
-                                onPress={PaymentMethods.continueSetup}
-                                style={[styles.mt4]}
-                                iconStyles={[styles.mr5]}
-                                success
-                            />
-                        </FixedFooter>
-                    )}
                 </View>
-            </>
-        );
-    }
-}
+                {isGoldWallet && (
+                    <FixedFooter>
+                        <Button
+                            text={continueButtonText}
+                            onPress={PaymentMethods.continueSetup}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.mr5]}
+                            success
+                        />
+                    </FixedFooter>
+                )}
+            </View>
+        </>
+    );
+};
 
 ActivateStep.propTypes = propTypes;
 ActivateStep.defaultProps = defaultProps;
+ActivateStep.displayName = 'ActivateStep';
 
 export default compose(
     withLocalize,
