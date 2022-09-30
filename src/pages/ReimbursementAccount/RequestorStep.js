@@ -153,9 +153,12 @@ class RequestorStep extends React.Component {
             return;
         }
 
-        BankAccounts.verifyIdentityForBankAccount({
-            ...this.state,
-        });
+        BankAccounts.verifyIdentityForBankAccount(
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            {
+                ...this.state,
+            },
+        );
     }
 
     render() {

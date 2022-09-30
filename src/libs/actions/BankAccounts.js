@@ -297,8 +297,7 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
  *
  * @param {Object} onfidoData
  */
-function verifyIdentityForBankAccount(onfidoData) {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
     API.write('VerifyIdentityForBankAccount', {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
