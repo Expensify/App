@@ -33,6 +33,7 @@ import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerS
 import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -169,10 +170,6 @@ class ReportScreen extends React.Component {
 
     fetchReportIfNeeded() {
         const reportIDFromPath = getReportID(this.props.route);
-        if (_.isNaN(reportIDFromPath)) {
-            Report.handleInaccessibleReport();
-            return;
-        }
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
@@ -235,81 +232,91 @@ class ReportScreen extends React.Component {
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
                 keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
-                <OfflineWithFeedback
-                    pendingAction={addWorkspaceRoomPendingAction}
-                    errors={addWorkspaceRoomErrors}
-                    errorRowStyles={styles.dNone}
+                <FullPageNotFoundView
+                    shouldShow={!this.props.report.reportID}
+                    subtitleKey="notFound.noAccess"
+                    shouldShowCloseButton={false}
+                    shouldShowBackButton={this.props.isSmallScreenWidth}
+                    onBackButtonPress={() => {
+                        Navigation.navigate(ROUTES.HOME);
+                    }}
                 >
-                    <HeaderView
-                        reportID={reportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
-                </OfflineWithFeedback>
-                {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
-                    <Banner
-                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                        textStyles={[styles.colorReversed]}
-                        text={this.props.translate('reportActionsView.chatWithAccountManager')}
-                        onClose={this.dismissBanner}
-                        onPress={this.chatWithAccountManager}
-                        shouldShowCloseButton
-                    />
-                )}
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
-                >
-                    {this.shouldShowLoader()
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={this.state.skeletonViewContainerHeight}
-                            />
-                        )
-                        : (
-                            <ReportActionsView
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                isDrawerOpen={this.props.isDrawerOpen}
-                            />
-                        )}
-                    {(isArchivedRoom || hideComposer) && (
-                        <View style={[styles.chatFooter]}>
-                            {isArchivedRoom && (
-                                <ArchivedReportFooter
-                                    reportClosedAction={reportClosedAction}
+                    <OfflineWithFeedback
+                        pendingAction={addWorkspaceRoomPendingAction}
+                        errors={addWorkspaceRoomErrors}
+                        errorRowStyles={styles.dNone}
+                    >
+                        <HeaderView
+                            reportID={reportID}
+                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                        />
+                    </OfflineWithFeedback>
+                    {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                        <Banner
+                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                            textStyles={[styles.colorReversed]}
+                            text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                            onClose={this.dismissBanner}
+                            onPress={this.chatWithAccountManager}
+                            shouldShowCloseButton
+                        />
+                    )}
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                    >
+                        {this.shouldShowLoader()
+                            ? (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )
+                            : (
+                                <ReportActionsView
+                                    reportActions={this.props.reportActions}
                                     report={this.props.report}
+                                    session={this.props.session}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    isDrawerOpen={this.props.isDrawerOpen}
                                 />
                             )}
-                            {!this.props.isSmallScreenWidth && (
-                                <View style={styles.offlineIndicatorRow}>
-                                    {hideComposer && (
-                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                    )}
-                                </View>
-                            )}
-                        </View>
-                    )}
-                    {(!hideComposer && this.props.session.shouldShowComposeInput) && (
-                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                <OfflineWithFeedback
-                                    pendingAction={addWorkspaceRoomPendingAction}
-                                >
-                                    <ReportActionCompose
-                                        onSubmit={this.onSubmitComment}
-                                        reportID={reportID}
-                                        reportActions={this.props.reportActions}
+                        {(isArchivedRoom || hideComposer) && (
+                            <View style={[styles.chatFooter]}>
+                                {isArchivedRoom && (
+                                    <ArchivedReportFooter
+                                        reportClosedAction={reportClosedAction}
                                         report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
                                     />
-                                </OfflineWithFeedback>
-                            </SwipeableView>
-                        </View>
-                    )}
-                </View>
+                                )}
+                                {!this.props.isSmallScreenWidth && (
+                                    <View style={styles.offlineIndicatorRow}>
+                                        {hideComposer && (
+                                            <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                                        )}
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                        {(!hideComposer && this.props.session.shouldShowComposeInput) && (
+                            <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                                <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                    <OfflineWithFeedback
+                                        pendingAction={addWorkspaceRoomPendingAction}
+                                    >
+                                        <ReportActionCompose
+                                            onSubmit={this.onSubmitComment}
+                                            reportID={reportID}
+                                            reportActions={this.props.reportActions}
+                                            report={this.props.report}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                        />
+                                    </OfflineWithFeedback>
+                                </SwipeableView>
+                            </View>
+                        )}
+                    </View>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
