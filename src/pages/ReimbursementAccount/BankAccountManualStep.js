@@ -31,7 +31,6 @@ class BankAccountManualStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-
         this.state = {
             acceptTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
@@ -72,15 +71,12 @@ class BankAccountManualStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-
-        const params = {
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
-            mask: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
-            bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
-            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
-            ...this.state,
-        };
-        BankAccounts.setupWithdrawalAccount(params);
+        BankAccounts.connectBankAccountManually(
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            this.state.accountNumber,
+            this.state.routingNumber,
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
+        );
     }
 
     /**
