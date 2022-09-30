@@ -17,16 +17,17 @@ task:
     - rm zulu8.64.0.19-ca-jdk8.0.345-macosx_aarch64.zip
   install_android_sdk_script:
     # without that installation of stuff later on fails
+    - mkdir -p $HOME/.android
     - touch $HOME/.android/repositories.cfg
     - wget -q https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
     - unzip -q commandlinetools-mac-8512546_latest.zip
     - rm commandlinetools-mac-8512546_latest.zip
     - (yes || true) | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses > /dev/null
-    - cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-30" "build-tools;30.0.3" "emulator" "system-images;android-32;google_apis_playstore;arm64-v8a"
+    - cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-31" "build-tools;31.0.0" "emulator" "system-images;android-32;google_apis_playstore;arm64-v8a"
   create_device_script:
-    echo no | avdmanager create avd --force --name "api-30" --abi "google_apis_playstore/arm64-v8a" --package "system-images;android-32;google_apis_playstore;arm64-v8a"
+    echo no | avdmanager create avd --force --name "api-32" --abi "google_apis_playstore/arm64-v8a" --package "system-images;android-32;google_apis_playstore;arm64-v8a"
   start_emulator_background_script:
-    $ANDROID_HOME/emulator/emulator -avd "api-30" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+    $ANDROID_HOME/emulator/emulator -avd "api-32" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
 #  assemble_instrumented_tests_script:
 #    ./android/gradlew -p android :app:assembleE2eRelease
   wait_for_emulator_script:
