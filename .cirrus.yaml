@@ -8,13 +8,15 @@ macos_instance:
 task:
   env:
     ANDROID_SDK_ROOT: ${HOME}/cmdline-tools
-    PATH: /opt/homebrew/opt/openjdk@11/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/tools:${ANDROID_SDK_ROOT}/tools/bin:${PATH}
+    PATH: /opt/homebrew/opt/openjdk@8/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/tools:${ANDROID_SDK_ROOT}/tools/bin:${PATH}
   setup_brew_script:
     - /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     - brew tap homebrew/cask
   install_java_script:
+    - brew install openjdk@8
     - brew install openjdk@11
-    - sudo ln -sfn /opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-11.jdk
+    - sudo ln -sfn /opt/homebrew/opt/openjdk@8/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-8.jdk
+    - - sudo ln -sfn /opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-11.jdk
   install_android_sdk_script:
     - wget -q https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
     - unzip -q commandlinetools-mac-8512546_latest.zip
