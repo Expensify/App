@@ -107,25 +107,7 @@ describe('getCurrentStep', () => {
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
     });
 
-    it('Returns step based on open BankAccount that needs to pass checks', () => {
-        // GIVEN an open bank account that needs to pass checks
-        const bankAccount = new BankAccount({
-            state: BankAccount.STATE.OPEN,
-            additionalData: {
-                hasFullSSN: false,
-            },
-        });
-        const achData = {};
-        const stepToOpen = '';
-
-        // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, false);
-
-        // THEN it will be the company step
-        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.COMPANY);
-    });
-
-    it('Returns step based on open BankAccount that does not need to pass checks', () => {
+    it('Returns step based on open BankAccount', () => {
         // GIVEN an open bank account that does not need to pass checks
         const bankAccount = new BankAccount({
             state: BankAccount.STATE.OPEN,
@@ -139,19 +121,6 @@ describe('getCurrentStep', () => {
                     },
                 }],
                 requestorAddressCity: 'Portland',
-                verifications: {
-                    externalApiResponses: {
-                        realSearchResult: {
-                            status: 'pass',
-                        },
-                        lexisNexisInstantIDResult: {
-                            status: 'pass',
-                        },
-                        requestorIdentityID: {
-                            status: 'pass',
-                        },
-                    },
-                },
             },
         });
         const achData = {};
