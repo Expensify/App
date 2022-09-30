@@ -5,7 +5,6 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
-import * as store from './ReimbursementAccount/store';
 
 export {
     setupWithdrawalAccount,
@@ -206,8 +205,7 @@ function deletePaymentBankAccount(bankAccountID) {
 * @param {Boolean} [params.isOnfidoSetupComplete]
 */
 function updatePersonalInformationForBankAccount(params) {
-    const bankAccount = store.getReimbursementAccountInSetup();
-    API.write('UpdatePersonalInformationForBankAccount', {bankAccountID: bankAccount.bankAccountID, ...params}, getVBBADataForOnyx());
+    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
 }
 
 /**
@@ -244,7 +242,39 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
-/*
+/**
+ * Updates the bank account in the database with the company step data
+ *
+ * @param {Object} bankAccount
+ * @param {Number} [bankAccount.bankAccountID]
+ *
+ * Fields from BankAccount step
+ * @param {String} [bankAccount.routingNumber]
+ * @param {String} [bankAccount.accountNumber]
+ * @param {String} [bankAccount.bankName]
+ * @param {String} [bankAccount.plaidAccountID]
+ * @param {String} [bankAccount.plaidAccessToken]
+ * @param {Boolean} [bankAccount.isSavings]
+ *
+ * Fields from Company step
+ * @param {String} [bankAccount.companyName]
+ * @param {String} [bankAccount.addressStreet]
+ * @param {String} [bankAccount.addressCity]
+ * @param {String} [bankAccount.addressState]
+ * @param {String} [bankAccount.addressZipCode]
+ * @param {String} [bankAccount.companyPhone]
+ * @param {String} [bankAccount.website]
+ * @param {String} [bankAccount.companyTaxID]
+ * @param {String} [bankAccount.incorporationType]
+ * @param {String} [bankAccount.incorporationState]
+ * @param {String} [bankAccount.incorporationDate]
+ * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
+ */
+function updateCompanyInformationForBankAccount(bankAccount) {
+    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+}
+
+/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -285,6 +315,7 @@ export {
     updatePersonalInformationForBankAccount,
     validateBankAccount,
     verifyIdentityForBankAccount,
+    updateCompanyInformationForBankAccount,
     connectBankAccountWithPlaid,
     updatePlaidData,
 };
