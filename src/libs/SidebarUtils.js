@@ -208,10 +208,7 @@ function getOrderedReportIDs() {
     });
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
-    return _.chain(recentReportOptions)
-        .pluck('reportID')
-        .map(reportID => reportID.toString())
-        .value();
+    return _.pluck(recentReportOptions, 'reportID');
 }
 
 /**

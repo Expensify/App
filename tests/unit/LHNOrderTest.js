@@ -73,7 +73,7 @@ const fakePersonalDetails = {
 };
 
 const fakeReport1 = {
-    reportID: 1,
+    reportID: '1',
     reportName: 'Report One',
     maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
     lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
@@ -83,7 +83,7 @@ const fakeReport1 = {
     participants: ['email1@test.com', 'email2@test.com'],
 };
 const fakeReport2 = {
-    reportID: 2,
+    reportID: '2',
     reportName: 'Report Two',
     maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
     lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
@@ -91,7 +91,7 @@ const fakeReport2 = {
     participants: ['email3@test.com', 'email4@test.com'],
 };
 const fakeReport3 = {
-    reportID: 3,
+    reportID: '3',
     reportName: 'Report Three',
     maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
     lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
@@ -99,7 +99,7 @@ const fakeReport3 = {
     participants: ['email5@test.com', 'email6@test.com'],
 };
 const fakeReportIOU = {
-    reportID: 4,
+    reportID: '4',
     reportName: 'Report IOU Four',
     maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
     lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
@@ -537,7 +537,7 @@ describe('Sidebar', () => {
 
                 // When a new report is added
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
-                    reportID: 4,
+                    reportID: '4',
                     reportName: 'Report Four',
                     maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
                     isPinned: true,
@@ -586,7 +586,7 @@ describe('Sidebar', () => {
 
                 // When a new report is added
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
-                    reportID: 4,
+                    reportID: '4',
                     reportName: 'Report Four',
                     maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
                     hasDraft: true,
