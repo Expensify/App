@@ -131,7 +131,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID.toString() !== reportIDFromRoute
+        if (report.reportID !== reportIDFromRoute
             && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
