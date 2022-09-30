@@ -38,45 +38,13 @@ const defaultProps = {
 class ActivateStep extends React.Component {
     constructor(props) {
         super(props);
-
-        this.renderGoldWalletActivationStep = this.renderGoldWalletActivationStep.bind(this);
-    }
-
-    renderGoldWalletActivationStep() {
-        // The text of the "Continue" button depends on whether the action comes from an IOU (i.e. with an attached chat), or a balance transfer
-        const continueButtonText = this.props.walletTerms.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
-        return (
-            <>
-                <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <Icon
-                        src={Illustrations.TadaBlue}
-                        height={100}
-                        width={100}
-                        fill={defaultTheme.iconSuccessFill}
-                    />
-                    <View style={[styles.ph5]}>
-                        <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
-                            {this.props.translate('activateStep.activatedTitle')}
-                        </Text>
-                        <Text style={[styles.mt3, styles.textAlignCenter]}>
-                            {this.props.translate('activateStep.activatedMessage')}
-                        </Text>
-                    </View>
-                </View>
-                <FixedFooter>
-                    <Button
-                        text={continueButtonText}
-                        onPress={PaymentMethods.continueSetup}
-                        style={[styles.mt4]}
-                        iconStyles={[styles.mr5]}
-                        success
-                    />
-                </FixedFooter>
-            </>
-        );
     }
 
     render() {
+        const isGoldWallet = this.props.userWallet.tierName !== CONST.WALLET.TIER_NAME.GOLD;
+        const illustration = isGoldWallet ? Illustrations.TadaBlue : Illustrations.ReceiptsSearchYellow;
+        const continueButtonText = this.props.walletTerms.chatReportID ? this.props.translate('activateStep.continueToPayment') : this.props.translate('activateStep.continueToTransfer');
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -86,9 +54,32 @@ class ActivateStep extends React.Component {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={styles.flex1}>
-                    {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && this.renderGoldWalletActivationStep()}
-                    {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER && (
-                        <Text>{this.props.translate('activateStep.checkBackLater')}</Text>
+                    <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <Icon
+                            src={illustration}
+                            height={100}
+                            width={100}
+                            fill={defaultTheme.iconSuccessFill}
+                        />
+                        <View style={[styles.ph5]}>
+                            <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
+                                {this.props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}
+                            </Text>
+                            <Text style={[styles.mt3, styles.textAlignCenter]}>
+                                {this.props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Message`)}
+                            </Text>
+                        </View>
+                    </View>
+                    {isGoldWallet && (
+                        <FixedFooter>
+                            <Button
+                                text={continueButtonText}
+                                onPress={PaymentMethods.continueSetup}
+                                style={[styles.mt4]}
+                                iconStyles={[styles.mr5]}
+                                success
+                            />
+                        </FixedFooter>
                     )}
                 </View>
             </>
