@@ -18,7 +18,7 @@ task:
   install_android_sdk_script:
     - wget -q https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
     - unzip commandlinetools-mac-8512546_latest.zip
-    - yes | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses > /dev/null
+    - (yes || true) | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses > /dev/null
     - cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-30" "build-tools;30.0.3" "emulator" "system-images;android-30;google_apis;arm64_v8a"
   accel_check_script: emulator -accel-check
 
