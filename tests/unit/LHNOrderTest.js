@@ -4,7 +4,6 @@ import {render, cleanup} from '@testing-library/react-native';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
-import * as Report from '../../src/libs/actions/Report';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
 
@@ -119,7 +118,7 @@ const fakeReport1Actions = {
     // This comment will be in the past
     timestamp: Date.now() - 2000,
     message: [
-        {type: 'comment', reportID: 1, text: 'Comment One'},
+        {type: 'comment', reportID: '1', text: 'Comment One'},
     ],
 };
 const fakeReport2Actions = {
@@ -128,7 +127,7 @@ const fakeReport2Actions = {
     sequenceNumber: 0,
     timestamp: Date.now() - 1000,
     message: [
-        {type: 'comment', reportID: 2, text: 'Comment Two'},
+        {type: 'comment', reportID: '2', text: 'Comment Two'},
     ],
 };
 const fakeReport3Actions = {
@@ -137,7 +136,7 @@ const fakeReport3Actions = {
     sequenceNumber: 0,
     timestamp: Date.now(),
     message: [
-        {type: 'comment', reportID: 2, text: 'Comment Three'},
+        {type: 'comment', reportID: '2', text: 'Comment Three'},
     ],
 };
 
@@ -157,7 +156,11 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
-function getDefaultRenderedSidebarLinks() {
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {RenderAPI}
+ */
+function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
     // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
     // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
@@ -192,6 +195,7 @@ function getDefaultRenderedSidebarLinks() {
                     insets={fakeInsets}
                     onAvatarClick={() => {}}
                     isSmallScreenWidth={false}
+                    reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
         </LocaleContextProvider>
@@ -238,9 +242,7 @@ describe('Sidebar', () => {
         test('contains one report when a report is in Onyx', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with some personal details and a report
@@ -262,9 +264,7 @@ describe('Sidebar', () => {
         test('orders items with most recently updated on top', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with some personal details and multiple reports
@@ -295,9 +295,7 @@ describe('Sidebar', () => {
         test('doesn\'t change the order when adding a draft to the active report', () => {
             // Given the sidebar is rendered in default mode (most recent first)
             // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with some personal details and multiple reports
@@ -327,9 +325,7 @@ describe('Sidebar', () => {
         });
 
         test('reorders the reports to always have the most recently updated one on top', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode (most recent first)
@@ -361,10 +357,7 @@ describe('Sidebar', () => {
         });
 
         test('reorders the reports to keep draft reports on top', () => {
-            let sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('2');
-
+            let sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode (most recent first)
@@ -386,8 +379,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     // The changing of a route itself will re-render the component in the App, but since we are not performing this test
                     // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    Report.updateCurrentlyViewedReportID('1');
-                    sidebarLinks = getDefaultRenderedSidebarLinks();
+                    sidebarLinks = getDefaultRenderedSidebarLinks('1');
                     return waitForPromisesToResolve();
                 })
 
@@ -403,9 +395,7 @@ describe('Sidebar', () => {
         });
 
         test('removes the pencil icon when draft is removed', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('2');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode (most recent first)
@@ -437,9 +427,7 @@ describe('Sidebar', () => {
         });
 
         test('removes the pin icon when chat is unpinned', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('2');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode (most recent first)
@@ -470,9 +458,7 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('2');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('2');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode (most recent first)
@@ -508,9 +494,7 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes all the chats that are pinned', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode
@@ -557,9 +541,7 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes all the chats that have drafts', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('5');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('5');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in default mode
@@ -608,9 +590,7 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('hides unread chats', () => {
-            let sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            let sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in #focus mode (hides read chats)
@@ -654,8 +634,7 @@ describe('Sidebar', () => {
                 .then(() => {
                     // The changing of a route itself will re-render the component in the App, but since we are not performing this test
                     // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    Report.updateCurrentlyViewedReportID('2');
-                    sidebarLinks = getDefaultRenderedSidebarLinks();
+                    sidebarLinks = getDefaultRenderedSidebarLinks('2');
                     return waitForPromisesToResolve();
                 })
 
@@ -667,9 +646,7 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes chats', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks();
-
-            Report.updateCurrentlyViewedReportID('1');
+            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
             return waitForPromisesToResolve()
 
                 // Given the sidebar is rendered in #focus mode (hides read chats)
@@ -696,7 +673,7 @@ describe('Sidebar', () => {
 
                 // When a new report is added
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {
-                    reportID: 4,
+                    reportID: '4',
                     reportName: 'Report Four',
                     maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
                     lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
