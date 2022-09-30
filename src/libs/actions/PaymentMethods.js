@@ -107,54 +107,7 @@ function openPaymentsPage() {
         ],
     };
 
-    return API.read('OpenPaymentsPage', {
-        // We're passing this to have the data returned in the right format.
-        // This can be removed when the massageData parameter
-        // is removed from here https://github.com/Expensify/Web-Expensify/blob/main/lib/BankAccountAPI.php#L1064.
-        massageData: true,
-    }, onyxData);
-}
-
-/**
- *
- * @param {Number} bankAccountID
- * @param {Number} fundID
- * @param {Object} previousPaymentMethod
- * @param {Object} currentPaymentMethod
- * @param {Boolean} isOptimisticData
- * @return {Array}
- *
- */
-function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
-    return [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.USER_WALLET,
-            value: {
-                walletLinkedAccountID: bankAccountID || fundID,
-                walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
-            value: {
-                [previousPaymentMethod.methodID]: {
-                    isDefault: !isOptimisticData,
-                },
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
-            value: {
-                [currentPaymentMethod.methodID]: {
-                    isDefault: isOptimisticData,
-                },
-            },
-        },
-    ];
+    return API.read('OpenPaymentsPage', {}, onyxData);
 }
 
 /**
@@ -163,18 +116,37 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
  * @param {String} password
  * @param {Number} bankAccountID
  * @param {Number} fundID
- * @param {Object} previousPaymentMethod
- * @param {Object} currentPaymentMethod
+ * @param {Number} previousPaymentMethodID
+ * @param {String} previousPaymentMethodType
  *
  */
-function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod) {
+function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethodID, previousPaymentMethodType) {
     API.write('MakeDefaultPaymentMethod', {
         password,
         bankAccountID,
         fundID,
     }, {
-        optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod),
-        failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: bankAccountID || fundID,
+                    walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    walletLinkedAccountID: previousPaymentMethodID,
+                    walletLinkedAccountType: previousPaymentMethodType,
+                },
+            },
+        ],
     });
 }
 

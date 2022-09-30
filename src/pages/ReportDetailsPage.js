@@ -21,7 +21,6 @@ import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
 import CONST from '../CONST';
-import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -32,7 +31,19 @@ const propTypes = {
     }).isRequired,
 
     /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    report: PropTypes.shape({
+        /** Name of the report */
+        reportName: PropTypes.string,
+
+        /** List of primarylogins of participants of the report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** List of icons for report participants */
+        icons: PropTypes.arrayOf(PropTypes.string),
+
+        /** ID of the report */
+        reportID: PropTypes.number,
+    }).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({

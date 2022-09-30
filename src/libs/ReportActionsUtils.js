@@ -99,7 +99,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 
 /**
  * Get the message text for the last action that was not deleted
- * @param {String} reportID
+ * @param {Number} reportID
  * @param {Object} [actionsToMerge]
  * @return {String}
  */
@@ -120,7 +120,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * @param {String} reportID
+ * @param {Number} reportID
  * @param {Object} [actionsToMerge]
  * @param {Number} deletedSequenceNumber
  * @param {Number} lastReadSequenceNumber

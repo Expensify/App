@@ -9,8 +9,10 @@ import ComposeProviders from './ComposeProviders';
 const [withNetwork, NetworkProvider] = createOnyxContext(ONYXKEYS.NETWORK);
 const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS);
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
-const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
-const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+const [
+    withReportActionsDrafts,
+    ReportActionsDraftsProvider,
+] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
 
 const propTypes = {
     /** Rendered child component */
@@ -24,7 +26,6 @@ const OnyxProvider = props => (
             PersonalDetailsProvider,
             ReportActionsDraftsProvider,
             CurrentDateProvider,
-            BlockedFromConciergeProvider,
         ]}
     >
         {props.children}
@@ -41,5 +42,4 @@ export {
     withPersonalDetails,
     withReportActionsDrafts,
     withCurrentDate,
-    withBlockedFromConcierge,
 };

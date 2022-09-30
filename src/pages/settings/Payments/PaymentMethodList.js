@@ -15,7 +15,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
-import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
@@ -27,8 +26,8 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Account details for PayPal.Me */
-    payPalMeData: paypalMeDataPropTypes,
+    /** User's paypal.me username if they have one */
+    payPalMeUsername: PropTypes.string,
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -64,7 +63,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    payPalMeData: {},
+    payPalMeUsername: '',
     bankAccountList: {},
     cardList: {},
     userWallet: {
@@ -111,8 +110,9 @@ class PaymentMethodList extends Component {
      */
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = _.filter(this.props.cardList, card => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData);
+        const filteredCardList = _.filter(this.props.cardList, card => card.additionalData.isP2PDebitCard);
+
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -120,7 +120,7 @@ class PaymentMethodList extends Component {
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
@@ -256,8 +256,8 @@ export default compose(
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },
-        payPalMeData: {
-            key: ONYXKEYS.PAYPAL,
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

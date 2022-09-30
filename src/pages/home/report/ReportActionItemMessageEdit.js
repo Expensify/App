@@ -18,7 +18,6 @@ import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -28,7 +27,7 @@ const propTypes = {
     draftMessage: PropTypes.string.isRequired,
 
     /** ReportID that holds the comment we're editing */
-    reportID: PropTypes.string.isRequired,
+    reportID: PropTypes.number.isRequired,
 
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
@@ -37,8 +36,10 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** The report currently being looked at */
-    // eslint-disable-next-line react/no-unused-prop-types
-    report: reportPropTypes,
+    report: PropTypes.shape({
+        /** Participants associated with current report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }),
 
     // Whether or not the emoji picker is disabled
     shouldDisableEmojiPicker: PropTypes.bool,

@@ -13,7 +13,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
-import reportPropTypes from '../pages/reportPropTypes';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -29,7 +28,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** The report currently being looked at */
-    report: reportPropTypes,
+    report: PropTypes.oneOfType([PropTypes.object]),
 
     /* Onyx Props */
 

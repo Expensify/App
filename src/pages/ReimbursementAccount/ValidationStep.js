@@ -150,7 +150,7 @@ class ValidationStep extends React.Component {
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
         if (state === BankAccount.STATE.OPEN) {
-            return <EnableStep />;
+            return <EnableStep achData={lodashGet(this.props, 'reimbursementAccount.achData')} />;
         }
 
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');

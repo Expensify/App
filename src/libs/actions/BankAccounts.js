@@ -46,10 +46,6 @@ function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
-function clearOnfidoToken() {
-    Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
-}
-
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  *
@@ -187,26 +183,20 @@ function deletePaymentBankAccount(bankAccountID) {
 }
 
 /**
- * Update the user's personal information on the bank account in database.
- *
- * This action is called by the requestor step in the Verified Bank Account flow
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
  *
  * @param {Object} params
  *
- * @param {String} [params.dob]
- * @param {String} [params.firstName]
- * @param {String} [params.lastName]
- * @param {String} [params.requestorAddressStreet]
- * @param {String} [params.requestorAddressCity]
- * @param {String} [params.requestorAddressState]
- * @param {String} [params.requestorAddressZipCode]
- * @param {String} [params.ssnLast4]
- * @param {String} [params.isControllingOfficer]
- * @param {Object} [params.onfidoData]
- * @param {Boolean} [params.isOnfidoSetupComplete]
+ * // ACH Contract Step
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {String}  [params.beneficialOwners]
  */
-function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
+function updateBeneficialOwnersForBankAccount(params) {
+    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+    API.write('UpdateBeneficialOwnersForBankAccount', {bankAccountID, ...params}, getVBBADataForOnyx());
 }
 
 /**
@@ -244,55 +234,6 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Updates the bank account in the database with the company step data
- *
- * @param {Object} bankAccount
- * @param {Number} [bankAccount.bankAccountID]
- *
- * Fields from BankAccount step
- * @param {String} [bankAccount.routingNumber]
- * @param {String} [bankAccount.accountNumber]
- * @param {String} [bankAccount.bankName]
- * @param {String} [bankAccount.plaidAccountID]
- * @param {String} [bankAccount.plaidAccessToken]
- * @param {Boolean} [bankAccount.isSavings]
- *
- * Fields from Company step
- * @param {String} [bankAccount.companyName]
- * @param {String} [bankAccount.addressStreet]
- * @param {String} [bankAccount.addressCity]
- * @param {String} [bankAccount.addressState]
- * @param {String} [bankAccount.addressZipCode]
- * @param {String} [bankAccount.companyPhone]
- * @param {String} [bankAccount.website]
- * @param {String} [bankAccount.companyTaxID]
- * @param {String} [bankAccount.incorporationType]
- * @param {String} [bankAccount.incorporationState]
- * @param {String} [bankAccount.incorporationDate]
- * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
- */
-function updateCompanyInformationForBankAccount(bankAccount) {
-    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
-}
-
-/**
- * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
- *
- * @param {Object} params
- *
- * // ACH Contract Step
- * @param {Boolean} [params.ownsMoreThan25Percent]
- * @param {Boolean} [params.hasOtherBeneficialOwners]
- * @param {Boolean} [params.acceptTermsAndConditions]
- * @param {Boolean} [params.certifyTrueInformation]
- * @param {String}  [params.beneficialOwners]
- */
- function updateBeneficialOwnersForBankAccount(params) {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-    API.write('UpdateBeneficialOwnersForBankAccount', {bankAccountID, ...params}, getVBBADataForOnyx());
- }
-
-/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -316,11 +257,8 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfidoToken,
-    updatePersonalInformationForBankAccount,
-    validateBankAccount,
-    updateCompanyInformationForBankAccount,
     updateBeneficialOwnersForBankAccount,
+    validateBankAccount,
     connectBankAccountWithPlaid,
     updatePlaidData,
 };

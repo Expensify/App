@@ -262,7 +262,7 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  *
  * @param {Object} params
  * @param {Number} params.chatReportID
- * @param {String} params.reportID
+ * @param {Number} params.reportID
  * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
  * @param {Number} params.amount
  * @param {String} params.currency

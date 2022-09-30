@@ -2,7 +2,6 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -49,20 +48,17 @@ const defaultProps = {
 };
 
 const BankAccountStep = (props) => {
-    let subStep = lodashGet(props, 'reimbursementAccount.achData.subStep', '');
-    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
-    if (shouldReinitializePlaidLink) {
-        subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
-    }
+    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : props.achData.subStep;
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankAccountManualStep />;
+        return <BankAccountManualStep achData={props.achData} />;
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep />;
+        return <BankAccountPlaidStep achData={props.achData} />;
     }
 
     return (
@@ -164,9 +160,6 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(BankAccountStep);

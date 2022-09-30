@@ -33,7 +33,7 @@ const propTypes = {
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
         isUnread: PropTypes.bool,
-        reportID: PropTypes.string,
+        reportID: PropTypes.number,
         // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
         payPalMeAddress: PropTypes.string,

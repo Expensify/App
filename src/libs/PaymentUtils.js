@@ -4,6 +4,7 @@ import BankAccount from './models/BankAccount';
 import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 
 /**
  * Check to see if user has either a debit card or personal bank account added
@@ -19,7 +20,7 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-    const validDebitCard = _.some(cardList, card => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
+    const validDebitCard = _.some(cardList, card => lodashGet(card, 'additionalData.isP2PDebitCard', false));
 
     return validBankAccount || validDebitCard;
 }
@@ -28,10 +29,11 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
- * @param {Object} [payPalMeData = null]
+ * @param {String} [payPalMeUsername='']
+ * @param {Object} userWallet
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -40,31 +42,60 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
             return;
         }
 
-        const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'accountData.additionalData.bankName', ''));
+        const formattedBankAccountNumber = bankAccount.accountNumber
+            ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
+            }`
+            : null;
+        const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
+        const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
-            ...bankAccount,
+            title: bankAccount.addressName,
+            description: formattedBankAccountNumber,
+            methodID: bankAccount.bankAccountID,
             icon,
             iconSize,
+            key: `bankAccount-${bankAccount.bankAccountID}`,
+            accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+            accountData: _.extend({}, bankAccount, {icon}),
+            isDefault,
             errors: bankAccount.errors,
             pendingAction: bankAccount.pendingAction,
         });
     });
 
     _.each(cardList, (card) => {
-        const {icon, iconSize} = getBankIcon(lodashGet(card, 'accountData.bank', ''), true);
+        const formattedCardNumber = card.cardNumber
+            ? `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
+            : null;
+        const isDefault = userWallet.walletLinkedAccountType === CONST.PAYMENT_METHODS.DEBIT_CARD && userWallet.walletLinkedAccountID === card.fundID;
+        const {icon, iconSize} = getBankIcon(card.bank, true);
         combinedPaymentMethods.push({
-            ...card,
+            title: card.addressName,
+            description: formattedCardNumber,
+            methodID: card.fundID,
             icon,
             iconSize,
+            key: `card-${card.cardNumber}`,
+            accountType: CONST.PAYMENT_METHODS.DEBIT_CARD,
+            accountData: _.extend({}, card, {icon}),
+            isDefault,
             errors: card.errors,
             pendingAction: card.pendingAction,
         });
     });
 
-    if (!_.isEmpty(payPalMeData)) {
+    if (payPalMeUsername) {
         combinedPaymentMethods.push({
-            ...payPalMeData,
+            title: 'PayPal.me',
+            methodID: CONST.PAYMENT_METHODS.PAYPAL,
+            description: payPalMeUsername,
             icon: Expensicons.PayPal,
+            key: 'payPalMePaymentMethod',
+            accountType: CONST.PAYMENT_METHODS.PAYPAL,
+            accountData: {
+                username: payPalMeUsername,
+                icon: Expensicons.PayPal,
+            },
         });
     }
 

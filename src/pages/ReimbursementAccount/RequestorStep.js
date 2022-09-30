@@ -4,7 +4,6 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -28,12 +27,8 @@ import * as Link from '../../libs/actions/Link';
 const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-    onfidoToken: PropTypes.string,
-    ...withLocalizePropTypes,
-};
 
-const defaultProps = {
-    onfidoToken: '',
+    ...withLocalizePropTypes,
 };
 
 class RequestorStep extends React.Component {
@@ -53,7 +48,7 @@ class RequestorStep extends React.Component {
             dob: ReimbursementAccountUtils.getDefaultStateForField(props, 'dob'),
             ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(props, 'ssnLast4'),
             isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(props, 'isControllingOfficer', false),
-            onfidoData: lodashGet(props, ['reimbursementAccount', 'achData', 'onfidoData'], ''),
+            onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
@@ -139,21 +134,6 @@ class RequestorStep extends React.Component {
         }
 
         const payload = {
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
-            ...this.state,
-            dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
-        };
-
-        BankAccounts.updatePersonalInformationForBankAccount(payload);
-    }
-
-    submitOnfidoVerification() {
-        if (!this.validate()) {
-            return;
-        }
-
-        const payload = {
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
             ...this.state,
             dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
@@ -162,9 +142,6 @@ class RequestorStep extends React.Component {
     }
 
     render() {
-        const achData = this.props.reimbursementAccount.achData;
-        const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !this.state.isOnfidoSetupComplete;
-
         return (
             <>
                 <HeaderWithCloseButton
@@ -173,19 +150,13 @@ class RequestorStep extends React.Component {
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => {
-                        if (shouldShowOnfido) {
-                            BankAccounts.clearOnfidoToken();
-                        } else {
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                        }
-                    }}
+                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {shouldShowOnfido ? (
+                {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
                     <ScrollView contentContainerStyle={styles.flex1}>
                         <Onfido
-                            sdkToken={this.props.onfidoToken}
+                            sdkToken={this.props.achData.sdkToken}
                             onUserExit={() => {
                             // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
                                 BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
@@ -199,7 +170,7 @@ class RequestorStep extends React.Component {
                                 this.setState({
                                     onfidoData,
                                     isOnfidoSetupComplete: true,
-                                }, this.submitOnfidoVerification);
+                                }, this.submit);
                             }}
                         />
                     </ScrollView>
@@ -293,16 +264,12 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        onfidoToken: {
-            key: ONYXKEYS.ONFIDO_TOKEN,
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,

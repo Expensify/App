@@ -6,6 +6,7 @@ import Str from 'expensify-common/lib/str';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
@@ -235,57 +236,60 @@ function removeMembers(members, policyID) {
 }
 
 /**
- * Adds members to the specified workspace/policyID
+ * Merges the passed in login into the specified policy
  *
- * @param {Array<String>} memberLogins
+ * @param {Array<String>} logins
  * @param {String} welcomeNote
  * @param {String} policyID
  */
-function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
-    const logins = _.map(memberLogins, memberLogin => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+function invite(logins, welcomeNote, policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        alertMessage: '',
+    });
 
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: membersListKey,
+    // Optimistically add the user to the policy
+    const newEmployeeLogins = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
+    const employeeUpdate = {};
+    _.each(newEmployeeLogins, login => employeeUpdate[login] = {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeUpdate);
 
-            // Convert to object with each key containing {pendingAction: ‘add’}
-            value: _.object(logins, Array(logins.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: membersListKey,
-
-            // Convert to object with each key clearing pendingAction. We don’t
-            // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
-            value: _.object(logins, Array(logins.length).fill({pendingAction: null, errors: null})),
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: membersListKey,
-
-            // Convert to object with each key containing the error. We don’t
-            // need to remove the members since that is handled by onClose of OfflineWithFeedback.
-            value: _.object(logins, Array(logins.length).fill({
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
-                },
-            })),
-        },
-    ];
-
-    API.write('AddMembersToWorkspace', {
+    // Make the API call to merge the login into the policy
+    DeprecatedAPI.Policy_Employees_Merge({
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
         welcomeNote,
         policyID,
-    }, {optimisticData, successData, failureData});
+    })
+        .then((data) => {
+            // Save the personalDetails for the invited user in Onyx and fetch the latest policyExpenseChats
+            if (data.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
+                Navigation.goBack();
+                if (!_.isEmpty(data.policyExpenseChatIDs)) {
+                    Report.fetchChatReportsByIDs(data.policyExpenseChatIDs);
+                }
+                return;
+            }
+
+            // If the operation failed, undo the optimistic addition
+            _.each(newEmployeeLogins, login => employeeUpdate[login] = null);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeUpdate);
+
+            // Show the user feedback that the addition failed
+            let alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
+            if (data.jsonCode === 402) {
+                alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
+            }
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage});
+        });
+}
+
+/**
+ * Sets local values for the policy
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function updateLocalPolicyValues(policyID, values) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
 /**
@@ -394,6 +398,34 @@ function clearAvatarErrors(policyID) {
             avatar: null,
         },
     });
+}
+
+/**
+ * Sets the name of the policy
+ *
+ * @param {String} policyID
+ * @param {Object} values
+ * @param {Boolean} [shouldGrowl]
+ */
+function update(policyID, values, shouldGrowl = false) {
+    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
+    DeprecatedAPI.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                throw new Error();
+            }
+
+            updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
+            if (shouldGrowl) {
+                Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+            }
+        }).catch(() => {
+            updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
+
+            // Show the user feedback
+            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
+            Growl.error(errorMessage, 5000);
+        });
 }
 
 /**
@@ -965,8 +997,9 @@ export {
     getPolicyList,
     loadFullPolicy,
     removeMembers,
-    addMembersToWorkspace,
+    invite,
     isAdminOfFreePolicy,
+    update,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,

@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -23,7 +24,7 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -32,11 +33,13 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
-import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Report for this action */
-    report: reportPropTypes.isRequired,
+    report: PropTypes.shape({
+        /** The ID of the report this action is on. */
+        reportID: PropTypes.number.isRequired,
+    }).isRequired,
 
     /** All the data of the action item */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
@@ -239,12 +242,16 @@ ReportActionItem.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withNetwork(),
-    withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(ReportActionItem);

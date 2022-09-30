@@ -136,7 +136,7 @@ function getOrderedReportIDs() {
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID !== currentlyViewedReportID
+        if (report.reportID.toString() !== currentlyViewedReportID
             && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
@@ -186,7 +186,7 @@ function getOrderedReportIDs() {
 
         // If the active report has a draft, we do not put it in the group of draft reports because we want it to maintain it's current position. Otherwise the report's position
         // jumps around in the LHN and it's kind of confusing to the user to see the LHN reorder when they start typing a comment on a report.
-        } else if (report.hasDraft && report.reportID !== currentlyViewedReportID) {
+        } else if (report.hasDraft && report.reportID.toString() !== currentlyViewedReportID) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);
@@ -213,7 +213,10 @@ function getOrderedReportIDs() {
     });
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
-    return _.pluck(recentReportOptions, 'reportID');
+    return _.chain(recentReportOptions)
+        .pluck('reportID')
+        .map(reportID => reportID.toString())
+        .value();
 }
 
 /**

@@ -211,7 +211,6 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
-        chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
     },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
@@ -807,6 +806,7 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             settlementFrequency: 'Frecuencia de liquidación',
+            growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
@@ -822,7 +822,6 @@ export default {
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
             error: {
-                genericAdd: 'Ha ocurrido un problema al agregar el miembro al espacio de trabajo',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
             },
         },

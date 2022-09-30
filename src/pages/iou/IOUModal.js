@@ -28,7 +28,6 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import ROUTES from '../../ROUTES';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
-import reportPropTypes from '../reportPropTypes';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -41,8 +40,10 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** The report passed via the route */
-    // eslint-disable-next-line react/no-unused-prop-types
-    report: reportPropTypes,
+    report: PropTypes.shape({
+        /** Participants associated with current report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -295,7 +296,7 @@ class IOUModal extends Component {
 
         IOU.payIOUReport({
             chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
-            reportID: '0',
+            reportID: 0,
             paymentMethodType,
             amount,
             currency,

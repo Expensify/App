@@ -385,8 +385,7 @@ function cleanupSession() {
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         success: '',
-        errors: null,
-        message: null,
+        errors: [],
         isLoading: false,
     });
 }
@@ -423,6 +422,72 @@ function changePasswordAndSignIn(authToken, password) {
             }
             Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet')}});
         });
+}
+
+/**
+ * Validates new user login, sets a new password and authenticates them
+ * @param {Number} accountID
+ * @param {String} validateCode
+ * @param {String} password
+ */
+function setPasswordForNewAccountAndSignin(accountID, validateCode, password) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                errors: {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet'),
+                },
+            },
+        },
+    ];
+    API.write('SetPasswordForNewAccountAndSignin', {
+        accountID, validateCode, password,
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -576,6 +641,7 @@ function setShouldShowComposeInput(shouldShowComposeInput) {
 
 export {
     beginSignIn,
+    setPasswordForNewAccountAndSignin,
     updatePasswordAndSignin,
     signIn,
     signInWithShortLivedToken,
