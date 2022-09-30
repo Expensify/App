@@ -6,13 +6,19 @@ macos_instance:
   memory: 12G
 
 task:
-  setup_brew_script: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && brew tap homebrew/cask
-  install_java_script: brew install openjdk@11
-  install_android_sdk_script: brew install --cask android-sdk
-  accept_android_sdk_licenses_script: yes | sdkmanager --licenses
-  install_android_sdk_components_script: sdkmanager --install "build-tools;30.0.3" "platform-tools" "platforms;android-30"
-  install_android_sdk_emulator_script: sdkmanager --install "emulator"
-  install_android_sdk_system_images_script: sdkmanager --install "system-images;android-30;google_apis;arm64_v8a"
+  env:
+    ANDROID_SDK_ROOT: ${HOME}/cmdline-tools
+  setup_brew_script:
+    - /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    - brew tap homebrew/cask
+  install_java_script:
+    - brew install openjdk@11
+    - brew install --cask homebrew/cask-versions/temurin8
+  install_android_sdk_script:
+    - wget https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
+    - unzip commandlinetools-mac-8512546_latest.zip
+    - yes | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
+    - cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-30" "build-tools;30.0.3" "emulator" "system-images;android-30;google_apis;arm64_v8a"
   accel_check_script: emulator -accel-check
 
 #  create_device_script:
