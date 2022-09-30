@@ -153,23 +153,12 @@ class RequestorStep extends React.Component {
             return;
         }
 
-        const payload = {
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
-            ...this.state,
-            dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
-        };
-
-        BankAccounts.setupWithdrawalAccount(payload);
-    }
-
-    submitOnfidoVerification() {
-        if (!this.validate()) {
-            return;
-        }
-
-        BankAccounts.verifyIdentityForBankAccount({
-            ...this.state,
-        });
+        BankAccounts.verifyIdentityForBankAccount(
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            {
+                ...this.state,
+            },
+        );
     }
 
     render() {
