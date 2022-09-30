@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {String} sequenceNumber
  */
 function deleteOptimisticReportAction(reportID, sequenceNumber) {
@@ -12,7 +12,7 @@ function deleteOptimisticReportAction(reportID, sequenceNumber) {
 }
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {String} sequenceNumber
  */
 function clearReportActionErrors(reportID, sequenceNumber) {

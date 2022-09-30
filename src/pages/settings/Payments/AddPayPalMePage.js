@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -18,16 +17,17 @@ import Growl from '../../../libs/Growl';
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as User from '../../../libs/actions/User';
+import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 
 const propTypes = {
-    /** Username for PayPal.Me */
-    payPalMeUsername: PropTypes.string,
+    /** Account details for PayPal.Me */
+    payPalMeData: paypalMeDataPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    payPalMeUsername: '',
+    payPalMeData: {},
 };
 
 class AddPayPalMePage extends React.Component {
@@ -35,7 +35,7 @@ class AddPayPalMePage extends React.Component {
         super(props);
 
         this.state = {
-            payPalMeUsername: props.payPalMeUsername,
+            payPalMeUsername: props.payPalMeData.description,
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
@@ -100,8 +100,8 @@ class AddPayPalMePage extends React.Component {
                         onPress={this.setPayPalMeUsername}
                         pressOnEnter
                         style={[styles.mt3]}
-                        isDisabled={this.state.payPalMeUsername === this.props.payPalMeUsername}
-                        text={this.props.payPalMeUsername
+                        isDisabled={this.state.payPalMeUsername === this.props.payPalMeData.description}
+                        text={this.props.payPalMeData.description
                             ? this.props.translate('addPayPalMePage.editPayPalAccount')
                             : this.props.translate('addPayPalMePage.addPayPalAccount')}
                     />
@@ -117,8 +117,8 @@ AddPayPalMePage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        payPalMeData: {
+            key: ONYXKEYS.PAYPAL,
         },
     }),
 )(AddPayPalMePage);

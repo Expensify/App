@@ -15,7 +15,6 @@ import OnfidoStep from './OnfidoStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
 import ActivateStep from './ActivateStep';
-import styles from '../../styles/styles';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
@@ -54,31 +53,37 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
-            return (
-                <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
-                    <HeaderWithCloseButton
-                        title={this.props.translate('additionalDetailsStep.headerTitle')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <FailedKYC />
-                </ScreenWrapper>
-            );
-        }
-        if (this.props.userWallet.shouldShowWalletActivationSuccess) {
-            return (
-                <ActivateStep userWallet={this.props.userWallet} />
-            );
-        }
-
-        const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
-
         return (
             <ScreenWrapper>
-                {currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS && <AdditionalDetailsStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
-                {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
-                {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
-                {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
+                {(() => {
+                    if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
+                        return (
+                            <>
+                                <HeaderWithCloseButton
+                                    title={this.props.translate('additionalDetailsStep.headerTitle')}
+                                    onCloseButtonPress={() => Navigation.dismissModal()}
+                                />
+                                <FailedKYC />
+                            </>
+                        );
+                    }
+
+                    if (this.props.userWallet.shouldShowWalletActivationSuccess) {
+                        return (
+                            <ActivateStep userWallet={this.props.userWallet} />
+                        );
+                    }
+
+                    const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+                    return (
+                        <>
+                            {currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS && <AdditionalDetailsStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
+                            {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
+                            {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
+                            {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
+                        </>
+                    );
+                })()}
             </ScreenWrapper>
         );
     }

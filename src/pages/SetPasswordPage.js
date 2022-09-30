@@ -32,9 +32,6 @@ const propTypes = {
 
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
-
-        /** If account is validated or not */
-        validated: PropTypes.bool,
     }),
 
     /** The credentials of the logged in person */
@@ -80,18 +77,17 @@ class SetPasswordPage extends Component {
         };
     }
 
+    componentWillUnmount() {
+        Session.clearAccountMessages();
+    }
+
     validateAndSubmitForm() {
         if (!this.state.isFormValid) {
             return;
         }
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-
-        if (this.props.account.validated) {
-            Session.updatePasswordAndSignin(accountID, validateCode, this.state.password);
-        } else {
-            Session.setPasswordForNewAccountAndSignin(accountID, validateCode, this.state.password);
-        }
+        Session.updatePasswordAndSignin(accountID, validateCode, this.state.password);
     }
 
     render() {

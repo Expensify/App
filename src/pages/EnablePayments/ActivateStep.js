@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -81,7 +80,7 @@ const ActivateStep = (props) => {
 
     render() {
         return (
-            <ScreenWrapper>
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('activateStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -94,7 +93,7 @@ const ActivateStep = (props) => {
                         <Text>{this.props.translate('activateStep.checkBackLater')}</Text>
                     )}
                 </View>
-            </ScreenWrapper>
+            </>
         );
     }
 }
