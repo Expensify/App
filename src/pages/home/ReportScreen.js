@@ -26,6 +26,13 @@ import addViewportResizeListener from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import OfflineIndicator from '../../components/OfflineIndicator';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import Banner from '../../components/Banner';
+import withLocalize from '../../components/withLocalize';
+import reportPropTypes from '../reportPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -46,25 +53,7 @@ const propTypes = {
     }),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** The current position of the new marker */
-        newMarkerSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-
-        /** Flag to check if the report actions data are loading */
-        isLoadingReportActions: PropTypes.bool,
-
-        /** ID for the report */
-        reportID: PropTypes.string,
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -86,6 +75,9 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    ...windowDimensionsPropTypes,
+    ...withDrawerPropTypes,
 };
 
 const defaultProps = {
@@ -95,7 +87,6 @@ const defaultProps = {
     },
     reportActions: {},
     report: {
-        unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
@@ -111,11 +102,10 @@ const defaultProps = {
  * @param {Object} route
  * @param {Object} route.params
  * @param {String} route.params.reportID
- * @returns {Number}
+ * @returns {String}
  */
 function getReportID(route) {
-    const params = route.params;
-    return Number.parseInt(params.reportID, 10);
+    return route.params.reportID.toString();
 }
 
 class ReportScreen extends React.Component {
@@ -124,11 +114,14 @@ class ReportScreen extends React.Component {
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
+        this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
+            isBannerVisible: true,
         };
     }
 
@@ -203,15 +196,27 @@ class ReportScreen extends React.Component {
         this.setState({viewportOffsetTop});
     }
 
+    dismissBanner() {
+        this.setState({isBannerVisible: false});
+    }
+
+    chatWithAccountManager() {
+        Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
+    }
+
     render() {
         if (!this.props.isSidebarLoaded) {
             return null;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        // We create policy rooms for all policies, however we don't show them unless
+        // - It's a free plan workspace
+        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
         if (!Permissions.canUseDefaultRooms(this.props.betas)
             && ReportUtils.isDefaultRoom(this.props.report)
-            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
+            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(this.props.report, ['participants'], []))
+        ) {
             return null;
         }
 
@@ -226,13 +231,34 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
+        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
+        const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
+        const hideComposer = isArchivedRoom || !_.isEmpty(addWorkspaceRoomErrors);
         return (
-            <ScreenWrapper style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}>
-                <HeaderView
-                    reportID={reportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                />
-
+            <ScreenWrapper
+                style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
+            >
+                <OfflineWithFeedback
+                    pendingAction={addWorkspaceRoomPendingAction}
+                    errors={addWorkspaceRoomErrors}
+                    errorRowStyles={styles.dNone}
+                >
+                    <HeaderView
+                        reportID={reportID}
+                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    />
+                </OfflineWithFeedback>
+                {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                    <Banner
+                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                        textStyles={[styles.colorReversed]}
+                        text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                        onClose={this.dismissBanner}
+                        onPress={this.chatWithAccountManager}
+                        shouldShowCloseButton
+                    />
+                )}
                 <View
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
@@ -250,29 +276,41 @@ class ReportScreen extends React.Component {
                                 report={this.props.report}
                                 session={this.props.session}
                                 isComposerFullSize={this.props.isComposerFullSize}
+                                isDrawerOpen={this.props.isDrawerOpen}
                             />
                         )}
-                    {(isArchivedRoom || this.props.session.shouldShowComposeInput) && (
+                    {(isArchivedRoom || hideComposer) && (
+                        <View style={[styles.chatFooter]}>
+                            {isArchivedRoom && (
+                                <ArchivedReportFooter
+                                    reportClosedAction={reportClosedAction}
+                                    report={this.props.report}
+                                />
+                            )}
+                            {!this.props.isSmallScreenWidth && (
+                                <View style={styles.offlineIndicatorRow}>
+                                    {hideComposer && (
+                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                    )}
+                    {(!hideComposer && this.props.session.shouldShowComposeInput) && (
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            {
-                                isArchivedRoom
-                                    ? (
-                                        <ArchivedReportFooter
-                                            reportClosedAction={reportClosedAction}
-                                            report={this.props.report}
-                                        />
-                                    ) : (
-                                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                            <ReportActionCompose
-                                                onSubmit={this.onSubmitComment}
-                                                reportID={reportID}
-                                                reportActions={this.props.reportActions}
-                                                report={this.props.report}
-                                                isComposerFullSize={this.props.isComposerFullSize}
-                                            />
-                                        </SwipeableView>
-                                    )
-                            }
+                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                <OfflineWithFeedback
+                                    pendingAction={addWorkspaceRoomPendingAction}
+                                >
+                                    <ReportActionCompose
+                                        onSubmit={this.onSubmitComment}
+                                        reportID={reportID}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                    />
+                                </OfflineWithFeedback>
+                            </SwipeableView>
                         </View>
                     )}
                 </View>
@@ -285,6 +323,9 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withDrawerState,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
@@ -308,6 +349,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        accountManagerReportID: {
+            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
         },
     }),
 )(ReportScreen);

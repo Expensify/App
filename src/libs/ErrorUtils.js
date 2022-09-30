@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../CONST';
 
 /**
@@ -35,7 +36,26 @@ function getAuthenticateErrorMessage(response) {
     }
 }
 
+/**
+ * @param {Object} onyxData
+ * @param {Object} onyxData.errors
+ * @returns {String}
+ */
+function getLatestErrorMessage(onyxData) {
+    if (_.isEmpty(onyxData.errors)) {
+        return '';
+    }
+    return _.chain(onyxData.errors || [])
+        .keys()
+        .sortBy()
+        .reverse()
+        .map(key => onyxData.errors[key])
+        .first()
+        .value();
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     getAuthenticateErrorMessage,
+    getLatestErrorMessage,
 };

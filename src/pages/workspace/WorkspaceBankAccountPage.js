@@ -21,7 +21,7 @@ import Section from '../../components/Section';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
-import withFullPolicy from './withFullPolicy';
+import withPolicy from './withPolicy';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -40,7 +40,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        loading: true,
+        isLoading: true,
     },
 };
 
@@ -101,10 +101,10 @@ class WorkspaceBankAccountPage extends React.Component {
                             text={this.props.translate('workspace.bankAccount.continueWithSetup')}
                             onPress={this.navigateToBankAccountRoute}
                             icon={Expensicons.Bank}
-                            style={[styles.mh3, styles.mt2]}
-                            iconStyles={[styles.mr5]}
+                            style={[styles.mt2, styles.buttonCTA]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
-                            extraLarge
+                            large
                             success
                         />
                         <MenuItem
@@ -131,5 +131,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-    withFullPolicy,
+    withPolicy,
 )(WorkspaceBankAccountPage);

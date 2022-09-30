@@ -5,6 +5,9 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
+    // Holds the reportID for the report between the user and their account manager
+    ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
+
     // Boolean flag only true when first set
     NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
 
@@ -67,6 +70,9 @@ export default {
     // Contains the user's payPalMe address
     NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
+    // Contains the user's payPalMe data
+    PAYPAL: 'paypal',
+
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -79,6 +85,9 @@ export default {
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 
+    // Token needed to initialize Onfido
+    ONFIDO_TOKEN: 'onfidoToken',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
@@ -88,7 +97,6 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
-        REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },

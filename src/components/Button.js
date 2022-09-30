@@ -45,9 +45,6 @@ const propTypes = {
     /** medium sized button */
     medium: PropTypes.bool,
 
-    /** Extra large sized button */
-    extraLarge: PropTypes.bool,
-
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
 
@@ -109,6 +106,9 @@ const propTypes = {
 
     /** Id to use for this button */
     nativeID: PropTypes.string,
+
+    /** Whether text in Button should selectable */
+    textSelectable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -123,7 +123,6 @@ const defaultProps = {
     small: false,
     large: false,
     medium: false,
-    extraLarge: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
@@ -140,6 +139,7 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
     nativeID: '',
+    textSelectable: true,
 };
 
 class Button extends Component {
@@ -183,7 +183,7 @@ class Button extends Component {
 
         const textComponent = (
             <Text
-                selectable={false}
+                selectable={this.props.textSelectable}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
@@ -191,7 +191,6 @@ class Button extends Component {
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
-                    this.props.extraLarge && styles.buttonExtraLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
@@ -271,7 +270,6 @@ class Button extends Component {
                                 this.props.small ? styles.buttonSmall : undefined,
                                 this.props.medium ? styles.buttonMedium : undefined,
                                 this.props.large ? styles.buttonLarge : undefined,
-                                this.props.extraLarge ? styles.buttonExtraLarge : undefined,
                                 this.props.success ? styles.buttonSuccess : undefined,
                                 this.props.danger ? styles.buttonDanger : undefined,
                                 (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,

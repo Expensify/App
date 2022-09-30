@@ -2,6 +2,8 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import moment from 'moment';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -10,6 +12,8 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import md5 from './md5';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import * as NumberUtils from './NumberUtils';
+import * as NumberFormatUtils from './NumberFormatUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -25,6 +29,31 @@ Onyx.connect({
             return;
         }
         preferredLocale = val;
+    },
+});
+
+let currentUserEmail;
+let currentUserAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
+    },
+});
+
+let allPersonalDetails;
+let currentUserPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: (val) => {
+        currentUserPersonalDetails = lodashGet(val, currentUserEmail);
+        allPersonalDetails = val;
     },
 });
 
@@ -76,7 +105,9 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}));
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -90,7 +121,9 @@ function canEditReportAction(reportAction) {
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
-        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
+        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -179,6 +212,15 @@ function getPolicyType(report, policies) {
 }
 
 /**
+ * Returns true if there are any guides accounts (team.expensify.com) in emails
+ * @param {Array} emails
+ * @returns {Boolean}
+ */
+function hasExpensifyGuidesEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -190,7 +232,9 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE);
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
+            || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
+            || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
     return _.last(sortedReports);
@@ -221,8 +265,11 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+    const policyName = (
+        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
+        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
+    ) || '';
+    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -383,8 +430,6 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]) || Expensicons.Workspace;
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
@@ -472,7 +517,7 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = lodashGet(personalDetailsForParticipants, report.ownerEmail);
+        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
@@ -487,11 +532,9 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants,
-        participants.length > 1,
-    );
-    return _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
+    const isMultipleParticipantReport = participants.length > 1;
+    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
+    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -524,28 +567,7 @@ function navigateToDetailsPage(report) {
  * @returns {Number}
  */
 function generateReportID() {
-    // Generate a random 32-bit number. This works fine, and starts us building a random 53-bit number.
-    let result = Math.floor(Math.random() * (2 ** 32));
-
-    // Now generate another random number. We'll use this for the remaining 21 bits of randomness.
-    let extraBits = Math.floor(Math.random() * (2 ** 32));
-
-    // Add each of the remaining 21 bits to the end of `result`.
-    for (let i = 0; i < 21; i++) {
-        // Shift left by one, but don't use bit shifts: they truncate to 32-bits.
-        result *= 2;
-
-        // If extraBits is odd, meaning the lowest bit is set, do the same to the result, without bitwise operators.
-        if (extraBits % 2 === 1) {
-            result += 1;
-        }
-
-        // Now drop the lowest bit from extraBits, which we can do with bitwise operators, because it's less than 32-bits.
-        // eslint-disable-next-line no-bitwise
-        extraBits >>= 1;
-    }
-
-    return result;
+    return (Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32));
 }
 
 /**
@@ -554,6 +576,279 @@ function generateReportID() {
  */
 function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
+}
+
+/**
+ * @param {Number} sequenceNumber sequenceNumber must be provided and it must be a number. It cannot and should not be a clientID,
+ *                                reportActionID, or anything else besides an estimate of what the next sequenceNumber will be for the
+ *                                optimistic report action. Until we deprecate sequenceNumbers please assume that all report actions
+ *                                have them and they should be numbers.
+ * @param {String} [text]
+ * @param {File} [file]
+ * @returns {Object}
+ */
+function buildOptimisticReportAction(sequenceNumber, text, file) {
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+    const parser = new ExpensiMark();
+    const commentText = text.length < 10000 ? parser.replace(text) : text;
+    const isAttachment = _.isEmpty(text) && file !== undefined;
+    const attachmentInfo = isAttachment ? file : {};
+    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+
+    // Remove HTML from text when applying optimistic offline comment
+    const textForNewComment = isAttachment ? '[Attachment]'
+        : parser.htmlToText(htmlForNewComment);
+
+    return {
+        commentText,
+        reportAction: {
+            reportActionID: NumberUtils.rand64(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
+            person: [
+                {
+                    style: 'strong',
+                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
+            sequenceNumber,
+            clientID: NumberUtils.generateReportActionClientID(),
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: htmlForNewComment,
+                    text: textForNewComment,
+                },
+            ],
+            isFirstItem: false,
+            isAttachment,
+            attachmentInfo,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            shouldShow: true,
+        },
+    };
+}
+
+/*
+ * Builds an optimistic IOU report with a randomly generated reportID
+ */
+function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.format(locale,
+        total, {
+            style: 'currency',
+            currency,
+        });
+    return {
+        cachedTotal: formattedTotal,
+        chatReportID,
+        currency,
+        hasOutstandingIOU: true,
+        managerEmail: recipientEmail,
+        ownerEmail,
+        reportID: generateReportID(),
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: 1,
+        total,
+    };
+}
+
+/**
+ * Builds an optimistic IOU reportAction object
+ *
+ * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {Number} amount - IOU amount in cents.
+ * @param {String} comment - User comment for the IOU.
+ * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
+ * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ *
+ * @returns {Object}
+ */
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+    const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
+    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
+    const IOUReportID = existingIOUReportID || generateReportID();
+    const originalMessage = {
+        amount,
+        comment,
+        currency,
+        IOUTransactionID,
+        IOUReportID,
+        type,
+    };
+
+    // We store amount, comment, currency in IOUDetails when type = pay
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        _.each(['amount', 'comment', 'currency'], (key) => {
+            delete originalMessage[key];
+        });
+        originalMessage.IOUDetails = {amount, comment, currency};
+        originalMessage.paymentType = paymentType;
+    }
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        clientID: NumberUtils.generateReportActionClientID(),
+        isAttachment: false,
+        originalMessage,
+        person: [{
+            style: 'strong',
+            text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+            type: 'TEXT',
+        }],
+        reportActionID: NumberUtils.rand64(),
+        sequenceNumber,
+        shouldShow: true,
+        timestamp: moment().unix(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
+ *
+ * @param {Array} participantList
+ * @param {String} reportName
+ * @param {String} chatType
+ * @param {String} policyID
+ * @param {String} ownerEmail
+ * @param {Boolean} isOwnPolicyExpenseChat
+ * @param {String} oldPolicyName
+ * @param {String} visibility
+ * @returns {Object}
+ */
+function buildOptimisticChatReport(
+    participantList,
+    reportName = 'Chat Report',
+    chatType = '',
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+    visibility = undefined,
+) {
+    return {
+        chatType,
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: 0,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        oldPolicyName,
+        ownerEmail,
+        participants: participantList,
+        policyID,
+        reportID: generateReportID(),
+        reportName,
+        stateNum: 0,
+        statusNum: 0,
+        visibility,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+function buildOptimisticCreatedReportAction(ownerEmail) {
+    return {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'normal',
+                    text: ' created this report',
+                },
+            ],
+            person: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            shouldShow: true,
+        },
+    };
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} policyName
+ * @returns {Object}
+ */
+function buildOptimisticWorkspaceChats(policyID, policyName) {
+    const announceChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
+    const announceChatReportID = announceChatData.reportID;
+    const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+
+    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatReportID = adminsChatData.reportID;
+    const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+
+    return {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+    };
+}
+
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnread(report) {
+    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
+    const maxSequenceNumber = report.maxSequenceNumber || 0;
+    return lastReadSequenceNumber < maxSequenceNumber;
 }
 
 export {
@@ -574,6 +869,7 @@ export {
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
+    hasExpensifyGuidesEmails,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -586,4 +882,11 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    isUnread,
+    buildOptimisticWorkspaceChats,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildOptimisticReportAction,
 };
