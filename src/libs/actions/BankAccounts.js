@@ -184,5 +184,8 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    clearOnfidoToken,
+    updatePersonalInformationForBankAccount,
+    validateBankAccount,
     verifyIdentityForBankAccount,
 };
