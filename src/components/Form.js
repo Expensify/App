@@ -40,6 +40,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
 
+    /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
     ...withLocalizePropTypes,
