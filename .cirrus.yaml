@@ -25,7 +25,7 @@ task:
     - (yes || true) | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses > /dev/null
     - cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-31" "build-tools;31.0.0" "emulator" "system-images;android-32;google_apis_playstore;arm64-v8a"
   create_device_script:
-    echo no | avdmanager create avd --force --name "api-32" --abi "google_apis_playstore/arm64-v8a" --package "system-images;android-32;google_apis_playstore;arm64-v8a"
+    echo no | $ANDROID_SDK_ROOT/tools/bin/avdmanager create avd --force --name "api-32" --abi "google_apis_playstore/arm64-v8a" --package "system-images;android-32;google_apis_playstore;arm64-v8a"
   start_emulator_background_script:
     $ANDROID_HOME/emulator/emulator -avd "api-32" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
 #  assemble_instrumented_tests_script:
