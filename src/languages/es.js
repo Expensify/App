@@ -211,6 +211,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
+        chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
     },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
@@ -821,6 +822,7 @@ export default {
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
             error: {
+                genericAdd: 'Ha ocurrido un problema al agregar el miembro al espacio de trabajo',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
             },
         },

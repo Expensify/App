@@ -211,6 +211,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
+        chatWithAccountManager: 'Chat with your account manager here',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -819,6 +820,7 @@ export default {
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
             error: {
+                genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
             },
         },

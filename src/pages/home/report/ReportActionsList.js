@@ -17,6 +17,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -26,10 +27,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
