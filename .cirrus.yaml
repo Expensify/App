@@ -1,25 +1,25 @@
-macos_instance:
-  #    image: cirrusci/android-sdk:29
-  image: ghcr.io/cirruslabs/macos-monterey-base:latest
+#macos_instance:
+container:
+  image: cirrusci/android-sdk:29
+#  image: ghcr.io/cirruslabs/macos-monterey-base:latest
   kvm: true
-  cpu: 12
+  cpu: 8
   memory: 12G
 
 task:
-  script: echo "Hello World from macOS!"
-#  name: E2E performance regression Tests (x86)
-#  accel_check_script: emulator -accel-check
-#  create_device_script:
-#    echo no | avdmanager create avd --force --name "api-29" --abi "google_apis_playstore/x86" --package "system-images;android-29;google_apis_playstore;x86"
-#  start_emulator_background_script:
-#    $ANDROID_HOME/emulator/emulator -avd "api-29" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-#  assemble_instrumented_tests_script:
-#    ./android/gradlew -p android :app:assembleE2eRelease
-#  wait_for_emulator_script:
-#    adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 3; done; input keyevent 82'
-#  disable_animations_script: |
-#    adb shell settings put global window_animation_scale 0.0
-#    adb shell settings put global transition_animation_scale 0.0
-#    adb shell settings put global animator_duration_scale 0.0
-#  run_instrumented_tests_script:
-#    ./gradlew connectedDebugAndroidTest
+  name: E2E performance regression Tests (x86)
+  accel_check_script: emulator -accel-check
+  create_device_script:
+    echo no | avdmanager create avd --force --name "api-29" --abi "google_apis_playstore/x86" --package "system-images;android-29;google_apis_playstore;x86"
+  start_emulator_background_script:
+    $ANDROID_HOME/emulator/emulator -avd "api-29" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+  assemble_instrumented_tests_script:
+    ./android/gradlew -p android :app:assembleE2eRelease
+  wait_for_emulator_script:
+    adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 3; done; input keyevent 82'
+  disable_animations_script: |
+    adb shell settings put global window_animation_scale 0.0
+    adb shell settings put global transition_animation_scale 0.0
+    adb shell settings put global animator_duration_scale 0.0
+  run_instrumented_tests_script:
+    ./gradlew connectedDebugAndroidTest
