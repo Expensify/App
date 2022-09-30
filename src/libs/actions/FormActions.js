@@ -18,7 +18,7 @@ function setErrors(formID, errors) {
 
 /**
  * @param {String} formID
- * @param {String} errorFields
+ * @param {Object} errorFields
  */
 function setErrorFields(formID, errorFields) {
     Onyx.merge(formID, {errorFields});
