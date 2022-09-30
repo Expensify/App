@@ -67,7 +67,7 @@ class ReportActionsView extends React.Component {
 
         this.didLayout = false;
 
-        this.visibilityStateListener = null;
+        this.unsubscribeVisibilityListener = null;
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -87,7 +87,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.visibilityStateListener = Visibility.addEventListener(() => {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
@@ -239,8 +239,8 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        if (this.visibilityStateListener) {
-            this.visibilityStateListener.remove();
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);

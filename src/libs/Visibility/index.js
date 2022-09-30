@@ -14,13 +14,14 @@ function isVisible() {
  *
  * @param {Function} callback
  *
- * @return {Object} To have .remove() invoked to remove listener
+ * @return {Function} removes the listener
  */
-function addEventListener(callback) {
-    return AppState.addEventListener('change', callback);
+function onVisibilityChange(callback) {
+    // Deliberately strip callback argument to be consistent across implementations
+    return AppState.addEventListener('change', () => callback()).remove;
 }
 
 export default {
     isVisible,
-    addEventListener,
+    onVisibilityChange,
 };
