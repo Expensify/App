@@ -25,6 +25,7 @@ import withWindowDimensions from '../../../components/withWindowDimensions';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -39,16 +40,7 @@ const propTypes = {
     /* Onyx Props */
     /** List of reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reports: PropTypes.objectOf(PropTypes.shape({
-        /** ID of the report */
-        reportID: PropTypes.number,
-
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** Whether the report has a draft comment */
-        hasDraft: PropTypes.bool,
-    })),
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
