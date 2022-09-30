@@ -1,4 +1,4 @@
-task:
+emulator_task:
   name: Integration Tests (x86)
   container:
     image: cirrusci/android-sdk:30
@@ -19,3 +19,13 @@ task:
     - adb shell settings put global window_animation_scale 0.0
     - adb shell settings put global transition_animation_scale 0.0
     - adb shell settings put global animator_duration_scale 0.0
+
+node_setup_task:
+  name: Install node deps
+  container:
+    image: node:latest
+
+  node_modules_cache:
+    folder: node_modules
+    fingerprint_script: cat package-lock.json
+    populate_script: npm install
