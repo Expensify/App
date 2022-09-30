@@ -321,6 +321,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    bgDark: {
+        backgroundColor: colors.dark,
+    },
+
     opacity0: {
         opacity: 0,
     },
@@ -2640,10 +2644,6 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
-    },
-
-    avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to average mobile device
     },
 
     imageCropContainer: {

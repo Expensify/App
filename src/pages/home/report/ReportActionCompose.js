@@ -45,6 +45,7 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -69,11 +70,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-
-        /** participants associated with current report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -146,6 +143,7 @@ class ReportActionCompose extends React.Component {
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
+            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
     }
 
@@ -244,8 +242,12 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
-            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        if (ReportUtils.chatIncludesConcierge(this.props.report)) {
+            if (User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
+                return this.props.translate('reportActionCompose.blockedFromConcierge');
+            }
+
+            return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
         if (this.isEmptyChat()) {
@@ -382,12 +384,12 @@ class ReportActionCompose extends React.Component {
 
         // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
-            Report.setReportWithDraft(this.props.reportID.toString(), true);
+            Report.setReportWithDraft(this.props.reportID, true);
         }
 
         // The draft has been deleted.
         if (newComment.length === 0) {
-            Report.setReportWithDraft(this.props.reportID.toString(), false);
+            Report.setReportWithDraft(this.props.reportID, false);
         }
 
         this.comment = newComment;

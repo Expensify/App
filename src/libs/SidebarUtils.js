@@ -136,7 +136,7 @@ function getOrderedReportIDs() {
 
         const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID.toString() !== currentlyViewedReportID
+        if (report.reportID !== currentlyViewedReportID
             && !report.isPinned
             && !hasDraftComment
             && shouldFilterReport
@@ -186,7 +186,7 @@ function getOrderedReportIDs() {
 
         // If the active report has a draft, we do not put it in the group of draft reports because we want it to maintain it's current position. Otherwise the report's position
         // jumps around in the LHN and it's kind of confusing to the user to see the LHN reorder when they start typing a comment on a report.
-        } else if (report.hasDraft && report.reportID.toString() !== currentlyViewedReportID) {
+        } else if (report.hasDraft && report.reportID !== currentlyViewedReportID) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);
@@ -195,7 +195,10 @@ function getOrderedReportIDs() {
 
     // Prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, 'text');
+    const sortedDraftReports = _.sortBy(draftReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedDraftReports.concat(recentReportOptions);
 
     // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
@@ -204,13 +207,13 @@ function getOrderedReportIDs() {
     recentReportOptions = sortedIOUReports.concat(recentReportOptions);
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'text');
+    const sortedPinnedReports = _.sortBy(pinnedReportOptions, (report) => {
+        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
+        return ReportUtils.getReportName(report, personalDetailMap, policies);
+    });
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
-    return _.chain(recentReportOptions)
-        .pluck('reportID')
-        .map(reportID => reportID.toString())
-        .value();
+    return _.pluck(recentReportOptions, 'reportID');
 }
 
 /**
@@ -221,7 +224,11 @@ function getOrderedReportIDs() {
  */
 function getOptionData(reportID) {
     const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!report) {
+
+    // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
+    // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
+    // a null check here and return early.
+    if (!report || !personalDetails) {
         return;
     }
     const result = {
@@ -254,7 +261,7 @@ function getOptionData(reportID) {
 
     const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const personalDetail = personalDetailList[0];
+    const personalDetail = personalDetailList[0] || {};
 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
