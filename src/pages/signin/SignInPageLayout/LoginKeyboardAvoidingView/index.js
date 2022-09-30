@@ -27,7 +27,9 @@ const LoginKeyboardAvoidingView = (props) => {
         <KeyboardAvoidingView
             behavior="position"
             style={style}
-        />
+        >
+            {props.children}
+        </KeyboardAvoidingView>
     );
 };
 
