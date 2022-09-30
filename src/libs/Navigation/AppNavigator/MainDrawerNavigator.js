@@ -69,12 +69,12 @@ const MainDrawerNavigator = (props) => {
     return (
         <BaseDrawerNavigator
             drawerContent={({navigation, state}) => {
-                const currentlyViewedReportID = lodashGet(state, ['routes', 0, 'params', 'reportID']);
-                Report.updateCurrentlyViewedReportID(currentlyViewedReportID);
+                const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
+                Report.setReportIDFromRoute(reportIDFromRoute);
                 return (
                     <SidebarScreen
                         navigation={navigation}
-                        currentlyViewedReportID={currentlyViewedReportID}
+                        reportIDFromRoute={reportIDFromRoute}
                     />
                 );
             }}

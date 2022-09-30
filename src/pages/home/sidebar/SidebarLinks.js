@@ -58,8 +58,8 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** Currently viewed reportID. This value is parsed from the react navigation state object */
-    currentlyViewedReportID: PropTypes.string,
+    /** Current reportID from the route in react navigation state object */
+    reportIDFromRoute: PropTypes.string,
 
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
@@ -77,7 +77,7 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
-    currentlyViewedReportID: '',
+    reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
@@ -91,7 +91,7 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-        const optionListItems = SidebarUtils.getOrderedReportIDs();
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
