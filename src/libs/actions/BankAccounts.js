@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -168,7 +167,8 @@ function deletePaymentBankAccount(bankAccountID) {
 
 /**
  * Verify the user's identity via Onfido
- *
+ * 
+ * @param {Number} bankAccountID
  * @param {Object} onfidoData
  */
 function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
