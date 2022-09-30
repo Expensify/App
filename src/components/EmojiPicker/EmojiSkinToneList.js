@@ -84,7 +84,8 @@ class EmojiSkinToneList extends Component {
                                 _.map(Emojis.skinTones, skinToneEmoji => (
                                     <EmojiPickerMenuItem
                                         onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
-                                        onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
+                                        onHoverIn={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
+                                        onHoverOut={() => this.setState({highlightedIndex: -1})}
                                         key={skinToneEmoji.code}
                                         emoji={skinToneEmoji.code}
                                         isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
