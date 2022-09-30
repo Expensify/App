@@ -10,10 +10,18 @@ function setIsLoading(formID, isLoading) {
 
 /**
  * @param {String} formID
- * @param {String} error
+ * @param {Object} errors
  */
-function setErrorMessage(formID, error) {
-    Onyx.merge(formID, {error});
+function setErrors(formID, errors) {
+    Onyx.merge(formID, {errors});
+}
+
+/**
+ * @param {String} formID
+ * @param {String} errorFields
+ */
+function setErrorFields(formID, errorFields) {
+    Onyx.merge(formID, {errorFields});
 }
 
 /**
@@ -26,6 +34,7 @@ function setDraftValues(formID, draftValues) {
 
 export {
     setIsLoading,
-    setErrorMessage,
+    setErrors,
+    setErrorFields,
     setDraftValues,
 };
