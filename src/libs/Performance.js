@@ -43,6 +43,7 @@ const Performance = {
     printPerformanceMetrics: () => {},
     markStart: () => {},
     markEnd: () => {},
+    measureFailSafe: () => {},
     measureTTI: () => {},
     traceRender: () => {},
     withRenderTrace: () => Component => Component,
@@ -54,7 +55,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     perfModule.setResourceLoggingEnabled(true);
     rnPerformance = perfModule.default;
 
-    const measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
+    Performance.measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
         try {
             rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
         } catch (error) {
@@ -71,7 +72,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         // Make sure TTI is captured when the app is really usable
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                measureFailSafe('TTI', 'nativeLaunchStart', endMark);
+                Performance.measureFailSafe('TTI', 'nativeLaunchStart', endMark);
 
                 // we don't want the alert to show on a e2e test sessio
                 if (!isE2ETestSession()) {
@@ -93,13 +94,13 @@ if (Metrics.canCapturePerformanceMetrics()) {
             list.getEntries()
                 .forEach((entry) => {
                     if (entry.name === 'nativeLaunchEnd') {
-                        measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
+                        Performance.measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
                     }
                     if (entry.name === 'downloadEnd') {
-                        measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
+                        Performance.measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
                     }
                     if (entry.name === 'runJsBundleEnd') {
-                        measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+                        Performance.measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
                     }
 
                     // We don't need to keep the observer past this point
@@ -117,7 +118,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
                         const end = mark.name;
                         const name = end.replace(/_end$/, '');
                         const start = `${name}_start`;
-                        measureFailSafe(name, start, end);
+                        Performance.measureFailSafe(name, start, end);
                     }
 
                     // Capture any custom measures or metrics below
