@@ -2,49 +2,50 @@ import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
     /** General errors */
-    error: PropTypes.string,
+    errors: PropTypes.shape({
+        /** Key: timestamp - Value: Error message */
+    }),
 
     /** Field specific errors */
     errorFields: PropTypes.shape({
-        /** Plaid selector and password fields */
-        plaidSelector: PropTypes.shape({
-            /** Key: timestamp - Value: Error message */
-        }),
+        /** Key: fieldID - bool */
     }),
 
     pendingFields: PropTypes.shape({
-        /** Data we need for the API command "AddPersonalBankAccount" */
-        selectedBankAccount: PropTypes.shape({
-            /** Account Number */
-            accountNumber: PropTypes.string,
+        plaidSelector: PropTypes.string,
+    }),
 
-            /** Nickname of bank account */
-            addressName: PropTypes.string,
+    /** Data we need for the API command "AddPersonalBankAccount" */
+    selectedBankAccount: PropTypes.shape({
+        /** Account Number */
+        accountNumber: PropTypes.string,
 
-            /** Bank name given by Plaid */
-            bank: PropTypes.string,
+        /** Nickname of bank account */
+        addressName: PropTypes.string,
 
-            /** This payment method has not been added, and is pending with and error */
-            isPending: PropTypes.bool,
+        /** Bank name given by Plaid */
+        bank: PropTypes.string,
 
-            /** Is Savings account */
-            isSavings: PropTypes.bool,
+        /** This payment method has not been added, and is pending with and error */
+        isPending: PropTypes.bool,
 
-            /** Password */
-            password: PropTypes.string,
+        /** Is Savings account */
+        isSavings: PropTypes.bool,
 
-            /** Plaid token */
-            plaidAccessToken: PropTypes.string,
+        /** Password */
+        password: PropTypes.string,
 
-            /** Plaid bank account ID */
-            plaidAccountID: PropTypes.string,
+        /** Plaid token */
+        plaidAccessToken: PropTypes.string,
 
-            /** Routing number */
-            routingNumber: PropTypes.string,
+        /** Plaid bank account ID */
+        plaidAccountID: PropTypes.string,
 
-            /** Tells us if this is set up via Plaid or manually */
-            setupType: PropTypes.string,
-        }),
+        /** Routing number */
+        routingNumber: PropTypes.string,
+
+        /** Tells us if this is set up via Plaid or manually */
+        setupType: PropTypes.string,
     }),
 
     /** Personal Bank Account successfully added. Show user success modal */

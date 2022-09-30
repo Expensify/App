@@ -52,7 +52,7 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidBankAccount: lodashGet(this.props, 'personalBankAccount.pendingFields.selectedBankAccount', {}),
+            selectedPlaidBankAccount: lodashGet(this.props, 'personalBankAccount.selectedBankAccount', {}),
             password: '',
         };
 

@@ -37,7 +37,7 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
 function formatPaymentMethods(bankAccountList, cardList, personalBankAccount = {}, payPalMeUsername = '', userWallet) {
     const combinedPaymentMethods = [];
 
-    const pendingBankAccount = lodashGet(personalBankAccount, 'pendingFields.selectedBankAccount', {});
+    const pendingBankAccount = lodashGet(personalBankAccount, 'selectedBankAccount', {});
 
     // See if we need to show a pending bank account in the payment methods list
     if (!_.isEmpty(pendingBankAccount)) {

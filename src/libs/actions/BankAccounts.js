@@ -135,12 +135,12 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
-                    error: '',
+                    errors: null,
                     errorFields: null,
                     pendingFields: {
                         plaidSelector: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        selectedBankAccount: parameters,
                     },
+                    selectedBankAccount: parameters,
                 },
             },
         ],
@@ -150,7 +150,6 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: '',
                     shouldShowSuccess: true,
                     errors: null,
                     pendingFields: null,
@@ -173,7 +172,7 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    errors: null,
                     errorFields: null,
                     pendingFields: {
                         plaidSelector: null,
