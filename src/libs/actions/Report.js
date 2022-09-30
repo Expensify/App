@@ -41,7 +41,7 @@ Onyx.connect({
     },
 });
 
-let currentlyViewedReportID;
+let reportIDFromRoute;
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -1028,15 +1028,8 @@ function handleReportChanged(report) {
 /**
  * @param {String} reportID
  */
-function updateCurrentlyViewedReportID(reportID) {
-    currentlyViewedReportID = String(reportID);
-}
-
-/**
- * @returns {String}
- */
-function getCurrentlyViewedReportID() {
-    return currentlyViewedReportID;
+function setReportIDFromRoute(reportID) {
+    reportIDFromRoute = String(reportID);
 }
 
 Onyx.connect({
@@ -1519,7 +1512,7 @@ function viewNewReportAction(reportID, action) {
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === currentlyViewedReportID && Visibility.isVisible()) {
+    if (reportID === reportIDFromRoute && Visibility.isVisible()) {
         Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
@@ -1608,7 +1601,7 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
-    updateCurrentlyViewedReportID,
+    setReportIDFromRoute,
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,
@@ -1628,5 +1621,4 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
-    getCurrentlyViewedReportID,
 };
