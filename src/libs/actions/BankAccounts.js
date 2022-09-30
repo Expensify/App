@@ -285,9 +285,8 @@ function updateCompanyInformationForBankAccount(bankAccount) {
  * @param {Boolean} [params.certifyTrueInformation]
  * @param {String}  [params.beneficialOwners]
  */
- function updateBeneficialOwnersForBankAccount(params) {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-    API.write('UpdateBeneficialOwnersForBankAccount', {bankAccountID, ...params}, getVBBADataForOnyx());
+function updateBeneficialOwnersForBankAccount(params) {
+    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
 }
 
 /**
