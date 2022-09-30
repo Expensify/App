@@ -19,6 +19,8 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
     ELECTRON_EVENTS.BLUR,
 ];
 
+const getErrorMessage = channel => `Electron context bridge cannot be used with channel '${channel}'`;
+
 /**
  * The following methods will be available in the renderer process under `window.electron`.
  */
@@ -35,7 +37,7 @@ contextBridge.exposeInMainWorld('electron', {
      */
     send: (channel, data) => {
         if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
-            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
+            throw new Error(getErrorMessage(channel));
         }
 
         ipcRenderer.send(channel, data);
@@ -50,7 +52,7 @@ contextBridge.exposeInMainWorld('electron', {
      */
     sendSync: (channel, data) => {
         if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
-            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
+            throw new Error(getErrorMessage(channel));
         }
 
         return ipcRenderer.sendSync(channel, data);
@@ -64,7 +66,7 @@ contextBridge.exposeInMainWorld('electron', {
      */
     on: (channel, func) => {
         if (!_.contains(WHITELIST_CHANNELS_MAIN_TO_RENDERER, channel)) {
-            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
+            throw new Error(getErrorMessage(channel));
         }
 
         // Deliberately strip event as it includes `sender`
@@ -79,7 +81,7 @@ contextBridge.exposeInMainWorld('electron', {
      */
     removeAllListeners: (channel) => {
         if (!_.contains(WHITELIST_CHANNELS_MAIN_TO_RENDERER, channel)) {
-            throw new Error(`Attempt to send data across electron context bridge with invalid channel ${channel}`);
+            throw new Error(getErrorMessage(channel));
         }
 
         ipcRenderer.removeAllListeners(channel);

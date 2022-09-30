@@ -1,11 +1,9 @@
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 /**
- * Detects whether the app is visible or not. Electron supports
- * document.visibilityState, but switching to another app while
- * Electron is partially occluded will not trigger a state of hidden
- * so we ask the main process synchronously whether the
- * BrowserWindow.isFocused()
+ * Detects whether the app is visible or not. Electron supports document.visibilityState,
+ * but switching to another app while Electron is partially occluded will not trigger a state of hidden
+ * so we ask the main process synchronously whether the BrowserWindow.isFocused()
  *
  * @returns {Boolean}
  */
@@ -18,21 +16,20 @@ function isVisible() {
  *
  * @param {Function} callback
  *
- * @return {Object} To have .remove() invoked to remove listener
+ * @return {Function} removes the listener
  */
-function addEventListener(callback) {
-    window.electron.on(ELECTRON_EVENTS.FOCUS, callback);
-    window.electron.on(ELECTRON_EVENTS.BLUR, callback);
+function onVisibilityChange(callback) {
+    // Deliberately strip callback argument to be consistent across implementations
+    window.electron.on(ELECTRON_EVENTS.FOCUS, () => callback());
+    window.electron.on(ELECTRON_EVENTS.BLUR, () => callback());
 
-    return {
-        remove: () => {
-            window.electron.removeAllListeners(ELECTRON_EVENTS.FOCUS);
-            window.electron.removeAllListeners(ELECTRON_EVENTS.BLUR);
-        },
+    return () => {
+        window.electron.removeAllListeners(ELECTRON_EVENTS.FOCUS);
+        window.electron.removeAllListeners(ELECTRON_EVENTS.BLUR);
     };
 }
 
 export default {
     isVisible,
-    addEventListener,
+    onVisibilityChange,
 };
