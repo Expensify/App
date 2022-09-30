@@ -12,9 +12,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
     onfidoToken: PropTypes.string,
     ...withLocalizePropTypes,
@@ -38,6 +40,7 @@ class RequestorOnfidoStep extends React.Component {
             ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
             this.state.onfidoData,
         );
+        this.props.onComplete();
     }
 
     render() {
