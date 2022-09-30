@@ -1,5 +1,7 @@
 import React from 'react';
 import {KeyboardAvoidingView} from 'react-native';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import styles from '../../../../styles/styles';
 import variables from '../../../../styles/variables';
@@ -32,4 +34,7 @@ const LoginKeyboardAvoidingView = (props) => {
 LoginKeyboardAvoidingView.propTypes = propTypes;
 LoginKeyboardAvoidingView.displayName = 'LoginKeyboardAvoidingView';
 
-export default withWindowDimensions(LoginKeyboardAvoidingView);
+export default compose(
+    withWindowDimensions,
+    withSafeAreaInsets,
+)(LoginKeyboardAvoidingView);
