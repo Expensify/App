@@ -12,6 +12,8 @@ const defaultPlugins = [
     // source code transformation as we do not use class property assignment.
     'transform-class-properties',
 
+    '@babel/plugin-proposal-export-namespace-from',
+
     // Keep it last
     'react-native-reanimated/plugin',
 ];
