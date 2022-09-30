@@ -7,7 +7,7 @@ macos_instance:
 
 task:
   env:
-    ANDROID_SDK_ROOT: ${HOME}/cmdline-tools
+    ANDROID_SDK_ROOT: ${HOME}/android_sdk
     PATH: ${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/tools:${ANDROID_SDK_ROOT}/tools/bin:${PATH}
   install_java_script:
     - wget -q https://cdn.azul.com/zulu/bin/zulu8.64.0.19-ca-jdk8.0.345-macosx_aarch64.zip
@@ -19,15 +19,19 @@ task:
     # without that installation of stuff later on fails
     - mkdir -p $HOME/.android
     - touch $HOME/.android/repositories.cfg
+    - mkdir -p $ANDROID_SDK_ROOT
     - wget -q https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
     - unzip -q commandlinetools-mac-8512546_latest.zip
     - rm commandlinetools-mac-8512546_latest.zip
-    - (yes || true) | cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses > /dev/null
-    - ./cmdline-tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-31" "build-tools;31.0.0" "emulator" "system-images;android-32;google_apis_playstore;arm64-v8a" > /dev/null
+    - mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest
+    - mv cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest
+    - (yes || true) | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses > /dev/null
+    - $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-31" "build-tools;31.0.0" "emulator" "system-images;android-32;google_apis_playstore;arm64-v8a" > /dev/null
+    - (yes || true) | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SD K_ROOT} --licenses > /dev/null
   create_device_script:
-    echo no | ./cmdline-tools/bin/avdmanager create avd --force --name "api-32" --abi "google_apis_playstore/arm64-v8a" --package "system-images;android-32;google_apis_playstore;arm64-v8a"
+    - echo no | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager create avd --force --name "api-32" --abi "google_apis_playstore/arm64-v8a" --package "system-images;android-32;google_apis_playstore;arm64-v8a"
   start_emulator_background_script:
-    $ANDROID_HOME/emulator/emulator -avd "api-32" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+    - $ANDROID_SDK_ROOT/emulator/emulator -avd "api-32" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
 #  assemble_instrumented_tests_script:
 #    ./android/gradlew -p android :app:assembleE2eRelease
   wait_for_emulator_script:
