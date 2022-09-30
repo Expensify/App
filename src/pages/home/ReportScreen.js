@@ -239,6 +239,11 @@ class ReportScreen extends React.Component {
                 <FullPageNotFoundView
                     shouldShow={!this.props.report.reportID}
                     subtitleKey="notFound.noAccess"
+                    shouldShowCloseButton={false}
+                    shouldShowBackButton={this.props.isSmallScreenWidth}
+                    onBackButtonPress={() => {
+                        Navigation.navigate(ROUTES.HOME);
+                    }}
                 >
                     <OfflineWithFeedback
                         pendingAction={addWorkspaceRoomPendingAction}

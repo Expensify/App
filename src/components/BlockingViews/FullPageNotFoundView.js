@@ -24,12 +24,24 @@ const propTypes = {
 
     /** The key in the translations file to use for the subtitle */
     subtitleKey: PropTypes.string,
+
+    /** Whether we should show a back icon */
+    shouldShowBackButton: PropTypes.bool,
+
+    /** Whether we should show a close button */
+    shouldShowCloseButton: PropTypes.bool,
+
+    /** Method to trigger when pressing the back button of the header */
+    onBackButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
     shouldShow: false,
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',
+    shouldShowBackButton: true,
+    shouldShowCloseButton: true,
+    onBackButtonPress: () => Navigation.dismissModal(),
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -38,8 +50,9 @@ const FullPageNotFoundView = (props) => {
         return (
             <>
                 <HeaderWithCloseButton
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton={props.shouldShowBackButton}
+                    shouldShowCloseButton={props.shouldShowCloseButton}
+                    onBackButtonPress={props.onBackButtonPress}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={styles.flex1}>
