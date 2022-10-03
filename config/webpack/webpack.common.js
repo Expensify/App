@@ -20,6 +20,7 @@ const includeModules = [
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
+    '@react-navigation/drawer',
 ].join('|');
 
 /**
