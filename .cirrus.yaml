@@ -12,9 +12,8 @@ emulator_task:
     - wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
     - chmod +x install.sh
     - ./install.sh
-    - source ~/.bashrc
     - export NVM_DIR="$HOME/.nvm"
-    - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
+    - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" > /dev/null'
     - nvm install
     - npm install
     - which node
