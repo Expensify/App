@@ -13,6 +13,8 @@ emulator_task:
     - chmod +x install.sh
     - ./install.sh
     - source ~/.bashrc
+    - export NVM_DIR="$HOME/.nvm"
+    - [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     - nvm install
     - npm install
     - which node
