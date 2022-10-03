@@ -45,6 +45,7 @@ emulator_task:
     # TODO: check if GPU host works
     - emulator -avd "api-30" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -accel on
   wait_for_emu_and_disable_animations_script:
+    - adb devices
     # https://android.stackexchange.com/a/83747/374266
     - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 5; done; input keyevent 82'
     # I have chained those commands because often the animation setting would fail with "no devices/emulators found"
