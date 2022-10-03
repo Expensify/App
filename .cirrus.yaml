@@ -4,7 +4,7 @@ emulator_task:
     image: cirrusci/android-sdk:30
     kvm: true
     cpu: 8
-    memory: 16G
+    memory: 12G
   env:
     AVD_NAME: "api-30"
     LOGGER_PROGRESS_REFRESH_RATE: 30_000
