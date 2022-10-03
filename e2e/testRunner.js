@@ -115,6 +115,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
                 });
             }), progressText);
         }
+        warmupLogs.done();
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
