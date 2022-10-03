@@ -4,9 +4,9 @@ emulator_task:
     image: cirrusci/android-sdk:30
     kvm: true
     cpu: 8
-    memory: 12G
+    memory: 16G
   env:
-    JAVA_TOOL_OPTIONS: -Xmx6g
+    JAVA_TOOL_OPTIONS: -Xmx8g
     GRADLE_OPTS: -Dorg.gradle.daemon=false
 
   # This steps takes less than the node setup, so we don't
