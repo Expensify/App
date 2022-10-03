@@ -208,17 +208,23 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
-        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
-        const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
-        const screenWrapperStyle = [styles.appContent, {marginTop: this.state.viewportOffsetTop}];
+
+        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
+        let reportClosedAction;
+        if (isArchivedRoom) {
+            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+        }
+        const pendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
+        const errors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
+        const hideComposer = isArchivedRoom || !_.isEmpty(errors);
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
                 keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
                 <OfflineWithFeedback
-                    pendingAction={addWorkspaceRoomPendingAction}
-                    errors={addWorkspaceRoomErrors}
+                    pendingAction={pendingAction}
+                    errors={errors}
                     errorRowStyles={styles.dNone}
                 >
                     <HeaderView
@@ -273,26 +279,35 @@ class ReportScreen extends React.Component {
                                 shouldShowCloseButton
                             />
                         )}
-                        <View
-                            nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                            onLayout={(event) => {
-                                const skeletonViewContainerHeight = event.nativeEvent.layout.height;
-
-                                // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                // takes up so we can set the skeleton view container height.
-                                if (skeletonViewContainerHeight === 0) {
-                                    return;
-                                }
-
-                                reportActionsListViewHeight = skeletonViewContainerHeight;
-                                this.setState({skeletonViewContainerHeight});
-                            }}
-                        >
-                            {this.shouldShowLoader()
-                                ? (
-                                    <ReportActionsSkeletonView
-                                        containerHeight={this.state.skeletonViewContainerHeight}
+                    {(isArchivedRoom || hideComposer) && (
+                        <View style={[styles.chatFooter]}>
+                            {isArchivedRoom && (
+                                <ArchivedReportFooter
+                                    reportClosedAction={reportClosedAction}
+                                    report={this.props.report}
+                                />
+                            )}
+                            {!this.props.isSmallScreenWidth && (
+                                <View style={styles.offlineIndicatorRow}>
+                                    {hideComposer && (
+                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                    )}
+                    {(!hideComposer && this.props.session.shouldShowComposeInput) && (
+                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                <OfflineWithFeedback
+                                    pendingAction={pendingAction}
+                                >
+                                    <ReportActionCompose
+                                        onSubmit={this.onSubmitComment}
+                                        reportID={reportID}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
                                     />
                                 )
                                 : (
