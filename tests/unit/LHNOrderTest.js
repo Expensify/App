@@ -472,6 +472,40 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
                 });
         });
+
+        it('puts archived chats last', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given three reports, with the first report being archived
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated with the data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '0',
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                }))
+
+                // Then the first report is in last position
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                })
+        });
     });
 
     describe('in #focus mode', () => {
