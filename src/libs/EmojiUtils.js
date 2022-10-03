@@ -179,7 +179,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
 function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     let frequentEmojiList = frequentlyUsedEmojis;
     let currentEmojiCount = 1;
-    const currentTimestamp = Date.now();
+    const currentTimestamp = moment().unix();
     const emojiIndex = _.findIndex(frequentEmojiList, e => e.code === newEmoji.code);
     if (emojiIndex >= 0) {
         currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;

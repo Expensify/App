@@ -144,7 +144,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
  * @returns {Number}
  */
 function getLastMessageTimestamp(reportID, actionsToMerge = {}) {
-    const actions = lodashMerge({}, allReportActions[reportID],  actionsToMerge);
+    const actions = lodashMerge({}, allReportActions[reportID], actionsToMerge);
     return _.max(actions, action => action.timestamp).timestamp;
 }
 
