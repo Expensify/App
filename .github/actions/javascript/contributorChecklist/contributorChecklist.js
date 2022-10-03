@@ -4,7 +4,7 @@ const _ = require('underscore');
 const GitHubUtils = require('../../../libs/GithubUtils');
 
 /* eslint-disable max-len */
-const completedContributorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
+const completedAuthorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
 - [x] I wrote clear testing steps that cover the changes made in this PR
     - [x] I added steps for local testing in the \`Tests\` section
     - [x] I added steps for Staging and/or Production testing in the \`QA steps\` section
@@ -50,7 +50,7 @@ const completedContributorChecklist = `- [x] I linked the correct issue in the \
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.`;
 
-const completedContributorPlusChecklist = `- [x] I have verified the author checklist is complete (all boxes are checked off).
+const completedReviewerChecklist = `- [x] I have verified the author checklist is complete (all boxes are checked off).
 - [x] I verified the correct issue is linked in the \`### Fixed Issues\` section above
 - [x] I verified testing steps are clear and they cover the changes made in this PR
     - [x] I verified the steps for local testing are in the \`Tests\` section
@@ -98,7 +98,7 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 - [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
 
 // True if we are validating a contributor checklist, otherwise we are validating a contributor+ checklist
-const verifyingContributorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
+const verifyingAuthorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 
@@ -135,34 +135,34 @@ getPullRequestBody()
     .then(() => getAllComments())
     .then(comments => combinedData.push(...comments))
     .then(() => {
-        let contributorChecklistComplete = false;
-        let contributorPlusChecklistComplete = false;
+        let authorChecklistComplete = false;
+        let reviewerChecklistComplete = false;
 
         // Once we've gathered all the data, loop through each comment and look to see if it contains a completed checklist
         for (let i = 0; i < combinedData.length; i++) {
             const whitespace = /([\n\r])/gm;
             const comment = combinedData[i].replace(whitespace, '');
 
-            if (comment.includes(completedContributorChecklist.replace(whitespace, ''))) {
-                contributorChecklistComplete = true;
+            if (comment.includes(completedAuthorChecklist.replace(whitespace, ''))) {
+                authorChecklistComplete = true;
             }
 
-            if (comment.includes(completedContributorPlusChecklist.replace(whitespace, ''))) {
-                contributorPlusChecklistComplete = true;
+            if (comment.includes(completedReviewerChecklist.replace(whitespace, ''))) {
+                reviewerChecklistComplete = true;
             }
         }
 
-        if (verifyingContributorChecklist && !contributorChecklistComplete) {
+        if (verifyingAuthorChecklist && !authorChecklistComplete) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
             core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        if (!verifyingContributorChecklist && !contributorPlusChecklistComplete) {
+        if (!verifyingAuthorChecklist && !reviewerChecklistComplete) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
             core.setFailed('Contributor+ checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        console.log(`${verifyingContributorChecklist ? 'Contributor' : 'Contributor+'} checklist is complete 🎉`);
+        console.log(`${verifyingAuthorChecklist ? 'Contributor' : 'Contributor+'} checklist is complete 🎉`);
     });
