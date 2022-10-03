@@ -135,6 +135,23 @@ class NewChatPage extends Component {
     }
 
     /**
+     * Attempts to find a report in onyx with the provided list of participants
+     * @param {Array} newParticipantList
+     * @returns {Array|undefined}
+     */
+    getChatByParticipants(newParticipantList) {
+        const sortedNewParticipantList = newParticipantList.sort();
+        return _.find(this.props.reports, (report) => {
+            // Chat rooms don't have participants, so we can skip them
+            if (!report || !report.participants) {
+                return false;
+            }
+            const sortedReportParticipants = report.participants.sort();
+            return sortedNewParticipantList.join() === sortedReportParticipants.join();
+        });
+    }
+
+    /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
@@ -174,18 +191,6 @@ class NewChatPage extends Component {
                 userToInvite,
                 searchValue: prevState.searchValue,
             };
-        });
-    }
-
-    getChatByParticipants(newParticipantList) {
-        const sortedNewParticipantList = newParticipantList.sort();
-        return _.find(this.props.reports, (report) => {
-            // Chat rooms don't have participants, so we can skip them
-            if (!report || !report.participants) {
-                return false;
-            }
-            const sortedReportParticipants = report.participants.sort();
-            return sortedNewParticipantList.join() === sortedReportParticipants.join();
         });
     }
 
