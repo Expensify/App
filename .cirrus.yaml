@@ -36,9 +36,9 @@ emulator_task:
   #  await exec.exec(`sh -c \\"printf 'hw.cpu.ncore=${cores}\n' >> ${process.env.ANDROID_AVD_HOME}/"${avdName}".avd"/config.ini`);
   #  await exec.exec(`sh -c \\"printf 'hw.ramSize=${ramSize}\n' >> ${process.env.ANDROID_AVD_HOME}/"${avdName}".avd"/config.ini`);
   #  await exec.exec(`sh -c \\"printf 'hw.heapSize=${heapSize}\n' >> ${process.env.ANDROID_AVD_HOME}/"${avdName}".avd"/config.ini`);
-    - echo "hw.cpu.ncore=6" >> ~/.android/avd/$AVD_NAME.avd/config.ini
-    - echo "hw.ramSize=3072" >> ~/.android/avd/$AVD_NAME.avd/config.ini
-    - echo "hw.heapSize=512" >> ~/.android/avd/$AVD_NAME.avd/config.ini
+    - echo "hw.cpu.ncore=4" >> ~/.android/avd/$AVD_NAME.avd/config.ini
+    - echo "hw.ramSize=2048" >> ~/.android/avd/$AVD_NAME.avd/config.ini
+    - echo "hw.heapSize=256" >> ~/.android/avd/$AVD_NAME.avd/config.ini
   background_start_emulator_background_script:
     # start adb already otherwise the next step sometimes hangs
     - adb devices
