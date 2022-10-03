@@ -24,6 +24,9 @@ module.exports = {
     // The amount of outliers to remove from a dataset before calculating the average
     DROP_WORST: 8,
 
+    // The amount of runs that should happen without counting test results
+    WARM_UP_RUNS: 3,
+
     OUTPUT_DIR,
 
     // The file to write intermediate results to

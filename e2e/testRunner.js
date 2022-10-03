@@ -14,6 +14,7 @@ const {
     OUTPUT_DIR,
     LOG_FILE,
     RUNS,
+    WARM_UP_RUNS,
     TESTS_CONFIG,
 } = require('./config');
 const compare = require('./compare/compare');
@@ -99,26 +100,31 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         const config = _.values(TESTS_CONFIG)[testIndex];
         server.setTestConfig(config);
 
-        // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo(`Running test '${config.name}'`);
+
+        for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${warmUpRuns + 1}/${WARM_UP_RUNS})`;
+            testLog.updateText(progressText);
+
+            await restartApp();
+
+            await withFailTimeout(new Promise((resolve) => {
+                const cleanup = server.addTestDoneListener(() => {
+                    Logger.log(`Warmup ${warmUpRuns + 1} done!`);
+                    cleanup();
+                    resolve();
+                });
+            }), progressText);
+        }
+
+        // We run each test multiple time to average out the results
         for (let i = 0; i < RUNS; i++) {
             const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
 
             const stopVideoRecording = startRecordingVideo();
 
-            // create a promise that will resolve once the app fetched
-            // the test config, which signals us that the app really started.
-            const waitForAppStarted = new Promise((resolve) => {
-                const cleanup = server.addTestStartedListener(() => {
-                    Logger.log(`Test '${config.name}' started on the app! (In iteration ${i + 1}/${RUNS})`);
-                    cleanup();
-                    resolve();
-                });
-            });
-
             await restartApp();
-            await waitForAppStarted;
 
             // wait for a test to finish by waiting on its done call to the http server
             try {
