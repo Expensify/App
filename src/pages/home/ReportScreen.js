@@ -212,7 +212,7 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
         const isReportLoaded = this.props.report && this.props.report.reportID === reportID;
-        const isTransitioning = !isReportLoaded || (this.props.isSmallScreenWidth && this.props.isDrawerOpen);
+        const isTransitioning = !isReportLoaded;
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
