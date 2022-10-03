@@ -100,11 +100,10 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         const config = _.values(TESTS_CONFIG)[testIndex];
         server.setTestConfig(config);
 
-        const testLog = Logger.progressInfo(`Running test '${config.name}'`);
-
+        const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
         for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
             const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${warmUpRuns + 1}/${WARM_UP_RUNS})`;
-            testLog.updateText(progressText);
+            warmupLogs.updateText(progressText);
 
             await restartApp();
 
@@ -118,6 +117,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         }
 
         // We run each test multiple time to average out the results
+        const testLog = Logger.progressInfo('');
         for (let i = 0; i < RUNS; i++) {
             const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
