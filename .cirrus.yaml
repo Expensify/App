@@ -45,5 +45,6 @@ emulator_task:
     - while [ ! -f /tmp/node_setup_finished ]; do sleep 5; done
   # TODO: remove baseline, remove skip build and copy once verified
   run_tests_script:
+    - mkdir -p android/app/build/outputs/apk/e2eRelease
     - cp e2e/app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/app-e2e-release.apk
     - baseline=dev/ci-e2e-tests npm run test:e2e --skipBuild --skipInstallDeps
