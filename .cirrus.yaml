@@ -7,8 +7,8 @@ emulator_task:
     memory: 12G
   env:
     AVD_NAME: "api-30"
-    LOGGER_PROGRESS_REFRESH_RATE: 30_000
-    INTERACTION_TIMEOUT: 60_000
+    LOGGER_PROGRESS_REFRESH_RATE: 30000
+    INTERACTION_TIMEOUT: 60000
     JAVA_TOOL_OPTIONS: -Xmx8g
     GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.incremental=false -Dkotlin.compiler.execution.strategy=in-process
 
