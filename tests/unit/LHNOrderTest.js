@@ -517,7 +517,7 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
-                })
+                });
         });
     });
 
@@ -624,7 +624,7 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
-                })
+                });
         });
     });
 });
