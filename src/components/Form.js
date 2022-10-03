@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../libs/compose';
-import * as ErrorUtils from '../libs/ErrorUtils';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 
@@ -16,6 +16,9 @@ const propTypes = {
 
     /** Text to be displayed in the submit button */
     submitButtonText: PropTypes.string.isRequired,
+
+    /** Controls the submit button's visibility */
+    isSubmitButtonVisible: PropTypes.bool,
 
     /** Callback to validate the form */
     validate: PropTypes.func.isRequired,
@@ -33,8 +36,8 @@ const propTypes = {
         /** Controls the loading state of the form */
         isLoading: PropTypes.bool,
 
-        /** Server side error message */
-        error: PropTypes.string,
+        /** Server side errors keyed by microtime */
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
 
     /** Contains draft values for each input in the form */
@@ -45,9 +48,10 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isSubmitButtonVisible: true,
     formState: {
         isLoading: false,
-        error: '',
+        errors: null,
     },
     draftValues: {},
 };
@@ -106,7 +110,7 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        FormActions.setErrorMessage(this.props.formID, null);
+        FormActions.setErrors(this.props.formID, null);
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
@@ -190,6 +194,7 @@ class Form extends React.Component {
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
+                        {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
                             isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage())}
@@ -201,6 +206,7 @@ class Form extends React.Component {
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                         />
+                        )}
                     </View>
                 </ScrollView>
             </>
