@@ -20,11 +20,11 @@ emulator_task:
     - npm install
     - which node
     - touch /tmp/node_setup_finished
-  background_preheat_build_system_background_script:
-    # wait for note setup to finish
-    - while [ ! -f /tmp/node_setup_finished ]; do sleep 5; done
-    - npm run android-build-e2e
-    - touch /tmp/preheat_build_system_finished
+#  background_preheat_build_system_background_script:
+#    # wait for note setup to finish
+#    - while [ ! -f /tmp/node_setup_finished ]; do sleep 5; done
+#    - npm run android-build-e2e
+#    - touch /tmp/preheat_build_system_finished
   accel_check_script: emulator -accel-check
   setup_emulator_script:
     - sdkmanager --update
@@ -43,7 +43,7 @@ emulator_task:
     - adb shell settings put global animator_duration_scale 0.0
   wait_for_background_setups_to_finish_script:
     - while [ ! -f /tmp/node_setup_finished ]; do sleep 5; done
-  # TODO: remove baseline
+  # TODO: remove baseline, remove skip build and copy once verified
   run_tests_script:
     - cp e2e/app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/app-e2e-release.apk
     - baseline=dev/ci-e2e-tests npm run test:e2e --skipBuild --skipInstallDeps
