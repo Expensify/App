@@ -15,10 +15,10 @@ emulator_task:
     # start adb already otherwise the next step sometimes hangs
     - adb devices
     - emulator -avd "api-30" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -accel on
-  wait_for_emulator_script:
+  wait_for_emu_and_disable_animations_script:
     # https://android.stackexchange.com/a/83747/374266
-    - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 3; done; input keyevent 82'
-  disable_animations_script:
+    - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 5; done; input keyevent 82'
+    # i have chained those commands because often the animation setting would fail with "no devices/emulators found"
     - adb shell settings put global window_animation_scale 0.0
     - adb shell settings put global transition_animation_scale 0.0
     - adb shell settings put global animator_duration_scale 0.0
