@@ -42,7 +42,8 @@ emulator_task:
     - adb shell settings put global transition_animation_scale 0.0
     - adb shell settings put global animator_duration_scale 0.0
   wait_for_background_setups_to_finish_script:
-    - while [ ! -f /tmp/preheat_build_system_finished ]; do sleep 5; done
+    - while [ ! -f /tmp/node_setup_finished ]; do sleep 5; done
   # TODO: remove baseline
   run_tests_script:
-    - baseline=dev/ci-e2e-tests npm run test:e2e
+    - cp e2e/app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/app-e2e-release.apk
+    - baseline=dev/ci-e2e-tests npm run test:e2e --skipBuild --skipInstallDeps
