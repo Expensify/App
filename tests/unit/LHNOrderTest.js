@@ -5,11 +5,15 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 
+// Be sure to include the mocked permissions library or else the beta tests won't work
+jest.mock('../../src/libs/Permissions');
+
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
+    BETAS: 'betas',
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
@@ -479,16 +483,25 @@ describe('Sidebar', () => {
             // Given three reports, with the first report being archived
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
 
+            // Given the user is in all betas
+            const betas = [
+                CONST.BETAS.DEFAULT_ROOMS,
+                CONST.BETAS.POLICY_ROOMS,
+                CONST.BETAS.POLICY_EXPENSE_CHAT,
+            ];
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: betas,
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '0',
@@ -503,7 +516,7 @@ describe('Sidebar', () => {
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
                 })
         });
     });
@@ -562,6 +575,56 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Seven, Eight');
                     expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
                 });
+        });
+
+        it('puts archived chats last', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given three unread reports, with the first report being archived
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+            };
+
+            // Given the user is in all betas
+            const betas = [
+                CONST.BETAS.DEFAULT_ROOMS,
+                CONST.BETAS.POLICY_ROOMS,
+                CONST.BETAS.POLICY_EXPENSE_CHAT,
+            ];
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated with the data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.BETAS]: betas,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '0',
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                }))
+
+                // Then the first report is in last position
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
+                })
         });
     });
 });
