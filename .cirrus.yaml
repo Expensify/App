@@ -6,7 +6,8 @@ emulator_task:
     cpu: 8
     memory: 12G
 
-  # TODO: add background
+  install_gems_background_script:
+    - bundle install
   # Start node setup as early as possible
   setup_node_background_script:
     - wget https://deb.nodesource.com/node_16.x/pool/main/n/nodejs/nodejs_16.15.1-deb-1nodesource1_amd64.deb
