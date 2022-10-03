@@ -112,16 +112,22 @@ function getOrderedReportIDs() {
         };
     });
 
-    let orderedReports = _.sortBy(filteredReportsWithReportName, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
+    // Sorting the reports works like this:
+    // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
+    // - When in GSD mode, reports are ordered by their display name so they are alphabetical (in ascending order)
+    // - Regardless of mode, all archived reports should remain at the bottom
+    const orderedReports = _.sortBy(filteredReportsWithReportName, (report) => {
+        if (ReportUtils.isArchivedRoom(report)) {
+            return isInDefaultMode ? -Infinity : 'ZZZZZZZZZZZZZ';
+        }
 
-    // When the user is default mode, then the reports are ordered recently updated descending, so the ordered
-    // array must be reversed or else the recently updated changes will be at the bottom and not the top
+        return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
+    });
+
+    // Apply the decsending order to reports when in default mode
     if (isInDefaultMode) {
         orderedReports.reverse();
     }
-
-    // Move the archived Rooms to the last
-    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
 
     // Put all the reports into the different buckets
     for (let i = 0; i < orderedReports.length; i++) {
