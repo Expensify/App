@@ -154,15 +154,15 @@ getPullRequestBody()
 
         if (verifyingAuthorChecklist && !authorChecklistComplete) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
-            core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
         if (!verifyingAuthorChecklist && !reviewerChecklistComplete) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
-            core.setFailed('Contributor+ checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            core.setFailed('PR Reviewer Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        console.log(`${verifyingAuthorChecklist ? 'Contributor' : 'Contributor+'} checklist is complete 🎉`);
+        console.log(`${verifyingAuthorChecklist ? 'PR Author' : 'PR Reviewer'} checklist is complete 🎉`);
     });
