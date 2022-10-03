@@ -12,12 +12,12 @@ emulator_task:
     - sdkmanager "system-images;android-30;google_apis_playstore;x86"
     - echo no | avdmanager create avd --force --name "api-30" --abi "google_apis_playstore/x86" --package "system-images;android-30;google_apis_playstore;x86"
   start_emulator_background_script:
-    # fire on the adb for a while
+    # start adb already otherwise the next step sometimes hangs
     - adb devices
     - emulator -avd "api-30" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -accel on
   wait_for_emulator_script:
-    - adb wait-for-device
-    - adb shell input keyevent 82
+    # https://android.stackexchange.com/a/83747/374266
+    - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 3; done; input keyevent 82'
   disable_animations_script:
     - adb shell settings put global window_animation_scale 0.0
     - adb shell settings put global transition_animation_scale 0.0
