@@ -140,6 +140,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             } catch (e) {
                 // when we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
                 await stopVideoRecording(true);
+                testLog.done();
                 throw e; // rethrow to abort execution
             }
         }
