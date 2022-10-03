@@ -250,9 +250,4 @@ WorkspaceInitialPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withPolicy,
-    withOnyx({
-        policyMemberList: {
-            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
-        },
-    }),
 )(WorkspaceInitialPage);
