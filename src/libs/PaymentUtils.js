@@ -30,24 +30,14 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {Object} [payPalMeData = null]
- * @param {Object} personalBankAccount
+ * @param {Object} pendingBankAccount
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null, personalBankAccount = {}) {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null, pendingBankAccount = {}) {
     const combinedPaymentMethods = [];
-
-    const pendingBankAccount = lodashGet(personalBankAccount, 'selectedBankAccount', {});
 
     // See if we need to show a pending bank account in the payment methods list
     if (!_.isEmpty(pendingBankAccount)) {
-        // Get error from errorFields and pass it into the pendingBankAccount Object
-        const pendingAccountErrors = lodashGet(personalBankAccount, 'errors', {});
-        const sortedErrors = _.chain(pendingAccountErrors)
-            .keys()
-            .sortBy()
-            .map(key => pendingAccountErrors[key])
-            .value();
-        pendingBankAccount.errors = sortedErrors;
         const {icon, iconSize} = getBankIcon(lodashGet(pendingBankAccount, 'additionalData.bankName', ''));
         combinedPaymentMethods.push({
             accountData: _.extend({}, pendingBankAccount, {icon}),
@@ -103,6 +93,42 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null, pe
 }
 
 /**
+ * Gets the selected plaid bank account object from plaidData
+ * @param {Object} personalBankAccount
+ * @param {Object} plaidData
+ * @returns {Object}
+ */
+function getPendingBankAccount(personalBankAccount = {}, plaidData = {}) {
+    // Get selected bank account ID if present
+    const plaidAccountID = lodashGet(personalBankAccount, 'selectedPlaidAccountID', 0);
+    if (!plaidAccountID) {
+        return {};
+    }
+
+    // Get bank accounts returned by Plaid
+    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
+    if (_.isEmpty(plaidBankAccounts)) {
+        return {};
+    }
+
+    // Get that bank account object by ID
+    const pendingBankAccount = _.findWhere(plaidBankAccounts, {plaidAccountID}) || {};
+    if (_.isEmpty(pendingBankAccount)) {
+        return {};
+    }
+
+    // Get errors
+    const pendingAccountErrors = lodashGet(personalBankAccount, 'errors', {});
+    pendingBankAccount.errors = _.chain(pendingAccountErrors)
+        .keys()
+        .sortBy()
+        .map(key => pendingAccountErrors[key])
+        .value();
+
+    return pendingBankAccount;
+}
+
+/**
  * @param {Number} currentBalance, in cents
  * @param {String} methodType
  * @returns {Number} the fee, in cents
@@ -118,5 +144,6 @@ function calculateWalletTransferBalanceFee(currentBalance, methodType) {
 export {
     calculateWalletTransferBalanceFee,
     formatPaymentMethods,
+    getPendingBankAccount,
     hasExpensifyPaymentMethod,
 };
