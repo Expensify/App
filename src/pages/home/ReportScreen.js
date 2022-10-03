@@ -23,8 +23,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
-import ReportFooter from './report/ReportFooter';
-import reportPropTypes from './report/reportPropTypes';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -112,25 +111,24 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchReportIfNeeded();
-        toggleReportActionComposeView(true);
+        Log.info('[ReportScreen] Component mounted, ', false, {reportID: this.props.route.params.reportID});
+        this.storeCurrentlyViewedReport();
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+        const previousReportID = prevProps.route.params.reportID;
+        const newReportID = this.props.route.params.reportID;
+        if (previousReportID === newReportID) {
             return;
         }
 
-        this.fetchReportIfNeeded();
-        toggleReportActionComposeView(true);
+        Log.info('[ReportScreen] Navigated to new reportID', false, {previousReportID, newReportID});
     }
 
     componentWillUnmount() {
-        if (!window.visualViewport) {
-            return;
-        }
-        window.visualViewport.removeEventListener('resize', this.viewportOffsetTop);
+        Log.info('[ReportScreen] Component unmounting, ', false, {reportID: this.props.route.params.reportID});
+        this.removeViewportResizeListener();
     }
 
     /**
@@ -182,6 +180,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        Log.info('[ReportScreen] Render called', false, {isTransitioning: this.state.isTransitioning});
         if (!this.props.isSidebarLoaded) {
             return null;
         }
@@ -218,40 +217,38 @@ class ReportScreen extends React.Component {
                         Navigation.navigate(ROUTES.HOME);
                     }}
                 >
-                    <OfflineWithFeedback
-                        pendingAction={addWorkspaceRoomPendingAction}
-                        errors={addWorkspaceRoomErrors}
-                        shouldShowErrorMessages={false}
-                    >
-                        <HeaderView
-                            reportID={reportID}
-                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                        />
-                    </OfflineWithFeedback>
-                    {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
-                        <Banner
-                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                            textStyles={[styles.colorReversed]}
-                            text={this.props.translate('reportActionsView.chatWithAccountManager')}
-                            onClose={this.dismissBanner}
-                            onPress={this.chatWithAccountManager}
-                            shouldShowCloseButton
-                        />
-                    )}
-                    <View
-                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
-                    >
-                        {this.shouldShowLoader()
-                            ? (
-                                <ReportActionsSkeletonView
-                                    containerHeight={this.state.skeletonViewContainerHeight}
-                                />
-                            )
-                            : (
-                                <ReportActionsView
-                                    reportActions={this.props.reportActions}
+                    <HeaderView
+                        key={reportID}
+                        reportID={reportID}
+                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    />
+                </OfflineWithFeedback>
+                <View
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                >
+                    {this.shouldShowLoader()
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={this.state.skeletonViewContainerHeight}
+                            />
+                        )
+                        : (
+                            <ReportActionsView
+                                key={reportID}
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
+                                session={this.props.session}
+                                isComposerFullSize={this.props.isComposerFullSize}
+                                isDrawerOpen={this.props.isDrawerOpen}
+                            />
+                        )}
+                    {(isArchivedRoom || hideComposer) && (
+                        <View style={[styles.chatFooter]}>
+                            {isArchivedRoom && (
+                                <ArchivedReportFooter
+                                    reportClosedAction={reportClosedAction}
                                     report={this.props.report}
                                     session={this.props.session}
                                     isComposerFullSize={this.props.isComposerFullSize}
