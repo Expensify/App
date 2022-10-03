@@ -209,7 +209,6 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        Log.info('[ReportScreen] Render called', false, {isTransitioning: this.state.isTransitioning});
         if (!this.props.isSidebarLoaded) {
             return null;
         }
