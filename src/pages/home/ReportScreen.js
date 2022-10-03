@@ -24,6 +24,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
 import Log from '../../libs/Log';
+import ReportFooter from './report/ReportFooter';
+import Banner from '../../components/Banner';
+import withLocalize from '../../components/withLocalize';
+import reportPropTypes from '../reportPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -202,6 +208,7 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
+        const isTransitioning = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -216,38 +223,43 @@ class ReportScreen extends React.Component {
                         Navigation.navigate(ROUTES.HOME);
                     }}
                 >
-                    <HeaderView
-                        key={reportID}
-                        reportID={reportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
-                </OfflineWithFeedback>
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
-                >
-                    {this.shouldShowLoader()
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={this.state.skeletonViewContainerHeight}
-                            />
-                        )
-                        : (
-                            <ReportActionsView
-                                key={reportID}
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                isDrawerOpen={this.props.isDrawerOpen}
-                            />
-                        )}
-                    {(isArchivedRoom || hideComposer) && (
-                        <View style={[styles.chatFooter]}>
-                            {isArchivedRoom && (
-                                <ArchivedReportFooter
-                                    reportClosedAction={reportClosedAction}
+                    <OfflineWithFeedback
+                        pendingAction={addWorkspaceRoomPendingAction}
+                        errors={addWorkspaceRoomErrors}
+                        errorRowStyles={styles.dNone}
+                    >
+                        <HeaderView
+                            key={reportID}
+                            reportID={reportID}
+                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                            isLoading={isTransitioning}
+                        />
+                    </OfflineWithFeedback>
+                    {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                        <Banner
+                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                            textStyles={[styles.colorReversed]}
+                            text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                            onClose={this.dismissBanner}
+                            onPress={this.chatWithAccountManager}
+                            shouldShowCloseButton
+                        />
+                    )}
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                    >
+                        {(this.shouldShowLoader() || isTransitioning)
+                            ? (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )
+                            : (
+                                <ReportActionsView
+                                    key={reportID}
+                                    reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     session={this.props.session}
                                     isComposerFullSize={this.props.isComposerFullSize}
@@ -262,6 +274,7 @@ class ReportScreen extends React.Component {
                             report={this.props.report}
                             isComposerFullSize={this.props.isComposerFullSize}
                             onSubmitComment={this.onSubmitComment}
+                            isLoading={isTransitioning}
                         />
                     </View>
                 </FullPageNotFoundView>

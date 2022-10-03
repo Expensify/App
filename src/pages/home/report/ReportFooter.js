@@ -42,6 +42,9 @@ const propTypes = {
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
+    /** Whether we are waiting for the next report to load */
+    isLoading: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -49,6 +52,7 @@ const defaultProps = {
     shouldShowComposeInput: true,
     addWorkspaceRoomErrors: {},
     addWorkspaceRoomPendingAction: null,
+    isLoading: false,
 };
 
 class ReportFooter extends React.Component {
@@ -97,6 +101,7 @@ class ReportFooter extends React.Component {
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
+                                    isLoading={this.props.isLoading}
                                 />
                             </OfflineWithFeedback>
                         </SwipeableView>
