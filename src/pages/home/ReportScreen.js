@@ -30,6 +30,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -132,18 +133,23 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
+        Log.info('[ReportScreen] Component mounted, ', false, {reportID: this.props.route.params.reportID});
         this.storeCurrentlyViewedReport();
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+        const previousReportID = prevProps.route.params.reportID;
+        const newReportID = this.props.route.params.reportID;
+        if (previousReportID === newReportID) {
             return;
         }
-        this.storeCurrentlyViewedReport();
+
+        Log.info('[ReportScreen] Navigated to new reportID', false, {previousReportID, newReportID});
     }
 
     componentWillUnmount() {
+        Log.info('[ReportScreen] Component unmounting, ', false, {reportID: this.props.route.params.reportID});
         this.removeViewportResizeListener();
     }
 
@@ -203,6 +209,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        Log.info('[ReportScreen] Render called', false, {isTransitioning: this.state.isTransitioning});
         if (!this.props.isSidebarLoaded) {
             return null;
         }
@@ -243,6 +250,7 @@ class ReportScreen extends React.Component {
                     errorRowStyles={styles.dNone}
                 >
                     <HeaderView
+                        key={reportID}
                         reportID={reportID}
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
@@ -260,6 +268,7 @@ class ReportScreen extends React.Component {
                         )
                         : (
                             <ReportActionsView
+                                key={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                                 session={this.props.session}

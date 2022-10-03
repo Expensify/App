@@ -114,12 +114,20 @@ function pushDrawerRoute(route) {
             });
         }
 
+        const routes = [{
+            name: newScreenName,
+            params: newScreenParams,
+        }];
+
+        // Keep the same key so the ReportScreen does not completely re-mount
+        if (newScreenName === 'Report') {
+            const prevReportRoute = _.find(state.routes, reportRoute => reportRoute.name === 'Report');
+            routes[0].key = prevReportRoute.key;
+        }
+
         return CommonActions.reset({
             ...state,
-            routes: [{
-                name: newScreenName,
-                params: newScreenParams,
-            }],
+            routes,
             history,
         });
     };
