@@ -52,14 +52,6 @@ let conciergeChatReportID;
 const typingWatchTimers = {};
 
 /**
- * @param {String} reportID
- * @returns {Number}
- */
-function getLastMessageTimestamp(reportID) {
-    return lodashGet(allReports, [reportID, 'lastMessageTimestamp'], 0);
-}
-
-/**
  * @param {Object} report
  * @return {String[]}
  */
