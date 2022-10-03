@@ -147,6 +147,20 @@ class RequestorStep extends React.Component {
         BankAccounts.updatePersonalInformationForBankAccount(payload);
     }
 
+    submitOnfidoVerification() {
+        if (!this.validate()) {
+            return;
+        }
+
+        const payload = {
+            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            ...this.state,
+            dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
+        };
+
+        BankAccounts.setupWithdrawalAccount(payload);
+    }
+
     render() {
         const achData = this.props.reimbursementAccount.achData;
         const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !this.state.isOnfidoSetupComplete;
@@ -161,7 +175,7 @@ class RequestorStep extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => {
                         if (shouldShowOnfido) {
-                            BankAccounts.clearOnfido();
+                            BankAccounts.clearOnfidoToken();
                         } else {
                             BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }
@@ -185,7 +199,7 @@ class RequestorStep extends React.Component {
                                 this.setState({
                                     onfidoData,
                                     isOnfidoSetupComplete: true,
-                                }, this.submit);
+                                }, this.submitOnfidoVerification);
                             }}
                         />
                     </ScrollView>
