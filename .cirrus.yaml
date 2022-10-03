@@ -6,6 +6,16 @@ emulator_task:
     cpu: 8
     memory: 12G
 
+  # Start node setup as early as possible
+  setup_node_background_script:
+    - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    - export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+    - [ -s "$NVM_DIR/nvm.sh" ]
+    - \. "$NVM_DIR/nvm.sh"
+    - nvm install
+    - npm install
+    - which node
+    - touch /tmp/node_setup_finished
   accel_check_script: emulator -accel-check
   setup_emulator_script:
     - sdkmanager --update
@@ -18,15 +28,9 @@ emulator_task:
   wait_for_emu_and_disable_animations_script:
     # https://android.stackexchange.com/a/83747/374266
     - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 5; done; input keyevent 82'
-    # i have chained those commands because often the animation setting would fail with "no devices/emulators found"
+    # I have chained those commands because often the animation setting would fail with "no devices/emulators found"
     - adb shell settings put global window_animation_scale 0.0
     - adb shell settings put global transition_animation_scale 0.0
     - adb shell settings put global animator_duration_scale 0.0
-  setup_node_script:
-    - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-    - export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-    - [ -s "$NVM_DIR/nvm.sh" ]
-    - \. "$NVM_DIR/nvm.sh"
-    - nvm install
-    - npm install
-    - which node
+  wait_for_node_setup_to_finish_script:
+    - while [ ! -f /tmp/node_setup_finished ]; do sleep 5; done
