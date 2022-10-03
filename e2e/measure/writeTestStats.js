@@ -17,7 +17,7 @@ const {OUTPUT_FILE_CURRENT} = require('../config');
  */
 module.exports = async (stats, path = OUTPUT_FILE_CURRENT) => {
     if (!stats.name || !stats.mean || !stats.stdev || !stats.entries || !stats.runs) {
-        throw new Error(`Invalid stats object:\n${stats}`);
+        throw new Error(`Invalid stats object:\n${JSON.stringify(stats, null, 2)}\n\n`);
     }
 
     if (!existsSync(path)) {
