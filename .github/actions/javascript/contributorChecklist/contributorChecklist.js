@@ -97,8 +97,8 @@ const completedReviewerChecklist = `- [x] I have verified the author checklist i
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
 
-// True if we are validating a contributor checklist, otherwise we are validating a contributor+ checklist
-const verifyingAuthorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
+// True if we are validating an author checklist, otherwise we are validating a reviewer checklist
+const verifyingAuthorChecklist = core.getInput('CHECKLIST', {required: true}) === 'author';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 

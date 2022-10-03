@@ -11,4 +11,4 @@ jobs:
         uses: Expensify/App/.github/actions/javascript/contributorChecklist@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHECKLIST: 'contributor'
+          CHECKLIST: 'author'
