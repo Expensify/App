@@ -8,7 +8,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
-import {buildOptimisticChatReport} from '../libs/ReportUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -18,7 +18,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
-import ROUTES from "../ROUTES";
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -199,7 +199,7 @@ class NewChatPage extends Component {
         let newChat = {};
         const chat = this.getChatByParticipants([option.login]);
         if (!chat) {
-            newChat = buildOptimisticChatReport([option.login]);
+            newChat = ReportUtils.buildOptimisticChatReport([option.login]);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
         Report.openReport(reportID, newChat.participants, newChat);
@@ -218,7 +218,7 @@ class NewChatPage extends Component {
         let newChat = {};
         const chat = this.getChatByParticipants(userLogins);
         if (!chat) {
-            newChat = buildOptimisticChatReport(userLogins);
+            newChat = ReportUtils.buildOptimisticChatReport(userLogins);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
         Report.openReport(reportID, newChat.participants, newChat);
