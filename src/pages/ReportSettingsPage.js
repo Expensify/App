@@ -112,11 +112,11 @@ class ReportSettingsPage extends Component {
         if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
         }
-
-        // We error if the room name already exists. We don't error if the room name matches same as previous.
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        }
+        //
+        // // We error if the room name already exists. We don't error if the room name matches same as previous.
+        // if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
+        //     errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        // }
 
         // Certain names are reserved for default rooms and should not be used for policy rooms.
         if (ValidationUtils.isReservedRoomName(this.state.newRoomName)) {
