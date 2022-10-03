@@ -24,20 +24,15 @@ import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
-import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
-
-    /** The employee list of this policy (coming from Onyx) */
-    policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const defaultProps = {
     ...policyDefaultProps,
-    policyMemberList: {},
 };
 
 class WorkspaceInitialPage extends React.Component {
