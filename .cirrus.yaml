@@ -6,18 +6,19 @@ emulator_task:
     cpu: 8
     memory: 12G
 
+  # TODO: add background
   # Start node setup as early as possible
-  setup_node_background_script:
-    - wget -q https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
-    - chmod +x install.sh
-    - ./install.sh
-    - export NVM_DIR="$HOME/.nvm"
-    - [ -s "$NVM_DIR/nvm.sh" ]
-    - \. "$NVM_DIR/nvm.sh"
-    - nvm install
-    - npm install
-    - which node
-    - touch /tmp/node_setup_finished
+  setup_node__script:
+    - wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
+#    - chmod +x install.sh
+#    - ./install.sh
+#    - export NVM_DIR="$HOME/.nvm"
+#    - [ -s "$NVM_DIR/nvm.sh" ]
+#    - \. "$NVM_DIR/nvm.sh"
+#    - nvm install
+#    - npm install
+#    - which node
+#    - touch /tmp/node_setup_finished
   accel_check_script: emulator -accel-check
   setup_emulator_script:
     - sdkmanager --update
