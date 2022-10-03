@@ -48,7 +48,7 @@ const ReportActionItemCreated = (props) => {
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
-            onClose={() => Report.navigateToConciergeChatAndDeletePolicyReport(props.report.reportID)}
+            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View
                 accessibilityLabel="Chat welcome message"

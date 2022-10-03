@@ -1066,11 +1066,6 @@ function deleteReportComment(reportID, reportAction) {
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
 
-function deleteReportFromOnyx(reportID) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-    Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-}
-
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
@@ -1352,7 +1347,7 @@ function addPolicyReport(policy, reportName, visibility) {
 /**
  * @param {Number} reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeletePolicyReport(reportID) {
+function navigateToConciergeChatAndDeleteReport(reportID) {
     navigateToConciergeChat();
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
@@ -1560,7 +1555,6 @@ export {
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,
-    deleteReportFromOnyx,
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
@@ -1568,7 +1562,7 @@ export {
     setReportWithDraft,
     createPolicyRoom,
     addPolicyReport,
-    navigateToConciergeChatAndDeletePolicyReport,
+    navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
