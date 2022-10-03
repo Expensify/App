@@ -40,6 +40,7 @@ emulator_task:
   background_start_emulator_background_script:
     # start adb already otherwise the next step sometimes hangs
     - adb devices
+    # TODO: check if GPU host works
     - emulator -avd "api-30" -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -accel on
   wait_for_emu_and_disable_animations_script:
     # https://android.stackexchange.com/a/83747/374266
