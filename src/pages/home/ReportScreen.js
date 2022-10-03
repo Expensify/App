@@ -160,15 +160,14 @@ class ReportScreen extends React.Component {
 
     fetchReportIfNeeded() {
         const reportIDFromPath = getReportID(this.props.route);
-
-        // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
-        // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
-        // If it doesn't exist, then we fetch the report from the API.
-        if (this.props.report.reportID) {
+        if (_.isNaN(reportIDFromPath)) {
+            Report.handleInaccessibleReport();
             return;
         }
 
-        Report.fetchChatReportsByIDs([reportIDFromPath], true);
+        // Always reset the state of the composer view when the current reportID changes
+        toggleReportActionComposeView(true);
+        Report.updateCurrentlyViewedReportID(reportIDFromPath);
     }
 
     /**
