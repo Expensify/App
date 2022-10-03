@@ -730,6 +730,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
                 errorFields: {
                     createChat: null,
                 },
+                isOptimisticReport: false,
             },
         }],
     };
@@ -740,6 +741,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
+            isOptimisticReport: true,
         };
 
         // Also create a report action so that the page isn't endlessly loading
