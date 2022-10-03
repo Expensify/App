@@ -8,7 +8,9 @@ emulator_task:
 
   # Start node setup as early as possible
   setup_node_background_script:
-    - wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    - wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh > install.sh
+    - chmod +x install.sh
+    - ./install.sh
     - export NVM_DIR="$HOME/.nvm"
     - [ -s "$NVM_DIR/nvm.sh" ]
     - \. "$NVM_DIR/nvm.sh"
