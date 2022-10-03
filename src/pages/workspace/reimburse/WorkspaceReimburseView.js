@@ -133,10 +133,10 @@ class WorkspaceReimburseView extends React.Component {
     setRate(value) {
         const decimalSeparator = this.props.toLocaleDigit('.');
         const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
-        const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
+        const isValidRateValue = value !== '' && rateValueRegex.test(value);
 
         this.setState(prevState => ({
-            unitRateValue: !isInvalidRateValue ? this.getRateDisplayValue(value) : prevState.unitRateValue,
+            unitRateValue: isValidRateValue ? this.getRateDisplayValue(value) : prevState.unitRateValue,
         }), () => {
             // Set the corrected value with a delay and sync to the server
             this.updateRateValueDebounced(this.state.unitRateValue);
