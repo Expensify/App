@@ -140,8 +140,8 @@ class Tooltip extends PureComponent {
     }
 
     render() {
-        // Skip the tooltip and return the children, if the text is empty.
-        if (_.isEmpty(this.props.text)) {
+        // Skip the tooltip and return the children, if the text is empty or there is no mouse/pointer/cursor.
+        if (_.isEmpty(this.props.text) || !matchMedia('(pointer:fine)').matches) {
             return this.props.children;
         }
         let child = (
