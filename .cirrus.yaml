@@ -14,6 +14,10 @@ emulator_task:
     - npm install
     - which node
     - touch /tmp/node_setup_finished
+  # TODO: move to background as well
+  preheat_build_system_script:
+    - while [ ! -f /tmp/node_setup_finished ]; do sleep 5; done
+    - npm run android-build-e2e
   accel_check_script: emulator -accel-check
   setup_emulator_script:
     - sdkmanager --update
