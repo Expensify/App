@@ -9,12 +9,8 @@ emulator_task:
   # TODO: add background
   # Start node setup as early as possible
   setup_node_script:
-    - wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
-    - chmod +x install.sh
-    - ./install.sh
-    - export NVM_DIR="$HOME/.nvm"
-    - source "$NVM_DIR/nvm.sh"
-    - nvm install
+    - wget https://deb.nodesource.com/node_16.x/pool/main/n/nodejs/nodejs_16.15.1-deb-1nodesource1_amd64.deb
+    - sudo dpkg -i nodejs_16.15.1-deb-1nodesource1_amd64.deb
     - npm install
     - which node
     - touch /tmp/node_setup_finished
