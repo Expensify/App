@@ -10,7 +10,13 @@ const test = () => {
     console.debug('[E2E] App is ready, logging in…');
 
     // check for login (if already logged in the action will simply resolve)
-    E2ELogin(email, password).then(() => {
+    E2ELogin(email, password).then((neededLogin) => {
+        if (neededLogin) {
+            // we don't want to submit the first login to the results
+            E2EClient.submitTestDone();
+            return;
+        }
+
         console.debug('[E2E] Logged in, getting metrics and submitting them…');
 
         // collect performance metrics and submit
@@ -24,7 +30,6 @@ const test = () => {
             })),
         ).then(() => {
             console.debug('[E2E] Done, exiting…');
-            E2EClient.submitTestDone();
         }).catch((err) => {
             console.debug('[E2E] Error while submitting test results:', err);
         });
