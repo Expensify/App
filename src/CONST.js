@@ -69,9 +69,6 @@ const CONST = {
         },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
-            EXTERNAL_API_RESPONSES: 'verifications.externalApiResponses',
-            REQUESTOR_IDENTITY_ID: 'verifications.externalApiResponses.requestorIdentityID',
-            REQUESTOR_IDENTITY_ONFIDO: 'verifications.externalApiResponses.requestorIdentityOnfido',
             THROTTLED: 'verifications.throttled',
         },
         FIELDS_TYPE: {
@@ -672,6 +669,7 @@ const CONST = {
             FREE: 'free',
             PERSONAL: 'personal',
             CORPORATE: 'corporate',
+            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
