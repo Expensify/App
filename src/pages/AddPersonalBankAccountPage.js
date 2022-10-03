@@ -52,7 +52,7 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidBankAccount: lodashGet(this.props, 'personalBankAccount.selectedBankAccount', {}),
+            selectedPlaidBankAccount: lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {}),
             password: '',
         };
 
@@ -165,13 +165,14 @@ class AddPersonalBankAccountPage extends React.Component {
                                 >
                                     <AddPlaidBankAccount
                                         onSelect={(params) => {
+                                            BankAccounts.updatePlaidData({selectedPlaidBankAccount: params.selectedPlaidBankAccount});
                                             this.setState({
                                                 selectedPlaidBankAccount: params.selectedPlaidBankAccount,
                                             });
                                         }}
                                         onExitPlaid={Navigation.goBack}
                                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                        selectedPlaidBankAccount={this.state.selectedPlaidBankAccount}
+                                        selectedPlaidAccountID={this.state.selectedPlaidBankAccount.plaidAccountID}
                                     />
                                     {!_.isEmpty(this.state.selectedPlaidBankAccount) && (
                                         <View style={[styles.mb5]}>
@@ -220,6 +221,9 @@ AddPersonalBankAccountPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
+        },
         personalBankAccount: {
             key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
         },

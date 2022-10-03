@@ -410,6 +410,7 @@ function clearPersonalBankAccountErrors() {
         pendingFields: {
             plaidSelector: null,
         },
+        selectedPlaidAccountID: null,
     });
 }
 

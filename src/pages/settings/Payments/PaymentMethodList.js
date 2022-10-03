@@ -117,7 +117,8 @@ class PaymentMethodList extends Component {
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(this.props.cardList, card => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData, this.props.personalBankAccount);
+        const pendingBankAccount = PaymentUtils.getPendingBankAccount(this.props.personalBankAccount, this.props.plaidData);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData, pendingBankAccount);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -265,6 +266,9 @@ export default compose(
         },
         personalBankAccount: {
             key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
         payPalMeData: {
             key: ONYXKEYS.PAYPAL,
