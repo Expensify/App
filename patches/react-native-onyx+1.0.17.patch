@@ -1,0 +1,47 @@
+diff --git a/node_modules/react-native-onyx/lib/Onyx.js b/node_modules/react-native-onyx/lib/Onyx.js
+index f6deb0c..a71a484 100644
+--- a/node_modules/react-native-onyx/lib/Onyx.js
++++ b/node_modules/react-native-onyx/lib/Onyx.js
+@@ -7,6 +7,7 @@ import * as Logger from './Logger';
+ import cache from './OnyxCache';
+ import createDeferredTask from './createDeferredTask';
+ import mergeWithCustomized from './mergeWithCustomized';
++import { unstable_batchedUpdates } from 'react-native';
+ 
+ // Keeps track of the last connectionID that was used so we can keep incrementing it
+ let lastConnectionID = 0;
+@@ -504,6 +505,9 @@ function disconnect(connectionID, keyToRemoveFromEvictionBlocklist) {
+     delete callbackToStateMapping[connectionID];
+ }
+ 
++let notifySubs = [];
++let scheduled = false;
++
+ /**
+  * This method mostly exists for historical reasons as this library was initially designed without a memory cache and one was added later.
+  * For this reason, Onyx works more similar to what you might expect from a native AsyncStorage with reads, writes, etc all becoming
+@@ -515,7 +519,23 @@ function disconnect(connectionID, keyToRemoveFromEvictionBlocklist) {
+  */
+ // eslint-disable-next-line rulesdir/no-negated-variables
+ function notifySubscribersOnNextTick(key, value) {
+-    Promise.resolve().then(() => keyChanged(key, value));
++    notifySubs.push([key, value]);
++    if (!scheduled) {
++        scheduled = true;
++        setTimeout(() => {
++            scheduled = false;
++            notifySubsCopy = notifySubs;
++            notifySubs = [];
++
++            unstable_batchedUpdates(function flushKeyChanges() {
++                for (let i = 0; i < notifySubsCopy.length; ++i) {
++                    keyChanged(notifySubsCopy[i][0], notifySubsCopy[i][1]);
++                }
++            });
++        }, 0);
++    }
++    
++    //Promise.resolve().then(() => keyChanged(key, value));
+ }
+ 
+ /**
