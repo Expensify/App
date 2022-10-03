@@ -1206,40 +1206,6 @@ function navigateToConciergeChat() {
 }
 
 /**
- * Creates a policy room, fetches it, and navigates to it.
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @return {Promise}
- */
-function createPolicyRoom(policyID, reportName, visibility) {
-    Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
-    return DeprecatedAPI.CreatePolicyRoom({policyID, reportName, visibility})
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
-                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
-                return;
-            }
-
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Growl.error(response.message);
-                return;
-            }
-
-            return fetchChatReportsByIDs([response.reportID]);
-        })
-        .then((chatReports) => {
-            const reportID = lodashGet(_.first(_.values(chatReports)), 'reportID', '');
-            if (!reportID) {
-                Log.error('Unable to grab policy room after creation', reportID);
-                return;
-            }
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        })
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
-}
-
-/**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
  * @param {Object} policy
@@ -1530,7 +1496,6 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     setReportWithDraft,
-    createPolicyRoom,
     addPolicyReport,
     navigateToConciergeChatAndDeletePolicyReport,
     setIsComposerFullSize,
