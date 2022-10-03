@@ -22,7 +22,7 @@ emulator_task:
     - adb shell settings put global window_animation_scale 0.0
     - adb shell settings put global transition_animation_scale 0.0
     - adb shell settings put global animator_duration_scale 0.0
-  setup_node:
+  setup_node_script:
     - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
     - export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
     - [ -s "$NVM_DIR/nvm.sh" ]
