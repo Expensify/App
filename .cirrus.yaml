@@ -5,7 +5,12 @@ emulator_task:
     kvm: true
     cpu: 8
     memory: 12G
+  env:
+    JAVA_TOOL_OPTIONS: -Xmx6g
+    GRADLE_OPTS: -Dorg.gradle.daemon=false
 
+  # This steps takes less than the node setup, so we don't
+  # explicit check later on if that step is done, we just assume it is
   install_gems_background_script:
     - bundle install
   # Start node setup as early as possible
