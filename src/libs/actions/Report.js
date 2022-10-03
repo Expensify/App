@@ -724,18 +724,23 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 isLoadingReportActions: false,
-            },
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isLoadingReportActions: false,
+                pendingFields: {
+                    createChat: null,
+                },
+                errorFields: {
+                    createChat: null,
+                },
             },
         }],
     };
     if (!_.isEmpty(newReportObject)) {
-        onyxData.optimisticData[0].value = {...onyxData.optimisticData[0].value, ...newReportObject};
+        onyxData.optimisticData[0].value = {
+            ...onyxData.optimisticData[0].value,
+            ...newReportObject,
+            pendingFields: {
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        };
 
         // Also create a report action so that the page isn't endlessly loading
         onyxData.optimisticData[1] = {
