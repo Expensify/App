@@ -25,7 +25,6 @@ import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
-import Log from '../../libs/Log';
 import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
@@ -116,7 +115,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        Log.info('[ReportScreen] Component mounted, ', false, {reportID: this.props.route.params.reportID});
         this.storeCurrentlyViewedReport();
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
@@ -128,11 +126,10 @@ class ReportScreen extends React.Component {
             return;
         }
 
-        Log.info('[ReportScreen] Navigated to new reportID', false, {previousReportID, newReportID});
+        this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
-        Log.info('[ReportScreen] Component unmounting, ', false, {reportID: this.props.route.params.reportID});
         this.removeViewportResizeListener();
     }
 
