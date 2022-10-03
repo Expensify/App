@@ -229,17 +229,17 @@ class ReportScreen extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
-        const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
-        const hideComposer = isArchivedRoom || !_.isEmpty(addWorkspaceRoomErrors);
+        const pendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
+        const errors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
+        const hideComposer = isArchivedRoom || !_.isEmpty(errors);
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
                 keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
                 <OfflineWithFeedback
-                    pendingAction={addWorkspaceRoomPendingAction}
-                    errors={addWorkspaceRoomErrors}
+                    pendingAction={pendingAction}
+                    errors={errors}
                     errorRowStyles={styles.dNone}
                 >
                     <HeaderView
@@ -288,7 +288,7 @@ class ReportScreen extends React.Component {
                         <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                             <SwipeableView onSwipeDown={Keyboard.dismiss}>
                                 <OfflineWithFeedback
-                                    pendingAction={addWorkspaceRoomPendingAction}
+                                    pendingAction={pendingAction}
                                 >
                                     <ReportActionCompose
                                         onSubmit={this.onSubmitComment}
