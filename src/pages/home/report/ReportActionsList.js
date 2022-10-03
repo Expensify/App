@@ -154,10 +154,10 @@ class ReportActionsList extends React.Component {
      * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
      * @returns {React.Component}
      */
-    renderCell({item, style, ...props}) {
+    renderCell({index, style, ...props}) {
         const cellStyle = [
             style,
-            {zIndex: item.action.timestamp},
+            {zIndex: index},
         ];
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View style={cellStyle} {...props} />;
