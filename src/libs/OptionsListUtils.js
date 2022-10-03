@@ -466,8 +466,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     const sortProperty = sortByLastMessageTimestamp
         ? ['lastMessageTimestamp']
         : ['lastVisitedTimestamp'];
-    const sortDirection = ['desc'];
-    let orderedReports = lodashOrderBy(filteredReports, sortProperty, sortDirection);
+    let orderedReports = lodashOrderBy(filteredReports, sortProperty, ['desc']);
 
     // Move the archived Rooms to the last
     orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
