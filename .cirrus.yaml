@@ -8,7 +8,7 @@ emulator_task:
 
   # TODO: add background
   # Start node setup as early as possible
-  setup_node_script:
+  setup_node_background_script:
     - wget https://deb.nodesource.com/node_16.x/pool/main/n/nodejs/nodejs_16.15.1-deb-1nodesource1_amd64.deb
     - sudo dpkg -i nodejs_16.15.1-deb-1nodesource1_amd64.deb
     - npm install
