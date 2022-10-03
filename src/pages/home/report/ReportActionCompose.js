@@ -481,6 +481,9 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        this.debouncedSaveReportComment.cancel();
         this.props.onSubmit(comment);
     }
 
