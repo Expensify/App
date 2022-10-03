@@ -7,7 +7,7 @@ emulator_task:
     memory: 16G
   env:
     JAVA_TOOL_OPTIONS: -Xmx8g
-    GRADLE_OPTS: -Dorg.gradle.daemon=false
+    GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.incremental=false -Dkotlin.compiler.execution.strategy=in-process
 
   # This steps takes less than the node setup, so we don't
   # explicit check later on if that step is done, we just assume it is
