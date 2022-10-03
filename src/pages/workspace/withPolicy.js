@@ -55,10 +55,14 @@ const policyPropTypes = {
         */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
+
+    /** List of members in a policy */
+    policyMemberList: PropTypes.objectOf(PropTypes.object),
 };
 
 const policyDefaultProps = {
     policy: {},
+    policyMemberList: {},
 };
 
 /*
