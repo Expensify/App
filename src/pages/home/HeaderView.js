@@ -46,6 +46,9 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** Whether the header is loading */
+    isLoading: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -54,6 +57,7 @@ const defaultProps = {
     personalDetails: {},
     policies: {},
     report: null,
+    isLoading: false,
 };
 
 const HeaderView = (props) => {
@@ -95,7 +99,7 @@ const HeaderView = (props) => {
                         </Pressable>
                     </Tooltip>
                 )}
-                {Boolean(props.report && title) && (
+                {!props.isLoading && Boolean(props.report && title) && (
                     <View
                         style={[
                             styles.flex1,

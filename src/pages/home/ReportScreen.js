@@ -31,6 +31,7 @@ import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -214,6 +215,7 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
+        const isTransitioning = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -237,6 +239,7 @@ class ReportScreen extends React.Component {
                             key={reportID}
                             reportID={reportID}
                             onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                            isLoading={isTransitioning}
                         />
                     </OfflineWithFeedback>
                     {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
@@ -254,7 +257,7 @@ class ReportScreen extends React.Component {
                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                         onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                     >
-                        {this.shouldShowLoader()
+                        {(this.shouldShowLoader() || isTransitioning)
                             ? (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewContainerHeight}
@@ -278,6 +281,7 @@ class ReportScreen extends React.Component {
                             report={this.props.report}
                             isComposerFullSize={this.props.isComposerFullSize}
                             onSubmitComment={this.onSubmitComment}
+                            isLoading={isTransitioning}
                         />
                     </View>
                 </FullPageNotFoundView>
