@@ -181,7 +181,7 @@ class NewChatPage extends Component {
         const sortedNewParticipantList = newParticipantList.sort();
         return _.find(this.props.reports, (report) => {
             // Chat rooms don't have participants, so we can skip them
-            if (!report.participants) {
+            if (!report || !report.participants) {
                 return false;
             }
             const sortedReportParticipants = report.participants.sort();

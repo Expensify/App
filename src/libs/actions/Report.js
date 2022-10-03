@@ -708,7 +708,7 @@ function addComment(reportID, text) {
  * @param {Array} participantList
  * @param {Object} newReportObject
  */
-function openReport(reportID, participantList, newReportObject = {}) {
+function openReport(reportID, participantList = [], newReportObject = {}) {
     const onyxData = {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
