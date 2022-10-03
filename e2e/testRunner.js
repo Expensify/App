@@ -28,7 +28,6 @@ const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const startRecordingVideo = require('./utils/startRecordingVideo');
-const isAppRunning = require('./utils/isAppRunning');
 
 const args = process.argv.slice(2);
 
@@ -110,32 +109,10 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
 
             // create a promise that will resolve once the app fetched
             // the test config, which signals us that the app really started.
-            // Especially on weak systems it can happen that the app crashes during startup.
-            const waitForAppStarted = new Promise((resolve, reject) => {
-                // check every X seconds if the app is still app
-                // it can happen that the app crashes during startup, e.g.
-                // on CI. If this happens we want to try restarting the app.
-                let retries = 0;
-                const intervalId = setInterval(async () => {
-                    try {
-                        await isAppRunning();
-                    } catch (e) {
-                        // !!! the app doesn't seem to be active anymore, try to start it again
-                        if (retries > 10) {
-                            stopVideoRecording(true);
-                            clearInterval(intervalId);
-                            reject(new Error('App crashed during startup'));
-                        }
-                        retries++;
-
-                        Logger.log(`App crashed during startup, restarting app (attempt ${retries}/10)`);
-                        await launchApp('android');
-                    }
-                }, 8000);
-
-                server.addTestStartedListener(() => {
-                    Logger.log(`Test '${config.name}' started!`);
-                    clearInterval(intervalId);
+            const waitForAppStarted = new Promise((resolve) => {
+                const cleanup = server.addTestStartedListener(() => {
+                    Logger.log(`Test '${config.name}' started on the app! (In iteration ${i + 1}/${RUNS})`);
+                    cleanup();
                     resolve();
                 });
             });
@@ -147,6 +124,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             try {
                 await withFailTimeout(new Promise((resolve) => {
                     const cleanup = server.addTestDoneListener(() => {
+                        Logger.log(`Test iteration ${i + 1} done!`);
                         cleanup();
                         resolve();
                     });
