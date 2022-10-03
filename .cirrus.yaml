@@ -16,9 +16,9 @@ emulator_task:
     - chmod +x $NVM_DIR/nvm.sh
     - $NVM_DIR/nvm.sh
     - nvm install
-#    - npm install
-#    - which node
-#    - touch /tmp/node_setup_finished
+    - npm install
+    - which node
+    - touch /tmp/node_setup_finished
   accel_check_script: emulator -accel-check
   setup_emulator_script:
     - sdkmanager --update
