@@ -134,6 +134,8 @@ if (Metrics.canCapturePerformanceMetrics()) {
         ...rnPerformance.getEntriesByName('runJsBundle'),
         ...rnPerformance.getEntriesByName('jsBundleDownload'),
         ...rnPerformance.getEntriesByName('TTI'),
+        ...rnPerformance.getEntriesByName('regularAppStart'),
+        ...rnPerformance.getEntriesByName('appStartedToReady'),
     ])
         .filter(entry => entry.duration > 0)
         .value();
