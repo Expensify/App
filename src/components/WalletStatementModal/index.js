@@ -31,7 +31,7 @@ class WalletStatementModal extends React.Component {
         if (!e.data || !e.data.type || (e.data.type !== 'STATEMENT_NAVIGATE' && e.data.type !== 'CONCIERGE_NAVIGATE')) {
             return;
         }
-        
+
         if (e.data.type === 'STATEMENT_NAVIGATE' && e.data.url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
             const navigateToIOURoute = _.find(iouRoutes, iouRoute => e.data.url.includes(iouRoute));
