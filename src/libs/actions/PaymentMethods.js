@@ -149,7 +149,7 @@ function openPaymentsPage() {
  *
  */
 function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
-    return [
+    const onxyData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
@@ -159,7 +159,10 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
                 errors: null,
             },
         },
-        {
+    ];
+
+    if (previousPaymentMethod) {
+        onxyData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -167,8 +170,11 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
                     isDefault: !isOptimisticData,
                 },
             },
-        },
-        {
+        });
+    }
+
+    if (currentPaymentMethod) {
+        onxyData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -176,8 +182,10 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
                     isDefault: isOptimisticData,
                 },
             },
-        },
-    ];
+        });
+    }
+
+    return onxyData;
 }
 
 /**
