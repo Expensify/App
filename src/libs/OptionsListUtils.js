@@ -448,7 +448,6 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    sortByLastMessageTimestamp = true,
     searchValue = '',
     showChatPreviewLine = false,
     sortPersonalDetailsByAlphaAsc = true,
@@ -462,14 +461,17 @@ function getOptions(reports, personalDetails, activeReportID, {
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-    // Now the filtered reports can be sorted
-    const sortProperty = sortByLastMessageTimestamp
-        ? ['lastMessageTimestamp']
-        : ['lastVisitedTimestamp'];
-    let orderedReports = lodashOrderBy(filteredReports, sortProperty, ['desc']);
+    // Sorting the reports works like this:
+    // - Order everything by the last message timestamp (descending)
+    // - All archived reports should remain at the bottom
+    const orderedReports = _.sortBy(filteredReports, (report) => {
+        if (ReportUtils.isArchivedRoom(report)) {
+            return -Infinity;
+        }
 
-    // Move the archived Rooms to the last
-    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
+        return report.lastMessageTimestamp;
+    });
+    orderedReports.reverse();
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
