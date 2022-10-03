@@ -6,6 +6,7 @@ emulator_task:
     cpu: 8
     memory: 16G
   env:
+    LOGGER_PROGRESS_REFRESH_RATE: 30000
     JAVA_TOOL_OPTIONS: -Xmx8g
     GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.incremental=false -Dkotlin.compiler.execution.strategy=in-process
 
