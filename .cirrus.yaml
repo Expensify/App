@@ -6,6 +6,7 @@ emulator_task:
     cpu: 8
     memory: 16G
   env:
+    AVD_NAME: "api-30"
     LOGGER_PROGRESS_REFRESH_RATE: 30000
     JAVA_TOOL_OPTIONS: -Xmx8g
     GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.incremental=false -Dkotlin.compiler.execution.strategy=in-process
@@ -30,13 +31,13 @@ emulator_task:
   setup_emulator_script:
     - sdkmanager --update
     - sdkmanager "system-images;android-30;google_apis_playstore;x86"
-    - echo no | avdmanager create avd --force --name "api-30" --abi "google_apis_playstore/x86" --package "system-images;android-30;google_apis_playstore;x86"
+    - echo no | avdmanager create avd --force --name $AVD_NAME --abi "google_apis_playstore/x86" --package "system-images;android-30;google_apis_playstore;x86"
   #  await exec.exec(`sh -c \\"printf 'hw.cpu.ncore=${cores}\n' >> ${process.env.ANDROID_AVD_HOME}/"${avdName}".avd"/config.ini`);
   #  await exec.exec(`sh -c \\"printf 'hw.ramSize=${ramSize}\n' >> ${process.env.ANDROID_AVD_HOME}/"${avdName}".avd"/config.ini`);
   #  await exec.exec(`sh -c \\"printf 'hw.heapSize=${heapSize}\n' >> ${process.env.ANDROID_AVD_HOME}/"${avdName}".avd"/config.ini`);
-    - echo "hw.cpu.ncore=4" >> ~/.android/avd/api-30.avd/config.ini
-    - echo "hw.ramSize=2048" >> ~/.android/avd/api-30.avd/config.ini
-    - echo "hw.heapSize=256" >> ~/.android/avd/api-30.avd/config.ini
+    - echo "hw.cpu.ncore=4" >> ~/.android/avd/$AVD_NAME.avd/config.ini
+    - echo "hw.ramSize=2048" >> ~/.android/avd/$AVD_NAME.avd/config.ini
+    - echo "hw.heapSize=256" >> ~/.android/avd/$AVD_NAME.avd/config.ini
   background_start_emulator_background_script:
     # start adb already otherwise the next step sometimes hangs
     - adb devices
