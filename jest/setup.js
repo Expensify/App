@@ -23,6 +23,19 @@ jest.mock('../src/libs/BootSplash', () => ({
     getVisibilityStatus: jest.fn().mockResolvedValue('hidden'),
 }));
 
+jest.mock('react-native-blob-util', () => ({}));
+
+// Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
+jest.spyOn(console, 'debug').mockImplementation((...params) => {
+    if (params[0].indexOf('Timing:') === 0) {
+        return;
+    }
+
+    // Send the message to console.log but don't re-used console.debug or else this mock method is called in an infinite loop. Instead, just prefix the output with the word "DEBUG"
+    // eslint-disable-next-line no-console
+    console.log('DEBUG', ...params);
+});
+
 // Local notifications (a.k.a. browser notifications) do not run in native code. Our jest tests will also run against
 // any index.native.js files as they are using a react-native plugin. However, it is useful to mock this behavior so that we
 // can test the expected web behavior and see if a browser notification would be shown or not.
@@ -62,3 +75,14 @@ jest.mock('../src/components/Icon/Expensicons', () => {
         return {...prev, [key]: fn};
     }, {});
 });
+
+// Set up manual mocks for any Logging methods that are supposed hit the 'server',
+// this is needed because before, the Logging queue would get flushed while tests were running,
+// causing unexpected calls to HttpUtils.xhr() which would cause mock mismatches and flaky tests.
+/* eslint-disable no-console */
+jest.mock('../src/libs/Log', () => ({
+    info: message => console.log(`[info] ${message} (mocked)`),
+    alert: message => console.log(`[alert] ${message} (mocked)`),
+    warn: message => console.log(`[warn] ${message} (mocked)`),
+    hmmm: message => console.log(`[hmmm] ${message} (mocked)`),
+}));
