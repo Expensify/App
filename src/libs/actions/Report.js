@@ -1487,7 +1487,7 @@ Onyx.connect({
                 return;
             }
 
-            viewNewReportAction(reportID, action);
+            viewNewReportAction(reportID.toString(), action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
             handledReportActions[reportID][action.sequenceNumber] = true;
         });
