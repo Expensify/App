@@ -272,7 +272,6 @@ class ReportActionsView extends React.Component {
         }
 
         const oldestReportAction = _.first(this.sortedReportActions);
-
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
@@ -339,7 +338,7 @@ class ReportActionsView extends React.Component {
                 {!this.props.isComposerFullSize && (
                     <>
                         <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerReportActionID > 0}
+                            isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerReportActionID}
                             onClick={this.scrollToBottomAndMarkReportAsRead}
                         />
                         <ReportActionsList
