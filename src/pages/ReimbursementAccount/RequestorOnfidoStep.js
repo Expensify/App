@@ -19,6 +19,7 @@ const propTypes = {
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
     onfidoToken: PropTypes.string,
+    onComplete: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
 };
 
