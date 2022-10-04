@@ -52,7 +52,7 @@ const MenuItem = (props) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
         styles.ml3,
-        (!props.shouldShowBasicTitle ? undefined : styles.textStrong),
+        (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? styles.disabledText : undefined),
     ], props.style);
     const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll], props.style);
