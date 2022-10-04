@@ -6,13 +6,13 @@ const propTypes = {
     ...menuItemPropTypes,
 };
 
-const MenuItemWithTopDescription = (props) => {
+const MenuItemWithTopDescription = (props) => (
     <MenuItem
         {...props}
         shouldShowBasicTitle
         shouldShowDescriptionOnTop
     />
-};
+);
 
 MenuItemWithTopDescription.propTypes = propTypes;
 MenuItemWithTopDescription.displayName = 'MenuItemWithTopDescription';
