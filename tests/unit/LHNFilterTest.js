@@ -10,7 +10,6 @@ jest.mock('../../src/libs/Permissions');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
-    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -306,7 +305,7 @@ describe('Sidebar', () => {
                         ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
                         policyID: policy.policyID,
                     };
-                    const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+                    const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID.toString());
 
                     return waitForPromisesToResolve()
 
@@ -314,7 +313,6 @@ describe('Sidebar', () => {
                         .then(() => Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
@@ -340,8 +338,6 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('hides unread chats', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given the sidebar is rendered in #focus mode (hides read chats)
             // with report 1 and 2 having unread actions
             const report1 = {
@@ -353,6 +349,7 @@ describe('Sidebar', () => {
                 lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
+            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID.toString());
 
             return waitForPromisesToResolve()
 
@@ -360,7 +357,6 @@ describe('Sidebar', () => {
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: report1.reportID.toString(),
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -391,7 +387,10 @@ describe('Sidebar', () => {
                 })
 
                 // When report 2 becomes the active report
-                .then(() => Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, report2.reportID.toString()))
+                .then(() => {
+                    sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report2.reportID.toString());
+                    return waitForPromisesToResolve();
+                })
 
                 // Then report 1 should now disappear
                 .then(() => {

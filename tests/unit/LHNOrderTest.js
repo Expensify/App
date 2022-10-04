@@ -243,18 +243,18 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('contains one report when a report is in Onyx', () => {
-            // Given the sidebar is rendered in default mode (most recent first)
-            // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
+        it('contains one report when a report is in Onyx', () => {
+            // Given a single report
+            const report = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID.toString());
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 }))
 
                 // Then the component should be rendered with an item for the report
@@ -291,22 +291,27 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('doesn\'t change the order when adding a draft to the active report', () => {
-            // Given the sidebar is rendered in default mode (most recent first)
-            // while currently viewing report 1
-            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
+        it('doesn\'t change the order when adding a draft to the active report', () => {
+            // Given three reports in the recently updated order of 3, 2, 1
+            // And the first report has a draft
+            // And the currently viewed report is the first report
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                hasDraft: true,
+            };
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const reportIDFromRoute = report1.reportID;
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute.toString());
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // Then there should be a pencil icon and report one should still be the last one because putting a draft on the active report should not change it's location
@@ -353,27 +358,35 @@ describe('Sidebar', () => {
                 });
         });
 
-        test('reorders the reports to keep draft reports on top', () => {
-            let sidebarLinks = getDefaultRenderedSidebarLinks('2');
+        it('reorders the reports to keep draft reports on top', () => {
+            // Given three reports in the recently updated order of 3, 2, 1
+            // And the second report has a draft
+            // And the currently viewed report is the second report
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                hasDraft: true,
+            };
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const reportIDFromRoute = report2.reportID;
+            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute.toString());
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: fakeReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {hasDraft: true, ...fakeReport2},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // When the currently active chat is switched to report 1 (the one on the bottom)
                 .then(() => {
                     // The changing of a route itself will re-render the component in the App, but since we are not performing this test
                     // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    sidebarLinks = getDefaultRenderedSidebarLinks('1');
+                    sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('1');
                     return waitForPromisesToResolve();
                 })
 
@@ -449,21 +462,49 @@ describe('Sidebar', () => {
         });
 
         it('sorts chats by pinned > IOU > draft', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks('2');
+            // Given three reports in the recently updated order of 3, 2, 1
+            // with the current user set to email9@ (someone not participating in any of the chats)
+            // with a report that has a draft, a report that is pinned, and
+            //    an outstanding IOU report that doesn't belong to the current user
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                isPinned: true,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                hasDraft: true,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                hasOutstandingIOU: true,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const iouReport = {
+                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
+                ownerEmail: 'email2@test.com',
+                hasOutstandingIOU: true,
+                total: 10000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+            report3.iouReportID = iouReport.reportID.toString();
+            const reportIDFromRoute = report2.reportID;
+            const currentlyLoggedInUserEmail = 'email9@test.com';
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute.toString());
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [ONYXKEYS.SESSION]: {email: 'email9@test.com'},
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, isPinned: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, iouReportID: '4', hasOutstandingIOU: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}4`]: {...fakeReportIOU, chatReportID: 3},
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`]: iouReport,
                 }))
 
                 // Then the reports are ordered by Pinned > IOU > Draft
@@ -481,19 +522,34 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes all the chats that are pinned', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
+            // Given three reports in the recently updated order of 3, 2, 1
+            // and they are all pinned
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                isPinned: true,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                isPinned: true,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                isPinned: true,
+            };
+            const report4 = {
+                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
+                isPinned: true,
+            };
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, isPinned: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, isPinned: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, isPinned: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // Then the reports are in alphabetical order
@@ -520,19 +576,34 @@ describe('Sidebar', () => {
         });
 
         it('alphabetizes all the chats that have drafts', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks('5');
+            // Given three reports in the recently updated order of 3, 2, 1
+            // and they all have drafts
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                hasDraft: true,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                hasDraft: true,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                hasDraft: true,
+            };
+            const report4 = {
+                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
+                hasDraft: true,
+            };
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-                    [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: {...fakeReport2, hasDraft: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT}3`]: {...fakeReport3, hasDraft: true},
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
                 // Then the reports are in alphabetical order
@@ -559,8 +630,6 @@ describe('Sidebar', () => {
         });
 
         it('puts archived chats last', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given three reports, with the first report being archived
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
@@ -577,7 +646,7 @@ describe('Sidebar', () => {
                 CONST.BETAS.POLICY_ROOMS,
                 CONST.BETAS.POLICY_EXPENSE_CHAT,
             ];
-
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -585,7 +654,6 @@ describe('Sidebar', () => {
                     [ONYXKEYS.BETAS]: betas,
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '0',
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -707,8 +775,6 @@ describe('Sidebar', () => {
         });
 
         it('puts archived chats last', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given three unread reports, with the first report being archived
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
@@ -732,7 +798,7 @@ describe('Sidebar', () => {
                 CONST.BETAS.POLICY_ROOMS,
                 CONST.BETAS.POLICY_EXPENSE_CHAT,
             ];
-
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -740,7 +806,6 @@ describe('Sidebar', () => {
                     [ONYXKEYS.BETAS]: betas,
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '0',
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,

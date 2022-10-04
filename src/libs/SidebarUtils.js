@@ -12,7 +12,7 @@ import * as CollectionUtils from './CollectionUtils';
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
 // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
 // There are a couple of keys here which are OK to have stale data. iouReports for example, doesn't need to exist in withOnyx() because
-// when IOUs change, it also triggers a change on the reports collection. Having redudant subscriptions causes more re-renders which should be avoided.
+// when IOUs change, it also triggers a change on the reports collection. Having redundant subscriptions causes more re-renders which should be avoided.
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
@@ -86,9 +86,6 @@ Onyx.connect({
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(reportIDFromRoute) {
-    const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
-
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const iouDebtReportOptions = [];
@@ -98,7 +95,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
         // Skip this report if it has no participants and if it's not a type of report supported in the LHN
         if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
