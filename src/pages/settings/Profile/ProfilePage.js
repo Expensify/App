@@ -196,7 +196,7 @@ class ProfilePage extends Component {
         }));
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
-        console.log(this.state.selectedTimezone)
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
