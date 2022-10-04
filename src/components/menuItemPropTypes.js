@@ -34,6 +34,12 @@ const propTypes = {
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState: PropTypes.bool,
 
+    /** Should the title show with normal font weight (not bold) */
+    shouldShowBasicTitle: PropTypes.bool,
+
+    /** Should the description be shown above the title (instead of the other way around) */
+    shouldShowDescriptionOnTop: PropTypes.bool,
+
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
@@ -71,7 +77,7 @@ const propTypes = {
     fallbackIcon: PropTypes.func,
 
     /** The type of brick road indicator to show. */
-    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
+    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, '']),
 };
 
 export default propTypes;
