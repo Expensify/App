@@ -822,6 +822,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 
     const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
     const adminsChatReportID = adminsChatData.reportID;
+    adminsChatData.lastVisitedTimestamp = Date.now();
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
     const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
