@@ -321,6 +321,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    bgDark: {
+        backgroundColor: colors.dark,
+    },
+
     opacity0: {
         opacity: 0,
     },
@@ -1981,6 +1985,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        cursor: 'default',
     },
 
     unreadIndicatorLine: {
@@ -2621,10 +2626,6 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
-    },
-
-    avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to average mobile device
     },
 
     imageCropContainer: {

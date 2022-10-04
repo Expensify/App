@@ -26,6 +26,7 @@ import AddressForm from './AddressForm';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -156,24 +157,18 @@ class CompanyStep extends React.Component {
             return;
         }
 
-        const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+        const bankAccount = {
+            // Fields from BankAccount step
+            ...ReimbursementAccountUtils.getBankAccountFields(this.props, ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
 
-            // Fields from bankAccount step
-            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber'),
-            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'accountNumber'),
-            bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
-            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
-            isSavings: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'isSavings'),
-            plaidAccessToken: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccessToken'),
-
-            // Fields from company step
+            // Fields from Company step
             ...this.state,
-            incorporationDate,
+            incorporationDate: moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING),
             companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.state.companyPhone),
-        });
+        };
+
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
     }
 
     render() {
@@ -317,6 +312,9 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        reimbursementAccountDraftValues: {
+            key: FormActions.getDraftValuesKey(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM),
         },
         session: {
             key: ONYXKEYS.SESSION,

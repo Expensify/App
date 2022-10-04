@@ -25,7 +25,6 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import {buildOptimisticCreatedReportAction} from "../ReportUtils";
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -53,7 +52,7 @@ let conciergeChatReportID;
 const typingWatchTimers = {};
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @returns {Number}
  */
 function getLastReadSequenceNumber(reportID) {
@@ -61,7 +60,7 @@ function getLastReadSequenceNumber(reportID) {
 }
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @returns {Number}
  */
 function getMaxSequenceNumber(reportID) {
@@ -128,7 +127,8 @@ function getSimplifiedReportObject(report) {
     ]);
 
     return {
-        reportID: report.reportID,
+        // This needs to be cast to a string until the IOU API has been fully migrated to OfflineFirst API
+        reportID: report.reportID.toString(),
         reportName: report.reportName,
         chatType,
         ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
@@ -331,14 +331,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return simplifiedReports;
-        })
-        .catch((err) => {
-            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                return;
-            }
-
-            // eslint-disable-next-line no-use-before-define
-            handleInaccessibleReport();
         });
 }
 
@@ -379,7 +371,7 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
 /**
  * Get the private pusher channel name for a Report.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @returns {String}
  */
 function getReportChannelName(reportID) {
@@ -435,7 +427,7 @@ function getNormalizedTypingStatus(typingStatus) {
 /**
  * Initialize our pusher subscriptions to listen for someone typing in a report.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  */
 function subscribeToReportTypingEvents(reportID) {
     if (!reportID) {
@@ -480,7 +472,7 @@ function subscribeToReportTypingEvents(reportID) {
 /**
  * Remove our pusher subscriptions to listen for someone typing in a report.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  */
 function unsubscribeFromReportChannel(reportID) {
     if (!reportID) {
@@ -584,7 +576,7 @@ function fetchAllReports(
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {String} [text]
  * @param {Object} [file]
  */
@@ -683,7 +675,7 @@ function addActions(reportID, text = '', file) {
  *
  * Add an attachment and optional comment.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {File} file
  * @param {String} [text]
  */
@@ -694,7 +686,7 @@ function addAttachment(reportID, file, text = '') {
 /**
  * Add a single comment to a report
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {String} text
  */
 function addComment(reportID, text) {
@@ -704,7 +696,7 @@ function addComment(reportID, text) {
 /**
  * Gets the latest page of report actions and updates the last read message
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Array} participantList
  * @param {Object} newReportObject
  */
@@ -767,7 +759,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
 /**
  * Get the latest report history without marking the report as read.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  */
 function reconnect(reportID) {
     API.write('ReconnectToReport',
@@ -801,7 +793,7 @@ function reconnect(reportID) {
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Number} oldestActionSequenceNumber
  */
 function readOldestAction(reportID, oldestActionSequenceNumber) {
@@ -851,7 +843,7 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
 /**
  * Marks the new report actions as read
  *
- * @param {Number} reportID
+ * @param {String} reportID
  */
 function readNewestAction(reportID) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
@@ -875,7 +867,7 @@ function readNewestAction(reportID) {
 /**
  * Sets the last read comment on a report
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, sequenceNumber) {
@@ -924,7 +916,7 @@ function togglePinnedState(report) {
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {String} comment
  */
 function saveReportComment(reportID, comment) {
@@ -945,7 +937,7 @@ function setReportWithDraft(reportID, hasDraft) {
 /**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  */
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -981,7 +973,7 @@ function handleReportChanged(report) {
 }
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  */
 function updateCurrentlyViewedReportID(reportID) {
     Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
@@ -995,7 +987,7 @@ Onyx.connect({
 /**
  * Deletes a comment from the report, basically sets it as empty string
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
@@ -1081,7 +1073,7 @@ function deleteReportComment(reportID, reportAction) {
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Object} originalReportAction
  * @param {String} textForNewComment
  */
@@ -1112,6 +1104,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 isEdited: true,
                 html: htmlForNewComment,
                 text: textForNewComment,
+                type: originalReportAction.message[0].type,
             }],
         },
     };
@@ -1161,7 +1154,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 /**
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Number} reportActionID
  * @param {String} draftMessage
  */
@@ -1203,7 +1196,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
 }
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {String} previousValue
  * @param {String} newValue
  */
@@ -1236,14 +1229,6 @@ function navigateToConciergeChat() {
     }
 
     Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-}
-
-/**
- * Handle the navigation when report is inaccessible
- */
-function handleInaccessibleReport() {
-    Growl.error(Localize.translateLocal('notFound.chatYouLookingForCannotBeFound'));
-    navigateToConciergeChat();
 }
 
 /**
@@ -1289,7 +1274,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  */
 function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = [currentUserEmail, ...policy.employeeList];
+    const participants = _.unique([currentUserEmail, ..._.pluck(policy.employeeList, 'email')]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
@@ -1357,7 +1342,7 @@ function addPolicyReport(policy, reportName, visibility) {
 }
 
 /**
- * @param {Number} reportID The reportID of the policy report (workspace room)
+ * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
     navigateToConciergeChat();
@@ -1415,7 +1400,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
 }
 
 /**
- * @param {Number} reportID The reportID of the policy room.
+ * @param {String} reportID The reportID of the policy room.
  */
 function clearPolicyRoomNameErrors(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -1429,7 +1414,7 @@ function clearPolicyRoomNameErrors(reportID) {
 }
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Boolean} isComposerFullSize
  */
 function setIsComposerFullSize(reportID, isComposerFullSize) {
@@ -1437,7 +1422,7 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 }
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
@@ -1497,7 +1482,7 @@ function viewNewReportAction(reportID, action) {
 /**
  * Clear the errors associated with the IOUs of a given report.
  *
- * @param {Number} reportID
+ * @param {String} reportID
  */
 function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
@@ -1570,7 +1555,6 @@ export {
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
-    handleInaccessibleReport,
     setReportWithDraft,
     createPolicyRoom,
     addPolicyReport,

@@ -18,6 +18,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
 import ROUTES from '../ROUTES';
 
 const propTypes = {
@@ -31,11 +32,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -240,7 +237,7 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper keyboardAvoidingViewBehavior="height">
+            <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton
