@@ -161,7 +161,6 @@ class Form extends React.Component {
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                defaultValue,
                 value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
