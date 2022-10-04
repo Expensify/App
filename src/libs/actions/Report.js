@@ -1235,7 +1235,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  */
 function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = [currentUserEmail, ...policy.employeeList];
+    const participants = _.unique([currentUserEmail, ..._.pluck(policy.employeeList, 'email')]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
