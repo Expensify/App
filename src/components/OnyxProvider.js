@@ -11,7 +11,7 @@ const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEY
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
 const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
 const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
-const [withBetas, BetasProider] = createOnyxContext(ONYXKEYS.BETAS);
+const [withBetas, BetasProvider] = createOnyxContext(ONYXKEYS.BETAS);
 
 const propTypes = {
     /** Rendered child component */
@@ -26,7 +26,7 @@ const OnyxProvider = props => (
             ReportActionsDraftsProvider,
             CurrentDateProvider,
             BlockedFromConciergeProvider,
-            BetasProider,
+            BetasProvider,
         ]}
     >
         {props.children}
