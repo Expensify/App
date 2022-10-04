@@ -1,9 +1,10 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as BankAccounts from './actions/BankAccounts';
 import FormHelper from './FormHelper';
 
 const formHelper = new FormHelper({
-    errorPath: 'reimbursementAccount.errors',
+    errorPath: 'reimbursementAccount.errorFields',
     setErrors: BankAccounts.setBankAccountFormValidationErrors,
 });
 
@@ -22,7 +23,20 @@ const clearErrors = (props, paths) => formHelper.clearErrors(props, paths);
  */
 function getDefaultStateForField(props, fieldName, defaultValue = '') {
     return lodashGet(props, ['reimbursementAccountDraft', fieldName])
-        || lodashGet(props, ['achData', fieldName], defaultValue);
+        || lodashGet(props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
+}
+
+/**
+ * @param {Object} props
+ * @param {Array} fieldNames
+ *
+ * @returns {*}
+ */
+function getBankAccountFields(props, fieldNames) {
+    return {
+        ..._.pick(lodashGet(props, 'reimbursementAccount.achData'), ...fieldNames),
+        ..._.pick(props.reimbursementAccountDraft, ...fieldNames),
+    };
 }
 
 /**
@@ -32,7 +46,7 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
  * @returns {String}
  */
 function getErrorText(props, errorTranslationKeys, inputKey) {
-    const errors = getErrors(props);
+    const errors = getErrors(props) || {};
     return errors[inputKey] ? props.translate(errorTranslationKeys[inputKey]) : '';
 }
 
@@ -42,4 +56,5 @@ export {
     clearError,
     clearErrors,
     getErrorText,
+    getBankAccountFields,
 };

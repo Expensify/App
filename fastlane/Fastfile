@@ -141,6 +141,7 @@ platform :ios do
     end
 
     upload_symbols_to_crashlytics(
+      app_id: "1:921154746561:ios:216bd10ccc947659027c40",
       dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
