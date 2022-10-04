@@ -377,11 +377,13 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
+    const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return !hasMultipleParticipants
         && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
-        && reportRecipientTimezone.selected;
+        && reportRecipientTimezone.selected
+        && isReportParticipantValidated;
 }
 
 /**
