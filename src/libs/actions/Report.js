@@ -734,6 +734,8 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             },
         }],
     };
+
+    // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
         onyxData.optimisticData[0].value = {
             ...onyxData.optimisticData[0].value,
@@ -743,6 +745,9 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             },
             isOptimisticReport: true,
         };
+
+        // Change the method to set for new reports because it is faster
+        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
 
         // Also create a report action so that the page isn't endlessly loading
         onyxData.optimisticData[1] = {
