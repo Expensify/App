@@ -22,7 +22,7 @@ const drawerIsReadyPromise = new Promise((resolve) => {
 });
 
 let isLoggedIn = false;
-let pendingRoute = false;
+let pendingRoute = null;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -221,12 +221,12 @@ function isActiveRoute(routePath) {
  * but the NavigationContainer was not ready when navigate() was called
  */
 function goToPendingRoute() {
-    if (pendingRoute === false) {
+    if (pendingRoute === null) {
         return;
     }
     Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
     navigate(pendingRoute);
-    pendingRoute = false;
+    pendingRoute = null;
 }
 
 /**
