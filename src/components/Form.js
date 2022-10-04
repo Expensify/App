@@ -161,7 +161,7 @@ class Form extends React.Component {
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                value: this.state.inputValues[inputID],
+                value: child.props.value || this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);
