@@ -283,8 +283,6 @@ function updateCompanyInformationForBankAccount(bankAccount) {
  *
  */
 function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
-    // Save routingNumber and accountNumber because are required for the next step in the VBA flow
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {routingNumber, accountNumber});
     API.write('ConnectBankAccountManually', {
         bankAccountID,
         accountNumber,
