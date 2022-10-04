@@ -13,6 +13,7 @@ import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
+import {withNetwork} from '../../../components/OnyxProvider';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
@@ -211,7 +212,7 @@ class PaymentMethodList extends Component {
     render() {
         return (
             <>
-                {this.props.isLoadingPaymentMethods ? (
+                {this.props.isLoadingPaymentMethods && !this.props.network.isOffline ? (
                     <ActivityIndicator color={themeColors.spinner} size="large" />
                 ) : (
                     <FlatList
@@ -253,6 +254,7 @@ PaymentMethodList.propTypes = propTypes;
 PaymentMethodList.defaultProps = defaultProps;
 
 export default compose(
+    withNetwork(),
     withLocalize,
     withOnyx({
         bankAccountList: {
