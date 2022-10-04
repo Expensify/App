@@ -509,7 +509,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 
             // Merge report into Onyx
             const simplifiedReportObject = getSimplifiedReportObject(data);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, simplifiedReportObject);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, simplifiedReportObject);
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants([simplifiedReportObject]);
