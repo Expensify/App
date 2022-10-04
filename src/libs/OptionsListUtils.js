@@ -198,8 +198,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         }
     }
     if (report) {
-        Array.prototype.push.apply(searchTerms, reportName.split(''));
-        Array.prototype.push.apply(searchTerms, reportName.split(','));
+        Array.prototype.push.apply(searchTerms, reportName.split([,\s]));
 
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
@@ -207,8 +206,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
             // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
             // It's OK to ignore this and just add a null check in here to keep code from crashing.
             if (chatRoomSubtitle) {
-                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(''));
-                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(','));
+                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split([,\s]));
             }
         } else {
             searchTerms = searchTerms.concat(report.participants);
