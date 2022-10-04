@@ -208,8 +208,6 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const pendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const errors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
-        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
-        const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
 
         return (
             <ScreenWrapper
@@ -226,8 +224,8 @@ class ReportScreen extends React.Component {
                     }}
                 >
                     <OfflineWithFeedback
-                        pendingAction={addWorkspaceRoomPendingAction}
-                        errors={addWorkspaceRoomErrors}
+                        pendingAction={pendingAction}
+                        errors={errors}
                         errorRowStyles={styles.dNone}
                     >
                         <HeaderView
@@ -266,8 +264,8 @@ class ReportScreen extends React.Component {
                                 />
                             )}
                         <ReportFooter
-                            addWorkspaceRoomErrors={addWorkspaceRoomErrors}
-                            addWorkspaceRoomPendingAction={addWorkspaceRoomPendingAction}
+                            errors={errors}
+                            pendingActions={pendingAction}
                             isOffline={this.props.network.isOffline}
                             reportActions={this.props.reportActions}
                             report={this.props.report}
