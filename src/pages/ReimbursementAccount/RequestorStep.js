@@ -279,5 +279,8 @@ export default compose(
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
         },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
     }),
 )(RequestorStep);
