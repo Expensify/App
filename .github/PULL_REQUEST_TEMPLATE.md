@@ -35,7 +35,7 @@ For example:
 <!--
 This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
 -->
-#### Contributor (PR Author) Checklist
+#### PR Author Checklist
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I added steps for local testing in the `Tests` section
@@ -85,7 +85,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 <details>
 <summary><h4>PR Reviewer Checklist</h4>
 
-The Contributor+ will copy/paste it into a new comment and complete it after the author checklist is completed
+The reviewer will copy/paste it into a new comment and complete it after the author checklist is completed
 </summary>
 
 - [ ] I have verified the author checklist is complete (all boxes are checked off).
