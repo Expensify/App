@@ -269,7 +269,7 @@ class AdditionalDetailsStep extends React.Component {
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
-            <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('additionalDetailsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -370,7 +370,7 @@ class AdditionalDetailsStep extends React.Component {
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>
-            </ScreenWrapper>
+            </>
         );
     }
 }
