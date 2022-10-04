@@ -55,7 +55,7 @@ const FullPageNotFoundView = (props) => {
                     onBackButtonPress={props.onBackButtonPress}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.blockViewContainer]}>
                     <BlockingView
                         icon={Expensicons.QuestionMark}
                         title={props.translate(props.titleKey)}
