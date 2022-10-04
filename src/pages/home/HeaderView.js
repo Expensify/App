@@ -2,10 +2,8 @@ import _ from 'underscore';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -61,11 +59,6 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    // Waiting until ONYX variables are loaded before displaying the component
-    if (_.isEmpty(props.personalDetails)) {
-        return null;
-    }
-
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -186,15 +179,4 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
 )(HeaderView);

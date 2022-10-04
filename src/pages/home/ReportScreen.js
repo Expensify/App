@@ -189,7 +189,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        if (!this.props.isSidebarLoaded) {
+        if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
@@ -237,6 +237,9 @@ class ReportScreen extends React.Component {
                             reportID={reportID}
                             onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                             isLoading={isTransitioning}
+                            personalDetails={this.props.personalDetails}
+                            report={this.props.report}
+                            policies={this.props.policies}
                         />
                     </OfflineWithFeedback>
                     {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
@@ -320,6 +323,9 @@ export default compose(
         },
         accountManagerReportID: {
             key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(ReportScreen);
