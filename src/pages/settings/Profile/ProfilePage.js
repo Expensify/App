@@ -260,7 +260,7 @@ class ProfilePage extends Component {
                                 value: '',
                                 label: this.props.translate('profilePage.selectYourPronouns'),
                             }}
-                            value={pronounsPickerValue}
+                            defaultValue={pronounsPickerValue}
                         />
                         {this.state.hasSelfSelectedPronouns && (
                             <View style={styles.mt2}>
@@ -290,7 +290,7 @@ class ProfilePage extends Component {
                             label={this.props.translate('profilePage.timezone')}
                             items={timezones}
                             isDisabled={this.state.isAutomaticTimezone}
-                            value={this.state.selectedTimezone}
+                            defaultValue={this.state.selectedTimezone}
                         />
                     </View>
                     <CheckboxWithLabel
