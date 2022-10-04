@@ -84,7 +84,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                             onyxMethod: CONST.ONYX.METHOD.MERGE,
                             key: ONYXKEYS.SESSION,
                             value: {
-                                shouldShowComposeInput: true,
                                 authToken,
                                 accountID,
                                 email: login,
