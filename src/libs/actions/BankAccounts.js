@@ -241,6 +241,41 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
+function openReimbursementAccountPage() {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    error: '',
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+    };
+
+    return API.read('OpenReimbursementAccountPage', {}, onyxData);
+}
+
 /**
  * Updates the bank account in the database with the company step data
  *
@@ -298,6 +333,7 @@ export {
     clearPersonalBankAccount,
     clearPlaid,
     clearOnfidoToken,
+    openReimbursementAccountPage,
     updatePersonalInformationForBankAccount,
     validateBankAccount,
     updateCompanyInformationForBankAccount,
