@@ -98,21 +98,13 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null, pe
  * @param {Object} plaidData
  * @returns {Object}
  */
-function getPendingBankAccount(personalBankAccount = {}, plaidData = {}) {
-    // Get selected bank account ID if present
+function getPendingBankAccount(personalBankAccount, plaidData) {
+    // Get selected Plaid bank account
     const plaidAccountID = lodashGet(personalBankAccount, 'selectedPlaidAccountID', 0);
-    if (!plaidAccountID) {
-        return {};
-    }
-
-    // Get bank accounts returned by Plaid
     const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
-    if (_.isEmpty(plaidBankAccounts)) {
-        return {};
-    }
-
-    // Get that bank account object by ID
     const pendingBankAccount = _.findWhere(plaidBankAccounts, {plaidAccountID}) || {};
+
+    // Early return if empty
     if (_.isEmpty(pendingBankAccount)) {
         return {};
     }

@@ -58,7 +58,7 @@ const propTypes = {
     /** Should we disable this menu item? */
     disabled: PropTypes.bool,
 
-    /** Gives menu item pending style */
+    /** Gives the menu item a pending style */
     pending: PropTypes.bool,
 
     /** A right-aligned subtitle for this menu option */
