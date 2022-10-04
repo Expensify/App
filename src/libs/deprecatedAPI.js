@@ -155,14 +155,6 @@ function GetPolicySummaryList() {
 }
 
 /**
- * @returns {Promise}
- */
-function GetRequestCountryCode() {
-    const commandName = 'GetRequestCountryCode';
-    return Network.post(commandName);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
@@ -586,7 +578,6 @@ export {
     GetFullPolicy,
     GetPolicySummaryList,
     GetReportSummaryList,
-    GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
     PayIOU,

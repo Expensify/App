@@ -15,6 +15,11 @@ const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
+let resolveDrawerIsReadyPromise;
+const drawerIsReadyPromise = new Promise((resolve) => {
+    resolveDrawerIsReadyPromise = resolve;
+});
+
 let isLoggedIn = false;
 let pendingRoute = false;
 
@@ -222,6 +227,17 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+/**
+ * @returns {Promise}
+ */
+function isDrawerReady() {
+    return drawerIsReadyPromise;
+}
+
+function setIsDrawerReady() {
+    resolveDrawerIsReadyPromise();
+}
+
 export default {
     canNavigate,
     navigate,
@@ -234,6 +250,9 @@ export default {
     setDidTapNotification,
     isNavigationReady,
     setIsNavigationReady,
+    isDrawerReady,
+    setIsDrawerReady,
+    isDrawerRoute,
 };
 
 export {
