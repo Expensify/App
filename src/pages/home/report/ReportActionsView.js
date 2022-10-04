@@ -190,10 +190,10 @@ class ReportActionsView extends React.Component {
                 if (this.currentScrollOffset === 0) {
                     Report.readNewestAction(this.props.report.reportID);
                     this.setState({newMarkerReportActionID: null});
-                } else if (this.state.newMarkerReportActionID === 0) {
+                } else if (!this.state.newMarkerReportActionID) {
                     this.setState({newMarkerReportActionID: lastAction.reportActionID});
                 }
-            } else if (this.state.newMarkerReportActionID === 0) {
+            } else if (!this.state.newMarkerReportActionID) {
                 // The report is not in view and we received a comment from another user while the new marker is not set
                 // so we will set the new marker now.
                 this.setState({newMarkerReportActionID: lastAction.reportActionID});
