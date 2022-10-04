@@ -822,6 +822,8 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 
     const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
     const adminsChatReportID = adminsChatData.reportID;
+
+    // Set the lastVisitedTimestamp to now so that this chat is opened by default when the rooms are created
     adminsChatData.lastVisitedTimestamp = Date.now();
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
