@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {FlatList} from 'react-native';
+import {ActivityIndicator, FlatList} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
@@ -22,6 +22,7 @@ import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -210,12 +211,16 @@ class PaymentMethodList extends Component {
     render() {
         return (
             <>
-                <FlatList
-                    data={this.getFilteredPaymentMethods()}
-                    renderItem={this.renderItem}
-                    keyExtractor={item => item.key}
-                    ListEmptyComponent={this.renderListEmptyComponent()}
-                />
+                {this.props.isLoadingPaymentMethods ? (
+                    <ActivityIndicator color={themeColors.spinner} size="large" />
+                ) : (
+                    <FlatList
+                        data={this.getFilteredPaymentMethods()}
+                        renderItem={this.renderItem}
+                        keyExtractor={item => item.key}
+                        ListEmptyComponent={this.renderListEmptyComponent()}
+                    />
+                )}
                 {
                     this.props.shouldShowAddPaymentMethodButton
                     && (
@@ -255,6 +260,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
         payPalMeData: {
             key: ONYXKEYS.PAYPAL,
