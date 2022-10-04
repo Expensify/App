@@ -25,7 +25,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OptionRow from '../../components/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -45,13 +45,13 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...networkPropTypes,
 };
 
-const defaultProps = fullPolicyDefaultProps;
+const defaultProps = policyDefaultProps;
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -283,14 +283,20 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
-        const data = _.chain(policyMemberList)
-            .map(email => this.props.personalDetails[email])
-            .filter()
-            .sortBy(person => person.displayName.toLowerCase())
-            .map(person => ({...person})) // TODO: here we will add the pendingAction and errors prop
-            .value();
+        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const removableMembers = [];
+        let data = [];
+        _.each(policyMemberList, (policyMember, email) => {
+            if (email !== this.props.session.email && email !== this.props.policy.owner) {
+                removableMembers.push(email);
+            }
+            const details = this.props.personalDetails[email] || {displayName: email, login: email};
+            data.push({
+                ...policyMember,
+                ...details,
+            });
+        });
+        data = _.sortBy(data, value => value.displayName.toLowerCase());
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -367,7 +373,7 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withFullPolicy,
+    withPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {

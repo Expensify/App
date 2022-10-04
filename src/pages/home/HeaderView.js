@@ -26,6 +26,7 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
+import reportPropTypes from '../reportPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -34,16 +35,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** List of primarylogins of participants of the report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** Value indicating if the report is pinned or not */
-        isPinned: PropTypes.bool,
-    }),
+    report: reportPropTypes,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
