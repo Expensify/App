@@ -28,6 +28,7 @@ import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus/index
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import ROUTES from '../ROUTES';
 import personalBankAccountPropTypes from '../components/personalBankAccountPropTypes';
+import {withNetwork} from '../components/OnyxProvider';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -203,7 +204,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                         pressOnEnter
                                         text={this.props.translate('common.saveAndContinue')}
                                         onPress={this.submit}
-                                        isLoading={isLoading}
+                                        isLoading={isLoading && !this.props.network.isOffline}
                                     />
                                 </OfflineWithFeedback>
                             </FixedFooter>
@@ -220,6 +221,7 @@ AddPersonalBankAccountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         plaidData: {
             key: ONYXKEYS.PLAID_DATA,
