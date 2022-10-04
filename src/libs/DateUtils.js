@@ -112,16 +112,6 @@ function timestampToRelative(locale, timestamp) {
 }
 
 /**
- * Formats a unix timestamp into a datetime string as expected by our backend.
- *
- * @param {Number} timestamp
- * @returns {String}
- */
-function timestampToSQLDateTimeWithMS(timestamp) {
-    return moment(timestamp).format('Y-MM-DD HH:mm:ss.SSS');
-}
-
-/**
  * A throttled version of a function that updates the current date in Onyx store
  */
 const updateCurrentDate = _.throttle(() => {
@@ -187,7 +177,6 @@ function getMicroseconds() {
 const DateUtils = {
     timestampToRelative,
     timestampToDateTime,
-    timestampToSQLDateTimeWithMS,
     startCurrentDateUpdater,
     updateTimezone,
     getLocalMomentFromTimestamp,
