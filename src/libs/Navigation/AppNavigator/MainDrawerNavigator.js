@@ -66,7 +66,6 @@ class MainDrawerNavigator extends Component {
             return false;
         }
 
-        // Probably better to be placed inside shouldComponentUpdate but we already calculated next params so assigning immediately
         this.initialParams = initialNextParams;
         return true;
     }
