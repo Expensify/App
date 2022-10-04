@@ -394,9 +394,9 @@ class ReportActionCompose extends React.Component {
         this.comment = newComment;
 
         if (shouldDebounceSaveComment) {
-            this.debouncedSaveReportComment(newComment);
+            this.debouncedSaveReportDraftComment(newComment);
         } else {
-            Report.saveReportComment(this.props.report.reportID, newComment || '');
+            Report.saveReportDraftComment(this.props.report.reportID, newComment || '');
         }
 
         if (newComment) {
