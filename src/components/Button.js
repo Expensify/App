@@ -106,9 +106,6 @@ const propTypes = {
 
     /** Id to use for this button */
     nativeID: PropTypes.string,
-
-    /** Whether text in Button should selectable */
-    textSelectable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -139,7 +136,6 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
     nativeID: '',
-    textSelectable: true,
 };
 
 class Button extends Component {
@@ -183,7 +179,6 @@ class Button extends Component {
 
         const textComponent = (
             <Text
-                selectable={this.props.textSelectable}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
