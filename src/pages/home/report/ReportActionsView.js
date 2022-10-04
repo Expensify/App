@@ -277,7 +277,7 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        Report.readOldestAction(this.props.report.reportID, oldestReportAction.timestamp);
+        Report.readOldestAction(this.props.report.reportID, oldestReportAction.created);
     }
 
     scrollToBottomAndMarkReportAsRead() {

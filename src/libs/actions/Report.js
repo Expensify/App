@@ -739,14 +739,13 @@ function reconnect(reportID) {
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
  * @param {String} reportID
- * @param {Number} oldestActionTimestamp
+ * @param {String} oldestActionCreatedDateTime
  */
-function readOldestAction(reportID, oldestActionTimestamp) {
-    const formattedDateTimeString = DateUtils.timestampToSQLDateTimeWithMS(oldestActionTimestamp);
+function readOldestAction(reportID, oldestActionCreatedDateTime) {
     API.read('ReadOldestAction',
         {
             reportID,
-            reportActionCreated: formattedDateTimeString,
+            reportActionCreated: oldestActionCreatedDateTime,
             reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
         },
         {
