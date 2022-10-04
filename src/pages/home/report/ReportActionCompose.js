@@ -57,9 +57,6 @@ const propTypes = {
     /** The comment left by the user */
     comment: PropTypes.string,
 
-    /** The ID of the report actions will be created for */
-    reportID: PropTypes.string.isRequired,
-
     /** Details about any modals being used */
     modal: PropTypes.shape({
         /** Indicates if there is a modal currently visible or not */
@@ -277,20 +274,20 @@ class ReportActionCompose extends React.Component {
             return [{
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
+                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.report.reportID)),
             }];
         }
 
         iouOptions.push({
             icon: Expensicons.MoneyCircle,
             text: this.props.translate('iou.requestMoney'),
-            onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+            onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.report.reportID)),
         });
         if (Permissions.canUseIOUSend(this.props.betas)) {
             iouOptions.push({
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.report.reportID)),
             });
         }
         return iouOptions;
@@ -361,7 +358,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} comment
      */
     debouncedSaveReportComment(comment) {
-        Report.saveReportComment(this.props.reportID, comment || '');
+        Report.saveReportComment(this.props.report.reportID, comment || '');
     }
 
     /**
@@ -369,7 +366,7 @@ class ReportActionCompose extends React.Component {
      * client events.
      */
     debouncedBroadcastUserIsTyping() {
-        Report.broadcastUserIsTyping(this.props.reportID);
+        Report.broadcastUserIsTyping(this.props.report.reportID);
     }
 
     /**
@@ -385,12 +382,12 @@ class ReportActionCompose extends React.Component {
 
         // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
-            Report.setReportWithDraft(this.props.reportID, true);
+            Report.setReportWithDraft(this.props.report.reportID, true);
         }
 
         // The draft has been deleted.
         if (newComment.length === 0) {
-            Report.setReportWithDraft(this.props.reportID, false);
+            Report.setReportWithDraft(this.props.report.reportID, false);
         }
 
         this.comment = newComment;
@@ -427,7 +424,7 @@ class ReportActionCompose extends React.Component {
 
             if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
                 const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                Report.saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
+                Report.saveReportActionDraft(this.props.report.reportID, reportActionID, _.last(message).html);
             }
         }
     }
@@ -446,7 +443,7 @@ class ReportActionCompose extends React.Component {
         this.updateComment('');
         this.setTextInputShouldClear(true);
         if (this.props.isComposerFullSize) {
-            Report.setIsComposerFullSize(this.props.reportID, false);
+            Report.setIsComposerFullSize(this.props.report.reportID, false);
         }
         this.setState({isFullComposerAvailable: false});
 
@@ -458,7 +455,7 @@ class ReportActionCompose extends React.Component {
      */
     addAttachment(file) {
         const comment = this.prepareCommentAndResetComposer();
-        Report.addAttachment(this.props.reportID, file, comment);
+        Report.addAttachment(this.props.report.reportID, file, comment);
         this.setTextInputShouldClear(false);
     }
 
@@ -536,7 +533,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
-                                                                Report.setIsComposerFullSize(this.props.reportID, false);
+                                                                Report.setIsComposerFullSize(this.props.report.reportID, false);
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
@@ -552,7 +549,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
-                                                                Report.setIsComposerFullSize(this.props.reportID, true);
+                                                                Report.setIsComposerFullSize(this.props.report.reportID, true);
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
@@ -688,7 +685,7 @@ class ReportActionCompose extends React.Component {
                     (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
                 >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                    <ReportTypingIndicator reportID={this.props.reportID} />
+                    <ReportTypingIndicator reportID={this.props.report.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
             </View>

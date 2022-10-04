@@ -93,7 +93,6 @@ class ReportFooter extends React.Component {
                             >
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}
-                                    reportID={this.props.report.reportID.toString()}
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
