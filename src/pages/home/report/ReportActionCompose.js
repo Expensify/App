@@ -709,7 +709,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         comment: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`,
         },
         modal: {
             key: ONYXKEYS.MODAL,
