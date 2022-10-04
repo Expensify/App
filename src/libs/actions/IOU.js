@@ -320,6 +320,10 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
+function splitBill() {
+
+}
+
 export {
     createIOUTransaction,
     createIOUSplit,
@@ -327,4 +331,5 @@ export {
     rejectTransaction,
     payIOUReport,
     setIOUSelectedCurrency,
+    splitBill,
 };
