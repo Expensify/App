@@ -38,18 +38,6 @@ const propTypes = {
     /** The active report */
     report: reportPropTypes.isRequired,
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** The report type */
-        type: PropTypes.string,
-
-        /** ID of the policy */
-        policyID: PropTypes.string,
-    })).isRequired,
-
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
         /** The policy name */
@@ -256,9 +244,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);
