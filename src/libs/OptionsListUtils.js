@@ -9,6 +9,7 @@ import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
+import Navigation from './Navigation/Navigation';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -20,12 +21,6 @@ let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val && val.email,
-});
-
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
 });
 
 let priorityMode;
@@ -428,12 +423,11 @@ function isCurrentUser(userDetails) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {String} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
  */
-function getOptions(reports, personalDetails, activeReportID, {
+function getOptions(reports, personalDetails, {
     reportActions = {},
     betas = [],
     selectedOptions = [],
@@ -457,7 +451,15 @@ function getOptions(reports, personalDetails, activeReportID, {
     const reportMapForLogins = {};
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
+        report,
+        Navigation.getReportIDFromRoute(),
+        isInGSDMode,
+        currentUserLogin,
+        iouReports,
+        betas,
+        policies,
+    ));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -639,7 +641,7 @@ function getSearchOptions(
     searchValue = '',
     betas,
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         includeRecentReports: true,
@@ -706,7 +708,7 @@ function getNewChatOptions(
     selectedOptions = [],
     excludeLogins = [],
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         selectedOptions,
@@ -733,7 +735,7 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins = [],
 ) {
-    return getOptions([], personalDetails, 0, {
+    return getOptions([], personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         excludeDefaultRooms: true,
