@@ -13,11 +13,18 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import CONST from '../../../CONST';
+
+const _ = require('underscore');
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
+        lastVisitedTimestamp: PropTypes.number,
+        policyID: PropTypes.string,
+        participants: PropTypes.arrayOf(PropTypes.string),
+        chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
     })),
 
     /** Beta features list */
