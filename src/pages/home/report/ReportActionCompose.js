@@ -373,8 +373,9 @@ class ReportActionCompose extends React.Component {
      * Update the value of the comment in Onyx
      *
      * @param {String} newComment
+     * @param {Boolean} shouldDebounceSaveComment
      */
-    updateComment(newComment) {
+    updateComment(newComment, shouldDebounceSaveComment) {
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
             value: newComment,
@@ -391,7 +392,13 @@ class ReportActionCompose extends React.Component {
         }
 
         this.comment = newComment;
-        this.debouncedSaveReportDraftComment(newComment);
+
+        if (shouldDebounceSaveComment) {
+            this.debouncedSaveReportComment(newComment);
+        } else {
+            Report.saveReportComment(this.props.reportID, newComment || '');
+        }
+
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
@@ -468,6 +475,11 @@ class ReportActionCompose extends React.Component {
         if (e) {
             e.preventDefault();
         }
+
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
 
         const comment = this.prepareCommentAndResetComposer();
         if (!comment) {
@@ -601,7 +613,7 @@ class ReportActionCompose extends React.Component {
                                         textAlignVertical="top"
                                         placeholder={inputPlaceholder}
                                         placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={this.updateComment}
+                                        onChangeText={comment => this.updateComment(comment, true)}
                                         onKeyPress={this.triggerHotkeyActions}
                                         onDragEnter={(e, isOriginComposer) => {
                                             if (!isOriginComposer) {
