@@ -101,7 +101,7 @@ class ReportScreen extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onSubmitComment = this.onSubmitComment.bind(this);
+        this.addCommentToReport = this.addCommentToReport.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
@@ -133,7 +133,7 @@ class ReportScreen extends React.Component {
     /**
      * @param {String} text
      */
-    onSubmitComment(text) {
+    addCommentToReport(text) {
         Report.addComment(getReportID(this.props.route), text);
     }
 
@@ -269,7 +269,7 @@ class ReportScreen extends React.Component {
                             reportActions={this.props.reportActions}
                             report={this.props.report}
                             isComposerFullSize={this.props.isComposerFullSize}
-                            onSubmitComment={this.onSubmitComment}
+                            onSubmitComment={this.addCommentToReport}
                         />
                     </View>
                 </FullPageNotFoundView>

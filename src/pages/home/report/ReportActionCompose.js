@@ -111,7 +111,7 @@ class ReportActionCompose extends React.Component {
         super(props);
 
         this.updateComment = this.updateComment.bind(this);
-        this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
+        this.debouncedSaveReportDraftComment = _.debounce(this.debouncedSaveReportDraftComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
         this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
@@ -357,8 +357,8 @@ class ReportActionCompose extends React.Component {
      *
      * @param {String} comment
      */
-    debouncedSaveReportComment(comment) {
-        Report.saveReportComment(this.props.report.reportID, comment || '');
+    debouncedSaveReportDraftComment(comment) {
+        Report.saveReportDraftComment(this.props.report.reportID, comment || '');
     }
 
     /**
@@ -391,7 +391,7 @@ class ReportActionCompose extends React.Component {
         }
 
         this.comment = newComment;
-        this.debouncedSaveReportComment(newComment);
+        this.debouncedSaveReportDraftComment(newComment);
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }

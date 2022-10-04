@@ -652,6 +652,11 @@ function addActions(reportID, text = '', file) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+            value: '',
+        },
     ];
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
@@ -887,13 +892,14 @@ function togglePinnedState(report) {
 }
 
 /**
- * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
+ * Saves the draft comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
  * @param {String} reportID
  * @param {String} comment
  */
-function saveReportComment(reportID, comment) {
+function saveReportDraftComment(reportID, comment) {
+    console.log('saveReportDraftComment', reportID, comment);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
 }
 
@@ -905,6 +911,7 @@ function saveReportComment(reportID, comment) {
  * @returns {Promise}
  */
 function setReportWithDraft(reportID, hasDraft) {
+    console.log('setReportWithDraft', reportID);
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
@@ -1519,7 +1526,7 @@ export {
     subscribeToReportTypingEvents,
     subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
-    saveReportComment,
+    saveReportDraftComment,
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
