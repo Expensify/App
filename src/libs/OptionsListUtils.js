@@ -22,6 +22,18 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
+let currentlyViewedReportID;
+Onyx.connect({
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => currentlyViewedReportID = val,
+});
+
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: val => priorityMode = val,
+});
+
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
@@ -186,13 +198,16 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         }
     }
     if (report) {
-        Array.prototype.push.apply(searchTerms, reportName.split(''));
-        Array.prototype.push.apply(searchTerms, reportName.split(','));
+        Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(''));
-            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(','));
+
+            // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
+            // It's OK to ignore this and just add a null check in here to keep code from crashing.
+            if (chatRoomSubtitle) {
+                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
+            }
         } else {
             searchTerms = searchTerms.concat(report.participants);
         }
@@ -424,113 +439,47 @@ function getOptions(reports, personalDetails, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeLogins = [],
-    excludeChatRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
-    prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    sortByLastMessageTimestamp = true,
     searchValue = '',
     showChatPreviewLine = false,
-    showReportsWithNoComments = false,
-    hideReadReports = false,
-    sortByAlphaAsc = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
-    prioritizeIOUDebts = false,
-    prioritizeReportsWithDraftComments = false,
 }) {
+    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     let recentReportOptions = [];
-    const pinnedReportOptions = [];
     let personalDetailsOptions = [];
-    const iouDebtReportOptions = [];
-    const draftReportOptions = [];
-
     const reportMapForLogins = {};
-    let sortProperty = sortByLastMessageTimestamp
-        ? ['lastMessageTimestamp']
-        : ['lastVisitedTimestamp'];
-    if (sortByAlphaAsc) {
-        sortProperty = ['reportName'];
-    }
 
-    const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    let orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
+    // Filter out all the reports that shouldn't be displayed
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-    // Move the archived Rooms to the last
-    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
+    // Sorting the reports works like this:
+    // - Order everything by the last message timestamp (descending)
+    // - All archived reports should remain at the bottom
+    const orderedReports = _.sortBy(filteredReports, (report) => {
+        if (ReportUtils.isArchivedRoom(report)) {
+            return -Infinity;
+        }
+
+        return report.lastMessageTimestamp;
+    });
+    orderedReports.reverse();
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
         if (!report) {
             return;
         }
+
         const isChatRoom = ReportUtils.isChatRoom(report);
-        const isDefaultRoom = ReportUtils.isDefaultRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
-
-        // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        const shouldFilterNoParticipants = _.isEmpty(logins) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat;
-        if (!report.reportID || shouldFilterNoParticipants) {
-            return;
-        }
-
-        const hasDraftComment = report.hasDraft || false;
-        const iouReport = report.iouReportID && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
-        const iouReportOwner = report.hasOutstandingIOU && iouReport
-            ? iouReport.ownerEmail
-            : '';
-
-        const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const hasAddWorkspaceRoomError = report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom);
-        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0
-
-                // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
-                // highlight them in the LHN when they are created and have no messsages yet. We do
-                // not give archived rooms this exception since they do not need to be higlihted.
-                && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
-
-                // Also make an exception for workspace rooms that failed to be added
-                && !hasAddWorkspaceRoomError;
-
-        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
-        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-
-        if (report.reportID.toString() !== activeReportID
-            && (!report.isPinned || isDefaultRoom)
-            && !hasDraftComment
-            && shouldFilterReport
-            && !reportContainsIOUDebt) {
-            return;
-        }
-
-        if (isChatRoom && excludeChatRooms) {
-            return;
-        }
-
-        // We create policy rooms for all policies, however we don't show them unless
-        // - It's a free plan workspace
-        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
-        if (!Permissions.canUseDefaultRooms(betas)
-            && ReportUtils.isDefaultRoom(report)
-            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
-            && !ReportUtils.hasExpensifyGuidesEmails(logins)
-        ) {
-            return;
-        }
-
-        if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-            return;
-        }
-
-        if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
-            return;
-        }
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
@@ -594,45 +543,13 @@ function getOptions(reports, personalDetails, activeReportID, {
                 continue;
             }
 
-            // If the report is pinned and we are using the option to display pinned reports on top then we need to
-            // collect the pinned reports so we can sort them alphabetically once they are collected. We want to skip
-            // default archived rooms.
-            if (prioritizePinnedReports && reportOption.isPinned
-                && !(reportOption.isArchivedRoom && reportOption.isDefaultRoom)) {
-                pinnedReportOptions.push(reportOption);
-            } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
-                iouDebtReportOptions.push(reportOption);
-            } else if (prioritizeReportsWithDraftComments && reportOption.hasDraftComment) {
-                draftReportOptions.push(reportOption);
-            } else {
-                recentReportOptions.push(reportOption);
-            }
+            recentReportOptions.push(reportOption);
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
                 loginOptionsToExclude.push({login: reportOption.login});
             }
         }
-    }
-
-    // If we are prioritizing reports with draft comments, add them before the normal recent report options
-    // and sort them by report name.
-    if (prioritizeReportsWithDraftComments) {
-        const sortedDraftReports = lodashOrderBy(draftReportOptions, ['text'], ['asc']);
-        recentReportOptions = sortedDraftReports.concat(recentReportOptions);
-    }
-
-    // If we are prioritizing IOUs the user owes, add them before the normal recent report options and reports
-    // with draft comments.
-    if (prioritizeIOUDebts) {
-        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
-        recentReportOptions = sortedIOUReports.concat(recentReportOptions);
-    }
-
-    // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    if (prioritizePinnedReports) {
-        const sortedPinnedReports = lodashOrderBy(pinnedReportOptions, ['text'], ['asc']);
-        recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing default rooms in search, do it only once we started something
@@ -735,7 +652,6 @@ function getSearchOptions(
         showReportsWithNoComments: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
-        prioritizeIOUDebts: false,
     });
 }
 
@@ -828,41 +744,6 @@ function getMemberInviteOptions(
 }
 
 /**
- * Build the options for the Sidebar a.k.a. LHN
- *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {Number} activeReportID
- * @param {String} priorityMode
- * @param {Array<String>} betas
- * @param {Object} reportActions
- * @returns {Object}
- */
-function getSidebarOptions(reports, personalDetails, activeReportID, priorityMode, betas, reportActions) {
-    let sideBarOptions = {
-        prioritizeIOUDebts: true,
-        prioritizeReportsWithDraftComments: true,
-    };
-    if (priorityMode === CONST.PRIORITY_MODE.GSD) {
-        sideBarOptions = {
-            hideReadReports: true,
-            sortByAlphaAsc: true,
-        };
-    }
-
-    return getOptions(reports, personalDetails, activeReportID, {
-        betas,
-        includeRecentReports: true,
-        includeMultipleParticipantReports: true,
-        maxRecentReportsToShow: 0, // Unlimited
-        showChatPreviewLine: true,
-        prioritizePinnedReports: true,
-        ...sideBarOptions,
-        reportActions,
-    });
-}
-
-/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  *
  * @param {Boolean} hasSelectableOptions
@@ -916,7 +797,6 @@ export {
     getSearchOptions,
     getNewChatOptions,
     getMemberInviteOptions,
-    getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
     getCurrencyListForSections,

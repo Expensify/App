@@ -12,7 +12,7 @@ export default PropTypes.shape({
     style: PropTypes.string,
 
     // ID of a report
-    reportID: PropTypes.number,
+    reportID: PropTypes.string,
 
     // ID of a policy
     policyID: PropTypes.string,
