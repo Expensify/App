@@ -1,5 +1,4 @@
 import React from 'react';
-import lodashGet from 'lodash/get';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -31,15 +30,12 @@ class RequestorOnfidoStep extends React.Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);
-        this.state = {
-            onfidoData: lodashGet(props, ['reimbursementAccount', 'achData', 'onfidoData'], ''),
-        };
     }
 
-    submit() {
+    submit(onfidoData) {
         BankAccounts.verifyIdentityForBankAccount(
             ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
-            this.state.onfidoData,
+            onfidoData,
         );
         this.props.onComplete();
     }
@@ -59,9 +55,7 @@ class RequestorOnfidoStep extends React.Component {
                         BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                     }}
                     onSuccess={(onfidoData) => {
-                        this.setState({
-                            onfidoData,
-                        }, this.submit);
+                        this.submit(onfidoData);
                     }}
                 />
             </ScrollView>
