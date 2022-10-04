@@ -40,8 +40,8 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** The default value for the checkbox */
-    defaultValue: PropTypes.bool,
+    /** The value for the checkbox */
+    value: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
     forwardedRef: PropTypes.func,
@@ -61,7 +61,7 @@ const defaultProps = {
     errorText: '',
     shouldSaveDraft: false,
     isChecked: false,
-    defaultValue: false,
+    value: false,
     forwardedRef: () => {},
 };
 
@@ -69,7 +69,7 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.isChecked = props.defaultValue || props.isChecked;
+        this.isChecked = props.value || props.isChecked;
         this.LabelComponent = props.LabelComponent;
         this.defaultStyles = [styles.flexRow, styles.alignItemsCenter];
         this.wrapperStyles = _.isArray(props.style) ? [...this.defaultStyles, ...props.style] : [...this.defaultStyles, props.style];
