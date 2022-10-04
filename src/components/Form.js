@@ -152,16 +152,17 @@ class Form extends React.Component {
 
             // We clone the child passing down all form props
             const inputID = child.props.inputID;
-            const value = this.props.draftValues[inputID] || child.props.value;
+            const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
 
             // We want to initialize the input value if it's undefined
             if (_.isUndefined(this.state.inputValues[inputID])) {
-                this.state.inputValues[inputID] = value;
+                this.state.inputValues[inputID] = defaultValue;
             }
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                value: child.props.value || this.state.inputValues[inputID],
+                defaultValue,
+                value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);

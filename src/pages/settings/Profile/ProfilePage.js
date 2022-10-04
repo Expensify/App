@@ -67,18 +67,12 @@ class ProfilePage extends Component {
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
         this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar};
-
-        const hasSelfSelectedPronouns = !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX);
-
+        this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
             logins: this.getLogins(props.loginList),
             selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            pronouns: hasSelfSelectedPronouns ? '' : props.currentUserPersonalDetails.pronouns,
-            hasSelfSelectedPronouns,
-            logins: this.getLogins(props.loginList),
-            selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
         };
 
         this.getLogins = this.getLogins.bind(this);
@@ -146,7 +140,7 @@ class ProfilePage extends Component {
         PersonalDetails.updateProfile(
             values.firstName.trim(),
             values.lastName.trim(),
-            (this.state.pronouns === CONST.PRONOUNS.SELF_SELECT) ? values.selfSelectedPronoun.trim() : values.pronouns.trim(),
+            (this.state.hasSelfSelectedPronouns) ? values.selfSelectedPronoun.trim() : values.pronouns.trim(),
             {
                 automatic: values.isAutomaticTimezone,
                 selected: values.timezone,
@@ -173,10 +167,9 @@ class ProfilePage extends Component {
         );
 
         const hasSelfSelectedPronouns = values.pronouns === CONST.PRONOUNS.SELF_SELECT;
-
+        this.pronouns = hasSelfSelectedPronouns ? '' : values.pronouns;
         this.setState({
             hasSelfSelectedPronouns,
-            pronouns: hasSelfSelectedPronouns ? values.selfSelectedPronoun : values.pronouns,
             isAutomaticTimezone: values.isAutomaticTimezone,
             selectedTimezone: values.isAutomaticTimezone ? moment.tz.guess() : values.timezone,
         });
@@ -202,6 +195,7 @@ class ProfilePage extends Component {
             value: `${CONST.PRONOUNS.PREFIX}${key}`,
         }));
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
+        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
 
         return (
             <ScreenWrapper>
@@ -243,7 +237,7 @@ class ProfilePage extends Component {
                                 inputID="firstName"
                                 name="fname"
                                 label={this.props.translate('common.firstName')}
-                                value={lodashGet(currentUserDetails, 'firstName', '')}
+                                defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                                 placeholder={this.props.translate('profilePage.john')}
                             />
                         </View>
@@ -252,7 +246,7 @@ class ProfilePage extends Component {
                                 inputID="lastName"
                                 name="lname"
                                 label={this.props.translate('common.lastName')}
-                                value={lodashGet(currentUserDetails, 'lastName', '')}
+                                defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                                 placeholder={this.props.translate('profilePage.doe')}
                             />
                         </View>
@@ -266,13 +260,13 @@ class ProfilePage extends Component {
                                 value: '',
                                 label: this.props.translate('profilePage.selectYourPronouns'),
                             }}
-                            value={this.state.pronouns}
+                            value={pronounsPickerValue}
                         />
                         {this.state.hasSelfSelectedPronouns && (
                             <View style={styles.mt2}>
                                 <TextInput
                                     inputID="selfSelectedPronoun"
-                                    value={this.state.pronouns}
+                                    defaultValue={this.pronouns}
                                     placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
                                 />
                             </View>
@@ -282,13 +276,13 @@ class ProfilePage extends Component {
                         label={this.props.translate('profilePage.emailAddress')}
                         type="email"
                         login={this.state.logins.email}
-                        value={this.state.logins.email}
+                        defaultValue={this.state.logins.email}
                     />
                     <LoginField
                         label={this.props.translate('common.phoneNumber')}
                         type="phone"
                         login={this.state.logins.phone}
-                        value={this.state.logins.phone}
+                        defaultValue={this.state.logins.phone}
                     />
                     <View style={styles.mb3}>
                         <Picker
@@ -302,7 +296,7 @@ class ProfilePage extends Component {
                     <CheckboxWithLabel
                         inputID="isAutomaticTimezone"
                         label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                        value={this.state.isAutomaticTimezone}
+                        defaultValue={this.state.isAutomaticTimezone}
                     />
                 </Form>
             </ScreenWrapper>
