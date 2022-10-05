@@ -205,7 +205,7 @@ class Form extends React.Component {
                             isLoading={this.props.formState.isLoading}
                             message={this.getErrorMessage()}
                             onSubmit={this.submit}
-                            onFixTheErrorsLinkPressed={() => {
+                            onFixTheErrorsPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
