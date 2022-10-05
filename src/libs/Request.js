@@ -47,4 +47,5 @@ export {
     clearMiddlewares,
     processWithMiddleware,
     use,
+    makeXHR,
 };
