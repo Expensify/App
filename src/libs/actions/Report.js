@@ -1456,7 +1456,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (actions, key) => {
         // reportID can be derived from the Onyx key
-        const reportID = parseInt(key.split('_')[1], 10);
+        const reportID = key.split('_')[1];
         if (!reportID) {
             return;
         }
@@ -1487,7 +1487,7 @@ Onyx.connect({
                 return;
             }
 
-            viewNewReportAction(reportID.toString(), action);
+            viewNewReportAction(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
             handledReportActions[reportID][action.sequenceNumber] = true;
         });

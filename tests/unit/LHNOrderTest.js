@@ -64,7 +64,7 @@ describe('Sidebar', () => {
         it('contains one report when a report is in Onyx', () => {
             // Given a single report
             const report = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID.toString());
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
             return waitForPromisesToResolve()
 
@@ -130,7 +130,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
             const reportIDFromRoute = report1.reportID;
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute.toString());
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -200,7 +200,7 @@ describe('Sidebar', () => {
             };
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
             const reportIDFromRoute = report2.reportID;
-            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute.toString());
+            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
 
             return waitForPromisesToResolve()
 
@@ -326,10 +326,10 @@ describe('Sidebar', () => {
                 currency: 'USD',
                 chatReportID: report3.reportID,
             };
-            report3.iouReportID = iouReport.reportID.toString();
+            report3.iouReportID = iouReport.reportID;
             const reportIDFromRoute = report2.reportID;
             const currentlyLoggedInUserEmail = 'email9@test.com';
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute.toString());
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
 
             return waitForPromisesToResolve()
 
