@@ -4,6 +4,7 @@ import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 const currentUserEmail = 'bjorn@vikings.net';
 const participantsPersonalDetails = {
@@ -221,6 +222,38 @@ describe('ReportUtils', () => {
                         .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });
+        });
+    });
+
+    describe('hasOutstandingIOU', () => {
+        describe('No report', () => {
+            it('returns false when there is no report', () => {
+                expect(ReportUtils.hasOutstandingIOU()).toBe(false);
+            });
+        });
+        describe('No iouReportID', () => {
+            it('returns false when the report has no iouReportID', () => {
+                const report = LHNTestUtils.getFakeReport();
+                expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
+            });
+        });
+        describe('No iouReports', () => {
+
+        });
+        describe('No matching iouReports', () => {
+
+        });
+        describe('No ownerEmail on iouReport', () => {
+
+        });
+        describe('IOU owner is not the current user', () => {
+
+        });
+        describe('Has oustanding IOU', () => {
+
+        });
+        describe('Has no oustanding IOU', () => {
+
         });
     });
 });
