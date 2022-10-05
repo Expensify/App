@@ -34,7 +34,7 @@ const Template = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setErrorMessage(args.formID, args.formState.error);
+    FormActions.setErrors(args.formID, args.formState.error);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
@@ -132,7 +132,7 @@ const WithNativeEventHandler = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setErrorMessage(args.formID, args.formState.error);
+    FormActions.setErrors(args.formID, args.formState.error);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
