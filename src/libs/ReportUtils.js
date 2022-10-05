@@ -866,7 +866,6 @@ function isUnread(report) {
  * @param {String} report.iouReportID
  * @param {String} currentUserLogin
  * @param {Object} iouReports
- * @param {String} iouReports.ownerEmail
  * @returns {boolean}
  */
 
