@@ -4,7 +4,10 @@ import styles from '../../../../../styles/styles';
 import floatingMessageCounterContainerPropTypes from './floatingMessageCounterContainerPropTypes';
 
 const FloatingMessageCounterContainer = props => (
-    <Animated.View style={[styles.floatingMessageCounterWrapper, ...props.containerStyles]}>
+    <Animated.View
+        accessibilityHint={props.accessibilityHint}
+        style={[styles.floatingMessageCounterWrapper, ...props.containerStyles]}
+    >
         {props.children}
     </Animated.View>
 );

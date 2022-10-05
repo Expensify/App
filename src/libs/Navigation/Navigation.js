@@ -10,6 +10,16 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 
+let resolveNavigationIsReadyPromise;
+const navigationIsReadyPromise = new Promise((resolve) => {
+    resolveNavigationIsReadyPromise = resolve;
+});
+
+let resolveDrawerIsReadyPromise;
+const drawerIsReadyPromise = new Promise((resolve) => {
+    resolveDrawerIsReadyPromise = resolve;
+});
+
 let isLoggedIn = false;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -186,6 +196,28 @@ function isActiveRoute(routePath) {
     return getActiveRoute().substring(1) === routePath;
 }
 
+/**
+ * @returns {Promise}
+ */
+function isNavigationReady() {
+    return navigationIsReadyPromise;
+}
+
+function setIsNavigationReady() {
+    resolveNavigationIsReadyPromise();
+}
+
+/**
+ * @returns {Promise}
+ */
+function isDrawerReady() {
+    return drawerIsReadyPromise;
+}
+
+function setIsDrawerReady() {
+    resolveDrawerIsReadyPromise();
+}
+
 export default {
     canNavigate,
     navigate,
@@ -196,6 +228,11 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+    isNavigationReady,
+    setIsNavigationReady,
+    isDrawerReady,
+    setIsDrawerReady,
+    isDrawerRoute,
 };
 
 export {

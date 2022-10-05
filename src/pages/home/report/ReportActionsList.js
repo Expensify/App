@@ -17,6 +17,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -26,16 +27,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
@@ -109,14 +101,15 @@ class ReportActionsList extends React.Component {
     }
 
     /**
-     * Create a unique key for Each Action in the FlatList.
-     * We use the reportActionId that is a string representation of a random 64-bit int, which should be
-     * random enought to avoid colisions
+     * Create a unique key for each action in the FlatList.
+     * We use the reportActionID that is a string representation of a random 64-bit int, which should be
+     * random enough to avoid collisions
      * @param {Object} item
+     * @param {Object} item.action
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.reportActionID}`;
+        return `${item.action.clientID}${item.action.reportActionID}${item.action.sequenceNumber}`;
     }
 
     /**
@@ -138,10 +131,11 @@ class ReportActionsList extends React.Component {
         // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
         // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
         const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
-            && item.action.sequenceNumber === this.props.newMarkerSequenceNumber;
+            && item.action.sequenceNumber === this.props.newMarkerSequenceNumber
+            && !ReportActionsUtils.isDeletedAction(item.action);
         return (
             <ReportActionItem
-                reportID={this.props.report.reportID}
+                report={this.props.report}
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
@@ -177,8 +171,9 @@ class ReportActionsList extends React.Component {
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerSequenceNumber : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
-            <Animated.View style={StyleUtils.getReportListAnimationStyle(this.state.fadeInAnimation)}>
+            <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
+                    accessibilityLabel="List of chat messages"
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}

@@ -127,7 +127,6 @@ class CheckboxWithLabel extends React.Component {
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
-CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading

@@ -3,6 +3,7 @@ import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
+// eslint-disable-next-line import/no-cycle
 import * as Middleware from './Middleware';
 import CONST from '../CONST';
 
@@ -151,14 +152,6 @@ function GetPolicySummaryList() {
         returnValueList: 'policySummaryList',
     };
     return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function GetRequestCountryCode() {
-    const commandName = 'GetRequestCountryCode';
-    return Network.post(commandName);
 }
 
 /**
@@ -412,12 +405,6 @@ function Policy_Employees_Merge(parameters) {
     return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
-function BankAccount_Validate(parameters) {
-    const commandName = 'ValidateBankAccount';
-    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
-}
-
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -476,17 +463,6 @@ function GetLocalCurrency(parameters) {
  */
 function User_IsUsingExpensifyCard() {
     return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
- * @param {Object} parameters
- * @param {String} [parameters.type]
- * @param {String} [parameters.policyName]
- * @returns {Promise}
- */
-function Policy_Create(parameters) {
-    const commandName = 'Policy_Create';
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -553,18 +529,6 @@ function GetReportSummaryList(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.policyID
- * @param {String} parameters.value - Must be a JSON stringified object
- * @returns {Promise}
- */
-function UpdatePolicy(parameters) {
-    const commandName = 'UpdatePolicy';
-    requireParameters(['policyID', 'value'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
  * @param {String} parameters.reportName
  * @param {String} parameters.visibility
  * @return {Promise}
@@ -603,7 +567,6 @@ function GetStatementPDF(parameters) {
 
 export {
     BankAccount_SetupWithdrawal,
-    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -615,7 +578,6 @@ export {
     GetFullPolicy,
     GetPolicySummaryList,
     GetReportSummaryList,
-    GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
     PayIOU,
@@ -628,7 +590,6 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
-    UpdatePolicy,
     User_SignUp,
     User_IsUsingExpensifyCard,
     User_SecondaryLogin_Send,
@@ -640,7 +601,6 @@ export {
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    Policy_Create,
     Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,
