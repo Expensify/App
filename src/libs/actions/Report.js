@@ -331,14 +331,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return simplifiedReports;
-        })
-        .catch((err) => {
-            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                return;
-            }
-
-            // eslint-disable-next-line no-use-before-define
-            handleInaccessibleReport();
         });
 }
 
@@ -1086,6 +1078,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 isEdited: true,
                 html: htmlForNewComment,
                 text: textForNewComment,
+                type: originalReportAction.message[0].type,
             }],
         },
     };
@@ -1213,14 +1206,6 @@ function navigateToConciergeChat() {
 }
 
 /**
- * Handle the navigation when report is inaccessible
- */
-function handleInaccessibleReport() {
-    Growl.error(Localize.translateLocal('notFound.chatYouLookingForCannotBeFound'));
-    navigateToConciergeChat();
-}
-
-/**
  * Creates a policy room, fetches it, and navigates to it.
  * @param {String} policyID
  * @param {String} reportName
@@ -1263,7 +1248,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  */
 function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = [currentUserEmail, ...policy.employeeList];
+    const participants = _.unique([currentUserEmail, ..._.pluck(policy.employeeList, 'email')]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
@@ -1544,7 +1529,6 @@ export {
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
-    handleInaccessibleReport,
     setReportWithDraft,
     createPolicyRoom,
     addPolicyReport,

@@ -525,6 +525,7 @@ export default {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
+        noAccess: 'You don\'t have access to this chat',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -718,7 +719,8 @@ export default {
         headerTitle: 'Enable payments',
         activatedTitle: 'Wallet activated!',
         activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
-        checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+        checkBackLaterTitle: 'Just a minute...',
+        checkBackLaterMessage: 'We\'re still reviewing your information. Please check back later.',
         continueToPayment: 'Continue to payment',
         continueToTransfer: 'Continue to transfer',
     },
@@ -822,6 +824,7 @@ export default {
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
+                genericRemove: 'There was a problem removing that workspace member.',
             },
         },
         card: {
