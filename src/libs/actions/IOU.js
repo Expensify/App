@@ -151,7 +151,6 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
         comment,
     );
 
-    // @TODO: Add RBR pendingAction
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -174,6 +173,9 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
             },
         },
     ];
+
+    const successData = [];
+    const failureData = [];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = amount / participants.length;
@@ -223,6 +225,8 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.reportID}`,
+
+                // @TODO: Do we need to add a pending action for iouReports?
                 value: oneOnOneIOUReport,
             },
             {
@@ -237,8 +241,11 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
             },
         );
 
+        successData.push();
+        failureData.push();
+
         // @TODO: build success and failure data
-        return {optimisticData};
+        return {optimisticData, successData, failureData};
     });
 }
 
