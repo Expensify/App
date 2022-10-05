@@ -302,6 +302,7 @@ class AdditionalDetailsStep extends React.Component {
                                     errorText={this.getErrorText('legalLastName')}
                                 />
                                 <AddressForm
+                                    translate={this.props.translate}
                                     streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
                                     values={{
                                         street: this.props.walletAdditionalDetailsDraft.addressStreet,

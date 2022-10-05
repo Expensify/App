@@ -107,6 +107,7 @@ const IdentityForm = (props) => {
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <AddressForm
+                translate={props.translate}
                 streetTranslationKey="common.personalAddress"
                 values={props.values}
                 errors={props.errors}
