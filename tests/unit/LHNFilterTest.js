@@ -305,7 +305,7 @@ describe('Sidebar', () => {
                         ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
                         policyID: policy.policyID,
                     };
-                    const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID.toString());
+                    const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
                     return waitForPromisesToResolve()
 
@@ -349,7 +349,7 @@ describe('Sidebar', () => {
                 lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
-            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID.toString());
+            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
             return waitForPromisesToResolve()
 
@@ -388,7 +388,7 @@ describe('Sidebar', () => {
 
                 // When report 2 becomes the active report
                 .then(() => {
-                    sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report2.reportID.toString());
+                    sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report2.reportID);
                     return waitForPromisesToResolve();
                 })
 
