@@ -99,6 +99,36 @@ class ProfilePage extends Component {
     }
 
     /**
+     * @param {String} pronouns
+     */
+    setPronouns(pronouns) {
+        const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+        this.pronouns = hasSelfSelectedPronouns ? '' : pronouns;
+
+        if (this.state.hasSelfSelectedPronouns === hasSelfSelectedPronouns) {
+            return;
+        }
+
+        this.setState({hasSelfSelectedPronouns});
+    }
+
+    /**
+     * Update the timezone picker's value to guessed timezone
+     * @param {Boolean} isAutomaticTimezone
+     */
+    setAutomaticTimezone(isAutomaticTimezone) {
+        if (!isAutomaticTimezone) {
+            this.setState({isAutomaticTimezone});
+            return;
+        }
+
+        this.setState({
+            selectedTimezone: moment.tz.guess(),
+            isAutomaticTimezone,
+        });
+    }
+
+    /**
      * Get the most validated login of each type
      *
      * @param {Array} loginList
@@ -181,35 +211,6 @@ class ProfilePage extends Component {
         }
 
         return errors;
-    }
-
-    /**
-     * @param {String} pronouns
-     */
-    setPronouns(pronouns) {
-        const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
-        this.pronouns = hasSelfSelectedPronouns ? '' : pronouns;
-
-        if (this.state.hasSelfSelectedPronouns === hasSelfSelectedPronouns) {
-            return;
-        }
-
-        this.setState({hasSelfSelectedPronouns});
-    }
-
-    /**
-     * Update the timezone picker's value to guessed timezone
-     * @param {Boolean} isAutomaticTimezone
-     */
-    setAutomaticTimezone(isAutomaticTimezone) {
-        if (!isAutomaticTimezone) {
-            return this.setState({isAutomaticTimezone});
-        }
-
-        this.setState({
-            selectedTimezone: moment.tz.guess(),
-            isAutomaticTimezone,
-        });
     }
 
     render() {
