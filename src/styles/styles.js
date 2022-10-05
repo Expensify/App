@@ -321,6 +321,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    bgDark: {
+        backgroundColor: colors.dark,
+    },
+
     opacity0: {
         opacity: 0,
     },
@@ -666,6 +670,10 @@ const styles = {
         paddingBottom: 9,
     },
 
+    offlineIndicatorRow: {
+        height: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -729,7 +737,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
@@ -1331,10 +1338,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemUnsentMessage: {
-        opacity: 0.6,
-    },
-
     chatItemMessageLink: {
         color: colors.blue,
         fontSize: variables.fontSizeNormal,
@@ -1772,6 +1775,7 @@ const styles = {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
     },
+
     PDFView: {
         // `display: grid` is not supported in native platforms!
         // It's being used on Web/Desktop only to vertically center short PDFs,
@@ -1784,6 +1788,12 @@ const styles = {
         overflow: 'hidden',
         overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    pdfPasswordForm: {
+        wideScreenWidth: {
+            width: 350,
+        },
     },
 
     modalCenterContentContainer: {
@@ -1981,6 +1991,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        cursor: 'default',
     },
 
     unreadIndicatorLine: {
@@ -2410,6 +2421,10 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+        menuItemErrorPadding: {
+            paddingLeft: 44,
+            paddingRight: 20,
+        },
     },
 
     dotIndicatorMessage: {
@@ -2619,10 +2634,6 @@ const styles = {
         height: 153,
     },
 
-    avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to average mobile device
-    },
-
     imageCropContainer: {
         borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
@@ -2670,6 +2681,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
+    },
+
+    addWorkspaceRoomErrorRow: {
+        paddingHorizontal: 20,
+        maxWidth: 450,
+        alignSelf: 'center',
     },
 };
 

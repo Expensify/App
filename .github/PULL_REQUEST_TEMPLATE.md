@@ -35,7 +35,7 @@ For example:
 <!--
 This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
 -->
-#### Contributor (PR Author) Checklist
+#### PR Author Checklist
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I added steps for local testing in the `Tests` section
@@ -85,7 +85,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 <details>
 <summary><h4>PR Reviewer Checklist</h4>
 
-The Contributor+ will copy/paste it into a new comment and complete it after the author checklist is completed
+The reviewer will copy/paste it into a new comment and complete it after the author checklist is completed
 </summary>
 
 - [ ] I have verified the author checklist is complete (all boxes are checked off).
@@ -103,7 +103,7 @@ The Contributor+ will copy/paste it into a new comment and complete it after the
     - [ ] Android / Chrome
     - [ ] MacOS / Chrome
     - [ ] MacOS / Desktop
-- [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
+- [ ] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`).
     - [ ] I verified that comments were added to code that is not self explanatory
@@ -157,8 +157,11 @@ For example:
 #### Web
 <!-- Insert screenshots of your changes on the web platform-->
 
-#### Mobile Web
-<!-- Insert screenshots of your changes on the web platform (from a mobile browser)-->
+#### Mobile Web - Chrome
+<!-- Insert screenshots of your changes on the web platform (from chrome mobile browser)-->
+
+#### Mobile Web - Safari
+<!-- Insert screenshots of your changes on the web platform (from safari mobile browser)-->
 
 #### Desktop
 <!-- Insert screenshots of your changes on the desktop platform-->

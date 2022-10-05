@@ -53,7 +53,7 @@ const SignInPageLayout = (props) => {
                 width="100%"
                 height="100%"
                 src={backgroundStyle.backgroundImageUri}
-                resizeMode={props.isMediumScreenWidth ? 'contain' : 'cover'}
+                resizeMode="contain"
             />
         </Pressable>
     );
