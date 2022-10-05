@@ -15,6 +15,18 @@ import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as NumberUtils from '../NumberUtils';
 
+const iouReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    callback: (iouReport, key) => {
+        if (!iouReport || !key || !iouReport.ownerEmail) {
+            return;
+        }
+
+        iouReports[key] = iouReport;
+    },
+});
+
 /**
  * Gets the IOU Reports for new transaction
  *
@@ -136,6 +148,18 @@ function splitBill(report, participants, amount, currentUserEmail) {
         amount,
     );
 
+    // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
+    const splitAmount = amount / participants.length;
+    _.each(participants, (email) => {
+        if (email === currentUserEmail) {
+            return;
+        }
+
+        const oneOnOneReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
+        // let oneOnOneIOUReport = lodashGet(oneOnOneReport, 'iouReportID', null) ? iouReport : ReportUtils.buildOptimisticIOUReport(currentUserEmail, email, splitAmount, oneOnOneReport.reportID,)
+    });
+
+    // Call API
 }
 
 /**
