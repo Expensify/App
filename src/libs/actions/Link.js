@@ -7,7 +7,7 @@ import * as Localize from '../Localize';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import asyncOpenURL from '../asyncOpenURL';
-import * as Request from '../Request';
+import * as API from '../API';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -56,8 +56,8 @@ function openOldDotLink(url) {
 
     // If shortLivedAuthToken is not accessible fallback to opening the link without the token.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    Request.makeXHR(
-        {command: 'OpenOldDotLink', data: {}}, {}, {},
+    API.makeRequestWithSideEffects(
+        'OpenOldDotLink', {}, {},
     ).then((response) => {
         Linking.openURL(buildOldDotURL(response.shortLivedAuthToken));
     }).catch(() => {
