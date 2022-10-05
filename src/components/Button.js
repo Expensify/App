@@ -179,6 +179,7 @@ class Button extends Component {
 
         const textComponent = (
             <Text
+                selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
