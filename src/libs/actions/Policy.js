@@ -95,17 +95,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
  * @param {String} policyID
  */
 function updateLastAccessedWorkspace(policyID) {
-    if (policyID === lastAccessedWorkspacePolicyID) {
-        return;
-    }
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
-}
-
-/**
- * Delete the lastAccessedWorkspace
- */
-function deleteLastAccessedWorkspace() {
-    updateLastAccessedWorkspace(null);
 }
 
 /**
@@ -153,7 +143,7 @@ function deleteWorkspace(policyID) {
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
-        deleteLastAccessedWorkspace();
+        updateLastAccessedWorkspace(null);
     }
 }
 
