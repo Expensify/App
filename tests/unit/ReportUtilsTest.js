@@ -263,9 +263,7 @@ describe('ReportUtils', () => {
                     iouReportID: '1',
                 };
                 const iouReports = {
-                    // All report IDs should be strings in JS, so make sure to always keep them as strings
-                    // eslint-disable-next-line quote-props
-                    '1': {
+                    reportIOUs_1: {
                         reportID: '1',
                     },
                 };
@@ -279,9 +277,7 @@ describe('ReportUtils', () => {
                     iouReportID: '1',
                 };
                 const iouReports = {
-                    // All report IDs should be strings in JS, so make sure to always keep them as strings
-                    // eslint-disable-next-line quote-props
-                    '1': {
+                    reportIOUs_1: {
                         reportID: '1',
                         ownerEmail: 'a@a.com',
                     },
@@ -297,9 +293,7 @@ describe('ReportUtils', () => {
                     hasOutstandingIOU: true,
                 };
                 const iouReports = {
-                    // All report IDs should be strings in JS, so make sure to always keep them as strings
-                    // eslint-disable-next-line quote-props
-                    '1': {
+                    reportIOUs_1: {
                         reportID: '1',
                         ownerEmail: 'a@a.com',
                     },
@@ -315,9 +309,7 @@ describe('ReportUtils', () => {
                     hasOutstandingIOU: false,
                 };
                 const iouReports = {
-                    // All report IDs should be strings in JS, so make sure to always keep them as strings
-                    // eslint-disable-next-line quote-props
-                    '1': {
+                    reportIOUs_1: {
                         reportID: '1',
                         ownerEmail: 'a@a.com',
                     },
