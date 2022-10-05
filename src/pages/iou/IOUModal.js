@@ -332,14 +332,15 @@ class IOUModal extends Component {
         }
 
         if (splits) {
-            IOU.splitBill({
-                comment: this.state.comment,
-
-                // Send in cents to API.
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-            });
+            IOU.splitBill(
+                this.props.report,
+                this.participants,
+                Math.round(this.state.amount * 100),
+                this.props.iou.selectedCurrencyCode,
+                this.props.currentUserPersonalDetails.login,
+                this.props.preferredLocale,
+                this.state.comment,
+            );
             return;
         }
 

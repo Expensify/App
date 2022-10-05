@@ -137,11 +137,14 @@ function createIOUTransaction(params) {
         });
 }
 
+/**
+ * @param {Object} params
+ */
 function buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale) {
     const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
     const groupReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
-        'create',
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
         comment,
     );
@@ -169,7 +172,8 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
             return;
         }
 
-        const oneOnOneChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
+        // WE need to get the 1:1 chat
+        const oneOnOneChatReport = lodashGet(getOneOnOneChat, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
             oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
@@ -187,7 +191,7 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
 
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
-            'create',
+            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
             currency,
             comment,
@@ -215,6 +219,7 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
         );
 
         // @TODO: build success and failure data
+        return {optimisticData};
     });
 }
 
@@ -222,9 +227,7 @@ function splitBill(report, participants, amount, currency, currentUserEmail, loc
     const onyxData = buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale);
 
     // Call API
-    API.write('SplitBill', params, {
-        optimisticData: onyxData.optimisticData,
-    });
+    API.write('SplitBill', params, onyxData);
 }
 
 /**
