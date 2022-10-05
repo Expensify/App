@@ -94,7 +94,7 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-
+- `ONYX_DEBUG_SET_STATE` (options) - Set this to `true` to generate additional logs about which Onyx-connected components are re-rendering and how the data changed
 ----
 
 # Running the tests

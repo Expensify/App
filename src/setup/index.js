@@ -4,6 +4,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
+import CONFIG from '../CONFIG';
 
 export default function () {
     /*
@@ -24,6 +25,7 @@ export default function () {
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         keysToDisableSyncEvents: [ONYXKEYS.CURRENTLY_VIEWED_REPORTID],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
+        debugSetState: CONFIG.ONYX_DEBUG_SET_STATE,
         initialKeyStates: {
 
             // Clear any loading and error messages so they do not appear on app startup
