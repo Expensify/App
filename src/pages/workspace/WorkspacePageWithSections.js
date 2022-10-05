@@ -56,6 +56,9 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
+    /** Option to not use the default scroll view  */
+    shouldNotUseScrollView: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -65,6 +68,7 @@ const defaultProps = {
     reimbursementAccount: {},
     footer: null,
     guidesCallTaskID: '',
+    shouldNotUseScrollView: false,
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -103,15 +107,19 @@ class WorkspacePageWithSections extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <ScrollView
-                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                >
-                    <View style={[styles.w100, styles.flex1]}>
+                {this.props.shouldNotUseScrollView
+                    ? this.props.children(hasVBA, policyID, isUsingECard)
+                    : (
+                        <ScrollView
+                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                        >
+                            <View style={[styles.w100, styles.flex1]}>
 
-                        {this.props.children(hasVBA, policyID, isUsingECard)}
+                                {this.props.children(hasVBA, policyID, isUsingECard)}
 
-                    </View>
-                </ScrollView>
+                            </View>
+                        </ScrollView>
+                    )}
                 {this.props.footer}
             </ScreenWrapper>
         );
