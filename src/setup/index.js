@@ -24,6 +24,7 @@ export default function () {
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         keysToDisableSyncEvents: [ONYXKEYS.CURRENTLY_VIEWED_REPORTID],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
+        maxCachedKeysCount: 10000,
         initialKeyStates: {
 
             // Clear any loading and error messages so they do not appear on app startup
