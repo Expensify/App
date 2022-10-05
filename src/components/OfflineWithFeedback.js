@@ -89,7 +89,7 @@ const OfflineWithFeedback = (props) => {
     return (
         <View style={props.style}>
             {!hideChildren && (
-                <View style={needsOpacity ? styles.offlineFeedback.pending : {}}>
+                <View style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}>
                     {children}
                 </View>
             )}
