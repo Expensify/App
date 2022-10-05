@@ -120,12 +120,14 @@ const MenuItem = (props) => {
                                     {props.description}
                                 </Text>
                             )}
-                            <Text
-                                style={titleTextStyle}
-                                numberOfLines={1}
-                            >
-                                {props.title}
-                            </Text>
+                            {Boolean(props.title) && (
+                                <Text
+                                    style={titleTextStyle}
+                                    numberOfLines={1}
+                                >
+                                    {props.title}
+                                </Text>
+                            )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
