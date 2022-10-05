@@ -142,7 +142,8 @@ function createIOUTransaction(params) {
  */
 function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail, currency, locale) {
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
-    const groupChatReport = ReportUtils.getChatByParticipants(participants) || ReportUtils.buildOptimisticChatReport(participants);
+    const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
+    const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participants);
     const groupReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -155,13 +156,21 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
-            value: groupChatReport,
+            value: {
+                ...groupChatReport,
+                pendingFields: {
+                    createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                [groupReportAction.sequenceNumber]: groupReportAction,
+                [groupReportAction.sequenceNumber]: {
+                    ...groupReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
     ];
@@ -174,7 +183,8 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
         }
 
         // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
-        const oneOnOneChatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]) || ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
+        const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]);
+        const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
             oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
@@ -203,7 +213,12 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                value: oneOnOneChatReport,
+                value: {
+                    ...oneOnOneChatReport,
+                    pendingFields: {
+                        createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
             },
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -214,7 +229,10 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                    [oneOnOneIOUReportAction.sequenceNumber]: {
+                        ...oneOnOneIOUReportAction,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
                 },
             },
         );
