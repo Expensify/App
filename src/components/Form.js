@@ -148,6 +148,20 @@ class Form extends React.Component {
                 });
             }
 
+            // Drill down the component that have a role as form wrapper
+            // e.g usage of AddressForm or IdentityForm
+            if (_.isFunction(child.type)) {
+                const nestedChildren = new child.type(child.props);
+
+                if (!React.isValidElement(nestedChildren) || !nestedChildren.props.children) {
+                    return child;
+                }
+
+                return React.cloneElement(nestedChildren, {
+                    children: this.childrenWrapperWithProps(nestedChildren.props.children),
+                });
+            }
+
             // We check if the child has the inputID prop.
             // We don't want to pass form props to non form components, e.g. View, Text, etc
             if (!child.props.inputID) {
