@@ -250,21 +250,44 @@ describe('ReportUtils', () => {
             it('returns false when there is no matching IOU report', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    iouReportID: '2',
+                    iouReportID: '1',
                 };
-                const iouReports = {
-                    // ReportIDs should always be strings in JS, so keep it a string
-                    // eslint-disable-next-line quote-props
-                    '1': {},
-                };
+                const iouReports = {};
                 expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
             });
         });
         describe('No ownerEmail on iouReport', () => {
-
+            it('returns false when the matched IOU report does not have an owner email', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    iouReportID: '1',
+                };
+                const iouReports = {
+                    // All report IDs should be strings in JS, so make sure to always keep them as strings
+                    // eslint-disable-next-line quote-props
+                    '1': {
+                        reportID: '1',
+                    },
+                };
+                expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+            });
         });
         describe('IOU owner is not the current user', () => {
-
+            it('returns false when the matched IOU report does not have an owner email', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    iouReportID: '1',
+                };
+                const iouReports = {
+                    // All report IDs should be strings in JS, so make sure to always keep them as strings
+                    // eslint-disable-next-line quote-props
+                    '1': {
+                        reportID: '1',
+                        ownerEmail: 'a@a.com',
+                    },
+                };
+                expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+            });
         });
         describe('Has oustanding IOU', () => {
 
