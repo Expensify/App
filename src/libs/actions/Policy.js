@@ -24,10 +24,10 @@ Onyx.connect({
     },
 });
 
-let lastAccessedWorkspacePolicyID = null
+let lastAccessedWorkspacePolicyID = null;
 Onyx.connect({
     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
-    callback: value => lastAccessedWorkspacePolicyID = value
+    callback: value => lastAccessedWorkspacePolicyID = value,
 });
 
 let sessionEmail = '';
@@ -86,6 +86,24 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
     };
+}
+
+/**
+ * Stores in Onyx the policy ID of the last workspace that was accessed by the user
+ * @param {String} policyID
+ */
+function updateLastAccessedWorkspace(policyID) {
+    if (policyID === lastAccessedWorkspacePolicyID) {
+        return;
+    }
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+}
+
+/**
+ * Delete the lastAccessedWorkspace
+ */
+function deleteLastAccessedWorkspace() {
+    updateLastAccessedWorkspace(null);
 }
 
 /**
@@ -185,7 +203,7 @@ function deleteWorkspace(policyID) {
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
-    	deleteLastAccessedWorkspace();
+        deleteLastAccessedWorkspace();
     }
 }
 
@@ -718,24 +736,6 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
         customUnitID,
         customUnitRate: JSON.stringify(newCustomUnitRate),
     }, {optimisticData, successData, failureData});
-}
-
-/**
- * Stores in Onyx the policy ID of the last workspace that was accessed by the user
- * @param {String} policyID
- */
-function updateLastAccessedWorkspace(policyID) {
-    if (policyID === lastAccessedWorkspacePolicyID) {
-        return;
-    }
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
-}
-
-/**
- * Delete the lastAccessedWorkspace
- */
-function deleteLastAccessedWorkspace() {
-    updateLastAccessedWorkspace(null);
 }
 
 /**
