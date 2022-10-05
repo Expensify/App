@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 
@@ -15,6 +16,9 @@ const propTypes = {
 
     /** Text to be displayed in the submit button */
     submitButtonText: PropTypes.string.isRequired,
+
+    /** Controls the submit button's visibility */
+    isSubmitButtonVisible: PropTypes.bool,
 
     /** Callback to validate the form */
     validate: PropTypes.func.isRequired,
@@ -32,23 +36,28 @@ const propTypes = {
         /** Controls the loading state of the form */
         isLoading: PropTypes.bool,
 
-        /** Server side error message */
-        error: PropTypes.string,
+        /** Server side errors keyed by microtime */
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
 
     /** Contains draft values for each input in the form */
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
 
+    /** Should the button be enabled when offline */
+    enabledWhenOffline: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    isSubmitButtonVisible: true,
     formState: {
         isLoading: false,
-        error: '',
+        errors: null,
     },
     draftValues: {},
+    enabledWhenOffline: false,
 };
 
 class Form extends React.Component {
@@ -73,6 +82,11 @@ class Form extends React.Component {
      */
     setTouchedInput(inputID) {
         this.touchedInputs[inputID] = true;
+    }
+
+    getErrorMessage() {
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.formState);
+        return this.props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
     }
 
     submit() {
@@ -100,7 +114,7 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        FormActions.setErrorMessage(this.props.formID, '');
+        FormActions.setErrors(this.props.formID, null);
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
@@ -184,17 +198,20 @@ class Form extends React.Component {
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
+                        {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage())}
                             isLoading={this.props.formState.isLoading}
-                            message={this.props.formState.error}
+                            message={this.getErrorMessage()}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
+                            enabledWhenOffline={this.props.enabledWhenOffline}
                         />
+                        )}
                     </View>
                 </ScrollView>
             </>

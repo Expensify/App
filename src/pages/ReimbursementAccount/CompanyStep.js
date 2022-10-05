@@ -26,6 +26,7 @@ import AddressForm from './AddressForm';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -311,6 +312,9 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        reimbursementAccountDraftValues: {
+            key: FormActions.getDraftValuesKey(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM),
         },
         session: {
             key: ONYXKEYS.SESSION,
