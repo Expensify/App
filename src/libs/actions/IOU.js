@@ -125,19 +125,17 @@ function createIOUTransaction(params) {
         });
 }
 
-function splitBill(report, participants) {
+function splitBill(report, participants, amount, currentUserEmail) {
     // Create or get group chat
     const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
 
-    // Create or get group iouReport
-
     // Create or get group reportActionID
+    const groupReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
+        'create',
+        amount,
+    );
 
-    // Create or get individual chats
-    // Create or get individual iouReports
-    // Create or get individual reportActionIDs
-
-    // Call API
 }
 
 /**
