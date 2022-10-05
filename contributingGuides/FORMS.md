@@ -203,6 +203,10 @@ function onSubmit(values) {
 The following prop is available to form inputs:
 
 - inputID: An unique identifier for the input.
+- shouldSaveDraft: Saves a draft of the input value.
+- defaultValue: The initial value of the input.
+- value: The value to show for the input.
+- onValueChange: A callback that is called when the input's value changes.
 
 Form.js will automatically provide the following props to any input with the inputID prop.
 
