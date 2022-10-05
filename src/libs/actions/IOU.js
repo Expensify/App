@@ -130,47 +130,8 @@ function createIOUTransaction(params) {
  * @param {Number} params.amount
  * @param {String} params.currency
  */
-function createIOUSplit(params) {
-    startLoadingAndResetError();
+function splitBill(params) {
 
-    let chatReportID;
-    DeprecatedAPI.CreateChatReport({
-        emailList: _.map(params.splits, participant => participant.email).join(','),
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return response;
-            }
-
-            chatReportID = response.reportID;
-            return DeprecatedAPI.CreateIOUSplit({
-                ...params,
-                splits: JSON.stringify(params.splits),
-                reportID: response.reportID,
-            });
-        })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                processIOUErrorResponse(response);
-                return;
-            }
-
-            // This data needs to go from this:
-            // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
-            // to this:
-            // [{reportID: 1, chatReportID: 3}, {reportID: 2, chatReportID: 4}]
-            // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
-            // chat reports
-            const reportParams = [];
-            for (let i = 0; i < response.reportIDList.length; i++) {
-                reportParams.push({
-                    reportID: response.reportIDList[i],
-                    chatReportID: response.chatReportIDList[i],
-                });
-            }
-            getIOUReportsForNewTransaction(reportParams);
-            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
-        });
 }
 
 /**
@@ -183,21 +144,8 @@ function createIOUSplit(params) {
  * @param {String} params.currency
  * @param {String} params.reportID
  */
-function createIOUSplitGroup(params) {
-    startLoadingAndResetError();
+function splitBillAndOpenReport(params) {
 
-    DeprecatedAPI.CreateIOUSplit({
-        ...params,
-        splits: JSON.stringify(params.splits),
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false});
-        });
 }
 
 /**
@@ -320,16 +268,11 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
-function splitBill() {
-
-}
-
 export {
     createIOUTransaction,
-    createIOUSplit,
-    createIOUSplitGroup,
+    splitBill,
+    splitBillAndOpenReport,
     rejectTransaction,
     payIOUReport,
     setIOUSelectedCurrency,
-    splitBill,
 };

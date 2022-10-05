@@ -341,23 +341,6 @@ function CreateIOUTransaction(parameters) {
 }
 
 /**
- * Create a new IOU Split
- *
- * @param {Object} parameters
- * @param {String} parameters.splits
- * @param {String} parameters.currency
- * @param {String} parameters.reportID
- * @param {String} parameters.amount
- * @param {String} parameters.comment
- * @returns {Promise}
- */
-function CreateIOUSplit(parameters) {
-    const commandName = 'CreateIOUSplit';
-    requireParameters(['splits', 'currency', 'amount', 'reportID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * @param {String} firstName
  * @param {String} lastName
  * @param {String} dob
@@ -595,7 +578,6 @@ export {
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     CreateIOUTransaction,
-    CreateIOUSplit,
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,

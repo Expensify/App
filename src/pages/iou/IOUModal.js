@@ -319,7 +319,7 @@ class IOUModal extends Component {
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
         if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.createIOUSplitGroup({
+            IOU.splitBillAndOpenReport({
                 comment: this.state.comment,
 
                 // should send in cents to API
@@ -332,7 +332,7 @@ class IOUModal extends Component {
         }
 
         if (splits) {
-            IOU.createIOUSplit({
+            IOU.splitBill({
                 comment: this.state.comment,
 
                 // Send in cents to API.
