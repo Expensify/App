@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -10,6 +11,9 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
+import * as API from '../API';
+import * as ReportUtils from '../ReportUtils';
+import * as NumberUtils from '../NumberUtils';
 
 /**
  * Gets the IOU Reports for new transaction
@@ -121,17 +125,19 @@ function createIOUTransaction(params) {
         });
 }
 
-/**
- * Creates IOUSplit Transaction
- *
- * @param {Object} params
- * @param {Array} params.splits
- * @param {String} params.comment
- * @param {Number} params.amount
- * @param {String} params.currency
- */
-function splitBill(params) {
+function splitBill(report, participants) {
+    // Create or get group chat
+    const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
 
+    // Create or get group iouReport
+
+    // Create or get group reportActionID
+
+    // Create or get individual chats
+    // Create or get individual iouReports
+    // Create or get individual reportActionIDs
+
+    // Call API
 }
 
 /**
