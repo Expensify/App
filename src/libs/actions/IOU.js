@@ -380,6 +380,7 @@ function splitBill(report, participants, amount, currency, currentUserEmail, loc
     });
 
     // Call API
+    API.write('SplitBill', params, {optimisticData});
 }
 
 /**
