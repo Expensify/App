@@ -293,7 +293,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
-function splitBill(report, participants, amount, currency, currentUserEmail, locale, comment) {
+function buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale) {
     // Create or get group chat
     const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
 
@@ -378,9 +378,15 @@ function splitBill(report, participants, amount, currency, currentUserEmail, loc
             },
         );
     });
+}
+
+function splitBill(report, participants, amount, currency, currentUserEmail, locale, comment) {
+    const onyxData = buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale);
 
     // Call API
-    API.write('SplitBill', params, {optimisticData});
+    API.write('SplitBill', params, {
+        optimisticData: onyxData.optimisticData
+    });
 }
 
 /**
