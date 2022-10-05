@@ -721,7 +721,8 @@ export default {
         headerTitle: 'Habilitar pagos',
         activatedTitle: '¡Billetera  activada!',
         activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
-        checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
+        checkBackLaterTitle: 'Un momento...',
+        checkBackLaterMessage: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
         continueToPayment: 'Continuar al pago',
         continueToTransfer: 'Continuar a la transferencia',
     },
@@ -993,7 +994,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
-        growlMessageOnError: 'No se pudo crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         growlMessageOnRenameError: 'No se pudo cambiar el nomdre del espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
             restricted: 'Restringida',
