@@ -108,7 +108,11 @@ function getAdvancedFakeReport(hasComments, isArchived, isUserCreatedPolicyRoom,
     };
 }
 
-function getDefaultRenderedSidebarLinks() {
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {RenderAPI}
+ */
+function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
     // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
     // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
@@ -148,6 +152,7 @@ function getDefaultRenderedSidebarLinks() {
                     }}
                     onAvatarClick={() => {}}
                     isSmallScreenWidth={false}
+                    reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
         </LocaleContextProvider>

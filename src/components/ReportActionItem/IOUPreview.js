@@ -33,10 +33,10 @@ const propTypes = {
     onPayButtonPressed: PropTypes.func,
 
     /** The active IOUReport, used for Onyx subscription */
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.string.isRequired,
 
     /** The associated chatReport */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** Callback for the preview pressed */
     onPreviewPressed: PropTypes.func,
