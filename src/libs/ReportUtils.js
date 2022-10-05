@@ -865,8 +865,8 @@ function isUnread(report) {
  * @param {Object} report
  * @param {String} report.iouReportID
  * @param {String} currentUserLogin
- * @param {Object[]} iouReports
- * @param {String} iouReports[].ownerEmail
+ * @param {Object} iouReports
+ * @param {String} iouReports.ownerEmail
  * @returns {boolean}
  */
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
