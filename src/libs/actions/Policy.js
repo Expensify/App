@@ -185,7 +185,7 @@ function deleteWorkspace(policyID) {
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
-    	updateLastAccessedWorkspace(null);
+    	deleteLastAccessedWorkspace();
     }
 }
 
@@ -729,6 +729,13 @@ function updateLastAccessedWorkspace(policyID) {
         return;
     }
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+}
+
+/**
+ * Delete the lastAccessedWorkspace
+ */
+function deleteLastAccessedWorkspace() {
+    updateLastAccessedWorkspace(null);
 }
 
 /**
