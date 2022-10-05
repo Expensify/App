@@ -23,6 +23,13 @@ Onyx.connect({
         allPolicies[key] = val;
     },
 });
+
+let lastAccessedWorkspacePolicyID = null
+Onyx.connect({
+    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+    callback: value => lastAccessedWorkspacePolicyID = value
+});
+
 let sessionEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -175,6 +182,11 @@ function deleteWorkspace(policyID) {
     const failureData = [];
     const successData = [];
     API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
+
+    // Reset the lastAccessedWorkspacePolicyID
+    if (policyID === lastAccessedWorkspacePolicyID) {
+    	updateLastAccessedWorkspace(null);
+    }
 }
 
 /**
@@ -713,6 +725,9 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
  * @param {String} policyID
  */
 function updateLastAccessedWorkspace(policyID) {
+    if (policyID === lastAccessedWorkspacePolicyID) {
+        return;
+    }
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
