@@ -41,12 +41,6 @@ Onyx.connect({
     },
 });
 
-let lastViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => lastViewedReportID = val ? Number(val) : null,
-});
-
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -946,13 +940,6 @@ function handleReportChanged(report) {
     }
 }
 
-/**
- * @param {String} reportID
- */
-function updateCurrentlyViewedReportID(reportID) {
-    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
-}
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -1261,7 +1248,7 @@ function addPolicyReport(policy, reportName, visibility) {
     );
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
-    // storeCurrentlyViewedReport is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
+    // fetchReportIfNeeded is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
     // If there was an error creating the room, then fetchChatReportsByIDs throws an error and the user is navigated away from the report instead of showing the RBR error message.
     // Therefore, Onyx.set is used instead of Onyx.merge.
     const optimisticData = [
@@ -1433,7 +1420,7 @@ function viewNewReportAction(reportID, action) {
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === lastViewedReportID && Visibility.isVisible()) {
+    if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
         Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
@@ -1469,7 +1456,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (actions, key) => {
         // reportID can be derived from the Onyx key
-        const reportID = parseInt(key.split('_')[1], 10);
+        const reportID = key.split('_')[1];
         if (!reportID) {
             return;
         }
@@ -1522,7 +1509,6 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
-    updateCurrentlyViewedReportID,
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,
