@@ -30,6 +30,10 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OfflineIndicator from '../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
+import Banner from '../../components/Banner';
+import withLocalize from '../../components/withLocalize';
+import reportPropTypes from '../reportPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -50,19 +54,7 @@ const propTypes = {
     }),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-
-        /** Flag to check if the report actions data are loading */
-        isLoadingReportActions: PropTypes.bool,
-
-        /** ID for the report */
-        reportID: PropTypes.number,
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -123,11 +115,14 @@ class ReportScreen extends React.Component {
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
+        this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: 0,
             viewportOffsetTop: 0,
+            isBannerVisible: true,
         };
     }
 
@@ -175,10 +170,6 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportIDFromPath = getReportID(this.props.route);
-        if (_.isNaN(reportIDFromPath)) {
-            Report.handleInaccessibleReport();
-            return;
-        }
 
         // Always reset the state of the composer view when the current reportID changes
         toggleReportActionComposeView(true);
@@ -200,6 +191,14 @@ class ReportScreen extends React.Component {
     updateViewportOffsetTop(e) {
         const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
         this.setState({viewportOffsetTop});
+    }
+
+    dismissBanner() {
+        this.setState({isBannerVisible: false});
+    }
+
+    chatWithAccountManager() {
+        Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
     }
 
     render() {
@@ -237,71 +236,91 @@ class ReportScreen extends React.Component {
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
                 keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
-                <OfflineWithFeedback
-                    pendingAction={addWorkspaceRoomPendingAction}
-                    errors={addWorkspaceRoomErrors}
-                    errorRowStyles={styles.dNone}
+                <FullPageNotFoundView
+                    shouldShow={!this.props.report.reportID}
+                    subtitleKey="notFound.noAccess"
+                    shouldShowCloseButton={false}
+                    shouldShowBackButton={this.props.isSmallScreenWidth}
+                    onBackButtonPress={() => {
+                        Navigation.navigate(ROUTES.HOME);
+                    }}
                 >
-                    <HeaderView
-                        reportID={reportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
-                </OfflineWithFeedback>
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
-                >
-                    {this.shouldShowLoader()
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={this.state.skeletonViewContainerHeight}
-                            />
-                        )
-                        : (
-                            <ReportActionsView
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                isDrawerOpen={this.props.isDrawerOpen}
-                            />
-                        )}
-                    {(isArchivedRoom || hideComposer) && (
-                        <View style={[styles.chatFooter]}>
-                            {isArchivedRoom && (
-                                <ArchivedReportFooter
-                                    reportClosedAction={reportClosedAction}
+                    <OfflineWithFeedback
+                        pendingAction={addWorkspaceRoomPendingAction}
+                        errors={addWorkspaceRoomErrors}
+                        errorRowStyles={styles.dNone}
+                    >
+                        <HeaderView
+                            reportID={reportID}
+                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                        />
+                    </OfflineWithFeedback>
+                    {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                        <Banner
+                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                            textStyles={[styles.colorReversed]}
+                            text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                            onClose={this.dismissBanner}
+                            onPress={this.chatWithAccountManager}
+                            shouldShowCloseButton
+                        />
+                    )}
+                    <View
+                        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                        onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                    >
+                        {this.shouldShowLoader()
+                            ? (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )
+                            : (
+                                <ReportActionsView
+                                    reportActions={this.props.reportActions}
                                     report={this.props.report}
+                                    session={this.props.session}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    isDrawerOpen={this.props.isDrawerOpen}
                                 />
                             )}
-                            {!this.props.isSmallScreenWidth && (
-                                <View style={styles.offlineIndicatorRow}>
-                                    {hideComposer && (
-                                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                    )}
-                                </View>
-                            )}
-                        </View>
-                    )}
-                    {(!hideComposer && this.props.session.shouldShowComposeInput) && (
-                        <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                                <OfflineWithFeedback
-                                    pendingAction={addWorkspaceRoomPendingAction}
-                                >
-                                    <ReportActionCompose
-                                        onSubmit={this.onSubmitComment}
-                                        reportID={reportID}
-                                        reportActions={this.props.reportActions}
+                        {(isArchivedRoom || hideComposer) && (
+                            <View style={[styles.chatFooter]}>
+                                {isArchivedRoom && (
+                                    <ArchivedReportFooter
+                                        reportClosedAction={reportClosedAction}
                                         report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
                                     />
-                                </OfflineWithFeedback>
-                            </SwipeableView>
-                        </View>
-                    )}
-                </View>
+                                )}
+                                {!this.props.isSmallScreenWidth && (
+                                    <View style={styles.offlineIndicatorRow}>
+                                        {hideComposer && (
+                                            <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                                        )}
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                        {(!hideComposer && this.props.session.shouldShowComposeInput) && (
+                            <View style={[this.setChatFooterStyles(this.props.network.isOffline), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                                <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                                    <OfflineWithFeedback
+                                        pendingAction={addWorkspaceRoomPendingAction}
+                                    >
+                                        <ReportActionCompose
+                                            onSubmit={this.onSubmitComment}
+                                            reportID={reportID}
+                                            reportActions={this.props.reportActions}
+                                            report={this.props.report}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                        />
+                                    </OfflineWithFeedback>
+                                </SwipeableView>
+                            </View>
+                        )}
+                    </View>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
@@ -311,6 +330,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withWindowDimensions,
     withDrawerState,
     withNetwork(),
@@ -336,6 +356,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        accountManagerReportID: {
+            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
         },
     }),
 )(ReportScreen);
