@@ -140,8 +140,9 @@ function createIOUTransaction(params) {
 /**
  * @param {Object} params
  */
-function buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale) {
-    const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
+function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail, currency, locale) {
+    // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
+    const groupChatReport = ReportUtils.getChatByParticipants(participants) || ReportUtils.buildOptimisticChatReport(participants);
     const groupReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -172,8 +173,8 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
             return;
         }
 
-        // WE need to get the 1:1 chat
-        const oneOnOneChatReport = lodashGet(getOneOnOneChat, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
+        // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
+        const oneOnOneChatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]) || ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
             oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
