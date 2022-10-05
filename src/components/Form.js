@@ -184,8 +184,8 @@ class Form extends React.Component {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }
 
-                    if (child.props.onInputChange) {
-                        child.props.onInputChange(value);
+                    if (child.props.onValueChange) {
+                        child.props.onValueChange(value);
                     }
                 },
             });
