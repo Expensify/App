@@ -129,11 +129,11 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     focusRoomNameInput() {
-        if (!this.newRoomInputRef) {
+        if (!this.roomNameInputRef) {
             return;
         }
 
-        this.newRoomInputRef.focus();
+        this.roomNameInputRef.focus();
     }
 
     render() {
@@ -158,7 +158,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View style={styles.mb5}>
                         <RoomNameInput
-                            ref={el => (this.newRoomInputRef = el)}
+                            ref={el => (this.roomNameInputRef = el)}
                             policyID={this.state.policyID}
                             errorText={this.state.errors.roomName}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
