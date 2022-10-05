@@ -290,10 +290,40 @@ describe('ReportUtils', () => {
             });
         });
         describe('Has oustanding IOU', () => {
-
+            it('returns true when the report has an oustanding IOU', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    iouReportID: '1',
+                    hasOutstandingIOU: true,
+                };
+                const iouReports = {
+                    // All report IDs should be strings in JS, so make sure to always keep them as strings
+                    // eslint-disable-next-line quote-props
+                    '1': {
+                        reportID: '1',
+                        ownerEmail: 'a@a.com',
+                    },
+                };
+                expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(true);
+            });
         });
         describe('Has no oustanding IOU', () => {
-
+            it('returns false when the report has no oustanding IOU', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    iouReportID: '1',
+                    hasOutstandingIOU: false,
+                };
+                const iouReports = {
+                    // All report IDs should be strings in JS, so make sure to always keep them as strings
+                    // eslint-disable-next-line quote-props
+                    '1': {
+                        reportID: '1',
+                        ownerEmail: 'a@a.com',
+                    },
+                };
+                expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+            });
         });
     });
 });
