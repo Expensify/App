@@ -121,12 +121,9 @@ class BaseTextInput extends Component {
     }
 
     onBlur(event) {
-        // just trigger onBlur when clicking outside the input
-        if (!event.currentTarget.contains(event.relatedTarget)) {
-            if (this.props.onBlur) { this.props.onBlur(event); }
-            this.setState({isFocused: false});
-            this.deactivateLabel();
-        }
+        if (this.props.onBlur) { this.props.onBlur(event); }
+        this.setState({isFocused: false});
+        this.deactivateLabel();
     }
 
     /**
@@ -245,7 +242,7 @@ class BaseTextInput extends Component {
                                         />
                                     </>
                                 ) : null}
-                                <View style={[styles.textInputAndIconContainer]} pointerEvents="box-none" onBlur={this.onBlur}>
+                                <View style={[styles.textInputAndIconContainer]} pointerEvents="box-none">
                                     {Boolean(this.props.prefixCharacter) && (
                                         <Text
                                             pointerEvents="none"
@@ -281,6 +278,7 @@ class BaseTextInput extends Component {
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
                                         onFocus={this.onFocus}
+                                        onBlur={this.onBlur}
                                         onChangeText={this.setValue}
                                         secureTextEntry={this.state.passwordHidden}
                                         onPressOut={this.props.onPress}

@@ -67,6 +67,9 @@ const propTypes = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus: PropTypes.bool,
+
+    /** Callback execute when input is out focus. */
+    onBlur: PropTypes.func,
 };
 
 const defaultProps = {
