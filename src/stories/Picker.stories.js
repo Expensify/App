@@ -12,16 +12,17 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => {
+const Template = (args) => {
     const [value, setValue] = useState('');
     return (
         <Picker
             value={value}
-            onInputChange={(value) => setValue(value)}
+            onInputChange={e => setValue(e)}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
         />
     );
-}
+};
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
