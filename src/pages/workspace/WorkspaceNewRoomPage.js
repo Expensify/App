@@ -56,6 +56,7 @@ class WorkspaceNewRoomPage extends React.Component {
         };
 
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
+        this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
     }
 
     componentDidMount() {
@@ -127,6 +128,14 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
     }
 
+    focusRoomNameInput() {
+        if (!this.newRoomInputRef) {
+            return;
+        }
+
+        this.newRoomInputRef.focus();
+    }
+
     render() {
         if (!Permissions.canUsePolicyRooms(this.props.betas)) {
             Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
@@ -141,7 +150,7 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={this.focusRoomNameInput}>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -149,6 +158,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View style={styles.mb5}>
                         <RoomNameInput
+                            ref={el => (this.newRoomInputRef = el)}
                             policyID={this.state.policyID}
                             errorText={this.state.errors.roomName}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
