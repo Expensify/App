@@ -138,10 +138,7 @@ function createIOUTransaction(params) {
 }
 
 function buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale) {
-    // Create or get group chat
     const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
-
-    // Create or get group reportActionID
     const groupReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
         'create',
@@ -149,7 +146,6 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
         comment,
     );
 
-    // Define optimisticData
     // @TODO: Add RBR pendingAction
     const optimisticData = [
         {
@@ -173,10 +169,7 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
             return;
         }
 
-        // Chat report
         const oneOnOneChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
-
-        // iouReport
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
             oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
@@ -192,7 +185,6 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
             );
         }
 
-        // reportAction
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
             'create',
@@ -221,6 +213,8 @@ function buildSplitBillOnyxData(report, participants, amount, comment, currentUs
                 },
             },
         );
+
+        // @TODO: build success and failure data
     });
 }
 
@@ -229,7 +223,7 @@ function splitBill(report, participants, amount, currency, currentUserEmail, loc
 
     // Call API
     API.write('SplitBill', params, {
-        optimisticData: onyxData.optimisticData
+        optimisticData: onyxData.optimisticData,
     });
 }
 
