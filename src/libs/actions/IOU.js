@@ -137,7 +137,7 @@ function createIOUTransaction(params) {
         });
 }
 
-function splitBill(report, participants, amount, currentUserEmail) {
+function splitBill(report, participants, amount, currency, currentUserEmail, locale, comment) {
     // Create or get group chat
     const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
 
@@ -146,6 +146,7 @@ function splitBill(report, participants, amount, currentUserEmail) {
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
         'create',
         amount,
+        comment,
     );
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
@@ -155,8 +156,33 @@ function splitBill(report, participants, amount, currentUserEmail) {
             return;
         }
 
+        // Chat report
         const oneOnOneReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
-        // let oneOnOneIOUReport = lodashGet(oneOnOneReport, 'iouReportID', null) ? iouReport : ReportUtils.buildOptimisticIOUReport(currentUserEmail, email, splitAmount, oneOnOneReport.reportID,)
+
+        // iouReport
+        let oneOnOneIOUReport;
+        if (oneOnOneReport.iouReportID) {
+            oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneReport.iouReportID}`];
+            oneOnOneIOUReport.total += splitAmount;
+        } else {
+            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(
+                currentUserEmail,
+                email,
+                splitAmount,
+                oneOnOneReport.reportID,
+                currency,
+                locale,
+            );
+        }
+
+        // reportAction
+        const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+            lodashGet(oneOnOneReport, 'maxSequenceNumber', 0) + 1,
+            'create',
+            amount,
+            currency,
+            comment,
+        );
     });
 
     // Call API
