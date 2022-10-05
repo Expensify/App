@@ -63,7 +63,7 @@ class Picker extends PureComponent {
      */
     onInputChange(value, index) {
         if (this.props.inputID) {
-            this.props.onInputChange(value, this.props.inputID);
+            this.props.onInputChange(value);
             return;
         }
 
