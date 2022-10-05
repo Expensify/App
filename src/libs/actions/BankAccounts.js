@@ -326,6 +326,19 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
     }, getVBBADataForOnyx());
 }
 
+/**
+ * Verify the user's identity via Onfido
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} onfidoData
+ */
+function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+    API.write('VerifyIdentityForBankAccount', {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
@@ -336,6 +349,7 @@ export {
     openReimbursementAccountPage,
     updatePersonalInformationForBankAccount,
     validateBankAccount,
+    verifyIdentityForBankAccount,
     updateCompanyInformationForBankAccount,
     connectBankAccountWithPlaid,
     updatePlaidData,
