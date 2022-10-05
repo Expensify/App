@@ -166,14 +166,6 @@ class ProfilePage extends Component {
             [values.firstName, values.lastName, values.pronouns],
         );
 
-        const hasSelfSelectedPronouns = values.pronouns === CONST.PRONOUNS.SELF_SELECT;
-        this.pronouns = hasSelfSelectedPronouns ? '' : values.pronouns;
-        this.setState({
-            hasSelfSelectedPronouns,
-            isAutomaticTimezone: values.isAutomaticTimezone,
-            selectedTimezone: values.isAutomaticTimezone ? moment.tz.guess() : values.timezone,
-        });
-
         if (hasFirstNameError) {
             errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
@@ -261,6 +253,16 @@ class ProfilePage extends Component {
                                 label: this.props.translate('profilePage.selectYourPronouns'),
                             }}
                             defaultValue={pronounsPickerValue}
+                            onValueChange={pronouns => {
+                                const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                this.pronouns = hasSelfSelectedPronouns ? '' : pronouns;
+
+                                if (this.state.hasSelfSelectedPronouns === hasSelfSelectedPronouns) {
+                                    return;
+                                }
+
+                                this.setState({hasSelfSelectedPronouns});
+                            }}
                         />
                         {this.state.hasSelfSelectedPronouns && (
                             <View style={styles.mt2}>
@@ -291,13 +293,19 @@ class ProfilePage extends Component {
                             items={timezones}
                             isDisabled={this.state.isAutomaticTimezone}
                             value={this.state.selectedTimezone}
-                            onInputChange={selectedTimezone => this.setState({selectedTimezone})}
+                            onValueChange={selectedTimezone => this.setState({selectedTimezone})}
                         />
                     </View>
                     <CheckboxWithLabel
                         inputID="isAutomaticTimezone"
                         label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                         defaultValue={this.state.isAutomaticTimezone}
+                        onValueChange={isAutomaticTimezone => this.setState(prevState => {
+                            return {
+                                isAutomaticTimezone,
+                                selectedTimezone: isAutomaticTimezone ? moment.tz.guess() : prevState.selectedTimezone,
+                            };
+                        })}
                     />
                 </Form>
             </ScreenWrapper>
