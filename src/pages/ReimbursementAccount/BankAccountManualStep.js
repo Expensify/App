@@ -91,6 +91,7 @@ class BankAccountManualStep extends React.Component {
                     <TextInput
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -99,6 +100,7 @@ class BankAccountManualStep extends React.Component {
                         inputID="accountNumber"
                         containerStyles={[styles.mt4]}
                         label={this.props.translate('bankAccount.accountNumber')}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'accountNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
