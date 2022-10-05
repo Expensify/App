@@ -26,10 +26,10 @@ Onyx.connect({
     },
 });
 
-let lastAccessedWorkspacePolicyID = null
+let lastAccessedWorkspacePolicyID = null;
 Onyx.connect({
     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
-    callback: value => lastAccessedWorkspacePolicyID = value
+    callback: value => lastAccessedWorkspacePolicyID = value,
 });
 
 let sessionEmail = '';
@@ -91,6 +91,24 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
 }
 
 /**
+ * Stores in Onyx the policy ID of the last workspace that was accessed by the user
+ * @param {String} policyID
+ */
+function updateLastAccessedWorkspace(policyID) {
+    if (policyID === lastAccessedWorkspacePolicyID) {
+        return;
+    }
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+}
+
+/**
+ * Delete the lastAccessedWorkspace
+ */
+function deleteLastAccessedWorkspace() {
+    updateLastAccessedWorkspace(null);
+}
+
+/**
  * Used to update ALL of the policies at once. If a policy is present locally, but not in the policies object passed here it will be removed.
  * @param {Object} policyCollection - object of policy key and partial policy object
  */
@@ -135,7 +153,7 @@ function deleteWorkspace(policyID) {
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
-    	deleteLastAccessedWorkspace();
+        deleteLastAccessedWorkspace();
     }
 }
 
@@ -643,24 +661,6 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
         customUnitID,
         customUnitRate: JSON.stringify(newCustomUnitRate),
     }, {optimisticData, successData, failureData});
-}
-
-/**
- * Stores in Onyx the policy ID of the last workspace that was accessed by the user
- * @param {String} policyID
- */
-function updateLastAccessedWorkspace(policyID) {
-    if (policyID === lastAccessedWorkspacePolicyID) {
-        return;
-    }
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
-}
-
-/**
- * Delete the lastAccessedWorkspace
- */
-function deleteLastAccessedWorkspace() {
-    updateLastAccessedWorkspace(null);
 }
 
 /**
