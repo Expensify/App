@@ -869,8 +869,9 @@ function isUnread(report) {
  * @param {String} iouReports.ownerEmail
  * @returns {boolean}
  */
+
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
-    if (!report || !report.iouReportID || report.hasOutstandingIOU) {
+    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
     }
 
@@ -879,7 +880,11 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
         return false;
     }
 
-    return iouReport.ownerEmail !== currentUserLogin;
+    if (iouReport.ownerEmail === currentUserEmail) {
+        return false;
+    }
+
+    return report.hasOutstandingIOU;
 }
 
 /**
