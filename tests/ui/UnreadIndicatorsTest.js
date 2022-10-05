@@ -26,6 +26,7 @@ beforeAll(() => {
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
     global.fetch = TestHelper.getGlobalFetchMock();
 
+    // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
     jest.setTimeout(30000);
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
