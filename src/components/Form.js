@@ -159,9 +159,13 @@ class Form extends React.Component {
                 this.state.inputValues[inputID] = defaultValue;
             }
 
+            if (!_.isUndefined(child.props.value)) {
+                this.state.inputValues[inputID] = child.props.value;
+            }
+
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                value: child.props.value || this.state.inputValues[inputID],
+                value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);
@@ -178,6 +182,10 @@ class Form extends React.Component {
 
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
+                    }
+
+                    if (child.props.onInputChange) {
+                        child.props.onInputChange(value);
                     }
                 },
             });

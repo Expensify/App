@@ -291,6 +291,7 @@ class ProfilePage extends Component {
                             items={timezones}
                             isDisabled={this.state.isAutomaticTimezone}
                             value={this.state.selectedTimezone}
+                            onInputChange={(selectedTimezone) => this.setState({selectedTimezone})}
                         />
                     </View>
                     <CheckboxWithLabel
