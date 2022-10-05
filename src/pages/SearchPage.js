@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import SidebarUtils from '../libs/SidebarUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -111,6 +112,9 @@ class SearchPage extends Component {
                 indexOffset: 0,
             }));
         }
+
+        const optionListItems = SidebarUtils.getOrderedReportIDs();
+        sections[0].data = _.filter(sections[0].data, section => _.contains(optionListItems, section.reportID));
 
         return sections;
     }
