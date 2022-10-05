@@ -14,27 +14,6 @@ import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as NumberUtils from '../NumberUtils';
-import * as IOUUtils from '../IOUUtils';
-import DateUtils from '../DateUtils';
-
-let iouReports;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    waitForCollectionCallback: true,
-    callback: val => iouReports = val,
-});
-
-let preferredLocale = CONST.DEFAULT_LOCALE;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        preferredLocale = val;
-    },
-});
 
 /**
  * Gets the IOU Reports for new transaction
@@ -302,17 +281,19 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
-/**
- * Creates IOUSplit Transaction
- *
- * @param {Object} params
- * @param {Array} params.splits
- * @param {String} params.comment
- * @param {Number} params.amount
- * @param {String} params.currency
- */
-function splitBill(params) {
+function splitBill(report, participants) {
+    // Create or get group chat
+    const groupChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
 
+    // Create or get group iouReport
+
+    // Create or get group reportActionID
+
+    // Create or get individual chats
+    // Create or get individual iouReports
+    // Create or get individual reportActionIDs
+
+    // Call API
 }
 
 /**
