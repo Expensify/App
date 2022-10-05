@@ -253,7 +253,7 @@ class ProfilePage extends Component {
                                 label: this.props.translate('profilePage.selectYourPronouns'),
                             }}
                             defaultValue={pronounsPickerValue}
-                            onValueChange={pronouns => {
+                            onValueChange={(pronouns) => {
                                 const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
                                 this.pronouns = hasSelfSelectedPronouns ? '' : pronouns;
 
@@ -300,12 +300,10 @@ class ProfilePage extends Component {
                         inputID="isAutomaticTimezone"
                         label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                         defaultValue={this.state.isAutomaticTimezone}
-                        onValueChange={isAutomaticTimezone => this.setState(prevState => {
-                            return {
-                                isAutomaticTimezone,
-                                selectedTimezone: isAutomaticTimezone ? moment.tz.guess() : prevState.selectedTimezone,
-                            };
-                        })}
+                        onValueChange={isAutomaticTimezone => this.setState(prevState => ({
+                            isAutomaticTimezone,
+                            selectedTimezone: isAutomaticTimezone ? moment.tz.guess() : prevState.selectedTimezone,
+                        }))}
                     />
                 </Form>
             </ScreenWrapper>
