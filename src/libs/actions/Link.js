@@ -54,7 +54,7 @@ function openOldDotLink(url) {
         return;
     }
 
-    // If shortLivedAuthToken is not accessible fallback to opening the link without the token.
+    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         'OpenOldDotLink', {}, {},
