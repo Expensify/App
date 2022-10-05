@@ -238,10 +238,27 @@ describe('ReportUtils', () => {
             });
         });
         describe('No iouReports', () => {
-
+            it('returns false when there is no iouReports collection', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    iouReportID: '1',
+                };
+                expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
+            });
         });
         describe('No matching iouReports', () => {
-
+            it('returns false when there is no matching IOU report', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    iouReportID: '2',
+                };
+                const iouReports = {
+                    // ReportIDs should always be strings in JS, so keep it a string
+                    // eslint-disable-next-line quote-props
+                    '1': {},
+                };
+                expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+            });
         });
         describe('No ownerEmail on iouReport', () => {
 
