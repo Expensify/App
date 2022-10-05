@@ -12,10 +12,12 @@ import CONST from '../CONST';
 
 const LocaleContext = createContext(null);
 
-const withLocalizePropTypes = {
+const translateLocalizePropTypes = {
     /** Returns translated string for given locale and phrase */
     translate: PropTypes.func.isRequired,
+};
 
+const withLocalizePropTypes = {
     /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
@@ -36,6 +38,8 @@ const withLocalizePropTypes = {
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: PropTypes.func.isRequired,
+
+    ...translateLocalizePropTypes,
 };
 
 const localeProviderPropTypes = {
@@ -175,5 +179,6 @@ export default function withLocalize(WrappedComponent) {
 
 export {
     withLocalizePropTypes,
+    translateLocalizePropTypes,
     Provider as LocaleContextProvider,
 };
