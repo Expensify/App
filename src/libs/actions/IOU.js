@@ -149,6 +149,23 @@ function splitBill(report, participants, amount, currency, currentUserEmail, loc
         comment,
     );
 
+    // Define optimisticData
+    // @TODO: Add RBR pendingAction
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+            value: groupChatReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
+            value: {
+                [groupReportAction.sequenceNumber]: groupReportAction,
+            },
+        },
+    ];
+
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = amount / participants.length;
     _.each(participants, (email) => {
@@ -157,19 +174,19 @@ function splitBill(report, participants, amount, currency, currentUserEmail, loc
         }
 
         // Chat report
-        const oneOnOneReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
+        const oneOnOneChatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
 
         // iouReport
         let oneOnOneIOUReport;
-        if (oneOnOneReport.iouReportID) {
-            oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneReport.iouReportID}`];
+        if (oneOnOneChatReport.iouReportID) {
+            oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
             oneOnOneIOUReport.total += splitAmount;
         } else {
             oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(
                 currentUserEmail,
                 email,
                 splitAmount,
-                oneOnOneReport.reportID,
+                oneOnOneChatReport.reportID,
                 currency,
                 locale,
             );
@@ -177,11 +194,32 @@ function splitBill(report, participants, amount, currency, currentUserEmail, loc
 
         // reportAction
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-            lodashGet(oneOnOneReport, 'maxSequenceNumber', 0) + 1,
+            lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
             'create',
             amount,
             currency,
             comment,
+        );
+
+        // @TODO: Add RBR pendingAction
+        optimisticData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                value: oneOnOneChatReport,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.reportID}`,
+                value: oneOnOneIOUReport,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                value: {
+                    [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                },
+            },
         );
     });
 
