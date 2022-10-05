@@ -92,7 +92,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
 
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
- * @param {String} policyID
+ * @param {String|null} policyID
  */
 function updateLastAccessedWorkspace(policyID) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
