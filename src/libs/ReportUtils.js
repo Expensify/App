@@ -865,12 +865,12 @@ function isUnread(report) {
  * @param {Object} report
  * @param {String} report.iouReportID
  * @param {String} currentUserLogin
- * @param {Object[]} iouReports
- * @param {String} iouReports[].ownerEmail
+ * @param {Object} iouReports
  * @returns {boolean}
  */
+
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
-    if (!report || !report.iouReportID || report.hasOutstandingIOU) {
+    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
     }
 
@@ -879,7 +879,11 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
         return false;
     }
 
-    return iouReport.ownerEmail !== currentUserLogin;
+    if (iouReport.ownerEmail === currentUserEmail) {
+        return false;
+    }
+
+    return report.hasOutstandingIOU;
 }
 
 /**
@@ -979,6 +983,7 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
+    hasOutstandingIOU,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
