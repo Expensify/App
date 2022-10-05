@@ -304,11 +304,22 @@ class AdditionalDetailsStep extends React.Component {
                                     value={this.props.walletAdditionalDetailsDraft.legalLastName || lastName}
                                     errorText={this.getErrorText('legalLastName')}
                                 />
-                                <AddressSearch
-                                    label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
-                                    value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
-                                    containerStyles={[styles.mt4]}
-                                    onInputChange={(values) => {
+                                <AddressForm
+                                    translate={this.props.translate}
+                                    streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
+                                    values={{
+                                        street: this.props.walletAdditionalDetailsDraft.addressStreet,
+                                        state: this.props.walletAdditionalDetailsDraft.addressState,
+                                        city: this.props.walletAdditionalDetailsDraft.addressCity,
+                                        zipCode: this.props.walletAdditionalDetailsDraft.addressZip,
+                                    }}
+                                    errors={{
+                                        street: this.getErrors().addressStreet,
+                                        state: this.getErrors().addressState,
+                                        city: this.getErrors().addressCity,
+                                        zipCode: this.getErrors().addressZip,
+                                    }}
+                                    onFieldChange={(values) => {
                                         const renamedFields = {
                                             street: 'addressStreet',
                                             state: 'addressState',

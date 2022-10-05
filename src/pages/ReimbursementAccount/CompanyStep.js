@@ -208,6 +208,7 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyName')}
                     />
                     <AddressForm
+                        translate={this.props.translate}
                         streetTranslationKey="common.companyAddress"
                         values={{
                             street: this.state.addressStreet,
