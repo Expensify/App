@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, findNodeHandle} from 'react-native';
+import {View} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -203,7 +203,7 @@ class BaseOptionsSelector extends Component {
         if (this.props.shouldFocusOnSelectRow) {
             // Input is permanently focused on native platforms, so we always highlight the text inside of it
             this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
-            if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
+            if (this.relatedTarget && ref === this.relatedTarget) {
                 this.textInput.focus();
             }
             this.relatedTarget = null;
