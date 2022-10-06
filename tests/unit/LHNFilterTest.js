@@ -431,7 +431,46 @@ describe('Sidebar', () => {
         });
 
         it('does not show archived or policy rooms unless they are unread', () => {
+            // Given an archived report and a policy room report
+            const archivedReport = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const policyRoomReport = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+            };
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
+                }))
+
+                // Then neither reports are visible
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(0);
+                })
+
+                // When the policy room has an unread message
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
+                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                }))
+
+                // Then the policy room is visible
+                // Note: archived reports can't be unread by nature
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(1);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report');
+                });
         });
     });
 });
