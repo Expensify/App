@@ -394,20 +394,15 @@ function navigateToAddPaymentMethodPage(paymentType, allowPaypalPaymentTypes = t
     throw new Error('Invalid payment method type selected');
 }
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
-}
-
-/**
- * Clear the pending and error fields for adding a pesonal bank account form in /add-bank-account
- */
-function clearPersonalBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
-        errors: null,
-    });
+function clearBankAccountPendingAdd() {
     Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
         0: null,
     });
+}
+
+function clearPersonalBankAccount() {
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+    clearBankAccountPendingAdd();
 }
 
 function clearPlaid() {
@@ -437,7 +432,7 @@ export {
     clearWalletError,
     navigateToAddPaymentMethodPage,
     clearPersonalBankAccount,
-    clearPersonalBankAccountErrors,
+    clearBankAccountPendingAdd,
     clearPlaid,
     clearWalletTermsError,
 };

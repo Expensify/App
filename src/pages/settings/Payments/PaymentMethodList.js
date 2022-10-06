@@ -120,7 +120,15 @@ class PaymentMethodList extends Component {
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID, paymentMethod.pendingAction),
+            onPress: e => this.props.onPress(
+                e,
+                paymentMethod.accountType,
+                paymentMethod.accountData,
+                paymentMethod.isDefault,
+                paymentMethod.methodID,
+                paymentMethod.pendingAction,
+                paymentMethod.errors,
+            ),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
@@ -190,7 +198,7 @@ class PaymentMethodList extends Component {
                     shouldShowSelectedState={this.props.shouldShowSelectedState}
                     isSelected={this.props.selectedMethodID === item.methodID}
                     brickRoadIndicator={!_.isEmpty(item.errors) && isPendingAdd ? 'error' : null}
-                    isPending={Boolean(item.pendingAction)}
+                    isPending={Boolean(item.pendingAction) && _.isEmpty(item.errors)}
                 />
             </OfflineWithFeedback>
         );

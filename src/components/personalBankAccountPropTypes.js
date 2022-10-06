@@ -16,4 +16,10 @@ export default PropTypes.shape({
 
     /** Plaid account ID of the pending bank account */
     selectedPlaidAccountID: PropTypes.string,
+
+    /** Personal Bank Account successfully added. Show user success modal */
+    shouldShowSuccess: PropTypes.bool,
+
+    /** Show loader if still awaiting response */
+    isLoading: PropTypes.bool,
 });
