@@ -935,9 +935,9 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     // Exclude reports that don't have any comments
-    // Archived rooms or user created policy rooms are OK to show when the don't have any comments
+    // User created policy rooms are OK to show when the don't have any comments, only if they aren't archived.
     const hasNoComments = report.lastMessageTimestamp === 0;
-    if (hasNoComments && (isArchivedRoom(report) || isUserCreatedPolicyRoom(report))) {
+    if (hasNoComments && (isArchivedRoom(report) || !isUserCreatedPolicyRoom(report))) {
         return false;
     }
 
