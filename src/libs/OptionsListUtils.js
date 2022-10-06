@@ -106,6 +106,9 @@ function addSMSDomainIfPhoneNumber(login) {
  */
 function getPersonalDetailsForLogins(logins, personalDetails) {
     const personalDetailsForLogins = {};
+    if (!personalDetails) {
+        return personalDetailsForLogins;
+    }
     _.each(logins, (login) => {
         let personalDetail = personalDetails[login];
         if (!personalDetail) {
