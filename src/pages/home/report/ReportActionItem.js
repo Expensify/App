@@ -126,7 +126,6 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        console.log('@marcaaron - REPORT ACTION ITEMS RENDERING', this.props.report.reportID);
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.report.reportID} />;
         }
