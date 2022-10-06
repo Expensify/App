@@ -3,16 +3,18 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
-import md5 from './md5';
+import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
+import Permissions from './Permissions';
 
 let sessionEmail;
 Onyx.connect({
@@ -46,10 +48,14 @@ Onyx.connect({
     },
 });
 
+let allPersonalDetails;
 let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => currentUserPersonalDetails = lodashGet(val, currentUserEmail),
+    callback: (val) => {
+        currentUserPersonalDetails = lodashGet(val, currentUserEmail);
+        allPersonalDetails = val;
+    },
 });
 
 /**
@@ -260,11 +266,18 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const policyName = (
-        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
-        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
-    ) || '';
-    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    if (_.isEmpty(policies)) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    if (!policy) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    return policy.name
+        || report.oldPolicyName
+        || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -388,8 +401,8 @@ function formatReportLastMessageText(lastMessageText) {
  */
 function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login.toLowerCase()).substring(0, 4), 16) % 8) + 1;
+    // on a simple hash of their login
+    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
@@ -573,6 +586,63 @@ function hasReportNameError(report) {
     return !_.isEmpty(lodashGet(report, 'errorFields.reportName', {}));
 }
 
+/**
+ * @param {Number} sequenceNumber sequenceNumber must be provided and it must be a number. It cannot and should not be a clientID,
+ *                                reportActionID, or anything else besides an estimate of what the next sequenceNumber will be for the
+ *                                optimistic report action. Until we deprecate sequenceNumbers please assume that all report actions
+ *                                have them and they should be numbers.
+ * @param {String} [text]
+ * @param {File} [file]
+ * @returns {Object}
+ */
+function buildOptimisticReportAction(sequenceNumber, text, file) {
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+    const parser = new ExpensiMark();
+    const commentText = text.length < 10000 ? parser.replace(text) : text;
+    const isAttachment = _.isEmpty(text) && file !== undefined;
+    const attachmentInfo = isAttachment ? file : {};
+    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+
+    // Remove HTML from text when applying optimistic offline comment
+    const textForNewComment = isAttachment ? '[Attachment]'
+        : parser.htmlToText(htmlForNewComment);
+
+    return {
+        commentText,
+        reportAction: {
+            reportActionID: NumberUtils.rand64(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
+            person: [
+                {
+                    style: 'strong',
+                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
+            sequenceNumber,
+            clientID: NumberUtils.generateReportActionClientID(),
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: htmlForNewComment,
+                    text: textForNewComment,
+                },
+            ],
+            isFirstItem: false,
+            isAttachment,
+            attachmentInfo,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            shouldShow: true,
+        },
+    };
+}
+
 /*
  * Builds an optimistic IOU report with a randomly generated reportID
  */
@@ -599,6 +669,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
 /**
  * Builds an optimistic IOU reportAction object
  *
+ * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} comment - User comment for the IOU.
@@ -608,11 +679,10 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
     const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
-    const sequenceNumber = NumberUtils.generateReportActionSequenceNumber();
     const originalMessage = {
         amount,
         comment,
@@ -637,10 +707,7 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
         actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
-
-        // For now, the clientID and sequenceNumber are the same.
-        // We are changing that as we roll out the optimisticReportAction IDs and related refactors.
-        clientID: sequenceNumber,
+        clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
         person: [{
@@ -657,6 +724,132 @@ function buildOptimisticIOUReportAction(type, amount, comment, paymentType = '',
 }
 
 /**
+ * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
+ *
+ * @param {Array} participantList
+ * @param {String} reportName
+ * @param {String} chatType
+ * @param {String} policyID
+ * @param {String} ownerEmail
+ * @param {Boolean} isOwnPolicyExpenseChat
+ * @param {String} oldPolicyName
+ * @param {String} visibility
+ * @returns {Object}
+ */
+function buildOptimisticChatReport(
+    participantList,
+    reportName = 'Chat Report',
+    chatType = '',
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+    visibility = undefined,
+) {
+    return {
+        chatType,
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: 0,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        oldPolicyName,
+        ownerEmail,
+        participants: participantList,
+        policyID,
+        reportID: generateReportID(),
+        reportName,
+        stateNum: 0,
+        statusNum: 0,
+        visibility,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+function buildOptimisticCreatedReportAction(ownerEmail) {
+    return {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'normal',
+                    text: ' created this report',
+                },
+            ],
+            person: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            shouldShow: true,
+        },
+    };
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} policyName
+ * @returns {Object}
+ */
+function buildOptimisticWorkspaceChats(policyID, policyName) {
+    const announceChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
+    const announceChatReportID = announceChatData.reportID;
+    const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+
+    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatReportID = adminsChatData.reportID;
+    const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+
+    return {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+    };
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -664,6 +857,111 @@ function isUnread(report) {
     const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
     const maxSequenceNumber = report.maxSequenceNumber || 0;
     return lastReadSequenceNumber < maxSequenceNumber;
+}
+
+/**
+ * Determines if a report has an outstanding IOU that doesn't belong to the currently logged in user
+ *
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @returns {boolean}
+ */
+
+function hasOutstandingIOU(report, currentUserLogin, iouReports) {
+    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
+        return false;
+    }
+
+    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    if (!iouReport || !iouReport.ownerEmail) {
+        return false;
+    }
+
+    if (iouReport.ownerEmail === currentUserEmail) {
+        return false;
+    }
+
+    return report.hasOutstandingIOU;
+}
+
+/**
+ * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
+ * for reports or the reports shown in the LHN).
+ *
+ * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
+ * filter out the majority of reports before filtering out very specific minority of reports.
+ *
+ * @param {Object} report
+ * @param {String} reportIDFromRoute
+ * @param {Boolean} isInGSDMode
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @param {String[]} betas
+ * @param {Object} policies
+ * @returns {boolean}
+ */
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+    // Exclude reports that have no data because there wouldn't be anything to show in the option item.
+    // This can happen if data is currently loading from the server or a report is in various stages of being created.
+    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
+        return false;
+    }
+
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
+    if (report.reportID === reportIDFromRoute) {
+        return true;
+    }
+
+    // Include unread reports when in GSD mode
+    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInGSDMode) {
+        return isUnread(report);
+    }
+
+    // Include reports if they have a draft, are pinned, or have an outstanding IOU
+    // These are always relevant to the user no matter what view mode the user prefers
+    if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, currentUserLogin, iouReports)) {
+        return true;
+    }
+
+    // Include reports that have errors from trying to add a workspace
+    // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
+    if (report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom)) {
+        return true;
+    }
+
+    // Exclude reports that don't have any comments
+    // Archived rooms or user created policy rooms are OK to show when the don't have any comments
+    const hasNoComments = report.lastMessageTimestamp === 0;
+    if (hasNoComments && (isArchivedRoom(report) || isUserCreatedPolicyRoom(report))) {
+        return false;
+    }
+
+    // Include default rooms for free plan policies
+    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include default rooms unless you're on the default room beta
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        return false;
+    }
+
+    // Include user created policy rooms if the user isn't on the policy rooms beta
+    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
+    }
+
+    // Include policy expense chats if the user isn't in the policy expense chat beta
+    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
+    }
+
+    return true;
 }
 
 export {
@@ -685,6 +983,7 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
+    hasOutstandingIOU,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -697,7 +996,12 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    isUnread,
+    buildOptimisticWorkspaceChats,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
-    isUnread,
+    buildOptimisticReportAction,
+    shouldReportBeInOptionList,
 };
