@@ -13,7 +13,7 @@ import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import * as NumberUtils from '../NumberUtils';
+import DateUtils from '../DateUtils';
 
 const iouReports = {};
 Onyx.connect({
@@ -174,8 +174,31 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
         },
     ];
 
-    const successData = [];
-    const failureData = [];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+            value: {pendingFields: {createChat: null}},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
+            value: {[groupReportAction.sequenceNumber]: {pendingAction: null}},
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+            value: {pendingFields: {createChat: null}},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
+            value: {[groupReportAction.sequenceNumber]: {pendingAction: null}},
+        },
+    ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = amount / participants.length;
