@@ -92,18 +92,6 @@ class AdditionalDetailsStep extends React.Component {
 
         this.activateWallet = this.activateWallet.bind(this);
 
-        this.requiredFields = [
-            'legalFirstName',
-            'legalLastName',
-            'addressStreet',
-            'addressCity',
-            'addressState',
-            'addressZip',
-            'phoneNumber',
-            'dob',
-            'ssn',
-        ];
-
         this.errorTranslationKeys = {
             legalFirstName: 'bankAccount.error.firstName',
             legalLastName: 'bankAccount.error.lastName',
@@ -210,14 +198,6 @@ class AdditionalDetailsStep extends React.Component {
         } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
             errors.ssn = true;
         }
-
-        _.each(this.requiredFields, (requiredField) => {
-            if (ValidationUtils.isRequiredFulfilled(this.props.walletAdditionalDetailsDraft[requiredField])) {
-                return;
-            }
-
-            errors[requiredField] = true;
-        });
 
         Wallet.setAdditionalDetailsErrors(errors);
         return _.size(errors) === 0;
