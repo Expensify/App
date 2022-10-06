@@ -155,14 +155,6 @@ function GetPolicySummaryList() {
 }
 
 /**
- * @returns {Promise}
- */
-function GetRequestCountryCode() {
-    const commandName = 'GetRequestCountryCode';
-    return Network.post(commandName);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
@@ -519,31 +511,6 @@ function GetReportSummaryList(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.value - Must be a JSON stringified object
- * @returns {Promise}
- */
-function UpdatePolicy(parameters) {
-    const commandName = 'UpdatePolicy';
-    requireParameters(['policyID', 'value'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.reportName
- * @param {String} parameters.visibility
- * @return {Promise}
- */
-function CreatePolicyRoom(parameters) {
-    const commandName = 'CreatePolicyRoom';
-    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -574,7 +541,6 @@ export {
     ChangePassword,
     CreateChatReport,
     CreateLogin,
-    CreatePolicyRoom,
     DeleteLogin,
     Get,
     GetStatementPDF,
@@ -582,7 +548,6 @@ export {
     GetFullPolicy,
     GetPolicySummaryList,
     GetReportSummaryList,
-    GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
     PayIOU,
@@ -595,7 +560,6 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
-    UpdatePolicy,
     User_SignUp,
     User_IsUsingExpensifyCard,
     User_SecondaryLogin_Send,

@@ -9,11 +9,12 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
-import md5 from './md5';
+import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
+import Permissions from './Permissions';
 
 let sessionEmail;
 Onyx.connect({
@@ -265,11 +266,18 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const policyName = (
-        policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]
-        && policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`].name
-    ) || '';
-    return policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    if (_.isEmpty(policies)) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    if (!policy) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    return policy.name
+        || report.oldPolicyName
+        || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -393,8 +401,8 @@ function formatReportLastMessageText(lastMessageText) {
  */
 function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login.toLowerCase()).substring(0, 4), 16) % 8) + 1;
+    // on a simple hash of their login
+    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
@@ -864,6 +872,111 @@ function isUnread(report) {
     return lastReadSequenceNumber < maxSequenceNumber;
 }
 
+/**
+ * Determines if a report has an outstanding IOU that doesn't belong to the currently logged in user
+ *
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @returns {boolean}
+ */
+
+function hasOutstandingIOU(report, currentUserLogin, iouReports) {
+    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
+        return false;
+    }
+
+    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    if (!iouReport || !iouReport.ownerEmail) {
+        return false;
+    }
+
+    if (iouReport.ownerEmail === currentUserEmail) {
+        return false;
+    }
+
+    return report.hasOutstandingIOU;
+}
+
+/**
+ * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
+ * for reports or the reports shown in the LHN).
+ *
+ * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
+ * filter out the majority of reports before filtering out very specific minority of reports.
+ *
+ * @param {Object} report
+ * @param {String} reportIDFromRoute
+ * @param {Boolean} isInGSDMode
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @param {String[]} betas
+ * @param {Object} policies
+ * @returns {boolean}
+ */
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+    // Exclude reports that have no data because there wouldn't be anything to show in the option item.
+    // This can happen if data is currently loading from the server or a report is in various stages of being created.
+    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
+        return false;
+    }
+
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
+    if (report.reportID === reportIDFromRoute) {
+        return true;
+    }
+
+    // Include unread reports when in GSD mode
+    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInGSDMode) {
+        return isUnread(report);
+    }
+
+    // Include reports if they have a draft, are pinned, or have an outstanding IOU
+    // These are always relevant to the user no matter what view mode the user prefers
+    if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, currentUserLogin, iouReports)) {
+        return true;
+    }
+
+    // Include reports that have errors from trying to add a workspace
+    // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
+    if (report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom)) {
+        return true;
+    }
+
+    // Exclude reports that don't have any comments
+    // Archived rooms or user created policy rooms are OK to show when the don't have any comments
+    const hasNoComments = report.lastMessageTimestamp === 0;
+    if (hasNoComments && (isArchivedRoom(report) || isUserCreatedPolicyRoom(report))) {
+        return false;
+    }
+
+    // Include default rooms for free plan policies
+    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include default rooms unless you're on the default room beta
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        return false;
+    }
+
+    // Include user created policy rooms if the user isn't on the policy rooms beta
+    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
+    }
+
+    // Include policy expense chats if the user isn't in the policy expense chat beta
+    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
+    }
+
+    return true;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -883,6 +996,7 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
+    hasOutstandingIOU,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -902,4 +1016,5 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportAction,
+    shouldReportBeInOptionList,
 };

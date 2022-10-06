@@ -211,6 +211,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
+        chatWithAccountManager: 'Chat with your account manager here',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -525,6 +526,7 @@ export default {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
+        noAccess: 'You don\'t have access to this chat',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -718,7 +720,8 @@ export default {
         headerTitle: 'Enable payments',
         activatedTitle: 'Wallet activated!',
         activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
-        checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+        checkBackLaterTitle: 'Just a minute...',
+        checkBackLaterMessage: 'We\'re still reviewing your information. Please check back later.',
         continueToPayment: 'Continue to payment',
         continueToTransfer: 'Continue to transfer',
     },
@@ -805,7 +808,6 @@ export default {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
-            growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
@@ -821,7 +823,9 @@ export default {
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
             error: {
+                genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
+                genericRemove: 'There was a problem removing that workspace member.',
             },
         },
         card: {
@@ -989,7 +993,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
-        growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
             restricted: 'Restricted',
