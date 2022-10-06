@@ -140,7 +140,7 @@ function navigate(route = ROUTES.HOME) {
     }
 
     if (route === ROUTES.HOME) {
-        if (isLoggedIn) {
+        if (isLoggedIn && pendingRoute === null) {
             openDrawer();
             return;
         }
