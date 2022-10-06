@@ -1858,7 +1858,7 @@ const styles = {
         fontSize: 15,
     },
 
-    blockViewContainer: {
+    blockingViewContainer: {
         paddingBottom: variables.contentHeaderHeight,
     },
 
