@@ -2,7 +2,6 @@ import React, {PureComponent} from 'react';
 import {
     View,
 } from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
@@ -16,9 +15,6 @@ import DateUtils from '../../../libs/DateUtils';
 const propTypes = {
     /** Personal details of the participant */
     participant: participantPropTypes.isRequired,
-
-    /** Whether a report is being transitioned to */
-    isLoading: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -65,23 +61,21 @@ class ParticipantLocalTime extends PureComponent {
 
         return (
             <View style={[styles.chatItemComposeSecondaryRow]}>
-                {!this.props.isLoading && (
-                    <Text
-                        style={[
-                            styles.chatItemComposeSecondaryRowSubText,
-                            styles.chatItemComposeSecondaryRowOffset,
-                        ]}
-                        numberOfLines={1}
-                    >
-                        {this.props.translate(
-                            'reportActionCompose.localTime',
-                            {
-                                user: reportRecipientDisplayName,
-                                time: this.state.localTime,
-                            },
-                        )}
-                    </Text>
-                )}
+                <Text
+                    style={[
+                        styles.chatItemComposeSecondaryRowSubText,
+                        styles.chatItemComposeSecondaryRowOffset,
+                    ]}
+                    numberOfLines={1}
+                >
+                    {this.props.translate(
+                        'reportActionCompose.localTime',
+                        {
+                            user: reportRecipientDisplayName,
+                            time: this.state.localTime,
+                        },
+                    )}
+                </Text>
             </View>
         );
     }
