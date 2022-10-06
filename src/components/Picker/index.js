@@ -30,7 +30,7 @@ const propTypes = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
-    /** A callback method that is called when the value changes and it received the selected value as an argument */
+    /** A callback method that is called when the value changes and it receives the selected value as an argument */
     onInputChange: PropTypes.func.isRequired,
 };
 
