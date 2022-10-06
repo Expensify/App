@@ -206,6 +206,8 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
+        const isReportLoaded = this.props.report && this.props.report.reportID === reportID;
+        const isTransitioning = !isReportLoaded;
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -249,7 +251,7 @@ class ReportScreen extends React.Component {
                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                         onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                     >
-                        {this.shouldShowLoader()
+                        {(this.shouldShowLoader() || isTransitioning)
                             ? (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewContainerHeight}
