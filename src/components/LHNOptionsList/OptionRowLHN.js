@@ -24,6 +24,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     /** Style for hovered state */
@@ -100,37 +101,40 @@ const OptionRowLHN = (props) => {
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
-        <Hoverable>
-            {hovered => (
-                <TouchableOpacity
-                    ref={el => touchableRef = el}
-                    onPress={(e) => {
-                        if (e) {
-                            e.preventDefault();
-                        }
+        <OfflineWithFeedback
+            pendingAction={optionItem.pendingAction}
+        >
+            <Hoverable>
+                {hovered => (
+                    <TouchableOpacity
+                        ref={el => touchableRef = el}
+                        onPress={(e) => {
+                            if (e) {
+                                e.preventDefault();
+                            }
 
-                        props.onSelectRow(optionItem, touchableRef);
-                    }}
-                    activeOpacity={0.8}
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentBetween,
-                        styles.sidebarLink,
-                        styles.sidebarLinkInner,
-                        StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
-                        props.isFocused ? styles.sidebarLinkActive : null,
-                        hovered && !props.isFocused ? props.hoverStyle : null,
-                    ]}
-                >
-                    <View accessibilityHint="Navigates to a chat" style={sidebarInnerRowStyle}>
-                        <View
-                            style={[
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                            ]}
-                        >
-                            {
+                            props.onSelectRow(optionItem, touchableRef);
+                        }}
+                        activeOpacity={0.8}
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            styles.sidebarLink,
+                            styles.sidebarLinkInner,
+                            StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
+                            props.isFocused ? styles.sidebarLinkActive : null,
+                            hovered && !props.isFocused ? props.hoverStyle : null,
+                        ]}
+                    >
+                        <View accessibilityHint="Navigates to a chat" style={sidebarInnerRowStyle}>
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.alignItemsCenter,
+                                ]}
+                            >
+                                {
                                 !_.isEmpty(optionItem.icons)
                                 && (
                                     optionItem.shouldShowSubscript ? (
@@ -159,34 +163,34 @@ const OptionRowLHN = (props) => {
                                     )
                                 )
                             }
-                            <View style={contentContainerStyles}>
-                                <DisplayNames
-                                    accessibilityLabel="Chat user display names"
-                                    fullTitle={optionItem.text}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={displayNameStyle}
-                                    shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
-                                />
-                                {optionItem.alternateText ? (
-                                    <Text
-                                        style={alternateTextStyle}
+                                <View style={contentContainerStyles}>
+                                    <DisplayNames
+                                        accessibilityLabel="Chat user display names"
+                                        fullTitle={optionItem.text}
+                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                        tooltipEnabled
                                         numberOfLines={1}
-                                        accessibilityLabel="Last chat message preview"
-                                    >
-                                        {optionItem.alternateText}
-                                    </Text>
-                                ) : null}
-                            </View>
-                            {optionItem.descriptiveText ? (
-                                <View style={[styles.flexWrap]}>
-                                    <Text style={[styles.textLabel]}>
-                                        {optionItem.descriptiveText}
-                                    </Text>
+                                        textStyles={displayNameStyle}
+                                        shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
+                                    />
+                                    {optionItem.alternateText ? (
+                                        <Text
+                                            style={alternateTextStyle}
+                                            numberOfLines={1}
+                                            accessibilityLabel="Last chat message preview"
+                                        >
+                                            {optionItem.alternateText}
+                                        </Text>
+                                    ) : null}
                                 </View>
-                            ) : null}
-                            {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                {optionItem.descriptiveText ? (
+                                    <View style={[styles.flexWrap]}>
+                                        <Text style={[styles.textLabel]}>
+                                            {optionItem.descriptiveText}
+                                        </Text>
+                                    </View>
+                                ) : null}
+                                {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
@@ -195,27 +199,28 @@ const OptionRowLHN = (props) => {
                                         width={variables.iconSizeSmall}
                                     />
                                 </View>
-                            )}
+                                )}
+                            </View>
                         </View>
-                    </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        {optionItem.hasDraftComment && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            {optionItem.hasDraftComment && (
                             <View style={styles.ml2}>
                                 <Icon src={Expensicons.Pencil} height={16} width={16} />
                             </View>
-                        )}
-                        {optionItem.hasOutstandingIOU && (
+                            )}
+                            {optionItem.hasOutstandingIOU && (
                             <IOUBadge iouReportID={optionItem.iouReportID} />
-                        )}
-                        {optionItem.isPinned && (
+                            )}
+                            {optionItem.isPinned && (
                             <View style={styles.ml2}>
                                 <Icon src={Expensicons.Pin} height={16} width={16} />
                             </View>
-                        )}
-                    </View>
-                </TouchableOpacity>
-            )}
-        </Hoverable>
+                            )}
+                        </View>
+                    </TouchableOpacity>
+                )}
+            </Hoverable>
+        </OfflineWithFeedback>
     );
 };
 
