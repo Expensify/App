@@ -28,7 +28,7 @@ const propTypes = {
         error: PropTypes.string,
 
         /** Is account currently being closed? */
-        isLoading: PropTypes.bool.isRequired,
+        isLoading: PropTypes.bool,
     }),
 
     /** Session of currently logged in user */
