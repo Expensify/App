@@ -865,12 +865,12 @@ function isUnread(report) {
  * @param {Object} report
  * @param {String} report.iouReportID
  * @param {String} currentUserLogin
- * @param {Object[]} iouReports
- * @param {String} iouReports[].ownerEmail
+ * @param {Object} iouReports
  * @returns {boolean}
  */
+
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
-    if (!report || !report.iouReportID || report.hasOutstandingIOU) {
+    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
     }
 
@@ -879,7 +879,11 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
         return false;
     }
 
-    return iouReport.ownerEmail !== currentUserLogin;
+    if (iouReport.ownerEmail === currentUserEmail) {
+        return false;
+    }
+
+    return report.hasOutstandingIOU;
 }
 
 /**
@@ -890,7 +894,7 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * filter out the majority of reports before filtering out very specific minority of reports.
  *
  * @param {Object} report
- * @param {String} currentlyViewedReportID
+ * @param {String} reportIDFromRoute
  * @param {Boolean} isInGSDMode
  * @param {String} currentUserLogin
  * @param {Object} iouReports
@@ -898,7 +902,7 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * @param {Object} policies
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
@@ -908,7 +912,7 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
-    if (report.reportID === currentlyViewedReportID) {
+    if (report.reportID === reportIDFromRoute) {
         return true;
     }
 
@@ -979,6 +983,7 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
+    hasOutstandingIOU,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
